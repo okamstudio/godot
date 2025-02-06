@@ -90,7 +90,11 @@ void Camera3DGizmoPlugin::set_handle(const EditorNode3DGizmo *p_gizmo, int p_id,
 
 	if (camera->get_projection() == Camera3D::PROJECTION_PERSPECTIVE) {
 		Transform3D gt2 = camera->get_global_transform();
-		float a = _find_closest_angle_to_half_pi_arc(s[0], s[1], 1.0, gt2);
+		const Size2i viewport_size = Node3DEditor::get_camera_viewport_size(camera);
+		const real_t viewport_aspect = viewport_size.x > 0 && viewport_size.y > 0 ? viewport_size.aspect() : 1.0;
+		bool keep_width = camera->get_keep_aspect_mode() == Camera3D::KeepAspect::KEEP_WIDTH;
+
+		float a = _find_closest_angle_to_half_pi_arc(s[0], s[1], 1.0, gt2, viewport_aspect, keep_width);
 		camera->set("fov", CLAMP(a * 2.0, 1, 179));
 	} else {
 		Camera3D::KeepAspect aspect = camera->get_keep_aspect_mode();
@@ -177,9 +181,11 @@ void Camera3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 		case Camera3D::PROJECTION_PERSPECTIVE: {
 			// The real FOV is halved for accurate representation
 			float fov = camera->get_fov() / 2.0;
+			bool keep_width = camera->get_keep_aspect_mode() == Camera3D::KeepAspect::KEEP_WIDTH;
+			float angle = keep_width ? Math::deg_to_rad(fov) : 2.0 * Math::atan(Math::tan(Math::deg_to_rad(fov)) * viewport_aspect);
+			float hsize = Math::sin(keep_width ? angle : angle / 2.0);
+			float depth = -Math::cos(keep_width ? angle : angle / 2.0);
 
-			const float hsize = Math::sin(Math::deg_to_rad(fov));
-			const float depth = -Math::cos(Math::deg_to_rad(fov));
 			Vector3 side = Vector3(hsize * size_factor.x, 0, depth);
 			Vector3 nside = Vector3(-side.x, side.y, side.z);
 			Vector3 up = Vector3(0, hsize * size_factor.y, 0);
@@ -189,7 +195,7 @@ void Camera3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 			ADD_TRIANGLE(Vector3(), side + up, nside + up);
 			ADD_TRIANGLE(Vector3(), side - up, nside - up);
 
-			handles.push_back(side);
+			handles.push_back(keep_width ? side : up + Vector3(0, 0, depth));
 			side.x = MIN(side.x, hsize * 0.25);
 			nside.x = -side.x;
 			Vector3 tup(0, up.y + hsize / 2, side.z);
@@ -259,7 +265,7 @@ void Camera3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 	}
 }
 
-float Camera3DGizmoPlugin::_find_closest_angle_to_half_pi_arc(const Vector3 &p_from, const Vector3 &p_to, float p_arc_radius, const Transform3D &p_arc_xform) {
+float Camera3DGizmoPlugin::_find_closest_angle_to_half_pi_arc(const Vector3 &p_from, const Vector3 &p_to, float p_arc_radius, const Transform3D &p_arc_xform, float aspect_ratio, bool keep_width) {
 	//bleh, discrete is simpler
 	static const int arc_test_points = 64;
 	float min_d = 1e20;
@@ -268,8 +274,8 @@ float Camera3DGizmoPlugin::_find_closest_angle_to_half_pi_arc(const Vector3 &p_f
 	for (int i = 0; i < arc_test_points; i++) {
 		float a = i * Math_PI * 0.5 / arc_test_points;
 		float an = (i + 1) * Math_PI * 0.5 / arc_test_points;
-		Vector3 p = Vector3(Math::cos(a), 0, -Math::sin(a)) * p_arc_radius;
-		Vector3 n = Vector3(Math::cos(an), 0, -Math::sin(an)) * p_arc_radius;
+		Vector3 p = Vector3(keep_width ? Math::cos(a) : 0, keep_width ? 0 : Math::cos(a) / aspect_ratio, -Math::sin(a)) * p_arc_radius;
+		Vector3 n = Vector3(keep_width ? Math::cos(an) : 0, keep_width ? 0 : Math::cos(an) / aspect_ratio, -Math::sin(an)) * p_arc_radius;
 
 		Vector3 ra, rb;
 		Geometry3D::get_closest_points_between_segments(p, n, p_from, p_to, ra, rb);
@@ -282,6 +288,7 @@ float Camera3DGizmoPlugin::_find_closest_angle_to_half_pi_arc(const Vector3 &p_f
 	}
 
 	//min_p = p_arc_xform.affine_inverse().xform(min_p);
-	float a = (Math_PI * 0.5) - Vector2(min_p.x, -min_p.z).angle();
+	// Adjust angle based on aspect mode
+	float a = (Math_PI * 0.5) - (keep_width ? Vector2(min_p.x, -min_p.z).angle() : Vector2(min_p.y, -min_p.z).angle());
 	return Math::rad_to_deg(a);
 }
