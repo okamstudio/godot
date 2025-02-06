@@ -40,14 +40,6 @@
 #include <type_traits>
 #include <utility>
 
-template <typename T>
-class Vector;
-class String;
-class Char16String;
-class CharString;
-template <typename T, typename V>
-class VMap;
-
 static_assert(std::is_trivially_destructible_v<std::atomic<uint64_t>>);
 
 // Silence a false positive warning (see GH-52119).
@@ -58,14 +50,6 @@ static_assert(std::is_trivially_destructible_v<std::atomic<uint64_t>>);
 
 template <typename T>
 class CowData {
-	template <typename TV>
-	friend class Vector;
-	friend class String;
-	friend class Char16String;
-	friend class CharString;
-	template <typename TV, typename VV>
-	friend class VMap;
-
 public:
 	typedef int64_t Size;
 	typedef uint64_t USize;
@@ -134,11 +118,11 @@ private:
 		return (USize *)((uint8_t *)_ptr - DATA_OFFSET + SIZE_OFFSET);
 	}
 
-	_FORCE_INLINE_ USize _get_alloc_size(USize p_elements) const {
+	_FORCE_INLINE_ static USize _get_alloc_size(USize p_elements) {
 		return next_po2(p_elements * sizeof(T));
 	}
 
-	_FORCE_INLINE_ bool _get_alloc_size_checked(USize p_elements, USize *out) const {
+	_FORCE_INLINE_ static bool _get_alloc_size_checked(USize p_elements, USize *out) {
 		if (unlikely(p_elements == 0)) {
 			*out = 0;
 			return true;
