@@ -140,6 +140,7 @@ class OS_Windows : public OS {
 	// functions used by main to initialize/deinitialize the OS
 protected:
 	virtual void initialize() override;
+	virtual void initialize_default_fs_access() override;
 
 	virtual void set_main_loop(MainLoop *p_main_loop) override;
 	virtual void delete_main_loop() override;

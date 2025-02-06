@@ -44,6 +44,7 @@
 #include "tests/core/input/test_shortcut.h"
 #include "tests/core/io/test_config_file.h"
 #include "tests/core/io/test_file_access.h"
+#include "tests/core/io/test_file_access_memory.h"
 #include "tests/core/io/test_http_client.h"
 #include "tests/core/io/test_image.h"
 #include "tests/core/io/test_ip.h"
@@ -283,6 +284,8 @@ struct GodotTestCaseListener : public doctest::IReporter {
 		String name = String(p_in.m_name);
 		String suite_name = String(p_in.m_test_suite);
 
+		OS::get_singleton()->initialize_default_fs_access();
+
 		if (name.contains("[SceneTree]") || name.contains("[Editor]")) {
 			memnew(MessageQueue);
 
@@ -306,6 +309,12 @@ struct GodotTestCaseListener : public doctest::IReporter {
 			// no residual theme from something else.
 			ThemeDB::get_singleton()->finalize_theme();
 			ThemeDB::get_singleton()->initialize_theme_noproject();
+
+			if (name.contains("[FileAccessMemory]")) {
+				FileAccessMemory::initialize();
+				DirAccess::make_default<DirAccessMemory>(DirAccess::ACCESS_RESOURCES);
+				FileAccess::make_default<FileAccessMemory>(FileAccess::ACCESS_RESOURCES);
+			}
 
 #ifndef _3D_DISABLED
 			physics_server_3d = PhysicsServer3DManager::get_singleton()->new_default_server();
@@ -382,6 +391,7 @@ struct GodotTestCaseListener : public doctest::IReporter {
 #endif // TOOLS_ENABLED
 
 		Engine::get_singleton()->set_editor_hint(false);
+		FileAccessMemory::cleanup();
 
 		if (SceneTree::get_singleton()) {
 			SceneTree::get_singleton()->finalize();

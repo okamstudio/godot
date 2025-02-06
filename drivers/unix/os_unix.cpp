@@ -154,11 +154,7 @@ int OS_Unix::unix_initialize_audio(int p_audio_driver) {
 	return 0;
 }
 
-void OS_Unix::initialize_core() {
-#ifdef THREADS_ENABLED
-	init_thread_posix();
-#endif
-
+void OS_Unix::initialize_default_fs_access() {
 	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_RESOURCES);
 	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_USERDATA);
 	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_FILESYSTEM);
@@ -166,6 +162,14 @@ void OS_Unix::initialize_core() {
 	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_RESOURCES);
 	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_USERDATA);
 	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_FILESYSTEM);
+}
+
+void OS_Unix::initialize_core() {
+#ifdef THREADS_ENABLED
+	init_thread_posix();
+#endif
+
+	initialize_default_fs_access();
 
 #ifndef UNIX_SOCKET_UNAVAILABLE
 	NetSocketUnix::make_default();

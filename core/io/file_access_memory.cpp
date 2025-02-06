@@ -33,29 +33,21 @@
 #include "core/config/project_settings.h"
 
 static HashMap<String, Vector<uint8_t>> *files = nullptr;
+const static PackedByteArray DIRECTORY = String("<DIRECTORY>").to_utf8_buffer();
 
-void FileAccessMemory::register_file(const String &p_name, const Vector<uint8_t> &p_data) {
-	if (!files) {
-		files = memnew((HashMap<String, Vector<uint8_t>>));
+void FileAccessMemory::initialize() {
+	if (files) {
+		cleanup();
 	}
-
-	String name;
-	if (ProjectSettings::get_singleton()) {
-		name = ProjectSettings::get_singleton()->globalize_path(p_name);
-	} else {
-		name = p_name;
-	}
-	//name = DirAccess::normalize_path(name);
-
-	(*files)[name] = p_data;
+	files = memnew((HashMap<String, Vector<uint8_t>>));
 }
 
 void FileAccessMemory::cleanup() {
 	if (!files) {
 		return;
 	}
-
 	memdelete(files);
+	files = nullptr;
 }
 
 Ref<FileAccess> FileAccessMemory::create() {
@@ -63,15 +55,17 @@ Ref<FileAccess> FileAccessMemory::create() {
 }
 
 bool FileAccessMemory::file_exists(const String &p_name) {
-	String name = fix_path(p_name);
-	//name = DirAccess::normalize_path(name);
-
-	return files && (files->find(name) != nullptr);
+	return files->has(p_name);
 }
 
 Error FileAccessMemory::open_custom(const uint8_t *p_data, uint64_t p_len) {
-	data = (uint8_t *)p_data;
-	length = p_len;
+	if (!files) {
+		initialize();
+	}
+	current_file = "__temp__";
+	files->erase(current_file);
+	open_internal(current_file, FileAccess::WRITE);
+	store_buffer(p_data, p_len);
 	pos = 0;
 	return OK;
 }
@@ -79,45 +73,44 @@ Error FileAccessMemory::open_custom(const uint8_t *p_data, uint64_t p_len) {
 Error FileAccessMemory::open_internal(const String &p_path, int p_mode_flags) {
 	ERR_FAIL_NULL_V(files, ERR_FILE_NOT_FOUND);
 
-	String name = fix_path(p_path);
-	//name = DirAccess::normalize_path(name);
+	String name = p_path.simplify_path();
+
+	if (p_mode_flags & WRITE) {
+		files->insert(name, PackedByteArray());
+	}
 
 	HashMap<String, Vector<uint8_t>>::Iterator E = files->find(name);
-	ERR_FAIL_COND_V_MSG(!E, ERR_FILE_NOT_FOUND, vformat("Can't find file '%s'.", p_path));
-
-	data = E->value.ptrw();
-	length = E->value.size();
+	ERR_FAIL_COND_V_MSG(!E, ERR_FILE_NOT_FOUND, vformat("Can't find file '%s'.", name));
+	current_file = name;
 	pos = 0;
 
 	return OK;
 }
 
 bool FileAccessMemory::is_open() const {
-	return data != nullptr;
+	return !current_file.is_empty();
 }
 
 void FileAccessMemory::seek(uint64_t p_position) {
-	ERR_FAIL_NULL(data);
 	pos = p_position;
 }
 
 void FileAccessMemory::seek_end(int64_t p_position) {
-	ERR_FAIL_NULL(data);
-	pos = length + p_position;
+	pos = get_length() + p_position;
 }
 
 uint64_t FileAccessMemory::get_position() const {
-	ERR_FAIL_NULL_V(data, 0);
+	ERR_FAIL_COND_V(current_file.is_empty(), 0);
 	return pos;
 }
 
 uint64_t FileAccessMemory::get_length() const {
-	ERR_FAIL_NULL_V(data, 0);
-	return length;
+	ERR_FAIL_COND_V(current_file.is_empty(), 0);
+	return files->get(current_file).size();
 }
 
 bool FileAccessMemory::eof_reached() const {
-	return pos >= length;
+	return pos >= get_length();
 }
 
 uint64_t FileAccessMemory::get_buffer(uint8_t *p_dst, uint64_t p_length) const {
@@ -126,43 +119,155 @@ uint64_t FileAccessMemory::get_buffer(uint8_t *p_dst, uint64_t p_length) const {
 	}
 
 	ERR_FAIL_NULL_V(p_dst, -1);
-	ERR_FAIL_NULL_V(data, -1);
+	ERR_FAIL_COND_V(current_file.is_empty(), -1);
 
-	uint64_t left = length - pos;
+	uint64_t left = get_length() - pos;
 	uint64_t read = MIN(p_length, left);
 
 	if (read < p_length) {
 		WARN_PRINT("Reading less data than requested");
 	}
 
-	memcpy(p_dst, &data[pos], read);
+	memcpy(p_dst, files->get(current_file).ptrw() + pos, read);
 	pos += read;
 
 	return read;
 }
 
 Error FileAccessMemory::get_error() const {
-	return pos >= length ? ERR_FILE_EOF : OK;
+	return pos >= get_length() ? ERR_FILE_EOF : OK;
 }
 
 void FileAccessMemory::flush() {
-	ERR_FAIL_NULL(data);
+	ERR_FAIL_COND_MSG(current_file.is_empty(), "No opened file");
 }
 
 bool FileAccessMemory::store_buffer(const uint8_t *p_src, uint64_t p_length) {
-	if (!p_length) {
-		return true;
+	ERR_FAIL_COND_V(!p_src && p_length > 0, false);
+
+	PackedByteArray &p = files->get(current_file);
+	uint64_t length = get_length();
+	if (pos + p_length > length) {
+		p.resize(pos + p_length);
+	}
+	uint8_t *dst = p.ptrw() + pos;
+	memcpy(dst, p_src, p_length * sizeof(uint8_t));
+
+	pos += p_length;
+	return true;
+}
+
+Error DirAccessMemory::list_dir_begin() {
+	list_items.clear();
+	for (auto f = files->begin(); f != files->end(); ++f) {
+		if (f->key.begins_with(current_dir)) {
+			String rest = f->key.substr(current_dir.length());
+			if (rest.begins_with("/")) {
+				rest = rest.substr(1);
+			}
+			if (!rest.is_empty()) {
+				list_items.push_back(rest);
+			}
+		}
+	}
+	return Error();
+}
+
+String DirAccessMemory::get_next() {
+	if (list_items.size()) {
+		current_item = list_items.front()->get();
+		list_items.pop_front();
+		return current_item;
+	}
+	return String();
+}
+
+bool DirAccessMemory::current_is_dir() const {
+	String name = current_dir.path_join(current_item);
+	return files->has(name) && files->get(name) == DIRECTORY;
+}
+
+bool DirAccessMemory::current_is_hidden() const {
+	return false;
+}
+
+void DirAccessMemory::list_dir_end() {
+	current_item = "";
+	list_items.clear();
+}
+
+int DirAccessMemory::get_drive_count() {
+	return 0;
+}
+
+String DirAccessMemory::get_drive(int p_drive) {
+	return "";
+}
+
+Error DirAccessMemory::change_dir(String p_dir) {
+	String name = p_dir;
+	if (name.is_relative_path()) {
+		name = current_dir.path_join(name);
+	}
+	name = name.simplify_path();
+	if (name == "res://") {
+		files->insert(name, DIRECTORY);
 	}
 
-	ERR_FAIL_NULL_V(p_src, false);
+	if (dir_exists(name)) {
+		current_dir = name;
+		return OK;
+	}
 
-	uint64_t left = length - pos;
-	uint64_t write = MIN(p_length, left);
+	return ERR_INVALID_PARAMETER;
+}
 
-	memcpy(&data[pos], p_src, write);
-	pos += write;
+String DirAccessMemory::get_current_dir(bool p_include_drive) const {
+	return current_dir;
+}
 
-	ERR_FAIL_COND_V_MSG(write < p_length, false, "Writing less data than requested.");
+String DirAccessMemory::_localize(const String &p_name) const {
+	String result = p_name;
+	if (result.is_relative_path()) {
+		result = current_dir.path_join(result);
+	}
+	result = result.simplify_path();
+	return result;
+}
 
-	return true;
+bool DirAccessMemory::file_exists(String p_file) {
+	String name = _localize(p_file);
+	return files->has(name) && files->get(name) != DIRECTORY;
+}
+
+bool DirAccessMemory::dir_exists(String p_dir) {
+	String name = _localize(p_dir);
+	return files->has(name) && files->get(name) == DIRECTORY;
+}
+
+Error DirAccessMemory::make_dir(String p_dir) {
+	String name = _localize(p_dir);
+	if (!dir_exists(name.get_base_dir())) {
+		return ERR_CANT_CREATE;
+	}
+	files->insert(name, DIRECTORY);
+	return OK;
+}
+
+Error DirAccessMemory::rename(String p_from, String p_to) {
+	return ERR_UNAVAILABLE;
+}
+
+Error DirAccessMemory::remove(String p_name) {
+	String name = _localize(p_name);
+	files->erase(name);
+	return OK;
+}
+
+uint64_t DirAccessMemory::get_space_left() {
+	return 0;
+}
+
+String DirAccessMemory::get_filesystem_type() const {
+	return "MEMORY";
 }

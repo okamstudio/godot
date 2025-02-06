@@ -31,17 +31,17 @@
 #ifndef FILE_ACCESS_MEMORY_H
 #define FILE_ACCESS_MEMORY_H
 
+#include "core/io/dir_access.h"
 #include "core/io/file_access.h"
 
 class FileAccessMemory : public FileAccess {
-	uint8_t *data = nullptr;
-	uint64_t length = 0;
+	String current_file;
 	mutable uint64_t pos = 0;
 
 	static Ref<FileAccess> create();
 
 public:
-	static void register_file(const String &p_name, const Vector<uint8_t> &p_data);
+	static void initialize();
 	static void cleanup();
 
 	virtual Error open_custom(const uint8_t *p_data, uint64_t p_len); ///< open a file
@@ -77,6 +77,45 @@ public:
 	virtual void close() override {}
 
 	FileAccessMemory() {}
+};
+
+class DirAccessMemory : public DirAccess {
+	String current_dir;
+	List<String> list_items;
+	String current_item;
+
+	String _localize(const String &p_name) const;
+
+public:
+	virtual Error list_dir_begin() override;
+	virtual String get_next() override;
+	virtual bool current_is_dir() const override;
+	virtual bool current_is_hidden() const override;
+	virtual void list_dir_end() override;
+
+	virtual int get_drive_count() override;
+	virtual String get_drive(int p_drive) override;
+
+	virtual Error change_dir(String p_dir) override;
+	virtual String get_current_dir(bool p_include_drive = true) const override;
+
+	virtual bool file_exists(String p_file) override;
+	virtual bool dir_exists(String p_dir) override;
+
+	virtual Error make_dir(String p_dir) override;
+
+	virtual Error rename(String p_from, String p_to) override;
+	virtual Error remove(String p_name) override;
+
+	uint64_t get_space_left() override;
+
+	virtual bool is_link(String p_file) override { return false; }
+	virtual String read_link(String p_file) override { return p_file; }
+	virtual Error create_link(String p_source, String p_target) override { return FAILED; }
+
+	virtual String get_filesystem_type() const override;
+
+	DirAccessMemory() {}
 };
 
 #endif // FILE_ACCESS_MEMORY_H

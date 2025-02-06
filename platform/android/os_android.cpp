@@ -83,9 +83,7 @@ void OS_Android::alert(const String &p_alert, const String &p_title) {
 	godot_java->alert(p_alert, p_title);
 }
 
-void OS_Android::initialize_core() {
-	OS_Unix::initialize_core();
-
+void OS_Android::initialize_default_fs_access() {
 #ifdef TOOLS_ENABLED
 	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_RESOURCES);
 #else
@@ -109,7 +107,11 @@ void OS_Android::initialize_core() {
 #endif
 	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_USERDATA);
 	DirAccess::make_default<DirAccessJAndroid>(DirAccess::ACCESS_FILESYSTEM);
+}
 
+void OS_Android::initialize_core() {
+	OS_Unix::initialize_core();
+	initialize_default_fs_access();
 	NetSocketAndroid::make_default();
 }
 

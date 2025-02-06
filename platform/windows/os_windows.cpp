@@ -241,6 +241,16 @@ static void _error_handler(void *p_self, const char *p_func, const char *p_file,
 }
 #endif
 
+void OS_Windows::initialize_default_fs_access() {
+	FileAccess::make_default<FileAccessWindows>(FileAccess::ACCESS_RESOURCES);
+	FileAccess::make_default<FileAccessWindows>(FileAccess::ACCESS_USERDATA);
+	FileAccess::make_default<FileAccessWindows>(FileAccess::ACCESS_FILESYSTEM);
+	FileAccess::make_default<FileAccessWindowsPipe>(FileAccess::ACCESS_PIPE);
+	DirAccess::make_default<DirAccessWindows>(DirAccess::ACCESS_RESOURCES);
+	DirAccess::make_default<DirAccessWindows>(DirAccess::ACCESS_USERDATA);
+	DirAccess::make_default<DirAccessWindows>(DirAccess::ACCESS_FILESYSTEM);
+}
+
 void OS_Windows::initialize() {
 	crash_handler.initialize();
 
@@ -254,13 +264,7 @@ void OS_Windows::initialize() {
 	init_thread_win();
 #endif
 
-	FileAccess::make_default<FileAccessWindows>(FileAccess::ACCESS_RESOURCES);
-	FileAccess::make_default<FileAccessWindows>(FileAccess::ACCESS_USERDATA);
-	FileAccess::make_default<FileAccessWindows>(FileAccess::ACCESS_FILESYSTEM);
-	FileAccess::make_default<FileAccessWindowsPipe>(FileAccess::ACCESS_PIPE);
-	DirAccess::make_default<DirAccessWindows>(DirAccess::ACCESS_RESOURCES);
-	DirAccess::make_default<DirAccessWindows>(DirAccess::ACCESS_USERDATA);
-	DirAccess::make_default<DirAccessWindows>(DirAccess::ACCESS_FILESYSTEM);
+	initialize_default_fs_access();
 
 	NetSocketWinSock::make_default();
 

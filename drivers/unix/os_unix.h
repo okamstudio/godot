@@ -49,6 +49,7 @@ protected:
 	// inheriting platforms under unix (eg. X11) should handle the rest
 
 	virtual void initialize_core();
+	virtual void initialize_default_fs_access() override;
 	virtual int unix_initialize_audio(int p_audio_driver);
 
 	virtual void finalize_core() override;
