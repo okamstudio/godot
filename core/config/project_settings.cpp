@@ -738,6 +738,21 @@ Error ProjectSettings::_setup(const String &p_path, const String &p_main_pack, b
 Error ProjectSettings::setup(const String &p_path, const String &p_main_pack, bool p_upwards, bool p_ignore_override) {
 	Error err = _setup(p_path, p_main_pack, p_upwards, p_ignore_override);
 	if (err == OK && !p_ignore_override) {
+		String patches_config = GLOBAL_GET("application/config/patches_config");
+		if (!patches_config.is_empty()) {
+			Ref<ConfigFile> config;
+			config.instantiate();
+			if (config->load(patches_config) == OK && config->has_section("patches")) {
+				String path = String(config->get_value("patches", "path", patches_config.get_base_dir()));
+				PackedStringArray files = PackedStringArray(config->get_value("patches", "files"));
+				if (!files.is_empty()) {
+					for (const String &file : files) {
+						_load_resource_pack(path.path_join(file));
+					}
+					_load_settings_text_or_binary("res://project.godot", "res://project.binary");
+				}
+			}
+		}
 		String custom_settings = GLOBAL_GET("application/config/project_settings_override");
 		if (!custom_settings.is_empty()) {
 			_load_settings_text(custom_settings);
@@ -1501,6 +1516,7 @@ ProjectSettings::ProjectSettings() {
 	GLOBAL_DEF("application/config/use_custom_user_dir", false);
 	GLOBAL_DEF("application/config/custom_user_dir_name", "");
 	GLOBAL_DEF("application/config/project_settings_override", "");
+	GLOBAL_DEF("application/config/patches_config", "");
 
 	GLOBAL_DEF("application/run/main_loop_type", "SceneTree");
 	GLOBAL_DEF("application/config/auto_accept_quit", true);

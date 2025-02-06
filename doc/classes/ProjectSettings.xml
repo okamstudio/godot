@@ -286,6 +286,9 @@
 		<member name="application/config/name_localized" type="Dictionary" setter="" getter="" default="{}">
 			Translations of the project's name. This setting is used by OS tools to translate application name on Android, iOS and macOS.
 		</member>
+		<member name="application/config/patches_config" type="String" setter="" getter="" default="&quot;&quot;">
+			Specifies a configuration file for load patches. For example: [code]user://patches.cfg[/code]. This file must contain a "patches" section with a "files" key. Optional "path" key can be used if the patches are not in the same folder as the configuration file.
+		</member>
 		<member name="application/config/project_settings_override" type="String" setter="" getter="" default="&quot;&quot;">
 			Specifies a file to override project settings. For example: [code]user://custom_settings.cfg[/code]. See "Overriding" in the [ProjectSettings] class description at the top for more information.
 			[b]Note:[/b] Regardless of this setting's value, [code]res://override.cfg[/code] will still be read to override the project settings.
