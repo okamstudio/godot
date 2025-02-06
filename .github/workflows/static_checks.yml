@@ -1,6 +1,7 @@
 name: 📊 Static Checks
 on:
   workflow_call:
+  workflow_dispatch:
 
 jobs:
   static-checks:

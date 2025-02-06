@@ -1,6 +1,7 @@
 name: 🏁 Windows Builds
 on:
   workflow_call:
+  workflow_dispatch:
 
 # Global Settings
 # SCONS_CACHE for windows must be set in the build environment

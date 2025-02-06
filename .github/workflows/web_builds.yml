@@ -1,6 +1,7 @@
 name: 🌐 Web Builds
 on:
   workflow_call:
+  workflow_dispatch:
 
 # Global Settings
 env:
