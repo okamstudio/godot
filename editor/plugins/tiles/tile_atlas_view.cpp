@@ -339,21 +339,31 @@ void TileAtlasView::_draw_base_tiles_texture_grid() {
 
 		Size2i grid_size = tile_set_atlas_source->get_atlas_grid_size();
 
-		// Draw each tile texture region.
+		// Draw the grid.
+		for (int x = 0; x <= grid_size.x; x++) {
+			Vector2i origin = margins + (Vector2i(x, 0) * (texture_region_size + separation));
+			Vector2i destination = margins + (Vector2i(x, grid_size.y) * (texture_region_size + separation));
+
+			base_tiles_texture_grid->draw_line(origin, destination, Color(0.7, 0.7, 0.7, 0.1), 1, false);
+		}
+		for (int y = 0; y <= grid_size.y; y++) {
+			Vector2i origin = margins + (Vector2i(0, y) * (texture_region_size + separation));
+			Vector2i destination = margins + (Vector2i(grid_size.x, y) * (texture_region_size + separation));
+
+			base_tiles_texture_grid->draw_line(origin, destination, Color(0.7, 0.7, 0.7, 0.1), 1, false);
+		}
+
+		// Draw existing tiles.
 		for (int x = 0; x < grid_size.x; x++) {
 			for (int y = 0; y < grid_size.y; y++) {
 				Vector2i origin = margins + (Vector2i(x, y) * (texture_region_size + separation));
 				Vector2i base_tile_coords = tile_set_atlas_source->get_tile_at_coords(Vector2i(x, y));
 				if (base_tile_coords != TileSetSource::INVALID_ATLAS_COORDS) {
 					if (base_tile_coords == Vector2i(x, y)) {
-						// Draw existing tile.
 						Vector2i size_in_atlas = tile_set_atlas_source->get_tile_size_in_atlas(base_tile_coords);
 						Vector2 region_size = texture_region_size * size_in_atlas + separation * (size_in_atlas - Vector2i(1, 1));
 						base_tiles_texture_grid->draw_rect(Rect2i(origin, region_size), Color(1.0, 1.0, 1.0, 0.8), false);
 					}
-				} else {
-					// Draw the grid.
-					base_tiles_texture_grid->draw_rect(Rect2i(origin, texture_region_size), Color(0.7, 0.7, 0.7, 0.1), false);
 				}
 			}
 		}
