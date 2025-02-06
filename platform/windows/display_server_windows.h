@@ -653,6 +653,7 @@ class DisplayServerWindows : public DisplayServer {
 	void _set_mouse_mode_impl(MouseMode p_mode);
 	WindowID _get_focused_window_or_popup() const;
 	void _register_raw_input_devices(WindowID p_target_window);
+	bool _has_moving_window() const;
 
 	void _process_activate_event(WindowID p_window_id);
 	void _process_key_events();

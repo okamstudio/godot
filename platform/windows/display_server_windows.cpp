@@ -187,7 +187,12 @@ void DisplayServerWindows::_set_mouse_mode_impl(MouseMode p_mode) {
 		}
 	} else {
 		// Mouse is free to move around (not captured or confined).
-		ReleaseCapture();
+		// When the user is moving a window, it's important to not ReleaseCapture because it will cause
+		// the window movement to stop and if the user tries to move the Windows when it's not activated,
+		// it will prevent the window movement. It's probably impossible to move the Window while it's captured anyway.
+		if (!_has_moving_window()) {
+			ReleaseCapture();
+		}
 		ClipCursor(nullptr);
 
 		_register_raw_input_devices(INVALID_WINDOW_ID);
@@ -208,6 +213,15 @@ DisplayServer::WindowID DisplayServerWindows::_get_focused_window_or_popup() con
 	}
 
 	return last_focused_window;
+}
+
+bool DisplayServerWindows::_has_moving_window() const {
+	for (const KeyValue<WindowID, WindowData> &E : windows) {
+		if (E.value.move_timer_id) {
+			return true;
+		}
+	}
+	return false;
 }
 
 void DisplayServerWindows::_register_raw_input_devices(WindowID p_target_window) {
@@ -5649,6 +5663,9 @@ LRESULT DisplayServerWindows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 		case WM_EXITSIZEMOVE: {
 			KillTimer(windows[window_id].hWnd, windows[window_id].move_timer_id);
 			windows[window_id].move_timer_id = 0;
+			// Reset the correct mouse mode because we couldn't call ReleaseCapture in
+			// _set_mouse_mode_impl while in _process_activate_event (because the user was moving a window).
+			_set_mouse_mode_impl(mouse_mode);
 		} break;
 		case WM_TIMER: {
 			if (wParam == windows[window_id].move_timer_id) {
@@ -5849,7 +5866,13 @@ void DisplayServerWindows::_process_activate_event(WindowID p_window_id) {
 		Input::get_singleton()->release_pressed_events();
 		track_mouse_leave_event(wd.hWnd);
 		// Release capture unconditionally because it can be set due to dragging, in addition to captured mode.
-		ReleaseCapture();
+		// When the user is moving a window, it's important to not ReleaseCapture because it will cause
+		// the window movement to stop and if the user tries to move the Windows when it's not activated,
+		// it will prevent the window movement. If we are here and a window is moving, it's because we had multiple
+		// opened windows in the editor and we are definitively not in a middle of dragging.
+		if (!_has_moving_window()) {
+			ReleaseCapture();
+		}
 		wd.window_focused = false;
 		_send_window_event(wd, WINDOW_EVENT_FOCUS_OUT);
 	}
