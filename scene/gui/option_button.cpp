@@ -397,19 +397,6 @@ void OptionButton::_select(int p_which, bool p_emit) {
 	}
 }
 
-void OptionButton::_select_int(int p_which) {
-	if (p_which < NONE_SELECTED) {
-		return;
-	}
-	if (p_which >= popup->get_item_count()) {
-		if (!initialized) {
-			queued_current = p_which;
-		}
-		return;
-	}
-	_select(p_which, false);
-}
-
 void OptionButton::_refresh_size_cache() {
 	cache_refresh_pending = false;
 
@@ -525,7 +512,6 @@ void OptionButton::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_selected_id"), &OptionButton::get_selected_id);
 	ClassDB::bind_method(D_METHOD("get_selected_metadata"), &OptionButton::get_selected_metadata);
 	ClassDB::bind_method(D_METHOD("remove_item", "idx"), &OptionButton::remove_item);
-	ClassDB::bind_method(D_METHOD("_select_int", "idx"), &OptionButton::_select_int);
 
 	ClassDB::bind_method(D_METHOD("get_popup"), &OptionButton::get_popup);
 	ClassDB::bind_method(D_METHOD("show_popup"), &OptionButton::show_popup);
@@ -540,7 +526,7 @@ void OptionButton::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_allow_reselect"), &OptionButton::get_allow_reselect);
 	ClassDB::bind_method(D_METHOD("set_disable_shortcuts", "disabled"), &OptionButton::set_disable_shortcuts);
 
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "selected"), "_select_int", "get_selected");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "selected"), "", "get_selected");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "fit_to_longest_item"), "set_fit_to_longest_item", "is_fit_to_longest_item");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "allow_reselect"), "set_allow_reselect", "get_allow_reselect");
 	ADD_ARRAY_COUNT("Items", "item_count", "set_item_count", "get_item_count", "popup/item_");

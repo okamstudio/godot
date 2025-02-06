@@ -222,7 +222,7 @@
 		<member name="item_count" type="int" setter="set_item_count" getter="get_item_count" default="0">
 			The number of items to select from.
 		</member>
-		<member name="selected" type="int" setter="_select_int" getter="get_selected" default="-1">
+		<member name="selected" type="int" setter="" getter="get_selected" default="-1">
 			The index of the currently selected item, or [code]-1[/code] if no item is selected.
 		</member>
 		<member name="toggle_mode" type="bool" setter="set_toggle_mode" getter="is_toggle_mode" overrides="BaseButton" default="true" />
