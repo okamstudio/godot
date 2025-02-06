@@ -8,6 +8,7 @@
 		For the list of global functions and constants that can be accessed in any scripting language, see [@GlobalScope].
 	</description>
 	<tutorials>
+		<link title="GDScript basics">$DOCS_URL/tutorials/scripting/gdscript/gdscript_basics.html</link>
 		<link title="GDScript exports">$DOCS_URL/tutorials/scripting/gdscript/gdscript_exports.html</link>
 	</tutorials>
 	<methods>
@@ -221,6 +222,7 @@
 				[code]range(b: int, n: int, s: int)[/code]: Starts from [code]b[/code], increases/decreases by steps of [code]s[/code], and stops [i]before[/i] [code]n[/code]. The arguments [code]b[/code] and [code]n[/code] are [b]inclusive[/b] and [b]exclusive[/b], respectively. The argument [code]s[/code] [b]can[/b] be negative, but not [code]0[/code]. If [code]s[/code] is [code]0[/code], an error message is printed.
 				[method range] converts all arguments to [int] before processing.
 				[b]Note:[/b] Returns an empty array if no value meets the value constraint (e.g. [code]range(2, 5, -1)[/code] or [code]range(5, 5, 1)[/code]).
+				[b]Note:[/b] If [method range] is used in a [code]for[/code] loop, the array is not allocated.
 				[b]Examples:[/b]
 				[codeblock]
 				print(range(4))        # Prints [0, 1, 2, 3]
