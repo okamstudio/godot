@@ -2608,6 +2608,7 @@ void EditorThemeManager::_generate_text_editor_defaults(ThemeConfiguration &p_co
 	const Color function_color =                  p_config.dark_theme ? Color(0.34, 0.7, 1.0) : Color(0, 0.225, 0.9, 1);
 	const Color member_variable_color =           p_config.dark_theme ? Color(0.34, 0.7, 1.0).lerp(p_config.mono_color, 0.6) : Color(0, 0.4, 0.68, 1);
 	const Color mark_color =                      Color(p_config.error_color.r, p_config.error_color.g, p_config.error_color.b, 0.3);
+	const Color warning_color =                   Color(p_config.warning_color.r, p_config.warning_color.g, p_config.warning_color.b, 0.3);
 	const Color bookmark_color =                  Color(0.08, 0.49, 0.98);
 	const Color breakpoint_color =                p_config.dark_theme ? p_config.error_color : Color(1, 0.27, 0.2, 1);
 	const Color executing_line_color =            Color(0.98, 0.89, 0.27);
@@ -2651,6 +2652,7 @@ void EditorThemeManager::_generate_text_editor_defaults(ThemeConfiguration &p_co
 	setting->set_initial_value("text_editor/theme/highlighting/function_color",                  function_color, true);
 	setting->set_initial_value("text_editor/theme/highlighting/member_variable_color",           member_variable_color, true);
 	setting->set_initial_value("text_editor/theme/highlighting/mark_color",                      mark_color, true);
+	setting->set_initial_value("text_editor/theme/highlighting/warning_color",                   warning_color, true);
 	setting->set_initial_value("text_editor/theme/highlighting/bookmark_color",                  bookmark_color, true);
 	setting->set_initial_value("text_editor/theme/highlighting/breakpoint_color",                breakpoint_color, true);
 	setting->set_initial_value("text_editor/theme/highlighting/executing_line_color",            executing_line_color, true);
