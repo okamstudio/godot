@@ -31,9 +31,9 @@
 #ifndef HASH_MAP_H
 #define HASH_MAP_H
 
-#include "core/os/memory.h"
 #include "core/templates/hashfuncs.h"
 #include "core/templates/pair.h"
+#include "core/templates/typed_static_block_allocator.h"
 
 #include <initializer_list>
 
@@ -66,7 +66,7 @@ bool _hashmap_variant_less_than(const Variant &p_left, const Variant &p_right);
 template <typename TKey, typename TValue,
 		typename Hasher = HashMapHasherDefault,
 		typename Comparator = HashMapComparatorDefault<TKey>,
-		typename Allocator = DefaultTypedAllocator<HashMapElement<TKey, TValue>>>
+		typename Allocator = TypedStaticBlockAllocator<HashMapElement<TKey, TValue>>>
 class HashMap {
 public:
 	static constexpr uint32_t MIN_CAPACITY_INDEX = 2; // Use a prime.

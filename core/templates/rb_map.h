@@ -32,8 +32,8 @@
 #define RB_MAP_H
 
 #include "core/error/error_macros.h"
-#include "core/os/memory.h"
 #include "core/templates/pair.h"
+#include "core/templates/typed_static_block_allocator.h"
 
 #include <initializer_list>
 
@@ -197,6 +197,7 @@ private:
 	struct _Data {
 		Element *_root = nullptr;
 		Element *_nil = nullptr;
+		TypedStaticBlockAllocator<Element> element_alloc;
 		int size_cache = 0;
 
 		_FORCE_INLINE_ _Data() {
@@ -210,14 +211,14 @@ private:
 		}
 
 		void _create_root() {
-			_root = memnew_allocator(Element(KeyValue<K, V>(K(), V())), A);
+			_root = element_alloc.new_allocation(Element(KeyValue<K, V>(K(), V())));
 			_root->parent = _root->left = _root->right = _nil;
 			_root->color = BLACK;
 		}
 
 		void _free_root() {
 			if (_root) {
-				memdelete_allocator<Element, A>(_root);
+				element_alloc.delete_allocation(_root);
 				_root = nullptr;
 			}
 		}
@@ -426,7 +427,7 @@ private:
 		}
 
 		typedef KeyValue<K, V> KV;
-		Element *new_node = memnew_allocator(Element(KV(p_key, p_value)), A);
+		Element *new_node = _data.element_alloc.new_allocation(Element(KV(p_key, p_value)));
 		new_node->parent = new_parent;
 		new_node->right = _data._nil;
 		new_node->left = _data._nil;
@@ -562,7 +563,7 @@ private:
 			p_node->_prev->_next = p_node->_next;
 		}
 
-		memdelete_allocator<Element, A>(p_node);
+		_data.element_alloc.delete_allocation(p_node);
 		_data.size_cache--;
 		ERR_FAIL_COND(_data._nil->color == RED);
 	}
@@ -587,7 +588,7 @@ private:
 
 		_cleanup_tree(p_element->left);
 		_cleanup_tree(p_element->right);
-		memdelete_allocator<Element, A>(p_element);
+		_data.element_alloc.delete_allocation(p_element);
 	}
 
 	void _copy_from(const RBMap &p_map) {
