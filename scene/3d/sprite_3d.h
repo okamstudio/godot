@@ -103,7 +103,7 @@ protected:
 	void _notification(int p_what);
 	static void _bind_methods();
 	virtual void _draw() = 0;
-	void draw_texture_rect(Ref<Texture2D> p_texture, Rect2 p_dst_rect, Rect2 p_src_rect);
+	void draw_texture_rect(Ref<Texture2D> p_texture, Rect2 p_dst_rect, Rect2 p_src_rect, bool p_texture_repeat = false);
 	_FORCE_INLINE_ void set_aabb(const AABB &p_aabb) { aabb = p_aabb; }
 	_FORCE_INLINE_ RID &get_mesh() { return mesh; }
 	_FORCE_INLINE_ RID &get_material() { return material; }

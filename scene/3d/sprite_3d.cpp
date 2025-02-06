@@ -87,7 +87,7 @@ void SpriteBase3D::_notification(int p_what) {
 	}
 }
 
-void SpriteBase3D::draw_texture_rect(Ref<Texture2D> p_texture, Rect2 p_dst_rect, Rect2 p_src_rect) {
+void SpriteBase3D::draw_texture_rect(Ref<Texture2D> p_texture, Rect2 p_dst_rect, Rect2 p_src_rect, bool p_texture_repeat) {
 	ERR_FAIL_COND(p_texture.is_null());
 
 	Rect2 final_rect;
@@ -268,7 +268,7 @@ void SpriteBase3D::draw_texture_rect(Ref<Texture2D> p_texture, Rect2 p_dst_rect,
 	}
 
 	RID shader_rid;
-	StandardMaterial3D::get_material_for_2d(get_draw_flag(FLAG_SHADED), mat_transparency, get_draw_flag(FLAG_DOUBLE_SIDED), get_billboard_mode() == StandardMaterial3D::BILLBOARD_ENABLED, get_billboard_mode() == StandardMaterial3D::BILLBOARD_FIXED_Y, false, get_draw_flag(FLAG_DISABLE_DEPTH_TEST), get_draw_flag(FLAG_FIXED_SIZE), get_texture_filter(), alpha_antialiasing_mode, &shader_rid);
+	StandardMaterial3D::get_material_for_2d(get_draw_flag(FLAG_SHADED), mat_transparency, get_draw_flag(FLAG_DOUBLE_SIDED), get_billboard_mode() == StandardMaterial3D::BILLBOARD_ENABLED, get_billboard_mode() == StandardMaterial3D::BILLBOARD_FIXED_Y, false, get_draw_flag(FLAG_DISABLE_DEPTH_TEST), get_draw_flag(FLAG_FIXED_SIZE), get_texture_filter(), alpha_antialiasing_mode, p_texture_repeat, &shader_rid);
 
 	if (last_shader != shader_rid) {
 		RS::get_singleton()->material_set_shader(get_material(), shader_rid);
@@ -771,10 +771,13 @@ void Sprite3D::_draw() {
 	}
 
 	Rect2 base_rect;
+	bool texture_repeat;
 	if (region) {
 		base_rect = region_rect;
+		texture_repeat = (region_rect.size.x > texture->get_width()) || (region_rect.size.y > texture->get_height());
 	} else {
 		base_rect = Rect2(0, 0, texture->get_width(), texture->get_height());
+		texture_repeat = false;
 	}
 
 	Size2 frame_size = base_rect.size / Size2(hframes, vframes);
@@ -788,7 +791,7 @@ void Sprite3D::_draw() {
 	Rect2 src_rect(base_rect.position + frame_offset, frame_size);
 	Rect2 dst_rect(dst_offset, frame_size);
 
-	draw_texture_rect(texture, dst_rect, src_rect);
+	draw_texture_rect(texture, dst_rect, src_rect, texture_repeat);
 }
 
 void Sprite3D::set_texture(const Ref<Texture2D> &p_texture) {
@@ -1028,7 +1031,7 @@ void AnimatedSprite3D::_draw() {
 
 	Rect2 dst_rect(ofs, tsize);
 
-	draw_texture_rect(texture, dst_rect, src_rect);
+	draw_texture_rect(texture, dst_rect, src_rect, false);
 }
 
 void AnimatedSprite3D::_validate_property(PropertyInfo &p_property) const {
