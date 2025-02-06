@@ -4341,6 +4341,17 @@ int Main::start() {
 uint64_t Main::last_ticks = 0;
 uint32_t Main::frames = 0;
 uint32_t Main::hide_print_fps_attempts = 3;
+
+// The first rendered frames' frametimes are significantly inflated regardless
+// of V-Sync mode, so discard them in the FPS summary (but count them in the total number
+// of rendered frames).
+const int PRINT_FPS_DISCARDED_FRAMES = 10;
+
+Vector<uint32_t> print_fps_frametimes;
+// Used to determine the duration over which frames were rendered.
+uint32_t print_fps_first_frame_ticks = 0;
+uint32_t print_fps_last_frame_ticks = 0;
+
 uint32_t Main::frame = 0;
 bool Main::force_redraw_requested = false;
 int Main::iterating = 0;
@@ -4499,6 +4510,17 @@ bool Main::iteration() {
 	process_ticks = OS::get_singleton()->get_ticks_usec() - process_begin;
 	process_max = MAX(process_ticks, process_max);
 	uint64_t frame_time = OS::get_singleton()->get_ticks_usec() - ticks;
+
+	if (print_fps) {
+		if (print_fps_first_frame_ticks == 0) {
+			print_fps_first_frame_ticks = Time::get_singleton()->get_ticks_usec();
+		}
+		print_fps_last_frame_ticks = Time::get_singleton()->get_ticks_usec();
+
+		if (print_fps && Engine::get_singleton()->frames_drawn > PRINT_FPS_DISCARDED_FRAMES) {
+			print_fps_frametimes.push_back(frame_time);
+		}
+	}
 
 	for (int i = 0; i < ScriptServer::get_language_count(); i++) {
 		ScriptServer::get_language(i)->frame();
@@ -4767,6 +4789,52 @@ void Main::cleanup(bool p_force) {
 	unregister_core_types();
 
 	OS::get_singleton()->benchmark_end_measure("Shutdown", "Main::Cleanup");
+
+	if (print_fps && print_fps_frametimes.size() >= 1) {
+		uint32_t frametime_average = 0;
+		// Record how many frames are rendered above certain common framerate
+		// caps (with a small tolerance as timings aren't perfect).
+		int frametimes_above_30_fps = 0;
+		int frametimes_above_60_fps = 0;
+		int frametimes_above_120_fps = 0;
+		for (const uint32_t frametime : print_fps_frametimes) {
+			frametime_average += frametime;
+			if (frametime <= 33'400) {
+				frametimes_above_30_fps++;
+				if (frametime <= 16'700) {
+					frametimes_above_60_fps++;
+					if (frametime <= 8'400) {
+						frametimes_above_120_fps++;
+					}
+				}
+			}
+		}
+		frametime_average /= MAX(1, print_fps_frametimes.size());
+
+		print_fps_frametimes.sort();
+		const uint32_t frametime_max = print_fps_frametimes[0];
+		const uint32_t frametime_p99 = print_fps_frametimes[Math::floor(print_fps_frametimes.size() * 0.01)];
+		const uint32_t frametime_median = print_fps_frametimes[Math::floor(print_fps_frametimes.size() * 0.5)];
+		const uint32_t frametime_p1 = print_fps_frametimes[Math::floor(print_fps_frametimes.size() * 0.99)];
+		const uint32_t frametime_p01 = print_fps_frametimes[Math::floor(print_fps_frametimes.size() * 0.999)];
+		const uint32_t frametime_min = print_fps_frametimes[print_fps_frametimes.size() - 1];
+
+		print_line_rich(vformat("\n[b]%d frames rendered in %.2f seconds.[/b]", print_fps_frametimes.size() + PRINT_FPS_DISCARDED_FRAMES, (print_fps_last_frame_ticks - print_fps_first_frame_ticks) * 0.000'001));
+		print_line("Frametime statistics over the duration of the run:\n");
+		print_line_rich(vformat("[color=cyan]Average: [b]%d[/b] FPS ([b]%.2f[/b] mspf)[/color]\n", 1'000'000.0 / frametime_average, frametime_average * 0.001));
+
+		print_line_rich(vformat("[color=blue]Maximum: [b]%d[/b] FPS ([b]%.2f[/b] mspf)[/color]", 1'000'000.0 / frametime_max, frametime_max * 0.001));
+		print_line_rich(vformat("[color=green]    P99: [b]%d[/b] FPS ([b]%.2f[/b] mspf)[/color]", 1'000'000.0 / frametime_p99, frametime_p99 * 0.001));
+		print_line_rich(vformat(" Median: [b]%d[/b] FPS ([b]%.2f[/b] mspf)", 1'000'000.0 / frametime_median, frametime_median * 0.001));
+		print_line_rich(vformat("[color=yellow]     P1: [b]%d[/b] FPS ([b]%.2f[/b] mspf)[/color]", 1'000'000.0 / frametime_p1, frametime_p1 * 0.001));
+		print_line_rich(vformat("[color=red]   P0.1: [b]%d[/b] FPS ([b]%.2f[/b] mspf)[/color]", 1'000'000.0 / frametime_p01, frametime_p01 * 0.001));
+		print_line_rich(vformat("[color=magenta]Minimum: [b]%d[/b] FPS ([b]%.2f[/b] mspf)[/color]\n", 1'000'000.0 / frametime_min, frametime_min * 0.001));
+
+		print_line_rich(vformat(" [i]Frametimes compliant with a 30 FPS cap: [b]%.1f%%[/b][/i]", 100 * frametimes_above_30_fps / double(print_fps_frametimes.size())));
+		print_line_rich(vformat(" [i]Frametimes compliant with a 60 FPS cap: [b]%.1f%%[/b][/i]", 100 * frametimes_above_60_fps / double(print_fps_frametimes.size())));
+		print_line_rich(vformat("[i]Frametimes compliant with a 120 FPS cap: [b]%.1f%%[/b][/i]", 100 * frametimes_above_120_fps / double(print_fps_frametimes.size())));
+	}
+
 	OS::get_singleton()->benchmark_dump();
 
 	OS::get_singleton()->finalize_core();
