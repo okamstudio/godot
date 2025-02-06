@@ -50,14 +50,7 @@ bool EditorPropertyArrayObject::_set(const StringName &p_name, const Variant &p_
 		return false;
 	}
 
-	int index;
-	if (name.begins_with("metadata/")) {
-		index = name.get_slice("/", 2).to_int();
-	} else {
-		index = name.get_slice("/", 1).to_int();
-	}
-
-	array.set(index, p_value);
+	array.set(name.get_slice("/", 1).to_int(), p_value);
 	return true;
 }
 
@@ -68,15 +61,8 @@ bool EditorPropertyArrayObject::_get(const StringName &p_name, Variant &r_ret) c
 		return false;
 	}
 
-	int index;
-	if (name.begins_with("metadata/")) {
-		index = name.get_slice("/", 2).to_int();
-	} else {
-		index = name.get_slice("/", 1).to_int();
-	}
-
 	bool valid;
-	r_ret = array.get(index, &valid);
+	r_ret = array.get(name.get_slice("/", 1).to_int(), &valid);
 
 	if (r_ret.get_type() == Variant::OBJECT && Object::cast_to<EncodedObjectAsID>(r_ret)) {
 		r_ret = Object::cast_to<EncodedObjectAsID>(r_ret)->get_object_id();
