@@ -12,7 +12,7 @@
 		print(string) # "hello world"
 		[/codeblock]
 		[b]Differences between packed arrays, typed arrays, and untyped arrays:[/b] Packed arrays are generally faster to iterate on and modify compared to a typed array of the same type (e.g. [PackedStringArray] versus [code]Array[String][/code]). Also, packed arrays consume less memory. As a downside, packed arrays are less flexible as they don't offer as many convenience methods such as [method Array.map]. Typed arrays are in turn faster to iterate on and modify than untyped arrays.
-		[b]Note:[/b] Packed arrays are always passed by reference. To get a copy of an array that can be modified independently of the original array, use [method duplicate]. This is [i]not[/i] the case for built-in properties and methods. The returned packed array of these are a copies, and changing it will [i]not[/i] affect the original value. To update a built-in property you need to modify the returned array, and then assign it to the property again.
+		[b]Note:[/b] Packed arrays are always passed by reference. To get a copy of an array that can be modified independently of the original array, use [method duplicate]. This is [i]not[/i] the case for built-in properties and methods. The returned packed array of these is a copy, and changing it will [i]not[/i] affect the original value. To update a built-in property you need to modify the returned array, and then assign it to the property again.
 	</description>
 	<tutorials>
 		<link title="Operating System Testing Demo">https://godotengine.org/asset-library/asset/2789</link>

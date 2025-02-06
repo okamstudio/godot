@@ -6,7 +6,7 @@
 	<description>
 		An array specifically designed to hold 32-bit floating-point values (float). Packs data tightly, so it saves memory for large array sizes.
 		If you need to pack 64-bit floats tightly, see [PackedFloat64Array].
-		[b]Note:[/b] Packed arrays are always passed by reference. To get a copy of an array that can be modified independently of the original array, use [method duplicate]. This is [i]not[/i] the case for built-in properties and methods. The returned packed array of these are a copies, and changing it will [i]not[/i] affect the original value. To update a built-in property you need to modify the returned array, and then assign it to the property again.
+		[b]Note:[/b] Packed arrays are always passed by reference. To get a copy of an array that can be modified independently of the original array, use [method duplicate]. This is [i]not[/i] the case for built-in properties and methods. The returned packed array of these is a copy, and changing it will [i]not[/i] affect the original value. To update a built-in property you need to modify the returned array, and then assign it to the property again.
 	</description>
 	<tutorials>
 	</tutorials>

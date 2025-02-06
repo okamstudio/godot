@@ -6,7 +6,7 @@
 	<description>
 		An array specifically designed to hold 32-bit integer values. Packs data tightly, so it saves memory for large array sizes.
 		[b]Note:[/b] This type stores signed 32-bit integers, which means it can take values in the interval [code][-2^31, 2^31 - 1][/code], i.e. [code][-2147483648, 2147483647][/code]. Exceeding those bounds will wrap around. In comparison, [int] uses signed 64-bit integers which can hold much larger values. If you need to pack 64-bit integers tightly, see [PackedInt64Array].
-		[b]Note:[/b] Packed arrays are always passed by reference. To get a copy of an array that can be modified independently of the original array, use [method duplicate]. This is [i]not[/i] the case for built-in properties and methods. The returned packed array of these are a copies, and changing it will [i]not[/i] affect the original value. To update a built-in property you need to modify the returned array, and then assign it to the property again.
+		[b]Note:[/b] Packed arrays are always passed by reference. To get a copy of an array that can be modified independently of the original array, use [method duplicate]. This is [i]not[/i] the case for built-in properties and methods. The returned packed array of these is a copy, and changing it will [i]not[/i] affect the original value. To update a built-in property you need to modify the returned array, and then assign it to the property again.
 	</description>
 	<tutorials>
 	</tutorials>
