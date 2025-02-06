@@ -185,6 +185,9 @@ void NavigationRegion2D::_notification(int p_what) {
 				_update_debug_mesh();
 				_update_debug_edge_connections_mesh();
 				_update_debug_baking_rect();
+
+				RenderingServer *rs = RenderingServer::get_singleton();
+				rs->request_frame_drawn_callback(callable_mp(static_cast<CanvasItem *>(this), &CanvasItem::queue_redraw));
 			}
 #endif // DEBUG_ENABLED
 		} break;
@@ -470,9 +473,11 @@ void NavigationRegion2D::_update_debug_mesh() {
 	rs->canvas_item_set_z_index(debug_instance_rid, RS::CANVAS_ITEM_Z_MAX - 2);
 	rs->canvas_item_set_transform(debug_instance_rid, region_gt);
 
-	if (!debug_mesh_dirty) {
+	Color current_modulate = get_modulate_in_tree() * get_self_modulate();
+	if (!debug_mesh_dirty && debug_modulate.is_equal_approx(current_modulate)) {
 		return;
 	}
+	debug_modulate = current_modulate;
 
 	rs->canvas_item_clear(debug_instance_rid);
 	rs->mesh_clear(debug_mesh_rid);
@@ -602,6 +607,7 @@ void NavigationRegion2D::_update_debug_mesh() {
 
 	rs->canvas_item_add_mesh(debug_instance_rid, debug_mesh_rid, Transform2D());
 	rs->canvas_item_set_visible(debug_instance_rid, is_visible_in_tree());
+	rs->canvas_item_set_self_modulate(debug_instance_rid, current_modulate);
 }
 #endif // DEBUG_ENABLED
 
@@ -611,7 +617,7 @@ void NavigationRegion2D::_update_debug_edge_connections_mesh() {
 	bool enable_edge_connections = use_edge_connections && ns2d->get_debug_navigation_enable_edge_connections() && ns2d->map_get_use_edge_connections(get_world_2d()->get_navigation_map());
 
 	if (enable_edge_connections) {
-		Color debug_edge_connection_color = ns2d->get_debug_navigation_edge_connection_color();
+		Color debug_edge_connection_color = ns2d->get_debug_navigation_edge_connection_color() * debug_modulate;
 		// Draw the region edge connections.
 		Transform2D xform = get_global_transform();
 		real_t radius = ns2d->map_get_edge_connection_margin(get_world_2d()->get_navigation_map()) / 2.0;
@@ -639,7 +645,7 @@ void NavigationRegion2D::_update_debug_baking_rect() {
 		Vector2 baking_rect_offset = get_navigation_polygon()->get_baking_rect_offset();
 		Rect2 debug_baking_rect = Rect2(baking_rect.position.x + baking_rect_offset.x, baking_rect.position.y + baking_rect_offset.y, baking_rect.size.x, baking_rect.size.y);
 		Color debug_baking_rect_color = Color(0.8, 0.5, 0.7, 0.1);
-		draw_rect(debug_baking_rect, debug_baking_rect_color);
+		draw_rect(debug_baking_rect, debug_baking_rect_color * debug_modulate);
 	}
 }
 #endif // DEBUG_ENABLED

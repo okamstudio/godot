@@ -57,6 +57,7 @@ private:
 	RID debug_mesh_rid;
 	RID debug_instance_rid;
 
+	Color debug_modulate = Color(1.0, 1.0, 1.0, 1.0);
 	bool debug_mesh_dirty = true;
 
 	void _set_debug_visible(bool p_visible);
