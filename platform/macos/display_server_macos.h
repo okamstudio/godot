@@ -133,6 +133,8 @@ public:
 		bool hide_from_capture = false;
 
 		Rect2i parent_safe_rect;
+		Vector2i old_mouse_pos;
+		bool old_mouse_pos_invalid = true;
 	};
 
 	List<WindowID> popup_list;

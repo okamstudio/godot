@@ -511,9 +511,19 @@
 	mm->set_global_position(wd.mouse_pos);
 	mm->set_velocity(Input::get_singleton()->get_last_mouse_velocity());
 	mm->set_screen_velocity(mm->get_velocity());
-	const Vector2i relativeMotion = Vector2i(delta.x, delta.y) * ds->screen_get_max_scale();
-	mm->set_relative(relativeMotion);
-	mm->set_relative_screen_position(relativeMotion);
+	if (wd.old_mouse_pos_invalid) {
+		wd.old_mouse_pos = wd.mouse_pos;
+		wd.old_mouse_pos_invalid = false;
+	}
+	const Vector2i relative_motion = Vector2(delta.x, delta.y) * ds->screen_get_max_scale();
+	if (relative_motion == Vector2i() && ([event type] == NSEventTypeRightMouseDragged || [event type] == NSEventTypeOtherMouseDragged)) {
+		mm->set_relative(wd.mouse_pos - wd.old_mouse_pos);
+		mm->set_relative_screen_position(wd.mouse_pos - wd.old_mouse_pos);
+	} else {
+		mm->set_relative(relative_motion);
+		mm->set_relative_screen_position(relative_motion);
+	}
+	wd.old_mouse_pos = wd.mouse_pos;
 	ds->get_key_modifier_state([event modifierFlags], mm);
 
 	Input::get_singleton()->parse_input_event(mm);
@@ -583,6 +593,9 @@
 	if (ds->mouse_get_mode() != DisplayServer::MOUSE_MODE_CAPTURED) {
 		ds->mouse_exit_window(window_id);
 	}
+
+	DisplayServerMacOS::WindowData &wd = ds->get_window(window_id);
+	wd.old_mouse_pos_invalid = true;
 }
 
 - (void)mouseEntered:(NSEvent *)event {
@@ -596,6 +609,9 @@
 	}
 
 	ds->cursor_update_shape();
+
+	DisplayServerMacOS::WindowData &wd = ds->get_window(window_id);
+	wd.old_mouse_pos_invalid = true;
 }
 
 - (void)magnifyWithEvent:(NSEvent *)event {

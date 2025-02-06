@@ -1298,6 +1298,7 @@ void DisplayServerMacOS::_mouse_update_mode() {
 		}
 		CGAssociateMouseAndMouseCursorPosition(false);
 		[wd.window_object setMovable:NO];
+		wd.old_mouse_pos_invalid = true;
 		const NSRect contentRect = [wd.window_view frame];
 		NSRect pointInWindowRect = NSMakeRect(contentRect.size.width / 2, contentRect.size.height / 2, 0, 0);
 		NSPoint pointOnScreen = [[wd.window_view window] convertRectToScreen:pointInWindowRect].origin;
@@ -1413,6 +1414,7 @@ bool DisplayServerMacOS::update_mouse_wrap(WindowData &p_wd, NSPoint &r_delta, N
 		r_delta.x = conf_pos.x - r_mpos.x;
 		r_delta.y = r_mpos.y - conf_pos.y;
 		r_mpos = conf_pos;
+		p_wd.old_mouse_pos_invalid = true;
 
 		// Move mouse cursor.
 		NSRect point_in_window_rect = NSMakeRect(conf_pos.x, conf_pos.y, 0, 0);
@@ -1441,6 +1443,7 @@ void DisplayServerMacOS::warp_mouse(const Point2i &p_position) {
 			window_id = MAIN_WINDOW_ID;
 		}
 		WindowData &wd = windows[window_id];
+		wd.old_mouse_pos_invalid = true;
 
 		// Local point in window coords.
 		const NSRect contentRect = [wd.window_view frame];
