@@ -2932,6 +2932,16 @@ Error Main::setup2(bool p_show_boot_logo) {
 		OS::get_singleton()->benchmark_end_measure("Servers", "Modules and Extensions");
 	}
 
+	// Perform this check before initializing the rest of the servers to avoid a crash on failure.
+	if (Engine::get_singleton()->get_write_movie_path() != String()) {
+		movie_writer = MovieWriter::find_writer_for_file(Engine::get_singleton()->get_write_movie_path());
+		if (movie_writer == nullptr) {
+			ERR_PRINT(vformat("Can't find MovieWriter for file type, aborting.\nCheck if the specified file path has a valid extension: %s", Engine::get_singleton()->get_write_movie_path()));
+			OS::get_singleton()->set_exit_code(EXIT_FAILURE);
+			return FAILED;
+		}
+	}
+
 	/* Initialize Input */
 
 	{
@@ -3154,14 +3164,6 @@ Error Main::setup2(bool p_show_boot_logo) {
 
 		if (profile_gpu || (!editor && bool(GLOBAL_GET("debug/settings/stdout/print_gpu_profile")))) {
 			rendering_server->set_print_gpu_profile(true);
-		}
-
-		if (Engine::get_singleton()->get_write_movie_path() != String()) {
-			movie_writer = MovieWriter::find_writer_for_file(Engine::get_singleton()->get_write_movie_path());
-			if (movie_writer == nullptr) {
-				ERR_PRINT("Can't find movie writer for file type, aborting: " + Engine::get_singleton()->get_write_movie_path());
-				Engine::get_singleton()->set_write_movie_path(String());
-			}
 		}
 
 		OS::get_singleton()->benchmark_end_measure("Servers", "Rendering");

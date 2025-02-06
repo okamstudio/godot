@@ -125,7 +125,13 @@ void MovieWriter::begin(const Size2i &p_movie_size, uint32_t p_fps, const String
 	audio_channels = AudioDriverDummy::get_dummy_singleton()->get_channels();
 	audio_mix_buffer.resize(mix_rate * audio_channels / fps);
 
-	write_begin(p_movie_size, p_fps, p_base_path);
+	const Error err = write_begin(p_movie_size, p_fps, p_base_path);
+
+	if (err != OK) {
+		ERR_PRINT(vformat("Couldn't begin writing files for Movie Maker mode, aborting.\nCheck if the specified file path is valid and has write permissions: %s", p_base_path));
+		// FIXME: This technically works, but it does not exit cleanly.
+		exit(EXIT_FAILURE);
+	}
 }
 
 void MovieWriter::_bind_methods() {
@@ -197,7 +203,13 @@ void MovieWriter::add_frame() {
 	gpu_time += RenderingServer::get_singleton()->viewport_get_measured_render_time_gpu(main_vp_rid);
 
 	AudioDriverDummy::get_dummy_singleton()->mix_audio(mix_rate / fps, audio_mix_buffer.ptr());
-	write_frame(vp_tex, audio_mix_buffer.ptr());
+	const Error err = write_frame(vp_tex, audio_mix_buffer.ptr());
+
+	if (err != OK) {
+		ERR_PRINT(vformat("Couldn't write frame %d for Movie Maker mode, aborting.\nCheck if the specified file path is valid, has write permissions and enough space on disk.", Engine::get_singleton()->get_frames_drawn()));
+		// FIXME: This technically works, but it does not exit cleanly.
+		exit(EXIT_FAILURE);
+	}
 }
 
 void MovieWriter::end() {
