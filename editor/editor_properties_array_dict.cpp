@@ -971,25 +971,26 @@ void EditorPropertyDictionary::_change_type(Object *p_button, int p_slot_index) 
 }
 
 void EditorPropertyDictionary::_add_key_value() {
-	// Do not allow nil as valid key. I experienced errors with this
-	if (object->get_new_item_key().get_type() == Variant::NIL) {
-		return;
+	Dictionary dict = object->get_dict().duplicate();
+	Variant key = object->get_new_item_key();
+	Variant value = object->get_new_item_value();
+	Variant::Type key_type = key.get_type();
+	Variant::Type value_type = value.get_type();
+
+	// Treat empty object key as nil to prevent editor-only duplicates.
+	if (key_type == Variant::OBJECT && key.is_null()) {
+		dict[Variant()] = value;
+	} else {
+		dict[key] = value;
 	}
 
-	Dictionary dict = object->get_dict().duplicate();
-	Variant new_key = object->get_new_item_key();
-	Variant new_value = object->get_new_item_value();
-	dict[new_key] = new_value;
+	key.zero();
+	VariantInternal::initialize(&key, key_type);
+	object->set_new_item_key(key);
 
-	Variant::Type type = new_key.get_type();
-	new_key.zero();
-	VariantInternal::initialize(&new_key, type);
-	object->set_new_item_key(new_key);
-
-	type = new_value.get_type();
-	new_value.zero();
-	VariantInternal::initialize(&new_value, type);
-	object->set_new_item_value(new_value);
+	value.zero();
+	VariantInternal::initialize(&value, value_type);
+	object->set_new_item_value(value);
 
 	object->set_dict(dict);
 	slots[(dict.size() - 1) % page_length].update_prop_or_index();
