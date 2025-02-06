@@ -3159,7 +3159,7 @@ Error Main::setup2(bool p_show_boot_logo) {
 		if (Engine::get_singleton()->get_write_movie_path() != String()) {
 			movie_writer = MovieWriter::find_writer_for_file(Engine::get_singleton()->get_write_movie_path());
 			if (movie_writer == nullptr) {
-				ERR_PRINT("Can't find movie writer for file type, aborting: " + Engine::get_singleton()->get_write_movie_path());
+				ERR_PRINT(vformat("Can't find movie writer for file type, aborting: '%s'.", Engine::get_singleton()->get_write_movie_path()));
 				Engine::get_singleton()->set_write_movie_path(String());
 			}
 		}
@@ -3508,7 +3508,7 @@ void Main::setup_boot_logo() {
 				Error load_err = ImageLoader::load_image(boot_logo_path, boot_logo);
 				if (load_err) {
 					String msg = (boot_logo_path.ends_with(".png") ? "" : "The only supported format is PNG.");
-					ERR_PRINT("Non-existing or invalid boot splash at '" + boot_logo_path + +"'. " + msg + " Loading default splash.");
+					ERR_PRINT(vformat("Non-existing or invalid boot splash at '%s'. %s Loading default splash.", boot_logo_path, msg));
 				}
 			}
 		} else {
@@ -3768,11 +3768,11 @@ int Main::start() {
 					// Create the module documentation directory if it doesn't exist
 					Ref<DirAccess> da = DirAccess::create_for_path(path);
 					err = da->make_dir_recursive(path);
-					ERR_FAIL_COND_V_MSG(err != OK, EXIT_FAILURE, "Error: Can't create directory: " + path + ": " + itos(err));
+					ERR_FAIL_COND_V_MSG(err != OK, EXIT_FAILURE, vformat("Error: Can't create directory: '%s': %d.", path, err));
 
 					print_line("Loading docs from: " + path);
 					err = docsrc.load_classes(path);
-					ERR_FAIL_COND_V_MSG(err != OK, EXIT_FAILURE, "Error loading docs from: " + path + ": " + itos(err));
+					ERR_FAIL_COND_V_MSG(err != OK, EXIT_FAILURE, vformat("Error loading docs from: '%s': %d.", path, err));
 				}
 			}
 		}
@@ -3782,11 +3782,11 @@ int Main::start() {
 		// Create the main documentation directory if it doesn't exist
 		Ref<DirAccess> da = DirAccess::create_for_path(index_path);
 		err = da->make_dir_recursive(index_path);
-		ERR_FAIL_COND_V_MSG(err != OK, EXIT_FAILURE, "Error: Can't create index directory: " + index_path + ": " + itos(err));
+		ERR_FAIL_COND_V_MSG(err != OK, EXIT_FAILURE, vformat("Error: Can't create index directory: '%s': %d.", index_path, err));
 
 		print_line("Loading classes from: " + index_path);
 		err = docsrc.load_classes(index_path);
-		ERR_FAIL_COND_V_MSG(err != OK, EXIT_FAILURE, "Error loading classes from: " + index_path + ": " + itos(err));
+		ERR_FAIL_COND_V_MSG(err != OK, EXIT_FAILURE, vformat("Error loading classes from: '%s': %d.", index_path, err));
 		checked_paths.insert(index_path);
 
 		print_line("Merging docs...");
@@ -3795,12 +3795,12 @@ int Main::start() {
 		for (const String &E : checked_paths) {
 			print_line("Erasing old docs at: " + E);
 			err = DocTools::erase_classes(E);
-			ERR_FAIL_COND_V_MSG(err != OK, EXIT_FAILURE, "Error erasing old docs at: " + E + ": " + itos(err));
+			ERR_FAIL_COND_V_MSG(err != OK, EXIT_FAILURE, vformat("Error erasing old docs at: '%s': %d.", E, err));
 		}
 
 		print_line("Generating new docs...");
 		err = doc.save_classes(index_path, doc_data_classes, !gdextension_docs);
-		ERR_FAIL_COND_V_MSG(err != OK, EXIT_FAILURE, "Error saving new docs:" + itos(err));
+		ERR_FAIL_COND_V_MSG(err != OK, EXIT_FAILURE, vformat("Error saving new docs: %s.", err));
 
 		print_line("Deleting docs cache...");
 		if (FileAccess::exists(EditorHelp::get_cache_full_path())) {
@@ -3870,7 +3870,7 @@ int Main::start() {
 
 	if (!script.is_empty()) {
 		Ref<Script> script_res = ResourceLoader::load(script);
-		ERR_FAIL_COND_V_MSG(script_res.is_null(), EXIT_FAILURE, "Can't load script: " + script);
+		ERR_FAIL_COND_V_MSG(script_res.is_null(), EXIT_FAILURE, vformat("Can't load script: '%s'.", script));
 
 		if (check_only) {
 			return script_res->is_valid() ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -4055,7 +4055,7 @@ int Main::start() {
 			Error err;
 
 			Vector<String> paths = get_files_with_extension(gdscript_docs_path, "gd");
-			ERR_FAIL_COND_V_MSG(paths.is_empty(), EXIT_FAILURE, "Couldn't find any GDScript files under the given directory: " + gdscript_docs_path);
+			ERR_FAIL_COND_V_MSG(paths.is_empty(), EXIT_FAILURE, vformat("Couldn't find any GDScript files under the given directory: '%s'.", gdscript_docs_path));
 
 			for (const String &path : paths) {
 				Ref<GDScript> gdscript = ResourceLoader::load(path);
@@ -4070,11 +4070,11 @@ int Main::start() {
 
 			Ref<DirAccess> da = DirAccess::create_for_path(doc_tool_path);
 			err = da->make_dir_recursive(doc_tool_path);
-			ERR_FAIL_COND_V_MSG(err != OK, EXIT_FAILURE, "Error: Can't create GDScript docs directory: " + doc_tool_path + ": " + itos(err));
+			ERR_FAIL_COND_V_MSG(err != OK, EXIT_FAILURE, vformat("Error: Can't create GDScript docs directory: '%s': %d.", doc_tool_path, err));
 
 			HashMap<String, String> doc_data_classes;
 			err = docs.save_classes(doc_tool_path, doc_data_classes, false);
-			ERR_FAIL_COND_V_MSG(err != OK, EXIT_FAILURE, "Error saving GDScript docs:" + itos(err));
+			ERR_FAIL_COND_V_MSG(err != OK, EXIT_FAILURE, vformat("Error saving GDScript docs: %d.", err));
 
 			return EXIT_SUCCESS;
 		}
@@ -4243,7 +4243,7 @@ int Main::start() {
 					scene = scenedata->instantiate();
 				}
 
-				ERR_FAIL_NULL_V_MSG(scene, EXIT_FAILURE, "Failed loading scene: " + local_game_path + ".");
+				ERR_FAIL_NULL_V_MSG(scene, EXIT_FAILURE, vformat("Failed loading scene: '%s'.", local_game_path));
 				sml->add_current_scene(scene);
 
 #ifdef MACOS_ENABLED
