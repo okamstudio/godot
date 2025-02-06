@@ -3251,6 +3251,9 @@ Error Main::setup2(bool p_show_boot_logo) {
 			bool agile_input_event_flushing = GLOBAL_DEF("input_devices/buffering/agile_event_flushing", false);
 			id->set_agile_input_event_flushing(agile_input_event_flushing);
 
+			bool unknown_gamepad_auto_mapped = GLOBAL_DEF("input_devices/gamepad/unknown_gamepad_auto_mapped", true);
+			id->set_unknown_gamepad_auto_mapped(unknown_gamepad_auto_mapped);
+
 			if (bool(GLOBAL_DEF_BASIC("input_devices/pointing/emulate_touch_from_mouse", false)) &&
 					!(editor || project_manager)) {
 				if (!DisplayServer::get_singleton()->is_touchscreen_available()) {

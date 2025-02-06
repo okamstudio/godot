@@ -75,6 +75,9 @@ JoypadLinux::Joypad::~Joypad() {
 void JoypadLinux::Joypad::reset() {
 	dpad = 0;
 	fd = -1;
+	for (int i = 0; i < MAX_KEY; i++) {
+		key_map[i] = -1;
+	}
 	for (int i = 0; i < MAX_ABS; i++) {
 		abs_map[i] = -1;
 		curr_axis[i] = 0;
@@ -309,11 +312,12 @@ void JoypadLinux::setup_joypad_properties(Joypad &p_joypad) {
 			p_joypad.key_map[i] = num_buttons++;
 		}
 	}
-	for (int i = BTN_MISC; i < BTN_JOYSTICK; ++i) {
+	for (int i = 0; i < BTN_JOYSTICK; ++i) {
 		if (test_bit(i, keybit)) {
 			p_joypad.key_map[i] = num_buttons++;
 		}
 	}
+
 	for (int i = 0; i < ABS_MISC; ++i) {
 		/* Skip hats */
 		if (i == ABS_HAT0X) {
@@ -338,6 +342,159 @@ void JoypadLinux::setup_joypad_properties(Joypad &p_joypad) {
 			p_joypad.force_feedback = true;
 		}
 	}
+}
+
+void JoypadLinux::_auto_remap(Joypad &p_joypad, const StringName &p_guid, const String &p_name, bool p_hat0x_exist, bool p_hat0y_exist) {
+	if (p_joypad.key_map[BTN_GAMEPAD] == -1) {
+		return;
+	}
+
+	// Generate key mapping for JoyButton.
+
+	int joy_button_mappings[int(JoyButton::SDL_MAX)];
+	for (int i = 0; i < int(JoyButton::SDL_MAX); i++) {
+		joy_button_mappings[i] = -1;
+	}
+
+#define BUTTON_MAP_KEY(button, keycode) (joy_button_mappings[int(button)] = p_joypad.key_map[keycode])
+#define KEY_EXIST(keycode) (p_joypad.key_map[keycode] != -1)
+#define UNUSED_KEY_HIDE(keycode) (p_joypad.key_map[keycode] = -p_joypad.key_map[keycode] - 2) // Used for two events occur at one key press.
+
+	BUTTON_MAP_KEY(JoyButton::A, BTN_A);
+	BUTTON_MAP_KEY(JoyButton::B, BTN_B);
+	BUTTON_MAP_KEY(JoyButton::X, BTN_X);
+	BUTTON_MAP_KEY(JoyButton::Y, BTN_Y);
+
+	if (KEY_EXIST(KEY_BACK)) {
+		// Exceptions for certain Xbox devices. The BTN_SELECT event is supported, but KEY_BACK is actually emitted.
+		BUTTON_MAP_KEY(JoyButton::BACK, KEY_BACK);
+	} else if (KEY_EXIST(BTN_SELECT)) {
+		BUTTON_MAP_KEY(JoyButton::BACK, BTN_SELECT);
+	}
+
+	if (KEY_EXIST(KEY_HOMEPAGE)) {
+		// Exceptions for certain Xbox devices. The BTN_MODE event is supported, but KEY_HOMEPAGE is actually emitted.
+		BUTTON_MAP_KEY(JoyButton::GUIDE, KEY_HOMEPAGE);
+	} else if (KEY_EXIST(BTN_MODE)) {
+		BUTTON_MAP_KEY(JoyButton::GUIDE, BTN_MODE);
+	}
+
+	BUTTON_MAP_KEY(JoyButton::START, BTN_START);
+	BUTTON_MAP_KEY(JoyButton::LEFT_STICK, BTN_THUMBL);
+	BUTTON_MAP_KEY(JoyButton::RIGHT_STICK, BTN_THUMBR);
+	BUTTON_MAP_KEY(JoyButton::LEFT_SHOULDER, BTN_TL);
+	BUTTON_MAP_KEY(JoyButton::RIGHT_SHOULDER, BTN_TR);
+
+	if (!p_hat0y_exist) {
+		BUTTON_MAP_KEY(JoyButton::DPAD_UP, BTN_DPAD_UP);
+		BUTTON_MAP_KEY(JoyButton::DPAD_DOWN, BTN_DPAD_DOWN);
+	} else {
+		// D-pads may report both digital button events (BTN_DPAD_*) and analog button events
+		// (ABS_HAT0X and ABS_HAT0Y) on some devices. But Godot has hardcoded analog buttons
+		// events in process_joypads(), so it is necessary to hide possible digital buttons
+		// events to prevent triggering twice for one press.
+		UNUSED_KEY_HIDE(BTN_DPAD_UP);
+		UNUSED_KEY_HIDE(BTN_DPAD_DOWN);
+
+		// Some Xbox devices may report digital button events as BTN_TRIGGER_HAPPY3 ~ BTN_TRIGGER_HAPPY4,
+		// see https://github.com/godotengine/godot/issues/66878#issuecomment-2231491673 for more.
+		UNUSED_KEY_HIDE(BTN_TRIGGER_HAPPY3);
+		UNUSED_KEY_HIDE(BTN_TRIGGER_HAPPY4);
+
+		p_joypad.key_is_hidden = true;
+	}
+	if (!p_hat0x_exist) {
+		BUTTON_MAP_KEY(JoyButton::DPAD_LEFT, BTN_DPAD_LEFT);
+		BUTTON_MAP_KEY(JoyButton::DPAD_RIGHT, BTN_DPAD_RIGHT);
+	} else {
+		// D-pads may report both digital button events (BTN_DPAD_*) and analog button events
+		// (ABS_HAT0X and ABS_HAT0Y) on some devices. But Godot has hardcoded analog buttons
+		// events in process_joypads(), so it is necessary to hide possible digital buttons
+		// events to prevent triggering twice for one press.
+		UNUSED_KEY_HIDE(BTN_DPAD_LEFT);
+		UNUSED_KEY_HIDE(BTN_DPAD_RIGHT);
+
+		// Some Xbox devices may report digital button events as BTN_TRIGGER_HAPPY1 ~ BTN_TRIGGER_HAPPY2,
+		// see https://github.com/godotengine/godot/issues/66878#issuecomment-2231491673 for more.
+		UNUSED_KEY_HIDE(BTN_TRIGGER_HAPPY1);
+		UNUSED_KEY_HIDE(BTN_TRIGGER_HAPPY2);
+
+		p_joypad.key_is_hidden = true;
+	}
+
+	if (KEY_EXIST(KEY_RECORD)) {
+		// For certain Xbox devices.
+		BUTTON_MAP_KEY(JoyButton::MISC1, KEY_RECORD);
+	} else {
+		// For certain Nintendo Switch devices.
+		BUTTON_MAP_KEY(JoyButton::MISC1, BTN_Z);
+	}
+
+#undef BUTTON_MAP_KEY
+#undef KEY_EXIST
+
+	// Generate key mapping for JoyAxis.
+
+	int joy_axis_mappings[int(JoyAxis::SDL_MAX)];
+	for (int i = 0; i < int(JoyAxis::SDL_MAX); i++) {
+		joy_axis_mappings[i] = -1;
+	}
+
+#define AXIS_MAP_ABS(axis, abscode) (joy_axis_mappings[int(axis)] = p_joypad.abs_map[abscode])
+#define AXIS_MAP_KEY(axis, keycode) (joy_axis_mappings[int(axis)] = p_joypad.key_map[keycode])
+#define ABS_EXIST(abscode) (p_joypad.abs_map[abscode] != -1)
+
+	AXIS_MAP_ABS(JoyAxis::LEFT_X, ABS_X);
+	AXIS_MAP_ABS(JoyAxis::LEFT_Y, ABS_Y);
+
+	// Trigger buttons can be available as digital (BTN_TL2/BTN_TR2) or analog buttons or both.
+	bool trigger_is_digital = true;
+
+	if (ABS_EXIST(ABS_RX)) { // For certain Xbox or certain Nintendo Switch devices.
+		AXIS_MAP_ABS(JoyAxis::RIGHT_X, ABS_RX);
+		AXIS_MAP_ABS(JoyAxis::RIGHT_Y, ABS_RY);
+
+		if (ABS_EXIST(ABS_BRAKE)) {
+			// For possible devices. Typically used for TRIGGER_LEFT if the ABS_BRAKE event exists.
+			AXIS_MAP_ABS(JoyAxis::TRIGGER_LEFT, ABS_BRAKE);
+			AXIS_MAP_ABS(JoyAxis::TRIGGER_RIGHT, ABS_GAS);
+			trigger_is_digital = false;
+		} else if (ABS_EXIST(ABS_Z)) {
+			// For certain Xbox devices.
+			AXIS_MAP_ABS(JoyAxis::TRIGGER_LEFT, ABS_Z);
+			AXIS_MAP_ABS(JoyAxis::TRIGGER_RIGHT, ABS_RZ);
+			trigger_is_digital = false;
+		}
+	} else { // ABS_RX does not exist. Try another solution. Mainly for devices with wireless connections.
+		AXIS_MAP_ABS(JoyAxis::RIGHT_X, ABS_Z);
+		AXIS_MAP_ABS(JoyAxis::RIGHT_Y, ABS_RZ);
+
+		if (ABS_EXIST(ABS_BRAKE)) {
+			AXIS_MAP_ABS(JoyAxis::TRIGGER_LEFT, ABS_BRAKE);
+			AXIS_MAP_ABS(JoyAxis::TRIGGER_RIGHT, ABS_GAS);
+			trigger_is_digital = false;
+		}
+	}
+
+	if (trigger_is_digital) {
+		// Only digital button events are reported. For certain Nintendo Switch devices.
+		AXIS_MAP_KEY(JoyAxis::TRIGGER_LEFT, BTN_TL2);
+		AXIS_MAP_KEY(JoyAxis::TRIGGER_RIGHT, BTN_TR2);
+	} else {
+		// Trigger buttons can be available as both digital and analog buttons. Prioritizes mapping
+		// of analog button events to axes. Hide extra events to prevent multiple triggering and
+		// interference. Shooting games may prefer digital button events (BTN_TL2/BTN_TR2).
+		UNUSED_KEY_HIDE(BTN_TL2);
+		UNUSED_KEY_HIDE(BTN_TR2);
+		p_joypad.key_is_hidden = true;
+	}
+
+#undef UNUSED_KEY_HIDE
+#undef AXIS_MAP_ABS
+#undef AXIS_MAP_KEY
+#undef ABS_EXIST
+
+	input->unknown_gamepad_auto_map(p_guid, p_name, joy_button_mappings, joy_axis_mappings, trigger_is_digital);
 }
 
 void JoypadLinux::open_joypad(const char *p_path) {
@@ -419,6 +576,12 @@ void JoypadLinux::open_joypad(const char *p_path) {
 				}
 			}
 
+			if (input->is_unknown_gamepad_auto_mapped() && !input->is_mapping_known(uid)) {
+				bool hat0x_exist = test_bit(ABS_HAT0X, absbit);
+				bool hat0y_exist = test_bit(ABS_HAT0Y, absbit);
+				_auto_remap(joypad, uid, name, hat0x_exist, hat0y_exist);
+			}
+
 			input->joy_connection_changed(joy_num, true, name, uid, joypad_info);
 		} else {
 			String uidname = uid;
@@ -427,6 +590,13 @@ void JoypadLinux::open_joypad(const char *p_path) {
 				uidname = uidname + _hex_str(name[i]);
 			}
 			uidname += "00";
+
+			if (input->is_unknown_gamepad_auto_mapped() && !input->is_mapping_known(uidname)) {
+				bool hat0x_exist = test_bit(ABS_HAT0X, absbit);
+				bool hat0y_exist = test_bit(ABS_HAT0Y, absbit);
+				_auto_remap(joypad, uidname, name, hat0x_exist, hat0y_exist);
+			}
+
 			input->joy_connection_changed(joy_num, true, name, uidname);
 		}
 	}
@@ -526,6 +696,22 @@ void JoypadLinux::process_joypads() {
 		if (joypad.fd == -1) {
 			continue;
 		}
+
+		// Restore hidden keys to make it easier for users to create their own mappings.
+		if (input->is_joy_button_need_reshow(i)) {
+			input->set_joy_button_need_reshow(i, false);
+
+			if (joypad.key_is_hidden) {
+				for (int j = 0; j < MAX_KEY; j++) {
+					if (joypad.key_map[j] < -1) {
+						joypad.key_map[j] = -joypad.key_map[j] - 2;
+					}
+				}
+
+				joypad.key_is_hidden = false;
+			}
+		}
+
 		for (uint32_t j = 0; j < joypad.events.size(); j++) {
 			const JoypadEvent &joypad_event = joypad.events[j];
 			// joypad_event may be tainted and out of MAX_KEY range, which will cause
@@ -535,9 +721,13 @@ void JoypadLinux::process_joypads() {
 			}
 
 			switch (joypad_event.type) {
-				case EV_KEY:
-					input->joy_button(i, (JoyButton)joypad.key_map[joypad_event.code], joypad_event.value);
-					break;
+				case EV_KEY: {
+					int button_idx = joypad.key_map[joypad_event.code];
+					if (input->is_unknown_gamepad_auto_mapped() && button_idx < -1) {
+						break; // Some buttons may need to be hidden.
+					}
+					input->joy_button(i, (JoyButton)button_idx, joypad_event.value);
+				} break;
 
 				case EV_ABS:
 					switch (joypad_event.code) {

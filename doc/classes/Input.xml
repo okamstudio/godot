@@ -238,6 +238,14 @@
 				Returns [code]true[/code] if any action, key, joypad button, or mouse button is being pressed. This will also return [code]true[/code] if any action is simulated via code by calling [method action_press].
 			</description>
 		</method>
+		<method name="is_joy_auto_mapped" qualifiers="const" keywords="is_gamepad_auto_mapped, is_controller_auto_mapped">
+			<return type="bool" />
+			<param index="0" name="device" type="int" />
+			<description>
+				Returns [code]true[/code] if the specified device is currently auto mapped. See also [member ProjectSettings.input_devices/gamepad/unknown_gamepad_auto_mapped].
+				[b]Note:[/b] This method is only implemented on Linux.
+			</description>
+		</method>
 		<method name="is_joy_button_pressed" qualifiers="const" keywords="is_gamepad_button_pressed, is_controller_button_pressed">
 			<return type="bool" />
 			<param index="0" name="device" type="int" />
@@ -251,6 +259,7 @@
 			<param index="0" name="device" type="int" />
 			<description>
 				Returns [code]true[/code] if the system knows the specified device. This means that it sets all button and axis indices. Unknown joypads are not expected to match these constants, but you can still retrieve events from them.
+				[b]Note:[/b] This method returns [code]false[/code] even if the specified device is auto mapped (see [method is_joy_auto_mapped]).
 			</description>
 		</method>
 		<method name="is_key_label_pressed" qualifiers="const">
@@ -313,6 +322,7 @@
 			<description>
 				Removes all mappings from the internal database that match the given GUID. All currently connected joypads that use this GUID will become unmapped.
 				On Android, Godot will map to an internal fallback mapping.
+				[b]Note:[/b] If [member ProjectSettings.input_devices/gamepad/unknown_gamepad_auto_mapped] is enabled on Linux, it may not be possible to completely restore the device to its original unmapped state. If you need a more thorough recovery, please call [method set_joy_button_need_reshow] again.
 			</description>
 		</method>
 		<method name="set_accelerometer">
@@ -360,6 +370,15 @@
 			<description>
 				Sets the value of the rotation rate of the gyroscope sensor. Can be used for debugging on devices without a hardware sensor, for example in an editor on a PC.
 				[b]Note:[/b] This value can be immediately overwritten by the hardware sensor value on Android and iOS.
+			</description>
+		</method>
+		<method name="set_joy_button_need_reshow">
+			<return type="void" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="need" type="bool" default="true" />
+			<description>
+				If set to [code]true[/code], for devices with auto-mapping enabled, some hidden buttons will be restored so that users can use their own mappings. See also [method is_joy_auto_mapped].
+				[b]Note:[/b] This method is only effective on Linux. Recommended when some buttons cannot be found.
 			</description>
 		</method>
 		<method name="set_magnetometer">

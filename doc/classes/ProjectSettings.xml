@@ -1424,6 +1424,11 @@
 			If [code]false[/code], no input will be lost.
 			[b]Note:[/b] You should in nearly all cases prefer the [code]false[/code] setting. The legacy behavior is to enable supporting old projects that rely on the old logic, without changes to script.
 		</member>
+		<member name="input_devices/gamepad/unknown_gamepad_auto_mapped" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], allows unknown gamepads to be auto mapped, according to keycode semantics and convention. When the gamepad's mapping cannot be found in the built-in mapping database, a mapping will be auto generated as a fallback.
+			[b]Note:[/b] The gamepad is not guaranteed to work properly with the generated mapping.
+			[b]Note:[/b] This setting is only effective on Linux.
+		</member>
 		<member name="input_devices/pen_tablet/driver" type="String" setter="" getter="">
 			Specifies the tablet driver to use. If left empty, the default driver will be used.
 			[b]Note:[/b] The driver in use can be overridden at runtime via the [code]--tablet-driver[/code] [url=$DOCS_URL/tutorials/editor/command_line_tutorial.html]command line argument[/url].

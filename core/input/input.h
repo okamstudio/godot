@@ -168,6 +168,7 @@ private:
 		StringName name;
 		StringName uid;
 		bool connected = false;
+		bool need_reshow_buttons = false;
 		bool last_buttons[(size_t)JoyButton::MAX] = { false };
 		float last_axis[(size_t)JoyAxis::MAX] = { 0.0f };
 		HatMask last_hat = HatMask::CENTER;
@@ -183,6 +184,8 @@ private:
 	HashSet<uint32_t> ignored_device_ids;
 
 	int fallback_mapping = -1; // Index of the guid in map_db.
+
+	bool unknown_gamepad_auto_mapped = true;
 
 	CursorShape default_shape = CURSOR_ARROW;
 
@@ -236,6 +239,7 @@ private:
 	};
 
 	struct JoyDeviceMapping {
+		bool auto_generated = false;
 		String uid;
 		String name;
 		Vector<JoyBinding> bindings;
@@ -373,8 +377,17 @@ public:
 	void add_joy_mapping(const String &p_mapping, bool p_update_existing = false);
 	void remove_joy_mapping(const String &p_guid);
 
+	bool is_joy_button_need_reshow(int p_device) const;
+	void set_joy_button_need_reshow(int p_device, bool p_need);
+
+	void set_unknown_gamepad_auto_mapped(bool p_auto);
+	bool is_unknown_gamepad_auto_mapped() const;
+	void unknown_gamepad_auto_map(const StringName &p_guid, const String &p_name, const int *p_key_map, const int *p_axis_map, bool p_trigger_is_digital);
+
 	int get_unused_joy_id();
 
+	bool is_mapping_known(const StringName &p_guid) const;
+	bool is_joy_auto_mapped(int p_device) const;
 	bool is_joy_known(int p_device);
 	String get_joy_guid(int p_device) const;
 	bool should_ignore_device(int p_vendor_id, int p_product_id) const;
