@@ -159,6 +159,20 @@ private:
 		}
 	};
 
+	/**
+	 * @brief Called recursively to generate the shader code for each node
+	 * 		  for the ith shader type in the @c graph array. The
+	 *        @c _update_shader create a @c StringBuilder and send it to
+	 *        @c _write_node to fill it with the generated code by reference.
+	 * 
+	 * @param r_code The buffer that is filled with the generated code for each
+	 *               node inside the ith graph.
+	 * 
+	 * @param p_input_connections 
+	 * @param p_output_connections 
+	 * @param p_node 
+	 * @param r_processed 
+	 */
 	Error _write_node(Type p_type, StringBuilder *p_global_code, StringBuilder *p_global_code_per_node, HashMap<Type, StringBuilder> *p_global_code_per_func, StringBuilder &r_code, Vector<DefaultTextureParam> &r_def_tex_params, const VMap<ConnectionKey, const List<Connection>::Element *> &p_input_connections, const VMap<ConnectionKey, const List<Connection>::Element *> &p_output_connections, int p_node, HashSet<int> &r_processed, bool p_for_preview, HashSet<StringName> &r_classes) const;
 
 	void _input_type_changed(Type p_type, int p_id);
@@ -167,6 +181,7 @@ private:
 	bool _check_reroute_subgraph(Type p_type, int p_target_port_type, int p_reroute_node, List<int> *r_visited_reroute_nodes = nullptr) const;
 
 protected:
+	/** @c _update_shader is called when the Visual Graph is updated to generate the new shader code. */
 	virtual void _update_shader() const override;
 	static void _bind_methods();
 
@@ -182,7 +197,7 @@ public: // internal methods
 
 	enum {
 		NODE_ID_INVALID = -1,
-		NODE_ID_OUTPUT = 0,
+		NODE_ID_OUTPUT = 0, // The ID for the output node. Note that the output node fixed inside the graph and cannot be deleted.
 	};
 
 	void add_node(Type p_type, const Ref<VisualShaderNode> &p_node, const Vector2 &p_position, int p_id);
