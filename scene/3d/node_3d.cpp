@@ -1305,6 +1305,7 @@ void Node3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_transform_notification_enabled"), &Node3D::is_transform_notification_enabled);
 
 	ClassDB::bind_method(D_METHOD("rotate", "axis", "angle"), &Node3D::rotate);
+	ClassDB::bind_method(D_METHOD("scale_object", "ratio"), &Node3D::scale);
 	ClassDB::bind_method(D_METHOD("global_rotate", "axis", "angle"), &Node3D::global_rotate);
 	ClassDB::bind_method(D_METHOD("global_scale", "scale"), &Node3D::global_scale);
 	ClassDB::bind_method(D_METHOD("global_translate", "offset"), &Node3D::global_translate);

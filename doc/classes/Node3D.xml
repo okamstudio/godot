@@ -188,6 +188,13 @@
 				Rotates the local transformation around the Z axis by angle in radians.
 			</description>
 		</method>
+		<method name="scale_object">
+			<return type="void" />
+			<param index="0" name="ratio" type="Vector3" />
+			<description>
+				Scales the local transformation by given 3D scale factors.
+			</description>
+		</method>
 		<method name="scale_object_local">
 			<return type="void" />
 			<param index="0" name="scale" type="Vector3" />
