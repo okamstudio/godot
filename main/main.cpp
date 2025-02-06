@@ -864,6 +864,11 @@ void Main::test_cleanup() {
 
 int Main::test_entrypoint(int argc, char *argv[], bool &tests_need_run) {
 	for (int x = 0; x < argc; x++) {
+		// Early return to ignore a possible user-provided "--test" argument.
+		if ((strlen(argv[x]) == 2) && ((strncmp(argv[x], "--", 2) == 0) || (strncmp(argv[x], "++", 2) == 0))) {
+			tests_need_run = false;
+			return EXIT_SUCCESS;
+		}
 		if ((strncmp(argv[x], "--test", 6) == 0) && (strlen(argv[x]) == 6)) {
 			tests_need_run = true;
 #ifdef TESTS_ENABLED
