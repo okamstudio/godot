@@ -2295,6 +2295,11 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		}
 	}
 
+	default_renderer = renderer_hints.get_slice(",", 0);
+	GLOBAL_DEF_RST_BASIC(PropertyInfo(Variant::STRING, "rendering/renderer/rendering_method", PROPERTY_HINT_ENUM, renderer_hints), default_renderer);
+	GLOBAL_DEF_RST_BASIC("rendering/renderer/rendering_method.mobile", default_renderer_mobile);
+	GLOBAL_DEF_RST_BASIC("rendering/renderer/rendering_method.web", "gl_compatibility"); // This is a bit of a hack until we have WebGPU support.
+
 	if (!rendering_driver.is_empty()) {
 		// As the rendering drivers available may depend on the display driver and renderer
 		// selected, we can't do an exhaustive check here, but we can look through all
@@ -2342,13 +2347,9 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			goto error;
 		}
 
-		// Set a default renderer if none selected. Try to choose one that matches the driver.
+		// Default to ProjectSettings default if nothing set on the command line.
 		if (rendering_method.is_empty()) {
-			if (rendering_driver == "opengl3" || rendering_driver == "opengl3_angle" || rendering_driver == "opengl3_es") {
-				rendering_method = "gl_compatibility";
-			} else {
-				rendering_method = "forward_plus";
-			}
+			rendering_method = GLOBAL_GET("rendering/renderer/rendering_method");
 		}
 
 		// Now validate whether the selected driver matches with the renderer.
@@ -2395,16 +2396,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 
 			goto error;
 		}
-	}
-
-	default_renderer = renderer_hints.get_slice(",", 0);
-	GLOBAL_DEF_RST_BASIC(PropertyInfo(Variant::STRING, "rendering/renderer/rendering_method", PROPERTY_HINT_ENUM, renderer_hints), default_renderer);
-	GLOBAL_DEF_RST_BASIC("rendering/renderer/rendering_method.mobile", default_renderer_mobile);
-	GLOBAL_DEF_RST_BASIC("rendering/renderer/rendering_method.web", "gl_compatibility"); // This is a bit of a hack until we have WebGPU support.
-
-	// Default to ProjectSettings default if nothing set on the command line.
-	if (rendering_method.is_empty()) {
-		rendering_method = GLOBAL_GET("rendering/renderer/rendering_method");
 	}
 
 	if (rendering_driver.is_empty()) {
