@@ -4036,6 +4036,9 @@ void ScriptEditor::_start_find_in_files(bool with_replace) {
 	f->set_search_text(find_in_files_dialog->get_search_text());
 	f->set_match_case(find_in_files_dialog->is_match_case());
 	f->set_whole_words(find_in_files_dialog->is_whole_words());
+	f->set_ignore_code(find_in_files_dialog->is_ignore_code());
+	f->set_ignore_strings(find_in_files_dialog->is_ignore_strings());
+	f->set_ignore_comments(find_in_files_dialog->is_ignore_comments());
 	f->set_folder(find_in_files_dialog->get_folder());
 	f->set_filter(find_in_files_dialog->get_filter());
 

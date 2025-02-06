@@ -43,8 +43,12 @@ public:
 	static const char *SIGNAL_FINISHED;
 
 	void set_search_text(const String &p_pattern);
+	void set_search_file_context(const Ref<FileAccess> &file);
 	void set_whole_words(bool p_whole_word);
 	void set_match_case(bool p_match_case);
+	void set_ignore_code(bool p_ignore_code);
+	void set_ignore_strings(bool p_ignore_strings);
+	void set_ignore_comments(bool p_ignore_comments);
 	void set_folder(const String &folder);
 	void set_filter(const HashSet<String> &exts);
 
@@ -52,6 +56,9 @@ public:
 
 	bool is_whole_words() const { return _whole_words; }
 	bool is_match_case() const { return _match_case; }
+	bool is_ignore_code() const { return _ignore_code; }
+	bool is_ignore_strings() const { return _ignore_strings; }
+	bool is_ignore_comments() const { return _ignore_comments; }
 
 	void start();
 	void stop();
@@ -76,6 +83,9 @@ private:
 	String _root_dir;
 	bool _whole_words = true;
 	bool _match_case = true;
+	bool _ignore_code = false;
+	bool _ignore_strings = false;
+	bool _ignore_comments = false;
 
 	// State
 	bool _searching = false;
@@ -114,6 +124,9 @@ public:
 	String get_replace_text() const;
 	bool is_match_case() const;
 	bool is_whole_words() const;
+	bool is_ignore_code() const;
+	bool is_ignore_strings() const;
+	bool is_ignore_comments() const;
 	String get_folder() const;
 	HashSet<String> get_filter() const;
 
@@ -140,6 +153,9 @@ private:
 	LineEdit *_folder_line_edit = nullptr;
 	CheckBox *_match_case_checkbox = nullptr;
 	CheckBox *_whole_words_checkbox = nullptr;
+	CheckBox *_include_code_checkbox = nullptr;
+	CheckBox *_include_strings_checkbox = nullptr;
+	CheckBox *_include_comments_checkbox = nullptr;
 	Button *_find_button = nullptr;
 	Button *_replace_button = nullptr;
 	FileDialog *_folder_dialog = nullptr;

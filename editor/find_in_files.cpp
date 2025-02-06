@@ -39,6 +39,7 @@
 #include "scene/gui/box_container.h"
 #include "scene/gui/button.h"
 #include "scene/gui/check_box.h"
+#include "scene/gui/code_edit.h"
 #include "scene/gui/file_dialog.h"
 #include "scene/gui/grid_container.h"
 #include "scene/gui/label.h"
@@ -47,6 +48,7 @@
 #include "scene/gui/tree.h"
 
 const char *FindInFiles::SIGNAL_RESULT_FOUND = "result_found";
+CodeEdit *_dummy_code_edit = nullptr;
 
 // TODO: Would be nice in Vector and Vectors.
 template <typename T>
@@ -54,8 +56,9 @@ inline void pop_back(T &container) {
 	container.resize(container.size() - 1);
 }
 
-static bool find_next(const String &line, const String &pattern, int from, bool match_case, bool whole_words, int &out_begin, int &out_end) {
+static bool find_next(const String &line, const String &pattern, int from, bool match_case, bool whole_words, bool ignore_code, bool ignore_strings, bool ignore_comments, int line_number, int &out_begin, int &out_end) {
 	int end = from;
+	line_number -= 1; // Get the line index, since that's what we use it for.
 
 	while (true) {
 		int begin = match_case ? line.find(pattern, end) : line.findn(pattern, end);
@@ -77,6 +80,20 @@ static bool find_next(const String &line, const String &pattern, int from, bool 
 			}
 		}
 
+		// Graceful failure, so you still get search results? Maybe it's better to assume it's valid, and not do another if check...
+		if (_dummy_code_edit == nullptr) {
+			return true;
+		}
+		if (ignore_code && _dummy_code_edit->is_in_comment(line_number, begin) == -1 && _dummy_code_edit->is_in_string(line_number, begin) == -1) {
+			continue;
+		}
+		if (ignore_strings && _dummy_code_edit->is_in_string(line_number, begin) != -1) {
+			continue;
+		}
+		if (ignore_comments && _dummy_code_edit->is_in_comment(line_number, begin) != -1) {
+			continue;
+		}
+
 		return true;
 	}
 }
@@ -87,12 +104,48 @@ void FindInFiles::set_search_text(const String &p_pattern) {
 	_pattern = p_pattern;
 }
 
+void FindInFiles::set_search_file_context(const Ref<FileAccess> &file) {
+	ERR_FAIL_NULL_MSG(_dummy_code_edit, "_dummy_code_edit is null, Find in Files cannot use 'Code, Strings, Comments' filters for search.");
+	_dummy_code_edit->set_text(file->get_as_text());
+
+	bool gdscript_delimiters = false;
+	String extension = file->get_path().get_extension();
+	if (extension == "gd") {
+		gdscript_delimiters = true;
+	}
+
+	TypedArray<String> delimiters;
+	if (gdscript_delimiters) {
+		delimiters.append("#");
+	} else { // This is for gdshader, csharp, and other c like languages.
+		// We don't support other languages in editor do we? Otherwise we could expose a way to add more delimiters.
+		delimiters.append("//");
+		delimiters.append("/* */");
+	}
+
+	// Only change comment delimiters, default string delimiters should work with any language.
+	_dummy_code_edit->clear_comment_delimiters();
+	_dummy_code_edit->set_comment_delimiters(delimiters);
+}
+
 void FindInFiles::set_whole_words(bool p_whole_word) {
 	_whole_words = p_whole_word;
 }
 
 void FindInFiles::set_match_case(bool p_match_case) {
 	_match_case = p_match_case;
+}
+
+void FindInFiles::set_ignore_code(bool p_ignore_code) {
+	_ignore_code = p_ignore_code;
+}
+
+void FindInFiles::set_ignore_strings(bool p_ignore_strings) {
+	_ignore_strings = p_ignore_strings;
+}
+
+void FindInFiles::set_ignore_comments(bool p_ignore_comments) {
+	_ignore_comments = p_ignore_comments;
 }
 
 void FindInFiles::set_folder(const String &folder) {
@@ -268,6 +321,10 @@ void FindInFiles::_scan_file(const String &fpath) {
 
 	int line_number = 0;
 
+	if (_ignore_code || _ignore_strings || _ignore_comments) {
+		set_search_file_context(f);
+	}
+
 	while (!f->eof_reached()) {
 		// Line number starts at 1.
 		++line_number;
@@ -277,7 +334,7 @@ void FindInFiles::_scan_file(const String &fpath) {
 
 		String line = f->get_line();
 
-		while (find_next(line, _pattern, end, _match_case, _whole_words, begin, end)) {
+		while (find_next(line, _pattern, end, _match_case, _whole_words, _ignore_code, _ignore_strings, _ignore_comments, line_number, begin, end)) {
 			emit_signal(SNAME(SIGNAL_RESULT_FOUND), fpath, line_number, begin, end, line);
 		}
 	}
@@ -301,6 +358,9 @@ const char *FindInFilesDialog::SIGNAL_REPLACE_REQUESTED = "replace_requested";
 FindInFilesDialog::FindInFilesDialog() {
 	set_min_size(Size2(500 * EDSCALE, 0));
 	set_title(TTR("Find in Files"));
+
+	// Intentionally not added as child.
+	_dummy_code_edit = memnew(CodeEdit);
 
 	VBoxContainer *vbc = memnew(VBoxContainer);
 	vbc->set_anchor_and_offset(SIDE_LEFT, Control::ANCHOR_BEGIN, 8 * EDSCALE);
@@ -346,6 +406,31 @@ FindInFilesDialog::FindInFilesDialog() {
 		_match_case_checkbox = memnew(CheckBox);
 		_match_case_checkbox->set_text(TTR("Match Case"));
 		hbc->add_child(_match_case_checkbox);
+
+		gc->add_child(hbc);
+	}
+
+	Label *search_in_label = memnew(Label);
+	search_in_label->set_text(TTR("Inside:"));
+	gc->add_child(search_in_label);
+
+	{
+		HBoxContainer *hbc = memnew(HBoxContainer);
+
+		_include_code_checkbox = memnew(CheckBox);
+		_include_code_checkbox->set_text(TTR("Code"));
+		_include_code_checkbox->set_pressed(true);
+		hbc->add_child(_include_code_checkbox);
+
+		_include_strings_checkbox = memnew(CheckBox);
+		_include_strings_checkbox->set_text(TTR("Strings"));
+		_include_strings_checkbox->set_pressed(true);
+		hbc->add_child(_include_strings_checkbox);
+
+		_include_comments_checkbox = memnew(CheckBox);
+		_include_comments_checkbox->set_text(TTR("Comments"));
+		_include_comments_checkbox->set_pressed(true);
+		hbc->add_child(_include_comments_checkbox);
 
 		gc->add_child(hbc);
 	}
@@ -458,6 +543,18 @@ bool FindInFilesDialog::is_match_case() const {
 
 bool FindInFilesDialog::is_whole_words() const {
 	return _whole_words_checkbox->is_pressed();
+}
+
+bool FindInFilesDialog::is_ignore_code() const {
+	return !_include_code_checkbox->is_pressed();
+}
+
+bool FindInFilesDialog::is_ignore_strings() const {
+	return !_include_strings_checkbox->is_pressed();
+}
+
+bool FindInFilesDialog::is_ignore_comments() const {
+	return !_include_comments_checkbox->is_pressed();
 }
 
 String FindInFilesDialog::get_folder() const {
@@ -967,6 +1064,10 @@ void FindInFilesPanel::apply_replaces_in_file(const String &fpath, const Vector<
 	Ref<FileAccess> f = FileAccess::open(fpath, FileAccess::READ);
 	ERR_FAIL_COND_MSG(f.is_null(), "Cannot open file from path '" + fpath + "'.");
 
+	if (_finder->is_ignore_code() || _finder->is_ignore_strings() || _finder->is_ignore_comments()) {
+		_finder->set_search_file_context(f);
+	}
+
 	String buffer;
 	int current_line = 1;
 
@@ -991,7 +1092,7 @@ void FindInFilesPanel::apply_replaces_in_file(const String &fpath, const Vector<
 		int repl_end = locations[i].end + offset;
 
 		int _;
-		if (!find_next(line, search_text, repl_begin, _finder->is_match_case(), _finder->is_whole_words(), _, _)) {
+		if (!find_next(line, search_text, repl_begin, _finder->is_match_case(), _finder->is_whole_words(), _finder->is_ignore_code(), _finder->is_ignore_strings(), _finder->is_ignore_comments(), repl_line_number, _, _)) {
 			// Make sure the replace is still valid in case the file was tampered with.
 			print_verbose(String("Occurrence no longer matches, replace will be ignored in {0}: line {1}, col {2}").format(varray(fpath, repl_line_number, repl_begin)));
 			continue;
