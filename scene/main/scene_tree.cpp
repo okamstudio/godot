@@ -1530,6 +1530,13 @@ Error SceneTree::change_scene_to_packed(const Ref<PackedScene> &p_scene) {
 	Node *new_scene = p_scene->instantiate();
 	ERR_FAIL_NULL_V(new_scene, ERR_CANT_CREATE);
 
+	return change_scene_to_node(new_scene);
+}
+
+Error SceneTree::change_scene_to_node(Node *p_node) {
+	ERR_FAIL_NULL_V_MSG(p_node, ERR_INVALID_PARAMETER, "Can't change to a null node. Use unload_current_scene() if you wish to unload it.");
+	ERR_FAIL_COND_V_MSG(p_node->is_inside_tree(), ERR_UNCONFIGURED, "The new scene node can't be already inside scene tree.");
+
 	// If called again while a change is pending.
 	if (pending_new_scene) {
 		queue_delete(pending_new_scene);
@@ -1545,7 +1552,7 @@ Error SceneTree::change_scene_to_packed(const Ref<PackedScene> &p_scene) {
 	}
 	DEV_ASSERT(!current_scene);
 
-	pending_new_scene = new_scene;
+	pending_new_scene = p_node;
 	return OK;
 }
 
@@ -1757,6 +1764,7 @@ void SceneTree::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("change_scene_to_file", "path"), &SceneTree::change_scene_to_file);
 	ClassDB::bind_method(D_METHOD("change_scene_to_packed", "packed_scene"), &SceneTree::change_scene_to_packed);
+	ClassDB::bind_method(D_METHOD("change_scene_to_node", "node"), &SceneTree::change_scene_to_node);
 
 	ClassDB::bind_method(D_METHOD("reload_current_scene"), &SceneTree::reload_current_scene);
 	ClassDB::bind_method(D_METHOD("unload_current_scene"), &SceneTree::unload_current_scene);

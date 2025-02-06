@@ -406,6 +406,7 @@ public:
 	Node *get_current_scene() const;
 	Error change_scene_to_file(const String &p_path);
 	Error change_scene_to_packed(const Ref<PackedScene> &p_scene);
+	Error change_scene_to_node(Node *p_node);
 	Error reload_current_scene();
 	void unload_current_scene();
 
