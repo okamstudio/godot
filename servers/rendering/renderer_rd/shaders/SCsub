@@ -21,7 +21,7 @@ if "RD_GLSL" in env["BUILDERS"]:
     for glsl_file in glsl_files:
         env.RD_GLSL(glsl_file)
 
-SConscript("effects/SCsub")
-SConscript("environment/SCsub")
-SConscript("forward_clustered/SCsub")
-SConscript("forward_mobile/SCsub")
+env.add_subdirectory("effects/SCsub")
+env.add_subdirectory("environment/SCsub")
+env.add_subdirectory("forward_clustered/SCsub")
+env.add_subdirectory("forward_mobile/SCsub")

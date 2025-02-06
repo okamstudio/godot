@@ -6,4 +6,4 @@ Import("env")
 env.add_source_files(env.scene_sources, "*.cpp")
 
 # Chain load SCsubs
-SConscript("physics/SCsub")
+env.add_subdirectory("physics/SCsub")

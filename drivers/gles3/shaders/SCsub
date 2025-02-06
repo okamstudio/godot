@@ -31,4 +31,4 @@ if "GLES3_GLSL" in env["BUILDERS"]:
     #     env.GLES3_GLSL(glsl_file)
 
 
-SConscript("effects/SCsub")
+env.add_subdirectory("effects/SCsub")

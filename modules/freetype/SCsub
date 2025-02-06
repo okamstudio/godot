@@ -80,7 +80,7 @@ if env["builtin_freetype"]:
         tmp_env = env_freetype.Clone()
         tmp_env.disable_warnings()
         tmp_env.Append(CPPFLAGS=["-U__OPTIMIZE__"])
-        sfnt = tmp_env.Object(sfnt)
+        sfnt = tmp_env.generate_source_object(sfnt)
     thirdparty_sources += [sfnt]
 
     env_thirdparty = env_freetype.Clone()

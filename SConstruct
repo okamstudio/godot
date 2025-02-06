@@ -122,6 +122,36 @@ env.module_version_string = ""
 env.msvc = False
 env.scons_version = env._get_major_minor_revision(scons_raw_version)
 
+
+def get_current_intermediate_path(self):
+    return type(self).current_intermediate_path
+
+
+def add_subdirectory(self, module, intermediate_folder=None):
+    if not self["intermediate_folder"]:
+        return SConscript(module)
+
+    previous_intermediate_path = self.__class__.current_intermediate_path
+
+    if intermediate_folder is None:
+        new_intermediate_path = os.path.join(previous_intermediate_path, os.path.dirname(module))
+    elif not os.path.isabs(intermediate_folder):
+        new_intermediate_path = os.path.join(previous_intermediate_path, intermediate_folder)
+    else:
+        new_intermediate_path = intermediate_folder
+
+    self.__class__.current_intermediate_path = new_intermediate_path
+    result = SConscript(module)
+    self.__class__.current_intermediate_path = previous_intermediate_path
+
+    return result
+
+
+env.__class__.current_intermediate_path = ""
+env.__class__.get_current_intermediate_path = get_current_intermediate_path
+env.__class__.add_subdirectory = add_subdirectory
+env.__class__.generate_source_object = methods.generate_source_object
+
 env.__class__.add_module_version_string = methods.add_module_version_string
 
 env.__class__.add_source_files = methods.add_source_files
@@ -175,6 +205,7 @@ opts.Add(BoolVariable("debug_paths_relative", "Make file paths in debug symbols 
 opts.Add(EnumVariable("lto", "Link-time optimization (production builds)", "none", ("none", "auto", "thin", "full")))
 opts.Add(BoolVariable("production", "Set defaults to build Godot for use in production", False))
 opts.Add(BoolVariable("threads", "Enable threading support", True))
+opts.Add("intermediate_folder", "Folder for the intermediate files.", "")
 
 # Components
 opts.Add(BoolVariable("deprecated", "Enable compatibility code for deprecated and removed features", True))
@@ -285,6 +316,15 @@ opts.Add("rcflags", "Custom flags for Windows resource compiler")
 # Update the environment to have all above options defined
 # in following code (especially platform and custom_modules).
 opts.Update(env)
+
+if env["intermediate_folder"]:
+    intermediate_dir = env["intermediate_folder"]
+    scons_path = str(Dir(".").srcnode().path)
+    if not os.path.isabs(intermediate_dir):
+        intermediate_dir = os.path.join(os.getcwd(), intermediate_dir)
+
+    env.__class__.current_intermediate_path = intermediate_dir
+    print("Using intermediate folder as '{}'.".format(intermediate_dir))
 
 # Setup caching logic early to catch everything.
 methods.prepare_cache(env)
@@ -1054,20 +1094,20 @@ if env["threads"]:
 # Build subdirs, the build order is dependent on link order.
 Export("env")
 
-SConscript("core/SCsub")
-SConscript("servers/SCsub")
-SConscript("scene/SCsub")
+env.add_subdirectory("core/SCsub")
+env.add_subdirectory("servers/SCsub")
+env.add_subdirectory("scene/SCsub")
 if env.editor_build:
-    SConscript("editor/SCsub")
-SConscript("drivers/SCsub")
+    env.add_subdirectory("editor/SCsub")
+env.add_subdirectory("drivers/SCsub")
 
-SConscript("platform/SCsub")
-SConscript("modules/SCsub")
+env.add_subdirectory("platform/SCsub")
+env.add_subdirectory("modules/SCsub")
 if env["tests"]:
-    SConscript("tests/SCsub")
-SConscript("main/SCsub")
+    env.add_subdirectory("tests/SCsub")
+env.add_subdirectory("main/SCsub")
 
-SConscript("platform/" + env["platform"] + "/SCsub")  # Build selected platform.
+env.add_subdirectory("platform/" + env["platform"] + "/SCsub")  # Build selected platform.
 
 # Microsoft Visual Studio Project Generation
 if env["vsproj"]:

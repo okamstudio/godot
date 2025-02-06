@@ -5,4 +5,4 @@ Import("env")
 
 env.add_source_files(env.editor_sources, "*.cpp")
 
-SConscript("debug_adapter/SCsub")
+env.add_subdirectory("debug_adapter/SCsub")

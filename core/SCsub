@@ -278,19 +278,19 @@ env.CommandNoCache(
 )
 
 # Chain load SCsubs
-SConscript("os/SCsub")
-SConscript("math/SCsub")
-SConscript("crypto/SCsub")
-SConscript("io/SCsub")
-SConscript("debugger/SCsub")
-SConscript("input/SCsub")
-SConscript("variant/SCsub")
-SConscript("extension/SCsub")
-SConscript("object/SCsub")
-SConscript("templates/SCsub")
-SConscript("string/SCsub")
-SConscript("config/SCsub")
-SConscript("error/SCsub")
+env.add_subdirectory("os/SCsub")
+env.add_subdirectory("math/SCsub")
+env.add_subdirectory("crypto/SCsub")
+env.add_subdirectory("io/SCsub")
+env.add_subdirectory("debugger/SCsub")
+env.add_subdirectory("input/SCsub")
+env.add_subdirectory("variant/SCsub")
+env.add_subdirectory("extension/SCsub")
+env.add_subdirectory("object/SCsub")
+env.add_subdirectory("templates/SCsub")
+env.add_subdirectory("string/SCsub")
+env.add_subdirectory("config/SCsub")
+env.add_subdirectory("error/SCsub")
 
 
 # Build it all as a library

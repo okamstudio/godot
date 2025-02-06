@@ -17,4 +17,4 @@ if "RD_GLSL" in env["BUILDERS"]:
     for glsl_file in glsl_files:
         env.RD_GLSL(glsl_file)
 
-SConscript("fsr2/SCsub")
+env.add_subdirectory("fsr2/SCsub")

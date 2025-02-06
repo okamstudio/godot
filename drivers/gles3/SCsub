@@ -5,7 +5,7 @@ Import("env")
 
 env.add_source_files(env.drivers_sources, "*.cpp")
 
-SConscript("shaders/SCsub")
-SConscript("storage/SCsub")
-SConscript("effects/SCsub")
-SConscript("environment/SCsub")
+env.add_subdirectory("shaders/SCsub")
+env.add_subdirectory("storage/SCsub")
+env.add_subdirectory("effects/SCsub")
+env.add_subdirectory("environment/SCsub")

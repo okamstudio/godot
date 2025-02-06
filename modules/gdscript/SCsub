@@ -11,7 +11,7 @@ env_gdscript.add_source_files(env.modules_sources, "*.cpp")
 if env.editor_build:
     env_gdscript.add_source_files(env.modules_sources, "./editor/*.cpp")
 
-    SConscript("editor/script_templates/SCsub")
+    env.add_subdirectory("editor/script_templates/SCsub")
 
     # Those two modules are required for the language server protocol
     if env["module_jsonrpc_enabled"] and env["module_websocket_enabled"]:

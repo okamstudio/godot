@@ -9,7 +9,7 @@ source_files = [
 ]
 
 if env["use_sowrap"]:
-    source_files.append(
+    source_files.extend(
         [
             "dynwrappers/xlib-so_wrap.c",
             "dynwrappers/xcursor-so_wrap.c",
@@ -26,13 +26,13 @@ if env["vulkan"]:
 
 if env["opengl3"]:
     env.Append(CPPDEFINES=["GLAD_GLX_NO_X11"])
-    source_files.append(
+    source_files.extend(
         ["gl_manager_x11_egl.cpp", "gl_manager_x11.cpp", "detect_prime_x11.cpp", "#thirdparty/glad/glx.c"]
     )
 
 objects = []
 
 for source_file in source_files:
-    objects.append(env.Object(source_file))
+    objects.append(env.generate_source_object(source_file))
 
 Return("objects")

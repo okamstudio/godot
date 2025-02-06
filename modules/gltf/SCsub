@@ -11,7 +11,7 @@ env_gltf = env_modules.Clone()
 env_gltf.add_source_files(env.modules_sources, "*.cpp")
 env_gltf.add_source_files(env.modules_sources, "structures/*.cpp")
 
-SConscript("extensions/SCsub")
+env.add_subdirectory("extensions/SCsub")
 
 if env.editor_build:
     env_gltf.add_source_files(env.modules_sources, "editor/*.cpp")

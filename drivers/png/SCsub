@@ -46,9 +46,9 @@ if env["builtin_libpng"]:
             if "S_compiler" in env:
                 env_neon["CC"] = env["S_compiler"]
             neon_sources = []
-            neon_sources.append(env_neon.Object(thirdparty_dir + "arm/arm_init.c"))
-            neon_sources.append(env_neon.Object(thirdparty_dir + "arm/filter_neon_intrinsics.c"))
-            neon_sources.append(env_neon.Object(thirdparty_dir + "arm/palette_neon_intrinsics.c"))
+            neon_sources.append(env_neon.generate_source_object(thirdparty_dir + "arm/arm_init.c"))
+            neon_sources.append(env_neon.generate_source_object(thirdparty_dir + "arm/filter_neon_intrinsics.c"))
+            neon_sources.append(env_neon.generate_source_object(thirdparty_dir + "arm/palette_neon_intrinsics.c"))
             thirdparty_obj += neon_sources
     elif env["arch"].startswith("x86"):
         env_thirdparty.Append(CPPDEFINES=["PNG_INTEL_SSE"])

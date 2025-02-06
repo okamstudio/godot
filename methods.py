@@ -27,6 +27,48 @@ def set_scu_folders(scu_folders):
     _scu_folders = scu_folders
 
 
+def generate_target_path(env, source):
+    def wrap_target(target):
+        # Scons will append objsuffix only if target didn't get any extension. This works for most files, but not for gen files, because they essentially has .gen suffix.
+        # Because of that we simply will apply objprefix ourselves.
+        (head, tail) = os.path.split(target)
+        return os.path.join(head, env["OBJPREFIX"] + os.path.splitext(tail)[0] + env["OBJSUFFIX"])
+
+    if not env["intermediate_folder"]:
+        return wrap_target(str(source))
+
+    path_str = str(source)
+    if path_str.startswith("#"):
+        target_path = os.path.join(env.get_current_intermediate_path(), path_str[1:])
+        return wrap_target(target_path)
+
+    if not os.path.isabs(path_str):
+        target_path = os.path.join(env.get_current_intermediate_path(), path_str)
+        return wrap_target(target_path)
+
+    current_dir = str(env.Dir(".").get_abspath())
+    if path_str.startswith(current_dir):
+        target_path = os.path.join(env.get_current_intermediate_path(), os.path.relpath(path_str, current_dir))
+        return wrap_target(target_path)
+
+    root_dir = str(env.Dir("#").get_abspath())
+    if path_str.startswith(root_dir):
+        target_path = os.path.join(env.get_current_intermediate_path(), os.path.relpath(path_str, root_dir))
+        return wrap_target(target_path)
+
+    # At this point we just gave up and generate file the same as without intermediate directory
+    target_path = path_str
+    return wrap_target(target_path)
+
+
+def generate_source_object(env, source):
+    if type(source) is str:
+        target_path = generate_target_path(env, source)
+        return env.Object(source=source, target=target_path)
+
+    return env.Object(source)
+
+
 def add_source_files_orig(self, sources, files, allow_gen=False):
     # Convert string to list of absolute paths (including expanding wildcard)
     if isinstance(files, str):
@@ -39,7 +81,7 @@ def add_source_files_orig(self, sources, files, allow_gen=False):
 
     # Add each path as compiled Object following environment (self) configuration
     for path in files:
-        obj = self.Object(path)
+        obj = generate_source_object(self, str(path))
         if obj in sources:
             print_warning('Object "{}" already included in environment sources.'.format(obj))
             continue
@@ -552,26 +594,41 @@ def glob_recursive(pattern, node="."):
     return results
 
 
+def process_source_objects(env, sources):
+    objects = []
+    for source in sources:
+        if type(source) is str:
+            objects.append(env.generate_source_object(source))
+        else:
+            objects.append(source)
+
+    return objects
+
+
 def precious_program(env, program, sources, **args):
-    program = env.ProgramOriginal(program, sources, **args)
+    program = env.ProgramOriginal(program, process_source_objects(env, sources), **args)
     env.Precious(program)
     return program
 
 
 def add_shared_library(env, name, sources, **args):
-    library = env.SharedLibrary(name, sources, **args)
+    library = env.SharedLibrary(name, process_source_objects(env, sources), **args)
     env.NoCache(library)
     return library
 
 
 def add_library(env, name, sources, **args):
-    library = env.Library(name, sources, **args)
+    if not env["intermediate_folder"]:
+        target = name
+    else:
+        target = os.path.join(env.get_current_intermediate_path(), name)
+    library = env.Library(target, process_source_objects(env, sources), **args)
     env.NoCache(library)
     return library
 
 
 def add_program(env, name, sources, **args):
-    program = env.Program(name, sources, **args)
+    program = env.Program(name, process_source_objects(env, sources), **args)
     env.NoCache(program)
     return program
 

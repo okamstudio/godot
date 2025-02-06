@@ -17,10 +17,10 @@ if env["use_sowrap"]:
     common_linuxbsd.append("xkbcommon-so_wrap.c")
 
 if env["x11"]:
-    common_linuxbsd += SConscript("x11/SCsub")
+    common_linuxbsd += env.add_subdirectory("x11/SCsub")
 
 if env["wayland"]:
-    common_linuxbsd += SConscript("wayland/SCsub")
+    common_linuxbsd += env.add_subdirectory("wayland/SCsub")
 
 if env["speechd"]:
     common_linuxbsd.append("tts_linux.cpp")

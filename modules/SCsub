@@ -70,7 +70,7 @@ for name, path in env.module_list.items():
 
     # Name for built-in modules, (absolute) path for custom ones.
     base_path = path if os.path.isabs(path) else name
-    SConscript(base_path + "/SCsub")
+    env.add_subdirectory(base_path + "/SCsub", intermediate_folder=name)
 
     lib = env_modules.add_library("module_%s" % name, env.modules_sources)
     env.Prepend(LIBS=[lib])

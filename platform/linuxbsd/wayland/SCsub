@@ -179,7 +179,7 @@ source_files = [
 ]
 
 if env["use_sowrap"]:
-    source_files.append(
+    source_files.extend(
         [
             "dynwrappers/wayland-cursor-so_wrap.c",
             "dynwrappers/wayland-client-core-so_wrap.c",
@@ -201,6 +201,6 @@ if env["opengl3"]:
 objects = []
 
 for source_file in source_files:
-    objects.append(env.Object(source_file))
+    objects.append(env.generate_source_object(source_file))
 
 Return("objects")

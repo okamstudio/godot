@@ -5,6 +5,6 @@ Import("env")
 
 env.add_source_files(env.servers_sources, "*.cpp")
 
-SConscript("dummy/SCsub")
-SConscript("renderer_rd/SCsub")
-SConscript("storage/SCsub")
+env.add_subdirectory("dummy/SCsub")
+env.add_subdirectory("renderer_rd/SCsub")
+env.add_subdirectory("storage/SCsub")

@@ -7,7 +7,7 @@ import default_theme_builders
 
 env.add_source_files(env.scene_sources, "*.cpp")
 
-SConscript("icons/SCsub")
+env.add_subdirectory("icons/SCsub")
 
 env.Depends("#scene/theme/default_font.gen.h", "#thirdparty/fonts/OpenSans_SemiBold.woff2")
 env.CommandNoCache(

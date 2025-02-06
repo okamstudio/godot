@@ -105,12 +105,12 @@ env.modules_sources += module_obj
 
 Export("env_openxr")
 
-SConscript("action_map/SCsub")
-SConscript("extensions/SCsub")
-SConscript("scene/SCsub")
+env.add_subdirectory("action_map/SCsub")
+env.add_subdirectory("extensions/SCsub")
+env.add_subdirectory("scene/SCsub")
 
 if env.editor_build:
-    SConscript("editor/SCsub")
+    env.add_subdirectory("editor/SCsub")
 
 # Needed to force rebuilding the module files when the thirdparty library is updated.
 env.Depends(module_obj, thirdparty_obj)
