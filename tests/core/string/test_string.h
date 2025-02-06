@@ -556,6 +556,61 @@ TEST_CASE("[String] String to integer") {
 	ERR_PRINT_ON
 }
 
+TEST_CASE("[String] String to unsigned integer") {
+	// Test normal valid cases
+	CHECK(String("1237461283").to_uint64(false) == 1237461283);
+	CHECK(String("0").to_uint64(false) == 0);
+	CHECK(String("").to_uint64(false) == 0);
+	CHECK(String("10_000_000").to_uint64(false) == 10);
+	CHECK(String("10__000").to_uint64(false) == 10);
+	CHECK(String("  1  2  34 ").to_uint64(false) == 1);
+	CHECK(String("007").to_uint64(false) == 7);
+	CHECK(String("18446744073709551615").to_uint64(false) == 18446744073709551615ULL);
+	CHECK(String("+123").to_uint64(false) == 123);
+	CHECK(String(" + 123 ").to_uint64(false) == 123);
+
+	// Test negative numbers and out of range values
+	ERR_PRINT_OFF;
+	CHECK(String("-1").to_uint64(false) == 0);
+	CHECK(String("-9223372036854775808").to_uint64(false) == 0);
+	CHECK(String("-9223372036854775809").to_uint64(false) == 0);
+	CHECK(String("-18446744073709551615").to_uint64(false) == 0);
+	CHECK(String("-18446744073709551616").to_uint64(false) == 0);
+	CHECK(String("18446744073709551616").to_uint64(false) == UINT64_MAX);
+	CHECK(String("18446744073709551620").to_uint64(false) == UINT64_MAX);
+	CHECK(String("999999999999999999999999999999999999").to_uint64(false) == UINT64_MAX);
+	CHECK(String("-999999999999999999999999999999999999").to_uint64(false) == 0);
+	ERR_PRINT_ON;
+
+	// Test Clamp
+	CHECK(String("-123").to_uint64(true) == 0);
+	CHECK(String("999999999999999999999999999999999999").to_uint64(true) == UINT64_MAX);
+	CHECK(String("-123").to_uint64(true) == 0);
+	CHECK(String("- 22").to_uint64(true) == 0);
+	CHECK(String("-0").to_uint64(true) == 0);
+	CHECK(String("--45").to_uint64(true) == 0);
+	CHECK(String("12a34").to_uint64(true) == 12);
+	CHECK(String("abc").to_uint64(true) == 0);
+
+	// Spell out some clear edge cases
+	CHECK(String(" +  ").to_uint64(false) == 0);
+	CHECK(String("++-123").to_uint64(true) == 0);
+	CHECK(String("+ + + +123").to_uint64(true) == 123);
+	CHECK(String("123-").to_uint64(true) == 123);
+	CHECK(String("123\n").to_uint64(true) == 123);
+	CHECK(String("123 everything afterwards is ignored").to_uint64(true) == 123);
+
+	// Test different string types
+	CHECK(String::to_uint64("12345") == 12345);
+	CHECK(String::to_uint64(L"12345") == 12345);
+	CHECK(String::to_uint64(U"12345") == 12345);
+
+	// Test length parameter
+	CHECK(String::to_uint64("12345", 3) == 123);
+	CHECK(String::to_uint64("12.345", 2) == 12);
+	CHECK(String::to_uint64("12345", 10) == 12345);
+}
+
 TEST_CASE("[String] Hex to integer") {
 	static const char *nums[13] = { "0xFFAE", "22", "0", "AADDAD", "0x7FFFFFFFFFFFFFFF", "-0xf", "", "000", "000f", "0xaA", "-ff", "-", "0XFFAE" };
 	static const int64_t num[13] = { 0xFFAE, 0x22, 0, 0xAADDAD, 0x7FFFFFFFFFFFFFFF, -0xf, 0, 0, 0xf, 0xaa, -0xff, 0x0, 0xFFAE };

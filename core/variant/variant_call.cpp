@@ -1780,6 +1780,7 @@ static void _register_variant_builtin_methods_string() {
 	bind_string_method(is_valid_filename, sarray(), varray());
 
 	bind_string_method(to_int, sarray(), varray());
+	bind_string_method(to_uint64, sarray("clamp"), varray());
 	bind_string_method(to_float, sarray(), varray());
 	bind_string_method(hex_to_int, sarray(), varray());
 	bind_string_method(bin_to_int, sarray(), varray());

@@ -2523,6 +2523,74 @@ int64_t String::to_int(const wchar_t *p_str, int p_len) {
 	return _to_int<wchar_t>(p_str, to);
 }
 
+uint64_t String::to_uint64(bool p_clamp) const {
+	int str_length = length();
+	if (str_length == 0) {
+		return 0;
+	}
+
+	int start = 0;
+	// Skip leading whitespace and + symbols
+	// This is intentionally greedy to keep the parsing simple
+	while (start < str_length &&
+			(is_whitespace(operator[](start)) || operator[](start) == '+')) {
+		start++;
+	}
+
+	// Check for negative sign
+	if (start < str_length && operator[](start) == '-') {
+		if (!p_clamp) {
+			ERR_FAIL_V_MSG(0,
+					"Cannot represent " + *this + " as a 64-bit unsigned integer, since the value is negative.");
+		}
+		return 0;
+	}
+
+	uint64_t integer = 0;
+	for (int i = start; i < str_length; i++) {
+		char32_t c = operator[](i);
+		if (!is_digit(c)) {
+			// By design we ignore ANYTHING after the number
+			break;
+		}
+
+		bool overflow = (integer > UINT64_MAX / 10) ||
+				(integer == UINT64_MAX / 10 && (c > '5')); // 18446744073709551615 is UINT64_MAX
+		if (overflow) {
+			if (!p_clamp) {
+				ERR_FAIL_V_MSG(UINT64_MAX,
+						"Cannot represent " + *this + " as a 64-bit unsigned integer, since the value is too large.");
+			}
+			return UINT64_MAX;
+		}
+		integer *= 10;
+		integer += c - '0';
+	}
+	return integer;
+}
+
+uint64_t String::to_uint64(const char *p_str, int p_len) {
+	String str;
+	if (p_len >= 0) {
+		str = String(p_str, p_len);
+	} else {
+		str = String(p_str);
+	}
+
+	return str.to_uint64();
+}
+
+uint64_t String::to_uint64(const wchar_t *p_str, int p_len) {
+	String str;
+	if (p_len >= 0) {
+		str = String(p_str, p_len);
+	} else {
+		str = String(p_str);
+	}
+
+	return str.to_uint64();
+}
+
 bool String::is_numeric() const {
 	if (length() == 0) {
 		return false;
@@ -2862,6 +2930,17 @@ int64_t String::to_int(const char32_t *p_str, int p_len, bool p_clamp) {
 	}
 
 	return sign * integer;
+}
+
+uint64_t String::to_uint64(const char32_t *p_str, int p_len, bool p_clamp) {
+	String str;
+	if (p_len >= 0) {
+		str = String(p_str, p_len);
+	} else {
+		str = String(p_str);
+	}
+
+	return str.to_uint64(p_clamp);
 }
 
 double String::to_float() const {
