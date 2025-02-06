@@ -257,14 +257,22 @@ void Variant::_register_variant_operators() {
 	register_op<OperatorEvaluatorAdd<double, double, double>>(Variant::OP_ADD, Variant::FLOAT, Variant::FLOAT);
 	register_string_op(OperatorEvaluatorStringConcat, Variant::OP_ADD);
 	register_op<OperatorEvaluatorAdd<Vector2, Vector2, Vector2>>(Variant::OP_ADD, Variant::VECTOR2, Variant::VECTOR2);
+	register_op<OperatorEvaluatorAdd<Vector2, Vector2, Vector2i>>(Variant::OP_ADD, Variant::VECTOR2, Variant::VECTOR2I);
 	register_op<OperatorEvaluatorAdd<Vector2i, Vector2i, Vector2i>>(Variant::OP_ADD, Variant::VECTOR2I, Variant::VECTOR2I);
+	register_op<OperatorEvaluatorAdd<Vector2, Vector2i, Vector2>>(Variant::OP_ADD, Variant::VECTOR2I, Variant::VECTOR2);
 	register_op<OperatorEvaluatorAdd<Vector3, Vector3, Vector3>>(Variant::OP_ADD, Variant::VECTOR3, Variant::VECTOR3);
+	register_op<OperatorEvaluatorAdd<Vector3, Vector3, Vector3i>>(Variant::OP_ADD, Variant::VECTOR3, Variant::VECTOR3I);
 	register_op<OperatorEvaluatorAdd<Vector3i, Vector3i, Vector3i>>(Variant::OP_ADD, Variant::VECTOR3I, Variant::VECTOR3I);
+	register_op<OperatorEvaluatorAdd<Vector3, Vector3i, Vector3>>(Variant::OP_ADD, Variant::VECTOR3I, Variant::VECTOR3);
 	register_op<OperatorEvaluatorAdd<Vector4, Vector4, Vector4>>(Variant::OP_ADD, Variant::VECTOR4, Variant::VECTOR4);
+	register_op<OperatorEvaluatorAdd<Vector4, Vector4, Vector4i>>(Variant::OP_ADD, Variant::VECTOR4, Variant::VECTOR4I);
 	register_op<OperatorEvaluatorAdd<Vector4i, Vector4i, Vector4i>>(Variant::OP_ADD, Variant::VECTOR4I, Variant::VECTOR4I);
+	// register_op<OperatorEvaluatorAdd<Vector4, Vector4i, Vector4>>(Variant::OP_ADD, Variant::VECTOR4I, Variant::VECTOR4);
 	register_op<OperatorEvaluatorAdd<Quaternion, Quaternion, Quaternion>>(Variant::OP_ADD, Variant::QUATERNION, Variant::QUATERNION);
 	register_op<OperatorEvaluatorAdd<Color, Color, Color>>(Variant::OP_ADD, Variant::COLOR, Variant::COLOR);
+
 	register_op<OperatorEvaluatorAddArray>(Variant::OP_ADD, Variant::ARRAY, Variant::ARRAY);
+
 	register_op<OperatorEvaluatorAppendArray<uint8_t>>(Variant::OP_ADD, Variant::PACKED_BYTE_ARRAY, Variant::PACKED_BYTE_ARRAY);
 	register_op<OperatorEvaluatorAppendArray<int32_t>>(Variant::OP_ADD, Variant::PACKED_INT32_ARRAY, Variant::PACKED_INT32_ARRAY);
 	register_op<OperatorEvaluatorAppendArray<int64_t>>(Variant::OP_ADD, Variant::PACKED_INT64_ARRAY, Variant::PACKED_INT64_ARRAY);
@@ -281,11 +289,17 @@ void Variant::_register_variant_operators() {
 	register_op<OperatorEvaluatorSub<double, double, int64_t>>(Variant::OP_SUBTRACT, Variant::FLOAT, Variant::INT);
 	register_op<OperatorEvaluatorSub<double, double, double>>(Variant::OP_SUBTRACT, Variant::FLOAT, Variant::FLOAT);
 	register_op<OperatorEvaluatorSub<Vector2, Vector2, Vector2>>(Variant::OP_SUBTRACT, Variant::VECTOR2, Variant::VECTOR2);
+	register_op<OperatorEvaluatorSub<Vector2, Vector2, Vector2i>>(Variant::OP_SUBTRACT, Variant::VECTOR2, Variant::VECTOR2I);
 	register_op<OperatorEvaluatorSub<Vector2i, Vector2i, Vector2i>>(Variant::OP_SUBTRACT, Variant::VECTOR2I, Variant::VECTOR2I);
+	register_op<OperatorEvaluatorSub<Vector2, Vector2i, Vector2>>(Variant::OP_SUBTRACT, Variant::VECTOR2I, Variant::VECTOR2);
 	register_op<OperatorEvaluatorSub<Vector3, Vector3, Vector3>>(Variant::OP_SUBTRACT, Variant::VECTOR3, Variant::VECTOR3);
+	register_op<OperatorEvaluatorSub<Vector3, Vector3, Vector3i>>(Variant::OP_SUBTRACT, Variant::VECTOR3, Variant::VECTOR3I);
 	register_op<OperatorEvaluatorSub<Vector3i, Vector3i, Vector3i>>(Variant::OP_SUBTRACT, Variant::VECTOR3I, Variant::VECTOR3I);
+	register_op<OperatorEvaluatorSub<Vector3, Vector3i, Vector3>>(Variant::OP_SUBTRACT, Variant::VECTOR3I, Variant::VECTOR3);
 	register_op<OperatorEvaluatorSub<Vector4, Vector4, Vector4>>(Variant::OP_SUBTRACT, Variant::VECTOR4, Variant::VECTOR4);
+	register_op<OperatorEvaluatorSub<Vector4, Vector4, Vector4i>>(Variant::OP_SUBTRACT, Variant::VECTOR4, Variant::VECTOR4I);
 	register_op<OperatorEvaluatorSub<Vector4i, Vector4i, Vector4i>>(Variant::OP_SUBTRACT, Variant::VECTOR4I, Variant::VECTOR4I);
+	// register_op<OperatorEvaluatorSub<Vector4, Vector4i, Vector4>>(Variant::OP_SUBTRACT, Variant::VECTOR4I, Variant::VECTOR4);
 	register_op<OperatorEvaluatorSub<Quaternion, Quaternion, Quaternion>>(Variant::OP_SUBTRACT, Variant::QUATERNION, Variant::QUATERNION);
 	register_op<OperatorEvaluatorSub<Color, Color, Color>>(Variant::OP_SUBTRACT, Variant::COLOR, Variant::COLOR);
 
@@ -310,26 +324,32 @@ void Variant::_register_variant_operators() {
 	register_op<OperatorEvaluatorMul<Vector2, Vector2, Vector2>>(Variant::OP_MULTIPLY, Variant::VECTOR2, Variant::VECTOR2);
 	register_op<OperatorEvaluatorMul<Vector2, Vector2, int64_t>>(Variant::OP_MULTIPLY, Variant::VECTOR2, Variant::INT);
 	register_op<OperatorEvaluatorMul<Vector2, Vector2, double>>(Variant::OP_MULTIPLY, Variant::VECTOR2, Variant::FLOAT);
+	register_op<OperatorEvaluatorMul<Vector2, Vector2, Vector2i>>(Variant::OP_MULTIPLY, Variant::VECTOR2, Variant::VECTOR2I);
 
 	register_op<OperatorEvaluatorMul<Vector2i, Vector2i, Vector2i>>(Variant::OP_MULTIPLY, Variant::VECTOR2I, Variant::VECTOR2I);
 	register_op<OperatorEvaluatorMul<Vector2i, Vector2i, int64_t>>(Variant::OP_MULTIPLY, Variant::VECTOR2I, Variant::INT);
 	register_op<OperatorEvaluatorMul<Vector2, Vector2i, double>>(Variant::OP_MULTIPLY, Variant::VECTOR2I, Variant::FLOAT);
+	register_op<OperatorEvaluatorMul<Vector2, Vector2i, Vector2>>(Variant::OP_MULTIPLY, Variant::VECTOR2I, Variant::VECTOR2);
 
 	register_op<OperatorEvaluatorMul<Vector3, Vector3, Vector3>>(Variant::OP_MULTIPLY, Variant::VECTOR3, Variant::VECTOR3);
 	register_op<OperatorEvaluatorMul<Vector3, Vector3, int64_t>>(Variant::OP_MULTIPLY, Variant::VECTOR3, Variant::INT);
 	register_op<OperatorEvaluatorMul<Vector3, Vector3, double>>(Variant::OP_MULTIPLY, Variant::VECTOR3, Variant::FLOAT);
+	register_op<OperatorEvaluatorMul<Vector3, Vector3, Vector3i>>(Variant::OP_MULTIPLY, Variant::VECTOR3, Variant::VECTOR3I);
 
 	register_op<OperatorEvaluatorMul<Vector3i, Vector3i, Vector3i>>(Variant::OP_MULTIPLY, Variant::VECTOR3I, Variant::VECTOR3I);
 	register_op<OperatorEvaluatorMul<Vector3i, Vector3i, int64_t>>(Variant::OP_MULTIPLY, Variant::VECTOR3I, Variant::INT);
 	register_op<OperatorEvaluatorMul<Vector3, Vector3i, double>>(Variant::OP_MULTIPLY, Variant::VECTOR3I, Variant::FLOAT);
+	register_op<OperatorEvaluatorMul<Vector3, Vector3i, Vector3>>(Variant::OP_MULTIPLY, Variant::VECTOR3I, Variant::VECTOR3);
 
 	register_op<OperatorEvaluatorMul<Vector4, Vector4, Vector4>>(Variant::OP_MULTIPLY, Variant::VECTOR4, Variant::VECTOR4);
 	register_op<OperatorEvaluatorMul<Vector4, Vector4, int64_t>>(Variant::OP_MULTIPLY, Variant::VECTOR4, Variant::INT);
 	register_op<OperatorEvaluatorMul<Vector4, Vector4, double>>(Variant::OP_MULTIPLY, Variant::VECTOR4, Variant::FLOAT);
+	register_op<OperatorEvaluatorMul<Vector4, Vector4, Vector4i>>(Variant::OP_MULTIPLY, Variant::VECTOR4, Variant::VECTOR4I);
 
 	register_op<OperatorEvaluatorMul<Vector4i, Vector4i, Vector4i>>(Variant::OP_MULTIPLY, Variant::VECTOR4I, Variant::VECTOR4I);
 	register_op<OperatorEvaluatorMul<Vector4i, Vector4i, int64_t>>(Variant::OP_MULTIPLY, Variant::VECTOR4I, Variant::INT);
 	register_op<OperatorEvaluatorMul<Vector4, Vector4i, double>>(Variant::OP_MULTIPLY, Variant::VECTOR4I, Variant::FLOAT);
+	// register_op<OperatorEvaluatorMul<Vector4, Vector4i, Vector4>>(Variant::OP_MULTIPLY, Variant::VECTOR4I, Variant::VECTOR4);
 
 	register_op<OperatorEvaluatorMul<Quaternion, Quaternion, Quaternion>>(Variant::OP_MULTIPLY, Variant::QUATERNION, Variant::QUATERNION);
 	register_op<OperatorEvaluatorMul<Quaternion, Quaternion, int64_t>>(Variant::OP_MULTIPLY, Variant::QUATERNION, Variant::INT);
@@ -394,26 +414,32 @@ void Variant::_register_variant_operators() {
 	register_op<OperatorEvaluatorDiv<Vector2, Vector2, Vector2>>(Variant::OP_DIVIDE, Variant::VECTOR2, Variant::VECTOR2);
 	register_op<OperatorEvaluatorDiv<Vector2, Vector2, double>>(Variant::OP_DIVIDE, Variant::VECTOR2, Variant::FLOAT);
 	register_op<OperatorEvaluatorDiv<Vector2, Vector2, int64_t>>(Variant::OP_DIVIDE, Variant::VECTOR2, Variant::INT);
+	register_op<OperatorEvaluatorDiv<Vector2, Vector2, Vector2i>>(Variant::OP_DIVIDE, Variant::VECTOR2, Variant::VECTOR2I);
 
 	register_op<OperatorEvaluatorDivNZ<Vector2i, Vector2i, Vector2i>>(Variant::OP_DIVIDE, Variant::VECTOR2I, Variant::VECTOR2I);
 	register_op<OperatorEvaluatorDivNZ<Vector2, Vector2i, double>>(Variant::OP_DIVIDE, Variant::VECTOR2I, Variant::FLOAT);
 	register_op<OperatorEvaluatorDivNZ<Vector2i, Vector2i, int64_t>>(Variant::OP_DIVIDE, Variant::VECTOR2I, Variant::INT);
+	// register_op<OperatorEvaluatorDivNZ<Vector2, Vector2i, Vector2>>(Variant::OP_DIVIDE, Variant::VECTOR2I, Variant::VECTOR2);
 
 	register_op<OperatorEvaluatorDiv<Vector3, Vector3, Vector3>>(Variant::OP_DIVIDE, Variant::VECTOR3, Variant::VECTOR3);
 	register_op<OperatorEvaluatorDiv<Vector3, Vector3, double>>(Variant::OP_DIVIDE, Variant::VECTOR3, Variant::FLOAT);
 	register_op<OperatorEvaluatorDiv<Vector3, Vector3, int64_t>>(Variant::OP_DIVIDE, Variant::VECTOR3, Variant::INT);
+	register_op<OperatorEvaluatorDiv<Vector3, Vector3, Vector3i>>(Variant::OP_DIVIDE, Variant::VECTOR3, Variant::VECTOR3I);
 
 	register_op<OperatorEvaluatorDivNZ<Vector3i, Vector3i, Vector3i>>(Variant::OP_DIVIDE, Variant::VECTOR3I, Variant::VECTOR3I);
 	register_op<OperatorEvaluatorDivNZ<Vector3, Vector3i, double>>(Variant::OP_DIVIDE, Variant::VECTOR3I, Variant::FLOAT);
 	register_op<OperatorEvaluatorDivNZ<Vector3i, Vector3i, int64_t>>(Variant::OP_DIVIDE, Variant::VECTOR3I, Variant::INT);
+	// register_op<OperatorEvaluatorDivNZ<Vector3, Vector3i, Vector3>>(Variant::OP_DIVIDE, Variant::VECTOR3I, Variant::VECTOR3);
 
 	register_op<OperatorEvaluatorDiv<Vector4, Vector4, Vector4>>(Variant::OP_DIVIDE, Variant::VECTOR4, Variant::VECTOR4);
 	register_op<OperatorEvaluatorDiv<Vector4, Vector4, double>>(Variant::OP_DIVIDE, Variant::VECTOR4, Variant::FLOAT);
 	register_op<OperatorEvaluatorDiv<Vector4, Vector4, int64_t>>(Variant::OP_DIVIDE, Variant::VECTOR4, Variant::INT);
+	register_op<OperatorEvaluatorDiv<Vector4, Vector4, Vector4i>>(Variant::OP_DIVIDE, Variant::VECTOR4, Variant::VECTOR4I);
 
 	register_op<OperatorEvaluatorDivNZ<Vector4i, Vector4i, Vector4i>>(Variant::OP_DIVIDE, Variant::VECTOR4I, Variant::VECTOR4I);
 	register_op<OperatorEvaluatorDivNZ<Vector4, Vector4i, double>>(Variant::OP_DIVIDE, Variant::VECTOR4I, Variant::FLOAT);
 	register_op<OperatorEvaluatorDivNZ<Vector4i, Vector4i, int64_t>>(Variant::OP_DIVIDE, Variant::VECTOR4I, Variant::INT);
+	// register_op<OperatorEvaluatorDivNZ<Vector4, Vector4i, Vector4>>(Variant::OP_DIVIDE, Variant::VECTOR4I, Variant::VECTOR4);
 
 	register_op<OperatorEvaluatorDiv<Transform2D, Transform2D, int64_t>>(Variant::OP_DIVIDE, Variant::TRANSFORM2D, Variant::INT);
 	register_op<OperatorEvaluatorDiv<Transform2D, Transform2D, double>>(Variant::OP_DIVIDE, Variant::TRANSFORM2D, Variant::FLOAT);
