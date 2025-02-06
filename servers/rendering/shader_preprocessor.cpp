@@ -826,6 +826,20 @@ void ShaderPreprocessor::process_undef(Tokenizer *p_tokenizer) {
 	}
 }
 
+void ShaderPreprocessor::process_pass(Tokenizer *p_tokenizer) {
+	const int line = p_tokenizer->get_line();
+	const String label = p_tokenizer->get_identifier();
+	if (label.is_empty() || !p_tokenizer->consume_empty_line()) {
+		set_error(vformat(RTR("Invalid '%s' directive."), "pass"), line);
+		return;
+	}
+
+	if (state->defines.has(label)) {
+		set_error(vformat(RTR("Cannot use pass directive '%s' if it's been already defined previously."), label), line);
+		return;
+	}
+}
+
 void ShaderPreprocessor::add_region(int p_line, bool p_enabled, Region *p_parent_region) {
 	Region region;
 	region.file = state->current_filename;
@@ -1330,7 +1344,7 @@ Error ShaderPreprocessor::preprocess(State *p_state, const String &p_code, Strin
 	return OK;
 }
 
-Error ShaderPreprocessor::preprocess(const String &p_code, const String &p_filename, String &r_result, String *r_error_text, List<FilePosition> *r_error_position, List<Region> *r_regions, HashSet<Ref<ShaderInclude>> *r_includes, List<ScriptLanguage::CodeCompletionOption> *r_completion_options, List<ScriptLanguage::CodeCompletionOption> *r_completion_defines, IncludeCompletionFunction p_include_completion_func) {
+Error ShaderPreprocessor::preprocess(const String &p_code, const String &p_filename, String &r_result, String *p_pass, String *r_error_text, List<FilePosition> *r_error_position, List<Region> *r_regions, HashSet<Ref<ShaderInclude>> *r_includes, List<ScriptLanguage::CodeCompletionOption> *r_completion_options, List<ScriptLanguage::CodeCompletionOption> *r_completion_defines, IncludeCompletionFunction p_include_completion_func, Vector<String> *r_passes) {
 	State pp_state;
 	if (!p_filename.is_empty()) {
 		pp_state.current_filename = p_filename;
@@ -1352,6 +1366,10 @@ Error ShaderPreprocessor::preprocess(const String &p_code, const String &p_filen
 		insert_builtin_define("RENDERER_COMPATIBILITY", _MKSTR(0), pp_state);
 		insert_builtin_define("RENDERER_MOBILE", _MKSTR(1), pp_state);
 		insert_builtin_define("RENDERER_FORWARD_PLUS", _MKSTR(2), pp_state);
+
+		if (p_pass) {
+			insert_builtin_define(*p_pass, "", pp_state);
+		}
 	}
 
 	Error err = preprocess(&pp_state, p_code, r_result);
@@ -1362,6 +1380,9 @@ Error ShaderPreprocessor::preprocess(const String &p_code, const String &p_filen
 		if (r_error_position) {
 			*r_error_position = pp_state.include_positions;
 		}
+	}
+	if (r_passes) {
+		*r_passes = pp_state.passes;
 	}
 	if (r_regions) {
 		*r_regions = pp_state.regions[p_filename];

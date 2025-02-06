@@ -409,7 +409,7 @@ void ShaderTextEditor::_code_complete_script(const String &p_code, List<ScriptLa
 	if (!complete_from_path.ends_with("/")) {
 		complete_from_path += "/";
 	}
-	preprocessor.preprocess(p_code, resource_path, code, nullptr, nullptr, nullptr, nullptr, &pp_options, &pp_defines, _complete_include_paths);
+	preprocessor.preprocess(p_code, resource_path, code, nullptr, nullptr, nullptr, nullptr, nullptr, &pp_options, &pp_defines, _complete_include_paths);
 	complete_from_path = String();
 	if (pp_options.size()) {
 		for (const ScriptLanguage::CodeCompletionOption &E : pp_options) {
@@ -465,7 +465,7 @@ void ShaderTextEditor::_validate_script() {
 	} else if (shader_inc.is_valid()) {
 		filename = shader_inc->get_path();
 	}
-	last_compile_result = preprocessor.preprocess(code, filename, code_pp, &error_pp, &err_positions, &regions);
+	last_compile_result = preprocessor.preprocess(code, filename, code_pp, nullptr, &error_pp, &err_positions, &regions);
 
 	for (int i = 0; i < get_text_editor()->get_line_count(); i++) {
 		get_text_editor()->set_line_background_color(i, Color(0, 0, 0, 0));

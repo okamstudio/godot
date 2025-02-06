@@ -162,6 +162,7 @@ private:
 		bool disabled = false;
 		CompletionType completion_type = COMPLETION_TYPE_NONE;
 		HashSet<Ref<ShaderInclude>> shader_includes;
+		Vector<String> passes;
 	};
 
 private:
@@ -195,6 +196,7 @@ private:
 	void process_include(Tokenizer *p_tokenizer);
 	void process_pragma(Tokenizer *p_tokenizer);
 	void process_undef(Tokenizer *p_tokenizer);
+	void process_pass(Tokenizer *p_tokenizer);
 
 	void add_region(int p_line, bool p_enabled, Region *p_parent_region);
 	void start_branch_condition(Tokenizer *p_tokenizer, bool p_success, bool p_continue = false);
@@ -220,7 +222,7 @@ private:
 public:
 	typedef void (*IncludeCompletionFunction)(List<ScriptLanguage::CodeCompletionOption> *);
 
-	Error preprocess(const String &p_code, const String &p_filename, String &r_result, String *r_error_text = nullptr, List<FilePosition> *r_error_position = nullptr, List<Region> *r_regions = nullptr, HashSet<Ref<ShaderInclude>> *r_includes = nullptr, List<ScriptLanguage::CodeCompletionOption> *r_completion_options = nullptr, List<ScriptLanguage::CodeCompletionOption> *r_completion_defines = nullptr, IncludeCompletionFunction p_include_completion_func = nullptr);
+	Error preprocess(const String &p_code, const String &p_filename, String &r_result, String *p_pass = nullptr, String *r_error_text = nullptr, List<FilePosition> *r_error_position = nullptr, List<Region> *r_regions = nullptr, HashSet<Ref<ShaderInclude>> *r_includes = nullptr, List<ScriptLanguage::CodeCompletionOption> *r_completion_options = nullptr, List<ScriptLanguage::CodeCompletionOption> *r_completion_defines = nullptr, IncludeCompletionFunction p_include_completion_func = nullptr, Vector<String> *r_passes = nullptr);
 
 	static void get_keyword_list(List<String> *r_keywords, bool p_include_shader_keywords, bool p_ignore_context_keywords = false);
 	static void get_pragma_list(List<String> *r_pragmas);

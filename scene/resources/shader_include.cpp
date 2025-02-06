@@ -52,7 +52,7 @@ void ShaderInclude::set_code(const String &p_code) {
 		String pp_code;
 		HashSet<Ref<ShaderInclude>> new_dependencies;
 		ShaderPreprocessor preprocessor;
-		Error result = preprocessor.preprocess(p_code, path, pp_code, nullptr, nullptr, nullptr, &new_dependencies);
+		Error result = preprocessor.preprocess(p_code, path, pp_code, nullptr, nullptr, nullptr, nullptr, &new_dependencies);
 		if (result == OK) {
 			// This ensures previous include resources are not freed and then re-loaded during parse (which would make compiling slower)
 			dependencies = new_dependencies;
