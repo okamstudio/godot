@@ -548,6 +548,7 @@ Object *ClassDB::_instantiate_internal(const StringName &p_class, bool p_require
 		}
 		ERR_FAIL_NULL_V_MSG(ti, nullptr, vformat("Cannot get class '%s'.", String(p_class)));
 		ERR_FAIL_COND_V_MSG(ti->disabled, nullptr, vformat("Class '%s' is disabled.", String(p_class)));
+		ERR_FAIL_COND_V_MSG(!ti->exposed, nullptr, vformat("Class '%s' isn't exposed.", String(p_class)));
 		ERR_FAIL_NULL_V_MSG(ti->creation_func, nullptr, vformat("Class '%s' or its base class cannot be instantiated.", String(p_class)));
 	}
 
@@ -604,7 +605,7 @@ bool ClassDB::_can_instantiate(ClassInfo *p_class_info) {
 		return false;
 	}
 
-	if (p_class_info->disabled || !p_class_info->creation_func) {
+	if (p_class_info->disabled || !p_class_info->exposed || !p_class_info->creation_func) {
 		return false;
 	}
 
