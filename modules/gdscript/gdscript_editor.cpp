@@ -3451,28 +3451,103 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 			_find_call_arguments(completion_context, completion_context.node, completion_context.current_argument, options, r_forced, r_call_hint);
 		} break;
 		case GDScriptParser::COMPLETION_OVERRIDE_METHOD: {
-			GDScriptParser::DataType native_type = completion_context.current_class->base_type;
-			while (native_type.is_set() && native_type.kind != GDScriptParser::DataType::NATIVE) {
-				switch (native_type.kind) {
+			const bool use_type_hint = EDITOR_GET("text_editor/completion/add_type_hints");
+
+			GDScriptParser::DataType base_type = completion_context.current_class->base_type;
+
+			while (base_type.is_set() && base_type.kind != GDScriptParser::DataType::NATIVE) {
+				switch (base_type.kind) {
 					case GDScriptParser::DataType::CLASS: {
-						native_type = native_type.class_type->base_type;
+						for (const GDScriptParser::ClassNode::Member &member : base_type.class_type->members) {
+							if (member.type != GDScriptParser::ClassNode::Member::FUNCTION) {
+								continue;
+							}
+
+							if (options.has(member.function->identifier->name) || completion_context.current_class->has_function(member.function->identifier->name)) {
+								continue;
+							}
+
+							String display_text = member.function->identifier->name;
+							display_text += "(";
+
+							for (int i = 0; i < member.function->parameters.size(); i++) {
+								if (i > 0) {
+									display_text += ", ";
+								}
+
+								const GDScriptParser::ParameterNode *param = member.function->parameters[i];
+
+								display_text += param->identifier->name;
+
+								if (use_type_hint) {
+									if (param->datatype_specifier && !param->infer_datatype) {
+										String type = "";
+
+										for (int j = 0; j < param->datatype_specifier->type_chain.size(); j++) {
+											if (j > 0) {
+												type += ".";
+											}
+
+											type += param->datatype_specifier->type_chain[j]->name;
+										}
+
+										display_text += ": " + type;
+									}
+								}
+
+								if (param->initializer) {
+									if (param->initializer->is_constant) {
+										display_text += param->infer_datatype ? " := " : " = ";
+										display_text += param->initializer->reduced_value.get_construct_string();
+									} else {
+										// Use default value
+										Variant v = Variant();
+										VariantInternal::initialize(&v, param->get_datatype().builtin_type);
+										String default_value = v.get_construct_string();
+										// Use infer assignment unless value is null
+										display_text += param->infer_datatype && default_value != "null" ? " := " : " = ";
+										display_text += default_value;
+									}
+								}
+							}
+							display_text += ")";
+
+							if (use_type_hint && member.function->return_type) {
+								String type = "";
+
+								for (int i = 0; i < member.function->return_type->type_chain.size(); i++) {
+									if (i > 0) {
+										type += ".";
+									}
+
+									type += member.function->return_type->type_chain[i]->name;
+								}
+
+								display_text += " -> " + type;
+							}
+
+							display_text += ":";
+
+							ScriptLanguage::CodeCompletionOption option(display_text, ScriptLanguage::CODE_COMPLETION_KIND_FUNCTION);
+							options.insert(member.function->identifier->name, option); // Insert name instead of display to track duplicates
+						}
+
+						base_type = base_type.class_type->base_type;
 					} break;
 					default: {
-						native_type.kind = GDScriptParser::DataType::UNRESOLVED;
+						base_type.kind = GDScriptParser::DataType::UNRESOLVED;
 					} break;
 				}
 			}
 
-			if (!native_type.is_set()) {
+			if (!base_type.is_set()) {
 				break;
 			}
 
-			StringName class_name = native_type.native_type;
+			StringName class_name = base_type.native_type;
 			if (!ClassDB::class_exists(class_name)) {
 				break;
 			}
-
-			bool use_type_hint = EditorSettings::get_singleton()->get_setting("text_editor/completion/add_type_hints").operator bool();
 
 			List<MethodInfo> virtual_methods;
 			ClassDB::get_virtual_methods(class_name, &virtual_methods);
@@ -3486,6 +3561,9 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 			}
 
 			for (const MethodInfo &mi : virtual_methods) {
+				if (options.has(mi.name) || completion_context.current_class->has_function(mi.name)) {
+					continue;
+				}
 				String method_hint = mi.name;
 				if (method_hint.contains_char(':')) {
 					method_hint = method_hint.get_slice(":", 0);
@@ -3512,7 +3590,7 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 				method_hint += ":";
 
 				ScriptLanguage::CodeCompletionOption option(method_hint, ScriptLanguage::CODE_COMPLETION_KIND_FUNCTION);
-				options.insert(option.display, option);
+				options.insert(mi.name, option);
 			}
 		} break;
 		case GDScriptParser::COMPLETION_GET_NODE: {
