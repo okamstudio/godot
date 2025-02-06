@@ -53,8 +53,8 @@ private:
 		int size = 0;
 		float *buffer = nullptr;
 		float feedback = 0;
-		float damp = 0; //lowpass
-		float damp_h = 0; //history
+		float reflection = 0; //lowpass
+		float reflection_h = 0; //history
 		int pos = 0;
 		int extra_spread_frames = 0;
 
@@ -81,7 +81,7 @@ private:
 
 	struct Parameters {
 		float room_size;
-		float damp;
+		float reflection;
 		float wet;
 		float dry;
 		float mix_rate;
@@ -98,7 +98,10 @@ private:
 
 public:
 	void set_room_size(float p_size);
+	void set_reflection(float p_reflection);
+#ifndef DISABLE_DEPRECATED
 	void set_damp(float p_damp);
+#endif
 	void set_wet(float p_wet);
 	void set_dry(float p_dry);
 	void set_predelay(float p_predelay); // in ms

@@ -11,8 +11,7 @@
 		<link title="Third Person Shooter (TPS) Demo">https://godotengine.org/asset-library/asset/2710</link>
 	</tutorials>
 	<members>
-		<member name="damping" type="float" setter="set_damping" getter="get_damping" default="0.5">
-			Defines how reflective the imaginary room's walls are. Value can range from 0 to 1.
+		<member name="damping" type="float" setter="set_damping" getter="get_damping" default="0.5" deprecated="Use [member reflectivity] instead.">
 		</member>
 		<member name="dry" type="float" setter="set_dry" getter="get_dry" default="1.0">
 			Output percent of original sound. At 0, only modified sound is outputted. Value can range from 0 to 1.
@@ -25,6 +24,9 @@
 		</member>
 		<member name="predelay_msec" type="float" setter="set_predelay_msec" getter="get_predelay_msec" default="150.0">
 			Time between the original signal and the early reflections of the reverb signal, in milliseconds.
+		</member>
+		<member name="reflectivity" type="float" setter="set_reflectivity" getter="get_reflectivity" default="0.5">
+			Defines how reflective the imaginary room's walls are. Value can range from 0 to 1 with 1 being fully reflective and 0 being non-reflective.
 		</member>
 		<member name="room_size" type="float" setter="set_room_size" getter="get_room_size" default="0.8">
 			Dimensions of simulated room. Bigger means more echoes. Value can range from 0 to 1.

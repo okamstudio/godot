@@ -113,8 +113,8 @@ void Reverb::process(float *p_src, float *p_dst, int p_frames) {
 			}
 
 			float out = undenormalize(c.buffer[c.pos] * c.feedback);
-			out = out * (1.0 - c.damp) + c.damp_h * c.damp; //lowpass
-			c.damp_h = out;
+			out = out * (1.0 - c.reflection) + c.reflection_h * c.reflection; //lowpass
+			c.reflection_h = out;
 			c.buffer[c.pos] = input_buffer[j] + out;
 			p_dst[j] += out;
 			c.pos++;
@@ -182,10 +182,18 @@ void Reverb::set_room_size(float p_size) {
 	update_parameters();
 }
 
-void Reverb::set_damp(float p_damp) {
-	params.damp = p_damp;
+void Reverb::set_reflection(float p_reflection) {
+	params.reflection = p_reflection;
 	update_parameters();
 }
+
+#ifndef DISABLE_DEPRECATED
+void Reverb::set_damp(float p_damp) {
+	WARN_DEPRECATED_MSG("Use set_reflection instead.");
+	set_reflection(p_damp);
+}
+
+#endif
 
 void Reverb::set_wet(float p_wet) {
 	params.wet = p_wet;
@@ -289,10 +297,10 @@ void Reverb::update_parameters() {
 			c.feedback = (room_offset + room_scale);
 		}
 
-		float auxdmp = params.damp / 2.0 + 0.5; //only half the range (0.5 .. 1.0 is enough)
+		float auxdmp = params.reflection / 2.0 + 0.5; //only half the range (0.5 .. 1.0 is enough)
 		auxdmp *= auxdmp;
 
-		c.damp = expf(-Math_TAU * auxdmp * 10000 / params.mix_rate); // 0 .. 10khz
+		c.reflection = expf(-Math_TAU * auxdmp * 10000 / params.mix_rate); // 0 .. 10khz
 	}
 }
 
@@ -320,7 +328,7 @@ void Reverb::clear_buffers() {
 
 Reverb::Reverb() {
 	params.room_size = 0.8;
-	params.damp = 0.5;
+	params.reflection = 0.5;
 	params.dry = 1.0;
 	params.wet = 0.0;
 	params.mix_rate = 44100;

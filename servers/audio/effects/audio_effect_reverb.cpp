@@ -38,7 +38,7 @@ void AudioEffectReverbInstance::process(const AudioFrame *p_src_frames, AudioFra
 		r.set_predelay_feedback(base->predelay_fb);
 		r.set_highpass(base->hpf);
 		r.set_room_size(base->room_size);
-		r.set_damp(base->damping);
+		r.set_reflection(base->reflectivity);
 		r.set_extra_spread(base->spread);
 		r.set_wet(base->wet);
 		r.set_dry(base->dry);
@@ -98,9 +98,16 @@ void AudioEffectReverb::set_room_size(float p_size) {
 	room_size = p_size;
 }
 
-void AudioEffectReverb::set_damping(float p_damping) {
-	damping = p_damping;
+void AudioEffectReverb::set_reflectivity(float p_reflectivity) {
+	reflectivity = p_reflectivity;
 }
+
+#ifndef DISABLE_DEPRECATED
+void AudioEffectReverb::set_damping(float p_damping) {
+	WARN_DEPRECATED_MSG("Use set_reflectivity instead.");
+	set_reflectivity(p_damping);
+}
+#endif
 
 void AudioEffectReverb::set_spread(float p_spread) {
 	spread = p_spread;
@@ -130,9 +137,16 @@ float AudioEffectReverb::get_room_size() const {
 	return room_size;
 }
 
-float AudioEffectReverb::get_damping() const {
-	return damping;
+float AudioEffectReverb::get_reflectivity() const {
+	return reflectivity;
 }
+
+#ifndef DISABLE_DEPRECATED
+float AudioEffectReverb::get_damping() const {
+	WARN_DEPRECATED_MSG("Use get_reflectivity instead.");
+	return get_reflectivity();
+}
+#endif
 
 float AudioEffectReverb::get_spread() const {
 	return spread;
@@ -160,8 +174,13 @@ void AudioEffectReverb::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_room_size", "size"), &AudioEffectReverb::set_room_size);
 	ClassDB::bind_method(D_METHOD("get_room_size"), &AudioEffectReverb::get_room_size);
 
+	ClassDB::bind_method(D_METHOD("set_reflectivity", "amount"), &AudioEffectReverb::set_reflectivity);
+	ClassDB::bind_method(D_METHOD("get_reflectivity"), &AudioEffectReverb::get_reflectivity);
+
+#ifndef DISABLE_DEPRECATED
 	ClassDB::bind_method(D_METHOD("set_damping", "amount"), &AudioEffectReverb::set_damping);
 	ClassDB::bind_method(D_METHOD("get_damping"), &AudioEffectReverb::get_damping);
+#endif
 
 	ClassDB::bind_method(D_METHOD("set_spread", "amount"), &AudioEffectReverb::set_spread);
 	ClassDB::bind_method(D_METHOD("get_spread"), &AudioEffectReverb::get_spread);
@@ -180,7 +199,10 @@ void AudioEffectReverb::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "predelay_feedback", PROPERTY_HINT_RANGE, "0,0.98,0.01"), "set_predelay_feedback", "get_predelay_feedback");
 	ADD_GROUP("", "");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "room_size", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_room_size", "get_room_size");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "damping", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_damping", "get_damping");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "reflectivity", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_reflectivity", "get_reflectivity");
+#ifndef DISABLE_DEPRECATED
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "damping", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR), "set_damping", "get_damping");
+#endif
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "spread", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_spread", "get_spread");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "hipass", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_hpf", "get_hpf");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "dry", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_dry", "get_dry");
@@ -192,7 +214,7 @@ AudioEffectReverb::AudioEffectReverb() {
 	predelay_fb = 0.4;
 	hpf = 0;
 	room_size = 0.8;
-	damping = 0.5;
+	reflectivity = 0.5;
 	spread = 1.0;
 	dry = 1.0;
 	wet = 0.5;

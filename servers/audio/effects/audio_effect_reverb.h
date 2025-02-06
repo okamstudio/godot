@@ -62,7 +62,7 @@ class AudioEffectReverb : public AudioEffect {
 	float predelay_fb;
 	float hpf;
 	float room_size;
-	float damping;
+	float reflectivity;
 	float spread;
 	float dry;
 	float wet;
@@ -74,7 +74,10 @@ public:
 	void set_predelay_msec(float p_msec);
 	void set_predelay_feedback(float p_feedback);
 	void set_room_size(float p_size);
+	void set_reflectivity(float p_reflectivity);
+#ifndef DISABLE_DEPRECATED
 	void set_damping(float p_damping);
+#endif
 	void set_spread(float p_spread);
 	void set_dry(float p_dry);
 	void set_wet(float p_wet);
@@ -83,7 +86,10 @@ public:
 	float get_predelay_msec() const;
 	float get_predelay_feedback() const;
 	float get_room_size() const;
+	float get_reflectivity() const;
+#ifndef DISABLE_DEPRECATED
 	float get_damping() const;
+#endif
 	float get_spread() const;
 	float get_dry() const;
 	float get_wet() const;
