@@ -337,7 +337,7 @@ void ViewportRotationControl::_draw() {
 
 void ViewportRotationControl::_draw_axis(const Axis2D &p_axis) {
 	const bool focused = focused_axis == p_axis.axis;
-	const bool positive = p_axis.axis < 3;
+	const bool positive = axis_is_aligned && p_axis.axis == aligned_axis ? !(p_axis.axis < 3) : (p_axis.axis < 3);
 	const int direction = p_axis.axis % 3;
 
 	const Color axis_color = axis_colors[direction];
@@ -374,11 +374,13 @@ void ViewportRotationControl::_get_sorted_axis(Vector<Axis2D> &r_axis) {
 	const real_t radius = get_size().x / 2.0 - AXIS_CIRCLE_RADIUS - 2.0 * EDSCALE;
 	const Basis camera_basis = viewport->to_camera_transform(viewport->cursor).get_basis().inverse();
 
+	axis_is_aligned = false;
+
 	for (int i = 0; i < 3; ++i) {
 		Vector3 axis_3d = camera_basis.get_column(i);
 		Vector2 axis_vector = Vector2(axis_3d.x, -axis_3d.y) * radius;
 
-		if (Math::abs(axis_3d.z) <= 1.0) {
+		if (Math::abs(axis_3d.z) < 1.0) {
 			Axis2D pos_axis;
 			pos_axis.axis = i;
 			pos_axis.screen_point = center + axis_vector;
@@ -397,6 +399,8 @@ void ViewportRotationControl::_get_sorted_axis(Vector<Axis2D> &r_axis) {
 			axis.screen_point = center;
 			axis.z_axis = 1.0;
 			r_axis.push_back(axis);
+			axis_is_aligned = true;
+			aligned_axis = axis.axis;
 		}
 	}
 

@@ -99,6 +99,9 @@ protected:
 	void _process_click(int p_index, Vector2 p_position, bool p_pressed);
 	void _process_drag(Ref<InputEventWithModifiers> p_event, int p_index, Vector2 p_position, Vector2 p_relative_position);
 
+	int aligned_axis = 0;
+	bool axis_is_aligned = false;
+
 public:
 	void set_viewport(Node3DEditorViewport *p_viewport);
 };
