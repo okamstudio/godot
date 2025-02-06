@@ -2172,6 +2172,21 @@ bool Node::is_unique_name_in_owner() const {
 	return data.unique_name_in_owner;
 }
 
+bool Node::has_exposed_nodes() const {
+	for (const KeyValue<StringName, Node *> &KV : data.children) {
+		if (!KV.value->data.owner) {
+			continue;
+		}
+		if (KV.value->has_meta(META_EXPOSED_IN_INSTANCE)) {
+			return true;
+		}
+		if (KV.value->has_exposed_nodes()) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void Node::set_owner(Node *p_owner) {
 	ERR_MAIN_THREAD_GUARD
 	if (data.owner) {

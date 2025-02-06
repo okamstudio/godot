@@ -56,6 +56,7 @@ class SceneTreeEditor : public Control {
 		BUTTON_GROUPS = 7,
 		BUTTON_PIN = 8,
 		BUTTON_UNIQUE = 9,
+		BUTTON_EXPOSED = 10,
 	};
 
 	struct CachedNode {
@@ -88,6 +89,7 @@ class SceneTreeEditor : public Control {
 		NodeCache(SceneTreeEditor *p_editor) :
 				editor(p_editor) {}
 
+		HashMap<Node *, CachedNode>::Iterator add(Node *p_node);
 		HashMap<Node *, CachedNode>::Iterator add(Node *p_node, TreeItem *p_item);
 		HashMap<Node *, CachedNode>::Iterator get(Node *p_node, bool p_deleted_ok = true);
 		void remove(Node *p_node, bool p_recursive = false);
@@ -124,6 +126,10 @@ class SceneTreeEditor : public Control {
 	Label *revoke_dialog_label = nullptr;
 	CheckBox *ask_before_revoke_checkbox = nullptr;
 	Node *revoke_node = nullptr;
+
+	ConfirmationDialog *revoke_node_exposure = nullptr;
+	Label *revoke_node_exposure_dialog_label = nullptr;
+	CheckBox *ask_before_revoke_node_exposure_checkbox = nullptr;
 
 	bool auto_expand_selected = true;
 	bool hide_filtered_out_parents = false;
@@ -219,6 +225,8 @@ class SceneTreeEditor : public Control {
 
 	void _update_ask_before_revoking_unique_name();
 	void _revoke_unique_name();
+	void _update_ask_before_revoking_node_exposure();
+	void _toggle_node_exposure();
 
 public:
 	// Public for use with callable_mp.

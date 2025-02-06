@@ -40,6 +40,7 @@ class SceneState : public RefCounted {
 	Vector<StringName> names;
 	Vector<Variant> variants;
 	Vector<NodePath> node_paths;
+	Vector<NodePath> exposed_nodes;
 	Vector<NodePath> editable_instances;
 	mutable HashMap<NodePath, int> node_path_cache;
 	mutable HashMap<int, int> base_scene_node_remap;
@@ -196,6 +197,7 @@ public:
 	bool has_connection(const NodePath &p_node_from, const StringName &p_signal, const NodePath &p_node_to, const StringName &p_method, bool p_no_inheritance = false);
 
 	Vector<NodePath> get_editable_instances() const;
+	Vector<NodePath> get_exposed_nodes() const;
 	Ref<Resource> get_sub_resource(const String &p_path);
 
 	//build API
@@ -209,6 +211,7 @@ public:
 	void set_base_scene(int p_idx);
 	void add_connection(int p_from, int p_to, int p_signal, int p_method, int p_flags, int p_unbinds, const Vector<int> &p_binds);
 	void add_editable_instance(const NodePath &p_path);
+	void add_exposed_node(const NodePath &p_path);
 
 	bool remove_group_references(const StringName &p_name);
 	bool rename_group_references(const StringName &p_old_name, const StringName &p_new_name);

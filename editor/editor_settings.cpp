@@ -509,6 +509,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	_initial_set("interface/editors/show_scene_tree_root_selection", true);
 	_initial_set("interface/editors/derive_script_globals_by_name", true);
 	_initial_set("docks/scene_tree/ask_before_revoking_unique_name", true);
+	_initial_set("docks/scene_tree/ask_before_revoking_node_exposure", true);
 
 	// Inspector
 	EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_RANGE, "interface/inspector/max_array_dictionary_items_per_page", 20, "10,100,1")
