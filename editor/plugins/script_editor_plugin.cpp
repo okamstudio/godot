@@ -3395,6 +3395,62 @@ void ScriptEditor::_script_list_clicked(int p_item, Vector2 p_local_mouse_pos, M
 	}
 }
 
+void ScriptEditor::_draw_script_list() {
+	// Draw class icons on right side.
+	Size2 max_icon_size = EditorNode::get_singleton()->get_class_icon("Node")->get_size();
+
+	VScrollBar *scroll = script_list->get_v_scroll_bar();
+	real_t offset = -scroll->get_value();
+
+	real_t margin_right = script_list->get_theme_stylebox("panel")->get_margin(SIDE_RIGHT);
+	margin_right += script_list->get_theme_constant("h_separation") / 2;
+	if (scroll->is_visible()) {
+		margin_right += scroll->get_size().x;
+	}
+
+	for (int i = 0; i < script_list->get_item_count(); i++) {
+		Control *c = tab_container->get_tab_control(i);
+		if (!c) {
+			continue;
+		}
+
+		Ref<Texture2D> icon;
+		if (Object::cast_to<ScriptEditorBase>(c)) {
+			ScriptEditorBase *se = Object::cast_to<ScriptEditorBase>(c);
+			Ref<Script> scr = se->get_edited_resource();
+
+			icon = EditorNode::get_editor_data().get_script_icon(scr);
+			if (icon.is_null()) {
+				icon = EditorNode::get_singleton()->get_class_icon(scr->get_instance_base_type());
+			}
+		}
+		if (Object::cast_to<EditorHelp>(c)) {
+			EditorHelp *help = Object::cast_to<EditorHelp>(c);
+			icon = EditorNode::get_singleton()->get_class_icon(help->get_class());
+		}
+
+		if (icon.is_valid()) {
+			Size2 icon_size = icon->get_size();
+			if (icon_size.x > max_icon_size.x) {
+				icon_size.y = icon_size.y * (max_icon_size.x / icon_size.x);
+				icon_size.x = max_icon_size.x;
+			}
+			if (icon_size.y > max_icon_size.y) {
+				icon_size.x = icon_size.x * (max_icon_size.y / icon_size.y);
+				icon_size.y = max_icon_size.y;
+			}
+			Rect2 item_rect = script_list->get_item_rect(i);
+			real_t margin_top = (item_rect.size.y - icon_size.y) / 2;
+			real_t pos_from_right = max_icon_size.x - (max_icon_size.x - icon_size.x) / 2;
+			Rect2 icon_rect = Rect2(
+					item_rect.get_end().x - pos_from_right - margin_right,
+					item_rect.position.y + margin_top + offset,
+					icon_size.x, icon_size.y);
+			script_list->draw_texture_rect(icon, icon_rect);
+		}
+	}
+}
+
 void ScriptEditor::_make_script_list_context_menu() {
 	context_menu->clear();
 
@@ -4164,6 +4220,7 @@ ScriptEditor::ScriptEditor(WindowWrapper *p_wrapper) {
 	script_split->set_split_offset(200 * EDSCALE);
 	_sort_list_on_update = true;
 	script_list->connect("item_clicked", callable_mp(this, &ScriptEditor::_script_list_clicked), CONNECT_DEFERRED);
+	script_list->connect("draw", callable_mp(this, &ScriptEditor::_draw_script_list));
 	script_list->set_allow_rmb_select(true);
 	SET_DRAG_FORWARDING_GCD(script_list, ScriptEditor);
 

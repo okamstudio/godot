@@ -492,6 +492,7 @@ class ScriptEditor : public PanelContainer {
 	virtual void shortcut_input(const Ref<InputEvent> &p_event) override;
 
 	void _script_list_clicked(int p_item, Vector2 p_local_mouse_pos, MouseButton p_mouse_button_index);
+	void _draw_script_list();
 	void _make_script_list_context_menu();
 
 	void _help_search(const String &p_text);
