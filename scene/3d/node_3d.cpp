@@ -288,7 +288,7 @@ void Node3D::set_global_basis(const Basis &p_basis) {
 
 Vector3 Node3D::get_global_rotation() const {
 	ERR_READ_THREAD_GUARD_V(Vector3());
-	return get_global_transform().get_basis().get_euler();
+	return get_global_transform().get_basis().get_euler_normalized();
 }
 
 Vector3 Node3D::get_global_rotation_degrees() const {
