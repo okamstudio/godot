@@ -162,6 +162,12 @@
 				Returns an [Array] with the file paths of the currently opened scenes.
 			</description>
 		</method>
+		<method name="get_open_scenes_roots" qualifiers="const">
+			<return type="Array" />
+			<description>
+				Returns an [Array] with the root nodes of the currently opened scenes.
+			</description>
+		</method>
 		<method name="get_playing_scene" qualifiers="const">
 			<return type="String" />
 			<description>

@@ -677,6 +677,20 @@ PackedStringArray EditorInterface::get_open_scenes() const {
 	return ret;
 }
 
+Array EditorInterface::get_open_scenes_roots() const {
+	Array ret;
+	Vector<EditorData::EditedScene> scenes = EditorNode::get_editor_data().get_edited_scenes();
+
+	int scns_amount = scenes.size();
+	for (int idx_scn = 0; idx_scn < scns_amount; idx_scn++) {
+		if (scenes[idx_scn].root == nullptr) {
+			continue;
+		}
+		ret.push_back(scenes[idx_scn].root);
+	}
+	return ret;
+}
+
 Error EditorInterface::save_scene() {
 	if (!get_edited_scene_root()) {
 		return ERR_CANT_CREATE;
@@ -830,6 +844,7 @@ void EditorInterface::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("reload_scene_from_path", "scene_filepath"), &EditorInterface::reload_scene_from_path);
 
 	ClassDB::bind_method(D_METHOD("get_open_scenes"), &EditorInterface::get_open_scenes);
+	ClassDB::bind_method(D_METHOD("get_open_scenes_roots"), &EditorInterface::get_open_scenes_roots);
 	ClassDB::bind_method(D_METHOD("get_edited_scene_root"), &EditorInterface::get_edited_scene_root);
 
 	ClassDB::bind_method(D_METHOD("save_scene"), &EditorInterface::save_scene);
