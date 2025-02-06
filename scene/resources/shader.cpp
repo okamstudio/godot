@@ -154,10 +154,17 @@ void Shader::get_shader_uniform_list(List<PropertyInfo> *p_params, bool p_get_gr
 	List<PropertyInfo> local;
 	RenderingServer::get_singleton()->get_shader_parameter_list(shader_rid, &local);
 
-#ifdef TOOLS_ENABLED
+#if defined(TOOLS_ENABLED) && defined(MODULE_REGEX_ENABLED)
 	DocData::ClassDoc class_doc;
-	class_doc.name = get_path();
-	class_doc.is_script_doc = true;
+	bool generate_doc = EditorHelp::get_doc_data() != nullptr && Engine::get_singleton()->is_editor_hint() && !get_path().is_empty();
+	if (generate_doc) {
+		class_doc.name = get_path().trim_prefix("res://").quote();
+		class_doc.is_script_doc = true;
+		class_doc.inherits = "Shader";
+		if (EditorHelp::get_doc_data()->has_doc(class_doc.name)) {
+			EditorHelp::get_doc_data()->remove_doc(class_doc.name);
+		}
+	}
 #endif
 
 	for (PropertyInfo &pi : local) {
@@ -175,11 +182,10 @@ void Shader::get_shader_uniform_list(List<PropertyInfo> *p_params, bool p_get_gr
 			if (pi.type == Variant::RID) {
 				pi.type = Variant::OBJECT;
 			}
-#ifdef TOOLS_ENABLED
-			if (Engine::get_singleton()->is_editor_hint()) {
+#if defined(TOOLS_ENABLED) && defined(MODULE_REGEX_ENABLED)
+			if (generate_doc) {
 				DocData::PropertyDoc prop_doc;
 				prop_doc.name = "shader_parameter/" + pi.name;
-#ifdef MODULE_REGEX_ENABLED
 				const RegEx pattern("/\\*\\*\\s([^*]|[\\r\\n]|(\\*+([^*/]|[\\r\\n])))*\\*+/\\s*uniform\\s+\\w+\\s+" + pi.name + "(?=[\\s:;=])");
 				Ref<RegExMatch> pattern_ref = pattern.search(code);
 				if (pattern_ref.is_valid()) {
@@ -189,16 +195,17 @@ void Shader::get_shader_uniform_list(List<PropertyInfo> *p_params, bool p_get_gr
 					RegExMatch *match_tip = pattern_tip_ref.ptr();
 					const RegEx pattern_stripped("\\n\\s*\\*\\s*");
 					prop_doc.description = pattern_stripped.sub(match_tip->get_string(1), "\n", true);
+
+					pi.class_name = class_doc.name;
+					class_doc.properties.push_back(prop_doc);
 				}
-#endif
-				class_doc.properties.push_back(prop_doc);
 			}
 #endif
 			p_params->push_back(pi);
 		}
 	}
-#ifdef TOOLS_ENABLED
-	if (EditorHelp::get_doc_data() != nullptr && Engine::get_singleton()->is_editor_hint() && !class_doc.name.is_empty() && p_params) {
+#if defined(TOOLS_ENABLED) && defined(MODULE_REGEX_ENABLED)
+	if (generate_doc && class_doc.properties.size() > 0) {
 		EditorHelp::get_doc_data()->add_doc(class_doc);
 	}
 #endif
