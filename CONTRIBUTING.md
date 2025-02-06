@@ -154,6 +154,25 @@ If your pull request modifies parts of the code in a non-obvious way, make sure
 to add comments in the code as well. This helps other people understand the
 change without having to dive into the Git history.
 
+### Provide a testing project (if relevant)
+
+Similar to how we recommend uploading a minimal reproduction project for bug
+reports, we advise creating a testing project if the pull request is not trivial
+to test in an empty project.
+
+A testing project allows contributors to review your pull request more
+effectively and make sure it works as intended. The testing project also acts as
+an additional form of documentation for future users.
+
+You can upload the testing project by compressing it to a ZIP archive then
+drag-and-dropping it in the pull request creation dialog.
+
+If creating a testing project is relevant, it should be done for both bug fix
+and feature pull requests. For bug fixes, you can skip creating a testing
+project if the original issue report already contains a minimal reproduction
+project that can be used to verify whether the pull request effectively fixes
+the bug.
+
 ### Write unit tests
 
 When fixing a bug or contributing a new feature, we recommend including unit
