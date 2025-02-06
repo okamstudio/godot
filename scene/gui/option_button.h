@@ -47,6 +47,8 @@ class OptionButton : public Button {
 	bool allow_reselect = false;
 	bool initialized = false;
 	int queued_current = -1;
+	uint64_t search_time_msec = 0;
+	String search_string = "";
 
 	struct ThemeCache {
 		Ref<StyleBox> normal;
@@ -91,6 +93,7 @@ protected:
 	static void _bind_methods();
 
 	virtual void shortcut_input(const Ref<InputEvent> &p_event) override;
+	virtual void gui_input(const Ref<InputEvent> &p_gui_input) override;
 
 public:
 	// ATTENTION: This is used by the POT generator's scene parser. If the number of properties returned by `_get_items()` ever changes,

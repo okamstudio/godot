@@ -30,9 +30,41 @@
 
 #include "option_button.h"
 
+#include "core/config/project_settings.h"
 #include "scene/theme/theme_db.h"
 
 static const int NONE_SELECTED = -1;
+
+void OptionButton::gui_input(const Ref<InputEvent> &p_event) {
+	Ref<InputEventKey> k = p_event;
+
+	if (p_event->is_action("ui_cancel", true)) {
+		search_string = "";
+	}
+
+	if (k.is_valid() && k->get_unicode() && k->is_pressed()) {
+		uint64_t now = OS::get_singleton()->get_ticks_msec();
+		uint64_t diff = now - search_time_msec;
+		uint64_t max_interval = uint64_t(GLOBAL_GET("gui/timers/incremental_search_max_interval_msec"));
+		search_time_msec = now;
+
+		if (diff > max_interval) {
+			search_string = "";
+		}
+
+		search_string += String::chr(k->get_unicode());
+
+		for (int i = 0; i < get_item_count(); i++) {
+			if (popup->get_item_text(i).findn(search_string) == 0) {
+				_select(i, true);
+				accept_event();
+				break;
+			}
+		}
+	}
+
+	Button::gui_input(p_event);
+}
 
 void OptionButton::shortcut_input(const Ref<InputEvent> &p_event) {
 	ERR_FAIL_COND(p_event.is_null());

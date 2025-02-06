@@ -1589,7 +1589,8 @@ ProjectSettings::ProjectSettings() {
 	GLOBAL_DEF_BASIC(PropertyInfo(Variant::INT, "internationalization/rendering/root_node_layout_direction", PROPERTY_HINT_ENUM, "Based on Application Locale,Left-to-Right,Right-to-Left,Based on System Locale"), 0);
 	GLOBAL_DEF_BASIC("internationalization/rendering/root_node_auto_translate", true);
 
-	GLOBAL_DEF(PropertyInfo(Variant::INT, "gui/timers/incremental_search_max_interval_msec", PROPERTY_HINT_RANGE, "0,10000,1,or_greater"), 2000);
+	GLOBAL_DEF(PropertyInfo(Variant::INT, "gui/timers/incremental_search_max_search_interval_msec", PROPERTY_HINT_RANGE, "0,10000,1,or_greater"), 4000);
+	GLOBAL_DEF(PropertyInfo(Variant::INT, "gui/timers/incremental_search_max_interval_msec", PROPERTY_HINT_RANGE, "0,10000,1,or_greater"), 500);
 	GLOBAL_DEF(PropertyInfo(Variant::FLOAT, "gui/timers/tooltip_delay_sec", PROPERTY_HINT_RANGE, "0,5,0.01,or_greater"), 0.5);
 #ifdef TOOLS_ENABLED
 	GLOBAL_DEF("gui/timers/tooltip_delay_sec.editor_hint", 0.5);

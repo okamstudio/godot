@@ -1101,8 +1101,11 @@
 		<member name="gui/timers/button_shortcut_feedback_highlight_time" type="float" setter="" getter="" default="0.2">
 			When [member BaseButton.shortcut_feedback] is enabled, this is the time the [BaseButton] will remain highlighted after a shortcut.
 		</member>
-		<member name="gui/timers/incremental_search_max_interval_msec" type="int" setter="" getter="" default="2000">
-			Timer setting for incremental search in [Tree], [ItemList], etc. controls (in milliseconds).
+		<member name="gui/timers/incremental_search_max_interval_msec" type="int" setter="" getter="" default="500">
+			Character input timer setting for incremental search in [Tree], [ItemList], etc. controls (in milliseconds).
+		</member>
+		<member name="gui/timers/incremental_search_max_search_interval_msec" type="int" setter="" getter="" default="4000">
+			Item selection timer setting for incremental search in [ItemList] (in milliseconds).
 		</member>
 		<member name="gui/timers/text_edit_idle_detect_sec" type="float" setter="" getter="" default="3">
 			Timer for detecting idle in [TextEdit] (in seconds).
