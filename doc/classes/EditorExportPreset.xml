@@ -9,6 +9,13 @@
 	<tutorials>
 	</tutorials>
 	<methods>
+		<method name="add_export_file">
+			<return type="void" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Adds a file to the export list with default export mode.
+			</description>
+		</method>
 		<method name="are_advanced_options_enabled" qualifiers="const">
 			<return type="bool" />
 			<description>
@@ -160,6 +167,125 @@
 			<return type="bool" />
 			<description>
 				Returns [code]true[/code] if "Runnable" toggle is enabled in the export dialog.
+			</description>
+		</method>
+		<method name="remove_export_file">
+			<return type="void" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Removes a file from the export list.
+			</description>
+		</method>
+		<method name="set_advanced_options_enabled">
+			<return type="void" />
+			<param index="0" name="enabled" type="bool" />
+			<description>
+				Enables or disables advanced export options.
+			</description>
+		</method>
+		<method name="set_custom_features">
+			<return type="void" />
+			<param index="0" name="features" type="String" />
+			<description>
+				Sets a comma-separated list of custom features to enable during export. These features can be used for conditional compilation or platform-specific functionality.
+			</description>
+		</method>
+		<method name="set_customized_files">
+			<return type="void" />
+			<param index="0" name="files" type="Dictionary" />
+			<description>
+				Sets the customized files dictionary. The dictionary keys are file paths and values are export modes (0 = not customized, 1 = strip, 2 = keep, 3 = remove).
+			</description>
+		</method>
+		<method name="set_encrypt_directory">
+			<return type="void" />
+			<param index="0" name="enabled" type="bool" />
+			<description>
+				Enables or disables directory encryption.
+			</description>
+		</method>
+		<method name="set_encrypt_pck">
+			<return type="void" />
+			<param index="0" name="enabled" type="bool" />
+			<description>
+				Enables or disables PCK file encryption.
+			</description>
+		</method>
+		<method name="set_encryption_ex_filter">
+			<return type="void" />
+			<param index="0" name="filter" type="String" />
+			<description>
+				Sets the exclude filter pattern for files to not encrypt.
+			</description>
+		</method>
+		<method name="set_encryption_in_filter">
+			<return type="void" />
+			<param index="0" name="filter" type="String" />
+			<description>
+				Sets the include filter pattern for files to encrypt.
+			</description>
+		</method>
+		<method name="set_encryption_key">
+			<return type="void" />
+			<param index="0" name="key" type="String" />
+			<description>
+				Sets the encryption key for the exported files.
+			</description>
+		</method>
+		<method name="set_exclude_filter">
+			<return type="void" />
+			<param index="0" name="exclude" type="String" />
+			<description>
+				Sets the exclude filter pattern for resources to exclude from export.
+			</description>
+		</method>
+		<method name="set_export_filter">
+			<return type="void" />
+			<param index="0" name="filter" type="int" enum="EditorExportPreset.ExportFilter" />
+			<description>
+				Sets the export filter mode. Modes are: 0 = all resources, 1 = selected scenes, 2 = selected resources, 3 = exclude selected resources, 4 = customized.
+			</description>
+		</method>
+		<method name="set_export_path">
+			<return type="void" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Sets the output path for the exported file.
+			</description>
+		</method>
+		<method name="set_file_export_mode">
+			<return type="void" />
+			<param index="0" name="path" type="String" />
+			<param index="1" name="mode" type="int" enum="EditorExportPreset.FileExportMode" />
+			<description>
+				Sets the export mode for a specific file. Modes are: 0 = not customized, 1 = strip, 2 = keep, 3 = remove.
+			</description>
+		</method>
+		<method name="set_include_filter">
+			<return type="void" />
+			<param index="0" name="include" type="String" />
+			<description>
+				Sets the include filter pattern for resources to export.
+			</description>
+		</method>
+		<method name="set_patches">
+			<return type="void" />
+			<param index="0" name="patches" type="PackedStringArray" />
+			<description>
+				Sets the list of patch files to include in the export.
+			</description>
+		</method>
+		<method name="set_script_export_mode">
+			<return type="void" />
+			<param index="0" name="mode" type="int" />
+			<description>
+				Sets the script export mode. Modes are: 0 = text, 1 = binary tokens, 2 = compressed binary tokens.
+			</description>
+		</method>
+		<method name="update_files">
+			<return type="void" />
+			<description>
+				Updates the list of files to export based on current settings.
 			</description>
 		</method>
 	</methods>

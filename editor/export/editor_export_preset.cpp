@@ -65,27 +65,46 @@ void EditorExportPreset::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("has", "property"), &EditorExportPreset::has);
 
+	ClassDB::bind_method(D_METHOD("set_customized_files", "files"), &EditorExportPreset::set_customized_files);
+	ClassDB::bind_method(D_METHOD("update_files"), &EditorExportPreset::update_files);
+	ClassDB::bind_method(D_METHOD("add_export_file", "path"), &EditorExportPreset::add_export_file);
+	ClassDB::bind_method(D_METHOD("remove_export_file", "path"), &EditorExportPreset::remove_export_file);
+	ClassDB::bind_method(D_METHOD("has_export_file", "path"), &EditorExportPreset::has_export_file);
+
 	ClassDB::bind_method(D_METHOD("get_files_to_export"), &EditorExportPreset::get_files_to_export);
 	ClassDB::bind_method(D_METHOD("get_customized_files"), &EditorExportPreset::get_customized_files);
 	ClassDB::bind_method(D_METHOD("get_customized_files_count"), &EditorExportPreset::get_customized_files_count);
-	ClassDB::bind_method(D_METHOD("has_export_file", "path"), &EditorExportPreset::has_export_file);
+	ClassDB::bind_method(D_METHOD("set_file_export_mode", "path", "mode"), &EditorExportPreset::set_file_export_mode);
 	ClassDB::bind_method(D_METHOD("get_file_export_mode", "path", "default"), &EditorExportPreset::get_file_export_mode, DEFVAL(MODE_FILE_NOT_CUSTOMIZED));
 
 	ClassDB::bind_method(D_METHOD("get_preset_name"), &EditorExportPreset::get_name);
 	ClassDB::bind_method(D_METHOD("is_runnable"), &EditorExportPreset::is_runnable);
+	ClassDB::bind_method(D_METHOD("set_advanced_options_enabled", "enabled"), &EditorExportPreset::set_advanced_options_enabled);
 	ClassDB::bind_method(D_METHOD("are_advanced_options_enabled"), &EditorExportPreset::are_advanced_options_enabled);
 	ClassDB::bind_method(D_METHOD("is_dedicated_server"), &EditorExportPreset::is_dedicated_server);
+	ClassDB::bind_method(D_METHOD("set_export_filter", "filter"), &EditorExportPreset::set_export_filter);
 	ClassDB::bind_method(D_METHOD("get_export_filter"), &EditorExportPreset::get_export_filter);
+	ClassDB::bind_method(D_METHOD("set_include_filter", "include"), &EditorExportPreset::set_include_filter);
 	ClassDB::bind_method(D_METHOD("get_include_filter"), &EditorExportPreset::get_include_filter);
+	ClassDB::bind_method(D_METHOD("set_exclude_filter", "exclude"), &EditorExportPreset::set_exclude_filter);
 	ClassDB::bind_method(D_METHOD("get_exclude_filter"), &EditorExportPreset::get_exclude_filter);
+	ClassDB::bind_method(D_METHOD("set_custom_features", "features"), &EditorExportPreset::set_custom_features);
 	ClassDB::bind_method(D_METHOD("get_custom_features"), &EditorExportPreset::get_custom_features);
+	ClassDB::bind_method(D_METHOD("set_patches", "patches"), &EditorExportPreset::set_patches);
 	ClassDB::bind_method(D_METHOD("get_patches"), &EditorExportPreset::get_patches);
+	ClassDB::bind_method(D_METHOD("set_export_path", "path"), &EditorExportPreset::set_export_path);
 	ClassDB::bind_method(D_METHOD("get_export_path"), &EditorExportPreset::get_export_path);
+	ClassDB::bind_method(D_METHOD("set_encryption_in_filter", "filter"), &EditorExportPreset::set_enc_in_filter);
 	ClassDB::bind_method(D_METHOD("get_encryption_in_filter"), &EditorExportPreset::get_enc_in_filter);
+	ClassDB::bind_method(D_METHOD("set_encryption_ex_filter", "filter"), &EditorExportPreset::set_enc_ex_filter);
 	ClassDB::bind_method(D_METHOD("get_encryption_ex_filter"), &EditorExportPreset::get_enc_ex_filter);
+	ClassDB::bind_method(D_METHOD("set_encrypt_pck", "enabled"), &EditorExportPreset::set_enc_pck);
 	ClassDB::bind_method(D_METHOD("get_encrypt_pck"), &EditorExportPreset::get_enc_pck);
+	ClassDB::bind_method(D_METHOD("set_encrypt_directory", "enabled"), &EditorExportPreset::set_enc_directory);
 	ClassDB::bind_method(D_METHOD("get_encrypt_directory"), &EditorExportPreset::get_enc_directory);
+	ClassDB::bind_method(D_METHOD("set_encryption_key", "key"), &EditorExportPreset::set_script_encryption_key);
 	ClassDB::bind_method(D_METHOD("get_encryption_key"), &EditorExportPreset::get_script_encryption_key);
+	ClassDB::bind_method(D_METHOD("set_script_export_mode", "mode"), &EditorExportPreset::set_script_export_mode);
 	ClassDB::bind_method(D_METHOD("get_script_export_mode"), &EditorExportPreset::get_script_export_mode);
 
 	ClassDB::bind_method(D_METHOD("get_or_env", "name", "env_var"), &EditorExportPreset::_get_or_env);
