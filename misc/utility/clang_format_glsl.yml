@@ -33,6 +33,8 @@ JavaImportGroups:
   - java
   - javax
 KeepEmptyLinesAtTheStartOfBlocks: false
+MacroBlockBegin: ^NOEXPAND_WRAPPER_BEGIN$
+MacroBlockEnd: ^NOEXPAND_WRAPPER_END$
 ObjCBlockIndentWidth: 4
 PackConstructorInitializers: NextLine
 RemoveSemicolon: false # Differs from base .clang-format

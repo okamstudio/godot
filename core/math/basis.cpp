@@ -652,7 +652,6 @@ Vector3 Basis::get_euler(EulerOrder p_order) const {
 			ERR_FAIL_V_MSG(Vector3(), "Invalid parameter for get_euler(order)");
 		}
 	}
-	return Vector3();
 }
 
 void Basis::set_euler(const Vector3 &p_euler, EulerOrder p_order) {

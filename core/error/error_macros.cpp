@@ -31,6 +31,7 @@
 #include "error_macros.h"
 
 #include "core/io/logger.h"
+#include "core/object/object_id.h"
 #include "core/os/os.h"
 #include "core/string/ustring.h"
 

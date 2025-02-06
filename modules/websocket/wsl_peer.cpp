@@ -217,7 +217,7 @@ Error WSLPeer::_do_server_handshake() {
 	if (use_tls) {
 		Ref<StreamPeerTLS> tls = static_cast<Ref<StreamPeerTLS>>(connection);
 		if (tls.is_null()) {
-			ERR_FAIL_V_MSG(ERR_BUG, "Couldn't get StreamPeerTLS for WebSocket handshake.");
+			ERR_PRINT("Couldn't get StreamPeerTLS for WebSocket handshake.");
 			close(-1);
 			return FAILED;
 		}

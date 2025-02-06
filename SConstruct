@@ -853,8 +853,6 @@ else:  # GCC, Clang
             # Regression in GCC 9/10, spams so much in our variadic templates
             # that we need to outright disable it.
             common_warnings += ["-Wno-type-limits"]
-        if cc_version_major >= 12:  # False positives in our error macros, see GH-58747.
-            common_warnings += ["-Wno-return-type"]
     elif methods.using_clang(env) or methods.using_emcc(env):
         common_warnings += ["-Wshadow-field-in-constructor", "-Wshadow-uncaptured-local"]
         # We often implement `operator<` for structs of pointers as a requirement
