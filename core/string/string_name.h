@@ -98,7 +98,7 @@ class StringName {
 	StringName(_Data *p_data) { _data = p_data; }
 
 public:
-	operator const void *() const { return (_data && (_data->cname || !_data->name.is_empty())) ? (void *)1 : nullptr; }
+	explicit operator bool() const { return _data && (_data->cname || !_data->name.is_empty()); }
 
 	bool operator==(const String &p_name) const;
 	bool operator==(const char *p_name) const;
