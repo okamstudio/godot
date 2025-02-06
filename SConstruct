@@ -747,6 +747,9 @@ else:
             # Remap absolute paths to relative paths for debug symbols.
             project_path = Dir("#").abspath
             env.Append(CCFLAGS=[f"-ffile-prefix-map={project_path}=."])
+        if env["platform"] == "windows" and env["use_mingw"] and ["use_llvm"]:
+                env.Append(LINKFLAGS=["-Wl,-pdb="])
+                env.Append(CCFLAGS=["-gcodeview"])
     else:
         if methods.is_apple_clang(env):
             # Apple Clang, its linker doesn't like -s.
