@@ -244,6 +244,10 @@ void ResourceImporterTexture::get_import_options(const String &p_path, List<Impo
 	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "mipmaps/limit", PROPERTY_HINT_RANGE, "-1,256"), -1));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "roughness/mode", PROPERTY_HINT_ENUM, "Detect,Disabled,Red,Green,Blue,Alpha,Gray"), 0));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::STRING, "roughness/src_normal", PROPERTY_HINT_FILE, "*.bmp,*.dds,*.exr,*.jpeg,*.jpg,*.hdr,*.png,*.svg,*.tga,*.webp"), ""));
+	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "process/channel_remap/red", PROPERTY_HINT_ENUM, "Red,Green,Blue,Alpha,Inverted Red,Inverted Green,Inverted Blue,Inverted Alpha,Unused,Zero,One"), 0));
+	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "process/channel_remap/green", PROPERTY_HINT_ENUM, "Red,Green,Blue,Alpha,Inverted Red,Inverted Green,Inverted Blue,Inverted Alpha,Unused,Zero,One"), 1));
+	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "process/channel_remap/blue", PROPERTY_HINT_ENUM, "Red,Green,Blue,Alpha,Inverted Red,Inverted Green,Inverted Blue,Inverted Alpha,Unused,Zero,One"), 2));
+	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "process/channel_remap/alpha", PROPERTY_HINT_ENUM, "Red,Green,Blue,Alpha,Inverted Red,Inverted Green,Inverted Blue,Inverted Alpha,Unused,Zero,One"), 3));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "process/fix_alpha_border"), p_preset != PRESET_3D));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "process/premult_alpha"), false));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "process/normal_map_invert_y"), false));
@@ -442,6 +446,67 @@ Dictionary ResourceImporterTexture::_load_editor_meta(const String &p_path) cons
 	return f->get_var();
 }
 
+void ResourceImporterTexture::_remap_channels(Ref<Image> &r_image, ChannelRemap p_options[4]) {
+	if (p_options[0] == REMAP_R && p_options[1] == REMAP_G && p_options[2] == REMAP_B && p_options[3] == REMAP_A) {
+		// Default color map, do nothing.
+		return;
+	}
+
+	for (int x = 0; x < r_image->get_width(); x++) {
+		for (int y = 0; y < r_image->get_height(); y++) {
+			Color src = r_image->get_pixel(x, y);
+			Color dst;
+
+			for (int i = 0; i < 4; i++) {
+				switch (p_options[i]) {
+					case REMAP_R:
+						dst[i] = src.r;
+						break;
+					case REMAP_G:
+						dst[i] = src.g;
+						break;
+					case REMAP_B:
+						dst[i] = src.b;
+						break;
+					case REMAP_A:
+						dst[i] = src.a;
+						break;
+
+					case REMAP_INV_R:
+						dst[i] = 1.0f - src.r;
+						break;
+					case REMAP_INV_G:
+						dst[i] = 1.0f - src.g;
+						break;
+					case REMAP_INV_B:
+						dst[i] = 1.0f - src.b;
+						break;
+					case REMAP_INV_A:
+						dst[i] = 1.0f - src.a;
+						break;
+
+					case REMAP_UNUSED:
+						// For Alpha the unused value is 1, for other channels it's 0.
+						dst[i] = (i == 3) ? 1.0f : 0.0f;
+						break;
+
+					case REMAP_0:
+						dst[i] = 0.0f;
+						break;
+					case REMAP_1:
+						dst[i] = 1.0f;
+						break;
+
+					default:
+						break;
+				}
+			}
+
+			r_image->set_pixel(x, y, dst);
+		}
+	}
+}
+
 void ResourceImporterTexture::_invert_y_channel(Ref<Image> &r_image) {
 	// Inverting the green channel can be used to flip a normal map's direction.
 	// There's no standard when it comes to normal map Y direction, so this is
@@ -507,6 +572,10 @@ Error ResourceImporterTexture::import(ResourceUID::ID p_source_id, const String 
 	const String normal_map = p_options["roughness/src_normal"];
 
 	// Processing.
+	const int remap_r = p_options["process/channel_remap/red"];
+	const int remap_g = p_options["process/channel_remap/green"];
+	const int remap_b = p_options["process/channel_remap/blue"];
+	const int remap_a = p_options["process/channel_remap/alpha"];
 	const bool fix_alpha_border = p_options["process/fix_alpha_border"];
 	const bool premult_alpha = p_options["process/premult_alpha"];
 	const bool normal_map_invert_y = p_options["process/normal_map_invert_y"];
@@ -620,6 +689,17 @@ Error ResourceImporterTexture::import(ResourceUID::ID p_source_id, const String 
 			if (normal == 1) {
 				target_image->normalize();
 			}
+		}
+
+		{
+			ChannelRemap remaps[4] = {
+				(ChannelRemap)remap_r,
+				(ChannelRemap)remap_g,
+				(ChannelRemap)remap_b,
+				(ChannelRemap)remap_a,
+			};
+
+			_remap_channels(target_image, remaps);
 		}
 
 		// Fix alpha border.

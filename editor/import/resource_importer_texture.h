@@ -50,6 +50,20 @@ public:
 		COMPRESS_BASIS_UNIVERSAL
 	};
 
+	enum ChannelRemap {
+		REMAP_R,
+		REMAP_G,
+		REMAP_B,
+		REMAP_A,
+		REMAP_INV_R,
+		REMAP_INV_G,
+		REMAP_INV_B,
+		REMAP_INV_A,
+		REMAP_UNUSED,
+		REMAP_0,
+		REMAP_1,
+	};
+
 protected:
 	enum {
 		MAKE_3D_FLAG = 1,
@@ -77,6 +91,7 @@ protected:
 	void _save_editor_meta(const Dictionary &p_metadata, const String &p_to_path);
 	Dictionary _load_editor_meta(const String &p_to_path) const;
 
+	static inline void _remap_channels(Ref<Image> &r_image, ChannelRemap p_options[4]);
 	static inline void _clamp_hdr_exposure(Ref<Image> &r_image);
 	static inline void _invert_y_channel(Ref<Image> &r_image);
 	static inline void _print_callback_message(const String &p_message);
