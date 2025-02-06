@@ -3068,7 +3068,11 @@ void GDScriptAnalyzer::reduce_binary_op(GDScriptParser::BinaryOpNode *p_binary_o
 				if (p_binary_op->reduced_value.get_type() == Variant::STRING) {
 					push_error(vformat(R"(%s in operator %s.)", p_binary_op->reduced_value, Variant::get_operator_name(p_binary_op->variant_op)), p_binary_op);
 				} else {
-					push_error(vformat(R"(Invalid operands to operator %s, %s and %s.)",
+					String message = "Invalid operands to operator %s, %s and %s.";
+					if (p_binary_op->variant_op == Variant::OP_MODULE && (p_binary_op->left_operand->reduced_value.get_type() == Variant::FLOAT || p_binary_op->right_operand->reduced_value.get_type() == Variant::FLOAT)) {
+						message += " Use \"fmod(x, y)\" instead.";
+					}
+					push_error(vformat(message,
 									   Variant::get_operator_name(p_binary_op->variant_op),
 									   Variant::get_type_name(p_binary_op->left_operand->reduced_value.get_type()),
 									   Variant::get_type_name(p_binary_op->right_operand->reduced_value.get_type())),
