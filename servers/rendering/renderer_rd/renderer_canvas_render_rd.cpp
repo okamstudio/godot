@@ -1789,6 +1789,8 @@ RendererCanvasRenderRD::RendererCanvasRenderRD() {
 		actions.renames["SPECULAR_SHININESS_TEXTURE"] = "specular_texture";
 		actions.renames["SPECULAR_SHININESS"] = "specular_shininess";
 		actions.renames["SCREEN_UV"] = "screen_uv";
+		actions.renames["REGION_POSITION"] = "region_position";
+		actions.renames["REGION_SIZE"] = "region_size";
 		actions.renames["SCREEN_PIXEL_SIZE"] = "canvas_data.screen_pixel_size";
 		actions.renames["FRAGCOORD"] = "gl_FragCoord";
 		actions.renames["POINT_COORD"] = "gl_PointCoord";
@@ -1810,6 +1812,9 @@ RendererCanvasRenderRD::RendererCanvasRenderRD() {
 		actions.renames["texture_sdf_normal"] = "texture_sdf_normal";
 		actions.renames["sdf_to_screen_uv"] = "sdf_to_screen_uv";
 		actions.renames["screen_uv_to_sdf"] = "screen_uv_to_sdf";
+
+		actions.renames["texture_to_region_uv"] = "texture_to_region_uv";
+		actions.renames["region_to_texture_uv"] = "region_to_texture_uv";
 
 		actions.usage_defines["COLOR"] = "#define COLOR_USED\n";
 		actions.usage_defines["SCREEN_UV"] = "#define SCREEN_UV_USED\n";

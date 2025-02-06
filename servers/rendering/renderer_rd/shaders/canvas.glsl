@@ -455,6 +455,23 @@ float msdf_median(float r, float g, float b, float a) {
 	return min(max(min(r, g), min(max(r, g), b)), a);
 }
 
+#if !defined(USE_ATTRIBUTES) && !defined(USE_PRIMITIVE)
+vec4 region_info = draw_data.src_rect;
+#else
+vec4 region_info = vec4(0.0, 0.0, 1.0, 1.0);
+#endif
+
+vec2 region_position = region_info.xy / draw_data.color_texture_pixel_size;
+vec2 region_size = region_info.zw / draw_data.color_texture_pixel_size;
+
+vec2 texture_to_region_uv(vec2 uv) {
+	return (uv - region_info.xy) / region_info.zw;
+}
+
+vec2 region_to_texture_uv(vec2 uv) {
+	return uv * region_info.zw + region_info.xy;
+}
+
 void main() {
 	vec4 color = color_interp;
 	vec2 uv = uv_interp;
@@ -479,7 +496,7 @@ void main() {
 		color.a = 0.0;
 	}
 
-	uv = uv * draw_data.src_rect.zw + draw_data.src_rect.xy; //apply region if needed
+	uv = region_to_texture_uv(uv); //apply region if needed
 
 #endif
 	if (bool(draw_data.flags & INSTANCE_FLAGS_CLIP_RECT_UV)) {
