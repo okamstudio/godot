@@ -5379,6 +5379,7 @@ Variant GDScriptAnalyzer::make_variable_default_value(GDScriptParser::VariableNo
 		bool is_initializer_value_reduced = false;
 		Variant initializer_value = make_expression_reduced_value(p_variable->initializer, is_initializer_value_reduced);
 		if (is_initializer_value_reduced) {
+			check_if_conversion_needed(p_variable, initializer_value);
 			result = initializer_value;
 		}
 	} else {
@@ -5401,6 +5402,18 @@ Variant GDScriptAnalyzer::make_variable_default_value(GDScriptParser::VariableNo
 	}
 
 	return result;
+}
+
+void GDScriptAnalyzer::check_if_conversion_needed(GDScriptParser::VariableNode *p_variable, Variant &p_initializer_value) {
+	GDScriptParser::DataType datatype = p_variable->get_datatype();
+
+	if (Variant::can_convert_strict(datatype.builtin_type, p_initializer_value.get_type())) {
+		Variant value = p_initializer_value;
+		const Variant *args = &p_initializer_value;
+		Callable::CallError err;
+		Variant::construct(datatype.builtin_type, value, &args, 1, err);
+		p_initializer_value = value;
+	}
 }
 
 GDScriptParser::DataType GDScriptAnalyzer::type_from_variant(const Variant &p_value, const GDScriptParser::Node *p_source) {
