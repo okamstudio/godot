@@ -1858,6 +1858,11 @@ SceneTree::SceneTree() {
 	root->set_title(GLOBAL_GET("application/config/name"));
 
 	if (Engine::get_singleton()->is_editor_hint()) {
+#ifndef _3D_DISABLED
+		// 3D is always obscured by editor GUI, disabling helps prevent tough-to-diagnose performance issues with editor-enabled autoload nodes.
+		root->set_disable_3d(true);
+#endif // _3D_DISABLED
+
 		root->set_wrap_controls(true);
 	}
 
