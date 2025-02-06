@@ -83,11 +83,13 @@ TEST_CASE("[Plane] Basic setters") {
 }
 
 TEST_CASE("[Plane] Plane-point operations") {
-	const Plane plane = Plane(32, 22, 16, 3);
+	const Vector3 origin_point = Vector3(0, 0, 0);
+
+	const Plane plane = Plane(Vector3(0.57735, 0.57735, 0.57735), 3);
 	const Plane y_facing_plane = Plane(0, 1, 0, 4);
 
 	CHECK_MESSAGE(
-			plane.get_center().is_equal_approx(Vector3(32 * 3, 22 * 3, 16 * 3)),
+			plane.get_center().is_equal_approx(Vector3(0.57735 * 3, 0.57735 * 3, 0.57735 * 3)),
 			"get_center() should return a vector pointing to the center of the plane.");
 
 	CHECK_MESSAGE(
@@ -98,7 +100,11 @@ TEST_CASE("[Plane] Plane-point operations") {
 			y_facing_plane.get_any_perpendicular_normal().is_equal_approx(Vector3(1, 0, 0)),
 			"get_any_perpendicular_normal() should return the expected result.");
 
-	// TODO distance_to()
+	CHECK(
+			Math::is_equal_approx((double)y_facing_plane.distance_to(origin_point), -4.0));
+
+	CHECK(
+			Math::is_equal_approx((double)plane.distance_to(plane.get_center()), 0.0));
 }
 
 TEST_CASE("[Plane] Has point") {
