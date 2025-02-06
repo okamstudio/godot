@@ -108,7 +108,7 @@ void Camera2D::_update_process_callback() {
 
 void Camera2D::set_zoom(const Vector2 &p_zoom) {
 	// Setting zoom to zero causes 'affine_invert' issues
-	ERR_FAIL_COND_MSG(Math::is_zero_approx(p_zoom.x) || Math::is_zero_approx(p_zoom.y), "Zoom level must be different from 0 (can be negative).");
+	ERR_FAIL_COND_MSG(p_zoom.x == 0 || p_zoom.y == 0, "Zoom level must be different from 0 (can be negative).");
 
 	zoom = p_zoom;
 	zoom_scale = Vector2(1, 1) / zoom;
