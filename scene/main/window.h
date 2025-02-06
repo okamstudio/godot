@@ -147,6 +147,7 @@ private:
 
 	void _update_child_controls();
 	void _update_embedded_window();
+	void _update_embedded_position();
 
 	Size2i content_scale_size;
 	ContentScaleMode content_scale_mode = CONTENT_SCALE_MODE_DISABLED;
