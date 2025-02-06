@@ -609,6 +609,11 @@
 		</method>
 	</methods>
 	<members>
+		<member name="auto_redraw" type="int" setter="set_auto_redraw" getter="get_auto_redraw" enum="CanvasItem.AutoRedrawFlags" is_bitfield="true" default="15">
+			Determines whether the [CanvasItem] is redrawn automatically (by calling [method queue_redraw]) on events like visibility change or size change. Disabling this property can improve performance when using complex custom drawing, by avoiding unnecessary redraws. Calling [method queue_redraw] manually will always redraw the item.
+			You can set this property to [constant AUTO_REDRAW_NEVER] to disable it or set it to a specific flag. You can combine flags using boolean or operator (e.g. [code]AUTO_REDRAW_CANVAS_ENTER | AUTO_REDRAW_VISIBILITY_CHANGED[/code]), or use [constant AUTO_REDRAW_ALL] to always redraw.
+			Check descriptions of [enum AutoRedrawFlags] for more details.
+		</member>
 		<member name="clip_children" type="int" setter="set_clip_children_mode" getter="get_clip_children_mode" enum="CanvasItem.ClipChildrenMode" default="0">
 			Allows the current node to clip child nodes, essentially acting as a mask.
 			[b]Note:[/b] Clipping nodes cannot be nested or placed within [CanvasGroup]s. If an ancestor of this node clips its children or is a [CanvasGroup], then this node's clip mode should be set to [constant CLIP_CHILDREN_DISABLED] to avoid unexpected behavior.
@@ -698,7 +703,7 @@
 			The [CanvasItem]'s visibility has changed.
 		</constant>
 		<constant name="NOTIFICATION_ENTER_CANVAS" value="32">
-			The [CanvasItem] has entered the canvas.
+			The [CanvasItem] has entered the canvas. This notification can be received when entering scene tree, changing [member top_level], or when [World2D] changes.
 		</constant>
 		<constant name="NOTIFICATION_EXIT_CANVAS" value="33">
 			The [CanvasItem] has exited the canvas.
@@ -760,6 +765,24 @@
 		</constant>
 		<constant name="CLIP_CHILDREN_MAX" value="3" enum="ClipChildrenMode">
 			Represents the size of the [enum ClipChildrenMode] enum.
+		</constant>
+		<constant name="AUTO_REDRAW_NEVER" value="0" enum="AutoRedrawFlags" is_bitfield="true">
+			The [CanvasItem] will never redraw automatically. Note that some advanced nodes, like [Control], don't use redraw flags in their logic and may still redraw.
+		</constant>
+		<constant name="AUTO_REDRAW_CANVAS_ENTER" value="1" enum="AutoRedrawFlags" is_bitfield="true">
+			The [CanvasItem] will redraw when [constant NOTIFICATION_ENTER_CANVAS] is received.
+		</constant>
+		<constant name="AUTO_REDRAW_VISIBILITY_CHANGED" value="2" enum="AutoRedrawFlags" is_bitfield="true">
+			The [CanvasItem] will redraw when [constant NOTIFICATION_VISIBILITY_CHANGED] is received.
+		</constant>
+		<constant name="AUTO_REDRAW_SIZE_CHANGED" value="4" enum="AutoRedrawFlags" is_bitfield="true">
+			The [CanvasItem] will redraw when its rect size is changed (accompanied by [signal item_rect_changed]). [Control] nodes may redraw on size change regardless of this flag, due to having their own sizing logic.
+		</constant>
+		<constant name="AUTO_REDRAW_TEXTURE_FILTER_REPEAT_CHANGED" value="8" enum="AutoRedrawFlags" is_bitfield="true">
+			The [CanvasItem] will redraw when [member texture_filter] or [member texture_repeat] is changed.
+		</constant>
+		<constant name="AUTO_REDRAW_ALL" value="15" enum="AutoRedrawFlags" is_bitfield="true">
+			The [CanvasItem] will redraw in all above cases.
 		</constant>
 	</constants>
 </class>

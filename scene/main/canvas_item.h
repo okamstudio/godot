@@ -72,6 +72,19 @@ public:
 		CLIP_CHILDREN_MAX,
 	};
 
+	enum AutoRedrawFlags {
+		AUTO_REDRAW_NEVER = 0,
+		AUTO_REDRAW_CANVAS_ENTER = 1 << 0,
+		AUTO_REDRAW_VISIBILITY_CHANGED = 1 << 1,
+		AUTO_REDRAW_SIZE_CHANGED = 1 << 2,
+		AUTO_REDRAW_TEXTURE_FILTER_REPEAT_CHANGED = 1 << 3,
+		AUTO_REDRAW_ALL =
+				AUTO_REDRAW_CANVAS_ENTER |
+				AUTO_REDRAW_VISIBILITY_CHANGED |
+				AUTO_REDRAW_SIZE_CHANGED |
+				AUTO_REDRAW_TEXTURE_FILTER_REPEAT_CHANGED,
+	};
+
 private:
 	mutable SelfList<Node>
 			xform_change;
@@ -99,6 +112,7 @@ private:
 	bool parent_visible_in_tree = false;
 	bool pending_update = false;
 	bool top_level = false;
+	BitField<AutoRedrawFlags> auto_redraw = AUTO_REDRAW_ALL;
 	bool drawing = false;
 	bool block_transform_notify = false;
 	bool behind = false;
@@ -336,6 +350,9 @@ public:
 	void set_draw_behind_parent(bool p_enable);
 	bool is_draw_behind_parent_enabled() const;
 
+	void set_auto_redraw(BitField<AutoRedrawFlags> p_auto);
+	BitField<AutoRedrawFlags> get_auto_redraw() const;
+
 	CanvasItem *get_parent_item() const;
 
 	virtual Transform2D get_transform() const = 0;
@@ -406,6 +423,7 @@ public:
 VARIANT_ENUM_CAST(CanvasItem::TextureFilter)
 VARIANT_ENUM_CAST(CanvasItem::TextureRepeat)
 VARIANT_ENUM_CAST(CanvasItem::ClipChildrenMode)
+VARIANT_BITFIELD_CAST(CanvasItem::AutoRedrawFlags)
 
 class CanvasTexture : public Texture2D {
 	GDCLASS(CanvasTexture, Texture2D);
