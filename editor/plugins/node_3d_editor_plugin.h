@@ -521,6 +521,7 @@ private:
 	void update_transform_numeric();
 	void finish_transform();
 
+	void _load_viewport_inputs();
 	void register_shortcut_action(const String &p_path, const String &p_name, Key p_keycode, bool p_physical = false);
 	void shortcut_changed_callback(const Ref<Shortcut> p_shortcut, const String &p_shortcut_path);
 

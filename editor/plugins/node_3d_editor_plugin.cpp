@@ -5483,6 +5483,25 @@ void Node3DEditorViewport::_set_lock_view_rotation(bool p_lock_rotation) {
 	}
 }
 
+void Node3DEditorViewport::_load_viewport_inputs() {
+	// Registering with Key::NONE intentionally creates an empty Array.
+	register_shortcut_action("spatial_editor/viewport_orbit_modifier_1", TTRC("Viewport Orbit Modifier 1"), Key::NONE);
+	register_shortcut_action("spatial_editor/viewport_orbit_modifier_2", TTRC("Viewport Orbit Modifier 2"), Key::NONE);
+	register_shortcut_action("spatial_editor/viewport_pan_modifier_1", TTRC("Viewport Pan Modifier 1"), Key::SHIFT);
+	register_shortcut_action("spatial_editor/viewport_pan_modifier_2", TTRC("Viewport Pan Modifier 2"), Key::NONE);
+	register_shortcut_action("spatial_editor/viewport_zoom_modifier_1", TTRC("Viewport Zoom Modifier 1"), Key::SHIFT);
+	register_shortcut_action("spatial_editor/viewport_zoom_modifier_2", TTRC("Viewport Zoom Modifier 2"), Key::CTRL);
+
+	register_shortcut_action("spatial_editor/freelook_left", TTRC("Freelook Left"), Key::A, true);
+	register_shortcut_action("spatial_editor/freelook_right", TTRC("Freelook Right"), Key::D, true);
+	register_shortcut_action("spatial_editor/freelook_forward", TTRC("Freelook Forward"), Key::W, true);
+	register_shortcut_action("spatial_editor/freelook_backwards", TTRC("Freelook Backwards"), Key::S, true);
+	register_shortcut_action("spatial_editor/freelook_up", TTRC("Freelook Up"), Key::E, true);
+	register_shortcut_action("spatial_editor/freelook_down", TTRC("Freelook Down"), Key::Q, true);
+	register_shortcut_action("spatial_editor/freelook_speed_modifier", TTRC("Freelook Speed Modifier"), Key::SHIFT);
+	register_shortcut_action("spatial_editor/freelook_slow_modifier", TTRC("Freelook Slow Modifier"), Key::ALT);
+}
+
 Node3DEditorViewport::Node3DEditorViewport(Node3DEditor *p_spatial_editor, int p_index) {
 	cpu_time_history_index = 0;
 	gpu_time_history_index = 0;
@@ -5648,22 +5667,8 @@ Node3DEditorViewport::Node3DEditorViewport(Node3DEditor *p_spatial_editor, int p
 		view_menu->get_popup()->set_item_tooltip(shadeless_idx, unsupported_tooltip);
 	}
 
-	// Registering with Key::NONE intentionally creates an empty Array.
-	register_shortcut_action("spatial_editor/viewport_orbit_modifier_1", TTRC("Viewport Orbit Modifier 1"), Key::NONE);
-	register_shortcut_action("spatial_editor/viewport_orbit_modifier_2", TTRC("Viewport Orbit Modifier 2"), Key::NONE);
-	register_shortcut_action("spatial_editor/viewport_pan_modifier_1", TTRC("Viewport Pan Modifier 1"), Key::SHIFT);
-	register_shortcut_action("spatial_editor/viewport_pan_modifier_2", TTRC("Viewport Pan Modifier 2"), Key::NONE);
-	register_shortcut_action("spatial_editor/viewport_zoom_modifier_1", TTRC("Viewport Zoom Modifier 1"), Key::SHIFT);
-	register_shortcut_action("spatial_editor/viewport_zoom_modifier_2", TTRC("Viewport Zoom Modifier 2"), Key::CTRL);
-
-	register_shortcut_action("spatial_editor/freelook_left", TTRC("Freelook Left"), Key::A, true);
-	register_shortcut_action("spatial_editor/freelook_right", TTRC("Freelook Right"), Key::D, true);
-	register_shortcut_action("spatial_editor/freelook_forward", TTRC("Freelook Forward"), Key::W, true);
-	register_shortcut_action("spatial_editor/freelook_backwards", TTRC("Freelook Backwards"), Key::S, true);
-	register_shortcut_action("spatial_editor/freelook_up", TTRC("Freelook Up"), Key::E, true);
-	register_shortcut_action("spatial_editor/freelook_down", TTRC("Freelook Down"), Key::Q, true);
-	register_shortcut_action("spatial_editor/freelook_speed_modifier", TTRC("Freelook Speed Modifier"), Key::SHIFT);
-	register_shortcut_action("spatial_editor/freelook_slow_modifier", TTRC("Freelook Slow Modifier"), Key::ALT);
+	_load_viewport_inputs();
+	InputMap::get_singleton()->connect("default_loaded", callable_mp(this, &Node3DEditorViewport::_load_viewport_inputs));
 
 	ED_SHORTCUT("spatial_editor/lock_transform_x", TTRC("Lock Transformation to X axis"), Key::X);
 	ED_SHORTCUT("spatial_editor/lock_transform_y", TTRC("Lock Transformation to Y axis"), Key::Y);

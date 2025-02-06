@@ -103,6 +103,12 @@
 				Returns [code]true[/code] if the [InputMap] has a registered action with the given name.
 			</description>
 		</method>
+		<method name="load_default">
+			<return type="void" />
+			<description>
+				Clears all [InputEventAction] in the [InputMap] and load it anew from default settings.
+			</description>
+		</method>
 		<method name="load_from_project_settings">
 			<return type="void" />
 			<description>
@@ -110,4 +116,11 @@
 			</description>
 		</method>
 	</methods>
+	<signals>
+		<signal name="default_loaded">
+			<description>
+				Emitted when the default [InputMap] has been loaded.
+			</description>
+		</signal>
+	</signals>
 </class>
