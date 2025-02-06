@@ -502,19 +502,16 @@ int Viewport::_sub_window_find(Window *p_window) const {
 }
 
 void Viewport::_update_viewport_path() {
-	if (viewport_textures.is_empty()) {
+	if (!is_inside_tree()) {
 		return;
 	}
 
-	Node *scene_root = get_scene_file_path().is_empty() ? get_owner() : this;
-	if (!scene_root && is_inside_tree()) {
-		scene_root = get_tree()->get_edited_scene_root();
-	}
-	if (scene_root && (scene_root == this || scene_root->is_ancestor_of(this))) {
-		NodePath path_in_scene = scene_root->get_path_to(this);
-		for (ViewportTexture *E : viewport_textures) {
-			E->path = path_in_scene;
+	for (ViewportTexture *E : viewport_textures) {
+		Node *loc_scene = E->get_local_scene();
+		if (!loc_scene) {
+			continue;
 		}
+		E->path = loc_scene->get_path_to(this);
 	}
 }
 
