@@ -180,6 +180,36 @@ TEST_CASE("[StreamPeerBuffer] Get data with invalid size returns an error") {
 	CHECK_EQ(spb->get_position(), 1);
 }
 
+TEST_CASE("[StreamPeerBuffer] Get zero partial bytes return OK") {
+	Ref<StreamPeerBuffer> spb;
+	spb.instantiate();
+	uint8_t data = 42;
+	spb->put_u8(data);
+	spb->seek(0);
+
+	uint8_t data_out = 0;
+	int received_bytes = 0;
+	Error error = spb->get_partial_data(&data_out, 0, received_bytes);
+
+	CHECK_EQ(error, OK);
+	CHECK_EQ(received_bytes, 0);
+	CHECK_EQ(data_out, 0);
+	CHECK_EQ(spb->get_size(), 1);
+}
+
+TEST_CASE("[StreamPeerBuffer] Put one byte as partial data return OK") {
+	Ref<StreamPeerBuffer> spb;
+	spb.instantiate();
+	Vector<uint8_t> buffer = { 42, 24 };
+
+	int sent_bytes = 0;
+	Error error = spb->put_partial_data(buffer.ptr(), 1, sent_bytes);
+
+	CHECK_EQ(error, OK);
+	CHECK_EQ(sent_bytes, 1);
+	CHECK_EQ(spb->get_size(), 1);
+}
+
 } // namespace TestStreamPeerBuffer
 
 #endif // TEST_STREAM_PEER_BUFFER_H

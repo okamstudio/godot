@@ -306,6 +306,93 @@ TEST_CASE("[StreamPeer] Get UTF8 string when there is no string") {
 	ERR_PRINT_ON;
 }
 
+TEST_CASE("[StreamPeer] Put data through binded method") {
+	Ref<StreamPeerBuffer> spb;
+	spb.instantiate();
+	Vector<uint8_t> buffer = { 42 };
+
+	Variant result = spb->call("put_data", buffer);
+	uint32_t error = uint32_t(result);
+
+	CHECK_EQ(error, OK);
+	CHECK_EQ(spb->get_size(), 1);
+}
+
+TEST_CASE("[StreamPeer] Put zero data through binded method") {
+	Ref<StreamPeerBuffer> spb;
+	spb.instantiate();
+	Vector<uint8_t> buffer = {};
+
+	Variant result = spb->call("put_data", buffer);
+	uint32_t error = uint32_t(result);
+
+	CHECK_EQ(error, OK);
+	CHECK_EQ(spb->get_size(), 0);
+}
+
+TEST_CASE("[StreamPeer] Put partial data through binded method") {
+	Ref<StreamPeerBuffer> spb;
+	spb.instantiate();
+	Vector<uint8_t> buffer = { 42 };
+
+	Variant result = spb->call("put_partial_data", buffer);
+	Array array = Array(result);
+	uint32_t error = uint32_t(array[0]);
+	uint32_t sent_bytes = uint32_t(array[1]);
+
+	CHECK_EQ(error, OK);
+	CHECK_EQ(sent_bytes, 1);
+	CHECK_EQ(spb->get_size(), 1);
+}
+
+TEST_CASE("[StreamPeer] Put empty partial data through binded method") {
+	Ref<StreamPeerBuffer> spb;
+	spb.instantiate();
+	Vector<uint8_t> buffer = {};
+
+	Variant result = spb->call("put_partial_data", buffer);
+	Array array = Array(result);
+	uint32_t error = uint32_t(array[0]);
+	uint32_t sent_bytes = uint32_t(array[1]);
+
+	CHECK_EQ(error, OK);
+	CHECK_EQ(sent_bytes, 0);
+	CHECK_EQ(spb->get_size(), 0);
+}
+
+TEST_CASE("[StreamPeer] Get one byte from empty buffer through binded method") {
+	Ref<StreamPeerBuffer> spb;
+	spb.instantiate();
+
+	Variant result = spb->call("get_data", 1);
+	Array array = Array(result);
+	uint32_t error = uint32_t(array[0]);
+
+	CHECK_EQ(error, ERR_INVALID_PARAMETER);
+}
+
+TEST_CASE("[StreamPeer] Get zero partial data through binded method") {
+	Ref<StreamPeerBuffer> spb;
+	spb.instantiate();
+
+	Variant result = spb->call("get_partial_data", 0);
+	Array array = Array(result);
+	uint32_t error = uint32_t(array[0]);
+
+	CHECK_EQ(error, OK);
+}
+
+TEST_CASE("[StreamPeer] Get one partial byte from empty buffer through binded method") {
+	Ref<StreamPeerBuffer> spb;
+	spb.instantiate();
+
+	Variant result = spb->call("get_partial_data", 1);
+	Array array = Array(result);
+	uint32_t error = uint32_t(array[0]);
+
+	CHECK_EQ(error, OK);
+}
+
 } // namespace TestStreamPeer
 
 #endif // TEST_STREAM_PEER_H
