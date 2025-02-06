@@ -51,6 +51,7 @@ private:
 	Ref<Texture2D> icon;
 	bool expand_icon = false;
 	bool clip_text = false;
+	Vector2 text_offset;
 	HorizontalAlignment alignment = HORIZONTAL_ALIGNMENT_CENTER;
 	HorizontalAlignment horizontal_icon_alignment = HORIZONTAL_ALIGNMENT_LEFT;
 	VerticalAlignment vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER;
@@ -143,6 +144,9 @@ public:
 
 	void set_expand_icon(bool p_enabled);
 	bool is_expand_icon() const;
+
+	void set_text_offset(Vector2 p_offset);
+	Vector2 get_text_offset() const;
 
 	void set_flat(bool p_enabled);
 	bool is_flat() const;

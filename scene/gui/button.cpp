@@ -464,6 +464,8 @@ void Button::_notification(int p_what) {
 					text_ofs.y += custom_element_size.height - drawable_size_remained.height; // Offset by the icon's height.
 				}
 
+				text_ofs += text_offset;
+
 				Color font_outline_color = theme_cache.font_outline_color;
 				int outline_size = theme_cache.outline_size;
 				if (outline_size > 0 && font_outline_color.a > 0.0f) {
@@ -638,6 +640,17 @@ Control::TextDirection Button::get_text_direction() const {
 	return text_direction;
 }
 
+void Button::set_text_offset(Vector2 p_offset) {
+	if (text_offset != p_offset) {
+		text_offset = p_offset;
+		queue_redraw();
+	}
+}
+
+Vector2 Button::get_text_offset() const {
+	return text_offset;
+}
+
 void Button::set_language(const String &p_language) {
 	if (language != p_language) {
 		language = p_language;
@@ -768,6 +781,8 @@ void Button::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_autowrap_mode"), &Button::get_autowrap_mode);
 	ClassDB::bind_method(D_METHOD("set_text_direction", "direction"), &Button::set_text_direction);
 	ClassDB::bind_method(D_METHOD("get_text_direction"), &Button::get_text_direction);
+	ClassDB::bind_method(D_METHOD("set_text_offset", "offset"), &Button::set_text_offset);
+	ClassDB::bind_method(D_METHOD("get_text_offset"), &Button::get_text_offset);
 	ClassDB::bind_method(D_METHOD("set_language", "language"), &Button::set_language);
 	ClassDB::bind_method(D_METHOD("get_language"), &Button::get_language);
 	ClassDB::bind_method(D_METHOD("set_button_icon", "texture"), &Button::set_button_icon);
@@ -790,6 +805,7 @@ void Button::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "flat"), "set_flat", "is_flat");
 
 	ADD_GROUP("Text Behavior", "");
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "text_offset", PROPERTY_HINT_NONE, "suffix:px"), "set_text_offset", "get_text_offset");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "alignment", PROPERTY_HINT_ENUM, "Left,Center,Right"), "set_text_alignment", "get_text_alignment");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "text_overrun_behavior", PROPERTY_HINT_ENUM, "Trim Nothing,Trim Characters,Trim Words,Ellipsis,Word Ellipsis"), "set_text_overrun_behavior", "get_text_overrun_behavior");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "autowrap_mode", PROPERTY_HINT_ENUM, "Off,Arbitrary,Word,Word (Smart)"), "set_autowrap_mode", "get_autowrap_mode");

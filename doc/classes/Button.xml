@@ -71,6 +71,9 @@
 		<member name="text_direction" type="int" setter="set_text_direction" getter="get_text_direction" enum="Control.TextDirection" default="0">
 			Base text writing direction.
 		</member>
+		<member name="text_offset" type="Vector2" setter="set_text_offset" getter="get_text_offset" default="&quot;&quot;">
+			Offset for the button's text, in pixels. Useful for fonts that appear visually off-center or for making the text feel more responsive.
+		</member>
 		<member name="text_overrun_behavior" type="int" setter="set_text_overrun_behavior" getter="get_text_overrun_behavior" enum="TextServer.OverrunBehavior" default="0">
 			Sets the clipping behavior when the text exceeds the node's bounding rectangle. See [enum TextServer.OverrunBehavior] for a description of all modes.
 		</member>
