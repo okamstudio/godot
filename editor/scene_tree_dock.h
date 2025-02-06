@@ -197,6 +197,8 @@ class SceneTreeDock : public VBoxContainer {
 
 	void _node_replace_owner(Node *p_base, Node *p_node, Node *p_root, ReplaceOwnerMode p_mode = MODE_BIDI);
 	void _node_strip_signal_inheritance(Node *p_node);
+	void _node_strip_resource_reference(Node *p_node);
+	Ref<Resource> _recursively_make_unique_resource(const Ref<Resource> res, bool duplicate);
 	void _load_request(const String &p_path);
 	void _script_open_request(const Ref<Script> &p_script);
 	void _push_item(Object *p_object);
