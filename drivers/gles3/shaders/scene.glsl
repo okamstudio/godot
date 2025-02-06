@@ -335,24 +335,27 @@ uniform lowp uint spot_light_index;
 
 #if !defined(MODE_RENDER_DEPTH) && !defined(MODE_UNSHADED) && defined(USE_VERTEX_LIGHTING)
 
-// Eyeballed approximation of `exp2(15.0 * (1.0 - roughness) + 1.0) * 0.25`.
-// Uses slightly more FMA instructions (2x rate) to avoid special instructions (0.25x rate).
-// Range is reduced to [0.64,4977] from [068,2,221,528] which makes mediump feasible for the rest of the shader.
+// Converts GGX roughness to Blinn-Phong shininess.
+// Roughly approximates `2.0 / roughness * roughness - 2.0` with a much lower high end.
+// Range is ~[0.05,656].
 mediump float roughness_to_shininess(mediump float roughness) {
-	mediump float r = 1.2 - roughness;
-	mediump float r2 = r * r;
-	return r * r2 * r2 * 2000.0;
+	mediump float s = 1.5 - roughness * 0.667;
+	s *= s;
+	s *= s;
+	s *= s;
+	s *= s; // s^16
+	return s;
 }
 
-void light_compute(vec3 N, vec3 L, vec3 V, vec3 light_color, bool is_directional, float roughness,
+void light_compute_vertex(vec3 N, vec3 L, vec3 V, float A, vec3 light_color, bool is_directional, float roughness, float specular_amount,
 		inout vec3 diffuse_light, inout vec3 specular_light) {
-	float NdotL = min(dot(N, L), 1.0);
-	float cNdotL = max(NdotL, 0.0); // clamped NdotL
+	float NdotL = min(A + dot(N, L), 1.0);
+	float cNdotL = max(NdotL, 0.0);
 
 #if defined(DIFFUSE_LAMBERT_WRAP)
 	// Energy conserving lambert wrap shader.
 	// https://web.archive.org/web/20210228210901/http://blog.stevemcauley.com/2011/12/03/energy-conserving-wrapped-diffuse/
-	float diffuse_brdf_NL = max(0.0, (cNdotL + roughness) / ((1.0 + roughness) * (1.0 + roughness))) * (1.0 / M_PI);
+	float diffuse_brdf_NL = max(0.0, (NdotL + roughness) / ((1.0 + roughness) * (1.0 + roughness))) * (1.0 / M_PI);
 #else
 	// lambert
 	float diffuse_brdf_NL = cNdotL * (1.0 / M_PI);
@@ -364,10 +367,10 @@ void light_compute(vec3 N, vec3 L, vec3 V, vec3 light_color, bool is_directional
 	float specular_brdf_NL = 0.0;
 	// Normalized blinn always unless disabled.
 	vec3 H = normalize(V + L);
-	float cNdotH = clamp(dot(N, H), 0.0, 1.0);
+	float cNdotH = clamp(A + dot(N, H), 0.0, 1.0);
 	float shininess = roughness_to_shininess(roughness);
 	float blinn = pow(cNdotH, shininess);
-	blinn *= (shininess + 2.0) * (1.0 / (8.0 * M_PI)) * cNdotL;
+	blinn *= (shininess + 8.0) * (1.0 / (8.0 * M_PI)) * cNdotL * specular_amount;
 	specular_brdf_NL = blinn;
 	specular_light += specular_brdf_NL * light_color;
 #endif
@@ -383,21 +386,27 @@ float get_omni_spot_attenuation(float distance, float inv_range, float decay) {
 }
 
 #if !defined(DISABLE_LIGHT_OMNI) || (defined(ADDITIVE_OMNI) && defined(USE_ADDITIVE_LIGHTING))
-void light_process_omni(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, float roughness,
+void light_process_omni_vertex(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, float roughness,
 		inout vec3 diffuse_light, inout vec3 specular_light) {
 	vec3 light_rel_vec = omni_lights[idx].position - vertex;
 	float light_length = length(light_rel_vec);
 	float omni_attenuation = get_omni_spot_attenuation(light_length, omni_lights[idx].inv_radius, omni_lights[idx].attenuation);
 	vec3 color = omni_lights[idx].color * omni_attenuation; // No light shaders here, so combine.
 
-	light_compute(normal, normalize(light_rel_vec), eye_vec, color, false, roughness,
-			diffuse_light,
-			specular_light);
+	// Compute area light solid angle.
+	float size_A = 0.0;
+	if (omni_lights[idx].size > 0.0) {
+		float t = omni_lights[idx].size / max(0.001, light_length);
+		size_A = max(0.0, 1.0 - 1.0 / sqrt(1.0 + t * t));
+	}
+
+	light_compute_vertex(normal, normalize(light_rel_vec), eye_vec, size_A, color, false, roughness, omni_lights[idx].specular_amount,
+			diffuse_light, specular_light);
 }
 #endif // !defined(DISABLE_LIGHT_OMNI) || (defined(ADDITIVE_OMNI) && defined(USE_ADDITIVE_LIGHTING))
 
 #if !defined(DISABLE_LIGHT_SPOT) || (defined(ADDITIVE_SPOT) && defined(USE_ADDITIVE_LIGHTING))
-void light_process_spot(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, float roughness,
+void light_process_spot_vertex(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, float roughness,
 		inout vec3 diffuse_light,
 		inout vec3 specular_light) {
 	vec3 light_rel_vec = spot_lights[idx].position - vertex;
@@ -412,7 +421,14 @@ void light_process_spot(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, float 
 
 	vec3 color = spot_lights[idx].color * spot_attenuation;
 
-	light_compute(normal, normalize(light_rel_vec), eye_vec, color, false, roughness,
+	// Compute area light solid angle.
+	float size_A = 0.0;
+	if (spot_lights[idx].size > 0.0) {
+		float t = spot_lights[idx].size / max(0.001, light_length);
+		size_A = max(0.0, 1.0 - 1.0 / sqrt(1.0 + t * t));
+	}
+
+	light_compute_vertex(normal, normalize(light_rel_vec), eye_vec, size_A, color, false, roughness, spot_lights[idx].specular_amount,
 			diffuse_light, specular_light);
 }
 #endif // !defined(DISABLE_LIGHT_SPOT) || (defined(ADDITIVE_SPOT) && defined(USE_ADDITIVE_LIGHTING))
@@ -668,7 +684,7 @@ void main() {
 	// Apply normal bias at draw time to avoid issues with scaling non-fused geometry.
 	vec3 light_rel_vec = positional_shadows[positional_shadow_index].light_position - vertex_interp;
 	float light_length = length(light_rel_vec);
-	float aNdotL = abs(dot(normalize(normal_interp), normalize(light_rel_vec)));
+	float aNdotL = abs(dot(normal_interp, normalize(light_rel_vec)));
 	vec3 normal_offset = (1.0 - aNdotL) * positional_shadows[positional_shadow_index].shadow_normal_bias * light_length * normal_interp;
 
 #ifdef ADDITIVE_SPOT
@@ -681,7 +697,7 @@ void main() {
 	shadow_coord = vec4(vertex_interp + normal_offset, 1.0);
 #endif
 #else // ADDITIVE_DIRECTIONAL
-	vec3 base_normal_bias = normalize(normal_interp) * (1.0 - max(0.0, dot(directional_shadows[directional_shadow_index].direction, -normalize(normal_interp))));
+	vec3 base_normal_bias = normal_interp * (1.0 - max(0.0, dot(directional_shadows[directional_shadow_index].direction, -normal_interp)));
 	vec3 normal_offset = base_normal_bias * directional_shadows[directional_shadow_index].shadow_normal_bias.x;
 	shadow_coord = directional_shadows[directional_shadow_index].shadow_matrix1 * vec4(vertex_interp + normal_offset, 1.0);
 
@@ -735,22 +751,22 @@ void main() {
 			continue;
 		}
 #endif
-		light_compute(normal_interp, normalize(directional_lights[i].direction), normalize(view), directional_lights[i].color * directional_lights[i].energy, true, roughness,
-				diffuse_light_interp.rgb,
-				specular_light_interp.rgb);
+		light_compute_vertex(normal_interp, normalize(directional_lights[i].direction), normalize(view), directional_lights[i].size,
+				directional_lights[i].color * directional_lights[i].energy, true, roughness, 1.0,
+				diffuse_light_interp.rgb, specular_light_interp.rgb);
 	}
 #endif // !DISABLE_LIGHT_DIRECTIONAL
 
 #ifndef DISABLE_LIGHT_OMNI
 	for (uint i = 0u; i < omni_light_count; i++) {
-		light_process_omni(omni_light_indices[i], vertex_interp, view, normal_interp, roughness,
+		light_process_omni_vertex(omni_light_indices[i], vertex_interp, view, normal_interp, roughness,
 				diffuse_light_interp.rgb, specular_light_interp.rgb);
 	}
 #endif // !DISABLE_LIGHT_OMNI
 
 #ifndef DISABLE_LIGHT_SPOT
 	for (uint i = 0u; i < spot_light_count; i++) {
-		light_process_spot(spot_light_indices[i], vertex_interp, view, normal_interp, roughness,
+		light_process_spot_vertex(spot_light_indices[i], vertex_interp, view, normal_interp, roughness,
 				diffuse_light_interp.rgb, specular_light_interp.rgb);
 	}
 #endif // !DISABLE_LIGHT_SPOT
@@ -762,18 +778,18 @@ void main() {
 	additive_specular_light_interp = vec3(0.0);
 #if !defined(ADDITIVE_OMNI) && !defined(ADDITIVE_SPOT)
 
-	light_compute(normal_interp, normalize(directional_lights[directional_shadow_index].direction), normalize(view), directional_lights[directional_shadow_index].color * directional_lights[directional_shadow_index].energy, true, roughness,
-			additive_diffuse_light_interp.rgb,
-			additive_specular_light_interp.rgb);
+	light_compute_vertex(normal_interp, normalize(directional_lights[directional_shadow_index].direction), normalize(view), directional_lights[directional_shadow_index].size,
+			directional_lights[directional_shadow_index].color * directional_lights[directional_shadow_index].energy, true, roughness, 1.0,
+			additive_diffuse_light_interp.rgb, additive_specular_light_interp.rgb);
 #endif // !defined(ADDITIVE_OMNI) && !defined(ADDITIVE_SPOT)
 
 #ifdef ADDITIVE_OMNI
-	light_process_omni(omni_light_index, vertex_interp, view, normal_interp, roughness,
+	light_process_omni_vertex(omni_light_index, vertex_interp, view, normal_interp, roughness,
 			additive_diffuse_light_interp.rgb, additive_specular_light_interp.rgb);
 #endif // ADDITIVE_OMNI
 
 #ifdef ADDITIVE_SPOT
-	light_process_spot(spot_light_index, vertex_interp, view, normal_interp, roughness,
+	light_process_spot_vertex(spot_light_index, vertex_interp, view, normal_interp, roughness,
 			additive_diffuse_light_interp.rgb, additive_specular_light_interp.rgb);
 #endif // ADDITIVE_SPOT
 

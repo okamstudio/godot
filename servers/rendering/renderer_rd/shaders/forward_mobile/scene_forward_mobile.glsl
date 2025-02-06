@@ -481,16 +481,19 @@ void main() {
 			if (directional_lights.data[i].bake_mode == LIGHT_BAKE_STATIC && bool(instances.data[draw_call.instance_index].flags & INSTANCE_FLAGS_USE_LIGHTMAP)) {
 				continue; // Statically baked light and object uses lightmap, skip.
 			}
+
+			float size_A = sc_use_light_soft_shadows() ? directional_lights.data[i].size : 0.0;
+
 			if (i == 0) {
-				light_compute_vertex(normal_interp, directional_lights.data[0].direction, view,
+				light_compute_vertex(normal_interp, directional_lights.data[0].direction, view, size_A,
 						directional_lights.data[0].color * directional_lights.data[0].energy,
-						true, roughness,
+						true, roughness, 1.0,
 						directional_diffuse,
 						directional_specular);
 			} else {
-				light_compute_vertex(normal_interp, directional_lights.data[i].direction, view,
+				light_compute_vertex(normal_interp, directional_lights.data[i].direction, view, size_A,
 						directional_lights.data[i].color * directional_lights.data[i].energy,
-						true, roughness,
+						true, roughness, 1.0,
 						diffuse_light_interp.rgb,
 						specular_light_interp.rgb);
 			}

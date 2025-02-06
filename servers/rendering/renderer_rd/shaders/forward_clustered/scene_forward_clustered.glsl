@@ -549,7 +549,7 @@ void vertex_shader(vec3 vertex_input,
 					continue; // Statically baked light and object uses lightmap, skip
 				}
 
-				light_process_omni_vertex(light_index, vertex, view, normal, roughness,
+				light_process_omni_vertex(light_index, vertex, view, normal_interp, roughness,
 						diffuse_light_interp.rgb, specular_light_interp.rgb);
 			}
 		}
@@ -584,7 +584,7 @@ void vertex_shader(vec3 vertex_input,
 					continue; // Statically baked light and object uses lightmap, skip
 				}
 
-				light_process_spot_vertex(light_index, vertex, view, normal, roughness,
+				light_process_spot_vertex(light_index, vertex, view, normal_interp, roughness,
 						diffuse_light_interp.rgb, specular_light_interp.rgb);
 			}
 		}
@@ -604,16 +604,19 @@ void vertex_shader(vec3 vertex_input,
 			if (directional_lights.data[i].bake_mode == LIGHT_BAKE_STATIC && bool(instances.data[draw_call.instance_index].flags & INSTANCE_FLAGS_USE_LIGHTMAP)) {
 				continue; // Statically baked light and object uses lightmap, skip.
 			}
+
+			float size_A = sc_use_directional_soft_shadows() ? directional_lights.data[i].size : 0.0;
+
 			if (i == 0) {
-				light_compute_vertex(normal, directional_lights.data[0].direction, view,
+				light_compute_vertex(normal_interp, directional_lights.data[0].direction, view, size_A,
 						directional_lights.data[0].color * directional_lights.data[0].energy,
-						true, roughness,
+						true, roughness, 1.0,
 						directional_diffuse,
 						directional_specular);
 			} else {
-				light_compute_vertex(normal, directional_lights.data[i].direction, view,
+				light_compute_vertex(normal_interp, directional_lights.data[i].direction, view, size_A,
 						directional_lights.data[i].color * directional_lights.data[i].energy,
-						true, roughness,
+						true, roughness, 1.0,
 						diffuse_light_interp.rgb,
 						specular_light_interp.rgb);
 			}
