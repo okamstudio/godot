@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="TextureStorage" inherits="RendererTextureStorage" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="decal_atlas_get_texture" qualifiers="const">
+			<return type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="decal_atlas_get_texture_srgb" qualifiers="const">
+			<return type="RID" />
+			<description>
+			</description>
+		</method>
+	</methods>
+</class>

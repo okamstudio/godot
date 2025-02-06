@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="RendererLightStorage" inherits="Object" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Abstract render light storage object, holds scene light data.
+	</brief_description>
+	<description>
+		Abstract render light storage object, exists for the duration of rendering a single viewport.
+		[b]Note:[/b] This is an internal rendering server object, do not instantiate this from script.
+	</description>
+	<tutorials>
+	</tutorials>
+</class>

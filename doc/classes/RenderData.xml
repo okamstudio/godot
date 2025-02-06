@@ -22,6 +22,11 @@
 				Returns the [RID] of the environment object in the [RenderingServer] being used to render this viewport.
 			</description>
 		</method>
+		<method name="get_light_storage" qualifiers="const">
+			<return type="RendererLightStorage" />
+			<description>
+			</description>
+		</method>
 		<method name="get_render_scene_buffers" qualifiers="const">
 			<return type="RenderSceneBuffers" />
 			<description>
@@ -32,6 +37,11 @@
 			<return type="RenderSceneData" />
 			<description>
 				Returns the [RenderSceneData] object managing this frames scene data.
+			</description>
+		</method>
+		<method name="get_texture_storage" qualifiers="const">
+			<return type="RendererTextureStorage" />
+			<description>
 			</description>
 		</method>
 	</methods>

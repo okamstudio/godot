@@ -35,13 +35,29 @@ void RenderData::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_render_scene_data"), &RenderData::get_render_scene_data);
 	ClassDB::bind_method(D_METHOD("get_environment"), &RenderData::get_environment);
 	ClassDB::bind_method(D_METHOD("get_camera_attributes"), &RenderData::get_camera_attributes);
+	ClassDB::bind_method(D_METHOD("get_light_storage"), &RenderData::get_light_storage);
+	ClassDB::bind_method(D_METHOD("get_texture_storage"), &RenderData::get_texture_storage);
 }
 
 void RenderDataExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_get_render_scene_buffers);
 	GDVIRTUAL_BIND(_get_render_scene_data)
+	GDVIRTUAL_BIND(_get_light_storage)
+	GDVIRTUAL_BIND(_get_texture_storage)
 	GDVIRTUAL_BIND(_get_environment)
 	GDVIRTUAL_BIND(_get_camera_attributes)
+}
+
+RendererLightStorage *RenderDataExtension::get_light_storage() const {
+	RendererLightStorage *ret = nullptr;
+	GDVIRTUAL_CALL(_get_light_storage, ret);
+	return ret;
+}
+
+RendererTextureStorage *RenderDataExtension::get_texture_storage() const {
+	RendererTextureStorage *ret = nullptr;
+	GDVIRTUAL_CALL(_get_texture_storage, ret);
+	return ret;
 }
 
 Ref<RenderSceneBuffers> RenderDataExtension::get_render_scene_buffers() const {

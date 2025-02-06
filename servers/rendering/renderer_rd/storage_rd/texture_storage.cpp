@@ -79,6 +79,11 @@ TextureStorage *TextureStorage::get_singleton() {
 	return singleton;
 }
 
+void TextureStorage::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("decal_atlas_get_texture"), &TextureStorage::decal_atlas_get_texture);
+	ClassDB::bind_method(D_METHOD("decal_atlas_get_texture_srgb"), &TextureStorage::decal_atlas_get_texture_srgb);
+}
+
 TextureStorage::TextureStorage() {
 	singleton = this;
 

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="LightStorage" inherits="RendererLightStorage" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Light storage object.
+		[b]Note:[/b] This is an internal rendering server object, do not instantiate this from script.
+		[b]Note:[/b] Instances of this class or its subclasses should only ever be interacted with from the main rendering thread, as using them elsewhere may lead to stutters and freezes in the application.
+	</brief_description>
+	<description>
+		[b]Note:[/b] This is an internal rendering server object only exposed for GDExtension plugins.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="directional_shadow_get_texture">
+			<return type="RID" />
+			<description>
+				Returns the [RID] of the directional shadow atlas texture.
+				[b]Note:[/b] Requires at least one directional light source in the scene that casts shadow.
+			</description>
+		</method>
+		<method name="get_directional_light_buffer">
+			<return type="RID" />
+			<description>
+				Returns the [RID] of the uniform buffer containing the directional light data as a UBO.
+			</description>
+		</method>
+		<method name="get_omni_light_buffer">
+			<return type="RID" />
+			<description>
+				Returns the [RID] of the buffer containing the omni light data as a Storage Buffer.
+				[b]Note:[/b] Defined in [code]light_data_inc.glsl[/code]
+			</description>
+		</method>
+		<method name="get_spot_light_buffer">
+			<return type="RID" />
+			<description>
+				Returns the [RID] of the buffer containing the spot light data as a Storage Buffer.
+				[b]Note:[/b] Defined in [code]light_data_inc.glsl[/code]
+			</description>
+		</method>
+	</methods>
+</class>
