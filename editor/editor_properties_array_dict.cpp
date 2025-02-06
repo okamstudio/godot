@@ -412,7 +412,7 @@ void EditorPropertyArray::update_property() {
 		edit->set_text_overrun_behavior(TextServer::OVERRUN_TRIM_ELLIPSIS);
 		edit->set_text_alignment(HORIZONTAL_ALIGNMENT_LEFT);
 		edit->set_button_icon(get_editor_theme_icon(array_type_name));
-		edit->set_text(vformat("%s%s", array_sub_type_name, ctr_str));
+		edit->set_text(vformat("%s(%d) - %s", array_sub_type_name, size, ctr_str));
 		edit->set_tooltip_text(vformat(TTR("%s%s (size %d)"), array_type_name, array_sub_type_name, size));
 	} else {
 		edit->set_text_alignment(HORIZONTAL_ALIGNMENT_CENTER);
@@ -1189,7 +1189,7 @@ void EditorPropertyDictionary::update_property() {
 		edit->set_text_overrun_behavior(TextServer::OVERRUN_TRIM_ELLIPSIS);
 		edit->set_text_alignment(HORIZONTAL_ALIGNMENT_LEFT);
 		edit->set_button_icon(get_editor_theme_icon(dict_type_name));
-		edit->set_text(vformat("%s%s", dict_sub_type_name, ctr_str));
+		edit->set_text(vformat("%s(%d) - %s", dict_sub_type_name, dict.size(), ctr_str));
 		edit->set_tooltip_text(vformat(TTR("%s%s (size %d)"), dict_type_name, dict_sub_type_name, dict.size()));
 	} else {
 		edit->set_text_alignment(HORIZONTAL_ALIGNMENT_CENTER);
@@ -1287,14 +1287,6 @@ void EditorPropertyDictionary::update_property() {
 					new_prop->set_use_folding(is_using_folding());
 					new_prop->set_h_size_flags(SIZE_EXPAND_FILL);
 					new_prop->set_draw_label(false);
-					EditorPropertyArray *arr_prop = Object::cast_to<EditorPropertyArray>(new_prop);
-					if (arr_prop) {
-						arr_prop->set_preview_value(true);
-					}
-					EditorPropertyDictionary *dict_prop = Object::cast_to<EditorPropertyDictionary>(new_prop);
-					if (dict_prop) {
-						dict_prop->set_preview_value(true);
-					}
 					slot.set_key_prop(new_prop);
 				}
 			}
