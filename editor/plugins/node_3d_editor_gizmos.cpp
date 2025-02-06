@@ -801,6 +801,11 @@ void EditorNode3DGizmo::create() {
 void EditorNode3DGizmo::transform() {
 	ERR_FAIL_NULL(spatial_node);
 	ERR_FAIL_COND(!valid);
+
+	if (hidden && !gizmo_plugin->is_selectable_when_hidden()) {
+		return;
+	}
+
 	for (int i = 0; i < instances.size(); i++) {
 		RS::get_singleton()->instance_set_transform(instances[i].instance, spatial_node->get_global_transform() * instances[i].xform);
 	}
