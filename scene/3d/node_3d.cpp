@@ -148,11 +148,7 @@ void Node3D::_notification(int p_what) {
 
 			if (data.top_level && !Engine::get_singleton()->is_editor_hint()) {
 				if (data.parent) {
-					if (!data.top_level) {
-						data.local_transform = data.parent->get_global_transform() * get_transform();
-					} else {
-						data.local_transform = get_transform();
-					}
+					data.local_transform = get_transform();
 					_replace_dirty_mask(DIRTY_EULER_ROTATION_AND_SCALE); // As local transform was updated, rot/scale should be dirty.
 				}
 			}
