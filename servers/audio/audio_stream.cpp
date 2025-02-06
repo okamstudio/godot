@@ -418,9 +418,6 @@ int AudioStreamPlaybackMicrophone::_mix_internal(AudioFrame *p_buffer, int p_fra
 
 				p_buffer[i] = AudioFrame(l, r);
 			} else {
-				if (mixed_frames == p_frames) {
-					mixed_frames = i;
-				}
 				p_buffer[i] = AudioFrame(0.0f, 0.0f);
 			}
 		}
