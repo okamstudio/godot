@@ -208,6 +208,25 @@ void HTTPRequest::cancel_request() {
 	requesting = false;
 }
 
+bool HTTPRequest::_is_content_header(const String &h) {
+	return (h.begins_with("content-type:") || h.begins_with("content-length:") || h.begins_with("content-location:") || h.begins_with("content-encoding:") || h.begins_with("transfer-encoding:") || h.begins_with("connection:") || h.begins_with("authorization:"));
+}
+
+bool HTTPRequest::_is_method_safe() {
+	return (method == HTTPClient::METHOD_GET || method == HTTPClient::METHOD_HEAD || method == HTTPClient::METHOD_OPTIONS || method == HTTPClient::METHOD_TRACE);
+}
+
+Error HTTPRequest::_get_redirect_headers(Vector<String> *r_headers) {
+	for (const String &E : headers) {
+		const String h = E.to_lower();
+		// We strip content headers when changing a redirect to GET.
+		if (!_is_content_header(h)) {
+			r_headers->push_back(E);
+		}
+	}
+	return OK;
+}
+
 bool HTTPRequest::_handle_response(bool *ret_value) {
 	if (!client->has_response()) {
 		_defer_done(RESULT_NO_RESPONSE, 0, PackedStringArray(), PackedByteArray());
@@ -267,6 +286,16 @@ bool HTTPRequest::_handle_response(bool *ret_value) {
 				final_body_size.set(0);
 				redirections = new_redirs;
 				*ret_value = false;
+				if (!_is_method_safe()) {
+					// 301, 302, and 303 are changed to GET for unsafe methods.
+					// See: https://www.rfc-editor.org/rfc/rfc9110#section-15.4-3.1
+					method = HTTPClient::METHOD_GET;
+					// Content headers should be dropped if changing method.
+					// See: https://www.rfc-editor.org/rfc/rfc9110#section-15.4-6.2.1
+					Vector<String> req_headers;
+					_get_redirect_headers(&req_headers);
+					headers = req_headers;
+				}
 				return true;
 			}
 		}

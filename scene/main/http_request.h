@@ -103,6 +103,10 @@ private:
 
 	void _redirect_request(const String &p_new_url);
 
+	bool _is_content_header(const String &h);
+	bool _is_method_safe();
+	Error _get_redirect_headers(Vector<String> *r_headers);
+
 	bool _handle_response(bool *ret_value);
 
 	Error _parse_url(const String &p_url);
