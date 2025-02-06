@@ -223,8 +223,10 @@ void Node3D::_notification(int p_what) {
 			ERR_THREAD_GUARD;
 
 #ifdef TOOLS_ENABLED
-			for (int i = 0; i < data.gizmos.size(); i++) {
-				data.gizmos.write[i]->transform();
+			if (is_visible_in_tree()) {
+				for (int i = 0; i < data.gizmos.size(); i++) {
+					data.gizmos.write[i]->transform();
+				}
 			}
 #endif
 		} break;
