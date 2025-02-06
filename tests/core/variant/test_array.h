@@ -56,6 +56,26 @@ static inline Dictionary build_dictionary(Variant key, Variant item, Targs... Fa
 	return d;
 }
 
+TEST_CASE("[Array] initializer list") {
+	Array arr = { 0, 1, "test", true, { 0.0, 1.0 } };
+	CHECK(arr.size() == 5);
+	CHECK(arr[0] == Variant(0));
+	CHECK(arr[1] == Variant(1));
+	CHECK(arr[2] == Variant("test"));
+	CHECK(arr[3] == Variant(true));
+	CHECK(arr[4] == Variant({ 0.0, 1.0 }));
+
+	arr = { "reassign" };
+	CHECK(arr.size() == 1);
+	CHECK(arr[0] == Variant("reassign"));
+
+	TypedArray<int> typed_arr = { 0, 1, 2 };
+	CHECK(typed_arr.size() == 3);
+	CHECK(typed_arr[0] == Variant(0));
+	CHECK(typed_arr[1] == Variant(1));
+	CHECK(typed_arr[2] == Variant(2));
+}
+
 TEST_CASE("[Array] size(), clear(), and is_empty()") {
 	Array arr;
 	CHECK(arr.size() == 0);

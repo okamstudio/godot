@@ -913,6 +913,12 @@ Array::Array(const Array &p_from) {
 	_ref(p_from);
 }
 
+Array::Array(std::initializer_list<Variant> p_init) {
+	_p = memnew(ArrayPrivate);
+	_p->refcount.init();
+	_p->array = Vector<Variant>(p_init);
+}
+
 Array::Array() {
 	_p = memnew(ArrayPrivate);
 	_p->refcount.init();

@@ -1737,6 +1737,24 @@ TEST_CASE("[Variant] Assignment To Color from Bool,Int,Float,String,Vec2,Vec2i,V
 	CHECK(object_v.get_type() == Variant::COLOR);
 }
 
+TEST_CASE("[Variant] array initializer list") {
+	Variant arr_v = { 0, 1, "test", true, { 0.0, 1.0 } };
+	CHECK(arr_v.get_type() == Variant::ARRAY);
+	Array arr = (Array)arr_v;
+	CHECK(arr.size() == 5);
+	CHECK(arr[0] == Variant(0));
+	CHECK(arr[1] == Variant(1));
+	CHECK(arr[2] == Variant("test"));
+	CHECK(arr[3] == Variant(true));
+	CHECK(arr[4] == Variant({ 0.0, 1.0 }));
+
+	PackedInt32Array packed_arr = { 2, 1, 0 };
+	CHECK(packed_arr.size() == 3);
+	CHECK(packed_arr[0] == 2);
+	CHECK(packed_arr[1] == 1);
+	CHECK(packed_arr[2] == 0);
+}
+
 TEST_CASE("[Variant] Writer and parser array") {
 	Array a = build_array(1, String("hello"), build_array(Variant()));
 	String a_str;

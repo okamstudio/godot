@@ -2531,6 +2531,11 @@ Variant::Variant(const Dictionary &p_dictionary) :
 	static_assert(sizeof(Dictionary) <= sizeof(_data._mem));
 }
 
+Variant::Variant(std::initializer_list<Variant> p_init) :
+		type(ARRAY) {
+	memnew_placement(_data._mem, Array(p_init));
+}
+
 Variant::Variant(const Array &p_array) :
 		type(ARRAY) {
 	memnew_placement(_data._mem, Array(p_array));
