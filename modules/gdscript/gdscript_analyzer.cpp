@@ -1093,7 +1093,12 @@ void GDScriptAnalyzer::resolve_class_member(GDScriptParser::ClassNode *p_class, 
 							}
 						}
 						if (is_get_node) {
-							parser->push_warning(member.variable, GDScriptWarning::GET_NODE_DEFAULT_WITHOUT_ONREADY, is_using_shorthand ? "$" : "get_node()");
+							String offending_syntax = "get_node()";
+							if (is_using_shorthand) {
+								GDScriptParser::GetNodeNode *get_node_node = static_cast<GDScriptParser::GetNodeNode *>(expr);
+								offending_syntax = get_node_node->use_dollar ? "$" : "%";
+							}
+							parser->push_warning(member.variable, GDScriptWarning::GET_NODE_DEFAULT_WITHOUT_ONREADY, offending_syntax);
 						}
 					}
 				}

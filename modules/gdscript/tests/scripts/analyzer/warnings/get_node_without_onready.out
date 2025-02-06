@@ -4,4 +4,8 @@ GDTEST_OK
 ~~ WARNING at line 7: (GET_NODE_DEFAULT_WITHOUT_ONREADY) The default value is using "get_node()" which won't return nodes in the scene tree before "_ready()" is called. Use the "@onready" annotation to solve this.
 ~~ WARNING at line 8: (GET_NODE_DEFAULT_WITHOUT_ONREADY) The default value is using "get_node()" which won't return nodes in the scene tree before "_ready()" is called. Use the "@onready" annotation to solve this.
 ~~ WARNING at line 9: (GET_NODE_DEFAULT_WITHOUT_ONREADY) The default value is using "$" which won't return nodes in the scene tree before "_ready()" is called. Use the "@onready" annotation to solve this.
+~~ WARNING at line 11: (GET_NODE_DEFAULT_WITHOUT_ONREADY) The default value is using "%" which won't return nodes in the scene tree before "_ready()" is called. Use the "@onready" annotation to solve this.
+~~ WARNING at line 12: (GET_NODE_DEFAULT_WITHOUT_ONREADY) The default value is using "$" which won't return nodes in the scene tree before "_ready()" is called. Use the "@onready" annotation to solve this.
+~~ WARNING at line 13: (GET_NODE_DEFAULT_WITHOUT_ONREADY) The default value is using "get_node()" which won't return nodes in the scene tree before "_ready()" is called. Use the "@onready" annotation to solve this.
+~~ WARNING at line 14: (GET_NODE_DEFAULT_WITHOUT_ONREADY) The default value is using "%" which won't return nodes in the scene tree before "_ready()" is called. Use the "@onready" annotation to solve this.
 warn
