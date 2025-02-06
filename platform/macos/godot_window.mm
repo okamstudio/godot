@@ -79,4 +79,9 @@
 	return !wd.no_focus && !wd.is_popup;
 }
 
+- (id)_setFrame:(NSRect)rect fromAdjustmentToScreen:(NSScreen *)screen anchorIfNeeded:(void *)anchor animate:(int)animate {
+	// Override private NSWindow method to disable macOS window auto resizing logic when moving between the screens.
+	return nil;
+}
+
 @end
