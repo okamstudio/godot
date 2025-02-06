@@ -1141,6 +1141,19 @@ namespace Godot.Collections
         }
 
         /// <summary>
+        /// Constructs a new <see cref="Array{T}"/> from the given items.
+        /// </summary>
+        /// <param name="span">The items to put in the new array.</param>
+        /// <returns>A new Godot Array.</returns>
+        public Array(ReadOnlySpan<T> span)
+        {
+            _underlyingArray = new Array();
+
+            foreach (T element in span)
+                Add(element);
+        }
+
+        /// <summary>
         /// Constructs a typed <see cref="Array{T}"/> from an untyped <see cref="Array"/>.
         /// </summary>
         /// <exception cref="ArgumentNullException">
