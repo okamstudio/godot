@@ -483,7 +483,7 @@ void PopupMenu::_input_from_window_internal(const Ref<InputEvent> &p_event) {
 		Ref<InputEventJoypadButton> joypadbutton_event = p_event;
 		bool is_joypad_event = (joypadmotion_event.is_valid() || joypadbutton_event.is_valid());
 
-		if (p_event->is_action("ui_down", true) && p_event->is_pressed()) {
+		if ((p_event->is_action("ui_down", true) && p_event->is_pressed()) || (p_event->is_action("ui_focus_next", true) && p_event->is_pressed())) {
 			if (is_joypad_event) {
 				if (!input->is_action_just_pressed("ui_down", true)) {
 					return;
@@ -521,7 +521,7 @@ void PopupMenu::_input_from_window_internal(const Ref<InputEvent> &p_event) {
 					}
 				}
 			}
-		} else if (p_event->is_action("ui_up", true) && p_event->is_pressed()) {
+		} else if ((p_event->is_action("ui_up", true) && p_event->is_pressed()) || (p_event->is_action("ui_focus_prev", true) && p_event->is_pressed())) {
 			if (is_joypad_event) {
 				if (!input->is_action_just_pressed("ui_up", true)) {
 					return;
@@ -1180,7 +1180,7 @@ void PopupMenu::_notification(int p_what) {
 		case NOTIFICATION_INTERNAL_PROCESS: {
 			Input *input = Input::get_singleton();
 
-			if (input->is_action_just_released("ui_up") || input->is_action_just_released("ui_down")) {
+			if (input->is_action_just_released("ui_up") || input->is_action_just_released("ui_down") || input->is_action_just_released("ui_focus_next") || input->is_action_just_released("ui_focus_prev")) {
 				gamepad_event_delay_ms = DEFAULT_GAMEPAD_EVENT_DELAY_MS;
 				set_process_internal(false);
 				return;
