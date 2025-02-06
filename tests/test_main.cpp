@@ -173,6 +173,7 @@
 #include "tests/scene/test_camera_3d.h"
 #include "tests/scene/test_gltf_document.h"
 #include "tests/scene/test_height_map_shape_3d.h"
+#include "tests/scene/test_occluder_instance_3d.h"
 #include "tests/scene/test_path_3d.h"
 #include "tests/scene/test_path_follow_3d.h"
 #include "tests/scene/test_primitives.h"
