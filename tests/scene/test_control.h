@@ -46,8 +46,14 @@ TEST_CASE("[SceneTree][Control]") {
 		test_node->set_global_position(Point2(1, 1));
 		CHECK_EQ(test_node->get_global_position(), Point2(1, 1));
 		CHECK_EQ(test_child->get_global_position(), Point2(1, 1));
+		test_child->set_global_position(Point2(2, 2));
+		CHECK_EQ(test_child->get_global_position(), Point2(2, 2));
 		test_node->set_global_position(Point2(2, 2));
 		CHECK_EQ(test_node->get_global_position(), Point2(2, 2));
+		CHECK_EQ(test_child->get_global_position(), Point2(3, 3));
+		test_child->set_global_position(Point2(4, 4));
+		CHECK_EQ(test_child->get_global_position(), Point2(4, 4));
+
 		test_node->set_scale(Vector2(4, 4));
 		CHECK_EQ(test_node->get_global_transform(), Transform2D(0, Size2(4, 4), 0, Vector2(2, 2)));
 		test_node->set_scale(Vector2(1, 1));

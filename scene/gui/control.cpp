@@ -185,9 +185,9 @@ bool Control::_edit_use_rect() const {
 void Control::reparent(Node *p_parent, bool p_keep_global_transform) {
 	ERR_MAIN_THREAD_GUARD;
 	if (p_keep_global_transform) {
-		Transform2D temp = get_global_transform();
+		Vector2 global_pos = get_global_position();
 		Node::reparent(p_parent);
-		set_global_position(temp.get_origin());
+		set_global_position(global_pos);
 	} else {
 		Node::reparent(p_parent);
 	}
@@ -1417,18 +1417,30 @@ void Control::_set_global_position(const Point2 &p_point) {
 	set_global_position(p_point);
 }
 
+// `global_position` represents the same point as `position`, but in the global space.
+// Because `get_transform()` incorporates `rotation`/`scale` around a custom `pivot_offset`,
+// `position` is NOT equivalent to `get_transform().origin` (in general; in case of
+// zero pivot offset or no rotation/scale they are equivalent).
+// Similarly, `global_position` is NOT equivalent to `get_global_transform().origin`.
 void Control::set_global_position(const Point2 &p_point, bool p_keep_offsets) {
 	ERR_MAIN_THREAD_GUARD;
-	// (parent_global_transform * T(new_position) * internal_transform).origin == new_global_position
-	// (T(new_position) * internal_transform).origin == new_position_in_parent_space
-	// new_position == new_position_in_parent_space - internal_transform.origin
-	Point2 position_in_parent_space = data.parent_canvas_item ? data.parent_canvas_item->get_global_transform().affine_inverse().xform(p_point) : p_point;
-	set_position(position_in_parent_space - _get_internal_transform().get_origin(), p_keep_offsets);
+	// TODO: `data.parent_canvas_item` is set on enter/exit canvas,
+	// could it be done on parented/unparented instead (to work when not in tree)?
+	CanvasItem *parent_canvas_item = is_inside_tree() ? data.parent_canvas_item : get_parent_item();
+	Point2 position_in_parent_space = parent_canvas_item ? parent_canvas_item->get_global_transform().affine_inverse().xform(p_point) : p_point;
+	set_position(position_in_parent_space, p_keep_offsets);
 }
 
 Point2 Control::get_global_position() const {
 	ERR_READ_THREAD_GUARD_V(Point2());
-	return get_global_transform().get_origin();
+	// TODO: `data.parent_canvas_item` is set on enter/exit canvas,
+	// could it be done on parented/unparented instead (to work when not in tree)?
+	CanvasItem *parent_canvas_item = is_inside_tree() ? data.parent_canvas_item : get_parent_item();
+	if (parent_canvas_item) {
+		return parent_canvas_item->get_global_transform().xform(data.pos_cache);
+	} else {
+		return data.pos_cache;
+	}
 }
 
 Point2 Control::get_screen_position() const {
