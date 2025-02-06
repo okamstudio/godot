@@ -57,6 +57,8 @@ namespace GodotTools.Internals
         public static bool ScriptEditorEdit(Resource resource, int line, int col, bool grabFocus = true) =>
             godot_icall_Internal_ScriptEditorEdit(resource.NativeInstance, line, col, grabFocus);
 
+        public static void EditorNodeConnectAddMethod() => godot_icall_Internal_EditorNodeConnectAddMethod();
+
         public static void EditorNodeShowScriptScreen() => godot_icall_Internal_EditorNodeShowScriptScreen();
 
         public static void EditorRunPlay() => godot_icall_Internal_EditorRunPlay();
@@ -144,6 +146,8 @@ namespace GodotTools.Internals
 
         private static partial bool godot_icall_Internal_ScriptEditorEdit(IntPtr resource, int line, int col,
             bool grabFocus);
+
+        private static partial void godot_icall_Internal_EditorNodeConnectAddMethod();
 
         private static partial void godot_icall_Internal_EditorNodeShowScriptScreen();
 

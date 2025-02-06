@@ -1072,6 +1072,16 @@ void CSharpLanguage::_editor_init_callback() {
 
 	get_singleton()->godotsharp_editor = godotsharp_editor;
 }
+
+void CSharpLanguage::add_method_in_external_editor(Object *p_obj, const String &p_method, const PackedStringArray &p_args) {
+	Ref<Script> scr = p_obj->get_script();
+	bool use_external_editor =
+			EDITOR_GET("text_editor/external/use_external_editor") ||
+			(scr.is_valid() && scr->get_language()->overrides_external_editor());
+	if (use_external_editor && scr->get_language()->get_name() == "C#") {
+		CSharpLanguage::get_singleton()->get_godotsharp_editor()->call("AddMethodInExternalEditor", scr, p_method, p_args);
+	}
+}
 #endif
 
 void CSharpLanguage::set_language_index(int p_idx) {

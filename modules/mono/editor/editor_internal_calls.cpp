@@ -165,6 +165,10 @@ bool godot_icall_Internal_ScriptEditorEdit(Resource *p_resource, int32_t p_line,
 	return (bool)ScriptEditor::get_singleton()->edit(resource, p_line, p_col, (bool)p_grab_focus);
 }
 
+void godot_icall_Internal_EditorNodeConnectAddMethod() {
+	EditorNode::get_singleton()->connect(SNAME("script_add_function_request"), callable_mp(CSharpLanguage::get_singleton(), &CSharpLanguage::add_method_in_external_editor));
+}
+
 void godot_icall_Internal_EditorNodeShowScriptScreen() {
 	EditorNode::get_editor_main_screen()->select(EditorMainScreen::EDITOR_SCRIPT);
 }
@@ -275,6 +279,7 @@ static const void *unmanaged_callbacks[]{
 	(void *)godot_icall_Internal_ReloadAssemblies,
 	(void *)godot_icall_Internal_EditorDebuggerNodeReloadScripts,
 	(void *)godot_icall_Internal_ScriptEditorEdit,
+	(void *)godot_icall_Internal_EditorNodeConnectAddMethod,
 	(void *)godot_icall_Internal_EditorNodeShowScriptScreen,
 	(void *)godot_icall_Internal_EditorRunPlay,
 	(void *)godot_icall_Internal_EditorRunStop,

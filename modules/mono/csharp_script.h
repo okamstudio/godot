@@ -471,6 +471,8 @@ public:
 	_FORCE_INLINE_ EditorPlugin *get_godotsharp_editor() const {
 		return godotsharp_editor;
 	}
+
+	void add_method_in_external_editor(Object *p_obj, const String &p_method, const PackedStringArray &p_args);
 #endif
 
 	static void release_script_gchandle(MonoGCHandleData &p_gchandle);

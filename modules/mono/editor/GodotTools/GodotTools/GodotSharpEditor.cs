@@ -419,6 +419,49 @@ namespace GodotTools
         }
 
         [UsedImplicitly]
+        public void AddMethodInExternalEditor(Script script, string method, string[] parameters)
+        {
+            var editorId = _editorSettings.GetSetting(Settings.ExternalEditor).As<ExternalEditorId>();
+            switch (editorId)
+            {
+                case ExternalEditorId.VisualStudio:
+                {
+                    string scriptPath = ProjectSettings.GlobalizePath(script.ResourcePath);
+
+                    var args = new List<string>
+                    {
+                        GodotSharpDirs.ProjectSlnPath,
+                        $"{scriptPath};AddMethod;{method};{string.Join(";",parameters)}"
+                    };
+
+                    string command = Path.Combine(GodotSharpDirs.DataEditorToolsDir, "GodotTools.OpenVisualStudio.exe");
+
+                    try
+                    {
+                        if (Godot.OS.IsStdOutVerbose())
+                            Console.WriteLine(
+                                $"Running: \"{command}\" {string.Join(" ", args.Select(a => $"\"{a}\""))}");
+
+                        OS.RunProcess(command, args);
+                    }
+                    catch (Exception e)
+                    {
+                        GD.PushError(
+                            $"Error when trying to run code editor: VisualStudio. Exception message: '{e.Message}'");
+                    }
+
+                    break;
+                }
+                case ExternalEditorId.VsCode:
+                {
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+
+        [UsedImplicitly]
         public bool OverridesExternalEditor()
         {
             return _editorSettings.GetSetting(Settings.ExternalEditor).As<ExternalEditorId>() != ExternalEditorId.None;
@@ -654,6 +697,12 @@ namespace GodotTools
 
             // Custom signals aren't automatically disconnected currently.
             MSBuildPanel.BuildStateChanged -= BuildStateChanged;
+        }
+
+        public override void _EnterTree()
+        {
+            base._EnterTree();
+            Internal.EditorNodeConnectAddMethod();
         }
 
         public override void _ExitTree()
