@@ -917,4 +917,7 @@ MeshInstance3D::MeshInstance3D() {
 }
 
 MeshInstance3D::~MeshInstance3D() {
+	for (int surface_idx = 0; surface_idx < surface_override_materials.size(); surface_idx++) {
+		RS::get_singleton()->instance_set_surface_override_material(get_instance(), surface_idx, RID());
+	}
 }
