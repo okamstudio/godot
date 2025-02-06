@@ -83,6 +83,7 @@ protected:
 
 	virtual void _configure_joint(RID p_joint, PhysicsBody3D *body_a, PhysicsBody3D *body_b) override;
 	static void _bind_methods();
+	virtual PackedStringArray get_configuration_warnings() const override;
 
 public:
 	void set_param_x(Param p_param, real_t p_value);

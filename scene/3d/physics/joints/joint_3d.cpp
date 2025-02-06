@@ -74,15 +74,15 @@ void Joint3D::_update_joint(bool p_only_free) {
 	PhysicsBody3D *body_b = Object::cast_to<PhysicsBody3D>(node_b);
 
 	if (node_a && !body_a && node_b && !body_b) {
-		warning = RTR("Node A and Node B must be PhysicsBody3Ds");
+		warning = RTR("Node A and Node B must be PhysicsBody3Ds.");
 	} else if (node_a && !body_a) {
-		warning = RTR("Node A must be a PhysicsBody3D");
+		warning = RTR("Node A must be a PhysicsBody3D.");
 	} else if (node_b && !body_b) {
-		warning = RTR("Node B must be a PhysicsBody3D");
+		warning = RTR("Node B must be a PhysicsBody3D.");
 	} else if (!body_a && !body_b) {
-		warning = RTR("Joint is not connected to any PhysicsBody3Ds");
+		warning = RTR("Joint is not connected to any PhysicsBody3Ds.");
 	} else if (body_a == body_b) {
-		warning = RTR("Node A and Node B must be different PhysicsBody3Ds");
+		warning = RTR("Node A and Node B must be different PhysicsBody3Ds.");
 	} else {
 		warning = String();
 	}

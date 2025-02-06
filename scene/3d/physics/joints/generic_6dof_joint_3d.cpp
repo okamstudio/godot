@@ -30,6 +30,8 @@
 
 #include "generic_6dof_joint_3d.h"
 
+#include "core/config/project_settings.h"
+
 void Generic6DOFJoint3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_param_x", "param", "value"), &Generic6DOFJoint3D::set_param_x);
 	ClassDB::bind_method(D_METHOD("get_param_x", "param"), &Generic6DOFJoint3D::get_param_x);
@@ -196,6 +198,29 @@ void Generic6DOFJoint3D::_bind_methods() {
 	BIND_ENUM_CONSTANT(FLAG_MAX);
 }
 
+PackedStringArray Generic6DOFJoint3D::get_configuration_warnings() const {
+	PackedStringArray warnings = Joint3D::get_configuration_warnings();
+
+	const String physics_engine = GLOBAL_GET("physics/3d/physics_engine");
+	const bool using_godot_physics = physics_engine == "DEFAULT" || physics_engine == "GodotPhysics3D";
+
+	if (using_godot_physics) {
+		if (get_flag_x(FLAG_ENABLE_LINEAR_MOTOR) || get_flag_y(FLAG_ENABLE_LINEAR_MOTOR) || get_flag_z(FLAG_ENABLE_LINEAR_MOTOR)) {
+			warnings.push_back(RTR("Linear motors are not supported in GodotPhysics3D.\nTo use linear motors in Generic6DOFJoint3D, install a third-party physics engine that supports linear motors and switch to it in the project settings."));
+		}
+
+		if (get_flag_x(FLAG_ENABLE_LINEAR_SPRING) || get_flag_y(FLAG_ENABLE_LINEAR_SPRING) || get_flag_z(FLAG_ENABLE_LINEAR_SPRING)) {
+			warnings.push_back(RTR("Linear springs are not supported in GodotPhysics3D.\nTo use linear springs in Generic6DOFJoint3D, install a third-party physics engine that supports linear springs and switch to it in the project settings."));
+		}
+
+		if (get_flag_x(FLAG_ENABLE_ANGULAR_SPRING) || get_flag_y(FLAG_ENABLE_ANGULAR_SPRING) || get_flag_z(FLAG_ENABLE_ANGULAR_SPRING)) {
+			warnings.push_back(RTR("Angular springs are not supported in GodotPhysics3D.\nTo use angular springs in Generic6DOFJoint3D, install a third-party physics engine that supports angular springs and switch to it in the project settings."));
+		}
+	}
+
+	return warnings;
+}
+
 void Generic6DOFJoint3D::set_param_x(Param p_param, real_t p_value) {
 	ERR_FAIL_INDEX(p_param, PARAM_MAX);
 	params_x[p_param] = p_value;
@@ -245,6 +270,7 @@ void Generic6DOFJoint3D::set_flag_x(Flag p_flag, bool p_enabled) {
 	if (is_configured()) {
 		PhysicsServer3D::get_singleton()->generic_6dof_joint_set_flag(get_rid(), Vector3::AXIS_X, PhysicsServer3D::G6DOFJointAxisFlag(p_flag), p_enabled);
 	}
+	update_configuration_warnings();
 	update_gizmos();
 }
 
@@ -259,6 +285,7 @@ void Generic6DOFJoint3D::set_flag_y(Flag p_flag, bool p_enabled) {
 	if (is_configured()) {
 		PhysicsServer3D::get_singleton()->generic_6dof_joint_set_flag(get_rid(), Vector3::AXIS_Y, PhysicsServer3D::G6DOFJointAxisFlag(p_flag), p_enabled);
 	}
+	update_configuration_warnings();
 	update_gizmos();
 }
 
@@ -273,6 +300,7 @@ void Generic6DOFJoint3D::set_flag_z(Flag p_flag, bool p_enabled) {
 	if (is_configured()) {
 		PhysicsServer3D::get_singleton()->generic_6dof_joint_set_flag(get_rid(), Vector3::AXIS_Z, PhysicsServer3D::G6DOFJointAxisFlag(p_flag), p_enabled);
 	}
+	update_configuration_warnings();
 	update_gizmos();
 }
 
