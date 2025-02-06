@@ -379,8 +379,13 @@ public:
 		TEXTURE_USAGE_TRANSIENT_BIT = (1 << 11),
 	};
 
+	enum TextureFormatFlags {
+		TEXTURE_FORMAT_DECODE_HDR = (1 << 0),
+	};
+
 	struct TextureFormat {
 		DataFormat format = DATA_FORMAT_R8_UNORM;
+		uint32_t format_flags = 0;
 		uint32_t width = 1;
 		uint32_t height = 1;
 		uint32_t depth = 1;

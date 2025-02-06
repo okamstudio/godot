@@ -207,6 +207,8 @@ private:
 		RD::TextureSwizzle swizzle_g;
 		RD::TextureSwizzle swizzle_b;
 		RD::TextureSwizzle swizzle_a;
+		bool force_hdr_decode;
+
 		TextureToRDFormat() {
 			format = RD::DATA_FORMAT_MAX;
 			format_srgb = RD::DATA_FORMAT_MAX;
@@ -214,6 +216,7 @@ private:
 			swizzle_g = RD::TEXTURE_SWIZZLE_G;
 			swizzle_b = RD::TEXTURE_SWIZZLE_B;
 			swizzle_a = RD::TEXTURE_SWIZZLE_A;
+			force_hdr_decode = false;
 		}
 	};
 

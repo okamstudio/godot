@@ -1839,7 +1839,7 @@ RDD::TextureID RenderingDeviceDriverVulkan::texture_create(const TextureFormat &
 		if (image_view_create_info.format >= VK_FORMAT_ASTC_4x4_UNORM_BLOCK && image_view_create_info.format <= VK_FORMAT_ASTC_12x12_SRGB_BLOCK) {
 			decode_mode.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_ASTC_DECODE_MODE_EXT;
 			decode_mode.pNext = nullptr;
-			decode_mode.decodeMode = VK_FORMAT_R8G8B8A8_UNORM;
+			decode_mode.decodeMode = (p_format.format_flags & TEXTURE_FORMAT_DECODE_HDR) ? VK_FORMAT_R16G16B16A16_SFLOAT : VK_FORMAT_R8G8B8A8_UNORM;
 			image_view_create_info.pNext = &decode_mode;
 		}
 	}

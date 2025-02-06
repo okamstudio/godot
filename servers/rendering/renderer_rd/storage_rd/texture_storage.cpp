@@ -810,6 +810,7 @@ void TextureStorage::texture_2d_initialize(RID p_texture, const Ref<Image> &p_im
 	RD::TextureView rd_view;
 	{ //attempt register
 		rd_format.format = texture.rd_format;
+		rd_format.format_flags = ret_format.force_hdr_decode ? RD::TEXTURE_FORMAT_DECODE_HDR : 0;
 		rd_format.width = texture.width;
 		rd_format.height = texture.height;
 		rd_format.depth = 1;
@@ -920,6 +921,7 @@ void TextureStorage::texture_2d_layered_initialize(RID p_texture, const Vector<R
 	RD::TextureView rd_view;
 	{ //attempt register
 		rd_format.format = texture.rd_format;
+		rd_format.format_flags = ret_format.force_hdr_decode ? RD::TEXTURE_FORMAT_DECODE_HDR : 0;
 		rd_format.width = texture.width;
 		rd_format.height = texture.height;
 		rd_format.depth = 1;
@@ -1039,6 +1041,7 @@ void TextureStorage::texture_3d_initialize(RID p_texture, Image::Format p_format
 	RD::TextureView rd_view;
 	{ //attempt register
 		rd_format.format = texture.rd_format;
+		rd_format.format_flags = ret_format.force_hdr_decode ? RD::TEXTURE_FORMAT_DECODE_HDR : 0;
 		rd_format.width = texture.width;
 		rd_format.height = texture.height;
 		rd_format.depth = texture.depth;
@@ -2198,6 +2201,8 @@ Ref<Image> TextureStorage::_validate_texture_format(const Ref<Image> &p_image, T
 				r_format.format = RD::DATA_FORMAT_ASTC_4x4_UNORM_BLOCK;
 				if (p_image->get_format() == Image::FORMAT_ASTC_4x4) {
 					r_format.format_srgb = RD::DATA_FORMAT_ASTC_4x4_SRGB_BLOCK;
+				} else {
+					r_format.force_hdr_decode = true;
 				}
 			} else {
 				//not supported, reconvert
@@ -2223,6 +2228,8 @@ Ref<Image> TextureStorage::_validate_texture_format(const Ref<Image> &p_image, T
 				r_format.format = RD::DATA_FORMAT_ASTC_8x8_UNORM_BLOCK;
 				if (p_image->get_format() == Image::FORMAT_ASTC_8x8) {
 					r_format.format_srgb = RD::DATA_FORMAT_ASTC_8x8_SRGB_BLOCK;
+				} else {
+					r_format.force_hdr_decode = true;
 				}
 			} else {
 				//not supported, reconvert
