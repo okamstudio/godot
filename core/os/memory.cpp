@@ -125,6 +125,37 @@ void *Memory::alloc_static(size_t p_bytes, bool p_pad_align) {
 	}
 }
 
+void *Memory::calloc_static(size_t p_bytes, bool p_pad_align) {
+#ifdef DEBUG_ENABLED
+	bool prepad = true;
+#else
+	bool prepad = p_pad_align;
+#endif
+
+	if (!prepad) {
+		void *mem = calloc(1, p_bytes);
+		ERR_FAIL_NULL_V(mem, nullptr);
+		alloc_count.increment();
+		return mem;
+	}
+
+	void *mem = calloc(1, p_bytes + DATA_OFFSET);
+
+	ERR_FAIL_NULL_V(mem, nullptr);
+
+	alloc_count.increment();
+
+	uint8_t *s8 = (uint8_t *)mem;
+	uint64_t *s = (uint64_t *)(s8 + SIZE_OFFSET);
+	*s = p_bytes;
+
+#ifdef DEBUG_ENABLED
+	uint64_t new_mem_usage = mem_usage.add(p_bytes);
+	max_usage.exchange_if_greater(new_mem_usage);
+#endif
+	return s8 + DATA_OFFSET;
+}
+
 void *Memory::realloc_static(void *p_memory, size_t p_bytes, bool p_pad_align) {
 	if (p_memory == nullptr) {
 		return alloc_static(p_bytes, p_pad_align);

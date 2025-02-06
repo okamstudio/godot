@@ -319,8 +319,7 @@ Vector<Vector<Point2>> Geometry2D::_polypath_offset(const Vector<Point2> &p_poly
 
 Vector<Vector3i> Geometry2D::partial_pack_rects(const Vector<Vector2i> &p_sizes, const Size2i &p_atlas_size) {
 	Vector<stbrp_node> nodes;
-	nodes.resize(p_atlas_size.width);
-	memset(nodes.ptrw(), 0, sizeof(stbrp_node) * nodes.size());
+	nodes.resize_zeroed(p_atlas_size.width);
 
 	stbrp_context context;
 	stbrp_init_target(&context, p_atlas_size.width, p_atlas_size.height, nodes.ptrw(), p_atlas_size.width);

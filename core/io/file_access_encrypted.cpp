@@ -135,8 +135,7 @@ void FileAccessEncrypted::_close() {
 		unsigned char hash[16];
 		ERR_FAIL_COND(CryptoCore::md5(data.ptr(), data.size(), hash) != OK); // Bug?
 
-		compressed.resize(len);
-		memset(compressed.ptrw(), 0, len);
+		compressed.resize_zeroed(len);
 		for (int i = 0; i < data.size(); i++) {
 			compressed.write[i] = data[i];
 		}

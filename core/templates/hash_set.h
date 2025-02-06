@@ -148,14 +148,10 @@ private:
 		uint32_t *old_hashes = hashes;
 		uint32_t *old_key_to_hash = key_to_hash;
 
-		hashes = reinterpret_cast<uint32_t *>(Memory::alloc_static(sizeof(uint32_t) * capacity));
+		hashes = reinterpret_cast<uint32_t *>(Memory::calloc_static(sizeof(uint32_t) * capacity));
 		keys = reinterpret_cast<TKey *>(Memory::realloc_static(keys, sizeof(TKey) * capacity));
 		key_to_hash = reinterpret_cast<uint32_t *>(Memory::alloc_static(sizeof(uint32_t) * capacity));
 		hash_to_key = reinterpret_cast<uint32_t *>(Memory::realloc_static(hash_to_key, sizeof(uint32_t) * capacity));
-
-		for (uint32_t i = 0; i < capacity; i++) {
-			hashes[i] = EMPTY_HASH;
-		}
 
 		for (uint32_t i = 0; i < num_elements; i++) {
 			uint32_t h = old_hashes[old_key_to_hash[i]];
@@ -171,14 +167,10 @@ private:
 		if (unlikely(keys == nullptr)) {
 			// Allocate on demand to save memory.
 
-			hashes = reinterpret_cast<uint32_t *>(Memory::alloc_static(sizeof(uint32_t) * capacity));
+			hashes = reinterpret_cast<uint32_t *>(Memory::calloc_static(sizeof(uint32_t) * capacity));
 			keys = reinterpret_cast<TKey *>(Memory::alloc_static(sizeof(TKey) * capacity));
 			key_to_hash = reinterpret_cast<uint32_t *>(Memory::alloc_static(sizeof(uint32_t) * capacity));
 			hash_to_key = reinterpret_cast<uint32_t *>(Memory::alloc_static(sizeof(uint32_t) * capacity));
-
-			for (uint32_t i = 0; i < capacity; i++) {
-				hashes[i] = EMPTY_HASH;
-			}
 		}
 
 		uint32_t pos = 0;

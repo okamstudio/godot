@@ -171,13 +171,8 @@ private:
 		uint32_t *old_hashes = hashes;
 
 		num_elements = 0;
-		hashes = reinterpret_cast<uint32_t *>(Memory::alloc_static(sizeof(uint32_t) * capacity));
+		hashes = reinterpret_cast<uint32_t *>(Memory::calloc_static(sizeof(uint32_t) * capacity));
 		elements = reinterpret_cast<HashMapElement<TKey, TValue> **>(Memory::alloc_static(sizeof(HashMapElement<TKey, TValue> *) * capacity));
-
-		for (uint32_t i = 0; i < capacity; i++) {
-			hashes[i] = 0;
-			elements[i] = nullptr;
-		}
 
 		if (old_capacity == 0) {
 			// Nothing to do.

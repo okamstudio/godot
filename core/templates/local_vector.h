@@ -320,6 +320,22 @@ public:
 		return ret;
 	}
 
+	void init_with_zeros(U p_size) {
+		if (data) {
+			reset();
+		}
+
+		if (p_size == 0) {
+			return;
+		}
+
+		capacity = tight ? p_size : nearest_power_of_2_templated(p_size);
+		data = (T *)Memory::calloc_static(capacity * sizeof(T));
+		CRASH_COND_MSG(!data, "Out of memory");
+
+		count = p_size;
+	}
+
 	_FORCE_INLINE_ LocalVector() {}
 	_FORCE_INLINE_ LocalVector(std::initializer_list<T> p_init) {
 		reserve(p_init.size());

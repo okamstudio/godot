@@ -365,7 +365,13 @@ Error CowData<T>::resize(Size p_size) {
 		if (alloc_size != current_alloc_size) {
 			if (current_size == 0) {
 				// alloc from scratch
-				uint8_t *mem_new = (uint8_t *)Memory::alloc_static(alloc_size + DATA_OFFSET, false);
+
+				uint8_t *mem_new;
+				if (std::is_trivially_constructible_v<T> && p_ensure_zero) {
+					mem_new = (uint8_t *)Memory::calloc_static(alloc_size + DATA_OFFSET, false);
+				} else {
+					mem_new = (uint8_t *)Memory::alloc_static(alloc_size + DATA_OFFSET, false);
+				}
 				ERR_FAIL_NULL_V(mem_new, ERR_OUT_OF_MEMORY);
 
 				SafeNumeric<USize> *_refc_ptr = _get_refcount_ptr(mem_new);
@@ -391,7 +397,7 @@ Error CowData<T>::resize(Size p_size) {
 			for (Size i = *_get_size(); i < p_size; i++) {
 				memnew_placement(&_ptr[i], T);
 			}
-		} else if (p_ensure_zero) {
+		} else if (p_ensure_zero && current_size != 0) {
 			memset((void *)(_ptr + current_size), 0, (p_size - current_size) * sizeof(T));
 		}
 

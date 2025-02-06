@@ -58,6 +58,9 @@ public:
 	static constexpr size_t ELEMENT_OFFSET = ((SIZE_OFFSET + sizeof(uint64_t)) % alignof(uint64_t) == 0) ? (SIZE_OFFSET + sizeof(uint64_t)) : ((SIZE_OFFSET + sizeof(uint64_t)) + alignof(uint64_t) - ((SIZE_OFFSET + sizeof(uint64_t)) % alignof(uint64_t)));
 	static constexpr size_t DATA_OFFSET = ((ELEMENT_OFFSET + sizeof(uint64_t)) % alignof(max_align_t) == 0) ? (ELEMENT_OFFSET + sizeof(uint64_t)) : ((ELEMENT_OFFSET + sizeof(uint64_t)) + alignof(max_align_t) - ((ELEMENT_OFFSET + sizeof(uint64_t)) % alignof(max_align_t)));
 
+	// Allocates memory filled with zeros.
+	// Always use this instead of `alloc_static + memset(ptr, 0, len)`.
+	static void *calloc_static(size_t p_bytes, bool p_pad_align = false);
 	static void *alloc_static(size_t p_bytes, bool p_pad_align = false);
 	static void *realloc_static(void *p_memory, size_t p_bytes, bool p_pad_align = false);
 	static void free_static(void *p_ptr, bool p_pad_align = false);
@@ -169,7 +172,7 @@ _FORCE_INLINE_ uint64_t *_get_element_count_ptr(uint8_t *p_ptr) {
 }
 
 template <typename T>
-T *memnew_arr_template(size_t p_elements) {
+T *memnew_arr_template(size_t p_elements, bool use_calloc = false) {
 	if (p_elements == 0) {
 		return nullptr;
 	}
@@ -177,7 +180,13 @@ T *memnew_arr_template(size_t p_elements) {
 	same strategy used by std::vector, and the Vector class, so it should be safe.*/
 
 	size_t len = sizeof(T) * p_elements;
-	uint8_t *mem = (uint8_t *)Memory::alloc_static(len, true);
+	uint8_t *mem;
+	if (use_calloc) {
+		mem = (uint8_t *)Memory::calloc_static(len, true);
+	} else {
+		mem = (uint8_t *)Memory::alloc_static(len, true);
+	}
+
 	T *failptr = nullptr; //get rid of a warning
 	ERR_FAIL_NULL_V(mem, failptr);
 
