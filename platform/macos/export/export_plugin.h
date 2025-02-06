@@ -155,7 +155,6 @@ public:
 
 	virtual void get_platform_features(List<String> *r_features) const override {
 		r_features->push_back("pc");
-		r_features->push_back("s3tc");
 		r_features->push_back("macos");
 	}
 
