@@ -154,18 +154,56 @@ void Path3D::_update_debug_mesh() {
 	bone_array.resize(Mesh::ARRAY_MAX);
 	bone_array[Mesh::ARRAY_VERTEX] = bones;
 
+	_update_debug_path_material();
+
 	debug_mesh->clear_surfaces();
 	debug_mesh->add_surface_from_arrays(Mesh::PRIMITIVE_LINE_STRIP, ribbon_array);
 	debug_mesh->add_surface_from_arrays(Mesh::PRIMITIVE_LINES, bone_array);
+	debug_mesh->surface_set_material(0, debug_material);
+	debug_mesh->surface_set_material(1, debug_material);
 
 	RS::get_singleton()->instance_set_base(debug_instance, debug_mesh->get_rid());
-	RS::get_singleton()->mesh_surface_set_material(debug_mesh->get_rid(), 0, st->get_debug_paths_material()->get_rid());
-	RS::get_singleton()->mesh_surface_set_material(debug_mesh->get_rid(), 1, st->get_debug_paths_material()->get_rid());
 	if (is_inside_tree()) {
 		RS::get_singleton()->instance_set_scenario(debug_instance, get_world_3d()->get_scenario());
 		RS::get_singleton()->instance_set_transform(debug_instance, get_global_transform());
 		RS::get_singleton()->instance_set_visible(debug_instance, is_visible_in_tree());
 	}
+}
+
+void Path3D::set_debug_custom_color(const Color &p_color) {
+	debug_custom_color = p_color;
+	_update_debug_path_material();
+}
+
+Ref<StandardMaterial3D> Path3D::get_debug_material() {
+	return debug_material;
+}
+
+const Color &Path3D::get_debug_custom_color() const {
+	return debug_custom_color;
+}
+
+void Path3D::_update_debug_path_material() {
+	SceneTree *st = SceneTree::get_singleton();
+	if (!debug_material.is_valid()) {
+		Ref<StandardMaterial3D> material = memnew(StandardMaterial3D);
+		debug_material = material;
+
+		material->set_shading_mode(StandardMaterial3D::SHADING_MODE_UNSHADED);
+		material->set_transparency(StandardMaterial3D::TRANSPARENCY_ALPHA);
+		material->set_flag(StandardMaterial3D::FLAG_SRGB_VERTEX_COLOR, true);
+		material->set_flag(StandardMaterial3D::FLAG_ALBEDO_FROM_VERTEX_COLOR, true);
+		material->set_flag(StandardMaterial3D::FLAG_DISABLE_FOG, true);
+	}
+
+	Color color = debug_custom_color;
+	if (color == Color(0.0, 0.0, 0.0)) {
+		// Use the default debug path color defined in the Project Settings.
+		color = st->get_debug_paths_color();
+	}
+
+	get_debug_material()->set_albedo(color);
+	emit_signal(SNAME("debug_color_changed"));
 }
 
 void Path3D::_curve_changed() {
@@ -214,9 +252,16 @@ void Path3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_curve", "curve"), &Path3D::set_curve);
 	ClassDB::bind_method(D_METHOD("get_curve"), &Path3D::get_curve);
 
+	ClassDB::bind_method(D_METHOD("set_debug_custom_color", "debug_custom_color"), &Path3D::set_debug_custom_color);
+	ClassDB::bind_method(D_METHOD("get_debug_custom_color"), &Path3D::get_debug_custom_color);
+
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "curve", PROPERTY_HINT_RESOURCE_TYPE, "Curve3D", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_EDITOR_INSTANTIATE_OBJECT), "set_curve", "get_curve");
 
+	ADD_GROUP("Debug Shape", "debug_");
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "debug_custom_color"), "set_debug_custom_color", "get_debug_custom_color");
+
 	ADD_SIGNAL(MethodInfo("curve_changed"));
+	ADD_SIGNAL(MethodInfo("debug_color_changed"));
 }
 
 void PathFollow3D::update_transform() {

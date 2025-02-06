@@ -56,6 +56,7 @@ class Path3DGizmo : public EditorNode3DGizmo {
 	};
 
 	Path3D *path = nullptr;
+	Ref<StandardMaterial3D> debug_material;
 	mutable Vector3 original;
 	mutable float orig_in_length;
 	mutable float orig_out_length;

@@ -13,11 +13,20 @@
 		<member name="curve" type="Curve3D" setter="set_curve" getter="get_curve">
 			A [Curve3D] describing the path.
 		</member>
+		<member name="debug_custom_color" type="Color" setter="set_debug_custom_color" getter="get_debug_custom_color" default="Color(0, 0, 0, 1)">
+			The custom color to use to draw the shape in the editor.
+			If set to [code]Color(0.0, 0.0, 0.0)[/code] (by default), the color set in EditorSettings is used.
+		</member>
 	</members>
 	<signals>
 		<signal name="curve_changed">
 			<description>
 				Emitted when the [member curve] changes.
+			</description>
+		</signal>
+		<signal name="debug_color_changed">
+			<description>
+				Emitted when the [member debug_custom_color] changes.
 			</description>
 		</signal>
 	</signals>

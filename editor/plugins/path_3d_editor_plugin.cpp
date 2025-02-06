@@ -272,7 +272,6 @@ void Path3DGizmo::commit_handle(int p_id, bool p_secondary, const Variant &p_res
 void Path3DGizmo::redraw() {
 	clear();
 
-	Ref<StandardMaterial3D> path_material = gizmo_plugin->get_material("path_material", this);
 	Ref<StandardMaterial3D> path_thin_material = gizmo_plugin->get_material("path_thin_material", this);
 	Ref<StandardMaterial3D> path_tilt_material = gizmo_plugin->get_material("path_tilt_material", this);
 	Ref<StandardMaterial3D> path_tilt_muted_material = gizmo_plugin->get_material("path_tilt_muted_material", this);
@@ -288,6 +287,24 @@ void Path3DGizmo::redraw() {
 
 	Ref<Curve3D> c = path->get_curve();
 	if (c.is_null()) {
+		return;
+	}
+
+	debug_material = gizmo_plugin->get_material("path_material", this);
+
+	Color path_color = path->get_debug_custom_color();
+	if (path_color != Color(0.0, 0.0, 0.0)) {
+		debug_material.instantiate();
+		debug_material->set_albedo(path_color);
+		debug_material->set_shading_mode(StandardMaterial3D::SHADING_MODE_UNSHADED);
+		debug_material->set_transparency(StandardMaterial3D::TRANSPARENCY_ALPHA);
+		debug_material->set_flag(StandardMaterial3D::FLAG_SRGB_VERTEX_COLOR, true);
+		debug_material->set_flag(StandardMaterial3D::FLAG_ALBEDO_FROM_VERTEX_COLOR, true);
+		debug_material->set_flag(StandardMaterial3D::FLAG_DISABLE_FOG, true);
+	}
+
+	// 0. Don't draw since nothing will be visible anyway.
+	if (path_color.a == 0.0) {
 		return;
 	}
 
@@ -356,8 +373,8 @@ void Path3DGizmo::redraw() {
 		}
 
 		add_collision_segments(_collision_segments);
-		add_lines(bones, path_material);
-		add_vertices(ribbon, path_material, Mesh::PRIMITIVE_LINE_STRIP);
+		add_lines(bones, debug_material);
+		add_vertices(ribbon, debug_material, Mesh::PRIMITIVE_LINE_STRIP);
 	}
 
 	// 2. Draw handles when selected.
@@ -437,7 +454,7 @@ void Path3DGizmo::redraw() {
 						const Vector3 edge = sin(a) * side + cos(a) * up;
 						disk.append(pos + edge * disk_size);
 					}
-					add_vertices(disk, path_tilt_material, Mesh::PRIMITIVE_LINE_STRIP);
+					add_vertices(disk, debug_material, Mesh::PRIMITIVE_LINE_STRIP);
 				}
 			}
 		}
@@ -509,6 +526,7 @@ Path3DGizmo::Path3DGizmo(Path3D *p_path, float p_disk_size) {
 
 	// Connecting to a signal once, rather than plaguing the implementation with calls to `Node3DEditor::update_transform_gizmo`.
 	path->connect("curve_changed", callable_mp(this, &Path3DGizmo::_update_transform_gizmo));
+	path->connect("debug_color_changed", callable_mp(this, &Path3DGizmo::redraw));
 
 	Path3DEditorPlugin::singleton->curve_edit->connect(SceneStringName(pressed), callable_mp(this, &Path3DGizmo::redraw));
 	Path3DEditorPlugin::singleton->curve_edit_curve->connect(SceneStringName(pressed), callable_mp(this, &Path3DGizmo::redraw));
