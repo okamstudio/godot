@@ -114,6 +114,7 @@ void MeshInstance3D::set_mesh(const Ref<Mesh> &p_mesh) {
 	}
 
 	mesh = p_mesh;
+	blend_shape_tracks.clear();
 
 	if (mesh.is_valid()) {
 		// If mesh is a PrimitiveMesh, calling get_rid on it can trigger a changed callback
@@ -122,7 +123,6 @@ void MeshInstance3D::set_mesh(const Ref<Mesh> &p_mesh) {
 		mesh->connect_changed(callable_mp(this, &MeshInstance3D::_mesh_changed));
 		_mesh_changed();
 	} else {
-		blend_shape_tracks.clear();
 		blend_shape_properties.clear();
 		set_base(RID());
 		update_gizmos();
@@ -394,6 +394,7 @@ void MeshInstance3D::_mesh_changed() {
 
 	uint32_t initialize_bs_from = blend_shape_tracks.size();
 	blend_shape_tracks.resize(mesh->get_blend_shape_count());
+	blend_shape_properties.clear();
 
 	if (surface_count > 0) {
 		for (uint32_t i = 0; i < blend_shape_tracks.size(); i++) {
