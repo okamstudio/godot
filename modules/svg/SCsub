@@ -59,6 +59,20 @@ thirdparty_sources = [
     "src/renderer/sw_engine/tvgSwStroke.cpp",
 ]
 
+if env.editor_build:
+    thirdparty_sources += [
+        "src/renderer/tvgAnimation.cpp",
+        # Lottie loader
+        "src/loaders/lottie/tvgLottieAnimation.cpp",
+        "src/loaders/lottie/tvgLottieBuilder.cpp",
+        "src/loaders/lottie/tvgLottieInterpolator.cpp",
+        "src/loaders/lottie/tvgLottieLoader.cpp",
+        "src/loaders/lottie/tvgLottieModel.cpp",
+        "src/loaders/lottie/tvgLottieModifier.cpp",
+        "src/loaders/lottie/tvgLottieParser.cpp",
+        "src/loaders/lottie/tvgLottieParserHandler.cpp",
+    ]
+
 if env["module_webp_enabled"]:
     thirdparty_sources += ["src/loaders/external_webp/tvgWebpLoader.cpp"]
     env_svg.Append(CPPDEFINES=["THORVG_WEBP_LOADER_SUPPORT"])
@@ -69,6 +83,9 @@ env_svg.Prepend(CPPPATH=[thirdparty_dir + "inc"])
 
 # Enable ThorVG static object linking.
 env_svg.Append(CPPDEFINES=["TVG_STATIC"])
+
+if env.editor_build:
+    env_svg.Append(CPPDEFINES=["THORVG_LOTTIE_LOADER_SUPPORT", "LOTTIE_ENABLED"])
 
 env_thirdparty = env_svg.Clone()
 env_thirdparty.disable_warnings()
@@ -83,6 +100,9 @@ env_thirdparty.Prepend(
         thirdparty_dir + "src/loaders/jpg",
     ]
 )
+
+if env.editor_build:
+    env_thirdparty.Prepend(CPPPATH=[thirdparty_dir + "src/loaders/lottie"])
 if env["builtin_libpng"]:
     env_thirdparty.Prepend(CPPPATH=["#thirdparty/libpng"])
 if env["module_webp_enabled"]:
@@ -97,7 +117,10 @@ env.modules_sources += thirdparty_obj
 
 module_obj = []
 
-env_svg.add_source_files(module_obj, "*.cpp")
+env_svg.add_source_files(module_obj, ["register_types.cpp", "image_loader_svg.cpp"])
+if env.editor_build:
+    env_svg.add_source_files(module_obj, "editor/*.cpp")
+
 env.modules_sources += module_obj
 
 # Needed to force rebuilding the module files when the thirdparty library is updated.

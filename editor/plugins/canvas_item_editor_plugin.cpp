@@ -32,6 +32,7 @@
 
 #include "core/config/project_settings.h"
 #include "core/input/input.h"
+#include "core/io/resource_importer.h"
 #include "core/os/keyboard.h"
 #include "editor/debugger/editor_debugger_node.h"
 #include "editor/editor_main_screen.h"
@@ -48,6 +49,7 @@
 #include "editor/scene_tree_dock.h"
 #include "editor/themes/editor_scale.h"
 #include "editor/themes/editor_theme_manager.h"
+#include "scene/2d/animated_sprite_2d.h"
 #include "scene/2d/audio_stream_player_2d.h"
 #include "scene/2d/polygon_2d.h"
 #include "scene/2d/skeleton_2d.h"
@@ -62,6 +64,7 @@
 #include "scene/gui/view_panner.h"
 #include "scene/main/canvas_layer.h"
 #include "scene/main/window.h"
+#include "scene/resources/atlas_texture.h"
 #include "scene/resources/packed_scene.h"
 #include "scene/resources/style_box_texture.h"
 
@@ -5944,6 +5947,23 @@ void CanvasItemEditorViewport::_create_texture_node(Node *p_parent, Node *p_chil
 			Vector2(0, texture_size.height)
 		};
 		undo_redo->add_do_property(p_child, "polygon", list);
+	} else if (Object::cast_to<AnimatedSprite2D>(p_child)) {
+		Dictionary meta = ResourceFormatImporter::get_singleton()->get_resource_metadata(p_path);
+		Ref<SpriteFrames> frames;
+		frames.instantiate();
+		frames->set_animation_speed(SceneStringName(default_), meta.get("fps", 5));
+		Size2i sprite_size = meta["sprite_size"];
+		for (int i = 0; i < (int)meta["frame_count"]; i++) {
+			int x = i % (int)meta["columns"] * sprite_size.width;
+			int y = i / (int)meta["columns"] * sprite_size.height;
+			Ref<AtlasTexture> atlas_texture;
+			atlas_texture.instantiate();
+			atlas_texture->set_atlas(texture);
+			atlas_texture->set_region(Rect2(x, y, sprite_size.width, sprite_size.height));
+			frames->add_frame(SceneStringName(default_), atlas_texture);
+		}
+		undo_redo->add_do_property(p_child, SceneStringName(autoplay), SceneStringName(default_));
+		undo_redo->add_do_property(p_child, "sprite_frames", frames);
 	}
 
 	// Compute the global position
@@ -6349,6 +6369,7 @@ CanvasItemEditorViewport::CanvasItemEditorViewport(CanvasItemEditor *p_canvas_it
 	texture_node_types.push_back("GPUParticles2D");
 	texture_node_types.push_back("Polygon2D");
 	texture_node_types.push_back("TouchScreenButton");
+	texture_node_types.push_back("AnimatedSprite2D");
 	// Control
 	texture_node_types.push_back("TextureRect");
 	texture_node_types.push_back("TextureButton");

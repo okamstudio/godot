@@ -74,6 +74,10 @@ cp -rv src/loaders/external_webp ../src/loaders/
 # Not using external jpg as it's turbojpeg, which we don't have.
 cp -rv src/loaders/jpg ../src/loaders/
 
+cp -rv src/loaders/lottie  ../src/loaders/
+# Disabled: THORVG_LOTTIE_EXPRESSIONS_SUPPORT
+rm -rfv ../src/loaders/lottie/jerryscript
+
 popd
 rm -rf tmp
 popd
