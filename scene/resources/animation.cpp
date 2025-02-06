@@ -3490,79 +3490,10 @@ void Animation::bezier_track_set_key_handle_mode(int p_track, int p_index, Handl
 
 	bt->values.write[p_index].value.handle_mode = p_mode;
 
-	switch (p_mode) {
-		case HANDLE_MODE_LINEAR: {
-			bt->values.write[p_index].value.in_handle = Vector2(0, 0);
-			bt->values.write[p_index].value.out_handle = Vector2(0, 0);
-		} break;
-		case HANDLE_MODE_BALANCED:
-		case HANDLE_MODE_MIRRORED: {
-			int prev_key = MAX(0, p_index - 1);
-			int next_key = MIN(bt->values.size() - 1, p_index + 1);
-			if (prev_key == next_key) {
-				break; // Exists only one key.
-			}
-			real_t in_handle_x = 0;
-			real_t in_handle_y = 0;
-			real_t out_handle_x = 0;
-			real_t out_handle_y = 0;
-			if (p_mode == HANDLE_MODE_BALANCED) {
-				// Note:
-				// If p_set_mode == HANDLE_SET_MODE_NONE, I don't know if it should change the Tangent implicitly.
-				// At the least, we need to avoid corrupting the handles when loading animation from the resource.
-				// However, changes made by the Inspector do not go through the BezierEditor,
-				// so if you change from Free to Balanced or Mirrored in Inspector, there is no guarantee that
-				// it is Balanced or Mirrored until there is a handle operation.
-				if (p_set_mode == HANDLE_SET_MODE_RESET) {
-					real_t handle_length = 1.0 / 3.0;
-					in_handle_x = (bt->values[prev_key].time - bt->values[p_index].time) * handle_length;
-					in_handle_y = 0;
-					out_handle_x = (bt->values[next_key].time - bt->values[p_index].time) * handle_length;
-					out_handle_y = 0;
-					bt->values.write[p_index].value.in_handle = Vector2(in_handle_x, in_handle_y);
-					bt->values.write[p_index].value.out_handle = Vector2(out_handle_x, out_handle_y);
-				} else if (p_set_mode == HANDLE_SET_MODE_AUTO) {
-					real_t handle_length = 1.0 / 6.0;
-					real_t tangent = (bt->values[next_key].value.value - bt->values[prev_key].value.value) / (bt->values[next_key].time - bt->values[prev_key].time);
-					in_handle_x = (bt->values[prev_key].time - bt->values[p_index].time) * handle_length;
-					in_handle_y = in_handle_x * tangent;
-					out_handle_x = (bt->values[next_key].time - bt->values[p_index].time) * handle_length;
-					out_handle_y = out_handle_x * tangent;
-					bt->values.write[p_index].value.in_handle = Vector2(in_handle_x, in_handle_y);
-					bt->values.write[p_index].value.out_handle = Vector2(out_handle_x, out_handle_y);
-				}
-			} else {
-				real_t handle_length = 1.0 / 4.0;
-				real_t prev_interval = Math::abs(bt->values[p_index].time - bt->values[prev_key].time);
-				real_t next_interval = Math::abs(bt->values[p_index].time - bt->values[next_key].time);
-				real_t min_time = 0;
-				if (Math::is_zero_approx(prev_interval)) {
-					min_time = next_interval;
-				} else if (Math::is_zero_approx(next_interval)) {
-					min_time = prev_interval;
-				} else {
-					min_time = MIN(prev_interval, next_interval);
-				}
-				if (p_set_mode == HANDLE_SET_MODE_RESET) {
-					in_handle_x = -min_time * handle_length;
-					in_handle_y = 0;
-					out_handle_x = min_time * handle_length;
-					out_handle_y = 0;
-					bt->values.write[p_index].value.in_handle = Vector2(in_handle_x, in_handle_y);
-					bt->values.write[p_index].value.out_handle = Vector2(out_handle_x, out_handle_y);
-				} else if (p_set_mode == HANDLE_SET_MODE_AUTO) {
-					real_t tangent = (bt->values[next_key].value.value - bt->values[prev_key].value.value) / min_time;
-					in_handle_x = -min_time * handle_length;
-					in_handle_y = in_handle_x * tangent;
-					out_handle_x = min_time * handle_length;
-					out_handle_y = out_handle_x * tangent;
-					bt->values.write[p_index].value.in_handle = Vector2(in_handle_x, in_handle_y);
-					bt->values.write[p_index].value.out_handle = Vector2(out_handle_x, out_handle_y);
-				}
-			}
-		} break;
-		default: {
-		} break;
+	if (p_mode != HANDLE_MODE_FREE && p_set_mode != HANDLE_SET_MODE_NONE) {
+		Vector2 &in_handle = bt->values.write[p_index].value.in_handle;
+		Vector2 &out_handle = bt->values.write[p_index].value.out_handle;
+		bezier_track_calculate_handles(p_track, p_index, p_mode, p_set_mode, &in_handle, &out_handle);
 	}
 
 	emit_changed();
@@ -3579,6 +3510,92 @@ Animation::HandleMode Animation::bezier_track_get_key_handle_mode(int p_track, i
 
 	return bt->values[p_index].value.handle_mode;
 }
+
+bool Animation::bezier_track_calculate_handles(int p_track, int p_index, HandleMode p_mode, HandleSetMode p_set_mode, Vector2 *r_in_handle, Vector2 *r_out_handle) {
+	ERR_FAIL_INDEX_V(p_track, tracks.size(), false);
+	Track *t = tracks[p_track];
+	ERR_FAIL_COND_V(t->type != TYPE_BEZIER, false);
+
+	BezierTrack *bt = static_cast<BezierTrack *>(t);
+	ERR_FAIL_INDEX_V(p_index, bt->values.size(), false);
+
+	int prev_key = MAX(0, p_index - 1);
+	int next_key = MIN(bt->values.size() - 1, p_index + 1);
+	if (prev_key == next_key) {
+		return false;
+	}
+
+	float time = bt->values[p_index].time;
+	float prev_time = bt->values[prev_key].time;
+	float prev_value = bt->values[prev_key].value.value;
+	float next_time = bt->values[next_key].time;
+	float next_value = bt->values[next_key].value.value;
+
+	return bezier_track_calculate_handles(time, prev_time, prev_value, next_time, next_value, p_mode, p_set_mode, r_in_handle, r_out_handle);
+}
+
+bool Animation::bezier_track_calculate_handles(float p_time, float p_prev_time, float p_prev_value, float p_next_time, float p_next_value, HandleMode p_mode, HandleSetMode p_set_mode, Vector2 *r_in_handle, Vector2 *r_out_handle) {
+	ERR_FAIL_COND_V(p_mode == HANDLE_MODE_FREE, false);
+	ERR_FAIL_COND_V(p_set_mode == HANDLE_SET_MODE_NONE, false);
+
+	Vector2 in_handle;
+	Vector2 out_handle;
+
+	if (p_mode == HANDLE_MODE_LINEAR) {
+		in_handle = Vector2(0, 0);
+		out_handle = Vector2(0, 0);
+	} else if (p_mode == HANDLE_MODE_BALANCED) {
+		if (p_set_mode == HANDLE_SET_MODE_RESET) {
+			real_t handle_length = 1.0 / 3.0;
+			in_handle.x = (p_prev_time - p_time) * handle_length;
+			in_handle.y = 0;
+			out_handle.x = (p_next_time - p_time) * handle_length;
+			out_handle.y = 0;
+		} else if (p_set_mode == HANDLE_SET_MODE_AUTO) {
+			real_t handle_length = 1.0 / 6.0;
+			real_t tangent = (p_next_value - p_prev_value) / (p_next_time - p_prev_time);
+			in_handle.x = (p_prev_time - p_time) * handle_length;
+			in_handle.y = in_handle.x * tangent;
+			out_handle.x = (p_next_time - p_time) * handle_length;
+			out_handle.y = out_handle.x * tangent;
+		}
+	} else if (p_mode == HANDLE_MODE_MIRRORED) {
+		real_t handle_length = 1.0 / 4.0;
+		real_t prev_interval = Math::abs(p_time - p_prev_time);
+		real_t next_interval = Math::abs(p_time - p_next_time);
+		real_t min_time = 0;
+		if (Math::is_zero_approx(prev_interval)) {
+			min_time = next_interval;
+		} else if (Math::is_zero_approx(next_interval)) {
+			min_time = prev_interval;
+		} else {
+			min_time = MIN(prev_interval, next_interval);
+		}
+		if (p_set_mode == HANDLE_SET_MODE_RESET) {
+			in_handle.x = -min_time * handle_length;
+			in_handle.y = 0;
+			out_handle.x = min_time * handle_length;
+			out_handle.y = 0;
+		} else if (p_set_mode == HANDLE_SET_MODE_AUTO) {
+			real_t tangent = (p_next_value - p_prev_value) / min_time;
+			in_handle.x = -min_time * handle_length;
+			in_handle.y = in_handle.x * tangent;
+			out_handle.x = min_time * handle_length;
+			out_handle.y = out_handle.x * tangent;
+		}
+	}
+
+	if (r_in_handle != nullptr) {
+		*r_in_handle = in_handle;
+	}
+
+	if (r_out_handle != nullptr) {
+		*r_out_handle = out_handle;
+	}
+
+	return true;
+}
+
 #endif // TOOLS_ENABLED
 
 real_t Animation::bezier_track_interpolate(int p_track, double p_time) const {
