@@ -5099,23 +5099,95 @@ String String::validate_filename() const {
 }
 
 bool String::is_valid_ip_address() const {
-	if (find_char(':') >= 0) {
-		Vector<String> ip = split(":");
-		for (int i = 0; i < ip.size(); i++) {
-			const String &n = ip[i];
+	if (find(":") >= 0) {
+		Vector<String> ip;
+		int double_colon_index = -1;
+		int len = length();
+
+		for (int i = 0; i <= len;) {
+			int j = i;
+			while (j < len && operator[](j) != ':') {
+				j++;
+			}
+
+			String n = substr(i, j - i);
+			ip.push_back(n);
+
+			if (j < len && operator[](j) == ':') {
+				if (j + 1 < len && operator[](j + 1) == ':') {
+					if (j + 2 < len && operator[](j + 2) == ':') {
+						return false;
+					}
+					if (double_colon_index != -1) {
+						return false;
+					}
+					double_colon_index = ip.size() - 1;
+					j++;
+				}
+			}
+			i = j + 1;
+		}
+
+		bool has_double_colon = (double_colon_index != -1);
+		int num_hextets = 0;
+
+		for (int idx = 0; idx < ip.size(); idx++) {
+			String n = ip[idx];
+
 			if (n.is_empty()) {
 				continue;
 			}
-			if (n.is_valid_hex_number(false)) {
-				int64_t nint = n.hex_to_int();
-				if (nint < 0 || nint > 0xffff) {
+
+			if (n.find(".") >= 0) {
+				if (idx != ip.size() - 1) {
 					return false;
 				}
-				continue;
+
+				Vector<String> ipv4_segments = n.split(".");
+				if (ipv4_segments.size() != 4) {
+					return false;
+				}
+
+				for (int j = 0; j < ipv4_segments.size(); j++) {
+					String ipv4_part = ipv4_segments[j];
+					if (!ipv4_part.is_valid_int()) {
+						return false;
+					}
+					int val = ipv4_part.to_int();
+					if (val < 0 || val > 255) {
+						return false;
+					}
+				}
+				num_hextets += 2;
+			} else {
+				if (n.length() > 4) {
+					return false;
+				}
+				if (!n.is_valid_hex_number(false)) {
+					return false;
+				}
+
+				int64_t nint = n.hex_to_int();
+				if (nint < 0 || nint > 0xFFFF) {
+					return false;
+				}
+				num_hextets += 1;
 			}
-			if (!n.is_valid_ip_address()) {
+		}
+
+		int missing_hextets = 8 - num_hextets;
+		if (has_double_colon) {
+			if (missing_hextets < 1) {
 				return false;
 			}
+		} else {
+			if (missing_hextets != 0) {
+				return false;
+			}
+		}
+
+		if (num_hextets > 8) {
+			return false;
 		}
 
 	} else {
@@ -5123,6 +5195,7 @@ bool String::is_valid_ip_address() const {
 		if (ip.size() != 4) {
 			return false;
 		}
+
 		for (int i = 0; i < ip.size(); i++) {
 			const String &n = ip[i];
 			if (!n.is_valid_int()) {
