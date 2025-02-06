@@ -463,7 +463,7 @@ void TileMapLayerEditorTilesPlugin::_scenes_list_multi_selected(int p_index, boo
 		return;
 	}
 
-	// Add or remove the Tile form the selection.
+	// Add or remove the Tile from the selection.
 	int scene_id = scene_tiles_list->get_item_metadata(p_index);
 	int source_id = sources_list->get_item_metadata(sources_list->get_current());
 	TileSetSource *source = *tile_set->get_source(source_id);
@@ -1960,6 +1960,7 @@ void TileMapLayerEditorTilesPlugin::_tile_atlas_control_gui_input(const Ref<Inpu
 				} else {
 					tile_set_selection.insert(TileMapCell(source_id, hovered_tile.get_atlas_coords(), 0));
 				}
+				erase_button->set_pressed(false);
 			}
 			_update_selection_pattern_from_tileset_tiles_selection();
 		} else { // Released
