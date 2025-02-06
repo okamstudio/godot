@@ -125,6 +125,26 @@ PackedByteArray ZIPReader::read_file(const String &p_path, bool p_case_sensitive
 	return data;
 }
 
+BitField<FileAccess::UnixPermissionFlags> ZIPReader::get_file_unix_permissions(const String &p_path, bool p_case_sensitive) {
+	ERR_FAIL_COND_V_MSG(fa.is_null(), -1, "ZIPReader must be opened before use.");
+
+	int err = UNZ_OK;
+	String file_path = p_path;
+
+	// Locate the file.
+	err = godot_unzip_locate_file(uzf, p_path, p_case_sensitive);
+	ERR_FAIL_COND_V_MSG(err != UNZ_OK, -1, "File does not exist in zip archive: " + p_path);
+
+	unz_file_info64 file_info;
+
+	// Read the file info.
+	err = godot_unzip_get_current_file_info(uzf, file_info, file_path);
+	ERR_FAIL_COND_V_MSG(err != UNZ_OK, -1, "Unable to retrieve permissions of the file: " + p_path);
+
+	// Retrieve the permissions.
+	return (file_info.external_fa >> 16) & 0x01ff;
+}
+
 bool ZIPReader::file_exists(const String &p_path, bool p_case_sensitive) {
 	ERR_FAIL_COND_V_MSG(fa.is_null(), false, "ZIPReader must be opened before use.");
 
@@ -152,6 +172,7 @@ void ZIPReader::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("open", "path"), &ZIPReader::open);
 	ClassDB::bind_method(D_METHOD("close"), &ZIPReader::close);
 	ClassDB::bind_method(D_METHOD("get_files"), &ZIPReader::get_files);
+	ClassDB::bind_method(D_METHOD("get_file_unix_permissions", "path", "case_sensitive"), &ZIPReader::get_file_unix_permissions, DEFVAL(Variant(true)));
 	ClassDB::bind_method(D_METHOD("read_file", "path", "case_sensitive"), &ZIPReader::read_file, DEFVAL(Variant(true)));
 	ClassDB::bind_method(D_METHOD("file_exists", "path", "case_sensitive"), &ZIPReader::file_exists, DEFVAL(Variant(true)));
 }

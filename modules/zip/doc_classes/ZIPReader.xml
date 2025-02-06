@@ -61,6 +61,16 @@
 				Must be called after [method open].
 			</description>
 		</method>
+		<method name="get_file_unix_permissions">
+			<return type="int" enum="FileAccess.UnixPermissionFlags" is_bitfield="true" />
+			<param index="0" name="path" type="String" />
+			<param index="1" name="case_sensitive" type="bool" default="true" />
+			<description>
+				Returns file UNIX permissions.
+				Must be called after [method open].
+				[b]Warning:[/b] Using this method on zip archives created by an operating system that does not use UNIX permissions, such as Windows and Android might not work as expected.
+			</description>
+		</method>
 		<method name="get_files">
 			<return type="PackedStringArray" />
 			<description>
