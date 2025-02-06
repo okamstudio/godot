@@ -1,53 +1,64 @@
 {
-  "vertex_lines": [
-	"",
-	"precision highp float;",
-	"precision highp int;",
-	"",
-	"layout(location = 0) in highp vec3 vertex;",
-	"",
-	"out highp vec4 position_interp;",
-	"",
-	"void main() {",
-	"\tposition_interp = vec4(vertex.x,1,0,1);",
-	"}",
-	""
-  ],
-  "fragment_lines": [
-	"",
-	"precision highp float;",
-	"precision highp int;",
-	"",
-	"in highp vec4 position_interp;",
-	"",
-	"void main() {",
-	"\thighp float depth = ((position_interp.z / position_interp.w) + 1.0);",
-	"\tfrag_color = vec4(depth);",
-	"}"
-  ],
-  "uniforms": [],
-  "fbos": [],
-  "texunits": [],
-  "texunit_names": [],
-  "ubos": [],
-  "ubo_names": [],
-  "feedbacks": [],
-  "vertex_included_files": [],
-  "fragment_included_files": [],
-  "reading": "fragment",
-  "line_offset": 33,
-  "vertex_offset": 10,
-  "fragment_offset": 23,
-  "variant_defines": [
-	"#define USE_NINEPATCH"
-  ],
-  "variant_names": [
-	"MODE_NINEPATCH"
-  ],
-  "specialization_names": [
-	"DISABLE_LIGHTING"
-  ],
-  "specialization_values": [
-	" false\n"
-  ]
+	"vertex_lines": [
+		"",
+		"precision highp float;",
+		"precision highp int;",
+		"",
+		"layout(location = 0) in highp vec3 vertex;",
+		"",
+		"out highp vec4 position_interp;",
+		"",
+		"void main() {",
+		"\tposition_interp = vec4(vertex.x,1,0,1);",
+		"}",
+		""
+	],
+	"fragment_lines": [
+		"",
+		"precision highp float;",
+		"precision highp int;",
+		"",
+		"in highp vec4 position_interp;",
+		"",
+		"void main() {",
+		"\thighp float depth = ((position_interp.z / position_interp.w) + 1.0);",
+		"\tfrag_color = vec4(depth);",
+		"}"
+	],
+	"raygen_lines": [],
+	"any_hit_lines": [],
+	"closest_hit_lines": [],
+	"miss_lines": [],
+	"intersection_lines": [],
+	"uniforms": [],
+	"fbos": [],
+	"texunits": [],
+	"texunit_names": [],
+	"ubos": [],
+	"ubo_names": [],
+	"feedbacks": [],
+	"vertex_included_files": [],
+	"fragment_included_files": [],
+
+	"reading": "fragment",
+	"line_offset": 33,
+	"vertex_offset": 10,
+	"fragment_offset": 23,
+	"raygen_offset": 0,
+	"any_hit_offset": 0,
+	"closest_hit_offset": 0,
+	"miss_offset": 0,
+	"intersection_offset": 0,
+	"variant_defines": [
+		"#define USE_NINEPATCH"
+	],
+	"variant_names": [
+		"MODE_NINEPATCH"
+	],
+	"specialization_names": [
+		"DISABLE_LIGHTING"
+	],
+	"specialization_values": [
+		" false\n"
+	]
 }

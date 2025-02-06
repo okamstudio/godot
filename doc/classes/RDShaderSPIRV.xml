@@ -42,11 +42,26 @@
 		</method>
 	</methods>
 	<members>
+		<member name="bytecode_any_hit" type="PackedByteArray" setter="set_stage_bytecode" getter="get_stage_bytecode" default="PackedByteArray()">
+			The SPIR-V bytecode for the any hit shader stage.
+		</member>
+		<member name="bytecode_closest_hit" type="PackedByteArray" setter="set_stage_bytecode" getter="get_stage_bytecode" default="PackedByteArray()">
+			The SPIR-V bytecode for the closest hit shader stage.
+		</member>
 		<member name="bytecode_compute" type="PackedByteArray" setter="set_stage_bytecode" getter="get_stage_bytecode" default="PackedByteArray()">
 			The SPIR-V bytecode for the compute shader stage.
 		</member>
 		<member name="bytecode_fragment" type="PackedByteArray" setter="set_stage_bytecode" getter="get_stage_bytecode" default="PackedByteArray()">
 			The SPIR-V bytecode for the fragment shader stage.
+		</member>
+		<member name="bytecode_intersection" type="PackedByteArray" setter="set_stage_bytecode" getter="get_stage_bytecode" default="PackedByteArray()">
+			The SPIR-V bytecode for the intersection shader stage.
+		</member>
+		<member name="bytecode_miss" type="PackedByteArray" setter="set_stage_bytecode" getter="get_stage_bytecode" default="PackedByteArray()">
+			The SPIR-V bytecode for the miss shader stage.
+		</member>
+		<member name="bytecode_raygen" type="PackedByteArray" setter="set_stage_bytecode" getter="get_stage_bytecode" default="PackedByteArray()">
+			The SPIR-V bytecode for the ray generation shader stage.
 		</member>
 		<member name="bytecode_tesselation_control" type="PackedByteArray" setter="set_stage_bytecode" getter="get_stage_bytecode" default="PackedByteArray()">
 			The SPIR-V bytecode for the tessellation control shader stage.
@@ -57,11 +72,26 @@
 		<member name="bytecode_vertex" type="PackedByteArray" setter="set_stage_bytecode" getter="get_stage_bytecode" default="PackedByteArray()">
 			The SPIR-V bytecode for the vertex shader stage.
 		</member>
+		<member name="compile_error_any_hit" type="String" setter="set_stage_compile_error" getter="get_stage_compile_error" default="&quot;&quot;">
+			The compilation error message for the any hit shader stage (set by the SPIR-V compiler and Godot). If empty, shader compilation was successful.
+		</member>
+		<member name="compile_error_closest_hit" type="String" setter="set_stage_compile_error" getter="get_stage_compile_error" default="&quot;&quot;">
+			The compilation error message for the closest hit shader stage (set by the SPIR-V compiler and Godot). If empty, shader compilation was successful.
+		</member>
 		<member name="compile_error_compute" type="String" setter="set_stage_compile_error" getter="get_stage_compile_error" default="&quot;&quot;">
 			The compilation error message for the compute shader stage (set by the SPIR-V compiler and Godot). If empty, shader compilation was successful.
 		</member>
 		<member name="compile_error_fragment" type="String" setter="set_stage_compile_error" getter="get_stage_compile_error" default="&quot;&quot;">
 			The compilation error message for the fragment shader stage (set by the SPIR-V compiler and Godot). If empty, shader compilation was successful.
+		</member>
+		<member name="compile_error_intersection" type="String" setter="set_stage_compile_error" getter="get_stage_compile_error" default="&quot;&quot;">
+			The compilation error message for the intersection shader stage (set by the SPIR-V compiler and Godot). If empty, shader compilation was successful.
+		</member>
+		<member name="compile_error_miss" type="String" setter="set_stage_compile_error" getter="get_stage_compile_error" default="&quot;&quot;">
+			The compilation error message for the miss shader stage (set by the SPIR-V compiler and Godot). If empty, shader compilation was successful.
+		</member>
+		<member name="compile_error_raygen" type="String" setter="set_stage_compile_error" getter="get_stage_compile_error" default="&quot;&quot;">
+			The compilation error message for the ray generation shader stage (set by the SPIR-V compiler and Godot). If empty, shader compilation was successful.
 		</member>
 		<member name="compile_error_tesselation_control" type="String" setter="set_stage_compile_error" getter="get_stage_compile_error" default="&quot;&quot;">
 			The compilation error message for the tessellation control shader stage (set by the SPIR-V compiler and Godot). If empty, shader compilation was successful.

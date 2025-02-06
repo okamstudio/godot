@@ -14,12 +14,28 @@
 		<link title="Using compute shaders">$DOCS_URL/tutorials/shaders/compute_shaders.html</link>
 	</tutorials>
 	<methods>
+		<method name="acceleration_structure_build">
+			<return type="int" enum="Error" />
+			<param index="0" name="acceleration_structure" type="RID" />
+			<description>
+				Builds the [param acceleration_structure].
+			</description>
+		</method>
 		<method name="barrier" deprecated="Barriers are automatically inserted by RenderingDevice.">
 			<return type="void" />
 			<param index="0" name="from" type="int" enum="RenderingDevice.BarrierMask" is_bitfield="true" default="32767" />
 			<param index="1" name="to" type="int" enum="RenderingDevice.BarrierMask" is_bitfield="true" default="32767" />
 			<description>
 				This method does nothing.
+			</description>
+		</method>
+		<method name="blas_create">
+			<return type="RID" />
+			<param index="0" name="vertex_array" type="RID" />
+			<param index="1" name="index_array" type="RID" />
+			<description>
+				Creates a new Bottom Level Acceleration Structure. It can be accessed with the RID that is returned.
+				Once finished with your RID, you will want to free the RID using the RenderingDevice's [method free_rid] method.
 			</description>
 		</method>
 		<method name="buffer_clear">
@@ -703,11 +719,12 @@
 			<param index="1" name="format" type="int" enum="RenderingDevice.IndexBufferFormat" />
 			<param index="2" name="data" type="PackedByteArray" default="PackedByteArray()" />
 			<param index="3" name="use_restart_indices" type="bool" default="false" />
-			<param index="4" name="enable_device_address" type="bool" default="false" />
+			<param index="4" name="usage" type="int" enum="RenderingDevice.BufferUsage" is_bitfield="true" default="0" />
 			<description>
 				Creates a new index buffer. It can be accessed with the RID that is returned.
 				Once finished with your RID, you will want to free the RID using the RenderingDevice's [method free_rid] method.
-				Optionally, set [param enable_device_address] if you wish to use [method buffer_get_device_address] functionality and the GPU supports it.
+				Set [param usage] to [constant BUFFER_USAGE_DEVICE_ADDRESS] if you wish to use [method buffer_get_device_address] functionality and the GPU supports it.
+				Set [param usage] to [constant BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY] if you wish to use this buffer as input data for an acceleration structure build operation.
 			</description>
 		</method>
 		<method name="limit_get" qualifiers="const">
@@ -716,6 +733,97 @@
 			<description>
 				Returns the value of the specified [param limit]. This limit varies depending on the current graphics hardware (and sometimes the driver version). If the given limit is exceeded, rendering errors will occur.
 				Limits for various graphics hardware can be found in the [url=https://vulkan.gpuinfo.org/]Vulkan Hardware Database[/url].
+			</description>
+		</method>
+		<method name="raytracing_list_begin">
+			<return type="int" />
+			<description>
+				Starts a list of raytracing commands. The returned value should be passed to other [code]raytracing_list_*[/code] functions.
+				Multiple raytracing lists cannot be created at the same time; you must finish the previous raytracing list first using [method raytracing_list_end].
+				A simple raytracing operation might look like this (code is not a complete example):
+				[codeblock]
+				var rd = RenderingDevice.new()
+				assert(rd.has_feature(RenderingDevice.SUPPORTS_RAYTRACING))
+
+				# Create a BLAS for a mesh.
+				blas = rd.blas_create(vertex_array, index_array, transform_buffer)
+				# Create TLAS with BLASs.
+				tlas = rd.tlas_create([blas])
+
+				# Build acceleration structures.
+				rd.acceleration_structure_build(blas)
+				rd.acceleration_structure_build(tlas)
+
+				var raylist = rd.raytracing_list_begin()
+
+				# Bind pipeline and uniforms.
+				rd.raytracing_list_bind_raytracing_pipeline(raylist, raytracing_pipeline)
+				rd.raytracing_list_bind_uniform_set(raylist, uniform_set, 0)
+
+				# Trace rays.
+				var width = get_viewport().size.x
+				var height = get_viewport().size.y
+				rd.raytracing_list_trace_rays(raylist, width, height)
+
+				rd.raytracing_list_end()
+				[/codeblock]
+			</description>
+		</method>
+		<method name="raytracing_list_bind_raytracing_pipeline">
+			<return type="void" />
+			<param index="0" name="raytracing_list" type="int" />
+			<param index="1" name="raytracing_pipeline" type="RID" />
+			<description>
+				Binds [param raytracing_pipeline] to the specified [param raytracing_list].
+			</description>
+		</method>
+		<method name="raytracing_list_bind_uniform_set">
+			<return type="void" />
+			<param index="0" name="raytracing_list" type="int" />
+			<param index="1" name="uniform_set" type="RID" />
+			<param index="2" name="set_index" type="int" />
+			<description>
+				Binds the [param uniform_set] to this [param raytracing_list].
+			</description>
+		</method>
+		<method name="raytracing_list_end">
+			<return type="void" />
+			<description>
+				Finishes a list of raytracing commands created with the [code]raytracing_*[/code] methods.
+			</description>
+		</method>
+		<method name="raytracing_list_set_push_constant">
+			<return type="void" />
+			<param index="0" name="raytracing_list" type="int" />
+			<param index="1" name="buffer" type="PackedByteArray" />
+			<param index="2" name="size_bytes" type="int" />
+			<description>
+				Sets the push constant data to [param buffer] for the specified [param raytracing_list]. The shader determines how this binary data is used. The buffer's size in bytes must also be specified in [param size_bytes] (this can be obtained by calling the [method PackedByteArray.size] method on the passed [param buffer]).
+			</description>
+		</method>
+		<method name="raytracing_list_trace_rays">
+			<return type="void" />
+			<param index="0" name="raytracing_list" type="int" />
+			<param index="1" name="width" type="int" />
+			<param index="2" name="height" type="int" />
+			<description>
+				Initializes a ray tracing dispatch for the specified [param raytracing_list] assembling a group of [param width] x [param height] rays.
+			</description>
+		</method>
+		<method name="raytracing_pipeline_create">
+			<return type="RID" />
+			<param index="0" name="shader" type="RID" />
+			<param index="1" name="specialization_constants" type="RDPipelineSpecializationConstant[]" default="[]" />
+			<description>
+				Creates a new raytracing pipeline. It can be accessed with the RID that is returned.
+				Once finished with your RID, you will want to free the RID using the RenderingDevice's [method free_rid] method.
+			</description>
+		</method>
+		<method name="raytracing_pipeline_is_valid">
+			<return type="bool" />
+			<param index="0" name="raytracing_pipeline" type="RID" />
+			<description>
+				Returns [code]true[/code] if the raytracing pipeline specified by the [param raytracing_pipeline] RID is valid, [code]false[/code] otherwise.
 			</description>
 		</method>
 		<method name="render_pipeline_create">
@@ -1069,6 +1177,15 @@
 				[b]Note:[/b] The existing [param texture] requires the [constant TEXTURE_USAGE_CAN_UPDATE_BIT] to be updatable.
 			</description>
 		</method>
+		<method name="tlas_create">
+			<return type="RID" />
+			<param index="0" name="blases" type="RID[]" />
+			<param index="1" name="transforms" type="Transform3D[]" />
+			<description>
+				Creates a new Top Level Acceleration Structure. It can be accessed with the RID that is returned.
+				Once finished with your RID, you will want to free the RID using the RenderingDevice's [method free_rid] method.
+			</description>
+		</method>
 		<method name="uniform_buffer_create">
 			<return type="RID" />
 			<param index="0" name="size_bytes" type="int" />
@@ -1111,12 +1228,12 @@
 			<return type="RID" />
 			<param index="0" name="size_bytes" type="int" />
 			<param index="1" name="data" type="PackedByteArray" default="PackedByteArray()" />
-			<param index="2" name="use_as_storage" type="bool" default="false" />
-			<param index="3" name="enable_device_address" type="bool" default="false" />
+			<param index="2" name="usage" type="int" enum="RenderingDevice.BufferUsage" is_bitfield="true" default="0" />
 			<description>
 				It can be accessed with the RID that is returned.
 				Once finished with your RID, you will want to free the RID using the RenderingDevice's [method free_rid] method.
-				Optionally, set [param enable_device_address] if you wish to use [method buffer_get_device_address] functionality and the GPU supports it.
+				Set [param usage] to [constant BUFFER_USAGE_DEVICE_ADDRESS] if you wish to use [method buffer_get_device_address] functionality and the GPU supports it.
+				Set [param usage] to [constant BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY] if you wish to use this buffer as input data for an acceleration structure build operation.
 			</description>
 		</method>
 		<method name="vertex_format_create">
@@ -2066,10 +2183,22 @@
 		<constant name="INDEX_BUFFER_FORMAT_UINT32" value="1" enum="IndexBufferFormat">
 			Index buffer in 32-bit unsigned integer format. This limits the maximum index that can be specified to [code]4294967295[/code].
 		</constant>
+		<constant name="BUFFER_USAGE_STORAGE" value="1" enum="BufferUsage" is_bitfield="true">
+			Buffer can be used as a storage buffer.
+		</constant>
+		<constant name="BUFFER_USAGE_DEVICE_ADDRESS" value="2" enum="BufferUsage" is_bitfield="true">
+			Allows usage of [method buffer_get_device_address] on supported GPUs.
+		</constant>
+		<constant name="BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY" value="4" enum="BufferUsage" is_bitfield="true">
+			Allows usage of this buffer as input data for an acceleration structure build operation.
+		</constant>
 		<constant name="STORAGE_BUFFER_USAGE_DISPATCH_INDIRECT" value="1" enum="StorageBufferUsage" is_bitfield="true">
 		</constant>
 		<constant name="STORAGE_BUFFER_USAGE_DEVICE_ADDRESS" value="2" enum="StorageBufferUsage" is_bitfield="true">
 			Allows usage of [method buffer_get_device_address] on supported GPUs.
+		</constant>
+		<constant name="STORAGE_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY" value="4" enum="StorageBufferUsage" is_bitfield="true">
+			Allows usage of this buffer as input data for an acceleration structure build operation.
 		</constant>
 		<constant name="UNIFORM_TYPE_SAMPLER" value="0" enum="UniformType">
 			Sampler uniform.
@@ -2101,7 +2230,10 @@
 		<constant name="UNIFORM_TYPE_INPUT_ATTACHMENT" value="9" enum="UniformType">
 			Input attachment uniform.
 		</constant>
-		<constant name="UNIFORM_TYPE_MAX" value="10" enum="UniformType">
+		<constant name="UNIFORM_TYPE_ACCELERATION_STRUCTURE" value="10" enum="UniformType">
+			Acceleration structure uniform.
+		</constant>
+		<constant name="UNIFORM_TYPE_MAX" value="11" enum="UniformType">
 			Represents the size of the [enum UniformType] enum.
 		</constant>
 		<constant name="RENDER_PRIMITIVE_POINTS" value="0" enum="RenderPrimitive">
@@ -2409,7 +2541,22 @@
 		<constant name="SHADER_STAGE_COMPUTE" value="4" enum="ShaderStage">
 			Compute shader stage. This can be used to run arbitrary computing tasks in a shader, performing them on the GPU instead of the CPU.
 		</constant>
-		<constant name="SHADER_STAGE_MAX" value="5" enum="ShaderStage">
+		<constant name="SHADER_STAGE_RAYGEN" value="5" enum="ShaderStage">
+			Ray generation shader stage. This can be used to generate primary rays.
+		</constant>
+		<constant name="SHADER_STAGE_ANY_HIT" value="6" enum="ShaderStage">
+			Any hit shader stage. Invoked when ray intersections are not opaque. This can be used when to specify what happens when a ray hits any of the geometry in the scene.
+		</constant>
+		<constant name="SHADER_STAGE_CLOSEST_HIT" value="7" enum="ShaderStage">
+			Closest hit shader stage. This can be used to specify what happens when a ray hits the closest geometry in the scene.
+		</constant>
+		<constant name="SHADER_STAGE_MISS" value="8" enum="ShaderStage">
+			Miss shader stage. This can be used to specify what happens if a ray does not hit anything in the scene.
+		</constant>
+		<constant name="SHADER_STAGE_INTERSECTION" value="9" enum="ShaderStage">
+			Intersection shader stage. The intersection shader for triangles is built-in. This can be used to compute ray intersections with primitives that are not triangles.
+		</constant>
+		<constant name="SHADER_STAGE_MAX" value="10" enum="ShaderStage">
 			Represents the size of the [enum ShaderStage] enum.
 		</constant>
 		<constant name="SHADER_STAGE_VERTEX_BIT" value="1" enum="ShaderStage">
@@ -2426,6 +2573,21 @@
 		</constant>
 		<constant name="SHADER_STAGE_COMPUTE_BIT" value="16" enum="ShaderStage">
 			Compute shader stage bit (see also [constant SHADER_STAGE_COMPUTE]).
+		</constant>
+		<constant name="SHADER_STAGE_RAYGEN_BIT" value="32" enum="ShaderStage">
+			Ray generation shader stage bit (see also [constant SHADER_STAGE_RAYGEN]).
+		</constant>
+		<constant name="SHADER_STAGE_ANY_HIT_BIT" value="64" enum="ShaderStage">
+			Any hit shader stage bit (see also [constant SHADER_STAGE_ANY_HIT]).
+		</constant>
+		<constant name="SHADER_STAGE_CLOSEST_HIT_BIT" value="128" enum="ShaderStage">
+			Closest hit shader stage bit (see also [constant SHADER_STAGE_CLOSEST_HIT]).
+		</constant>
+		<constant name="SHADER_STAGE_MISS_BIT" value="256" enum="ShaderStage">
+			Miss shader stage bit (see also [constant SHADER_STAGE_MISS]).
+		</constant>
+		<constant name="SHADER_STAGE_INTERSECTION_BIT" value="512" enum="ShaderStage">
+			Intersection shader stage bit (see also [constant SHADER_STAGE_INTERSECTION]).
 		</constant>
 		<constant name="SHADER_LANGUAGE_GLSL" value="0" enum="ShaderLanguage">
 			Khronos' GLSL shading language (used natively by OpenGL and Vulkan). This is the language used for core Godot shaders.
@@ -2444,6 +2606,9 @@
 		</constant>
 		<constant name="SUPPORTS_BUFFER_DEVICE_ADDRESS" value="6" enum="Features">
 			Features support for buffer device address extension.
+		</constant>
+		<constant name="SUPPORTS_RAYTRACING" value="7" enum="Features">
+			Features support for raytracing extension.
 		</constant>
 		<constant name="LIMIT_MAX_BOUND_UNIFORM_SETS" value="0" enum="Limit">
 			Maximum number of uniform sets that can be bound at a given time.

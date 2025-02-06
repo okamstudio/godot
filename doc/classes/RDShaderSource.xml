@@ -31,11 +31,26 @@
 		<member name="language" type="int" setter="set_language" getter="get_language" enum="RenderingDevice.ShaderLanguage" default="0">
 			The language the shader is written in.
 		</member>
+		<member name="source_any_hit" type="String" setter="set_stage_source" getter="get_stage_source" default="&quot;&quot;">
+			Source code for the shader's any hit stage.
+		</member>
+		<member name="source_closest_hit" type="String" setter="set_stage_source" getter="get_stage_source" default="&quot;&quot;">
+			Source code for the shader's closest hit stage.
+		</member>
 		<member name="source_compute" type="String" setter="set_stage_source" getter="get_stage_source" default="&quot;&quot;">
 			Source code for the shader's compute stage.
 		</member>
 		<member name="source_fragment" type="String" setter="set_stage_source" getter="get_stage_source" default="&quot;&quot;">
 			Source code for the shader's fragment stage.
+		</member>
+		<member name="source_intersection" type="String" setter="set_stage_source" getter="get_stage_source" default="&quot;&quot;">
+			Source code for the shader's intersection stage.
+		</member>
+		<member name="source_miss" type="String" setter="set_stage_source" getter="get_stage_source" default="&quot;&quot;">
+			Source code for the shader's miss stage.
+		</member>
+		<member name="source_raygen" type="String" setter="set_stage_source" getter="get_stage_source" default="&quot;&quot;">
+			Source code for the shader's ray generation stage.
 		</member>
 		<member name="source_tesselation_control" type="String" setter="set_stage_source" getter="get_stage_source" default="&quot;&quot;">
 			Source code for the shader's tessellation control stage.
