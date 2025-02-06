@@ -68,6 +68,7 @@ private:
 	bool is_folder_empty = true;
 	ConfirmationDialog *nonempty_confirmation = nullptr;
 
+	CheckBox *set_as_default_dir = nullptr;
 	CheckButton *create_dir = nullptr;
 	Button *project_browse = nullptr;
 	Button *install_browse = nullptr;
@@ -107,6 +108,7 @@ private:
 	// Install path is only visible when importing a ZIP.
 	String _get_target_path();
 	void _set_target_path(const String &p_text);
+	String _get_default_project_path() const;
 
 	// Calculated from project name / ZIP name.
 	String auto_dir;
