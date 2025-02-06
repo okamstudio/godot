@@ -862,7 +862,7 @@ void ProjectDialog::_notification(int p_what) {
 			fdialog_project->set_access(EditorFileDialog::ACCESS_FILESYSTEM);
 			fdialog_project->connect("dir_selected", callable_mp(this, &ProjectDialog::_project_path_selected));
 			fdialog_project->connect("file_selected", callable_mp(this, &ProjectDialog::_project_path_selected));
-			fdialog_project->connect("canceled", callable_mp(this, &ProjectDialog::show_dialog).bind(false), CONNECT_DEFERRED);
+			fdialog_project->connect("confirmed", callable_mp(this, &ProjectDialog::show_dialog).bind(false), CONNECT_DEFERRED);
 			callable_mp((Node *)this, &Node::add_sibling).call_deferred(fdialog_project, false);
 		} break;
 	}
