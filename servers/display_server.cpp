@@ -30,6 +30,7 @@
 
 #include "display_server.h"
 
+#include "core/error/error_list.h"
 #include "core/input/input.h"
 #include "scene/resources/texture.h"
 #include "servers/display_server_headless.h"
@@ -556,6 +557,14 @@ String DisplayServer::clipboard_get_primary() const {
 	ERR_FAIL_V_MSG(String(), "Primary clipboard is not supported by this display server.");
 }
 
+bool DisplayServer::clipboard_has_type(const String &p_type) const {
+	ERR_FAIL_V_MSG(false, "Dynamic Clipboard is not implemented yet by this display server.");
+}
+
+Vector<uint8_t> DisplayServer::clipboard_get_type(const String &p_type) const {
+	ERR_FAIL_V_MSG(Vector<uint8_t>(), "Dynamic Clipboard is not implemented yet by this display server.");
+}
+
 void DisplayServer::screen_set_orientation(ScreenOrientation p_orientation, int p_screen) {
 	WARN_PRINT("Orientation not supported by this display server.");
 }
@@ -920,6 +929,9 @@ void DisplayServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("clipboard_has_image"), &DisplayServer::clipboard_has_image);
 	ClassDB::bind_method(D_METHOD("clipboard_set_primary", "clipboard_primary"), &DisplayServer::clipboard_set_primary);
 	ClassDB::bind_method(D_METHOD("clipboard_get_primary"), &DisplayServer::clipboard_get_primary);
+
+	ClassDB::bind_method(D_METHOD("clipboard_has_type", "type"), &DisplayServer::clipboard_has_type);
+	ClassDB::bind_method(D_METHOD("clipboard_get_type", "type"), &DisplayServer::clipboard_get_type);
 
 	ClassDB::bind_method(D_METHOD("get_display_cutouts"), &DisplayServer::get_display_cutouts);
 	ClassDB::bind_method(D_METHOD("get_display_safe_area"), &DisplayServer::get_display_safe_area);
@@ -1374,6 +1386,13 @@ bool DisplayServer::can_create_rendering_device() {
 
 #endif // RD_ENABLED
 	return false;
+}
+
+Ref<Image> _get_png_from_buffer(Vector<uint8_t> p_buffer) {
+	Ref<Image> image;
+	image.instantiate();
+	image->load_png_from_buffer(p_buffer);
+	return image;
 }
 
 DisplayServer::DisplayServer() {

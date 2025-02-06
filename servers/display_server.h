@@ -35,7 +35,11 @@
 #include "core/io/image.h"
 #include "core/io/resource.h"
 #include "core/os/os.h"
+#include "core/string/string_name.h"
+#include "core/templates/hash_map.h"
 #include "core/variant/callable.h"
+#include "core/variant/dictionary.h"
+#include "core/variant/variant.h"
 
 #include "display/native_menu.h"
 
@@ -275,6 +279,7 @@ private:
 protected:
 	static bool _get_window_early_clear_override(Color &r_color);
 
+
 public:
 	static void set_early_window_clear_color_override(bool p_enabled, Color p_color = Color(0, 0, 0, 0));
 
@@ -305,6 +310,9 @@ public:
 	virtual bool clipboard_has_image() const;
 	virtual void clipboard_set_primary(const String &p_text);
 	virtual String clipboard_get_primary() const;
+
+	virtual bool clipboard_has_type(const String &p_type) const;
+	virtual PackedByteArray clipboard_get_type(const String &p_type) const;
 
 	virtual TypedArray<Rect2> get_display_cutouts() const { return TypedArray<Rect2>(); }
 	virtual Rect2i get_display_safe_area() const { return screen_get_usable_rect(); }

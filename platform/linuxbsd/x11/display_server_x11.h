@@ -312,7 +312,7 @@ class DisplayServerX11 : public DisplayServer {
 
 	String _clipboard_get_impl(Atom p_source, Window x11_window, Atom target) const;
 	String _clipboard_get(Atom p_source, Window x11_window) const;
-	Atom _clipboard_get_image_target(Atom p_source, Window x11_window) const;
+	Atom _clipboard_get_type_target(Atom p_source, Window x11_window, const String &p_type) const;
 	void _clipboard_transfer_ownership(Atom p_source, Window x11_window) const;
 
 	bool do_mouse_warp = false;
@@ -445,6 +445,9 @@ public:
 	virtual bool clipboard_has_image() const override;
 	virtual void clipboard_set_primary(const String &p_text) override;
 	virtual String clipboard_get_primary() const override;
+
+	virtual bool clipboard_has_type(const String &p_type) const override;
+	virtual Vector<uint8_t> clipboard_get_type(const String &p_type) const override;
 
 	virtual int get_screen_count() const override;
 	virtual int get_primary_screen() const override;

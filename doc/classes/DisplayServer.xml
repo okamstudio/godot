@@ -37,6 +37,13 @@
 				[b]Note:[/b] This method is only implemented on Linux (X11/Wayland).
 			</description>
 		</method>
+		<method name="clipboard_get_type" qualifiers="const">
+			<return type="PackedByteArray" />
+			<param index="0" name="type" type="String" />
+			<description>
+				Returns the contents of the user's clipboard as the MIME type [param type].
+			</description>
+		</method>
 		<method name="clipboard_has" qualifiers="const">
 			<return type="bool" />
 			<description>
@@ -47,6 +54,13 @@
 			<return type="bool" />
 			<description>
 				Returns [code]true[/code] if there is an image content on the user's clipboard.
+			</description>
+		</method>
+		<method name="clipboard_has_type" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="type" type="String" />
+			<description>
+				Returns [code]true[/code] if the user's clipboard data can be retrieved as the MIME type [param type].
 			</description>
 		</method>
 		<method name="clipboard_set">
