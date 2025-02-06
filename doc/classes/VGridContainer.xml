@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="VGridContainer" inherits="GridContainer" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		A container that arranges its child controls in a grid layout vertically.
+	</brief_description>
+	<description>
+		A variant of [GridContainer] that can only arrange its child controls vertically, with a set number of [member GridContainer.columns], and a changing number of [member GridContainer.rows].
+		Child controls are rearranged automatically when their minimum size changes.
+	</description>
+	<tutorials>
+		<link title="Using Containers">$DOCS_URL/tutorials/ui/gui_containers.html</link>
+	</tutorials>
+</class>
