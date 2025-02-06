@@ -943,6 +943,12 @@
 			[b]Note:[/b] The [b]Adaptive[/b] and [b]Mailbox[/b] V-Sync modes are only supported in the Forward+ and Mobile rendering methods, not Compatibility.
 			[b]Note:[/b] This property is only read when the project starts. To change the V-Sync mode at runtime, call [method DisplayServer.window_set_vsync_mode] instead.
 		</member>
+		<member name="dotnet/build/custom_compiler_arguments" type="PackedStringArray" setter="" getter="" default="PackedStringArray()">
+			Allows specifying additional compiler arguments for [code]dotnet[/code] when building inside the editor.
+		</member>
+		<member name="dotnet/build/custom_publish_arguments" type="PackedStringArray" setter="" getter="" default="PackedStringArray()">
+			Allows specifying additional compiler arguments for [code]dotnet[/code] when exporting.
+		</member>
 		<member name="dotnet/project/assembly_name" type="String" setter="" getter="" default="&quot;&quot;">
 			Name of the .NET assembly. This name is used as the name of the [code].csproj[/code] and [code].sln[/code] files. By default, it's set to the name of the project ([member application/config/name]) allowing to change it in the future without affecting the .NET assembly.
 		</member>

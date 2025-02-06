@@ -22,6 +22,9 @@ namespace GodotTools.Build
         // TODO Use List once we have proper serialization
         public Godot.Collections.Array CustomProperties { get; private set; } = new();
 
+        // Arguments specified by the user in ProjectSettings. Passed last to the build process to override any previous arguments.
+        public Godot.Collections.Array CustomArguments { get; private set; } = new();
+
         public string LogsDirPath => GodotSharpDirs.LogsDirPathFor(Solution, Configuration);
 
         public override bool Equals([NotNullWhen(true)] object? obj)
