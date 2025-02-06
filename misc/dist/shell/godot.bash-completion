@@ -96,6 +96,7 @@ _complete_godot_options() {
 --dump-extension-api
 --benchmark
 --benchmark-file
+--generate-pot
 --test
 " -- "$1"))
 }
@@ -145,6 +146,10 @@ _complete_godot_bash() {
     local IFS=$'\n\t'
     # shellcheck disable=SC2207
     COMPREPLY=($(compgen -f -X "!*.gd" -- "$cur"))
+  elif [[ $prev == "--generate-pot" ]]; then
+    local IFS=$'\n\t'
+    # shellcheck disable=SC2207
+    COMPREPLY=($(compgen -f -- "$cur"))
   fi
 }
 

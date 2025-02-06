@@ -106,6 +106,7 @@
 #include "editor/editor_paths.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_translation.h"
+#include "editor/pot_generator.h"
 #include "editor/progress_dialog.h"
 #include "editor/project_manager.h"
 #include "editor/register_editor_types.h"
@@ -200,6 +201,7 @@ static bool found_project = false;
 static bool recovery_mode = false;
 static bool auto_build_solutions = false;
 static String debug_server_uri;
+static String generate_pot_path;
 static bool wait_for_import = false;
 static bool restore_editor_window_layout = true;
 #ifndef DISABLE_DEPRECATED
@@ -663,6 +665,7 @@ void Main::print_help(const char *p_binary) {
 	print_help_option("", "If incompatibilities or errors are detected, the exit code will be non-zero.\n");
 	print_help_option("--benchmark", "Benchmark the run time and print it to console.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("--benchmark-file <path>", "Benchmark the run time and save it to a given file in JSON format. The path should be absolute.\n", CLI_OPTION_AVAILABILITY_EDITOR);
+	print_help_option("--generate-pot <path>", "Generate POT file for use with gettext translations, and then quit.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 #ifdef TESTS_ENABLED
 	print_help_option("--test [--help]", "Run unit tests. Use --test --help for more information.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 #endif
@@ -1552,6 +1555,26 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 				goto error;
 			}
 #endif // MODULE_GDSCRIPT_ENABLED
+		} else if (arg == "--generate-pot") {
+			editor = true;
+			cmdline_tool = true;
+			wait_for_import = true;
+			quit_after = 1;
+
+			if (N) {
+				// Will be handled in start()
+				main_args.push_back(arg);
+				main_args.push_back(N->get());
+				N = N->next();
+			} else {
+				OS::get_singleton()->print("Missing POT file path after --generate-pot, aborting.\n");
+				goto error;
+			}
+
+			// `--generate-pot` implies `--headless` to avoid spawning an unnecessary window
+			// and speed up class reference generation.
+			audio_driver = NULL_AUDIO_DRIVER;
+			display_driver = NULL_DISPLAY_DRIVER;
 #endif // TOOLS_ENABLED
 		} else if (arg == "--path") { // set path of project to start or edit
 
@@ -3684,6 +3707,10 @@ int Main::start() {
 				export_patch = true;
 			} else if (E->get() == "--patches") {
 				patches = E->next()->get().split(",", false);
+			} else if (E->get() == "--generate-pot") {
+				ERR_FAIL_COND_V_MSG(!editor && !found_project, EXIT_FAILURE, "Please provide a valid project path when generating POT file, aborting.");
+				editor = true;
+				generate_pot_path = E->next()->get();
 #endif
 			} else {
 				// The parameter does not match anything known, don't skip the next argument
@@ -4581,6 +4608,11 @@ bool Main::iteration() {
 			ERR_FAIL_V_MSG(true,
 					"Command line option --build-solutions was passed, but the build callback failed. Aborting.");
 		}
+	}
+
+	if (!generate_pot_path.is_empty()) {
+		print_line("Generating POT file " + generate_pot_path);
+		POTGenerator::get_singleton()->generate_pot(generate_pot_path);
 	}
 #endif
 
