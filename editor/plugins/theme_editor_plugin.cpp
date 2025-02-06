@@ -2620,15 +2620,14 @@ void ThemeTypeEditor::_update_type_items() {
 					item_editor->set_edited_resource(Ref<Resource>());
 				}
 				item_editor->connect("resource_selected", callable_mp(this, &ThemeTypeEditor::_edit_resource_item));
-				item_editor->connect("resource_changed", callable_mp(this, &ThemeTypeEditor::_font_item_changed).bind(E.key));
 			} else {
 				if (ThemeDB::get_singleton()->get_default_theme()->has_font(E.key, edited_type)) {
 					item_editor->set_edited_resource(ThemeDB::get_singleton()->get_default_theme()->get_font(E.key, edited_type));
 				} else {
 					item_editor->set_edited_resource(Ref<Resource>());
 				}
-				item_editor->set_editable(false);
 			}
+			item_editor->connect("resource_changed", callable_mp(this, &ThemeTypeEditor::_font_item_changed).bind(E.key));
 
 			_add_focusable(item_editor);
 			font_items_list->add_child(item_control);
@@ -2691,15 +2690,14 @@ void ThemeTypeEditor::_update_type_items() {
 					item_editor->set_edited_resource(Ref<Resource>());
 				}
 				item_editor->connect("resource_selected", callable_mp(this, &ThemeTypeEditor::_edit_resource_item));
-				item_editor->connect("resource_changed", callable_mp(this, &ThemeTypeEditor::_icon_item_changed).bind(E.key));
 			} else {
 				if (ThemeDB::get_singleton()->get_default_theme()->has_icon(E.key, edited_type)) {
 					item_editor->set_edited_resource(ThemeDB::get_singleton()->get_default_theme()->get_icon(E.key, edited_type));
 				} else {
 					item_editor->set_edited_resource(Ref<Resource>());
 				}
-				item_editor->set_editable(false);
 			}
+			item_editor->connect("resource_changed", callable_mp(this, &ThemeTypeEditor::_icon_item_changed).bind(E.key));
 
 			_add_focusable(item_editor);
 			icon_items_list->add_child(item_control);
@@ -2763,7 +2761,6 @@ void ThemeTypeEditor::_update_type_items() {
 					item_editor->set_edited_resource(Ref<Resource>());
 				}
 				item_editor->connect("resource_selected", callable_mp(this, &ThemeTypeEditor::_edit_resource_item));
-				item_editor->connect("resource_changed", callable_mp(this, &ThemeTypeEditor::_stylebox_item_changed).bind(E.key));
 
 				Button *pin_leader_button = memnew(Button);
 				pin_leader_button->set_flat(true);
@@ -2778,8 +2775,8 @@ void ThemeTypeEditor::_update_type_items() {
 				} else {
 					item_editor->set_edited_resource(Ref<Resource>());
 				}
-				item_editor->set_editable(false);
 			}
+			item_editor->connect("resource_changed", callable_mp(this, &ThemeTypeEditor::_stylebox_item_changed).bind(E.key));
 
 			item_control->add_child(item_editor);
 			_add_focusable(item_editor);
