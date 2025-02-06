@@ -1648,7 +1648,9 @@ RBSet<TerrainConstraint> TileMapLayer::_get_terrain_constraints_from_painted_cel
 void TileMapLayer::_tile_set_changed() {
 	dirty.flags[DIRTY_FLAGS_TILE_SET] = true;
 	_queue_internal_update();
-	emit_signal(CoreStringName(changed));
+	if (is_inside_tree()) {
+		emit_signal(CoreStringName(changed));
+	}
 }
 
 void TileMapLayer::_renamed() {
