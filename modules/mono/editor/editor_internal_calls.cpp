@@ -47,6 +47,7 @@
 #include "editor/editor_settings.h"
 #include "editor/export/lipo.h"
 #include "editor/gui/editor_run_bar.h"
+#include "editor/gui/editor_toaster.h"
 #include "editor/plugins/script_editor_plugin.h"
 #include "editor/themes/editor_scale.h"
 #include "main/main.h"
@@ -181,6 +182,13 @@ void godot_icall_Internal_EditorPlugin_AddControlToEditorRunBar(Control *p_contr
 	EditorRunBar::get_singleton()->get_buttons_container()->add_child(p_control);
 }
 
+void godot_icall_Internal_EditorToaster_PopupStr(godot_string *p_message, int64_t p_severity, godot_string *p_tooltip) {
+	String message = *reinterpret_cast<const String *>(p_message);
+	String tooltip = *reinterpret_cast<const String *>(p_tooltip);
+	EditorToaster::Severity severity = static_cast<EditorToaster::Severity>(p_severity);
+	EditorToaster::get_singleton()->popup_str(message, severity, tooltip);
+}
+
 void godot_icall_Internal_ScriptEditorDebugger_ReloadScripts() {
 	EditorDebuggerNode *ed = EditorDebuggerNode::get_singleton();
 	if (ed) {
@@ -279,6 +287,7 @@ static const void *unmanaged_callbacks[]{
 	(void *)godot_icall_Internal_EditorRunPlay,
 	(void *)godot_icall_Internal_EditorRunStop,
 	(void *)godot_icall_Internal_EditorPlugin_AddControlToEditorRunBar,
+	(void *)godot_icall_Internal_EditorToaster_PopupStr,
 	(void *)godot_icall_Internal_ScriptEditorDebugger_ReloadScripts,
 	(void *)godot_icall_Internal_CodeCompletionRequest,
 	(void *)godot_icall_Globals_EditorScale,

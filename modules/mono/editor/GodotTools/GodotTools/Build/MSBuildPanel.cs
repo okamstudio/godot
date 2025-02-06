@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using Godot;
 using GodotTools.Internals;
 using static GodotTools.Internals.Globals;
@@ -56,15 +57,15 @@ namespace GodotTools.Build
             switch ((BuildMenuOptions)id)
             {
                 case BuildMenuOptions.BuildProject:
-                    BuildProject();
+                    _ = BuildProject();
                     break;
 
                 case BuildMenuOptions.RebuildProject:
-                    RebuildProject();
+                    _ = RebuildProject();
                     break;
 
                 case BuildMenuOptions.CleanProject:
-                    CleanProject();
+                    _ = CleanProject();
                     break;
 
                 default:
@@ -72,12 +73,12 @@ namespace GodotTools.Build
             }
         }
 
-        public void BuildProject()
+        public async Task BuildProject()
         {
             if (!File.Exists(GodotSharpDirs.ProjectCsProjPath))
                 return; // No project to build.
 
-            if (!BuildManager.BuildProjectBlocking("Debug"))
+            if (!await BuildManager.BuildProjectAsync("Debug"))
                 return; // Build failed.
 
             // Notify running game for hot-reload.
@@ -93,12 +94,12 @@ namespace GodotTools.Build
             }
         }
 
-        private void RebuildProject()
+        private async Task RebuildProject()
         {
             if (!File.Exists(GodotSharpDirs.ProjectCsProjPath))
                 return; // No project to build.
 
-            if (!BuildManager.BuildProjectBlocking("Debug", rebuild: true))
+            if (!await BuildManager.BuildProjectAsync("Debug", rebuild: true))
                 return; // Build failed.
 
             // Notify running game for hot-reload.
@@ -114,12 +115,12 @@ namespace GodotTools.Build
             }
         }
 
-        private void CleanProject()
+        private async Task CleanProject()
         {
             if (!File.Exists(GodotSharpDirs.ProjectCsProjPath))
                 return; // No project to build.
 
-            _ = BuildManager.CleanProjectBlocking("Debug");
+            _ = await BuildManager.CleanProjectAsync("Debug");
         }
 
         private void OpenLogsFolder() => OS.ShellOpen(
@@ -141,6 +142,7 @@ namespace GodotTools.Build
             };
 
             _problemsView.SetDiagnostics(new[] { diagnostic });
+            _buildMenuButton.Disabled = IsBuildingOngoing;
 
             EmitSignal(SignalName.BuildStateChanged);
         }
@@ -155,6 +157,7 @@ namespace GodotTools.Build
             _outputView.Clear();
 
             _problemsView.UpdateProblemsView();
+            _buildMenuButton.Disabled = IsBuildingOngoing;
 
             EmitSignal(SignalName.BuildStateChanged);
         }
@@ -168,6 +171,7 @@ namespace GodotTools.Build
             _problemsView.SetDiagnosticsFromFile(csvFile);
 
             _problemsView.UpdateProblemsView();
+            _buildMenuButton.Disabled = IsBuildingOngoing;
 
             EmitSignal(SignalName.BuildStateChanged);
         }

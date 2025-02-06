@@ -17,6 +17,13 @@ namespace GodotTools.Internals
         public const string CSharpLanguageType = "CSharpScript";
         public const string CSharpLanguageExtension = ".cs";
 
+        public enum EditorToasterSeverity : long
+        {
+            Info = 0,
+            Warning,
+            Error,
+        };
+
         public static string FullExportTemplatesDir
         {
             get
@@ -65,6 +72,13 @@ namespace GodotTools.Internals
 
         public static void EditorPlugin_AddControlToEditorRunBar(Control control) =>
             godot_icall_Internal_EditorPlugin_AddControlToEditorRunBar(control.NativeInstance);
+
+        public static void EditorToaster_PopupStr(string message, EditorToasterSeverity severity = EditorToasterSeverity.Info, string? tooltip = null)
+        {
+            using godot_string messageIn = Marshaling.ConvertStringToNative(message);
+            using godot_string tooltipIn = Marshaling.ConvertStringToNative(tooltip);
+            godot_icall_Internal_EditorToaster_PopupStr(messageIn, (long)severity, tooltipIn);
+        }
 
         public static void ScriptEditorDebugger_ReloadScripts() =>
             godot_icall_Internal_ScriptEditorDebugger_ReloadScripts();
@@ -152,6 +166,8 @@ namespace GodotTools.Internals
         private static partial void godot_icall_Internal_EditorRunStop();
 
         private static partial void godot_icall_Internal_EditorPlugin_AddControlToEditorRunBar(IntPtr p_control);
+
+        private static partial void godot_icall_Internal_EditorToaster_PopupStr(in godot_string p_message, long p_severity, in godot_string p_tooltip);
 
         private static partial void godot_icall_Internal_ScriptEditorDebugger_ReloadScripts();
 

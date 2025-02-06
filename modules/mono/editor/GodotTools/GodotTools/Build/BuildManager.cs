@@ -221,6 +221,12 @@ namespace GodotTools.Build
             if (!File.Exists(buildInfo.Project))
                 return true; // No project to build.
 
+            if (_buildInProgress != null)
+            {
+                Internal.EditorToaster_PopupStr(".NET Build already in progress!", Internal.EditorToasterSeverity.Error);
+                return false; // Build already in progress
+            }
+
             bool success;
             using (var pr = new EditorProgress("dotnet_build_project", "Building .NET project...", 1))
             {
@@ -241,6 +247,12 @@ namespace GodotTools.Build
             if (!File.Exists(buildInfo.Project))
                 return true; // No project to clean.
 
+            if (_buildInProgress != null)
+            {
+                Internal.EditorToaster_PopupStr(".NET Build already in progress!", Internal.EditorToasterSeverity.Error);
+                return false; // Build already in progress
+            }
+
             bool success;
             using (var pr = new EditorProgress("dotnet_clean_project", "Cleaning .NET project...", 1))
             {
@@ -258,11 +270,64 @@ namespace GodotTools.Build
 
         private static bool PublishProjectBlocking(BuildInfo buildInfo)
         {
+            if (!File.Exists(buildInfo.Project))
+                return true; // No project to publish.
+
+            if (_buildInProgress != null)
+            {
+                Internal.EditorToaster_PopupStr(".NET Build already in progress!", Internal.EditorToasterSeverity.Error);
+                return false; // Build already in progress
+            }
+
             bool success;
             using (var pr = new EditorProgress("dotnet_publish_project", "Publishing .NET project...", 1))
             {
                 pr.Step("Running dotnet publish", 0);
                 success = Publish(buildInfo);
+            }
+
+            return success;
+        }
+
+        private static async Task<bool> BuildProjectAsync(BuildInfo buildInfo)
+        {
+            if (!File.Exists(buildInfo.Project))
+                return true; // No project to build.
+
+            if (_buildInProgress != null)
+                return false; // Already a build in progress.
+
+            bool success = await BuildAsync(buildInfo);
+
+            if (!success)
+            {
+                ShowBuildErrorDialog("Failed to build project");
+            }
+            else
+            {
+                Internal.EditorToaster_PopupStr(".NET Build Completed.");
+            }
+
+            return success;
+        }
+
+        private static async Task<bool> CleanProjectAsync(BuildInfo buildInfo)
+        {
+            if (!File.Exists(buildInfo.Project))
+                return true; // No project to clean.
+
+            if (_buildInProgress != null)
+                return false; // Already a build in progress.
+
+            bool success = await BuildAsync(buildInfo);
+
+            if (!success)
+            {
+                ShowBuildErrorDialog("Failed to clean project");
+            }
+            else
+            {
+                Internal.EditorToaster_PopupStr(".NET Clean Build Completed.");
             }
 
             return success;
@@ -332,6 +397,17 @@ namespace GodotTools.Build
             bool includeDebugSymbols = true
         ) => PublishProjectBlocking(CreatePublishBuildInfo(configuration,
             platform, runtimeIdentifier, publishOutputDir, includeDebugSymbols));
+
+        public static async Task<bool> BuildProjectAsync(
+            string configuration,
+            string? platform = null,
+            bool rebuild = false
+        ) => await BuildProjectAsync(CreateBuildInfo(configuration, platform, rebuild));
+
+        public static async Task<bool> CleanProjectAsync(
+            string configuration,
+            string? platform = null
+        ) => await CleanProjectAsync(CreateBuildInfo(configuration, platform, rebuild: false, onlyClean: true));
 
         public static bool GenerateXCFrameworkBlocking(
             List<string> outputPaths,

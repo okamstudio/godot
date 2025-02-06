@@ -151,7 +151,7 @@ namespace GodotTools
                     return; // Failed to create project.
             }
 
-            Instance.MSBuildPanel.BuildProject();
+            _ = Instance.MSBuildPanel.BuildProject();
         }
 
         private enum MenuOptions
@@ -459,6 +459,9 @@ namespace GodotTools
         {
             if (_bottomPanelBtn != null)
                 _bottomPanelBtn.Icon = MSBuildPanel.GetBuildStateIcon();
+
+            if (_toolBarBuildButton != null)
+                _toolBarBuildButton.Disabled = MSBuildPanel.IsBuildingOngoing;
         }
 
         public override void _EnablePlugin()
