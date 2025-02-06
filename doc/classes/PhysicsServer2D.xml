@@ -1058,7 +1058,7 @@
 			Constant to set/get gravity strength in an area. The default value of this parameter is [code]9.80665[/code].
 		</constant>
 		<constant name="AREA_PARAM_GRAVITY_VECTOR" value="2" enum="AreaParameter">
-			Constant to set/get gravity vector/center in an area. The default value of this parameter is [code]Vector2(0, -1)[/code].
+			Constant to set/get gravity vector/center in an area. The default value of this parameter is [code]Vector2(0, 1)[/code].
 		</constant>
 		<constant name="AREA_PARAM_GRAVITY_IS_POINT" value="3" enum="AreaParameter">
 			Constant to set/get whether the gravity vector of an area is a direction, or a center point. The default value of this parameter is [code]false[/code].
