@@ -63,6 +63,7 @@ class GDScript : public Script {
 	bool tool = false;
 	bool valid = false;
 	bool reloading = false;
+	bool shallow = true;
 
 	struct MemberInfo {
 		int index = 0;
