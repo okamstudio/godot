@@ -1864,7 +1864,7 @@ void main() {
 #else //MODE_MULTIPLE_RENDER_TARGETS
 
 #ifdef MODE_UNSHADED
-	frag_color = vec4(albedo, alpha);
+	frag_color = vec4(emission + albedo, alpha);
 #else // MODE_UNSHADED
 	frag_color = vec4(emission + ambient_light + diffuse_light + specular_light, alpha);
 #endif // MODE_UNSHADED
