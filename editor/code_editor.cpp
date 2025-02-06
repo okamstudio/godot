@@ -678,7 +678,7 @@ void FindReplaceBar::_search_text_submitted(const String &p_text) {
 }
 
 void FindReplaceBar::_replace_text_submitted(const String &p_text) {
-	if (selection_only->is_pressed() && text_editor->has_selection(0)) {
+	if ((Input::get_singleton()->is_key_pressed(Key::CMD_OR_CTRL) && Input::get_singleton()->is_key_pressed(Key::ALT)) || (selection_only->is_pressed() && text_editor->has_selection(0))) {
 		_replace_all();
 		_hide_bar();
 	} else if (Input::get_singleton()->is_key_pressed(Key::SHIFT)) {
@@ -838,6 +838,7 @@ FindReplaceBar::FindReplaceBar() {
 	replace_all = memnew(Button);
 	hbc_button_replace->add_child(replace_all);
 	replace_all->set_text(TTR("Replace All"));
+	replace_all->set_tooltip_text("Cmd/Ctrl+Alt+Enter");
 	replace_all->connect(SceneStringName(pressed), callable_mp(this, &FindReplaceBar::_replace_all));
 
 	selection_only = memnew(CheckBox);
