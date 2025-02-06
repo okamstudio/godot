@@ -56,6 +56,7 @@
 #include "editor/gui/editor_file_dialog.h"
 #include "editor/gui/editor_run_bar.h"
 #include "editor/gui/editor_toaster.h"
+#include "editor/gui/filter_line_edit.h"
 #include "editor/inspector_dock.h"
 #include "editor/node_dock.h"
 #include "editor/plugins/editor_context_menu_plugin.h"
@@ -409,17 +410,6 @@ void ScriptEditorQuickOpen::_text_changed(const String &p_newtext) {
 	_update_search();
 }
 
-void ScriptEditorQuickOpen::_sbox_input(const Ref<InputEvent> &p_event) {
-	// Redirect navigational key events to the tree.
-	Ref<InputEventKey> key = p_event;
-	if (key.is_valid()) {
-		if (key->is_action("ui_up", true) || key->is_action("ui_down", true) || key->is_action("ui_page_up") || key->is_action("ui_page_down")) {
-			search_options->gui_input(key);
-			search_box->accept_event();
-		}
-	}
-}
-
 void ScriptEditorQuickOpen::_update_search() {
 	search_options->clear();
 	TreeItem *root = search_options->create_item();
@@ -472,23 +462,26 @@ void ScriptEditorQuickOpen::_bind_methods() {
 }
 
 ScriptEditorQuickOpen::ScriptEditorQuickOpen() {
-	VBoxContainer *vbc = memnew(VBoxContainer);
-	add_child(vbc);
-	search_box = memnew(LineEdit);
-	vbc->add_margin_child(TTR("Search:"), search_box);
-	search_box->connect(SceneStringName(text_changed), callable_mp(this, &ScriptEditorQuickOpen::_text_changed));
-	search_box->connect(SceneStringName(gui_input), callable_mp(this, &ScriptEditorQuickOpen::_sbox_input));
-	search_options = memnew(Tree);
-	vbc->add_margin_child(TTR("Matches:"), search_options, true);
 	set_ok_button_text(TTR("Open"));
 	get_ok_button()->set_disabled(true);
-	register_text_enter(search_box);
 	set_hide_on_ok(false);
-	search_options->connect("item_activated", callable_mp(this, &ScriptEditorQuickOpen::_confirmed));
+
+	VBoxContainer *vbc = memnew(VBoxContainer);
+	add_child(vbc);
+
+	search_box = memnew(FilterLineEdit);
+	vbc->add_margin_child(TTR("Search:"), search_box);
+	search_box->connect(SceneStringName(text_changed), callable_mp(this, &ScriptEditorQuickOpen::_text_changed));
+
+	search_options = memnew(Tree);
+	search_box->set_forward_control(search_options);
+	register_text_enter(search_box);
 	search_options->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
 	search_options->set_hide_root(true);
 	search_options->set_hide_folding(true);
 	search_options->add_theme_constant_override("draw_guides", 1);
+	vbc->add_margin_child(TTR("Matches:"), search_options, true);
+	search_options->connect("item_activated", callable_mp(this, &ScriptEditorQuickOpen::_confirmed));
 }
 
 /////////////////////////////////
@@ -4691,7 +4684,4 @@ ScriptEditorPlugin::ScriptEditorPlugin() {
 	window_wrapper->connect("window_visibility_changed", callable_mp(this, &ScriptEditorPlugin::_window_visibility_changed));
 
 	ScriptServer::set_reload_scripts_on_save(EDITOR_GET("text_editor/behavior/files/auto_reload_and_parse_scripts_on_save"));
-}
-
-ScriptEditorPlugin::~ScriptEditorPlugin() {
 }

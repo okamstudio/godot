@@ -39,6 +39,7 @@
 #include "editor/editor_undo_redo_manager.h"
 #include "editor/gui/editor_bottom_panel.h"
 #include "editor/gui/editor_file_dialog.h"
+#include "editor/gui/filter_line_edit.h"
 #include "editor/inspector_dock.h"
 #include "editor/progress_dialog.h"
 #include "editor/themes/editor_scale.h"
@@ -2179,17 +2180,6 @@ void ThemeTypeDialog::_add_type_filter_cbk(const String &p_value) {
 	_update_add_type_options(p_value);
 }
 
-void ThemeTypeDialog::_type_filter_input(const Ref<InputEvent> &p_event) {
-	// Redirect navigational key events to the item list.
-	Ref<InputEventKey> key = p_event;
-	if (key.is_valid()) {
-		if (key->is_action("ui_up", true) || key->is_action("ui_down", true) || key->is_action("ui_page_up") || key->is_action("ui_page_down")) {
-			add_type_options->gui_input(key);
-			add_type_filter->accept_event();
-		}
-	}
-}
-
 void ThemeTypeDialog::_add_type_options_cbk(int p_index) {
 	add_type_filter->set_text(add_type_options->get_item_text(p_index));
 	add_type_filter->set_caret_column(add_type_filter->get_text().length());
@@ -2258,17 +2248,17 @@ ThemeTypeDialog::ThemeTypeDialog() {
 	add_type_filter_label->set_text(TTR("Filter the list of types or create a new custom type:"));
 	add_type_vb->add_child(add_type_filter_label);
 
-	add_type_filter = memnew(LineEdit);
+	add_type_filter = memnew(FilterLineEdit);
 	add_type_vb->add_child(add_type_filter);
 	add_type_filter->connect(SceneStringName(text_changed), callable_mp(this, &ThemeTypeDialog::_add_type_filter_cbk));
 	add_type_filter->connect(SceneStringName(text_submitted), callable_mp(this, &ThemeTypeDialog::_add_type_dialog_entered));
-	add_type_filter->connect(SceneStringName(gui_input), callable_mp(this, &ThemeTypeDialog::_type_filter_input));
 
 	Label *add_type_options_label = memnew(Label);
 	add_type_options_label->set_text(TTR("Available Node-based types:"));
 	add_type_vb->add_child(add_type_options_label);
 
 	add_type_options = memnew(ItemList);
+	add_type_filter->set_forward_control(add_type_options);
 	add_type_options->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
 	add_type_options->set_v_size_flags(Control::SIZE_EXPAND_FILL);
 	add_type_vb->add_child(add_type_options);

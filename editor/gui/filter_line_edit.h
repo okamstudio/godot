@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  property_selector.h                                                   */
+/*  filter_line_edit.h                                                    */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,62 +28,21 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PROPERTY_SELECTOR_H
-#define PROPERTY_SELECTOR_H
+#ifndef FILTER_LINE_EDIT_H
+#define FILTER_LINE_EDIT_H
 
-#include "scene/gui/dialogs.h"
+#include "scene/gui/line_edit.h"
 
-class EditorHelpBit;
-class FilterLineEdit;
-class LineEdit;
-class Tree;
-class TreeItem;
+class FilterLineEdit : public LineEdit {
+	GDCLASS(FilterLineEdit, LineEdit);
 
-class PropertySelector : public ConfirmationDialog {
-	GDCLASS(PropertySelector, ConfirmationDialog);
-
-	FilterLineEdit *search_box = nullptr;
-	Tree *search_options = nullptr;
-
-	void _text_changed(const String &p_newtext);
-	void _update_search();
-	void _confirmed();
-	void _item_selected();
-	void _hide_requested();
-
-	EditorHelpBit *help_bit = nullptr;
-
-	bool properties = false;
-	String selected;
-	Variant::Type type;
-	String base_type;
-	ObjectID script;
-	Object *instance = nullptr;
-	bool virtuals_only = false;
-
-	Vector<Variant::Type> type_filter;
-
-	void _create_subproperties(TreeItem *p_parent_item, Variant::Type p_type);
-	void _create_subproperty(TreeItem *p_parent_item, const String &p_name, Variant::Type p_type);
+	Control *forward_control = nullptr;
 
 protected:
-	void _notification(int p_what);
-	static void _bind_methods();
+	virtual void gui_input(const Ref<InputEvent> &p_event) override;
 
 public:
-	void select_method_from_base_type(const String &p_base, const String &p_current = "", bool p_virtuals_only = false);
-	void select_method_from_script(const Ref<Script> &p_script, const String &p_current = "");
-	void select_method_from_basic_type(Variant::Type p_type, const String &p_current = "");
-	void select_method_from_instance(Object *p_instance, const String &p_current = "");
-
-	void select_property_from_base_type(const String &p_base, const String &p_current = "");
-	void select_property_from_script(const Ref<Script> &p_script, const String &p_current = "");
-	void select_property_from_basic_type(Variant::Type p_type, const String &p_current = "");
-	void select_property_from_instance(Object *p_instance, const String &p_current = "");
-
-	void set_type_filter(const Vector<Variant::Type> &p_type_filter);
-
-	PropertySelector();
+	void set_forward_control(Control *p_control);
 };
 
-#endif // PROPERTY_SELECTOR_H
+#endif // FILTER_LINE_EDIT_H

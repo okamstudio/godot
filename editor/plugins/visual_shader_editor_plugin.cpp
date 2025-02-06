@@ -41,6 +41,7 @@
 #include "editor/editor_string_names.h"
 #include "editor/editor_undo_redo_manager.h"
 #include "editor/filesystem_dock.h"
+#include "editor/gui/filter_line_edit.h"
 #include "editor/inspector_dock.h"
 #include "editor/plugins/curve_editor_plugin.h"
 #include "editor/plugins/material_editor_plugin.h"
@@ -5068,17 +5069,6 @@ void VisualShaderEditor::_show_remove_varying_dialog() {
 	remove_varying_dialog->set_position(remove_varying_dialog->get_position() - difference);
 }
 
-void VisualShaderEditor::_sbox_input(const Ref<InputEvent> &p_event) {
-	// Redirect navigational key events to the tree.
-	Ref<InputEventKey> key = p_event;
-	if (key.is_valid()) {
-		if (key->is_action("ui_up", true) || key->is_action("ui_down", true) || key->is_action("ui_page_up") || key->is_action("ui_page_down")) {
-			members->gui_input(key);
-			node_filter->accept_event();
-		}
-	}
-}
-
 void VisualShaderEditor::_param_filter_changed(const String &p_text) {
 	param_filter_name = p_text;
 
@@ -6734,10 +6724,9 @@ VisualShaderEditor::VisualShaderEditor() {
 	HBoxContainer *filter_hb = memnew(HBoxContainer);
 	members_vb->add_child(filter_hb);
 
-	node_filter = memnew(LineEdit);
+	node_filter = memnew(FilterLineEdit);
 	filter_hb->add_child(node_filter);
 	node_filter->connect(SceneStringName(text_changed), callable_mp(this, &VisualShaderEditor::_member_filter_changed));
-	node_filter->connect(SceneStringName(gui_input), callable_mp(this, &VisualShaderEditor::_sbox_input));
 	node_filter->set_h_size_flags(SIZE_EXPAND_FILL);
 	node_filter->set_placeholder(TTR("Search"));
 
@@ -6749,6 +6738,7 @@ VisualShaderEditor::VisualShaderEditor() {
 	tools->get_popup()->add_item(TTR("Collapse All"), COLLAPSE_ALL);
 
 	members = memnew(Tree);
+	node_filter->set_forward_control(members);
 	members_vb->add_child(members);
 	SET_DRAG_FORWARDING_GCD(members, VisualShaderEditor);
 	members->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED); // TODO: Implement proper translation switch.

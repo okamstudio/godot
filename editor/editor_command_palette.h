@@ -31,15 +31,17 @@
 #ifndef EDITOR_COMMAND_PALETTE_H
 #define EDITOR_COMMAND_PALETTE_H
 
-#include "core/input/shortcut.h"
 #include "scene/gui/dialogs.h"
-#include "scene/gui/tree.h"
+
+class FilterLineEdit;
+class Shortcut;
+class Tree;
 
 class EditorCommandPalette : public ConfirmationDialog {
 	GDCLASS(EditorCommandPalette, ConfirmationDialog);
 
 	static EditorCommandPalette *singleton;
-	LineEdit *command_search_box = nullptr;
+	FilterLineEdit *command_search_box = nullptr;
 	Tree *search_options = nullptr;
 
 	struct Command {
@@ -79,7 +81,6 @@ class EditorCommandPalette : public ConfirmationDialog {
 
 	void _update_command_search(const String &search_text);
 	float _score_path(const String &p_search, const String &p_path);
-	void _sbox_input(const Ref<InputEvent> &p_event);
 	void _confirmed();
 	void _add_command(String p_command_name, String p_key_name, Callable p_binded_action, String p_shortcut_text = "None");
 	void _save_history() const;

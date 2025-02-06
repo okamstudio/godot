@@ -42,6 +42,7 @@
 class CodeEdit;
 class ColorPicker;
 class CurveEditor;
+class FilterLineEdit;
 class GraphElement;
 class GraphFrame;
 class MenuButton;
@@ -366,7 +367,7 @@ class VisualShaderEditor : public ShaderEditor {
 
 	Tree *members = nullptr;
 	AcceptDialog *alert = nullptr;
-	LineEdit *node_filter = nullptr;
+	FilterLineEdit *node_filter = nullptr;
 	RichTextLabel *node_desc = nullptr;
 	Label *highend_label = nullptr;
 
@@ -589,7 +590,6 @@ class VisualShaderEditor : public ShaderEditor {
 	void _graph_gui_input(const Ref<InputEvent> &p_event);
 
 	void _member_filter_changed(const String &p_text);
-	void _sbox_input(const Ref<InputEvent> &p_event);
 	void _member_selected();
 	void _member_create();
 	void _member_cancel();
