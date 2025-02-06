@@ -87,16 +87,28 @@ a:active {
 }
 
 #tabs-buttons {
-	/* Match the default background color of the editor window for a seamless appearance. */
-	background-color: #202531;
+	position: absolute;
+	width: 100%;
+	/* Match to height of contained buttons. Non-hardcoded solution would be preferable. */
+	height: 27px;
+	/* Keep above the canvas when floating. */
+	z-index: 1;
 }
 
-#tab-game {
+#tabs-buttons.relative {
+	position: relative;
+}
+
+#tab-game, #tabs-buttons.relative {
 	/* Use a pure black background to better distinguish the running project */
 	/* from the editor window, and to use a more neutral background color (no tint). */
 	background-color: black;
 	/* Make the background span the entire page height. */
 	min-height: 100vh;
+}
+
+#game-canvas {
+	background: #202531;
 }
 
 #canvas, #gameCanvas {
@@ -124,7 +136,7 @@ a:active {
 .btn {
 	appearance: none;
 	color: #e0e0e0;
-	background-color: #262c3b;
+	background-color: hsl(223 22% 19%);
 	border: 1px solid #202531;
 	padding: 0.5rem 1rem;
 	margin: 0 0.5rem;
@@ -145,8 +157,55 @@ a:active {
 	border-color: #242937;
 }
 
+.container.tab-btn {
+	position: absolute;
+	/* Hide unremovable space between each button */
+	font-size: 0;
+}
+
+.container.tab-btn-editor {
+	left: 28%;
+}
+
+.container.tab-btn-game {
+	right: 35%;
+}
+
+.container.tab-btn > .btn {
+	margin: 0;
+	border: 0 solid hsl(223 22% 30%);
+	border-block-width: 2px;
+	border-top: none;
+	outline: 2px none;
+	outline-offset: -2px;
+}
+
+.container.tab-btn > .btn:disabled {
+	visibility: hidden;
+}
+
+.container.tab-btn > .btn:not(:disabled):hover {
+	outline-style: solid;
+	outline-color: hsl(223 22% 40%);
+}
+
+.container.tab-btn > .btn:not(:disabled):active {
+	outline-style: solid;
+	outline-color: hsl(223 22% 60%);
+}
+
+.container.tab-btn > .btn:first-child {
+	border-bottom-left-radius: 12px;
+	border-left-width: 2px;
+}
+
+.container.tab-btn > .btn:last-child {
+	border-bottom-right-radius: 12px;
+	border-right-width: 2px;
+}
+
 .btn.tab-btn {
-	padding: 0.3rem 1rem;
+	padding: 0.3rem 0.6rem;
 }
 
 .btn.close-btn {
@@ -280,12 +339,20 @@ a:active {
 			</div>
 		</div>
 		<div id="tabs-buttons">
-			<button id="btn-tab-loader" class="btn tab-btn" onclick="showTab('loader')">Loader</button>
-			<button id="btn-tab-editor" class="btn tab-btn" disabled="disabled" onclick="showTab('editor')">Editor</button>
-			<button id="btn-close-editor" class="btn close-btn" disabled="disabled" onclick="closeEditor()">×</button>
-			<button id="btn-tab-game" class="btn tab-btn" disabled="disabled" onclick="showTab('game')">Game</button>
-			<button id="btn-close-game" class="btn close-btn" disabled="disabled" onclick="closeGame()">×</button>
-			<button id="btn-tab-update" class="btn tab-btn" style="display: none;">Update</button>
+			<div class="container tab-btn tab-btn-loader" style="display: none;">
+				<button id="btn-tab-loader" class="btn tab-btn" onclick="showTab('loader')">Loader</button>
+			</div>
+			<div class="container tab-btn tab-btn-editor">
+				<button id="btn-tab-editor" class="btn tab-btn" disabled="disabled" onclick="showTab('editor')">Editor</button>
+				<button id="btn-close-editor" class="btn close-btn" disabled="disabled" onclick="closeEditor()">×</button>
+			</div>
+			<div class="container tab-btn tab-btn-game">
+				<button id="btn-tab-game" class="btn tab-btn" disabled="disabled" onclick="showTab('game')">Game</button>
+				<button id="btn-close-game" class="btn close-btn" disabled="disabled" onclick="closeGame()">×</button>
+			</div>
+			<div class="container tab-btn tab-btn-update" style="display: none;">
+				<button id="btn-tab-update" class="btn tab-btn">Update</button>
+			</div>
 		</div>
 		<div id="tabs">
 			<div id="tab-loader">
@@ -474,6 +541,8 @@ function showTab(name) {
 			elem.style.display = 'none';
 		}
 	});
+	const tabsContainer = document.getElementById('tabs-buttons');
+	tabsContainer.classList.toggle('relative', name === 'game');
 }
 
 function setButtonEnabled(id, enabled) {
@@ -485,7 +554,7 @@ function setButtonEnabled(id, enabled) {
 }
 
 function setLoaderEnabled(enabled) {
-	setButtonEnabled('btn-tab-loader', enabled);
+	//setButtonEnabled('btn-tab-loader', enabled);
 	setButtonEnabled('btn-tab-editor', !enabled);
 	setButtonEnabled('btn-close-editor', !enabled);
 }
