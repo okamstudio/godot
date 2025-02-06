@@ -437,7 +437,7 @@ void AudioStreamImportSettingsDialog::edit(const String &p_path, const String &p
 			beats_edit->set_value(beats);
 			beats_enabled->set_pressed(beats > 0);
 			loop->set_pressed(config_file->get_value("params", "loop", false));
-			loop_offset->set_value(config_file->get_value("params", "loop_offset", 0));
+			loop_offset->set_value(double(config_file->get_value("params", "loop_offset", 0)));
 			bar_beats_edit->set_value(config_file->get_value("params", "bar_beats", 4));
 
 			List<String> keys;
@@ -517,7 +517,7 @@ void AudioStreamImportSettingsDialog::_settings_changed() {
 
 void AudioStreamImportSettingsDialog::_reimport() {
 	params["loop"] = loop->is_pressed();
-	params["loop_offset"] = loop_offset->get_value();
+	params["loop_offset"] = double(loop_offset->get_value());
 	params["bpm"] = bpm_enabled->is_pressed() ? double(bpm_edit->get_value()) : double(0);
 	params["beat_count"] = (bpm_enabled->is_pressed() && beats_enabled->is_pressed()) ? int(beats_edit->get_value()) : int(0);
 	params["bar_beats"] = (bpm_enabled->is_pressed()) ? int(bar_beats_edit->get_value()) : int(4);
@@ -543,7 +543,7 @@ AudioStreamImportSettingsDialog::AudioStreamImportSettingsDialog() {
 	loop_hb->add_child(memnew(Label(TTR("Offset:"))));
 	loop_offset = memnew(SpinBox);
 	loop_offset->set_max(10000);
-	loop_offset->set_step(0.001);
+	loop_offset->set_disallow_step_rounding(true);
 	loop_offset->set_suffix("sec");
 	loop_offset->set_tooltip_text(TTR("Loop offset (from beginning). Note that if BPM is set, this setting will be ignored."));
 	loop_offset->connect(SceneStringName(value_changed), callable_mp(this, &AudioStreamImportSettingsDialog::_settings_changed).unbind(1));

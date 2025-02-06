@@ -41,6 +41,7 @@ class Range : public Control {
 		double min = 0.0;
 		double max = 100.0;
 		double step = 1.0;
+		bool skip_step_rounding = false;
 		double page = 0.0;
 		bool exp_ratio = false;
 		bool allow_greater = false;
@@ -78,6 +79,7 @@ public:
 	void set_min(double p_min);
 	void set_max(double p_max);
 	void set_step(double p_step);
+	void set_disallow_step_rounding(bool disallow);
 	void set_page(double p_page);
 	void set_as_ratio(double p_value);
 

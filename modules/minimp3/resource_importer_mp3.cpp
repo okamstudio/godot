@@ -96,7 +96,7 @@ void ResourceImporterMP3::show_advanced_options(const String &p_path) {
 
 Error ResourceImporterMP3::import(ResourceUID::ID p_source_id, const String &p_source_file, const String &p_save_path, const HashMap<StringName, Variant> &p_options, List<String> *r_platform_variants, List<String> *r_gen_files, Variant *r_metadata) {
 	bool loop = p_options["loop"];
-	float loop_offset = p_options["loop_offset"];
+	double loop_offset = p_options["loop_offset"];
 	double bpm = p_options["bpm"];
 	float beat_count = p_options["beat_count"];
 	float bar_beats = p_options["bar_beats"];
