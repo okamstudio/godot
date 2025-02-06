@@ -1,0 +1,41 @@
+GDTEST_OK
+>> WARNING
+>> Line: 10
+>> SHADOWED_VARIABLE
+>> The local function parameter "static1" is shadowing an already-declared variable at line 3.
+>> WARNING
+>> Line: 13
+>> SHADOWED_VARIABLE
+>> The local variable "static2" is shadowing an already-declared variable at line 4.
+>> WARNING
+>> Line: 16
+>> SHADOWED_VARIABLE
+>> The local constant "static3" is shadowing an already-declared variable at line 5.
+>> WARNING
+>> Line: 19
+>> SHADOWED_VARIABLE
+>> The local "for" iterator variable "static4" is shadowing an already-declared variable at line 6.
+>> WARNING
+>> Line: 23
+>> SHADOWED_VARIABLE
+>> The local pattern bind "static5" is shadowing an already-declared variable at line 7.
+>> WARNING
+>> Line: 28
+>> SHADOWED_VARIABLE
+>> The local function parameter "static1" is shadowing an already-declared variable at line 3.
+>> WARNING
+>> Line: 31
+>> SHADOWED_VARIABLE
+>> The local variable "static2" is shadowing an already-declared variable at line 4.
+>> WARNING
+>> Line: 34
+>> SHADOWED_VARIABLE
+>> The local constant "static3" is shadowing an already-declared variable at line 5.
+>> WARNING
+>> Line: 37
+>> SHADOWED_VARIABLE
+>> The local "for" iterator variable "static4" is shadowing an already-declared variable at line 6.
+>> WARNING
+>> Line: 41
+>> SHADOWED_VARIABLE
+>> The local pattern bind "static5" is shadowing an already-declared variable at line 7.

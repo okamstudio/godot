@@ -5900,7 +5900,35 @@ void GDScriptAnalyzer::is_shadowing(GDScriptParser::IdentifierNode *p_identifier
 
 		if (base_class != nullptr) {
 			if (base_class->has_member(name)) {
-				parser->push_warning(p_identifier, GDScriptWarning::SHADOWED_VARIABLE, p_context, p_identifier->name, base_class->get_member(name).get_type_name(), itos(base_class->get_member(name).get_line()));
+				GDScriptParser::ClassNode::Member member = base_class->get_member(name);
+				bool is_member_static = false;
+
+				switch (member.type) {
+					case GDScriptParser::ClassNode::Member::FUNCTION:
+						is_member_static = member.function->is_static;
+						break;
+
+					case GDScriptParser::ClassNode::Member::VARIABLE:
+						is_member_static = member.variable->is_static;
+						break;
+
+					// Can't be static.
+					case GDScriptParser::ClassNode::Member::UNDEFINED:
+					case GDScriptParser::ClassNode::Member::CLASS:
+					case GDScriptParser::ClassNode::Member::CONSTANT:
+					case GDScriptParser::ClassNode::Member::SIGNAL:
+					case GDScriptParser::ClassNode::Member::ENUM:
+					case GDScriptParser::ClassNode::Member::ENUM_VALUE:
+					case GDScriptParser::ClassNode::Member::GROUP:
+						break;
+				}
+
+				// Non-static members aren't accessible from within static
+				// functions. Thus, a warning is only useful if we're in a
+				// non-static context or the member is static.
+				if (!static_context || is_member_static) {
+					parser->push_warning(p_identifier, GDScriptWarning::SHADOWED_VARIABLE, p_context, p_identifier->name, member.get_type_name(), itos(member.get_line()));
+				}
 				return;
 			}
 			base_class = base_class->base_type.class_type;
