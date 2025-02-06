@@ -62,6 +62,13 @@
 				Returns the basis that gives the specified cell its orientation.
 			</description>
 		</method>
+		<method name="get_cell_item_custom_data" qualifiers="const">
+			<return type="Color" />
+			<param index="0" name="position" type="Vector3i" />
+			<description>
+				Returns the custom data that has been set for a specific cell.
+			</description>
+		</method>
 		<method name="get_cell_item_orientation" qualifiers="const">
 			<return type="int" />
 			<param index="0" name="position" type="Vector3i" />
@@ -154,6 +161,16 @@
 				Sets the mesh index for the cell referenced by its grid coordinates.
 				A negative item index such as [constant INVALID_CELL_ITEM] will clear the cell.
 				Optionally, the item's orientation can be passed. For valid orientation values, see [method get_orthogonal_index_from_basis].
+			</description>
+		</method>
+		<method name="set_cell_item_custom_data">
+			<return type="void" />
+			<param index="0" name="position" type="Vector3i" />
+			<param index="1" name="custom_data" type="Color" />
+			<description>
+				Sets custom data for a specific cell. Although [Color] is used, it is just a container for 4 floating point numbers.
+				If custom data is set for at least one cell, [member MultiMesh.use_custom_data] will be set to [code]true[/code] on the [MultiMesh] instances.
+				This custom instance data has to be manually accessed in your custom shader using [code]INSTANCE_CUSTOM[/code].
 			</description>
 		</method>
 		<method name="set_collision_layer_value">

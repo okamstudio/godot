@@ -410,7 +410,24 @@ void GridMap::set_cell_item(const Vector3i &p_position, int p_item, int p_rot) {
 
 	cell_map[key] = c;
 }
+void GridMap::set_cell_item_custom_data(const Vector3i &p_position, const Color &p_custom_data) {
+	if (baked_meshes.size() && !recreating_octants) {
+		//if you set a cell item, baked meshes go good bye
+		clear_baked_meshes();
+		_recreate_octant_data();
+	}
 
+	ERR_FAIL_INDEX(ABS(p_position.x), 1 << 20);
+	ERR_FAIL_INDEX(ABS(p_position.y), 1 << 20);
+	ERR_FAIL_INDEX(ABS(p_position.z), 1 << 20);
+
+	IndexKey key;
+	key.x = p_position.x;
+	key.y = p_position.y;
+	key.z = p_position.z;
+	cell_data_map[key] = p_custom_data;
+	return;
+}
 int GridMap::get_cell_item(const Vector3i &p_position) const {
 	ERR_FAIL_INDEX_V(ABS(p_position.x), 1 << 20, INVALID_CELL_ITEM);
 	ERR_FAIL_INDEX_V(ABS(p_position.y), 1 << 20, INVALID_CELL_ITEM);
@@ -427,6 +444,22 @@ int GridMap::get_cell_item(const Vector3i &p_position) const {
 	return cell_map[key].item;
 }
 
+Color GridMap::get_cell_item_custom_data(const Vector3i &p_position) const {
+	ERR_FAIL_INDEX_V(ABS(p_position.x), 1 << 20, Color());
+	ERR_FAIL_INDEX_V(ABS(p_position.y), 1 << 20, Color());
+	ERR_FAIL_INDEX_V(ABS(p_position.z), 1 << 20, Color());
+
+	IndexKey key;
+	key.x = p_position.x;
+	key.y = p_position.y;
+	key.z = p_position.z;
+
+	if (!cell_data_map.has(key)) {
+		return Color();
+	}
+	return cell_data_map[key];
+}
+
 int GridMap::get_cell_item_orientation(const Vector3i &p_position) const {
 	ERR_FAIL_INDEX_V(ABS(p_position.x), 1 << 20, -1);
 	ERR_FAIL_INDEX_V(ABS(p_position.y), 1 << 20, -1);
@@ -438,7 +471,7 @@ int GridMap::get_cell_item_orientation(const Vector3i &p_position) const {
 	key.z = p_position.z;
 
 	if (!cell_map.has(key)) {
-		return -1;
+		return INVALID_CELL_ITEM;
 	}
 	return cell_map[key].rot;
 }
@@ -700,12 +733,15 @@ bool GridMap::_octant_update(const OctantKey &p_key) {
 			Octant::MultimeshInstance mmi;
 
 			RID mm = RS::get_singleton()->multimesh_create();
-			RS::get_singleton()->multimesh_allocate_data(mm, E.value.size(), RS::MULTIMESH_TRANSFORM_3D);
+			RS::get_singleton()->multimesh_allocate_data(mm, E.value.size(), RS::MULTIMESH_TRANSFORM_3D, false, !this->cell_data_map.is_empty());
 			RS::get_singleton()->multimesh_set_mesh(mm, mesh_library->get_item_mesh(E.key)->get_rid());
 
 			int idx = 0;
 			for (const Pair<Transform3D, IndexKey> &F : E.value) {
 				RS::get_singleton()->multimesh_instance_set_transform(mm, idx, F.first);
+				if (this->cell_data_map.has(F.second)) {
+					RS::get_singleton()->multimesh_instance_set_custom_data(mm, idx, this->cell_data_map[F.second]);
+				}
 #ifdef TOOLS_ENABLED
 
 				Octant::MultimeshInstance::Item it;
@@ -1098,7 +1134,9 @@ void GridMap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_octant_size"), &GridMap::get_octant_size);
 
 	ClassDB::bind_method(D_METHOD("set_cell_item", "position", "item", "orientation"), &GridMap::set_cell_item, DEFVAL(0));
+	ClassDB::bind_method(D_METHOD("set_cell_item_custom_data", "position", "custom_data"), &GridMap::set_cell_item_custom_data);
 	ClassDB::bind_method(D_METHOD("get_cell_item", "position"), &GridMap::get_cell_item);
+	ClassDB::bind_method(D_METHOD("get_cell_item_custom_data", "position"), &GridMap::get_cell_item_custom_data);
 	ClassDB::bind_method(D_METHOD("get_cell_item_orientation", "position"), &GridMap::get_cell_item_orientation);
 	ClassDB::bind_method(D_METHOD("get_cell_item_basis", "position"), &GridMap::get_cell_item_basis);
 	ClassDB::bind_method(D_METHOD("get_basis_with_orthogonal_index", "index"), &GridMap::get_basis_with_orthogonal_index);
