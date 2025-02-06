@@ -1452,6 +1452,18 @@ private:
 
 		return node;
 	}
+
+	// Allocates a node for patching up the parse tree when an error occurred.
+	// Such nodes don't track their extents as they don't relate to actual tokens.
+	template <typename T>
+	T *alloc_recovery_node() {
+		T *node = memnew(T);
+		node->next = list;
+		list = node;
+
+		return node;
+	}
+
 	void clear();
 	void push_error(const String &p_message, const Node *p_origin = nullptr);
 #ifdef DEBUG_ENABLED
