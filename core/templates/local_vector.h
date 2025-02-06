@@ -121,7 +121,7 @@ public:
 		return occurrences;
 	}
 
-	void invert() {
+	void reverse() {
 		for (U i = 0; i < count / 2; i++) {
 			SWAP(data[i], data[count - i - 1]);
 		}

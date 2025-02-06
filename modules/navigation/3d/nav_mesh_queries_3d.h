@@ -103,10 +103,10 @@ public:
 		}
 
 		void path_reverse() {
-			path_points.invert();
-			path_meta_point_types.invert();
-			path_meta_point_rids.invert();
-			path_meta_point_owners.invert();
+			path_points.reverse();
+			path_meta_point_types.reverse();
+			path_meta_point_rids.reverse();
+			path_meta_point_owners.reverse();
 		}
 	};
 
