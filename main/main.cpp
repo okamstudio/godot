@@ -719,15 +719,6 @@ Error Main::test_setup() {
 	initialize_modules(MODULE_INITIALIZATION_LEVEL_SERVERS);
 	GDExtensionManager::get_singleton()->initialize_extensions(GDExtension::INITIALIZATION_LEVEL_SERVERS);
 
-	translation_server->setup(); //register translations, load them, etc.
-	if (!locale.is_empty()) {
-		translation_server->set_locale(locale);
-	}
-	translation_server->load_translations();
-	ResourceLoader::load_translation_remaps(); //load remaps for resources
-
-	ResourceLoader::load_path_remaps();
-
 	// Initialize ThemeDB early so that scene types can register their theme items.
 	// Default theme will be initialized later, after modules and ScriptServer are ready.
 	initialize_theme_db();
@@ -742,6 +733,15 @@ Error Main::test_setup() {
 
 	initialize_modules(MODULE_INITIALIZATION_LEVEL_SCENE);
 	GDExtensionManager::get_singleton()->initialize_extensions(GDExtension::INITIALIZATION_LEVEL_SCENE);
+
+	translation_server->setup(); //register translations, load them, etc.
+	if (!locale.is_empty()) {
+		translation_server->set_locale(locale);
+	}
+	translation_server->load_translations();
+	ResourceLoader::load_translation_remaps(); //load remaps for resources
+
+	ResourceLoader::load_path_remaps();
 
 #ifdef TOOLS_ENABLED
 	ClassDB::set_current_api(ClassDB::API_EDITOR);
@@ -3269,24 +3269,42 @@ Error Main::setup2(bool p_show_boot_logo) {
 		OS::get_singleton()->benchmark_end_measure("Startup", "Setup Window and Boot");
 	}
 
-	MAIN_PRINT("Main: Load Translations and Remaps");
+	MAIN_PRINT("Main: Load Scene Types");
 
-	/* Setup translations and remaps */
+	OS::get_singleton()->benchmark_begin_measure("Startup", "Scene");
+
+	// Initialize ThemeDB early so that scene types can register their theme items.
+	// Default theme will be initialized later, after modules and ScriptServer are ready.
+	initialize_theme_db();
+
+	MAIN_PRINT("Main: Load Navigation");
+
+	NavigationServer3DManager::initialize_server(); // 3D server first because 2D depends on it.
+	NavigationServer2DManager::initialize_server();
+
+	register_scene_types();
+	register_driver_types();
+
+	register_scene_singletons();
 
 	{
-		OS::get_singleton()->benchmark_begin_measure("Startup", "Translations and Remaps");
+		OS::get_singleton()->benchmark_begin_measure("Scene", "Modules and Extensions");
 
-		translation_server->setup(); //register translations, load them, etc.
-		if (!locale.is_empty()) {
-			translation_server->set_locale(locale);
-		}
-		translation_server->load_translations();
-		ResourceLoader::load_translation_remaps(); //load remaps for resources
+		initialize_modules(MODULE_INITIALIZATION_LEVEL_SCENE);
+		GDExtensionManager::get_singleton()->initialize_extensions(GDExtension::INITIALIZATION_LEVEL_SCENE);
 
-		ResourceLoader::load_path_remaps();
-
-		OS::get_singleton()->benchmark_end_measure("Startup", "Translations and Remaps");
+		OS::get_singleton()->benchmark_end_measure("Scene", "Modules and Extensions");
 	}
+
+	PackedStringArray extensions;
+	extensions.push_back("gd");
+	if (ClassDB::class_exists("CSharpScript")) {
+		extensions.push_back("cs");
+	}
+	extensions.push_back("gdshader");
+	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::PACKED_STRING_ARRAY, "editor/script/search_in_file_extensions"), extensions); // Note: should be defined after Scene level modules init to see .NET.
+
+	OS::get_singleton()->benchmark_end_measure("Startup", "Scene");
 
 	MAIN_PRINT("Main: Load TextServer");
 
@@ -3356,43 +3374,6 @@ Error Main::setup2(bool p_show_boot_logo) {
 		OS::get_singleton()->benchmark_end_measure("Startup", "Text Server");
 	}
 
-	MAIN_PRINT("Main: Load Scene Types");
-
-	OS::get_singleton()->benchmark_begin_measure("Startup", "Scene");
-
-	// Initialize ThemeDB early so that scene types can register their theme items.
-	// Default theme will be initialized later, after modules and ScriptServer are ready.
-	initialize_theme_db();
-
-	MAIN_PRINT("Main: Load Navigation");
-
-	NavigationServer3DManager::initialize_server(); // 3D server first because 2D depends on it.
-	NavigationServer2DManager::initialize_server();
-
-	register_scene_types();
-	register_driver_types();
-
-	register_scene_singletons();
-
-	{
-		OS::get_singleton()->benchmark_begin_measure("Scene", "Modules and Extensions");
-
-		initialize_modules(MODULE_INITIALIZATION_LEVEL_SCENE);
-		GDExtensionManager::get_singleton()->initialize_extensions(GDExtension::INITIALIZATION_LEVEL_SCENE);
-
-		OS::get_singleton()->benchmark_end_measure("Scene", "Modules and Extensions");
-	}
-
-	PackedStringArray extensions;
-	extensions.push_back("gd");
-	if (ClassDB::class_exists("CSharpScript")) {
-		extensions.push_back("cs");
-	}
-	extensions.push_back("gdshader");
-	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::PACKED_STRING_ARRAY, "editor/script/search_in_file_extensions"), extensions); // Note: should be defined after Scene level modules init to see .NET.
-
-	OS::get_singleton()->benchmark_end_measure("Startup", "Scene");
-
 #ifdef TOOLS_ENABLED
 	ClassDB::set_current_api(ClassDB::API_EDITOR);
 	register_editor_types();
@@ -3455,6 +3436,25 @@ Error Main::setup2(bool p_show_boot_logo) {
 	List<String> cmdline_args = OS::get_singleton()->get_cmdline_args();
 	BindingsGenerator::handle_cmdline_args(cmdline_args);
 #endif
+
+	MAIN_PRINT("Main: Load Translations and Remaps");
+
+	/* Setup translations and remaps */
+
+	{
+		OS::get_singleton()->benchmark_begin_measure("Startup", "Translations and Remaps");
+
+		translation_server->setup(); //register translations, load them, etc.
+		if (!locale.is_empty()) {
+			translation_server->set_locale(locale);
+		}
+		translation_server->load_translations();
+		ResourceLoader::load_translation_remaps(); //load remaps for resources
+
+		ResourceLoader::load_path_remaps();
+
+		OS::get_singleton()->benchmark_end_measure("Startup", "Translations and Remaps");
+	}
 
 	if (use_debug_profiler && EngineDebugger::is_active()) {
 		// Start the "scripts" profiler, used in local debugging.
@@ -4614,6 +4614,9 @@ void Main::cleanup(bool p_force) {
 		input->flush_frame_parsed_events();
 	}
 #endif
+	if (translation_server) {
+		memdelete(translation_server);
+	}
 
 	for (int i = 0; i < TextServerManager::get_singleton()->get_interface_count(); i++) {
 		TextServerManager::get_singleton()->get_interface(i)->cleanup();
@@ -4720,9 +4723,6 @@ void Main::cleanup(bool p_force) {
 	}
 	if (input_map) {
 		memdelete(input_map);
-	}
-	if (translation_server) {
-		memdelete(translation_server);
 	}
 	if (tsman) {
 		memdelete(tsman);
