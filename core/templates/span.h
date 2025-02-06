@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  sort_effects.h                                                        */
+/*  span.h                                                                */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,41 +28,38 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SORT_EFFECTS_RD_H
-#define SORT_EFFECTS_RD_H
+#ifndef SPAN_H
+#define SPAN_H
 
-#include "servers/rendering/renderer_rd/shader_rd.h"
-#include "servers/rendering/renderer_rd/shaders/effects/sort.glsl.gen.h"
+#include "core/typedefs.h"
 
-namespace RendererRD {
+// Equivalent of std::span.
+// Represents a view into a contiguous memory space.
+// DISCLAIMER: This data type does not own the underlying buffer. DO NOT STORE IT.
+//  Additionally, for the lifetime of the Span, do not resize the buffer, and do not insert or remove elements from it.
+//  Failure to respect this may lead to crashes or undefined behavior.
+template <typename T>
+class Span {
+	const T *_ptr = nullptr;
+	size_t _len = 0;
 
-class SortEffects {
-private:
-	enum SortMode {
-		SORT_MODE_BLOCK,
-		SORT_MODE_STEP,
-		SORT_MODE_INNER,
-		SORT_MODE_MAX
-	};
-
-	struct PushConstant {
-		uint32_t total_elements;
-		uint32_t pad[3];
-		int32_t job_params[4];
-	};
-
-	SortShaderRD shader;
-	RID shader_version;
-	RID pipelines[SORT_MODE_MAX];
-
-protected:
 public:
-	SortEffects();
-	~SortEffects();
+	_FORCE_INLINE_ constexpr Span() = default;
+	_FORCE_INLINE_ constexpr Span(const T *p_ptr, size_t p_len) :
+			_ptr(p_ptr), _len(p_len) {}
 
-	void sort_buffer(RID p_uniform_set, int p_size);
+	_FORCE_INLINE_ constexpr size_t size() const { return _len; }
+	_FORCE_INLINE_ constexpr bool is_empty() const { return _len == 0; }
+
+	_FORCE_INLINE_ constexpr const T *ptr() const { return _ptr; }
+
+	// NOTE: Span subscripts sanity check the bounds to avoid undefined behavior.
+	//       This is slower than direct buffer access and can prevent autovectorization.
+	//       If the bounds are known, use ptr() subscript instead.
+	_FORCE_INLINE_ constexpr const T &operator[](size_t p_idx) const {
+		CRASH_COND(p_idx >= _len);
+		return _ptr[p_idx];
+	}
 };
 
-} // namespace RendererRD
-
-#endif // SORT_EFFECTS_RD_H
+#endif // SPAN_H

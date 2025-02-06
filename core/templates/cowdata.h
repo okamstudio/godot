@@ -34,6 +34,7 @@
 #include "core/error/error_macros.h"
 #include "core/os/memory.h"
 #include "core/templates/safe_refcount.h"
+#include "core/templates/span.h"
 
 #include <string.h>
 #include <initializer_list>
@@ -248,6 +249,9 @@ public:
 
 		return OK;
 	}
+
+	_FORCE_INLINE_ operator Span<T>() const { return Span<T>(ptr(), size()); }
+	_FORCE_INLINE_ Span<T> span() const { return operator Span<T>(); }
 
 	Size find(const T &p_val, Size p_from = 0) const;
 	Size rfind(const T &p_val, Size p_from = -1) const;
