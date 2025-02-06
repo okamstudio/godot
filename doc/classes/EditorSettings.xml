@@ -351,7 +351,7 @@
 		</member>
 		<member name="editors/3d/navigation/emulate_3_button_mouse" type="bool" setter="" getter="">
 			If [code]true[/code], enables 3-button mouse emulation mode. This is useful on laptops when using a trackpad.
-			When 3-button mouse emulation mode is enabled, the pan, zoom and orbit modifiers can always be used in the 3D editor viewport, even when not holding down any mouse button.
+			When 3-button mouse emulation mode is enabled, the pan, zoom and orbit modifiers can be used in the 3D editor viewport when holding [kbd]Alt[/kbd], even when not holding down any mouse button.
 		</member>
 		<member name="editors/3d/navigation/emulate_numpad" type="bool" setter="" getter="">
 			If [code]true[/code], allows using the top row [kbd]0[/kbd]-[kbd]9[/kbd] keys to function as their equivalent numpad keys for 3D editor navigation. This should be enabled on keyboards that have no numeric keypad available.

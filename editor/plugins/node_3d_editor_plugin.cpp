@@ -2169,9 +2169,16 @@ void Node3DEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 
 		} else if (EDITOR_GET("editors/3d/navigation/emulate_3_button_mouse")) {
 			// Handle trackpad (no external mouse) use case
-			NavigationMode change_nav_from_shortcut = _get_nav_mode_from_shortcut_check(NAVIGATION_LEFT_MOUSE, shortcut_check_sets, true);
-			if (change_nav_from_shortcut != NAVIGATION_NONE) {
-				nav_mode = change_nav_from_shortcut;
+			// Check if the Alt key is pressed.
+			if (Input::get_singleton()->is_key_pressed(Key::ALT)) {
+				// Emulate the middle mouse button (Mouse3) with Alt for orbiting.
+				NavigationMode change_nav_from_shortcut = _get_nav_mode_from_shortcut_check(NAVIGATION_LEFT_MOUSE, shortcut_check_sets, true);
+				if (change_nav_from_shortcut != NAVIGATION_NONE) {
+					nav_mode = change_nav_from_shortcut;
+				}
+			} else {
+				// Regular behavior when Alt is not pressed, fallback to no navigation (NAVIGATION_NONE).
+				nav_mode = NAVIGATION_NONE;
 			}
 		}
 
