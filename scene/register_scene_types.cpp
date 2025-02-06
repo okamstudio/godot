@@ -215,6 +215,7 @@
 #include "scene/resources/2d/navigation_mesh_source_geometry_data_2d.h"
 #include "scene/resources/2d/navigation_polygon.h"
 #include "scene/resources/2d/polygon_path_finder.h"
+#include "scene/resources/2d/primitive_meshes_2d.h"
 #include "scene/resources/2d/rectangle_shape_2d.h"
 #include "scene/resources/2d/segment_shape_2d.h"
 #include "scene/resources/2d/separation_ray_shape_2d.h"
@@ -882,6 +883,11 @@ void register_scene_types() {
 	GDREGISTER_CLASS(MultiMesh);
 	GDREGISTER_CLASS(SurfaceTool);
 	GDREGISTER_CLASS(MeshDataTool);
+
+	GDREGISTER_VIRTUAL_CLASS(PrimitiveMesh2D);
+	GDREGISTER_CLASS(RectangleMesh2D);
+	GDREGISTER_CLASS(CircleMesh2D);
+	GDREGISTER_CLASS(CapsuleMesh2D);
 
 #ifndef _3D_DISABLED
 	GDREGISTER_CLASS(AudioStreamPlayer3D);

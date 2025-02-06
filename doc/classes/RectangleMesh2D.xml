@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="RectangleMesh2D" inherits="PrimitiveMesh2D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		A rectangular [PrimitiveMesh2D].
+	</brief_description>
+	<description>
+		A rectangular [PrimitiveMesh2D].
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="size" type="Vector2" setter="set_size" getter="get_size" default="Vector2(20, 20)">
+			The rectangle's width and height.
+		</member>
+		<member name="subdivide_height" type="int" setter="set_subdivide_height" getter="get_subdivide_height" default="0">
+			Number of extra edge loops inserted along the Y axis.
+		</member>
+		<member name="subdivide_width" type="int" setter="set_subdivide_width" getter="get_subdivide_width" default="0">
+			Number of extra edge loops inserted along the X axis.
+		</member>
+	</members>
+</class>

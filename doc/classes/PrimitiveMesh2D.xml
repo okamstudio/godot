@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="PrimitiveMesh2D" inherits="Mesh" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Base class for all primitive 2D meshes.
+	</brief_description>
+	<description>
+		Base class for all primitive 2D meshes. Examples include [RectangleMesh2D], [CircleMesh2D], and [CapsuleMesh2D].
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="_create_mesh_array" qualifiers="virtual const">
+			<return type="Array" />
+			<description>
+				Override this method to customize how this primitive mesh should be generated. Should return an [Array] where each element is another Array of values required for the mesh (see the [enum Mesh.ArrayType] constants).
+			</description>
+		</method>
+		<method name="get_mesh_arrays" qualifiers="const">
+			<return type="Array" />
+			<description>
+				Returns the mesh arrays used to make up the surface of this primitive mesh.
+			</description>
+		</method>
+		<method name="request_update">
+			<return type="void" />
+			<description>
+				Request an update of this primitive mesh based on its properties.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="antialiased" type="bool" setter="set_antialiased" getter="is_antialiased" default="false">
+			If [code]true[/code], a half transparent "skirt" will be attached to the boundary, making outlines smooth.
+		</member>
+		<member name="custom_aabb" type="AABB" setter="set_custom_aabb" getter="get_custom_aabb" default="AABB(0, 0, 0, 0, 0, 0)">
+			Overrides the [AABB] with one defined by user for use with frustum culling. Especially useful to avoid unexpected culling when using a shader to offset vertices.
+		</member>
+	</members>
+</class>

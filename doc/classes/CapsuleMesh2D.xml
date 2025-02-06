@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="CapsuleMesh2D" inherits="PrimitiveMesh2D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		A capsule-shaped [PrimitiveMesh2D].
+	</brief_description>
+	<description>
+		A capsule-shaped [PrimitiveMesh2D].
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="height" type="float" setter="set_height" getter="get_height" default="30.0">
+			Total height of the capsule mesh (including the semicircular ends).
+		</member>
+		<member name="radial_segments" type="int" setter="set_radial_segments" getter="get_radial_segments" default="32">
+			Number of radial segments on each semicircle of the capsule mesh.
+		</member>
+		<member name="radius" type="float" setter="set_radius" getter="get_radius" default="10.0">
+			Radius of the semicircles on the ends of the capsule mesh.
+		</member>
+	</members>
+</class>
