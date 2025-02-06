@@ -107,6 +107,10 @@ public:
 	_FORCE_INLINE_ bool operator!=(const Ref<T> &p_r) const {
 		return reference != p_r.reference;
 	}
+	template <class D>
+	_FORCE_INLINE_ bool operator!=(const Ref<D> &p_r) const {
+		return reference != p_r.ptr();
+	}
 
 	_FORCE_INLINE_ T *operator*() const {
 		return reference;
