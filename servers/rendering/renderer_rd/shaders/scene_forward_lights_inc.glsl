@@ -733,7 +733,7 @@ void light_process_spot(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 v
 		vec4 v = vec4(vertex + normal_bias, 1.0);
 
 		vec4 splane = (spot_lights.data[idx].shadow_matrix * v);
-		splane.z += spot_lights.data[idx].shadow_bias / (light_length * spot_lights.data[idx].inv_radius);
+		splane.z += spot_lights.data[idx].shadow_bias;
 		splane /= splane.w;
 
 		if (sc_use_light_soft_shadows() && spot_lights.data[idx].soft_shadow_size > 0.0) {
