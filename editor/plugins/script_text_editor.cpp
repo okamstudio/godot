@@ -1877,6 +1877,10 @@ Variant ScriptTextEditor::get_drag_data_fw(const Point2 &p_point, Control *p_fro
 }
 
 bool ScriptTextEditor::can_drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from) const {
+	if (script->get_language()->get_name() != "GDScript") {
+		return false;
+	}
+
 	Dictionary d = p_data;
 	if (d.has("type") &&
 			(String(d["type"]) == "resource" ||
