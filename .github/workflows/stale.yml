@@ -1,0 +1,62 @@
+name: 🔗 GHA
+on:
+  schedule:
+    - cron: "30 * * * *"
+
+jobs:
+  stale:
+    name: 😐 Close stale issues and PRs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          days-before-stale: 0 # Will automatically stale `stale` labeled issues/PRs.
+          days-before-close: 30
+          exempt-draft-pr: true
+
+          # Labels.
+          only-labels: stale # Only these issues/PRs will be processed.
+          stale-issue-label: stale-bot
+          stale-pr-label: stale-bot
+          labels-to-add-when-unstale: assess-unstale
+          labels-to-remove-when-unstale: stale
+
+          # Stale messages.
+          stale-issue-message: |
+            We noticed that there hasn't been activity for a while.
+
+            In case you think this issue is still relevant, please comment.
+
+            Otherwise, we will close it in 30 days in order to reduce the
+            backlog.
+
+          stale-pr-message: |
+            We noticed that there hasn't been activity for a while.
+
+            In case you think this it is still relevant, please comment
+            or update this pull request.
+
+            Otherwise, we will close it in 30 days in order to reduce the
+            backlog.
+
+          # Close messages.
+          close-issue-message: |
+            Because there was no new activity since our reminder, 
+            this issue is now closed.
+
+            If you believe this to be a mistake, simply leave a new 
+            comment now and a maintainer will get back to you.
+
+          close-pr-message: |
+            Because there was no new activity since our reminder, 
+            this pull request is now closed.
+
+            If you believe this to be a mistake, simply leave a new
+            comment now and a maintainer will get back to you.
+
+          # Operations per run.
+          # (see https://github.com/actions/stale?tab=readme-ov-file#operations-per-run)
+          operations-per-run: 150
+
+          # Dry-run mode.
+          # debug-only: true
