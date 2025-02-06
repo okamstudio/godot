@@ -6,6 +6,7 @@
 	<description>
 		[Texture2D] resource that draws only part of its [member atlas] texture, as defined by the [member region]. An additional [member margin] can also be set, which is useful for small adjustments.
 		Multiple [AtlasTexture] resources can be cropped from the same [member atlas]. Packing many smaller textures into a singular large texture helps to optimize video memory costs and render calls.
+		Packed textures may be transformed within their atlas to further optimize packing, in this case [member flip_h], [member flip_v] and [member transpose] may be used to properly orient them.
 		[b]Note:[/b] [AtlasTexture] cannot be used in an [AnimatedTexture], and will not tile properly in nodes such as [TextureRect] or [Sprite2D]. To tile an [AtlasTexture], modify its [member region] instead.
 	</description>
 	<tutorials>
@@ -17,6 +18,12 @@
 		<member name="filter_clip" type="bool" setter="set_filter_clip" getter="has_filter_clip" default="false">
 			If [code]true[/code], the area outside of the [member region] is clipped to avoid bleeding of the surrounding texture pixels.
 		</member>
+		<member name="flip_h" type="bool" setter="set_flip_h" getter="is_flipped_h" default="false">
+			If [code]true[/code], texture is flipped horizontally.
+		</member>
+		<member name="flip_v" type="bool" setter="set_flip_v" getter="is_flipped_v" default="false">
+			If [code]true[/code], texture is flipped vertically.
+		</member>
 		<member name="margin" type="Rect2" setter="set_margin" getter="get_margin" default="Rect2(0, 0, 0, 0)">
 			The margin around the [member region]. Useful for small adjustments. If the [member Rect2.size] of this property ("w" and "h" in the editor) is set, the drawn texture is resized to fit within the margin.
 		</member>
@@ -24,5 +31,8 @@
 			The region used to draw the [member atlas]. If either dimension of the region's size is [code]0[/code], the value from [member atlas] size will be used for that axis instead.
 		</member>
 		<member name="resource_local_to_scene" type="bool" setter="set_local_to_scene" getter="is_local_to_scene" overrides="Resource" default="false" />
+		<member name="transpose" type="bool" setter="set_transpose" getter="is_transposed" default="false">
+			If [code]true[/code], texture is transposed causing its x and y coordinates to swap.
+		</member>
 	</members>
 </class>
