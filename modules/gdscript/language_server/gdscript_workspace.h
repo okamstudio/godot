@@ -31,7 +31,6 @@
 #ifndef GDSCRIPT_WORKSPACE_H
 #define GDSCRIPT_WORKSPACE_H
 
-#include "../gdscript_parser.h"
 #include "gdscript_extend_parser.h"
 #include "godot_lsp.h"
 

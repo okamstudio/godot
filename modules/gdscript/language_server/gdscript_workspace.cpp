@@ -31,7 +31,6 @@
 #include "gdscript_workspace.h"
 
 #include "../gdscript.h"
-#include "../gdscript_parser.h"
 #include "gdscript_language_protocol.h"
 
 #include "core/config/project_settings.h"
