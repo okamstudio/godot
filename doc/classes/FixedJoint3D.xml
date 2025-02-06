@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="FixedJoint3D" inherits="Joint3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		A physics joint that attaches two 3D physics bodies at a single point, with no allowed movement between the two bodies.
+	</brief_description>
+	<description>
+		A physics joint that attaches two 3D physics bodies at a single point, with no allowed movement between the two bodies.
+		[b]Note:[/b] This joint is only implemented for the Jolt Physics Engine.
+	</description>
+	<tutorials>
+	</tutorials>
+</class>

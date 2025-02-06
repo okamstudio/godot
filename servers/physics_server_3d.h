@@ -630,6 +630,7 @@ public:
 		JOINT_TYPE_SLIDER,
 		JOINT_TYPE_CONE_TWIST,
 		JOINT_TYPE_6DOF,
+		JOINT_TYPE_FIXED,
 		JOINT_TYPE_MAX,
 
 	};
@@ -645,6 +646,8 @@ public:
 
 	virtual void joint_disable_collisions_between_bodies(RID p_joint, bool p_disable) = 0;
 	virtual bool joint_is_disabled_collisions_between_bodies(RID p_joint) const = 0;
+
+	virtual void joint_make_fixed(RID p_joint, RID p_body_A, const Vector3 &p_local_A, RID p_body_B, const Vector3 &p_local_B) = 0;
 
 	virtual void joint_make_pin(RID p_joint, RID p_body_A, const Vector3 &p_local_A, RID p_body_B, const Vector3 &p_local_B) = 0;
 

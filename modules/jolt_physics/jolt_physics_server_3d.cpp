@@ -31,6 +31,7 @@
 #include "jolt_physics_server_3d.h"
 
 #include "joints/jolt_cone_twist_joint_3d.h"
+#include "joints/jolt_fixed_joint_3d.h"
 #include "joints/jolt_generic_6dof_joint_3d.h"
 #include "joints/jolt_hinge_joint_3d.h"
 #include "joints/jolt_joint_3d.h"
@@ -1227,6 +1228,24 @@ void JoltPhysicsServer3D::joint_clear(RID p_joint) {
 
 		joint_owner.replace(p_joint, empty_joint);
 	}
+}
+
+void JoltPhysicsServer3D::joint_make_fixed(RID p_joint, RID p_body_a, const Vector3 &p_local_a, RID p_body_b, const Vector3 &p_local_b) {
+	JoltJoint3D *old_joint = joint_owner.get_or_null(p_joint);
+	ERR_FAIL_NULL(old_joint);
+
+	JoltBody3D *body_a = body_owner.get_or_null(p_body_a);
+	ERR_FAIL_NULL(body_a);
+
+	JoltBody3D *body_b = body_owner.get_or_null(p_body_b);
+	ERR_FAIL_COND(body_a == body_b);
+
+	JoltJoint3D *new_joint = memnew(JoltFixedJoint3D(*old_joint, body_a, body_b, p_local_a, p_local_b));
+
+	memdelete(old_joint);
+	old_joint = nullptr;
+
+	joint_owner.replace(p_joint, new_joint);
 }
 
 void JoltPhysicsServer3D::joint_make_pin(RID p_joint, RID p_body_a, const Vector3 &p_local_a, RID p_body_b, const Vector3 &p_local_b) {

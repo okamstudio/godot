@@ -263,6 +263,7 @@
 #include "scene/3d/physics/collision_polygon_3d.h"
 #include "scene/3d/physics/collision_shape_3d.h"
 #include "scene/3d/physics/joints/cone_twist_joint_3d.h"
+#include "scene/3d/physics/joints/fixed_joint_3d.h"
 #include "scene/3d/physics/joints/generic_6dof_joint_3d.h"
 #include "scene/3d/physics/joints/hinge_joint_3d.h"
 #include "scene/3d/physics/joints/joint_3d.h"
@@ -650,6 +651,7 @@ void register_scene_types() {
 	GDREGISTER_CLASS(RemoteTransform3D);
 
 	GDREGISTER_ABSTRACT_CLASS(Joint3D);
+	GDREGISTER_CLASS(FixedJoint3D);
 	GDREGISTER_CLASS(PinJoint3D);
 	GDREGISTER_CLASS(HingeJoint3D);
 	GDREGISTER_CLASS(SliderJoint3D);

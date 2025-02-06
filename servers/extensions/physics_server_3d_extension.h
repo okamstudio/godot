@@ -471,6 +471,8 @@ public:
 	EXBIND0R(RID, joint_create)
 	EXBIND1(joint_clear, RID)
 
+	EXBIND5(joint_make_fixed, RID, RID, const Vector3 &, RID, const Vector3 &)
+
 	EXBIND5(joint_make_pin, RID, RID, const Vector3 &, RID, const Vector3 &)
 
 	EXBIND3(pin_joint_set_param, RID, PinJointParam, real_t)

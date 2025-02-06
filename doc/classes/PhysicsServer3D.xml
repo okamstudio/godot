@@ -886,6 +886,17 @@
 			<description>
 			</description>
 		</method>
+		<method name="joint_make_fixed">
+			<return type="void" />
+			<param index="0" name="joint" type="RID" />
+			<param index="1" name="body_A" type="RID" />
+			<param index="2" name="local_A" type="Vector3" />
+			<param index="3" name="body_B" type="RID" />
+			<param index="4" name="local_B" type="Vector3" />
+			<description>
+				Make the joint a fixed joint.
+			</description>
+		</method>
 		<method name="joint_make_generic_6dof">
 			<return type="void" />
 			<param index="0" name="joint" type="RID" />
@@ -1380,7 +1391,10 @@
 		<constant name="JOINT_TYPE_6DOF" value="4" enum="JointType">
 			The [Joint3D] is a [Generic6DOFJoint3D].
 		</constant>
-		<constant name="JOINT_TYPE_MAX" value="5" enum="JointType">
+		<constant name="JOINT_TYPE_FIXED" value="5" enum="JointType">
+			The [Joint3D] is a [FixedJoint3D].
+		</constant>
+		<constant name="JOINT_TYPE_MAX" value="6" enum="JointType">
 			Represents the size of the [enum JointType] enum.
 		</constant>
 		<constant name="PIN_JOINT_BIAS" value="0" enum="PinJointParam">

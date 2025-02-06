@@ -904,7 +904,10 @@ void PhysicsServer3D::_bind_methods() {
 	BIND_ENUM_CONSTANT(JOINT_TYPE_SLIDER);
 	BIND_ENUM_CONSTANT(JOINT_TYPE_CONE_TWIST);
 	BIND_ENUM_CONSTANT(JOINT_TYPE_6DOF);
+	BIND_ENUM_CONSTANT(JOINT_TYPE_FIXED);
 	BIND_ENUM_CONSTANT(JOINT_TYPE_MAX);
+
+	ClassDB::bind_method(D_METHOD("joint_make_fixed", "joint", "body_A", "local_A", "body_B", "local_B"), &PhysicsServer3D::joint_make_fixed);
 
 	ClassDB::bind_method(D_METHOD("joint_make_pin", "joint", "body_A", "local_A", "body_B", "local_B"), &PhysicsServer3D::joint_make_pin);
 	ClassDB::bind_method(D_METHOD("pin_joint_set_param", "joint", "param", "value"), &PhysicsServer3D::pin_joint_set_param);

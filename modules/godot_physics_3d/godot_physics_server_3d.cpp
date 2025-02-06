@@ -1220,6 +1220,10 @@ void GodotPhysicsServer3D::joint_clear(RID p_joint) {
 	}
 }
 
+void GodotPhysicsServer3D::joint_make_fixed(RID p_joint, RID p_body_A, const Vector3 &p_local_A, RID p_body_B, const Vector3 &p_local_B) {
+	ERR_FAIL_MSG("Fixed joint constraints are not supported in Godot Physics");
+}
+
 void GodotPhysicsServer3D::joint_make_pin(RID p_joint, RID p_body_A, const Vector3 &p_local_A, RID p_body_B, const Vector3 &p_local_B) {
 	GodotBody3D *body_A = body_owner.get_or_null(p_body_A);
 	ERR_FAIL_NULL(body_A);
