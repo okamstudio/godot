@@ -251,7 +251,6 @@ private:
 	_FORCE_INLINE_ void _get_mipmap_offset_and_size(int p_mipmap, int64_t &r_offset, int &r_width, int &r_height) const; // Get where the mipmap begins in data.
 
 	static int64_t _get_dst_image_size(int p_width, int p_height, Format p_format, int &r_mipmaps, int p_mipmaps = -1, int *r_mm_width = nullptr, int *r_mm_height = nullptr);
-	bool _can_modify(Format p_format) const;
 
 	_FORCE_INLINE_ void _get_clipped_src_and_dest_rects(const Ref<Image> &p_src, const Rect2i &p_src_rect, const Point2i &p_dest, Rect2i &r_clipped_src_rect, Rect2i &r_clipped_dest_rect) const;
 
