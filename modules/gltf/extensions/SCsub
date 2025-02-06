@@ -9,4 +9,5 @@ env_gltf = env_modules.Clone()
 # Godot source files
 
 env_gltf.add_source_files(env.modules_sources, "*.cpp")
+env_gltf.add_source_files(env.modules_sources, "audio/*.cpp")
 env_gltf.add_source_files(env.modules_sources, "physics/*.cpp")

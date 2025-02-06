@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="GLTFAudioPlayer" inherits="Resource" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		Represents a GLTF audio player.
+	</brief_description>
+	<description>
+		GLTFAudioPlayer is an intermediary between GLTF audio and Godot's audio player nodes.
+		The KHR_audio_emitter GLTF extension includes MP3 and WAV formats in the base spec. Godot supports saving and loading both of these formats. The MP3 format is available when Godot is compiled with the MiniMP3 module enabled (default). Additionally, Godot can load Ogg Vorbis audio files but not save them when Godot is compiled with the Vorbis module enabled (default).
+	</description>
+	<tutorials>
+		<link title="KHR_audio_emitter GLTF extension">https://github.com/omigroup/gltf-extensions/tree/main/extensions/2.0/KHR_audio_emitter</link>
+	</tutorials>
+	<methods>
+		<method name="from_dictionary" qualifiers="static">
+			<return type="GLTFAudioPlayer" />
+			<param index="0" name="dictionary" type="Dictionary" />
+			<description>
+				Create a new GLTFAudioPlayer instance from the given [Dictionary] containing GLTF audio emitter data as defined by KHR_audio_emitter.
+			</description>
+		</method>
+		<method name="from_node" qualifiers="static">
+			<return type="GLTFAudioPlayer" />
+			<param index="0" name="audio_node" type="Node" />
+			<description>
+				Create a new GLTFAudioPlayer instance from the given Godot [AudioStreamPlayer] or [AudioStreamPlayer3D] node.
+			</description>
+		</method>
+		<method name="from_node_0d" qualifiers="static">
+			<return type="GLTFAudioPlayer" />
+			<param index="0" name="audio_node" type="AudioStreamPlayer" />
+			<description>
+				Create a new GLTFAudioPlayer instance from the given Godot [AudioStreamPlayer] node.
+			</description>
+		</method>
+		<method name="from_node_3d" qualifiers="static">
+			<return type="GLTFAudioPlayer" />
+			<param index="0" name="audio_node" type="AudioStreamPlayer3D" />
+			<description>
+				Create a new GLTFAudioPlayer instance from the given Godot [AudioStreamPlayer3D] node.
+			</description>
+		</method>
+		<method name="to_dictionary" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+				Converts this GLTFAudioPlayer to a [Dictionary] containing GLTF audio emitter data as defined by KHR_audio_emitter.
+			</description>
+		</method>
+		<method name="to_node">
+			<return type="Node" />
+			<description>
+				Converts this GLTFAudioPlayer to a Godot [AudioStreamPlayer] or [AudioStreamPlayer3D] node.
+			</description>
+		</method>
+		<method name="to_node_0d">
+			<return type="AudioStreamPlayer" />
+			<description>
+				Converts this GLTFAudioPlayer to a Godot [AudioStreamPlayer] node.
+			</description>
+		</method>
+		<method name="to_node_3d">
+			<return type="AudioStreamPlayer3D" />
+			<description>
+				Converts this GLTFAudioPlayer to a Godot [AudioStreamPlayer3D] node.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="audio_sources" type="PackedInt32Array" setter="set_audio_sources" getter="get_audio_sources" default="PackedInt32Array()">
+			Indices of the audio sources in the GLTF file that are used by this player. This property is used by the [Dictionary] conversion methods, but not the [Node] conversion methods.
+		</member>
+		<member name="audio_stream" type="AudioStream" setter="set_audio_stream" getter="get_audio_stream">
+			The audio stream used by this player. This property is used by the [Node] conversion methods, but not the [Dictionary] conversion methods.
+		</member>
+		<member name="auto_play" type="bool" setter="set_auto_play" getter="get_auto_play" default="false">
+			If [code]true[/code], the audio will automatically start playing when the audio player node is added to the scene tree. This corresponds to the [code]autoPlay[/code] property of the audio source in the GLTF file (not the audio emitter).
+		</member>
+		<member name="cone_inner_angle" type="float" setter="set_cone_inner_angle" getter="get_cone_inner_angle" default="6.28319">
+			The inner angle of the audio cone's angular diameter in radians. An angle of [constant @GDScript.TAU] or greater means the audio is emitted in all directions. This corresponds to the [code]coneInnerAngle[/code] property of the audio emitter in the GLTF file.
+		</member>
+		<member name="cone_outer_angle" type="float" setter="set_cone_outer_angle" getter="get_cone_outer_angle" default="6.28319">
+			The outer angle of the audio cone's angular diameter in radians. This corresponds to the [code]coneOuterAngle[/code] property of the audio emitter in the GLTF file.
+		</member>
+		<member name="cone_outer_gain" type="float" setter="set_cone_outer_gain" getter="get_cone_outer_gain" default="0.0">
+			The linear volume gain multiplier of the audio applied when outside the outer cone angle. This is multiplied with [member volume_gain]. This corresponds to the [code]coneOuterGain[/code] property of the audio emitter in the GLTF file.
+		</member>
+		<member name="distance_model" type="String" setter="set_distance_model" getter="get_distance_model" default="&quot;inverse&quot;">
+			The distance model used to calculate the volume of the audio. Godot only supports the [code]"inverse"[/code] distance model. This corresponds to the [code]distanceModel[/code] property of the audio emitter in the GLTF file.
+		</member>
+		<member name="emitter_type" type="int" setter="set_emitter_type" getter="get_emitter_type" enum="GLTFAudioPlayer.EmitterType" default="1">
+			The emitter type of audio player. This corresponds to the [code]type[/code] property of the audio emitter in the GLTF file.
+		</member>
+		<member name="max_distance" type="float" setter="set_max_distance" getter="get_max_distance" default="0.0">
+			The maximum distance from the audio source, beyond which the audio cannot be heard. This corresponds to the [code]maxDistance[/code] property of the audio emitter in the GLTF file.
+		</member>
+		<member name="pitch_speed" type="float" setter="set_pitch_speed" getter="get_pitch_speed" default="1.0">
+			The combined pitch and playback speed without resampling, as a multiplier of the audio sample's sample rate. This corresponds to the [code]pitchSpeed[/code] property of the audio source in the GLTF file (not the audio emitter), and the [member AudioStreamPlayer.pitch_scale] and [member AudioStreamPlayer3D.pitch_scale] properties in Godot.
+		</member>
+		<member name="rolloff_factor" type="float" setter="set_rolloff_factor" getter="get_rolloff_factor" default="1.0">
+			The rate at which the volume decreases between [member unit_distance] and [member max_distance]. Godot only supports values of [code]0.0[/code] (no distance attenuation), [code]1.0[/code] (inverse distance), and [code]2.0[/code] (inverse squared distance). This corresponds to the [code]rolloffFactor[/code] property of the audio emitter in the GLTF file.
+		</member>
+		<member name="shape_type" type="String" setter="set_shape_type" getter="get_shape_type" default="&quot;omnidirectional&quot;">
+			The shape of the audio emitter. May be [code]"omnidirectional"[/code] or [code]"cone"[/code]. This corresponds to the [code]shapeType[/code] property of the audio emitter in the GLTF file.
+		</member>
+		<member name="unit_distance" type="float" setter="set_unit_distance" getter="get_unit_distance" default="1.0">
+			The distance in meters where the volume is heard at 100% of its original volume. If closer than this distance, the volume will be [member volume_gain]. If between this distance and [member max_distance], the volume will decrease at a rate determined by [member rolloff_factor]. This corresponds to the [code]refDistance[/code] property of the audio emitter in the GLTF file.
+		</member>
+		<member name="volume_gain" type="float" setter="set_volume_gain" getter="get_volume_gain" default="1.0">
+			The linear volume gain multiplier of the audio. This value is linear, a value of [code]0.0[/code] means silence, [code]1.0[/code] is the original volume, [code]2.0[/code] is twice the volume, etc. This corresponds to the [code]gain[/code] property of the audio source in the GLTF file (not the audio emitter).
+		</member>
+	</members>
+	<constants>
+		<constant name="EMITTER_TYPE_GLOBAL" value="0" enum="EmitterType">
+			Global emitter type, played everywhere. Audio players with the global emitter type will be imported as [AudioStreamPlayer] nodes, or exported as [code]"type": "global"[/code] in the GLTF file.
+		</constant>
+		<constant name="EMITTER_TYPE_POSITIONAL" value="1" enum="EmitterType">
+			Positional emitter type, played at a specific position, either omnidirectionally or in a cone. Audio players with the positional emitter type will be imported as [AudioStreamPlayer3D] nodes, or exported as [code]"type": "positional"[/code] in the GLTF file.
+		</constant>
+	</constants>
+</class>

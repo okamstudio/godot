@@ -4,6 +4,23 @@ from misc.utility.scons_hints import *
 Import("env")
 Import("env_modules")
 
+# For MP3 support in the GLTFDocumentExtensionAudio.
+if env["module_minimp3_enabled"]:
+    thirdparty_dir = "#thirdparty/minimp3/"
+    if not env.msvc:
+        env_modules.Append(CPPFLAGS=["-isystem", Dir(thirdparty_dir).path])
+    else:
+        env_modules.Prepend(CPPPATH=[thirdparty_dir])
+    if not env["minimp3_extra_formats"]:
+        env_modules.Append(CPPDEFINES=["MINIMP3_ONLY_MP3"])
+
+# For OGG Vorbis support in the GLTFDocumentExtensionAudio.
+if env["module_vorbis_enabled"]:
+    thirdparty_dir = "#thirdparty/libvorbis/"
+    env_modules.Prepend(CPPPATH=[thirdparty_dir])
+    if env["builtin_libogg"]:
+        env_modules.Prepend(CPPPATH=["#thirdparty/libogg"])
+
 env_gltf = env_modules.Clone()
 
 # Godot source files
