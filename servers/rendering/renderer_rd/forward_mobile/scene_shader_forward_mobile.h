@@ -172,8 +172,9 @@ public:
 				h = hash_murmur3_one_32(cull_mode, h);
 				h = hash_murmur3_one_32(primitive_type, h);
 				h = hash_murmur3_one_32(shader_specialization.packed_0, h);
-				h = hash_murmur3_one_float(shader_specialization.packed_1, h);
+				h = hash_murmur3_one_32(shader_specialization.packed_1, h);
 				h = hash_murmur3_one_32(shader_specialization.packed_2, h);
+				h = hash_murmur3_one_float(shader_specialization.packed_3, h);
 				h = hash_murmur3_one_32(version, h);
 				h = hash_murmur3_one_32(render_pass, h);
 				h = hash_murmur3_one_32(wireframe, h);

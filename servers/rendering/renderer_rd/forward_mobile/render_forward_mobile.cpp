@@ -761,6 +761,10 @@ void RenderForwardMobile::_render_scene(RenderDataRD *p_render_data, const Color
 
 	_update_vrs(rb);
 
+	if (rb->has_texture(RB_SCOPE_VRS, RB_TEXTURE)) {
+		global_pipeline_data_required.use_vrs = true;
+	}
+
 	RENDER_TIMESTAMP("Setup 3D Scene");
 
 	/* TODO
@@ -793,6 +797,7 @@ void RenderForwardMobile::_render_scene(RenderDataRD *p_render_data, const Color
 	bool merge_transparent_pass = true; // If true: we can do our transparent pass in the same pass as our opaque pass.
 	bool using_subpass_post_process = true; // If true: we can do our post processing in a subpass
 	RendererRD::MaterialStorage::Samplers samplers;
+	bool hdr_render_target = false;
 
 	RS::ViewportMSAA msaa = rb->get_msaa_3d();
 	bool use_msaa = msaa != RS::VIEWPORT_MSAA_DISABLED;
@@ -892,11 +897,20 @@ void RenderForwardMobile::_render_scene(RenderDataRD *p_render_data, const Color
 		if (using_subpass_post_process) {
 			// We can do all in one go.
 			framebuffer = rb_data->get_color_fbs(RenderBufferDataForwardMobile::FB_CONFIG_RENDER_AND_POST_PASS);
+			global_pipeline_data_required.use_subpass_post_pass = true;
 		} else {
 			// We separate things out.
 			framebuffer = rb_data->get_color_fbs(RenderBufferDataForwardMobile::FB_CONFIG_RENDER_PASS);
+			global_pipeline_data_required.use_separate_post_pass = true;
 		}
 		samplers = rb->get_samplers();
+
+		hdr_render_target = RendererRD::TextureStorage::get_singleton()->render_target_is_using_hdr(rb->get_render_target());
+		if (hdr_render_target) {
+			global_pipeline_data_required.use_hdr_render_target = true;
+		} else {
+			global_pipeline_data_required.use_ldr_render_target = true;
+		}
 	} else {
 		ERR_FAIL(); //bug?
 	}
@@ -1107,7 +1121,7 @@ void RenderForwardMobile::_render_scene(RenderDataRD *p_render_data, const Color
 				WARN_PRINT_ONCE("Canvas background is not supported in multiview!");
 			} else {
 				RID texture = RendererRD::TextureStorage::get_singleton()->render_target_get_rd_texture(rb->get_render_target());
-				bool convert_to_linear = !RendererRD::TextureStorage::get_singleton()->render_target_is_using_hdr(rb->get_render_target());
+				bool convert_to_linear = !hdr_render_target;
 
 				copy_effects->copy_to_drawlist(draw_list, fb_format, texture, convert_to_linear);
 			}
@@ -2893,6 +2907,7 @@ static RD::FramebufferFormatID _get_color_framebuffer_format_for_pipeline(RD::Da
 		attachment.samples = RD::TEXTURE_SAMPLES_1;
 		attachment.format = RenderSceneBuffersRD::get_vrs_format();
 		attachment.usage_flags = RenderSceneBuffersRD::get_vrs_usage_bits();
+		attachments.push_back(attachment);
 	}
 
 	if (multisampling) {
@@ -3006,11 +3021,18 @@ void RenderForwardMobile::_mesh_compile_pipelines_for_surface(const SurfacePipel
 	const bool multiview_enabled = p_global.use_multiview && scene_shader.is_multiview_enabled();
 	const RD::DataFormat buffers_color_format = _render_buffers_get_color_format();
 	const bool buffers_can_be_storage = _render_buffers_can_be_storage();
-	const uint32_t vrs_iterations = is_vrs_supported() ? 2 : 1;
+	const uint32_t vrs_iterations = p_global.use_vrs ? 2 : 1;
+
+	const uint32_t post_pass_start = p_global.use_separate_post_pass ? 0 : 1;
+	const uint32_t post_pass_iterations = p_global.use_subpass_post_pass ? 2 : (post_pass_start + 1);
+
+	const uint32_t hdr_start = p_global.use_ldr_render_target ? 0 : 1;
+	const uint32_t hdr_target_iterations = p_global.use_hdr_render_target ? 2 : 1;
+
 	for (uint32_t use_vrs = 0; use_vrs < vrs_iterations; use_vrs++) {
-		for (uint32_t use_post_pass = 0; use_post_pass < 2; use_post_pass++) {
-			const uint32_t hdr_iterations = use_post_pass ? 2 : 1;
-			for (uint32_t use_hdr = 0; use_hdr < hdr_iterations; use_hdr++) {
+		for (uint32_t use_post_pass = post_pass_start; use_post_pass < post_pass_iterations; use_post_pass++) {
+			const uint32_t hdr_iterations = use_post_pass ? hdr_target_iterations : (hdr_start + 1);
+			for (uint32_t use_hdr = hdr_start; use_hdr < hdr_iterations; use_hdr++) {
 				pipeline_key.version = SceneShaderForwardMobile::SHADER_VERSION_COLOR_PASS;
 				pipeline_key.framebuffer_format_id = _get_color_framebuffer_format_for_pipeline(buffers_color_format, buffers_can_be_storage, RD::TextureSamples(p_global.texture_samples), RD::TextureSamples(p_global.target_samples), use_vrs, use_post_pass, use_hdr, 1);
 				_mesh_compile_pipeline_for_surface(p_surface.shader, p_surface.mesh_surface, p_surface.instanced, p_source, pipeline_key, r_pipeline_pairs);
@@ -3237,6 +3259,12 @@ RenderForwardMobile::RenderForwardMobile() {
 	scene_shader.init(defines);
 
 	_update_shader_quality_settings();
+	_update_global_pipeline_data_requirements_from_project();
+
+	// Only update these from the project setting at init time.
+	const bool root_hdr_render_target = GLOBAL_GET("rendering/viewport/hdr_2d");
+	global_pipeline_data_required.use_hdr_render_target = root_hdr_render_target;
+	global_pipeline_data_required.use_ldr_render_target = !root_hdr_render_target;
 }
 
 RenderForwardMobile::~RenderForwardMobile() {

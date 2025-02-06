@@ -587,6 +587,11 @@ public:
 				uint32_t use_32_bit_shadows : 1;
 				uint32_t use_shadow_cubemaps : 1;
 				uint32_t use_shadow_dual_paraboloid : 1;
+				uint32_t use_vrs : 1;
+				uint32_t use_subpass_post_pass : 1;
+				uint32_t use_separate_post_pass : 1;
+				uint32_t use_hdr_render_target : 1;
+				uint32_t use_ldr_render_target : 1;
 			};
 		};
 	};
