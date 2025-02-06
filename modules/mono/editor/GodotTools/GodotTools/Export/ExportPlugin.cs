@@ -37,8 +37,28 @@ namespace GodotTools.Export
 
         public override Godot.Collections.Array<Godot.Collections.Dictionary> _GetExportOptions(EditorExportPlatform platform)
         {
-            return new Godot.Collections.Array<Godot.Collections.Dictionary>()
+            var exportOptionList = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+
+            if (platform.GetOsName().Equals(OS.Platforms.Android, StringComparison.OrdinalIgnoreCase))
             {
+                exportOptionList.Add
+                (
+                    new Godot.Collections.Dictionary()
+                    {
+                        {
+                            "option", new Godot.Collections.Dictionary()
+                            {
+                                { "name", "dotnet/android_use_linux_bionic" },
+                                { "type", (int)Variant.Type.Bool }
+                            }
+                        },
+                        { "default_value", false }
+                    }
+                );
+            }
+
+            exportOptionList.Add
+            (
                 new Godot.Collections.Dictionary()
                 {
                     {
@@ -49,7 +69,10 @@ namespace GodotTools.Export
                         }
                     },
                     { "default_value", false }
-                },
+                }
+            );
+            exportOptionList.Add
+            (
                 new Godot.Collections.Dictionary()
                 {
                     {
@@ -60,7 +83,10 @@ namespace GodotTools.Export
                         }
                     },
                     { "default_value", true }
-                },
+                }
+            );
+            exportOptionList.Add
+            (
                 new Godot.Collections.Dictionary()
                 {
                     {
@@ -72,7 +98,8 @@ namespace GodotTools.Export
                     },
                     { "default_value", false }
                 }
-            };
+            );
+            return exportOptionList;
         }
 
         private void AddExceptionMessage(EditorExportPlatform platform, Exception exception)
@@ -158,11 +185,12 @@ namespace GodotTools.Export
                 throw new NotImplementedException("Target platform not yet implemented.");
             }
 
+            bool useAndroidLinuxBionic = (bool)GetOption("dotnet/android_use_linux_bionic");
             PublishConfig publishConfig = new()
             {
                 BuildConfig = isDebug ? "ExportDebug" : "ExportRelease",
                 IncludeDebugSymbols = (bool)GetOption("dotnet/include_debug_symbols"),
-                RidOS = DetermineRuntimeIdentifierOS(platform),
+                RidOS = DetermineRuntimeIdentifierOS(platform, useAndroidLinuxBionic),
                 Archs = new List<string>(),
                 UseTempDir = platform != OS.Platforms.iOS, // xcode project links directly to files in the publish dir, so use one that sticks around.
                 BundleOutputs = true,
@@ -335,6 +363,14 @@ namespace GodotTools.Export
 
                                         if (IsSharedObject(fileName))
                                         {
+                                            if (fileName.EndsWith(".so") && !fileName.StartsWith("lib"))
+                                            {
+                                                // Add 'lib' prefix required for all native libraries in Android.
+                                                string newPath = string.Concat(path.AsSpan(0, path.Length - fileName.Length), "lib", fileName);
+                                                Godot.DirAccess.RenameAbsolute(path, newPath);
+                                                path = newPath;
+                                            }
+
                                             AddSharedObject(path, tags: new string[] { arch },
                                                 Path.Join(projectDataDirName,
                                                     Path.GetRelativePath(publishOutputDir,
@@ -450,8 +486,14 @@ namespace GodotTools.Export
             return path;
         }
 
-        private string DetermineRuntimeIdentifierOS(string platform)
-            => OS.DotNetOSPlatformMap[platform];
+        private string DetermineRuntimeIdentifierOS(string platform, bool useAndroidLinuxBionic)
+        {
+            if (platform == OS.Platforms.Android && useAndroidLinuxBionic)
+            {
+                return OS.DotNetOS.LinuxBionic;
+            }
+            return OS.DotNetOSPlatformMap[platform];
+        }
 
         private string DetermineRuntimeIdentifierArch(string arch)
         {
