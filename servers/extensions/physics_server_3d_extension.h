@@ -324,6 +324,8 @@ public:
 	EXBIND2(body_set_user_flags, RID, uint32_t)
 	EXBIND1RC(uint32_t, body_get_user_flags, RID)
 
+	EXBIND2RC(AABB, body_get_aabb, RID, int)
+
 	EXBIND3(body_set_param, RID, BodyParameter, const Variant &)
 	EXBIND2RC(Variant, body_get_param, RID, BodyParameter)
 

@@ -656,6 +656,13 @@ uint32_t GodotPhysicsServer3D::body_get_user_flags(RID p_body) const {
 	return 0;
 }
 
+AABB GodotPhysicsServer3D::body_get_aabb(RID p_body, int p_shape) const {
+	GodotBody3D *body = body_owner.get_or_null(p_body);
+	ERR_FAIL_NULL_V(body, AABB());
+
+	return body->get_shape_aabb(p_shape);
+}
+
 void GodotPhysicsServer3D::body_set_param(RID p_body, BodyParameter p_param, const Variant &p_value) {
 	GodotBody3D *body = body_owner.get_or_null(p_body);
 	ERR_FAIL_NULL(body);

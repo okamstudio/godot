@@ -210,6 +210,8 @@ public:
 	FUNC2(body_set_user_flags, RID, uint32_t);
 	FUNC1RC(uint32_t, body_get_user_flags, RID);
 
+	FUNC2RC(AABB, body_get_aabb, RID, int);
+
 	FUNC3(body_set_param, RID, BodyParameter, const Variant &);
 	FUNC2RC(Variant, body_get_param, RID, BodyParameter);
 

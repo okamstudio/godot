@@ -250,6 +250,8 @@ public:
 	virtual void body_set_user_flags(RID p_body, uint32_t p_flags) override {}
 	virtual uint32_t body_get_user_flags(RID p_body) const override { return 0; }
 
+	virtual AABB body_get_aabb(RID p_body, int p_shape) const override { return AABB(); }
+
 	virtual void body_set_param(RID p_body, BodyParameter p_param, const Variant &p_value) override {}
 	virtual Variant body_get_param(RID p_body, BodyParameter p_param) const override { return Variant(); }
 

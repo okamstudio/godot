@@ -700,6 +700,18 @@ uint32_t JoltPhysicsServer3D::body_get_user_flags(RID p_body) const {
 	return 0;
 }
 
+AABB JoltPhysicsServer3D::body_get_aabb(RID p_body, int p_shape) const {
+	JoltBody3D *body = body_owner.get_or_null(p_body);
+	ERR_FAIL_NULL_V(body, AABB());
+
+	// Unlike Godot Physics, JoltBody3D::get_aabb() does not accept an index. Instead, it combines
+	// all of its shapes' AABBs into a single AABB. For parity, we manually retrieve and transform a
+	// single shape here.
+	//
+	// TODO: Check that this behaves as expected (not familiar with JoltPhysics).
+	return body->get_transform_scaled().xform(body->get_shape(p_shape)->get_aabb());
+}
+
 void JoltPhysicsServer3D::body_set_param(RID p_body, BodyParameter p_param, const Variant &p_value) {
 	JoltBody3D *body = body_owner.get_or_null(p_body);
 	ERR_FAIL_NULL(body);

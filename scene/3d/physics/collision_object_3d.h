@@ -159,6 +159,7 @@ public:
 	int shape_owner_get_shape_count(uint32_t p_owner) const;
 	Ref<Shape3D> shape_owner_get_shape(uint32_t p_owner, int p_shape) const;
 	int shape_owner_get_shape_index(uint32_t p_owner, int p_shape) const;
+	AABB shape_owner_get_shape_aabb(uint32_t p_owner, int p_shape) const;
 
 	void shape_owner_remove_shape(uint32_t p_owner, int p_shape);
 	void shape_owner_clear_shapes(uint32_t p_owner);
