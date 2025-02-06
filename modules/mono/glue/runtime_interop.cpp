@@ -203,6 +203,11 @@ void godotsharp_internal_refcounted_disposed(Object *p_ptr, GCHandleIntPtr p_gch
 			CSharpScriptBinding &script_binding = ((RBMap<Object *, CSharpScriptBinding>::Element *)data)->get();
 			if (script_binding.inited) {
 				if (!script_binding.gchandle.is_released()) {
+					if (rc->get_reference_count() == 1 && script_binding.gchandle.is_weak()) {
+						// The GCHandle is just swapped, so get the swapped handle to release
+						// See: CSharpLanguage::_instance_binding_reference_callback(void *p_token, void *p_binding, GDExtensionBool p_reference)
+						p_gchandle_to_free = script_binding.gchandle.get_intptr();
+					}
 					CSharpLanguage::release_binding_gchandle_thread_safe(p_gchandle_to_free, script_binding);
 				}
 			}
