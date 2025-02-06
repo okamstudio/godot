@@ -7,7 +7,7 @@ env:
   # Used for the cache key. Add version suffix to force clean build.
   GODOT_BASE_BRANCH: master
   SCONSFLAGS: verbose=yes warnings=extra werror=yes debug_symbols=no use_closure_compiler=yes strict_checks=yes
-  EM_VERSION: 3.1.64
+  EM_VERSION: 3.1.72
 
 jobs:
   web-template:
@@ -21,14 +21,14 @@ jobs:
           - name: Template w/ threads (target=template_release, threads=yes)
             cache-name: web-template
             target: template_release
-            sconsflags: threads=yes
+            sconsflags: threads=yes arch=wasm64
             tests: false
             artifact: true
 
           - name: Template w/o threads (target=template_release, threads=no)
             cache-name: web-nothreads-template
             target: template_release
-            sconsflags: threads=no
+            sconsflags: threads=no arch=wasm32
             tests: false
             artifact: true
 

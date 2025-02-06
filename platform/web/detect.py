@@ -91,7 +91,7 @@ def get_flags():
 
 def configure(env: "SConsEnvironment"):
     # Validate arch.
-    supported_arches = ["wasm32"]
+    supported_arches = ["wasm32", "wasm64"]
     validate_arch(env["arch"], get_name(), supported_arches)
 
     try:
@@ -171,9 +171,6 @@ def configure(env: "SConsEnvironment"):
     # Add method for creating the final zip file
     env.AddMethod(create_template_zip, "CreateTemplateZip")
 
-    # Closure compiler extern and support for ecmascript specs (const, let, etc).
-    env["ENV"]["EMCC_CLOSURE_ARGS"] = "--language_in ECMASCRIPT_2021"
-
     env["CC"] = "emcc"
     env["CXX"] = "em++"
 
@@ -201,8 +198,8 @@ def configure(env: "SConsEnvironment"):
     cc_semver = (cc_version["major"], cc_version["minor"], cc_version["patch"])
 
     # Minimum emscripten requirements.
-    if cc_semver < (3, 1, 62):
-        print_error("The minimum emscripten version to build Godot is 3.1.62, detected: %s.%s.%s" % cc_semver)
+    if cc_semver < (3, 1, 72):
+        print_error("The minimum emscripten version to build Godot is 3.1.72, detected: %s.%s.%s" % cc_semver)
         sys.exit(255)
 
     env.Prepend(CPPPATH=["#platform/web"])
@@ -256,6 +253,8 @@ def configure(env: "SConsEnvironment"):
         env.extra_suffix = ".dlink" + env.extra_suffix
 
     env.Append(LINKFLAGS=["-sWASM_BIGINT"])
+    env.Append(CCFLAGS=[f"-sMEMORY64={0 if env['arch'] == 'wasm32' else 1}"])
+    env.Append(LINKFLAGS=[f"-sMEMORY64={0 if env['arch'] == 'wasm32' else 1}"])
 
     # Run the main application in a web worker
     if env["proxy_to_pthread"]:
