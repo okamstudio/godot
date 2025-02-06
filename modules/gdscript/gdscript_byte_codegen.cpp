@@ -591,7 +591,8 @@ void GDScriptByteCodeGenerator::write_binary_operator(const Address &p_target, V
 	if (valid && (p_operator == Variant::OP_DIVIDE || p_operator == Variant::OP_MODULE)) {
 		switch (p_left_operand.type.builtin_type) {
 			case Variant::INT:
-				valid = p_right_operand.type.builtin_type != Variant::INT;
+				// Cannot use modulo between int / float, we should raise an error later in GDScript
+				valid = p_right_operand.type.builtin_type != Variant::INT && p_operator == Variant::OP_DIVIDE;
 				break;
 			case Variant::VECTOR2I:
 			case Variant::VECTOR3I:
