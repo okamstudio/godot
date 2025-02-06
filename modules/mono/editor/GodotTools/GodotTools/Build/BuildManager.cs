@@ -380,7 +380,29 @@ namespace GodotTools.Build
             if (GodotSharpEditor.Instance.SkipBuildBeforePlaying)
                 return true; // Requested play from an external editor/IDE which already built the project.
 
+            if (IsAssemblyUpToDate())
+                return true;
+
             return BuildProjectBlocking("Debug");
+        }
+
+        public static bool IsAssemblyUpToDate()
+        {
+            var assemblyFilePath = Path.Combine(GodotSharpDirs.ProjectBaseOutputPath, "Debug", $"{GodotSharpDirs.ProjectAssemblyName}.dll");
+            if (!File.Exists(assemblyFilePath))
+                return false;
+
+            if (File.GetLastWriteTime(GodotSharpDirs.ProjectCsProjPath) > LastValidBuildDateTime)
+                return false;
+
+            string projectPath = ProjectSettings.GlobalizePath("res://");
+            foreach (string filePath in Directory.EnumerateFiles(projectPath, "*.cs", SearchOption.AllDirectories))
+            {
+                if (File.GetLastWriteTime(filePath) > LastValidBuildDateTime)
+                    return false;
+            }
+
+            return true;
         }
 
         public static void Initialize()
