@@ -47,6 +47,7 @@ protected:
 
 	virtual void _physics_interpolated_changed() override;
 	void set_instance_use_identity_transform(bool p_enable);
+	void _reset_physics_interpolation();
 
 	void _notification(int p_what);
 	static void _bind_methods();

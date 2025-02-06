@@ -1183,6 +1183,10 @@
 		<constant name="NOTIFICATION_RESET_PHYSICS_INTERPOLATION" value="2001">
 			Notification received when [method reset_physics_interpolation] is called on the node or its ancestors.
 		</constant>
+		<constant name="NOTIFICATION_TREE_PHYSICS_INTERPOLATION_CHANGED" value="2002">
+			Notification received when [member SceneTree.physics_interpolation] is changed.
+			[b]Note:[/b] Not to be confused with [member physics_interpolation_mode], which controls interpolation on a per-node basis.
+		</constant>
 		<constant name="NOTIFICATION_EDITOR_PRE_SAVE" value="9001">
 			Notification received right before the scene with the node is saved in the editor. This notification is only sent in the Godot editor and will not occur in exported projects.
 		</constant>

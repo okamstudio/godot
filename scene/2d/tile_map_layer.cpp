@@ -457,12 +457,22 @@ void TileMapLayer::_rendering_notification(int p_what) {
 		}
 	} else if (p_what == NOTIFICATION_RESET_PHYSICS_INTERPOLATION) {
 		if (is_physics_interpolated_and_enabled() && is_visible_in_tree()) {
-			for (const KeyValue<Vector2i, Ref<RenderingQuadrant>> &kv : rendering_quadrant_map) {
-				for (const RID &ci : kv.value->canvas_items) {
-					if (ci.is_valid()) {
-						rs->canvas_item_reset_physics_interpolation(ci);
-					}
-				}
+			_rendering_reset_physics_interpolation();
+		}
+	} else if (p_what == NOTIFICATION_TREE_PHYSICS_INTERPOLATION_CHANGED) {
+		if (is_physics_interpolated_and_enabled()) {
+			_rendering_reset_physics_interpolation();
+		}
+	}
+}
+
+void TileMapLayer::_rendering_reset_physics_interpolation() {
+	RenderingServer *rs = RenderingServer::get_singleton();
+
+	for (const KeyValue<Vector2i, Ref<RenderingQuadrant>> &kv : rendering_quadrant_map) {
+		for (const RID &ci : kv.value->canvas_items) {
+			if (ci.is_valid()) {
+				rs->canvas_item_reset_physics_interpolation(ci);
 			}
 		}
 	}

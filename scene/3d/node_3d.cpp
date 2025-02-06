@@ -229,7 +229,8 @@ void Node3D::_notification(int p_what) {
 #endif
 		} break;
 
-		case NOTIFICATION_RESET_PHYSICS_INTERPOLATION: {
+		case NOTIFICATION_RESET_PHYSICS_INTERPOLATION:
+		case NOTIFICATION_TREE_PHYSICS_INTERPOLATION_CHANGED: {
 			if (data.client_physics_interpolation_data) {
 				data.client_physics_interpolation_data->global_xform_prev = data.client_physics_interpolation_data->global_xform_curr;
 			}

@@ -104,14 +104,13 @@ void VisualInstance3D::_notification(int p_what) {
 
 		case NOTIFICATION_RESET_PHYSICS_INTERPOLATION: {
 			if (_is_vi_visible() && is_physics_interpolated() && is_inside_tree()) {
-				// We must ensure the RenderingServer transform is up to date before resetting.
-				// This is because NOTIFICATION_TRANSFORM_CHANGED is deferred,
-				// and cannot be relied to be called in order before NOTIFICATION_RESET_PHYSICS_INTERPOLATION.
-				if (!_is_using_identity_transform()) {
-					RenderingServer::get_singleton()->instance_set_transform(instance, get_global_transform());
-				}
+				_reset_physics_interpolation();
+			}
+		} break;
 
-				RenderingServer::get_singleton()->instance_reset_physics_interpolation(instance);
+		case NOTIFICATION_TREE_PHYSICS_INTERPOLATION_CHANGED: {
+			if (is_inside_tree()) {
+				_reset_physics_interpolation();
 			}
 		} break;
 
@@ -125,6 +124,17 @@ void VisualInstance3D::_notification(int p_what) {
 			_update_visibility();
 		} break;
 	}
+}
+
+void VisualInstance3D::_reset_physics_interpolation() {
+	// We must ensure the RenderingServer transform is up to date before resetting.
+	// This is because NOTIFICATION_TRANSFORM_CHANGED is deferred,
+	// and cannot be relied to be called in order before NOTIFICATION_RESET_PHYSICS_INTERPOLATION.
+	if (!_is_using_identity_transform()) {
+		RenderingServer::get_singleton()->instance_set_transform(instance, get_global_transform());
+	}
+
+	RenderingServer::get_singleton()->instance_reset_physics_interpolation(instance);
 }
 
 RID VisualInstance3D::get_instance() const {

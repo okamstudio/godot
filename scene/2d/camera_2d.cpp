@@ -273,6 +273,10 @@ void Camera2D::_ensure_update_interpolation_data() {
 	}
 }
 
+void Camera2D::_physics_interpolated_changed() {
+	_update_process_callback();
+}
+
 void Camera2D::_notification(int p_what) {
 	switch (p_what) {
 #ifdef TOOLS_ENABLED
@@ -300,6 +304,17 @@ void Camera2D::_notification(int p_what) {
 			// Force the limits etc. to update.
 			_interpolation_data.xform_curr = get_camera_transform();
 			_interpolation_data.xform_prev = _interpolation_data.xform_curr;
+		} break;
+
+		case NOTIFICATION_TREE_PHYSICS_INTERPOLATION_CHANGED: {
+			// Make sure internal process callbacks are up to date.
+			_update_process_callback();
+
+			// Also reset the lerp if needed.
+			if (is_physics_interpolated_and_enabled()) {
+				_interpolation_data.xform_curr = get_camera_transform();
+				_interpolation_data.xform_prev = _interpolation_data.xform_curr;
+			}
 		} break;
 
 		case NOTIFICATION_SUSPENDED:

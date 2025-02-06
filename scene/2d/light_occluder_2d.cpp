@@ -207,15 +207,25 @@ void LightOccluder2D::_notification(int p_what) {
 
 		case NOTIFICATION_RESET_PHYSICS_INTERPOLATION: {
 			if (is_visible_in_tree() && is_physics_interpolated()) {
-				// Explicitly make sure the transform is up to date in RenderingServer before
-				// resetting. This is necessary because NOTIFICATION_TRANSFORM_CHANGED
-				// is normally deferred, and a client change to transform will not always be sent
-				// before the reset, so we need to guarantee this.
-				RS::get_singleton()->canvas_light_occluder_set_transform(occluder, get_global_transform());
-				RS::get_singleton()->canvas_light_occluder_reset_physics_interpolation(occluder);
+				_light_reset_physics_interpolation();
+			}
+		} break;
+
+		case NOTIFICATION_TREE_PHYSICS_INTERPOLATION_CHANGED: {
+			if (is_physics_interpolated()) {
+				_light_reset_physics_interpolation();
 			}
 		} break;
 	}
+}
+
+void LightOccluder2D::_light_reset_physics_interpolation() {
+	// Explicitly make sure the transform is up to date in RenderingServer before
+	// resetting. This is necessary because NOTIFICATION_TRANSFORM_CHANGED
+	// is normally deferred, and a client change to transform will not always be sent
+	// before the reset, so we need to guarantee this.
+	RS::get_singleton()->canvas_light_occluder_set_transform(occluder, get_global_transform());
+	RS::get_singleton()->canvas_light_occluder_reset_physics_interpolation(occluder);
 }
 
 #ifdef DEBUG_ENABLED

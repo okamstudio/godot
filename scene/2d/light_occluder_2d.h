@@ -86,6 +86,7 @@ class LightOccluder2D : public Node2D {
 	void _poly_changed();
 
 	virtual void _physics_interpolated_changed() override;
+	void _light_reset_physics_interpolation();
 
 protected:
 	void _notification(int p_what);

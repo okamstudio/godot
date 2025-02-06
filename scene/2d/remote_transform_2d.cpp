@@ -114,7 +114,8 @@ void RemoteTransform2D::_notification(int p_what) {
 			_update_cache();
 		} break;
 
-		case NOTIFICATION_RESET_PHYSICS_INTERPOLATION: {
+		case NOTIFICATION_RESET_PHYSICS_INTERPOLATION:
+		case NOTIFICATION_TREE_PHYSICS_INTERPOLATION_CHANGED: {
 			if (cache.is_valid()) {
 				_update_remote();
 				Node2D *n = Object::cast_to<Node2D>(ObjectDB::get_instance(cache));

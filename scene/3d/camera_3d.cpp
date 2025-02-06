@@ -233,6 +233,17 @@ void Camera3D::_notification(int p_what) {
 			}
 		} break;
 
+		case NOTIFICATION_TREE_PHYSICS_INTERPOLATION_CHANGED: {
+			// Make sure internal process callbacks are up to date.
+			_update_process_mode();
+
+			// Also reset the lerp if needed.
+			if (is_inside_tree()) {
+				_interpolation_data.xform_curr = get_global_transform();
+				_interpolation_data.xform_prev = _interpolation_data.xform_curr;
+			}
+		} break;
+
 		case NOTIFICATION_SUSPENDED:
 		case NOTIFICATION_PAUSED: {
 			if (is_physics_interpolated_and_enabled() && is_inside_tree() && is_visible_in_tree()) {

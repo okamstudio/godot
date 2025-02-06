@@ -395,6 +395,12 @@ void CanvasItem::_notification(int p_what) {
 			}
 		} break;
 
+		case NOTIFICATION_TREE_PHYSICS_INTERPOLATION_CHANGED: {
+			if (is_physics_interpolated()) {
+				RenderingServer::get_singleton()->canvas_item_reset_physics_interpolation(canvas_item);
+			}
+		} break;
+
 		case NOTIFICATION_VISIBILITY_CHANGED: {
 			ERR_MAIN_THREAD_GUARD;
 

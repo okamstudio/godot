@@ -340,6 +340,7 @@ private:
 	void _rendering_quadrants_update_cell(CellData &r_cell_data, SelfList<RenderingQuadrant>::List &r_dirty_rendering_quadrant_list);
 	void _rendering_occluders_clear_cell(CellData &r_cell_data);
 	void _rendering_occluders_update_cell(CellData &r_cell_data);
+	void _rendering_reset_physics_interpolation();
 #ifdef DEBUG_ENABLED
 	void _rendering_draw_cell_debug(const RID &p_canvas_item, const Vector2 &p_quadrant_pos, const CellData &r_cell_data);
 #endif // DEBUG_ENABLED

@@ -683,7 +683,8 @@ void Skeleton2D::_notification(int p_what) {
 			}
 		} break;
 
-		case NOTIFICATION_RESET_PHYSICS_INTERPOLATION: {
+		case NOTIFICATION_RESET_PHYSICS_INTERPOLATION:
+		case NOTIFICATION_TREE_PHYSICS_INTERPOLATION_CHANGED: {
 			_interpolation_data.xform_curr = get_global_transform();
 			_interpolation_data.xform_prev = _interpolation_data.xform_curr;
 		} break;
