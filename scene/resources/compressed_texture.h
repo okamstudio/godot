@@ -58,6 +58,7 @@ public:
 		//FORMAT_BIT_DETECT_SRGB = 1 << 25,
 		FORMAT_BIT_DETECT_NORMAL = 1 << 26,
 		FORMAT_BIT_DETECT_ROUGNESS = 1 << 27,
+		FORMAT_BIT_DETECT_HEIGHT = 1 << 28,
 	};
 
 private:
@@ -68,12 +69,13 @@ private:
 	int h = 0;
 	mutable Ref<BitMap> alpha_cache;
 
-	Error _load_data(const String &p_path, int &r_width, int &r_height, Ref<Image> &image, bool &r_request_3d, bool &r_request_normal, bool &r_request_roughness, int &mipmap_limit, int p_size_limit = 0);
+	Error _load_data(const String &p_path, int &r_width, int &r_height, Ref<Image> &image, bool &r_request_3d, bool &r_request_normal, bool &r_request_roughness, bool &r_request_height, int &mipmap_limit, int p_size_limit = 0);
 	virtual void reload_from_file() override;
 
 	static void _requested_3d(void *p_ud);
 	static void _requested_roughness(void *p_ud, const String &p_normal_path, RS::TextureDetectRoughnessChannel p_roughness_channel);
 	static void _requested_normal(void *p_ud);
+	static void _requested_height(void *p_ud);
 
 protected:
 	static void _bind_methods();
@@ -88,6 +90,7 @@ public:
 	static TextureFormatRequestCallback request_3d_callback;
 	static TextureFormatRoughnessRequestCallback request_roughness_callback;
 	static TextureFormatRequestCallback request_normal_callback;
+	static TextureFormatRequestCallback request_height_callback;
 
 	Image::Format get_format() const;
 	Error load(const String &p_path);

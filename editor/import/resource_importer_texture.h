@@ -50,11 +50,19 @@ public:
 		COMPRESS_BASIS_UNIVERSAL
 	};
 
+	enum HeightmapAdjust {
+		HEIGHTMAP_ADJUST_DETECT,
+		HEIGHTMAP_ADJUST_DISABLED,
+		HEIGHTMAP_ADJUST_CORRECT_BASELINE,
+		HEIGHTMAP_ADJUST_NORMALIZE,
+	};
+
 protected:
 	enum {
 		MAKE_3D_FLAG = 1,
 		MAKE_ROUGHNESS_FLAG = 2,
-		MAKE_NORMAL_FLAG = 4
+		MAKE_NORMAL_FLAG = 4,
+		MAKE_HEIGHT_FLAG = 8,
 	};
 
 	Mutex mutex;
@@ -69,11 +77,12 @@ protected:
 	static void _texture_reimport_roughness(const Ref<CompressedTexture2D> &p_tex, const String &p_normal_path, RenderingServer::TextureDetectRoughnessChannel p_channel);
 	static void _texture_reimport_3d(const Ref<CompressedTexture2D> &p_tex);
 	static void _texture_reimport_normal(const Ref<CompressedTexture2D> &p_tex);
+	static void _texture_reimport_height(const Ref<CompressedTexture2D> &p_tex);
 
 	static ResourceImporterTexture *singleton;
 	static const char *compression_formats[];
 
-	void _save_ctex(const Ref<Image> &p_image, const String &p_to_path, CompressMode p_compress_mode, float p_lossy_quality, Image::CompressMode p_vram_compression, bool p_mipmaps, bool p_streamable, bool p_detect_3d, bool p_detect_srgb, bool p_detect_normal, bool p_force_normal, bool p_srgb_friendly, bool p_force_po2_for_compressed, uint32_t p_limit_mipmap, const Ref<Image> &p_normal, Image::RoughnessChannel p_roughness_channel);
+	void _save_ctex(const Ref<Image> &p_image, const String &p_to_path, CompressMode p_compress_mode, float p_lossy_quality, Image::CompressMode p_vram_compression, bool p_mipmaps, bool p_streamable, bool p_detect_3d, bool p_detect_srgb, bool p_detect_normal, bool p_detect_height, bool p_force_normal, bool p_srgb_friendly, bool p_force_po2_for_compressed, uint32_t p_limit_mipmap, const Ref<Image> &p_normal, Image::RoughnessChannel p_roughness_channel);
 	void _save_editor_meta(const Dictionary &p_metadata, const String &p_to_path);
 	Dictionary _load_editor_meta(const String &p_to_path) const;
 

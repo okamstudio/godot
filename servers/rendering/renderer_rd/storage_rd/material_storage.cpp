@@ -1032,6 +1032,9 @@ void MaterialStorage::MaterialData::update_textures(const HashMap<StringName, Va
 						roughness_detect_texture = tex;
 						roughness_channel = RS::TextureDetectRoughnessChannel(p_texture_uniforms[i].hint - ShaderLanguage::ShaderNode::Uniform::HINT_ROUGHNESS_R);
 					}
+					if (tex->detect_height_callback && (p_texture_uniforms[i].hint == ShaderLanguage::ShaderNode::Uniform::HINT_HEIGHT)) {
+						tex->detect_height_callback(tex->detect_height_callback_ud);
+					}
 #endif // TOOLS_ENABLED
 					if (tex->render_target) {
 						tex->render_target->was_used = true;

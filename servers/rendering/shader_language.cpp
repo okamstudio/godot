@@ -210,6 +210,7 @@ const char *ShaderLanguage::token_names[TK_MAX] = {
 	"HINT_ROUGHNESS_B",
 	"HINT_ROUGHNESS_A",
 	"HINT_ROUGHNESS_GRAY",
+	"HINT_HEIGHT",
 	"HINT_ANISOTROPY_TEXTURE",
 	"HINT_SOURCE_COLOR",
 	"HINT_RANGE",
@@ -384,6 +385,7 @@ const ShaderLanguage::KeyWord ShaderLanguage::keyword_list[] = {
 	{ TK_HINT_ROUGHNESS_A, "hint_roughness_a", CF_UNSPECIFIED, {}, {} },
 	{ TK_HINT_ROUGHNESS_NORMAL_TEXTURE, "hint_roughness_normal", CF_UNSPECIFIED, {}, {} },
 	{ TK_HINT_ROUGHNESS_GRAY, "hint_roughness_gray", CF_UNSPECIFIED, {}, {} },
+	{ TK_HINT_HEIGHT_TEXTURE, "hint_height", CF_UNSPECIFIED, {}, {} },
 	{ TK_HINT_SCREEN_TEXTURE, "hint_screen_texture", CF_UNSPECIFIED, {}, {} },
 	{ TK_HINT_NORMAL_ROUGHNESS_TEXTURE, "hint_normal_roughness_texture", CF_UNSPECIFIED, {}, {} },
 	{ TK_HINT_DEPTH_TEXTURE, "hint_depth_texture", CF_UNSPECIFIED, {}, {} },
@@ -1207,6 +1209,9 @@ String ShaderLanguage::get_uniform_hint_name(ShaderNode::Uniform::Hint p_hint) {
 		} break;
 		case ShaderNode::Uniform::HINT_ROUGHNESS_GRAY: {
 			result = "hint_roughness_gray";
+		} break;
+		case ShaderNode::Uniform::HINT_HEIGHT: {
+			result = "hint_height";
 		} break;
 		case ShaderNode::Uniform::HINT_DEFAULT_BLACK: {
 			result = "hint_default_black";
@@ -9783,6 +9788,9 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 								case TK_HINT_ROUGHNESS_GRAY: {
 									new_hint = ShaderNode::Uniform::HINT_ROUGHNESS_GRAY;
 								} break;
+								case TK_HINT_HEIGHT_TEXTURE: {
+									new_hint = ShaderNode::Uniform::HINT_HEIGHT;
+								} break;
 								case TK_HINT_ANISOTROPY_TEXTURE: {
 									new_hint = ShaderNode::Uniform::HINT_ANISOTROPY;
 								} break;
@@ -11818,6 +11826,7 @@ Error ShaderLanguage::complete(const String &p_code, const ShaderCompileInfo &p_
 						options.push_back("hint_default_black");
 						options.push_back("hint_default_white");
 						options.push_back("hint_default_transparent");
+						options.push_back("hint_height");
 						options.push_back("hint_normal");
 						options.push_back("hint_roughness_a");
 						options.push_back("hint_roughness_b");

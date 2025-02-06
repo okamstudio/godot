@@ -255,7 +255,7 @@
 		</member>
 		<member name="heightmap_texture" type="Texture2D" setter="set_texture" getter="get_texture">
 			The texture to use as a height map. See also [member heightmap_enabled].
-			For best results, the texture should be normalized (with [member heightmap_scale] reduced to compensate). In [url=https://gimp.org]GIMP[/url], this can be done using [b]Colors &gt; Auto &gt; Equalize[/b]. If the texture only uses a small part of its available range, the parallax effect may look strange, especially when the camera moves.
+			For best results, the texture should be normalized (with [member heightmap_scale] reduced to compensate). This allows the deep parallax effect to make full use of the number of steps defined in [member heightmap_min_layers] and [member heightmap_max_layers]. This can be done by setting [member ResourceImporterTexture.process/height_map_adjust] to [b]Normalize[/b]. Alternatively, [member ResourceImporterTexture.process/height_map_adjust] can be set to [b]Correct Baseline[/b] without needing adjustments to [member heightmap_scale], but this won't ensure the deep parallax effect is optimal.
 			[b]Note:[/b] To reduce memory usage and improve loading times, you may be able to use a lower-resolution heightmap texture as most heightmaps are only comprised of low-frequency data.
 		</member>
 		<member name="metallic" type="float" setter="set_metallic" getter="get_metallic" default="0.0">

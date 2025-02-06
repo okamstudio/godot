@@ -38,7 +38,10 @@
 		<constant name="TYPE_ANISOTROPY" value="3" enum="TextureType">
 			Adds [code]hint_anisotropy[/code] as hint to the uniform declaration to use for a flowmap.
 		</constant>
-		<constant name="TYPE_MAX" value="4" enum="TextureType">
+		<constant name="TYPE_HEIGHT" value="4" enum="TextureType">
+			Adds [code]hint_height[/code] as hint to the uniform declaration to use for a heightmap.
+		</constant>
+		<constant name="TYPE_MAX" value="5" enum="TextureType">
 			Represents the size of the [enum TextureType] enum.
 		</constant>
 		<constant name="COLOR_DEFAULT_WHITE" value="0" enum="ColorDefault">

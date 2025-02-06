@@ -1083,7 +1083,7 @@ uniform sampler2D texture_backlight : hint_default_black, %s;
 
 	if (features[FEATURE_HEIGHT_MAPPING]) {
 		code += vformat(R"(
-uniform sampler2D texture_heightmap : hint_default_black, %s;
+uniform sampler2D texture_heightmap : hint_height, %s;
 uniform float heightmap_scale : hint_range(-16.0, 16.0, 0.001);
 uniform int heightmap_min_layers : hint_range(1, 64);
 uniform int heightmap_max_layers : hint_range(1, 64);

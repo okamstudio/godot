@@ -176,6 +176,8 @@ public:
 	typedef void (*TextureDetectRoughnessCallback)(void *, const String &, TextureDetectRoughnessChannel);
 	virtual void texture_set_detect_roughness_callback(RID p_texture, TextureDetectRoughnessCallback p_callback, void *p_userdata) = 0;
 
+	virtual void texture_set_detect_height_callback(RID p_texture, TextureDetectCallback p_callback, void *p_userdata) = 0;
+
 	struct TextureInfo {
 		RID texture;
 		uint32_t width;

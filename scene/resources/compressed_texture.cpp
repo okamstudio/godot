@@ -32,7 +32,7 @@
 
 #include "scene/resources/bit_map.h"
 
-Error CompressedTexture2D::_load_data(const String &p_path, int &r_width, int &r_height, Ref<Image> &image, bool &r_request_3d, bool &r_request_normal, bool &r_request_roughness, int &mipmap_limit, int p_size_limit) {
+Error CompressedTexture2D::_load_data(const String &p_path, int &r_width, int &r_height, Ref<Image> &image, bool &r_request_3d, bool &r_request_normal, bool &r_request_roughness, bool &r_request_height, int &mipmap_limit, int p_size_limit) {
 	alpha_cache.unref();
 
 	ERR_FAIL_COND_V(image.is_null(), ERR_INVALID_PARAMETER);
@@ -67,12 +67,14 @@ Error CompressedTexture2D::_load_data(const String &p_path, int &r_width, int &r
 	r_request_3d = request_3d_callback && df & FORMAT_BIT_DETECT_3D;
 	r_request_roughness = request_roughness_callback && df & FORMAT_BIT_DETECT_ROUGNESS;
 	r_request_normal = request_normal_callback && df & FORMAT_BIT_DETECT_NORMAL;
+	r_request_height = request_height_callback && df & FORMAT_BIT_DETECT_HEIGHT;
 
 #else
 
 	r_request_3d = false;
 	r_request_roughness = false;
 	r_request_normal = false;
+	r_request_height = false;
 
 #endif
 	if (!(df & FORMAT_BIT_STREAM)) {
@@ -117,9 +119,17 @@ void CompressedTexture2D::_requested_normal(void *p_ud) {
 	request_normal_callback(ctex);
 }
 
+void CompressedTexture2D::_requested_height(void *p_ud) {
+	CompressedTexture2D *ct = (CompressedTexture2D *)p_ud;
+	Ref<CompressedTexture2D> ctex(ct);
+	ERR_FAIL_NULL(request_height_callback);
+	request_height_callback(ctex);
+}
+
 CompressedTexture2D::TextureFormatRequestCallback CompressedTexture2D::request_3d_callback = nullptr;
 CompressedTexture2D::TextureFormatRoughnessRequestCallback CompressedTexture2D::request_roughness_callback = nullptr;
 CompressedTexture2D::TextureFormatRequestCallback CompressedTexture2D::request_normal_callback = nullptr;
+CompressedTexture2D::TextureFormatRequestCallback CompressedTexture2D::request_height_callback = nullptr;
 
 Image::Format CompressedTexture2D::get_format() const {
 	return format;
@@ -133,9 +143,10 @@ Error CompressedTexture2D::load(const String &p_path) {
 	bool request_3d;
 	bool request_normal;
 	bool request_roughness;
+	bool request_height;
 	int mipmap_limit;
 
-	Error err = _load_data(p_path, lw, lh, image, request_3d, request_normal, request_roughness, mipmap_limit);
+	Error err = _load_data(p_path, lw, lh, image, request_3d, request_normal, request_roughness, request_height, mipmap_limit);
 	if (err) {
 		return err;
 	}
@@ -184,6 +195,12 @@ Error CompressedTexture2D::load(const String &p_path) {
 	} else {
 		//print_line("not requesting detect normal at " + p_path);
 		RS::get_singleton()->texture_set_detect_normal_callback(texture, nullptr, nullptr);
+	}
+
+	if (request_height) {
+		RS::get_singleton()->texture_set_detect_height_callback(texture, _requested_height, this);
+	} else {
+		RS::get_singleton()->texture_set_detect_height_callback(texture, nullptr, nullptr);
 	}
 
 #endif
