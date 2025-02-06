@@ -144,6 +144,13 @@ Ref<Curve> CurveTexture::get_curve() const {
 	return _curve;
 }
 
+Ref<Image> CurveTexture::get_image() const {
+	if (!_texture.is_valid()) {
+		return Ref<Image>();
+	}
+	return RenderingServer::get_singleton()->texture_2d_get(_texture);
+}
+
 void CurveTexture::set_texture_mode(TextureMode p_mode) {
 	ERR_FAIL_COND(p_mode < TEXTURE_MODE_RGB || p_mode > TEXTURE_MODE_RED);
 	if (texture_mode == p_mode) {
@@ -358,6 +365,13 @@ RID CurveXYZTexture::get_rid() const {
 		_texture = RS::get_singleton()->texture_2d_placeholder_create();
 	}
 	return _texture;
+}
+
+Ref<Image> CurveXYZTexture::get_image() const {
+	if (!_texture.is_valid()) {
+		return Ref<Image>();
+	}
+	return RenderingServer::get_singleton()->texture_2d_get(_texture);
 }
 
 CurveXYZTexture::CurveXYZTexture() {}
