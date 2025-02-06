@@ -1458,7 +1458,10 @@ String Viewport::_gui_get_tooltip(Control *p_control, const Vector2 &p_pos, Cont
 		// Temporary solution for PopupMenus.
 		PopupMenu *menu = Object::cast_to<PopupMenu>(this);
 		if (menu) {
-			tooltip = menu->get_tooltip(pos);
+			Vector2 corrected_pos = pos;
+			corrected_pos = p_control->get_global_transform_with_canvas().xform(corrected_pos);
+			corrected_pos *= menu->get_content_scale_factor();
+			tooltip = menu->get_tooltip(corrected_pos);
 		}
 
 		if (r_tooltip_owner) {
