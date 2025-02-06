@@ -4740,6 +4740,75 @@ void DisplayServerX11::process_events() {
 						}
 					} break;
 #endif
+					case XI_GesturePinchBegin: {
+						xi.old_pinch_scale = 1.0; // the scale is 1.0 at the start of the gesture
+					}
+						[[fallthrough]];
+					case XI_GesturePinchUpdate:
+					case XI_GesturePinchEnd: {
+						if (ime_window_event || ignore_events) {
+							break;
+						}
+
+						XIGesturePinchEvent *pinch_event = reinterpret_cast<XIGesturePinchEvent *>(event_data);
+
+						Vector2 position = Vector2(pinch_event->event_x, pinch_event->event_y);
+						float scale_delta = pinch_event->scale - xi.old_pinch_scale;
+
+						// Using XQueryPointer is the only way I found to get the current key modifier state, there might be a better way
+						Window _root, _child;
+						int _root_x, _root_y;
+						int _win_x, _win_y;
+						unsigned int modifiers_mask;
+						XQueryPointer(x11_display, window_get_native_handle(WINDOW_HANDLE, window_id),
+								&_root, &_child, &_root_x, &_root_y, &_win_x, &_win_y, &modifiers_mask);
+
+						Ref<InputEventMagnifyGesture> magnify_gesture;
+						magnify_gesture.instantiate();
+
+						magnify_gesture->set_window_id(window_id);
+
+						magnify_gesture->set_position(position);
+						magnify_gesture->set_factor(1.0 + scale_delta);
+
+						_get_key_modifier_state(modifiers_mask, magnify_gesture);
+
+						Input::get_singleton()->parse_input_event(magnify_gesture);
+
+						xi.old_pinch_scale = pinch_event->scale;
+					} break;
+					case XI_GestureSwipeBegin:
+					case XI_GestureSwipeUpdate:
+					case XI_GestureSwipeEnd: {
+						if (ime_window_event || ignore_events) {
+							break;
+						}
+
+						XIGestureSwipeEvent *swipe_event = reinterpret_cast<XIGestureSwipeEvent *>(event_data);
+
+						Vector2 position = Vector2(swipe_event->event_x, swipe_event->event_y);
+						Vector2 delta = Vector2(swipe_event->delta_x, swipe_event->delta_y);
+
+						// Using XQueryPointer is the only way I found to get the current key modifier state, there might be a better way
+						Window _root, _child;
+						int _root_x, _root_y;
+						int _win_x, _win_y;
+						unsigned int modifiers_mask;
+						XQueryPointer(x11_display, window_get_native_handle(WINDOW_HANDLE, window_id),
+								&_root, &_child, &_root_x, &_root_y, &_win_x, &_win_y, &modifiers_mask);
+
+						Ref<InputEventPanGesture> pan_gesture;
+						pan_gesture.instantiate();
+
+						pan_gesture->set_window_id(window_id);
+
+						pan_gesture->set_position(position);
+						pan_gesture->set_delta(delta);
+
+						_get_key_modifier_state(modifiers_mask, pan_gesture);
+
+						Input::get_singleton()->parse_input_event(pan_gesture);
+					} break;
 				}
 			}
 		}
@@ -6189,6 +6258,13 @@ DisplayServerX11::WindowID DisplayServerX11::_create_window(WindowMode p_mode, V
 			}
 #endif
 
+			XISetMask(all_event_mask.mask, XI_GesturePinchBegin);
+			XISetMask(all_event_mask.mask, XI_GesturePinchUpdate);
+			XISetMask(all_event_mask.mask, XI_GesturePinchEnd);
+			XISetMask(all_event_mask.mask, XI_GestureSwipeBegin);
+			XISetMask(all_event_mask.mask, XI_GestureSwipeUpdate);
+			XISetMask(all_event_mask.mask, XI_GestureSwipeEnd);
+
 			XISelectEvents(x11_display, wd.x11_window, &all_event_mask, 1);
 		}
 
@@ -6582,8 +6658,8 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 	}
 
 	{
-		int version_major = 2; // Report 2.2 as supported by engine, but should work with 2.1 or 2.0 library as well.
-		int version_minor = 2;
+		int version_major = 2; // Report 2.4 as supported by engine, but should work with older 2.x versions as well.
+		int version_minor = 4;
 		int rc = XIQueryVersion(x11_display, &version_major, &version_minor);
 		print_verbose(vformat("Xinput %d.%d detected.", version_major, version_minor));
 		if (rc != Success || (version_major < 2)) {

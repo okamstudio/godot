@@ -73,7 +73,7 @@ Patches:
   * Xcursor: 1.2.0
   * Xext: 1.3.5
   * Xinerama: 1.1.4
-  * Xi: 1.7.10
+  * Xi: 1.8.0
   * Xlib: 1.6.9
   * Xrandr: 1.5.2
   * Xrender: 0.9.10

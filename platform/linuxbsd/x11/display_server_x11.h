@@ -286,6 +286,7 @@ class DisplayServerX11 : public DisplayServer {
 		Vector2 relative_motion;
 		Vector2 raw_pos;
 		Vector2 old_raw_pos;
+		double old_pinch_scale;
 		::Time last_relative_time;
 	} xi;
 

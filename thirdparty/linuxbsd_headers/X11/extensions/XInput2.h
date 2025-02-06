@@ -153,6 +153,14 @@ typedef struct
     int         num_touches;
 } XITouchClassInfo;
 
+/* new in XI 2.4 */
+typedef struct
+{
+    int         type;
+    int         sourceid;
+    int         num_touches;
+} XIGestureClassInfo;
+
 typedef struct
 {
     int                 deviceid;
@@ -360,6 +368,62 @@ typedef struct {
     BarrierEventID eventid;
 } XIBarrierEvent;
 
+typedef struct {
+    int           type;         /* GenericEvent */
+    unsigned long serial;       /* # of last request processed by server */
+    Bool          send_event;   /* true if this came from a SendEvent request */
+    Display       *display;     /* Display the event was read from */
+    int           extension;    /* XI extension offset */
+    int           evtype;
+    Time          time;
+    int           deviceid;
+    int           sourceid;
+    int           detail;
+    Window        root;
+    Window        event;
+    Window        child;
+    double        root_x;
+    double        root_y;
+    double        event_x;
+    double        event_y;
+    double        delta_x;
+    double        delta_y;
+    double        delta_unaccel_x;
+    double        delta_unaccel_y;
+    double        scale;
+    double        delta_angle;
+    int           flags;
+    XIModifierState     mods;
+    XIGroupState        group;
+} XIGesturePinchEvent;
+
+typedef struct {
+    int           type;         /* GenericEvent */
+    unsigned long serial;       /* # of last request processed by server */
+    Bool          send_event;   /* true if this came from a SendEvent request */
+    Display       *display;     /* Display the event was read from */
+    int           extension;    /* XI extension offset */
+    int           evtype;
+    Time          time;
+    int           deviceid;
+    int           sourceid;
+    int           detail;
+    Window        root;
+    Window        event;
+    Window        child;
+    double        root_x;
+    double        root_y;
+    double        event_x;
+    double        event_y;
+    double        delta_x;
+    double        delta_y;
+    double        delta_unaccel_x;
+    double        delta_unaccel_y;
+    int           flags;
+    XIModifierState     mods;
+    XIGroupState        group;
+} XIGestureSwipeEvent;
+
 _XFUNCPROTOBEGIN
 
 extern Bool     XIQueryPointer(
@@ -553,6 +617,30 @@ extern int XIGrabTouchBegin(
     XIGrabModifiers     *modifiers_inout
 );
 
+extern int XIGrabPinchGestureBegin(
+    Display*            display,
+    int                 deviceid,
+    Window              grab_window,
+    int                 grab_mode,
+    int                 paired_device_mode,
+    int                 owner_events,
+    XIEventMask         *mask,
+    int                 num_modifiers,
+    XIGrabModifiers     *modifiers_inout
+);
+
+extern int XIGrabSwipeGestureBegin(
+    Display*            display,
+    int                 deviceid,
+    Window              grab_window,
+    int                 grab_mode,
+    int                 paired_device_mode,
+    int                 owner_events,
+    XIEventMask         *mask,
+    int                 num_modifiers,
+    XIGrabModifiers     *modifiers_inout
+);
+
 extern Status XIUngrabButton(
     Display*            display,
     int                 deviceid,
@@ -588,6 +676,22 @@ extern Status XIUngrabFocusIn(
 );
 
 extern Status XIUngrabTouchBegin(
+    Display*            display,
+    int                 deviceid,
+    Window              grab_window,
+    int                 num_modifiers,
+    XIGrabModifiers     *modifiers
+);
+
+extern Status XIUngrabPinchGestureBegin(
+    Display*            display,
+    int                 deviceid,
+    Window              grab_window,
+    int                 num_modifiers,
+    XIGrabModifiers     *modifiers
+);
+
+extern Status XIUngrabSwipeGestureBegin(
     Display*            display,
     int                 deviceid,
     Window              grab_window,
