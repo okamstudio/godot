@@ -111,6 +111,18 @@ Apply the patches in the `patches/` folder when syncing on newer upstream
 commits.
 
 
+## cpp_mock
+
+- Upstream: https://github.com/samcragg/cpp_mock
+- Version: 1.0.2 (e50d268a105a5c945599b9c184b0bb1dcb1c1f10, 2020)
+- License: MIT
+
+Files extracted from upstream source:
+
+- `cpp_mock.h`
+- `LICENSE`
+
+
 ## cvtt
 
 - Upstream: https://github.com/elasota/ConvectionKernels
@@ -235,6 +247,7 @@ Files extracted from upstream source:
   ```
 - The files `DecodeRGB.{cpp.hpp}` are based on the code from the original repository.
 - `AUTHORS.txt` and `LICENSE.txt`
+
 
 ## fonts
 

@@ -297,6 +297,15 @@ private:
 		_add_signal_entry(args, p_name);
 	}
 
+	void _signal_callback_four(Variant p_arg1, Variant p_arg2, Variant p_arg3, Variant p_arg4, const String &p_name) {
+		Array args;
+		args.push_back(p_arg1);
+		args.push_back(p_arg2);
+		args.push_back(p_arg3);
+		args.push_back(p_arg4);
+		_add_signal_entry(args, p_name);
+	}
+
 public:
 	static SignalWatcher *get_singleton() { return singleton; }
 
@@ -315,6 +324,9 @@ public:
 			} break;
 			case 3: {
 				p_object->connect(p_signal, callable_mp(this, &SignalWatcher::_signal_callback_three).bind(p_signal));
+			} break;
+			case 4: {
+				p_object->connect(p_signal, callable_mp(this, &SignalWatcher::_signal_callback_four).bind(p_signal));
 			} break;
 			default: {
 				MESSAGE("Signal ", p_signal, " arg count not supported.");
@@ -337,6 +349,9 @@ public:
 			} break;
 			case 3: {
 				p_object->disconnect(p_signal, callable_mp(this, &SignalWatcher::_signal_callback_three));
+			} break;
+			case 4: {
+				p_object->disconnect(p_signal, callable_mp(this, &SignalWatcher::_signal_callback_four));
 			} break;
 			default: {
 				MESSAGE("Signal ", p_signal, " arg count not supported.");
