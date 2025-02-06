@@ -4,13 +4,13 @@
 		Audio stream that can playback music interactively, combining clips and a transition table.
 	</brief_description>
 	<description>
-		This is an audio stream that can playback music interactively, combining clips and a transition table. Clips must be added first, and then the transition rules via the [method add_transition]. Additionally, this stream exports a property parameter to control the playback via [AudioStreamPlayer], [AudioStreamPlayer2D], or [AudioStreamPlayer3D].
+		This is an audio stream that can playback music interactively, combining clips and a transition table. Clips must be added first, and then the transition rules via the [method add_transition_with_unit]. Additionally, this stream exports a property parameter to control the playback via [AudioStreamPlayer], [AudioStreamPlayer2D], or [AudioStreamPlayer3D].
 		The way this is used is by filling a number of clips, then configuring the transition table. From there, clips are selected for playback and the music will smoothly go from the current to the new one while using the corresponding transition rule defined in the transition table.
 	</description>
 	<tutorials>
 	</tutorials>
 	<methods>
-		<method name="add_transition">
+		<method name="add_transition" deprecated="Use [method add_transition_with_unit] instead.">
 			<return type="void" />
 			<param index="0" name="from_clip" type="int" />
 			<param index="1" name="to_clip" type="int" />
@@ -22,11 +22,28 @@
 			<param index="7" name="filler_clip" type="int" default="-1" />
 			<param index="8" name="hold_previous" type="bool" default="false" />
 			<description>
+				Calls [method add_transition_with_unit] with a fixed unit of [constant UNIT_BEATS].
+			</description>
+		</method>
+		<method name="add_transition_with_unit">
+			<return type="void" />
+			<param index="0" name="from_clip" type="int" />
+			<param index="1" name="to_clip" type="int" />
+			<param index="2" name="from_time" type="int" enum="AudioStreamInteractive.TransitionFromTime" />
+			<param index="3" name="to_time" type="int" enum="AudioStreamInteractive.TransitionToTime" />
+			<param index="4" name="fade_mode" type="int" enum="AudioStreamInteractive.FadeMode" />
+			<param index="5" name="fade_length" type="float" />
+			<param index="6" name="fade_length_unit" type="int" enum="AudioStreamInteractive.FadeLengthUnit" default="0" />
+			<param index="7" name="use_filler_clip" type="bool" default="false" />
+			<param index="8" name="filler_clip" type="int" default="-1" />
+			<param index="9" name="hold_previous" type="bool" default="false" />
+			<description>
 				Add a transition between two clips. Provide the indices of the source and destination clips, or use the [constant CLIP_ANY] constant to indicate that transition happens to/from any clip to this one.
 				* [param from_time] indicates the moment in the current clip the transition will begin after triggered.
 				* [param to_time] indicates the time in the next clip that the playback will start from.
 				* [param fade_mode] indicates how the fade will happen between clips. If unsure, just use [constant FADE_AUTOMATIC] which uses the most common type of fade for each situation.
-				* [param fade_beats] indicates how many beats the fade will take. Using decimals is allowed.
+				* [param fade_length] indicates how long the fade will be.
+				* [param fade_length_unit] specifies the unit of [param fade_length].
 				* [param use_filler_clip] indicates that there will be a filler clip used between the source and destination clips.
 				* [param filler_clip] the index of the filler clip.
 				* If [param hold_previous] is used, then this clip will be remembered. This can be used together with [constant AUTO_ADVANCE_RETURN_TO_HOLD] to return to this clip after another is done playing.
@@ -68,12 +85,28 @@
 				Return the [AudioStream] associated with a clip.
 			</description>
 		</method>
-		<method name="get_transition_fade_beats" qualifiers="const">
+		<method name="get_transition_fade_beats" qualifiers="const" deprecated="Use [method get_transition_fade_length] and [method get_transition_fade_length_unit] instead.">
 			<return type="float" />
 			<param index="0" name="from_clip" type="int" />
 			<param index="1" name="to_clip" type="int" />
 			<description>
-				Return the time (in beats) for a transition (see [method add_transition]).
+				Returns the same value as [method get_transition_fade_length].
+			</description>
+		</method>
+		<method name="get_transition_fade_length" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="from_clip" type="int" />
+			<param index="1" name="to_clip" type="int" />
+			<description>
+				Return the time for a transition (see [method add_transition_with_unit]). To get the unit of time, use [method get_transition_fade_length_unit].
+			</description>
+		</method>
+		<method name="get_transition_fade_length_unit" qualifiers="const">
+			<return type="int" enum="AudioStreamInteractive.FadeLengthUnit" />
+			<param index="0" name="from_clip" type="int" />
+			<param index="1" name="to_clip" type="int" />
+			<description>
+				Returns the unit of length for the given transition fade. See [enum FadeLengthUnit] for available values.
 			</description>
 		</method>
 		<method name="get_transition_fade_mode" qualifiers="const">
@@ -81,7 +114,7 @@
 			<param index="0" name="from_clip" type="int" />
 			<param index="1" name="to_clip" type="int" />
 			<description>
-				Return the mode for a transition (see [method add_transition]).
+				Return the mode for a transition (see [method add_transition_with_unit]).
 			</description>
 		</method>
 		<method name="get_transition_filler_clip" qualifiers="const">
@@ -89,7 +122,7 @@
 			<param index="0" name="from_clip" type="int" />
 			<param index="1" name="to_clip" type="int" />
 			<description>
-				Return the filler clip for a transition (see [method add_transition]).
+				Return the filler clip for a transition (see [method add_transition_with_unit]).
 			</description>
 		</method>
 		<method name="get_transition_from_time" qualifiers="const">
@@ -97,7 +130,7 @@
 			<param index="0" name="from_clip" type="int" />
 			<param index="1" name="to_clip" type="int" />
 			<description>
-				Return the source time position for a transition (see [method add_transition]).
+				Return the source time position for a transition (see [method add_transition_with_unit]).
 			</description>
 		</method>
 		<method name="get_transition_list" qualifiers="const">
@@ -111,7 +144,7 @@
 			<param index="0" name="from_clip" type="int" />
 			<param index="1" name="to_clip" type="int" />
 			<description>
-				Return the destination time position for a transition (see [method add_transition]).
+				Return the destination time position for a transition (see [method add_transition_with_unit]).
 			</description>
 		</method>
 		<method name="has_transition" qualifiers="const">
@@ -119,7 +152,7 @@
 			<param index="0" name="from_clip" type="int" />
 			<param index="1" name="to_clip" type="int" />
 			<description>
-				Returns [code]true[/code] if a given transition exists (was added via [method add_transition]).
+				Returns [code]true[/code] if a given transition exists (was added via [method add_transition_with_unit]).
 			</description>
 		</method>
 		<method name="is_transition_holding_previous" qualifiers="const">
@@ -127,7 +160,7 @@
 			<param index="0" name="from_clip" type="int" />
 			<param index="1" name="to_clip" type="int" />
 			<description>
-				Return whether a transition uses the [i]hold previous[/i] functionality (see [method add_transition]).
+				Return whether a transition uses the [i]hold previous[/i] functionality (see [method add_transition_with_unit]).
 			</description>
 		</method>
 		<method name="is_transition_using_filler_clip" qualifiers="const">
@@ -135,7 +168,7 @@
 			<param index="0" name="from_clip" type="int" />
 			<param index="1" name="to_clip" type="int" />
 			<description>
-				Return whether a transition uses the [i]filler clip[/i] functionality (see [method add_transition]).
+				Return whether a transition uses the [i]filler clip[/i] functionality (see [method add_transition_with_unit]).
 			</description>
 		</method>
 		<method name="set_clip_auto_advance">
@@ -213,6 +246,15 @@
 		<constant name="FADE_AUTOMATIC" value="4" enum="FadeMode">
 			Use automatic fade logic depending on the transition from/to. It is recommended to use this by default.
 		</constant>
+		<constant name="UNIT_BEATS" value="0" enum="FadeLengthUnit">
+			Fade length is specified in number of beats.
+		</constant>
+		<constant name="UNIT_BARS" value="1" enum="FadeLengthUnit">
+			Fade length is specified in number of bars.
+		</constant>
+		<constant name="UNIT_SECONDS" value="2" enum="FadeLengthUnit">
+			Fade length is specified in seconds.
+		</constant>
 		<constant name="AUTO_ADVANCE_DISABLED" value="0" enum="AutoAdvanceMode">
 			Disable auto-advance (default).
 		</constant>
@@ -220,7 +262,7 @@
 			Enable auto-advance, a clip must be specified.
 		</constant>
 		<constant name="AUTO_ADVANCE_RETURN_TO_HOLD" value="2" enum="AutoAdvanceMode">
-			Enable auto-advance, but instead of specifying a clip, the playback will return to hold (see [method add_transition]).
+			Enable auto-advance, but instead of specifying a clip, the playback will return to hold (see [method add_transition_with_unit]).
 		</constant>
 		<constant name="CLIP_ANY" value="-1">
 			This constant describes that any clip is valid for a specific transition as either source or destination.

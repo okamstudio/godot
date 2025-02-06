@@ -49,6 +49,11 @@ void AudioStreamInteractiveTransitionEditor::_notification(int p_what) {
 		fade_mode->add_icon_item(get_editor_theme_icon(SNAME("FadeOut")), TTR("Fade-Out"), AudioStreamInteractive::FADE_OUT);
 		fade_mode->add_icon_item(get_editor_theme_icon(SNAME("FadeCross")), TTR("Cross-Fade"), AudioStreamInteractive::FADE_CROSS);
 		fade_mode->add_icon_item(get_editor_theme_icon(SNAME("AutoPlay")), TTR("Automatic"), AudioStreamInteractive::FADE_AUTOMATIC);
+
+		fade_length_unit->clear();
+		fade_length_unit->add_item(TTR("Beats"), AudioStreamInteractive::UNIT_BEATS);
+		fade_length_unit->add_item(TTR("Bars"), AudioStreamInteractive::UNIT_BARS);
+		fade_length_unit->add_item(TTR("Seconds"), AudioStreamInteractive::UNIT_SECONDS);
 	}
 }
 
@@ -65,7 +70,8 @@ void AudioStreamInteractiveTransitionEditor::_edited() {
 	AudioStreamInteractive::TransitionFromTime from = AudioStreamInteractive::TransitionFromTime(transition_from->get_selected());
 	AudioStreamInteractive::TransitionToTime to = AudioStreamInteractive::TransitionToTime(transition_to->get_selected());
 	AudioStreamInteractive::FadeMode fade = AudioStreamInteractive::FadeMode(fade_mode->get_selected());
-	float beats = fade_beats->get_value();
+	AudioStreamInteractive::FadeLengthUnit fade_unit = AudioStreamInteractive::FadeLengthUnit(fade_length_unit->get_selected());
+	float length = fade_length->get_value();
 	bool use_filler = filler_clip->get_selected() > 0;
 	int filler = use_filler ? filler_clip->get_selected() - 1 : 0;
 	bool hold = hold_previous->is_pressed();
@@ -77,13 +83,28 @@ void AudioStreamInteractiveTransitionEditor::_edited() {
 				EditorUndoRedoManager::get_singleton()->add_do_method(audio_stream_interactive, "erase_transition", selected[i].x, selected[i].y);
 			}
 		} else {
-			EditorUndoRedoManager::get_singleton()->add_do_method(audio_stream_interactive, "add_transition", selected[i].x, selected[i].y, from, to, fade, beats, use_filler, filler, hold);
+			EditorUndoRedoManager::get_singleton()->add_do_method(audio_stream_interactive, "add_transition_with_unit", selected[i].x, selected[i].y, from, to, fade, length, fade_unit, use_filler, filler, hold);
 		}
 	}
 	EditorUndoRedoManager::get_singleton()->add_undo_property(audio_stream_interactive, "_transitions", audio_stream_interactive->get("_transitions"));
 	EditorUndoRedoManager::get_singleton()->add_do_method(this, "_update_transitions");
 	EditorUndoRedoManager::get_singleton()->add_undo_method(this, "_update_transitions");
 	EditorUndoRedoManager::get_singleton()->commit_action();
+
+	_update_options_enabled_state();
+}
+
+void AudioStreamInteractiveTransitionEditor::_update_options_enabled_state() const {
+	transition_enabled->set_disabled(selected.is_empty());
+
+	bool options_disabled = !transition_enabled->is_pressed() || selected.is_empty();
+	transition_from->set_disabled(options_disabled);
+	transition_to->set_disabled(options_disabled);
+	fade_mode->set_disabled(options_disabled);
+	fade_length->set_editable(!options_disabled);
+	fade_length_unit->set_disabled(options_disabled);
+	filler_clip->set_disabled(options_disabled);
+	hold_previous->set_disabled(options_disabled);
 }
 
 void AudioStreamInteractiveTransitionEditor::_update_selection() {
@@ -107,17 +128,12 @@ void AudioStreamInteractiveTransitionEditor::_update_selection() {
 		}
 	}
 
-	transition_enabled->set_disabled(selected.is_empty());
-	transition_from->set_disabled(selected.is_empty());
-	transition_to->set_disabled(selected.is_empty());
-	fade_mode->set_disabled(selected.is_empty());
-	fade_beats->set_editable(!selected.is_empty());
-	filler_clip->set_disabled(selected.is_empty());
-	hold_previous->set_disabled(selected.is_empty());
-
-	if (selected.size() == 0) {
+	if (selected.is_empty()) {
+		options_vbox->set_visible(false);
 		return;
 	}
+
+	options_vbox->set_visible(true);
 
 	updating = true;
 	if (!audio_stream_interactive->has_transition(editing.x, editing.y)) {
@@ -125,7 +141,8 @@ void AudioStreamInteractiveTransitionEditor::_update_selection() {
 		transition_from->select(0);
 		transition_to->select(0);
 		fade_mode->select(AudioStreamInteractive::FADE_AUTOMATIC);
-		fade_beats->set_value(1.0);
+		fade_length->set_value(1.0);
+		fade_length_unit->select(AudioStreamInteractive::UNIT_BEATS);
 		filler_clip->select(0);
 		hold_previous->set_pressed(false);
 	} else {
@@ -133,7 +150,8 @@ void AudioStreamInteractiveTransitionEditor::_update_selection() {
 		transition_from->select(audio_stream_interactive->get_transition_from_time(editing.x, editing.y));
 		transition_to->select(audio_stream_interactive->get_transition_to_time(editing.x, editing.y));
 		fade_mode->select(audio_stream_interactive->get_transition_fade_mode(editing.x, editing.y));
-		fade_beats->set_value(audio_stream_interactive->get_transition_fade_beats(editing.x, editing.y));
+		fade_length_unit->select(audio_stream_interactive->get_transition_fade_length_unit(editing.x, editing.y));
+		fade_length->set_value(audio_stream_interactive->get_transition_fade_length(editing.x, editing.y));
 		if (audio_stream_interactive->is_transition_using_filler_clip(editing.x, editing.y)) {
 			filler_clip->select(audio_stream_interactive->get_transition_filler_clip(editing.x, editing.y) + 1);
 		} else {
@@ -141,6 +159,8 @@ void AudioStreamInteractiveTransitionEditor::_update_selection() {
 		}
 		hold_previous->set_pressed(audio_stream_interactive->is_transition_holding_previous(editing.x, editing.y));
 	}
+
+	_update_options_enabled_state();
 	updating = false;
 }
 
@@ -317,7 +337,7 @@ void AudioStreamInteractiveTransitionEditor::edit(Object *p_obj) {
 	tree->set_column_custom_minimum_width(header_index, max_w);
 	selection_order.clear();
 	_update_selection();
-	popup_centered_clamped(Size2(900, 450) * EDSCALE);
+	popup_centered_clamped(Size2(900, 550) * EDSCALE);
 	updating = false;
 	_update_transitions();
 }
@@ -336,16 +356,16 @@ AudioStreamInteractiveTransitionEditor::AudioStreamInteractiveTransitionEditor()
 
 	tree->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	tree->connect("multi_selected", callable_mp(this, &AudioStreamInteractiveTransitionEditor::_cell_selected));
-	VBoxContainer *edit_vb = memnew(VBoxContainer);
-	split->add_child(edit_vb);
+	options_vbox = memnew(VBoxContainer);
+	split->add_child(options_vbox);
 
 	transition_enabled = memnew(CheckBox);
 	transition_enabled->set_text(TTR("Enabled"));
-	edit_vb->add_margin_child(TTR("Use Transition:"), transition_enabled);
+	options_vbox->add_margin_child(TTR("Use Transition:"), transition_enabled);
 	transition_enabled->connect(SceneStringName(pressed), callable_mp(this, &AudioStreamInteractiveTransitionEditor::_edited));
 
 	transition_from = memnew(OptionButton);
-	edit_vb->add_margin_child(TTR("Transition From:"), transition_from);
+	options_vbox->add_margin_child(TTR("Transition From:"), transition_from);
 	transition_from->add_item(TTR("Immediate"), AudioStreamInteractive::TRANSITION_FROM_TIME_IMMEDIATE);
 	transition_from->add_item(TTR("Next Beat"), AudioStreamInteractive::TRANSITION_FROM_TIME_NEXT_BEAT);
 	transition_from->add_item(TTR("Next Bar"), AudioStreamInteractive::TRANSITION_FROM_TIME_NEXT_BAR);
@@ -354,31 +374,38 @@ AudioStreamInteractiveTransitionEditor::AudioStreamInteractiveTransitionEditor()
 	transition_from->connect(SceneStringName(item_selected), callable_mp(this, &AudioStreamInteractiveTransitionEditor::_edited).unbind(1));
 
 	transition_to = memnew(OptionButton);
-	edit_vb->add_margin_child(TTR("Transition To:"), transition_to);
+	options_vbox->add_margin_child(TTR("Transition To:"), transition_to);
 	transition_to->add_item(TTR("Same Position"), AudioStreamInteractive::TRANSITION_TO_TIME_SAME_POSITION);
 	transition_to->add_item(TTR("Clip Start"), AudioStreamInteractive::TRANSITION_TO_TIME_START);
 	transition_to->add_item(TTR("Prev Position"), AudioStreamInteractive::TRANSITION_TO_TIME_PREVIOUS_POSITION);
 	transition_to->connect(SceneStringName(item_selected), callable_mp(this, &AudioStreamInteractiveTransitionEditor::_edited).unbind(1));
 
 	fade_mode = memnew(OptionButton);
-	edit_vb->add_margin_child(TTR("Fade Mode:"), fade_mode);
+	options_vbox->add_margin_child(TTR("Fade Mode:"), fade_mode);
 	fade_mode->connect(SceneStringName(item_selected), callable_mp(this, &AudioStreamInteractiveTransitionEditor::_edited).unbind(1));
 
-	fade_beats = memnew(SpinBox);
-	edit_vb->add_margin_child(TTR("Fade Beats:"), fade_beats);
-	fade_beats->set_max(16);
-	fade_beats->set_step(0.1);
-	fade_beats->connect(SceneStringName(value_changed), callable_mp(this, &AudioStreamInteractiveTransitionEditor::_edited).unbind(1));
+	HBoxContainer *fade_length_hb = memnew(HBoxContainer);
+	fade_length = memnew(SpinBox);
+	fade_length->set_max(16);
+	fade_length->set_step(0.1);
+	fade_length->connect(SceneStringName(value_changed), callable_mp(this, &AudioStreamInteractiveTransitionEditor::_edited).unbind(1));
+	fade_length_unit = memnew(OptionButton);
+	fade_length_unit->connect(SceneStringName(item_selected), callable_mp(this, &AudioStreamInteractiveTransitionEditor::_edited).unbind(1));
+	fade_length_hb->add_child(fade_length);
+	fade_length_hb->add_child(fade_length_unit);
+	options_vbox->add_margin_child(TTR("Fade Length:"), fade_length_hb);
 
 	filler_clip = memnew(OptionButton);
-	edit_vb->add_margin_child(TTR("Filler Clip:"), filler_clip);
+	options_vbox->add_margin_child(TTR("Filler Clip:"), filler_clip);
 	filler_clip->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
 	filler_clip->connect(SceneStringName(item_selected), callable_mp(this, &AudioStreamInteractiveTransitionEditor::_edited).unbind(1));
 
 	hold_previous = memnew(CheckBox);
 	hold_previous->set_text(TTR("Enabled"));
 	hold_previous->connect(SceneStringName(pressed), callable_mp(this, &AudioStreamInteractiveTransitionEditor::_edited));
-	edit_vb->add_margin_child(TTR("Hold Previous:"), hold_previous);
+	options_vbox->add_margin_child(TTR("Hold Previous:"), hold_previous);
+
+	options_vbox->set_visible(false);
 
 	set_exclusive(true);
 }

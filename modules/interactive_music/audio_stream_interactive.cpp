@@ -181,7 +181,7 @@ void AudioStreamInteractive::_set_transitions(const Dictionary &p_transitions) {
 		ERR_CONTINUE(!data.has("from_time"));
 		ERR_CONTINUE(!data.has("to_time"));
 		ERR_CONTINUE(!data.has("fade_mode"));
-		ERR_CONTINUE(!data.has("fade_beats"));
+
 		bool use_filler_clip = false;
 		int filler_clip = 0;
 		if (data.has("use_filler_clip") && data.has("filler_clip")) {
@@ -190,7 +190,14 @@ void AudioStreamInteractive::_set_transitions(const Dictionary &p_transitions) {
 		}
 		bool hold_previous = data.has("hold_previous") ? bool(data["hold_previous"]) : false;
 
-		add_transition(k.x, k.y, TransitionFromTime(int(data["from_time"])), TransitionToTime(int(data["to_time"])), FadeMode(int(data["fade_mode"])), data["fade_beats"], use_filler_clip, filler_clip, hold_previous);
+		// Compatibility with Godot version <= 4.3
+		if (data.has("fade_beats")) {
+			add_transition_with_unit(k.x, k.y, TransitionFromTime(int(data["from_time"])), TransitionToTime(int(data["to_time"])), FadeMode(int(data["fade_mode"])), data["fade_beats"], UNIT_BEATS, use_filler_clip, filler_clip, hold_previous);
+		} else {
+			ERR_CONTINUE(!data.has("fade_length"));
+			ERR_CONTINUE(!data.has("fade_length_unit"));
+			add_transition_with_unit(k.x, k.y, TransitionFromTime(int(data["from_time"])), TransitionToTime(int(data["to_time"])), FadeMode(int(data["fade_mode"])), data["fade_length"], FadeLengthUnit(int(data["fade_length_unit"])), use_filler_clip, filler_clip, hold_previous);
+		}
 	}
 }
 
@@ -208,7 +215,8 @@ Dictionary AudioStreamInteractive::_get_transitions() const {
 		data["from_time"] = tr.from_time;
 		data["to_time"] = tr.to_time;
 		data["fade_mode"] = tr.fade_mode;
-		data["fade_beats"] = tr.fade_beats;
+		data["fade_length"] = tr.fade_length;
+		data["fade_length_unit"] = tr.fade_length_unit;
 		if (tr.use_filler_clip) {
 			data["use_filler_clip"] = true;
 			data["filler_clip"] = tr.filler_clip;
@@ -245,7 +253,14 @@ PackedInt32Array AudioStreamInteractive::get_transition_list() const {
 	return ret;
 }
 
+#ifndef DISABLE_DEPRECATED
 void AudioStreamInteractive::add_transition(int p_from_clip, int p_to_clip, TransitionFromTime p_from_time, TransitionToTime p_to_time, FadeMode p_fade_mode, float p_fade_beats, bool p_use_filler_flip, int p_filler_clip, bool p_hold_previous) {
+	WARN_DEPRECATED_MSG("Use add_transition_with_unit instead.");
+	add_transition_with_unit(p_from_clip, p_to_clip, p_from_time, p_to_time, p_fade_mode, p_fade_beats, UNIT_BEATS, p_use_filler_flip, p_filler_clip, p_hold_previous);
+}
+#endif
+
+void AudioStreamInteractive::add_transition_with_unit(int p_from_clip, int p_to_clip, TransitionFromTime p_from_time, TransitionToTime p_to_time, FadeMode p_fade_mode, float p_fade_length, FadeLengthUnit p_fade_length_unit, bool p_use_filler_flip, int p_filler_clip, bool p_hold_previous) {
 	ERR_FAIL_COND(p_from_clip < CLIP_ANY || p_from_clip >= clip_count);
 	ERR_FAIL_COND(p_to_clip < CLIP_ANY || p_to_clip >= clip_count);
 	ERR_FAIL_UNSIGNED_INDEX(p_from_time, TRANSITION_FROM_TIME_MAX);
@@ -256,7 +271,8 @@ void AudioStreamInteractive::add_transition(int p_from_clip, int p_to_clip, Tran
 	tr.from_time = p_from_time;
 	tr.to_time = p_to_time;
 	tr.fade_mode = p_fade_mode;
-	tr.fade_beats = p_fade_beats;
+	tr.fade_length = p_fade_length;
+	tr.fade_length_unit = p_fade_length_unit;
 	tr.use_filler_clip = p_use_filler_flip;
 	tr.filler_clip = p_filler_clip;
 	tr.hold_previous = p_hold_previous;
@@ -286,10 +302,26 @@ AudioStreamInteractive::FadeMode AudioStreamInteractive::get_transition_fade_mod
 	return transition_map[tk].fade_mode;
 }
 
+#ifndef DISABLE_DEPRECATED
 float AudioStreamInteractive::get_transition_fade_beats(int p_from_clip, int p_to_clip) const {
+	if (get_transition_fade_length_unit(p_from_clip, p_to_clip) != UNIT_BEATS) {
+		WARN_PRINT("Deprecated method get_transition_fade_beats used on a transition using a unit other than UNIT_BEATS. The return value is likely not what you expect. Use get_transition_fade_length and get_transition_fade_length_unit instead.");
+	}
+
+	return get_transition_fade_length(p_from_clip, p_to_clip);
+}
+#endif
+
+float AudioStreamInteractive::get_transition_fade_length(int p_from_clip, int p_to_clip) const {
 	TransitionKey tk(p_from_clip, p_to_clip);
 	ERR_FAIL_COND_V(!transition_map.has(tk), -1);
-	return transition_map[tk].fade_beats;
+	return transition_map[tk].fade_length;
+}
+
+AudioStreamInteractive::FadeLengthUnit AudioStreamInteractive::get_transition_fade_length_unit(int p_from_clip, int p_to_clip) const {
+	TransitionKey tk(p_from_clip, p_to_clip);
+	ERR_FAIL_COND_V(!transition_map.has(tk), FadeLengthUnit::UNIT_BEATS);
+	return transition_map[tk].fade_length_unit;
 }
 
 bool AudioStreamInteractive::is_transition_using_filler_clip(int p_from_clip, int p_to_clip) const {
@@ -496,7 +528,10 @@ void AudioStreamInteractive::_bind_methods() {
 
 	// TRANSITIONS
 
+#ifndef DISABLE_DEPRECATED
 	ClassDB::bind_method(D_METHOD("add_transition", "from_clip", "to_clip", "from_time", "to_time", "fade_mode", "fade_beats", "use_filler_clip", "filler_clip", "hold_previous"), &AudioStreamInteractive::add_transition, DEFVAL(false), DEFVAL(-1), DEFVAL(false));
+#endif
+	ClassDB::bind_method(D_METHOD("add_transition_with_unit", "from_clip", "to_clip", "from_time", "to_time", "fade_mode", "fade_length", "fade_length_unit", "use_filler_clip", "filler_clip", "hold_previous"), &AudioStreamInteractive::add_transition_with_unit, DEFVAL(FadeLengthUnit::UNIT_BEATS), DEFVAL(false), DEFVAL(-1), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("has_transition", "from_clip", "to_clip"), &AudioStreamInteractive::has_transition);
 	ClassDB::bind_method(D_METHOD("erase_transition", "from_clip", "to_clip"), &AudioStreamInteractive::erase_transition);
 	ClassDB::bind_method(D_METHOD("get_transition_list"), &AudioStreamInteractive::get_transition_list);
@@ -504,7 +539,11 @@ void AudioStreamInteractive::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_transition_from_time", "from_clip", "to_clip"), &AudioStreamInteractive::get_transition_from_time);
 	ClassDB::bind_method(D_METHOD("get_transition_to_time", "from_clip", "to_clip"), &AudioStreamInteractive::get_transition_to_time);
 	ClassDB::bind_method(D_METHOD("get_transition_fade_mode", "from_clip", "to_clip"), &AudioStreamInteractive::get_transition_fade_mode);
+#ifndef DISABLE_DEPRECATED
 	ClassDB::bind_method(D_METHOD("get_transition_fade_beats", "from_clip", "to_clip"), &AudioStreamInteractive::get_transition_fade_beats);
+#endif
+	ClassDB::bind_method(D_METHOD("get_transition_fade_length", "from_clip", "to_clip"), &AudioStreamInteractive::get_transition_fade_length);
+	ClassDB::bind_method(D_METHOD("get_transition_fade_length_unit", "from_clip", "to_clip"), &AudioStreamInteractive::get_transition_fade_length_unit);
 	ClassDB::bind_method(D_METHOD("is_transition_using_filler_clip", "from_clip", "to_clip"), &AudioStreamInteractive::is_transition_using_filler_clip);
 	ClassDB::bind_method(D_METHOD("get_transition_filler_clip", "from_clip", "to_clip"), &AudioStreamInteractive::get_transition_filler_clip);
 	ClassDB::bind_method(D_METHOD("is_transition_holding_previous", "from_clip", "to_clip"), &AudioStreamInteractive::is_transition_holding_previous);
@@ -527,6 +566,10 @@ void AudioStreamInteractive::_bind_methods() {
 	BIND_ENUM_CONSTANT(FADE_OUT);
 	BIND_ENUM_CONSTANT(FADE_CROSS);
 	BIND_ENUM_CONSTANT(FADE_AUTOMATIC);
+
+	BIND_ENUM_CONSTANT(UNIT_BEATS);
+	BIND_ENUM_CONSTANT(UNIT_BARS);
+	BIND_ENUM_CONSTANT(UNIT_SECONDS);
 
 	BIND_ENUM_CONSTANT(AUTO_ADVANCE_DISABLED);
 	BIND_ENUM_CONSTANT(AUTO_ADVANCE_ENABLED);
@@ -718,8 +761,22 @@ void AudioStreamPlaybackInteractive::_queue(int p_to_clip_index, bool p_is_auto_
 			}
 		}
 		// Fade speed also aligned to BPM
-		fade_speed = 1.0 / (transition.fade_beats * beat_sec);
+		switch (transition.fade_length_unit) {
+			case AudioStreamInteractive::UNIT_BEATS: {
+				fade_speed = 1.0 / (transition.fade_length * beat_sec);
+			} break;
+			case AudioStreamInteractive::UNIT_BARS: {
+				fade_speed = 1.0 / (transition.fade_length * beat_sec * from_state.stream->get_bar_beats());
+			} break;
+			case AudioStreamInteractive::UNIT_SECONDS: {
+				fade_speed = 1.0 / transition.fade_length;
+			} break;
+		}
 	} else {
+		if (transition.fade_length_unit != AudioStreamInteractive::UNIT_SECONDS) {
+			WARN_PRINT(vformat("Tried to fade using beats/bars, but audio stream %s has no BPM/BPB specified. Falling back to seconds.", from_state.stream->get_path()));
+		}
+
 		// Source has no BPM, so just simple transition.
 		if (transition.from_time == AudioStreamInteractive::TRANSITION_FROM_TIME_END && from_state.stream->get_length() > 0) {
 			float end = from_state.stream->get_length();
@@ -730,7 +787,7 @@ void AudioStreamPlaybackInteractive::_queue(int p_to_clip_index, bool p_is_auto_
 		} else {
 			src_fade_wait = 0;
 		}
-		fade_speed = 1.0 / transition.fade_beats;
+		fade_speed = 1.0 / transition.fade_length;
 	}
 
 	if (transition.to_time == AudioStreamInteractive::TRANSITION_TO_TIME_PREVIOUS_POSITION && to_state.stream->get_length() > 0.0) {

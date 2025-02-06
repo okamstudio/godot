@@ -52,11 +52,13 @@ class AudioStreamInteractiveTransitionEditor : public AcceptDialog {
 
 	Vector<TreeItem *> rows;
 
+	VBoxContainer *options_vbox = nullptr;
 	CheckBox *transition_enabled = nullptr;
 	OptionButton *transition_from = nullptr;
 	OptionButton *transition_to = nullptr;
 	OptionButton *fade_mode = nullptr;
-	SpinBox *fade_beats = nullptr;
+	SpinBox *fade_length = nullptr;
+	OptionButton *fade_length_unit = nullptr;
 	OptionButton *filler_clip = nullptr;
 	CheckBox *hold_previous = nullptr;
 
@@ -71,6 +73,7 @@ class AudioStreamInteractiveTransitionEditor : public AcceptDialog {
 
 	void _update_selection();
 	void _edited();
+	void _update_options_enabled_state() const;
 
 protected:
 	void _notification(int p_what);
