@@ -1072,9 +1072,12 @@ void UnixTerminalLogger::log_error(const char *p_function, const char *p_file, i
 			logf_error("%s          at: %s (%s:%i)%s\n", gray, p_function, p_file, p_line, reset);
 			break;
 		case ERR_ERROR:
-		default:
 			logf_error("%sERROR:%s %s\n", red_bold, red, err_details);
 			logf_error("%s   at: %s (%s:%i)%s\n", gray, p_function, p_file, p_line, reset);
+			break;
+		default:
+			logf_error("%sUNKNOWN ERROR:%s %s\n", red_bold, red, err_details);
+			logf_error("%s           at: %s (%s:%i)%s\n", gray, p_function, p_file, p_line, reset);
 			break;
 	}
 }

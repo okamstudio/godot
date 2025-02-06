@@ -453,30 +453,11 @@ void GDScriptTest::error_handler(void *p_this, const char *p_function, const cha
 
 	result->status = GDTEST_RUNTIME_ERROR;
 
+	String header = _error_handler_type_string(p_type);
+
 	// Only include the file, line, and function for script errors,
 	// otherwise the test outputs changes based on the platform/compiler.
-	String header;
-	bool include_source_info = false;
-	switch (p_type) {
-		case ERR_HANDLER_ERROR:
-			header = "ERROR";
-			break;
-		case ERR_HANDLER_WARNING:
-			header = "WARNING";
-			break;
-		case ERR_HANDLER_SCRIPT:
-			header = "SCRIPT ERROR";
-			include_source_info = true;
-			break;
-		case ERR_HANDLER_SHADER:
-			header = "SHADER ERROR";
-			break;
-		default:
-			header = "UNKNOWN ERROR";
-			break;
-	}
-
-	if (include_source_info) {
+	if (p_type == ERR_HANDLER_SCRIPT) {
 		header += vformat(" at %s:%d on %s()",
 				String::utf8(p_file).trim_prefix(self->base_dir).replace("\\", "/"),
 				p_line,

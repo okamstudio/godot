@@ -69,12 +69,18 @@ void MacOSTerminalLogger::log_error(const char *p_function, const char *p_file, 
 			logf_error("\E[0;90m          at: %s (%s:%i)\E[0m\n", p_function, p_file, p_line);
 			break;
 		case ERR_ERROR:
-		default:
 			os_log_error(OS_LOG_DEFAULT,
 					"ERROR: %{public}s\nat: %{public}s (%{public}s:%i)",
 					err_details, p_function, p_file, p_line);
 			logf_error("\E[1;31mERROR:\E[0;91m %s\n", err_details);
 			logf_error("\E[0;90m   at: %s (%s:%i)\E[0m\n", p_function, p_file, p_line);
+			break;
+		default:
+			os_log_error(OS_LOG_DEFAULT,
+					"UNKNOWN ERROR: %{public}s\nat: %{public}s (%{public}s:%i)",
+					err_details, p_function, p_file, p_line);
+			logf_error("\E[1;31mUNKNOWN ERROR:\E[0;91m %s\n", err_details);
+			logf_error("\E[0;90m           at: %s (%s:%i)\E[0m\n", p_function, p_file, p_line);
 			break;
 	}
 }

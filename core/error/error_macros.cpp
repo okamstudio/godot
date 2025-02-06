@@ -94,10 +94,11 @@ void _err_print_error(const char *p_function, const char *p_file, int p_line, co
 	} else {
 		// Fallback if errors happen before OS init or after it's destroyed.
 		const char *err_details = (p_message && *p_message) ? p_message : p_error;
-		fprintf(stderr, "ERROR: %s\n   at: %s (%s:%i)\n", err_details, p_function, p_file, p_line);
+		fprintf(stderr, "%s: %s\n   at: %s (%s:%i)\n", _error_handler_type_string(p_type), err_details, p_function, p_file, p_line);
 	}
 
 	_global_lock();
+
 	ErrorHandlerList *l = error_handler_list;
 	while (l) {
 		l->errfunc(l->userdata, p_function, p_file, p_line, p_error, p_message, p_editor_notify, p_type);
@@ -111,18 +112,20 @@ void _err_print_error(const char *p_function, const char *p_file, int p_line, co
 // but we don't want to make it noisy by printing lots of file & line info (because it's already
 // been printing by a preceding _err_print_error).
 void _err_print_error_asap(const String &p_error, ErrorHandlerType p_type) {
+	const char *err_details = p_error.utf8().get_data();
+
 	if (OS::get_singleton()) {
-		OS::get_singleton()->printerr("ERROR: %s\n", p_error.utf8().get_data());
+		OS::get_singleton()->printerr("%s: %s\n", _error_handler_type_string(p_type), err_details);
 	} else {
 		// Fallback if errors happen before OS init or after it's destroyed.
-		const char *err_details = p_error.utf8().get_data();
-		fprintf(stderr, "ERROR: %s\n", err_details);
+		fprintf(stderr, "%s: %s\n", _error_handler_type_string(p_type), err_details);
 	}
 
 	_global_lock();
+
 	ErrorHandlerList *l = error_handler_list;
 	while (l) {
-		l->errfunc(l->userdata, "", "", 0, p_error.utf8().get_data(), "", false, p_type);
+		l->errfunc(l->userdata, "", "", 0, err_details, "", false, p_type);
 		l = l->next;
 	}
 
