@@ -122,13 +122,13 @@ void Input::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_key_label_pressed", "keycode"), &Input::is_key_label_pressed);
 	ClassDB::bind_method(D_METHOD("is_mouse_button_pressed", "button"), &Input::is_mouse_button_pressed);
 	ClassDB::bind_method(D_METHOD("is_joy_button_pressed", "device", "button"), &Input::is_joy_button_pressed);
-	ClassDB::bind_method(D_METHOD("is_action_pressed", "action", "exact_match"), &Input::is_action_pressed, DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("is_action_just_pressed", "action", "exact_match"), &Input::is_action_just_pressed, DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("is_action_just_released", "action", "exact_match"), &Input::is_action_just_released, DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("get_action_strength", "action", "exact_match"), &Input::get_action_strength, DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("get_action_raw_strength", "action", "exact_match"), &Input::get_action_raw_strength, DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("get_axis", "negative_action", "positive_action"), &Input::get_axis);
-	ClassDB::bind_method(D_METHOD("get_vector", "negative_x", "positive_x", "negative_y", "positive_y", "deadzone"), &Input::get_vector, DEFVAL(-1.0f));
+	ClassDB::bind_method(D_METHOD("is_action_pressed", "action", "exact_match", "device"), &Input::is_action_pressed, DEFVAL(false), DEFVAL(InputMap::ALL_DEVICES));
+	ClassDB::bind_method(D_METHOD("is_action_just_pressed", "action", "exact_match", "device"), &Input::is_action_just_pressed, DEFVAL(false), DEFVAL(InputMap::ALL_DEVICES));
+	ClassDB::bind_method(D_METHOD("is_action_just_released", "action", "exact_match", "device"), &Input::is_action_just_released, DEFVAL(false), DEFVAL(InputMap::ALL_DEVICES));
+	ClassDB::bind_method(D_METHOD("get_action_strength", "action", "exact_match", "device"), &Input::get_action_strength, DEFVAL(false), DEFVAL(InputMap::ALL_DEVICES));
+	ClassDB::bind_method(D_METHOD("get_action_raw_strength", "action", "exact_match", "device"), &Input::get_action_raw_strength, DEFVAL(false), DEFVAL(InputMap::ALL_DEVICES));
+	ClassDB::bind_method(D_METHOD("get_axis", "negative_action", "positive_action", "device"), &Input::get_axis, DEFVAL(InputMap::ALL_DEVICES));
+	ClassDB::bind_method(D_METHOD("get_vector", "negative_x", "positive_x", "negative_y", "positive_y", "deadzone", "device"), &Input::get_vector, DEFVAL(-1.0f), DEFVAL(InputMap::ALL_DEVICES));
 	ClassDB::bind_method(D_METHOD("add_joy_mapping", "mapping", "update_existing"), &Input::add_joy_mapping, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("remove_joy_mapping", "guid"), &Input::remove_joy_mapping);
 	ClassDB::bind_method(D_METHOD("is_joy_known", "device"), &Input::is_joy_known);
@@ -369,7 +369,7 @@ bool Input::is_joy_button_pressed(int p_device, JoyButton p_button) const {
 	return joy_buttons_pressed.has(_combine_device(p_button, p_device));
 }
 
-bool Input::is_action_pressed(const StringName &p_action, bool p_exact) const {
+bool Input::is_action_pressed(const StringName &p_action, bool p_exact, int p_device) const {
 	ERR_FAIL_COND_V_MSG(!InputMap::get_singleton()->has_action(p_action), false, InputMap::get_singleton()->suggest_actions(p_action));
 
 	if (disable_input) {
@@ -377,14 +377,25 @@ bool Input::is_action_pressed(const StringName &p_action, bool p_exact) const {
 	}
 
 	HashMap<StringName, ActionState>::ConstIterator E = action_states.find(p_action);
-	if (!E) {
+	if (!E || (p_exact && !E->value.exact)) {
 		return false;
 	}
 
-	return E->value.cache.pressed && (p_exact ? E->value.exact : true);
+	if (p_device != -1) {
+		if (E->value.device_states.has(p_device)) {
+			const ActionState::DeviceState &device_state = E->value.device_states[p_device];
+			for (int i = 0; i < Input::MAX_EVENT; i++) {
+				if (device_state.pressed[i]) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	return E->value.cache.pressed;
 }
 
-bool Input::is_action_just_pressed(const StringName &p_action, bool p_exact) const {
+bool Input::is_action_just_pressed(const StringName &p_action, bool p_exact, int p_device) const {
 	ERR_FAIL_COND_V_MSG(!InputMap::get_singleton()->has_action(p_action), false, InputMap::get_singleton()->suggest_actions(p_action));
 
 	if (disable_input) {
@@ -403,14 +414,27 @@ bool Input::is_action_just_pressed(const StringName &p_action, bool p_exact) con
 	// Backward compatibility for legacy behavior, only return true if currently pressed.
 	bool pressed_requirement = legacy_just_pressed_behavior ? E->value.cache.pressed : true;
 
-	if (Engine::get_singleton()->is_in_physics_frame()) {
-		return pressed_requirement && E->value.pressed_physics_frame == Engine::get_singleton()->get_physics_frames();
+	// device is specified
+	if (p_device != InputMap::ALL_DEVICES) {
+		if (!E->value.device_states.has(p_device)) {
+			return false;
+		}
+		if (Engine::get_singleton()->is_in_physics_frame()) {
+			return pressed_requirement && E->value.device_states[p_device].pressed_physics_frame == Engine::get_singleton()->get_physics_frames();
+		} else {
+			return pressed_requirement && E->value.device_states[p_device].pressed_process_frame == Engine::get_singleton()->get_process_frames();
+		}
 	} else {
-		return pressed_requirement && E->value.pressed_process_frame == Engine::get_singleton()->get_process_frames();
+		// unspecified device, check cache for all devices
+		if (Engine::get_singleton()->is_in_physics_frame()) {
+			return pressed_requirement && E->value.pressed_physics_frame == Engine::get_singleton()->get_physics_frames();
+		} else {
+			return pressed_requirement && E->value.pressed_process_frame == Engine::get_singleton()->get_process_frames();
+		}
 	}
 }
 
-bool Input::is_action_just_released(const StringName &p_action, bool p_exact) const {
+bool Input::is_action_just_released(const StringName &p_action, bool p_exact, int p_device) const {
 	ERR_FAIL_COND_V_MSG(!InputMap::get_singleton()->has_action(p_action), false, InputMap::get_singleton()->suggest_actions(p_action));
 
 	if (disable_input) {
@@ -428,15 +452,25 @@ bool Input::is_action_just_released(const StringName &p_action, bool p_exact) co
 
 	// Backward compatibility for legacy behavior, only return true if currently released.
 	bool released_requirement = legacy_just_pressed_behavior ? !E->value.cache.pressed : true;
-
-	if (Engine::get_singleton()->is_in_physics_frame()) {
-		return released_requirement && E->value.released_physics_frame == Engine::get_singleton()->get_physics_frames();
+	if (p_device != InputMap::ALL_DEVICES) {
+		if (!E->value.device_states.has(p_device)) {
+			return false;
+		}
+		if (Engine::get_singleton()->is_in_physics_frame()) {
+			return released_requirement && E->value.device_states[p_device].released_physics_frame == Engine::get_singleton()->get_physics_frames();
+		} else {
+			return released_requirement && E->value.device_states[p_device].released_process_frame == Engine::get_singleton()->get_process_frames();
+		}
 	} else {
-		return released_requirement && E->value.released_process_frame == Engine::get_singleton()->get_process_frames();
+		if (Engine::get_singleton()->is_in_physics_frame()) {
+			return released_requirement && E->value.released_physics_frame == Engine::get_singleton()->get_physics_frames();
+		} else {
+			return released_requirement && E->value.released_process_frame == Engine::get_singleton()->get_process_frames();
+		}
 	}
 }
 
-float Input::get_action_strength(const StringName &p_action, bool p_exact) const {
+float Input::get_action_strength(const StringName &p_action, bool p_exact, int p_device) const {
 	ERR_FAIL_COND_V_MSG(!InputMap::get_singleton()->has_action(p_action), 0.0, InputMap::get_singleton()->suggest_actions(p_action));
 
 	if (disable_input) {
@@ -451,11 +485,20 @@ float Input::get_action_strength(const StringName &p_action, bool p_exact) const
 	if (p_exact && E->value.exact == false) {
 		return 0.0f;
 	}
-
+	if (p_device != InputMap::ALL_DEVICES) {
+		if (!E->value.device_states.has(p_device)) {
+			return 0.0f;
+		}
+		float strength = 0.0f;
+		for (int i = 0; i < Input::MAX_EVENT; i++) {
+			strength = MAX(strength, E->value.device_states[p_device].strength[i]);
+		}
+		return strength;
+	}
 	return E->value.cache.strength;
 }
 
-float Input::get_action_raw_strength(const StringName &p_action, bool p_exact) const {
+float Input::get_action_raw_strength(const StringName &p_action, bool p_exact, int p_device) const {
 	ERR_FAIL_COND_V_MSG(!InputMap::get_singleton()->has_action(p_action), 0.0, InputMap::get_singleton()->suggest_actions(p_action));
 
 	if (disable_input) {
@@ -470,18 +513,27 @@ float Input::get_action_raw_strength(const StringName &p_action, bool p_exact) c
 	if (p_exact && E->value.exact == false) {
 		return 0.0f;
 	}
-
+	if (p_device != InputMap::ALL_DEVICES) {
+		if (!E->value.device_states.has(p_device)) {
+			return 0.0f;
+		}
+		float strength = 0.0f;
+		for (int i = 0; i < Input::MAX_EVENT; i++) {
+			strength = MAX(strength, E->value.device_states[p_device].raw_strength[i]);
+		}
+		return strength;
+	}
 	return E->value.cache.raw_strength;
 }
 
-float Input::get_axis(const StringName &p_negative_action, const StringName &p_positive_action) const {
-	return get_action_strength(p_positive_action) - get_action_strength(p_negative_action);
+float Input::get_axis(const StringName &p_negative_action, const StringName &p_positive_action, int p_device) const {
+	return get_action_strength(p_positive_action, false, p_device) - get_action_strength(p_negative_action, false, p_device);
 }
 
-Vector2 Input::get_vector(const StringName &p_negative_x, const StringName &p_positive_x, const StringName &p_negative_y, const StringName &p_positive_y, float p_deadzone) const {
+Vector2 Input::get_vector(const StringName &p_negative_x, const StringName &p_positive_x, const StringName &p_negative_y, const StringName &p_positive_y, float p_deadzone, int p_device) const {
 	Vector2 vector = Vector2(
-			get_action_raw_strength(p_positive_x) - get_action_raw_strength(p_negative_x),
-			get_action_raw_strength(p_positive_y) - get_action_raw_strength(p_negative_y));
+			get_action_raw_strength(p_positive_x, false, p_device) - get_action_raw_strength(p_negative_x, false, p_device),
+			get_action_raw_strength(p_positive_y, false, p_device) - get_action_raw_strength(p_negative_y, false, p_device));
 
 	if (p_deadzone < 0.0f) {
 		// If the deadzone isn't specified, get it from the average of the actions.
@@ -875,6 +927,7 @@ void Input::_parse_input_event_impl(const Ref<InputEvent> &p_event, bool p_is_em
 
 		// Update the action's per-device state.
 		ActionState::DeviceState &device_state = action_state.device_states[device_id];
+		bool device_was_pressed = device_state.pressed[event_index];
 		device_state.pressed[event_index] = is_pressed;
 		device_state.strength[event_index] = p_event->get_action_strength(E.key);
 		device_state.raw_strength[event_index] = p_event->get_action_raw_strength(E.key);
@@ -885,17 +938,22 @@ void Input::_parse_input_event_impl(const Ref<InputEvent> &p_event, bool p_is_em
 			action_state.api_strength = 0.0;
 		}
 		action_state.exact = InputMap::get_singleton()->event_is_action(p_event, E.key, true);
-
 		bool was_pressed = action_state.cache.pressed;
 		_update_action_cache(E.key, action_state);
 		// As input may come in part way through a physics tick, the earliest we can react to it is the next physics tick.
 		if (action_state.cache.pressed && !was_pressed) {
 			action_state.pressed_physics_frame = Engine::get_singleton()->get_physics_frames() + 1;
 			action_state.pressed_process_frame = Engine::get_singleton()->get_process_frames();
-		}
-		if (!action_state.cache.pressed && was_pressed) {
+		} else if (!action_state.cache.pressed && was_pressed) {
 			action_state.released_physics_frame = Engine::get_singleton()->get_physics_frames() + 1;
 			action_state.released_process_frame = Engine::get_singleton()->get_process_frames();
+		}
+		if (is_pressed && !device_was_pressed) {
+			device_state.pressed_physics_frame = Engine::get_singleton()->get_physics_frames() + 1;
+			device_state.pressed_process_frame = Engine::get_singleton()->get_process_frames();
+		} else if (!is_pressed && device_was_pressed) {
+			device_state.released_physics_frame = Engine::get_singleton()->get_physics_frames() + 1;
+			device_state.released_process_frame = Engine::get_singleton()->get_process_frames();
 		}
 	}
 

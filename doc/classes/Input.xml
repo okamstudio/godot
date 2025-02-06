@@ -57,27 +57,33 @@
 			<return type="float" />
 			<param index="0" name="action" type="StringName" />
 			<param index="1" name="exact_match" type="bool" default="false" />
+			<param index="2" name="device" type="int" default="-1" />
 			<description>
 				Returns a value between 0 and 1 representing the raw intensity of the given action, ignoring the action's deadzone. In most cases, you should use [method get_action_strength] instead.
 				If [param exact_match] is [code]false[/code], it ignores additional input modifiers for [InputEventKey] and [InputEventMouseButton] events, and the direction for [InputEventJoypadMotion] events.
+				[param device] is the device id of the input device to be queried. If it is left at it's default, [code]-1[/code], all devices will be queried.
 			</description>
 		</method>
 		<method name="get_action_strength" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="action" type="StringName" />
 			<param index="1" name="exact_match" type="bool" default="false" />
+			<param index="2" name="device" type="int" default="-1" />
 			<description>
 				Returns a value between 0 and 1 representing the intensity of the given action. In a joypad, for example, the further away the axis (analog sticks or L2, R2 triggers) is from the dead zone, the closer the value will be to 1. If the action is mapped to a control that has no axis such as the keyboard, the value returned will be 0 or 1.
 				If [param exact_match] is [code]false[/code], it ignores additional input modifiers for [InputEventKey] and [InputEventMouseButton] events, and the direction for [InputEventJoypadMotion] events.
+				[param device] is the device id of the input device to be queried. If it is left at it's default, [code]-1[/code], all devices will be queried.
 			</description>
 		</method>
 		<method name="get_axis" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="negative_action" type="StringName" />
 			<param index="1" name="positive_action" type="StringName" />
+			<param index="2" name="device" type="int" default="-1" />
 			<description>
 				Get axis input by specifying two actions, one negative and one positive.
 				This is a shorthand for writing [code]Input.get_action_strength("positive_action") - Input.get_action_strength("negative_action")[/code].
+				[param device] is the device id of the input device to query, [code]-1[/code], all devices will be queried.
 			</description>
 		</method>
 		<method name="get_connected_joypads">
@@ -202,10 +208,12 @@
 			<return type="bool" />
 			<param index="0" name="action" type="StringName" />
 			<param index="1" name="exact_match" type="bool" default="false" />
+			<param index="2" name="device" type="int" default="-1" />
 			<description>
 				Returns [code]true[/code] when the user has [i]started[/i] pressing the action event in the current frame or physics tick. It will only return [code]true[/code] on the frame or tick that the user pressed down the button.
 				This is useful for code that needs to run only once when an action is pressed, instead of every frame while it's pressed.
 				If [param exact_match] is [code]false[/code], it ignores additional input modifiers for [InputEventKey] and [InputEventMouseButton] events, and the direction for [InputEventJoypadMotion] events.
+				[param device] is the device id of the input device to be queried. If it is left at it's default, [code]-1[/code], all devices will be queried.
 				[b]Note:[/b] Returning [code]true[/code] does not imply that the action is [i]still[/i] pressed. An action can be pressed and released again rapidly, and [code]true[/code] will still be returned so as not to miss input.
 				[b]Note:[/b] Due to keyboard ghosting, [method is_action_just_pressed] may return [code]false[/code] even if one of the action's keys is pressed. See [url=$DOCS_URL/tutorials/inputs/input_examples.html#keyboard-events]Input examples[/url] in the documentation for more information.
 				[b]Note:[/b] During input handling (e.g. [method Node._input]), use [method InputEvent.is_action_pressed] instead to query the action state of the current event.
@@ -215,10 +223,12 @@
 			<return type="bool" />
 			<param index="0" name="action" type="StringName" />
 			<param index="1" name="exact_match" type="bool" default="false" />
+			<param index="2" name="device" type="int" default="-1" />
 			<description>
 				Returns [code]true[/code] when the user [i]stops[/i] pressing the action event in the current frame or physics tick. It will only return [code]true[/code] on the frame or tick that the user releases the button.
 				[b]Note:[/b] Returning [code]true[/code] does not imply that the action is [i]still[/i] not pressed. An action can be released and pressed again rapidly, and [code]true[/code] will still be returned so as not to miss input.
 				If [param exact_match] is [code]false[/code], it ignores additional input modifiers for [InputEventKey] and [InputEventMouseButton] events, and the direction for [InputEventJoypadMotion] events.
+				[param device] is the device id of the input device to be queried. If it is left at it's default, [code]-1[/code], all devices will be queried.
 				[b]Note:[/b] During input handling (e.g. [method Node._input]), use [method InputEvent.is_action_released] instead to query the action state of the current event.
 			</description>
 		</method>
@@ -226,9 +236,11 @@
 			<return type="bool" />
 			<param index="0" name="action" type="StringName" />
 			<param index="1" name="exact_match" type="bool" default="false" />
+			<param index="2" name="device" type="int" default="-1"/>
 			<description>
 				Returns [code]true[/code] if you are pressing the action event.
 				If [param exact_match] is [code]false[/code], it ignores additional input modifiers for [InputEventKey] and [InputEventMouseButton] events, and the direction for [InputEventJoypadMotion] events.
+				[param device] is the device id of the input device to be queried. If it is left at it's default, [code]-1[/code], all devices will be queried.
 				[b]Note:[/b] Due to keyboard ghosting, [method is_action_pressed] may return [code]false[/code] even if one of the action's keys is pressed. See [url=$DOCS_URL/tutorials/inputs/input_examples.html#keyboard-events]Input examples[/url] in the documentation for more information.
 			</description>
 		</method>

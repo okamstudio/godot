@@ -32,6 +32,7 @@
 #define INPUT_H
 
 #include "core/input/input_event.h"
+#include "core/input/input_map.h"
 #include "core/object/object.h"
 #include "core/os/keyboard.h"
 #include "core/os/thread_safe.h"
@@ -118,6 +119,10 @@ private:
 			bool pressed[MAX_EVENT] = { false };
 			float strength[MAX_EVENT] = { 0.0 };
 			float raw_strength[MAX_EVENT] = { 0.0 };
+			uint64_t pressed_physics_frame = UINT64_MAX;
+			uint64_t pressed_process_frame = UINT64_MAX;
+			uint64_t released_physics_frame = UINT64_MAX;
+			uint64_t released_process_frame = UINT64_MAX;
 		};
 		bool api_pressed = false;
 		float api_strength = 0.0;
@@ -306,14 +311,14 @@ public:
 	bool is_key_label_pressed(Key p_keycode) const;
 	bool is_mouse_button_pressed(MouseButton p_button) const;
 	bool is_joy_button_pressed(int p_device, JoyButton p_button) const;
-	bool is_action_pressed(const StringName &p_action, bool p_exact = false) const;
-	bool is_action_just_pressed(const StringName &p_action, bool p_exact = false) const;
-	bool is_action_just_released(const StringName &p_action, bool p_exact = false) const;
-	float get_action_strength(const StringName &p_action, bool p_exact = false) const;
-	float get_action_raw_strength(const StringName &p_action, bool p_exact = false) const;
+	bool is_action_pressed(const StringName &p_action, bool p_exact = false, int p_device = InputMap::ALL_DEVICES) const;
+	bool is_action_just_pressed(const StringName &p_action, bool p_exact = false, int p_device = InputMap::ALL_DEVICES) const;
+	bool is_action_just_released(const StringName &p_action, bool p_exact = false, int p_device = InputMap::ALL_DEVICES) const;
+	float get_action_strength(const StringName &p_action, bool p_exact = false, int p_device = InputMap::ALL_DEVICES) const;
+	float get_action_raw_strength(const StringName &p_action, bool p_exact = false, int p_device = InputMap::ALL_DEVICES) const;
 
-	float get_axis(const StringName &p_negative_action, const StringName &p_positive_action) const;
-	Vector2 get_vector(const StringName &p_negative_x, const StringName &p_positive_x, const StringName &p_negative_y, const StringName &p_positive_y, float p_deadzone = -1.0f) const;
+	float get_axis(const StringName &p_negative_action, const StringName &p_positive_action, int p_device = -1) const;
+	Vector2 get_vector(const StringName &p_negative_x, const StringName &p_positive_x, const StringName &p_negative_y, const StringName &p_positive_y, float p_deadzone = -1.0f, int p_device = InputMap::ALL_DEVICES) const;
 
 	float get_joy_axis(int p_device, JoyAxis p_axis) const;
 	String get_joy_name(int p_idx);
