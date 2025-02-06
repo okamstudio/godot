@@ -127,6 +127,8 @@ public:
 	_FORCE_INLINE_ Ref<FileAccess> try_open_path(const String &p_path);
 	_FORCE_INLINE_ bool has_path(const String &p_path);
 
+	_FORCE_INLINE_ int64_t get_size(const String &p_path);
+
 	_FORCE_INLINE_ Ref<DirAccess> try_open_directory(const String &p_path);
 	_FORCE_INLINE_ bool has_directory(const String &p_path);
 
@@ -165,6 +167,8 @@ class FileAccessPack : public FileAccess {
 	Ref<FileAccess> f;
 	virtual Error open_internal(const String &p_path, int p_mode_flags) override;
 	virtual uint64_t _get_modified_time(const String &p_file) override { return 0; }
+	virtual uint64_t _get_access_time(const String &p_file) override { return 0; }
+	virtual int64_t _get_size(const String &p_file) override { return -1; }
 	virtual BitField<FileAccess::UnixPermissionFlags> _get_unix_permissions(const String &p_file) override { return 0; }
 	virtual Error _set_unix_permissions(const String &p_file, BitField<FileAccess::UnixPermissionFlags> p_permissions) override { return FAILED; }
 
@@ -199,6 +203,19 @@ public:
 
 	FileAccessPack(const String &p_path, const PackedData::PackedFile &p_file);
 };
+
+int64_t PackedData::get_size(const String &p_path) {
+	String simplified_path = p_path.simplify_path();
+	PathMD5 pmd5(simplified_path.md5_buffer());
+	HashMap<PathMD5, PackedFile, PathMD5>::Iterator E = files.find(pmd5);
+	if (!E) {
+		return -1; // File not found.
+	}
+	if (E->value.offset == 0) {
+		return -1; // File was erased.
+	}
+	return E->value.size;
+}
 
 Ref<FileAccess> PackedData::try_open_path(const String &p_path) {
 	String simplified_path = p_path.simplify_path().trim_prefix("res://");

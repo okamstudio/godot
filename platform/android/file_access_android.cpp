@@ -132,6 +132,10 @@ uint64_t FileAccessAndroid::get_buffer(uint8_t *p_dst, uint64_t p_length) const 
 	return r;
 }
 
+int64_t FileAccessAndroid::_get_size(const String &p_file) {
+	return AAsset_getLength64(asset);
+}
+
 Error FileAccessAndroid::get_error() const {
 	return eof ? ERR_FILE_EOF : OK; // not sure what else it may happen
 }

@@ -451,6 +451,78 @@ uint64_t FileAccessWindows::_get_modified_time(const String &p_file) {
 	return 0;
 }
 
+uint64_t FileAccessWindows::_get_access_time(const String &p_file) {
+	if (is_path_invalid(p_file)) {
+		return 0;
+	}
+
+	String file = fix_path(p_file);
+	if (file.ends_with("\\") && file != "\\") {
+		file = file.substr(0, file.length() - 1);
+	}
+
+	HANDLE handle = CreateFileW((LPCWSTR)(file.utf16().get_data()), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
+
+	if (handle != INVALID_HANDLE_VALUE) {
+		FILETIME ft_create, ft_access;
+
+		bool status = GetFileTime(handle, &ft_create, &ft_access, nullptr);
+
+		CloseHandle(handle);
+
+		if (status) {
+			uint64_t ret = 0;
+
+			// If access time is invalid, fallback to creation time.
+			if (ft_access.dwHighDateTime == 0 && ft_access.dwLowDateTime == 0) {
+				ret = ft_create.dwHighDateTime;
+				ret <<= 32;
+				ret |= ft_create.dwLowDateTime;
+			} else {
+				ret = ft_access.dwHighDateTime;
+				ret <<= 32;
+				ret |= ft_access.dwLowDateTime;
+			}
+
+			const uint64_t WINDOWS_TICKS_PER_SECOND = 10000000;
+			const uint64_t TICKS_TO_UNIX_EPOCH = 116444736000000000LL;
+
+			if (ret >= TICKS_TO_UNIX_EPOCH) {
+				return (ret - TICKS_TO_UNIX_EPOCH) / WINDOWS_TICKS_PER_SECOND;
+			}
+		}
+	}
+
+	ERR_FAIL_V_MSG(0, "Failed to get access time for: " + p_file + "");
+}
+
+int64_t FileAccessWindows::_get_size(const String &p_file) {
+	if (is_path_invalid(p_file)) {
+		return 0;
+	}
+
+	String file = fix_path(p_file);
+	if (file.ends_with("\\") && file != "\\") {
+		file = file.substr(0, file.length() - 1);
+	}
+
+	DWORD file_attr = GetFileAttributesW((LPCWSTR)(file.utf16().get_data()));
+	HANDLE handle = CreateFileW((LPCWSTR)(file.utf16().get_data()), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
+
+	if (handle != INVALID_HANDLE_VALUE && !(file_attr & FILE_ATTRIBUTE_DIRECTORY)) {
+		LARGE_INTEGER fsize;
+
+		bool status = GetFileSizeEx(handle, &fsize);
+
+		CloseHandle(handle);
+
+		if (status) {
+			return (int64_t)fsize.QuadPart;
+		}
+	}
+	ERR_FAIL_V_MSG(-1, "Failed to get size for: " + p_file + "");
+}
+
 BitField<FileAccess::UnixPermissionFlags> FileAccessWindows::_get_unix_permissions(const String &p_file) {
 	return 0;
 }

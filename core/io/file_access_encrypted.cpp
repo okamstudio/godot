@@ -265,7 +265,27 @@ bool FileAccessEncrypted::file_exists(const String &p_name) {
 }
 
 uint64_t FileAccessEncrypted::_get_modified_time(const String &p_file) {
-	return 0;
+	if (file.is_valid()) {
+		return file->get_modified_time(p_file);
+	} else {
+		return 0;
+	}
+}
+
+uint64_t FileAccessEncrypted::_get_access_time(const String &p_file) {
+	if (file.is_valid()) {
+		return file->get_access_time(p_file);
+	} else {
+		return 0;
+	}
+}
+
+int64_t FileAccessEncrypted::_get_size(const String &p_file) {
+	if (file.is_valid()) {
+		return file->get_size(p_file);
+	} else {
+		return -1;
+	}
 }
 
 BitField<FileAccess::UnixPermissionFlags> FileAccessEncrypted::_get_unix_permissions(const String &p_file) {

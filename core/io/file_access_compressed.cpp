@@ -332,6 +332,22 @@ uint64_t FileAccessCompressed::_get_modified_time(const String &p_file) {
 	}
 }
 
+uint64_t FileAccessCompressed::_get_access_time(const String &p_file) {
+	if (f.is_valid()) {
+		return f->get_access_time(p_file);
+	} else {
+		return 0;
+	}
+}
+
+int64_t FileAccessCompressed::_get_size(const String &p_file) {
+	if (f.is_valid()) {
+		return f->get_size(p_file);
+	} else {
+		return -1;
+	}
+}
+
 BitField<FileAccess::UnixPermissionFlags> FileAccessCompressed::_get_unix_permissions(const String &p_file) {
 	if (f.is_valid()) {
 		return f->_get_unix_permissions(p_file);
