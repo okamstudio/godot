@@ -54,8 +54,6 @@ class NavigationServer2D : public Object {
 
 	static NavigationServer2D *singleton;
 
-	void _emit_map_changed(RID p_map);
-
 protected:
 	static void _bind_methods();
 
@@ -304,6 +302,14 @@ public:
 	/// Returns a customized navigation path using a query parameters object
 	virtual void query_path(const Ref<NavigationPathQueryParameters2D> &p_query_parameters, Ref<NavigationPathQueryResult2D> p_query_result, const Callable &p_callback = Callable()) = 0;
 
+	/// Control activation of this server.
+	virtual void set_active(bool p_active) = 0;
+
+	/// Process the collision avoidance agents.
+	/// The result of this process is needed by the physics server,
+	/// so this must be called in the main thread.
+	/// Note: This function is not thread safe.
+	virtual void process(real_t delta_time) = 0;
 	virtual void init() = 0;
 	virtual void sync() = 0;
 	virtual void finish() = 0;
@@ -330,6 +336,21 @@ public:
 	NavigationServer2D();
 	~NavigationServer2D() override;
 
+	enum ProcessInfo {
+		INFO_ACTIVE_MAPS,
+		INFO_REGION_COUNT,
+		INFO_AGENT_COUNT,
+		INFO_LINK_COUNT,
+		INFO_POLYGON_COUNT,
+		INFO_EDGE_COUNT,
+		INFO_EDGE_MERGE_COUNT,
+		INFO_EDGE_CONNECTION_COUNT,
+		INFO_EDGE_FREE_COUNT,
+		INFO_OBSTACLE_COUNT,
+	};
+
+	virtual int get_process_info(ProcessInfo p_info) const = 0;
+
 	void set_debug_enabled(bool p_enabled);
 	bool get_debug_enabled() const;
 
@@ -340,8 +361,50 @@ protected:
 	static void _bind_compatibility_methods();
 #endif
 
-public:
+private:
+	bool debug_enabled = false;
+
 #ifdef DEBUG_ENABLED
+	bool debug_dirty = true;
+
+	bool debug_navigation_enabled = false;
+	bool navigation_debug_dirty = true;
+	void _emit_navigation_debug_changed_signal();
+
+	bool debug_avoidance_enabled = false;
+	bool avoidance_debug_dirty = true;
+	void _emit_avoidance_debug_changed_signal();
+
+	Color debug_navigation_edge_connection_color = Color(1.0, 0.0, 1.0, 1.0);
+	Color debug_navigation_geometry_edge_color = Color(0.5, 1.0, 1.0, 1.0);
+	Color debug_navigation_geometry_face_color = Color(0.5, 1.0, 1.0, 0.4);
+	Color debug_navigation_geometry_edge_disabled_color = Color(0.5, 0.5, 0.5, 1.0);
+	Color debug_navigation_geometry_face_disabled_color = Color(0.5, 0.5, 0.5, 0.4);
+	Color debug_navigation_link_connection_color = Color(1.0, 0.5, 1.0, 1.0);
+	Color debug_navigation_link_connection_disabled_color = Color(0.5, 0.5, 0.5, 1.0);
+	Color debug_navigation_agent_path_color = Color(1.0, 0.0, 0.0, 1.0);
+
+	real_t debug_navigation_agent_path_point_size = 4.0;
+
+	Color debug_navigation_avoidance_agents_radius_color = Color(1.0, 1.0, 0.0, 0.25);
+	Color debug_navigation_avoidance_obstacles_radius_color = Color(1.0, 0.5, 0.0, 0.25);
+
+	Color debug_navigation_avoidance_static_obstacle_pushin_face_color = Color(1.0, 0.0, 0.0, 0.0);
+	Color debug_navigation_avoidance_static_obstacle_pushout_face_color = Color(1.0, 1.0, 0.0, 0.5);
+	Color debug_navigation_avoidance_static_obstacle_pushin_edge_color = Color(1.0, 0.0, 0.0, 1.0);
+	Color debug_navigation_avoidance_static_obstacle_pushout_edge_color = Color(1.0, 1.0, 0.0, 1.0);
+
+	bool debug_navigation_enable_edge_connections = true;
+	bool debug_navigation_enable_edge_lines = true;
+	bool debug_navigation_enable_geometry_face_random_color = true;
+	bool debug_navigation_enable_link_connections = true;
+	bool debug_navigation_enable_agent_paths = true;
+
+	bool debug_navigation_avoidance_enable_agents_radius = true;
+	bool debug_navigation_avoidance_enable_obstacles_radius = true;
+	bool debug_navigation_avoidance_enable_obstacles_static = true;
+
+public:
 	void set_debug_navigation_enabled(bool p_enabled);
 	bool get_debug_navigation_enabled() const;
 
@@ -414,11 +477,6 @@ public:
 	void set_debug_navigation_avoidance_enable_obstacles_static(const bool p_value);
 	bool get_debug_navigation_avoidance_enable_obstacles_static() const;
 #endif // DEBUG_ENABLED
-
-#ifdef DEBUG_ENABLED
-private:
-	void _emit_navigation_debug_changed_signal();
-#endif // DEBUG_ENABLED
 };
 
 typedef NavigationServer2D *(*NavigationServer2DCallback)();
@@ -434,5 +492,7 @@ public:
 	static void initialize_server();
 	static void finalize_server();
 };
+
+VARIANT_ENUM_CAST(NavigationServer2D::ProcessInfo);
 
 #endif // NAVIGATION_SERVER_2D_H

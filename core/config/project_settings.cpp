@@ -1638,6 +1638,50 @@ ProjectSettings::ProjectSettings() {
 	GLOBAL_DEF_INTERNAL("internationalization/locale/translations_pot_files", PackedStringArray());
 	GLOBAL_DEF_INTERNAL("internationalization/locale/translation_add_builtin_strings_to_pot", false);
 
+	GLOBAL_DEF("navigation/world/map_use_async_iterations", true);
+
+	GLOBAL_DEF("navigation/avoidance/thread_model/avoidance_use_multiple_threads", true);
+	GLOBAL_DEF("navigation/avoidance/thread_model/avoidance_use_high_priority_threads", true);
+
+	GLOBAL_DEF("navigation/pathfinding/max_threads", 4);
+
+	GLOBAL_DEF("navigation/baking/use_crash_prevention_checks", true);
+	GLOBAL_DEF("navigation/baking/thread_model/baking_use_multiple_threads", true);
+	GLOBAL_DEF("navigation/baking/thread_model/baking_use_high_priority_threads", true);
+
+#ifdef DEBUG_ENABLED
+	GLOBAL_DEF("debug/shapes/navigation/edge_connection_color", Color(1.0, 0.0, 1.0, 1.0));
+	GLOBAL_DEF("debug/shapes/navigation/geometry_edge_color", Color(0.5, 1.0, 1.0, 1.0));
+	GLOBAL_DEF("debug/shapes/navigation/geometry_face_color", Color(0.5, 1.0, 1.0, 0.4));
+	GLOBAL_DEF("debug/shapes/navigation/geometry_edge_disabled_color", Color(0.5, 0.5, 0.5, 1.0));
+	GLOBAL_DEF("debug/shapes/navigation/geometry_face_disabled_color", Color(0.5, 0.5, 0.5, 0.4));
+	GLOBAL_DEF("debug/shapes/navigation/link_connection_color", Color(1.0, 0.5, 1.0, 1.0));
+	GLOBAL_DEF("debug/shapes/navigation/link_connection_disabled_color", Color(0.5, 0.5, 0.5, 1.0));
+	GLOBAL_DEF("debug/shapes/navigation/agent_path_color", Color(1.0, 0.0, 0.0, 1.0));
+
+	GLOBAL_DEF("debug/shapes/navigation/enable_edge_connections", true);
+	GLOBAL_DEF("debug/shapes/navigation/enable_edge_connections_xray", true);
+	GLOBAL_DEF("debug/shapes/navigation/enable_edge_lines", true);
+	GLOBAL_DEF("debug/shapes/navigation/enable_edge_lines_xray", true);
+	GLOBAL_DEF("debug/shapes/navigation/enable_geometry_face_random_color", true);
+	GLOBAL_DEF("debug/shapes/navigation/enable_link_connections", true);
+	GLOBAL_DEF("debug/shapes/navigation/enable_link_connections_xray", true);
+
+	GLOBAL_DEF("debug/shapes/navigation/enable_agent_paths", true);
+	GLOBAL_DEF("debug/shapes/navigation/enable_agent_paths_xray", true);
+	GLOBAL_DEF(PropertyInfo(Variant::FLOAT, "debug/shapes/navigation/agent_path_point_size", PROPERTY_HINT_RANGE, "0.01,10,0.001,or_greater"), 4.0);
+
+	GLOBAL_DEF("debug/shapes/avoidance/agents_radius_color", Color(1.0, 1.0, 0.0, 0.25));
+	GLOBAL_DEF("debug/shapes/avoidance/obstacles_radius_color", Color(1.0, 0.5, 0.0, 0.25));
+	GLOBAL_DEF("debug/shapes/avoidance/obstacles_static_face_pushin_color", Color(1.0, 0.0, 0.0, 0.0));
+	GLOBAL_DEF("debug/shapes/avoidance/obstacles_static_edge_pushin_color", Color(1.0, 0.0, 0.0, 1.0));
+	GLOBAL_DEF("debug/shapes/avoidance/obstacles_static_face_pushout_color", Color(1.0, 1.0, 0.0, 0.5));
+	GLOBAL_DEF("debug/shapes/avoidance/obstacles_static_edge_pushout_color", Color(1.0, 1.0, 0.0, 1.0));
+	GLOBAL_DEF("debug/shapes/avoidance/enable_agents_radius", true);
+	GLOBAL_DEF("debug/shapes/avoidance/enable_obstacles_radius", true);
+	GLOBAL_DEF("debug/shapes/avoidance/enable_obstacles_static", true);
+#endif // DEBUG_ENABLED
+
 	ProjectSettings::get_singleton()->add_hidden_prefix("input/");
 }
 

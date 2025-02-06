@@ -40,7 +40,7 @@
 
 namespace TestNavigationAgent2D {
 
-TEST_SUITE("[Navigation]") {
+TEST_SUITE("[Navigation2D]") {
 	TEST_CASE("[SceneTree][NavigationAgent2D] New agent should have valid RID") {
 		NavigationAgent2D *agent_node = memnew(NavigationAgent2D);
 		CHECK(agent_node->get_rid().is_valid());

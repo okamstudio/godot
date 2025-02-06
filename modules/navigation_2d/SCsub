@@ -1,0 +1,42 @@
+#!/usr/bin/env python
+from misc.utility.scons_hints import *
+
+Import("env")
+Import("env_modules")
+
+env_navigation_2d = env_modules.Clone()
+
+# Thirdparty source files
+
+thirdparty_obj = []
+
+# RVO 2D Thirdparty source files
+if env["builtin_rvo2_2d"]:
+    thirdparty_dir = "#thirdparty/rvo2/rvo2_2d/"
+    thirdparty_sources = [
+        "Agent2d.cpp",
+        "Obstacle2d.cpp",
+        "KdTree2d.cpp",
+        "RVOSimulator2d.cpp",
+    ]
+    thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
+
+    env_navigation_2d.Prepend(CPPPATH=[thirdparty_dir])
+
+    env_thirdparty = env_navigation_2d.Clone()
+    env_thirdparty.disable_warnings()
+    env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
+
+
+env.modules_sources += thirdparty_obj
+
+# Godot source files
+
+module_obj = []
+
+env_navigation_2d.add_source_files(module_obj, "*.cpp")
+env_navigation_2d.add_source_files(module_obj, "2d/*.cpp")
+env.modules_sources += module_obj
+
+# Needed to force rebuilding the module files when the thirdparty library is updated.
+env.Depends(module_obj, thirdparty_obj)

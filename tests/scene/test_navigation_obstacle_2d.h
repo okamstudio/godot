@@ -38,7 +38,7 @@
 
 namespace TestNavigationObstacle2D {
 
-TEST_SUITE("[Navigation]") {
+TEST_SUITE("[Navigation2D]") {
 	TEST_CASE("[SceneTree][NavigationObstacle2D] New obstacle should have valid RID") {
 		NavigationObstacle2D *obstacle_node = memnew(NavigationObstacle2D);
 		CHECK(obstacle_node->get_rid().is_valid());
