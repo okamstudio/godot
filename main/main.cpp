@@ -3156,14 +3156,6 @@ Error Main::setup2(bool p_show_boot_logo) {
 			rendering_server->set_print_gpu_profile(true);
 		}
 
-		if (Engine::get_singleton()->get_write_movie_path() != String()) {
-			movie_writer = MovieWriter::find_writer_for_file(Engine::get_singleton()->get_write_movie_path());
-			if (movie_writer == nullptr) {
-				ERR_PRINT("Can't find movie writer for file type, aborting: " + Engine::get_singleton()->get_write_movie_path());
-				Engine::get_singleton()->set_write_movie_path(String());
-			}
-		}
-
 		OS::get_singleton()->benchmark_end_measure("Servers", "Rendering");
 	}
 
@@ -3381,6 +3373,16 @@ Error Main::setup2(bool p_show_boot_logo) {
 		GDExtensionManager::get_singleton()->initialize_extensions(GDExtension::INITIALIZATION_LEVEL_SCENE);
 
 		OS::get_singleton()->benchmark_end_measure("Scene", "Modules and Extensions");
+
+		// We need to initialize the movie writer here in case
+		// one of the user provided gdextensions subclasses MovieWriter.
+		if (Engine::get_singleton()->get_write_movie_path() != String()) {
+			movie_writer = MovieWriter::find_writer_for_file(Engine::get_singleton()->get_write_movie_path());
+			if (movie_writer == nullptr) {
+				ERR_PRINT("Can't find movie writer for file type, aborting: " + Engine::get_singleton()->get_write_movie_path());
+				Engine::get_singleton()->set_write_movie_path(String());
+			}
+		}
 	}
 
 	PackedStringArray extensions;
