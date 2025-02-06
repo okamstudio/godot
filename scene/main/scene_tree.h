@@ -44,6 +44,7 @@ class Node;
 #ifndef _3D_DISABLED
 class Node3D;
 #endif
+class LicensesDialog;
 class Window;
 class Material;
 class Mesh;
@@ -190,6 +191,9 @@ private:
 	Node *current_scene = nullptr;
 	Node *prev_scene = nullptr;
 	Node *pending_new_scene = nullptr;
+
+	// Initialized lazily and destroyed eagerly to decrease RAM usage, since it contains a lot of text.
+	LicensesDialog *licenses_dialog = nullptr;
 
 	Color debug_collisions_color;
 	Color debug_collision_contact_color;
@@ -429,6 +433,9 @@ public:
 	void set_multiplayer(Ref<MultiplayerAPI> p_multiplayer, const NodePath &p_root_path = NodePath());
 	void set_multiplayer_poll_enabled(bool p_enabled);
 	bool is_multiplayer_poll_enabled() const;
+
+	void set_licenses_dialog_visible(bool p_visible);
+	bool is_licenses_dialog_visible() const;
 
 	static void add_idle_callback(IdleCallback p_callback);
 

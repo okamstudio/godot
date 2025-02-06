@@ -2163,6 +2163,10 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 			}
 		}
 
+		if (!Engine::get_singleton()->is_editor_hint() && !Engine::get_singleton()->is_project_manager_hint() && p_event->is_action_pressed("ui_toggle_licenses_dialog")) {
+			SceneTree::get_singleton()->set_licenses_dialog_visible(!SceneTree::get_singleton()->is_licenses_dialog_visible());
+		}
+
 		if (gui.key_focus && !gui.key_focus->is_visible_in_tree()) {
 			gui.key_focus->release_focus();
 		}

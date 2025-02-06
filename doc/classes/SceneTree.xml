@@ -255,6 +255,9 @@
 			The root of the scene currently being edited in the editor. This is usually a direct child of [member root].
 			[b]Note:[/b] This property does nothing in release builds.
 		</member>
+		<member name="licenses_dialog_visible" type="bool" setter="set_licenses_dialog_visible" getter="is_licenses_dialog_visible" default="false">
+			If [code]true[/code], shows the built-in dialog which displays Godot's third-party notices. This dialog can also be toggled by pressing the [member ProjectSettings.input/ui_toggle_licenses_dialog] built-in action. See [url=$DOCS_URL/complying_with_licenses.html]Complying with licenses[/url] in the documentation for more information.
+		</member>
 		<member name="multiplayer_poll" type="bool" setter="set_multiplayer_poll_enabled" getter="is_multiplayer_poll_enabled" default="true">
 			If [code]true[/code] (default value), enables automatic polling of the [MultiplayerAPI] for this SceneTree during [signal process_frame].
 			If [code]false[/code], you need to manually call [method MultiplayerAPI.poll] to process network packets and deliver RPCs. This allows running RPCs in a different loop (e.g. physics, thread, specific time step) and for manual [Mutex] protection when accessing the [MultiplayerAPI] from threads.

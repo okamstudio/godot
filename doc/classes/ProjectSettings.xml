@@ -1401,6 +1401,10 @@
 			Default [InputEventAction] to toggle [i]insert mode[/i] in a text field. While in insert mode, inserting new text overrides the character after the cursor, unless the next character is a new line.
 			[b]Note:[/b] Default [code]ui_*[/code] actions cannot be removed as they are necessary for the internal logic of several [Control]s. The events assigned to the action can however be modified.
 		</member>
+		<member name="input/ui_toggle_licenses_dialog" type="Dictionary" setter="" getter="">
+			Toggles the built-in dialog which displays Godot's third-party notices. This can also be toggled from a script using [member SceneTree.licenses_dialog_visible].
+			Since the default shortcut is not usable on mobile platforms, it is recommended to create a button that sets [member SceneTree.licenses_dialog_visible] to [code]true[/code] when pressed in your project's menu. See [url=$DOCS_URL/complying_with_licenses.html]Complying with licenses[/url] in the documentation for more information.
+		</member>
 		<member name="input/ui_undo" type="Dictionary" setter="" getter="">
 			Default [InputEventAction] to undo the most recent action.
 			[b]Note:[/b] Default [code]ui_*[/code] actions cannot be removed as they are necessary for the internal logic of several [Control]s. The events assigned to the action can however be modified.

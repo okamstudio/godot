@@ -41,6 +41,7 @@
 #include "scene/animation/tween.h"
 #include "scene/debugger/scene_debugger.h"
 #include "scene/gui/control.h"
+#include "scene/gui/licenses_dialog.h"
 #include "scene/main/multiplayer_api.h"
 #include "scene/main/viewport.h"
 #include "scene/resources/environment.h"
@@ -1692,6 +1693,36 @@ bool SceneTree::is_multiplayer_poll_enabled() const {
 	return multiplayer_poll;
 }
 
+void SceneTree::set_licenses_dialog_visible(bool p_visible) {
+	if (p_visible) {
+		if (licenses_dialog == nullptr) {
+			licenses_dialog = memnew(LicensesDialog);
+			// Begin name with an underscore to avoid conflict with project nodes.
+			licenses_dialog->set_name("_LicensesDialog");
+			get_root()->add_child(licenses_dialog, false, Node::INTERNAL_MODE_BACK);
+		} else {
+			ERR_PRINT("Licenses dialog already exists.");
+		}
+	} else {
+		if (licenses_dialog != nullptr) {
+			// Free when closing to avoid reserving memory during the project's run duration.
+			licenses_dialog->queue_free();
+			licenses_dialog = nullptr;
+		} else {
+			ERR_PRINT("Couldn't find licenses dialog to hide.");
+		}
+	}
+}
+
+bool SceneTree::is_licenses_dialog_visible() const {
+	if (licenses_dialog) {
+		return licenses_dialog->is_visible();
+	}
+
+	// Licenses dialog isn't created yet. Therefore, it's not visible.
+	return false;
+}
+
 void SceneTree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_root"), &SceneTree::get_root);
 	ClassDB::bind_method(D_METHOD("has_group", "name"), &SceneTree::has_group);
@@ -1766,6 +1797,9 @@ void SceneTree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_multiplayer_poll_enabled", "enabled"), &SceneTree::set_multiplayer_poll_enabled);
 	ClassDB::bind_method(D_METHOD("is_multiplayer_poll_enabled"), &SceneTree::is_multiplayer_poll_enabled);
 
+	ClassDB::bind_method(D_METHOD("set_licenses_dialog_visible", "visible"), &SceneTree::set_licenses_dialog_visible);
+	ClassDB::bind_method(D_METHOD("is_licenses_dialog_visible"), &SceneTree::is_licenses_dialog_visible);
+
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "auto_accept_quit"), "set_auto_accept_quit", "is_auto_accept_quit");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "quit_on_go_back"), "set_quit_on_go_back", "is_quit_on_go_back");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "debug_collisions_hint"), "set_debug_collisions_hint", "is_debugging_collisions_hint");
@@ -1777,6 +1811,7 @@ void SceneTree::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "root", PROPERTY_HINT_RESOURCE_TYPE, "Node", PROPERTY_USAGE_NONE), "", "get_root");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "multiplayer_poll"), "set_multiplayer_poll_enabled", "is_multiplayer_poll_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "physics_interpolation"), "set_physics_interpolation_enabled", "is_physics_interpolation_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "licenses_dialog_visible"), "set_licenses_dialog_visible", "is_licenses_dialog_visible");
 
 	ADD_SIGNAL(MethodInfo("tree_changed"));
 	ADD_SIGNAL(MethodInfo("tree_process_mode_changed")); //editor only signal, but due to API hash it can't be removed in run-time
