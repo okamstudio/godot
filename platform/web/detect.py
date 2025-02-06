@@ -1,6 +1,5 @@
 import os
 import sys
-from typing import TYPE_CHECKING
 
 from emscripten_helpers import (
     add_js_externs,
@@ -11,13 +10,11 @@ from emscripten_helpers import (
     get_template_zip_path,
     run_closure_compiler,
 )
+from SCons.Script.SConscript import SConsEnvironment
 from SCons.Util import WhereIs
 
 from methods import get_compiler_version, print_error, print_info, print_warning
 from platform_methods import validate_arch
-
-if TYPE_CHECKING:
-    from SCons.Script.SConscript import SConsEnvironment
 
 
 def get_name():
@@ -89,7 +86,7 @@ def get_flags():
     }
 
 
-def configure(env: "SConsEnvironment"):
+def configure(env: SConsEnvironment):
     # Validate arch.
     supported_arches = ["wasm32"]
     validate_arch(env["arch"], get_name(), supported_arches)

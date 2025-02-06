@@ -2,13 +2,11 @@ import os
 import platform
 import subprocess
 import sys
-from typing import TYPE_CHECKING
+
+from SCons.Script.SConscript import SConsEnvironment
 
 from methods import print_error, print_warning
 from platform_methods import validate_arch
-
-if TYPE_CHECKING:
-    from SCons.Script.SConscript import SConsEnvironment
 
 
 def get_name():
@@ -58,7 +56,7 @@ def get_min_sdk_version(platform):
     return int(platform.split("-")[1])
 
 
-def get_android_ndk_root(env: "SConsEnvironment"):
+def get_android_ndk_root(env: SConsEnvironment):
     return env["ANDROID_HOME"] + "/ndk/" + get_ndk_version()
 
 
@@ -82,7 +80,7 @@ def get_flags():
 
 # Check if Android NDK version is installed
 # If not, install it.
-def install_ndk_if_needed(env: "SConsEnvironment"):
+def install_ndk_if_needed(env: SConsEnvironment):
     sdk_root = env["ANDROID_HOME"]
     if not os.path.exists(get_android_ndk_root(env)):
         extension = ".bat" if os.name == "nt" else ""
@@ -110,7 +108,7 @@ def detect_swappy():
     return has_swappy
 
 
-def configure(env: "SConsEnvironment"):
+def configure(env: SConsEnvironment):
     # Validate arch.
     supported_arches = ["x86_32", "x86_64", "arm32", "arm64"]
     validate_arch(env["arch"], get_name(), supported_arches)

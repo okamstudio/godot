@@ -53,6 +53,7 @@ repos:
       - id: mypy
         files: \.py$
         types_or: [text]
+        additional_dependencies: [scons==4.8.1, pytest==7.1.2]
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.3.0
