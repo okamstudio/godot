@@ -36,6 +36,7 @@
 #include "editor/editor_settings.h"
 #include "editor/editor_undo_redo_manager.h"
 #include "editor/gui/editor_file_dialog.h"
+#include "editor/multi_node_edit.h"
 #include "editor/scene_tree_dock.h"
 #include "scene/2d/cpu_particles_2d.h"
 #include "scene/2d/gpu_particles_2d.h"
@@ -95,17 +96,62 @@ void ParticlesEditorPlugin::_menu_callback(int p_idx) {
 		} break;
 
 		case MENU_RESTART: {
-			edited_node->call("restart");
+			if (EditorNode::get_singleton()->get_editor_selection()->get_selected_node_list().size() == 1) {
+				edited_node->call("restart");
+			} else {
+				for (int i = 0; i < mne->get_node_count(); i++) {
+					Node *edited_scene = EditorNode::get_singleton()->get_edited_scene();
+					if (edited_scene->get_node(mne->get_node(i))->is_class(handled_type)) {
+						edited_scene->get_node(mne->get_node(i))->call("restart");
+					}
+				}
+			}
 		}
 	}
 }
 
 void ParticlesEditorPlugin::edit(Object *p_object) {
-	edited_node = Object::cast_to<Node>(p_object);
+	{
+		edited_node = Object::cast_to<Node>(p_object);
+		if (edited_node) {
+			return;
+		}
+	}
+
+	mne = Ref<MultiNodeEdit>(p_object);
+	Node *edited_scene = EditorNode::get_singleton()->get_edited_scene();
+	if (mne.is_valid() && edited_scene) {
+		for (int i = 0; i < mne->get_node_count(); i++) {
+			edited_node = Object::cast_to<Node>(edited_scene->get_node(mne->get_node(i)));
+			if (edited_node && edited_node->is_class(handled_type)) {
+				return;
+			}
+		}
+	}
+	edited_node = nullptr;
 }
 
 bool ParticlesEditorPlugin::handles(Object *p_object) const {
-	return p_object->is_class(handled_type);
+	if (p_object->is_class(handled_type)) {
+		return true;
+	}
+
+	Ref<MultiNodeEdit> tmp_mne = Ref<MultiNodeEdit>(p_object);
+	Node *edited_scene = EditorNode::get_singleton()->get_edited_scene();
+	if (tmp_mne.is_valid() && edited_scene) {
+		bool has_particles = false;
+		for (int i = 0; i < tmp_mne->get_node_count(); i++) {
+			if (edited_scene->get_node(tmp_mne->get_node(i))->is_class(handled_type)) {
+				if (has_particles) {
+					return true;
+				} else {
+					has_particles = true;
+				}
+			}
+		}
+	}
+
+	return false;
 }
 
 void ParticlesEditorPlugin::make_visible(bool p_visible) {
