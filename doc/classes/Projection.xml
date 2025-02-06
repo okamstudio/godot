@@ -207,7 +207,7 @@
 			<return type="int" />
 			<param index="0" name="for_pixel_width" type="int" />
 			<description>
-				Returns the number of pixels with the given pixel width displayed per meter, after this [Projection] is applied.
+				Returns [param for_pixel_width] divided by the viewport's width measured in meters on the near plane, after this [Projection] is applied.
 			</description>
 		</method>
 		<method name="get_projection_plane" qualifiers="const">

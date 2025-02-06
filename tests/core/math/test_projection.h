@@ -449,6 +449,78 @@ TEST_CASE("[Projection] Perspective values extraction") {
 	CHECK(zfar == doctest::Approx(50));
 	CHECK(aspect == doctest::Approx(0.5));
 	CHECK(fov == doctest::Approx(90));
+
+	persp.set_perspective(38, 1.3, 0.2, 8, false);
+
+	znear = persp.get_z_near();
+	zfar = persp.get_z_far();
+	aspect = persp.get_aspect();
+	fov = persp.get_fov();
+
+	CHECK(znear == doctest::Approx(0.2));
+	CHECK(zfar == doctest::Approx(8));
+	CHECK(aspect == doctest::Approx(1.3));
+	CHECK(fov == doctest::Approx(Projection::get_fovy(38, 1.3)));
+
+	persp.set_perspective(47, 2.5, 0.9, 14, true);
+
+	znear = persp.get_z_near();
+	zfar = persp.get_z_far();
+	aspect = persp.get_aspect();
+	fov = persp.get_fov();
+
+	CHECK(znear == doctest::Approx(0.9));
+	CHECK(zfar == doctest::Approx(14));
+	CHECK(aspect == doctest::Approx(2.5));
+	CHECK(fov == doctest::Approx(47));
+}
+
+TEST_CASE("[Projection] Frustum values extraction") {
+	Projection frustum = Projection::create_frustum_aspect(1.0, 4.0 / 3.0, Vector2(0.5, -0.25), 0.5, 50, true);
+
+	double znear = frustum.get_z_near();
+	double zfar = frustum.get_z_far();
+	double aspect = frustum.get_aspect();
+	double fov = frustum.get_fov();
+
+	CHECK(znear == doctest::Approx(0.5));
+	CHECK(zfar == doctest::Approx(50));
+	CHECK(aspect == doctest::Approx(4.0 / 3.0));
+	CHECK(fov == doctest::Approx(Math::rad_to_deg(Math::atan(2.0))));
+
+	frustum.set_frustum(2.0, 1.5, Vector2(-0.5, 2), 2, 12, false);
+
+	znear = frustum.get_z_near();
+	zfar = frustum.get_z_far();
+	aspect = frustum.get_aspect();
+	fov = frustum.get_fov();
+
+	CHECK(znear == doctest::Approx(2));
+	CHECK(zfar == doctest::Approx(12));
+	CHECK(aspect == doctest::Approx(1.5));
+	CHECK(fov == doctest::Approx(Math::rad_to_deg(Math::atan(1.0) + Math::atan(0.5))));
+}
+
+TEST_CASE("[Projection] Orthographic values extraction") {
+	Projection ortho = Projection::create_orthogonal(-2, 3, -0.5, 1.5, 1.2, 15);
+
+	double znear = ortho.get_z_near();
+	double zfar = ortho.get_z_far();
+	double aspect = ortho.get_aspect();
+
+	CHECK(znear == doctest::Approx(1.2));
+	CHECK(zfar == doctest::Approx(15));
+	CHECK(aspect == doctest::Approx(2.5));
+
+	ortho.set_orthogonal(-7, 2, 2.5, 5.5, 0.5, 6);
+
+	znear = ortho.get_z_near();
+	zfar = ortho.get_z_far();
+	aspect = ortho.get_aspect();
+
+	CHECK(znear == doctest::Approx(0.5));
+	CHECK(zfar == doctest::Approx(6));
+	CHECK(aspect == doctest::Approx(3));
 }
 
 TEST_CASE("[Projection] Orthographic check") {
@@ -487,16 +559,48 @@ TEST_CASE("[Projection] Planes extraction") {
 	CHECK(plane_array[Projection::PLANE_BOTTOM].normalized().is_equal_approx(planes[Projection::PLANE_BOTTOM].normalized()));
 }
 
-TEST_CASE("[Projection] Half extents") {
+TEST_CASE("[Projection] Perspective Half extents") {
+	constexpr real_t sqrt3 = 1.7320508;
 	Projection persp = Projection::create_perspective(90, 1, 1, 40, false);
 	Vector2 ne = persp.get_viewport_half_extents();
 	Vector2 fe = persp.get_far_plane_half_extents();
 
 	CHECK(ne.is_equal_approx(Vector2(1, 1) * 1));
 	CHECK(fe.is_equal_approx(Vector2(1, 1) * 40));
+
+	persp.set_perspective(120, sqrt3, 0.8, 10, true);
+	ne = persp.get_viewport_half_extents();
+	fe = persp.get_far_plane_half_extents();
+
+	CHECK(ne.is_equal_approx(Vector2(sqrt3, 1.0) * 0.8));
+	CHECK(fe.is_equal_approx(Vector2(sqrt3, 1.0) * 10));
+
+	persp.set_perspective(60, 1.2, 0.5, 15, false);
+	ne = persp.get_viewport_half_extents();
+	fe = persp.get_far_plane_half_extents();
+
+	CHECK(ne.is_equal_approx(Vector2(sqrt3 / 3 * 1.2, sqrt3 / 3) * 0.5));
+	CHECK(fe.is_equal_approx(Vector2(sqrt3 / 3 * 1.2, sqrt3 / 3) * 15));
+}
+
+TEST_CASE("[Projection] Orthographic Half extents") {
+	Projection ortho = Projection::create_orthogonal(-3, 3, -1.5, 1.5, 1.2, 15);
+	Vector2 ne = ortho.get_viewport_half_extents();
+	Vector2 fe = ortho.get_far_plane_half_extents();
+
+	CHECK(ne.is_equal_approx(Vector2(3, 1.5)));
+	CHECK(fe.is_equal_approx(Vector2(3, 1.5)));
+
+	ortho.set_orthogonal(-7, 7, -2.5, 2.5, 0.5, 6);
+	ne = ortho.get_viewport_half_extents();
+	fe = ortho.get_far_plane_half_extents();
+
+	CHECK(ne.is_equal_approx(Vector2(7, 2.5)));
+	CHECK(fe.is_equal_approx(Vector2(7, 2.5)));
 }
 
 TEST_CASE("[Projection] Endpoints") {
+	constexpr real_t sqrt3 = 1.7320508;
 	Projection persp = Projection::create_perspective(90, 1, 1, 40, false);
 	Vector3 ep[8];
 	persp.get_endpoints(Transform3D(), ep);
@@ -509,8 +613,91 @@ TEST_CASE("[Projection] Endpoints") {
 	CHECK(ep[5].is_equal_approx(Vector3(-1, -1, -1) * 1));
 	CHECK(ep[6].is_equal_approx(Vector3(1, 1, -1) * 1));
 	CHECK(ep[7].is_equal_approx(Vector3(1, -1, -1) * 1));
+
+	persp.set_perspective(120, sqrt3, 0.8, 10, true);
+	persp.get_endpoints(Transform3D(), ep);
+
+	CHECK(ep[0].is_equal_approx(Vector3(-sqrt3, 1, -1) * 10));
+	CHECK(ep[1].is_equal_approx(Vector3(-sqrt3, -1, -1) * 10));
+	CHECK(ep[2].is_equal_approx(Vector3(sqrt3, 1, -1) * 10));
+	CHECK(ep[3].is_equal_approx(Vector3(sqrt3, -1, -1) * 10));
+	CHECK(ep[4].is_equal_approx(Vector3(-sqrt3, 1, -1) * 0.8));
+	CHECK(ep[5].is_equal_approx(Vector3(-sqrt3, -1, -1) * 0.8));
+	CHECK(ep[6].is_equal_approx(Vector3(sqrt3, 1, -1) * 0.8));
+	CHECK(ep[7].is_equal_approx(Vector3(sqrt3, -1, -1) * 0.8));
+
+	persp.set_perspective(60, 1.2, 0.5, 15, false);
+	persp.get_endpoints(Transform3D(), ep);
+
+	CHECK(ep[0].is_equal_approx(Vector3(-sqrt3 / 3 * 1.2, sqrt3 / 3, -1) * 15));
+	CHECK(ep[1].is_equal_approx(Vector3(-sqrt3 / 3 * 1.2, -sqrt3 / 3, -1) * 15));
+	CHECK(ep[2].is_equal_approx(Vector3(sqrt3 / 3 * 1.2, sqrt3 / 3, -1) * 15));
+	CHECK(ep[3].is_equal_approx(Vector3(sqrt3 / 3 * 1.2, -sqrt3 / 3, -1) * 15));
+	CHECK(ep[4].is_equal_approx(Vector3(-sqrt3 / 3 * 1.2, sqrt3 / 3, -1) * 0.5));
+	CHECK(ep[5].is_equal_approx(Vector3(-sqrt3 / 3 * 1.2, -sqrt3 / 3, -1) * 0.5));
+	CHECK(ep[6].is_equal_approx(Vector3(sqrt3 / 3 * 1.2, sqrt3 / 3, -1) * 0.5));
+	CHECK(ep[7].is_equal_approx(Vector3(sqrt3 / 3 * 1.2, -sqrt3 / 3, -1) * 0.5));
 }
 
+TEST_CASE("[Projection] LOD multiplier") {
+	constexpr real_t sqrt3 = 1.7320508;
+	Projection proj;
+	real_t multiplier;
+
+	proj.set_perspective(60, 1, 1, 40, false);
+	multiplier = proj.get_lod_multiplier();
+	CHECK(multiplier == doctest::Approx(2 * sqrt3 / 3));
+
+	proj.set_perspective(120, 1.5, 0.5, 20, false);
+	multiplier = proj.get_lod_multiplier();
+	CHECK(multiplier == doctest::Approx(3 * sqrt3));
+
+	proj.set_orthogonal(15, 20, 10, 12, 5, 15);
+	multiplier = proj.get_lod_multiplier();
+	CHECK(multiplier == doctest::Approx(5));
+
+	proj.set_orthogonal(-5, 15, -8, 10, 1.5, 10);
+	multiplier = proj.get_lod_multiplier();
+	CHECK(multiplier == doctest::Approx(20));
+
+	proj.set_frustum(1.0, 4.0 / 3.0, Vector2(0.5, -0.25), 0.5, 50, false);
+	multiplier = proj.get_lod_multiplier();
+	CHECK(multiplier == doctest::Approx(8.0 / 3.0));
+
+	proj.set_frustum(2.0, 1.2, Vector2(-0.1, 0.8), 1, 10, true);
+	multiplier = proj.get_lod_multiplier();
+	CHECK(multiplier == doctest::Approx(2));
+}
+
+TEST_CASE("[Projection] Pixels per meter") {
+	constexpr real_t sqrt3 = 1.7320508;
+	Projection proj;
+	int ppm;
+
+	proj.set_perspective(60, 1, 1, 40, false);
+	ppm = proj.get_pixels_per_meter(1024);
+	CHECK(ppm == int(1536.0f / sqrt3));
+
+	proj.set_perspective(120, 1.5, 0.5, 20, false);
+	ppm = proj.get_pixels_per_meter(1200);
+	CHECK(ppm == int(800.0f / sqrt3));
+
+	proj.set_orthogonal(15, 20, 10, 12, 5, 15);
+	ppm = proj.get_pixels_per_meter(500);
+	CHECK(ppm == 100);
+
+	proj.set_orthogonal(-5, 15, -8, 10, 1.5, 10);
+	ppm = proj.get_pixels_per_meter(640);
+	CHECK(ppm == 32);
+
+	proj.set_frustum(1.0, 4.0 / 3.0, Vector2(0.5, -0.25), 0.5, 50, false);
+	ppm = proj.get_pixels_per_meter(2048);
+	CHECK(ppm == 1536);
+
+	proj.set_frustum(2.0, 1.2, Vector2(-0.1, 0.8), 1, 10, true);
+	ppm = proj.get_pixels_per_meter(800);
+	CHECK(ppm == 400);
+}
 } //namespace TestProjection
 
 #endif // TEST_PROJECTION_H
