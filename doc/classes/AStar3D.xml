@@ -177,6 +177,15 @@
 				The result is in the segment that goes from [code]y = 0[/code] to [code]y = 5[/code]. It's the closest position in the segment to the given point.
 			</description>
 		</method>
+		<method name="get_closest_segment" qualifiers="const">
+			<return type="PackedInt64Array" />
+			<param index="0" name="to_position" type="Vector3" />
+			<description>
+				Returns the point ids of the closest segment to [param to_position] which also holds the closest position in any segment.
+				This can be useful if you need more than just the closest point, so that you can start path finding from the nearest segment
+				or to snap objects to the tangent of the path.
+			</description>
+		</method>
 		<method name="get_id_path">
 			<return type="PackedInt64Array" />
 			<param index="0" name="from_id" type="int" />
