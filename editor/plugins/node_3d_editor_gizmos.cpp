@@ -67,7 +67,7 @@ void EditorNode3DGizmo::clear() {
 
 	billboard_handle = false;
 	collision_segments.clear();
-	collision_mesh = Ref<TriangleMesh>();
+	collision_meshs.clear();
 	instances.clear();
 	handles.clear();
 	handle_ids.clear();
@@ -384,7 +384,7 @@ void EditorNode3DGizmo::add_unscaled_billboard(const Ref<Material> &p_material, 
 }
 
 void EditorNode3DGizmo::add_collision_triangles(const Ref<TriangleMesh> &p_tmesh) {
-	collision_mesh = p_tmesh;
+	collision_meshs.push_back(p_tmesh);
 }
 
 void EditorNode3DGizmo::add_collision_segments(const Vector<Vector3> &p_lines) {
@@ -553,7 +553,7 @@ bool EditorNode3DGizmo::intersect_frustum(const Camera3D *p_camera, const Vector
 		}
 	}
 
-	if (collision_mesh.is_valid()) {
+	if (collision_meshs.size()) {
 		Transform3D t = spatial_node->get_global_transform();
 
 		Vector3 mesh_scale = t.get_basis().get_scale();
@@ -570,8 +570,10 @@ bool EditorNode3DGizmo::intersect_frustum(const Camera3D *p_camera, const Vector
 		}
 
 		Vector<Vector3> convex_points = Geometry3D::compute_convex_mesh_points(transformed_frustum.ptr(), plane_count);
-		if (collision_mesh->inside_convex_shape(transformed_frustum.ptr(), plane_count, convex_points.ptr(), convex_points.size(), mesh_scale)) {
-			return true;
+		for (Ref<TriangleMesh> collision_mesh : collision_meshs) {
+			if (collision_mesh.is_valid() && collision_mesh->inside_convex_shape(transformed_frustum.ptr(), plane_count, convex_points.ptr(), convex_points.size(), mesh_scale)) {
+				return true;
+			}
 		}
 	}
 
@@ -741,7 +743,7 @@ bool EditorNode3DGizmo::intersect_ray(Camera3D *p_camera, const Point2 &p_point,
 		}
 	}
 
-	if (collision_mesh.is_valid()) {
+	if (collision_meshs.size()) {
 		Transform3D gt = spatial_node->get_global_transform();
 
 		if (billboard_handle) {
@@ -753,10 +755,12 @@ bool EditorNode3DGizmo::intersect_ray(Camera3D *p_camera, const Point2 &p_point,
 		Vector3 ray_dir = ai.basis.xform(p_camera->project_ray_normal(p_point)).normalized();
 		Vector3 rpos, rnorm;
 
-		if (collision_mesh->intersect_ray(ray_from, ray_dir, rpos, rnorm)) {
-			r_pos = gt.xform(rpos);
-			r_normal = gt.basis.xform(rnorm).normalized();
-			return true;
+		for (Ref<TriangleMesh> collision_mesh : collision_meshs) {
+			if (collision_mesh.is_valid() && collision_mesh->intersect_ray(ray_from, ray_dir, rpos, rnorm)) {
+				r_pos = gt.xform(rpos);
+				r_normal = gt.basis.xform(rnorm).normalized();
+				return true;
+			}
 		}
 	}
 

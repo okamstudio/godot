@@ -57,7 +57,7 @@ class EditorNode3DGizmo : public Node3DGizmo {
 	bool selected;
 
 	Vector<Vector3> collision_segments;
-	Ref<TriangleMesh> collision_mesh;
+	Vector<Ref<TriangleMesh>> collision_meshs;
 
 	Vector<Vector3> handles;
 	Vector<int> handle_ids;
