@@ -463,6 +463,22 @@ void LightStorage::reflection_probe_set_update_mode(RID p_probe, RS::ReflectionP
 	reflection_probe->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_REFLECTION_PROBE);
 }
 
+void LightStorage::reflection_probe_set_update_slicing(RID p_probe, RS::ReflectionProbeUpdateSlicing p_slicing) {
+	ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
+	ERR_FAIL_NULL(reflection_probe);
+
+	reflection_probe->update_slicing = p_slicing;
+	reflection_probe->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_REFLECTION_PROBE);
+}
+
+void LightStorage::reflection_probe_set_filter_mode(RID p_probe, RS::ReflectionProbeFilterMode p_mode) {
+	ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
+	ERR_FAIL_NULL(reflection_probe);
+
+	reflection_probe->filter_mode = p_mode;
+	reflection_probe->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_REFLECTION_PROBE);
+}
+
 void LightStorage::reflection_probe_set_intensity(RID p_probe, float p_intensity) {
 	ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
 	ERR_FAIL_NULL(reflection_probe);
@@ -586,6 +602,20 @@ RS::ReflectionProbeUpdateMode LightStorage::reflection_probe_get_update_mode(RID
 	return reflection_probe->update_mode;
 }
 
+RS::ReflectionProbeUpdateSlicing LightStorage::reflection_probe_get_update_slicing(RID p_probe) const {
+	const ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
+	ERR_FAIL_NULL_V(reflection_probe, RenderingServer::REFLECTION_PROBE_UPDATE_SLICING_AUTOMATIC);
+
+	return reflection_probe->update_slicing;
+}
+
+RS::ReflectionProbeFilterMode LightStorage::reflection_probe_get_filter_mode(RID p_probe) const {
+	const ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
+	ERR_FAIL_NULL_V(reflection_probe, RenderingServer::REFLECTION_PROBE_FILTER_MODE_AUTOMATIC);
+
+	return reflection_probe->filter_mode;
+}
+
 uint32_t LightStorage::reflection_probe_get_cull_mask(RID p_probe) const {
 	const ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
 	ERR_FAIL_NULL_V(reflection_probe, 0);
@@ -641,6 +671,13 @@ float LightStorage::reflection_probe_get_mesh_lod_threshold(RID p_probe) const {
 	ERR_FAIL_NULL_V(reflection_probe, 0.0);
 
 	return reflection_probe->mesh_lod_threshold;
+}
+
+void LightStorage::reflection_probe_queue_update(RID p_probe) {
+	ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
+	ERR_FAIL_NULL(reflection_probe);
+
+	reflection_probe->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_REFLECTION_PROBE);
 }
 
 Dependency *LightStorage::reflection_probe_get_dependency(RID p_probe) const {

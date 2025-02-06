@@ -114,6 +114,8 @@ struct LightInstance {
 
 struct ReflectionProbe {
 	RS::ReflectionProbeUpdateMode update_mode = RS::REFLECTION_PROBE_UPDATE_ONCE;
+	RS::ReflectionProbeUpdateSlicing update_slicing = RS::REFLECTION_PROBE_UPDATE_SLICING_AUTOMATIC;
+	RS::ReflectionProbeFilterMode filter_mode = RS::REFLECTION_PROBE_FILTER_MODE_AUTOMATIC;
 	int resolution = 256;
 	float intensity = 1.0;
 	float blend_distance = 1.0;
@@ -640,6 +642,8 @@ public:
 	virtual void reflection_probe_free(RID p_rid) override;
 
 	virtual void reflection_probe_set_update_mode(RID p_probe, RS::ReflectionProbeUpdateMode p_mode) override;
+	virtual void reflection_probe_set_update_slicing(RID p_probe, RS::ReflectionProbeUpdateSlicing p_slicing) override;
+	virtual void reflection_probe_set_filter_mode(RID p_probe, RS::ReflectionProbeFilterMode p_mode) override;
 	virtual void reflection_probe_set_intensity(RID p_probe, float p_intensity) override;
 	virtual void reflection_probe_set_blend_distance(RID p_probe, float p_blend_distance) override;
 	virtual void reflection_probe_set_ambient_mode(RID p_probe, RS::ReflectionProbeAmbientMode p_mode) override;
@@ -656,9 +660,12 @@ public:
 	virtual void reflection_probe_set_resolution(RID p_probe, int p_resolution) override;
 	virtual void reflection_probe_set_mesh_lod_threshold(RID p_probe, float p_ratio) override;
 	virtual float reflection_probe_get_mesh_lod_threshold(RID p_probe) const override;
+	virtual void reflection_probe_queue_update(RID p_probe) override;
 
 	virtual AABB reflection_probe_get_aabb(RID p_probe) const override;
 	virtual RS::ReflectionProbeUpdateMode reflection_probe_get_update_mode(RID p_probe) const override;
+	virtual RS::ReflectionProbeUpdateSlicing reflection_probe_get_update_slicing(RID p_probe) const override;
+	virtual RS::ReflectionProbeFilterMode reflection_probe_get_filter_mode(RID p_probe) const override;
 	virtual uint32_t reflection_probe_get_cull_mask(RID p_probe) const override;
 	virtual uint32_t reflection_probe_get_reflection_mask(RID p_probe) const override;
 	virtual Vector3 reflection_probe_get_size(RID p_probe) const override;

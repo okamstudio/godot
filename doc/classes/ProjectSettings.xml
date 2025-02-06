@@ -2895,10 +2895,11 @@
 			[b]Note:[/b] Due to memory constraints, occlusion culling is not supported by default in Web export templates. It can be enabled by compiling custom Web export templates with [code]module_raycast_enabled=yes[/code].
 		</member>
 		<member name="rendering/reflections/reflection_atlas/reflection_count" type="int" setter="" getter="" default="64">
-			Number of cubemaps to store in the reflection atlas. The number of [ReflectionProbe]s in a scene will be limited by this amount. A higher number requires more VRAM.
+			Number of cubemaps to store in the reflection atlas. The number of [ReflectionProbe]s in a scene will be limited by this amount. A higher number requires more VRAM. Consider lowering this value if increasing [member rendering/reflections/reflection_atlas/reflection_size].
 		</member>
 		<member name="rendering/reflections/reflection_atlas/reflection_size" type="int" setter="" getter="" default="256">
-			Size of cubemap faces for [ReflectionProbe]s. A higher number requires more VRAM and may make reflection probe updating slower.
+			Size of cubemap faces for [ReflectionProbe]s. A higher number requires more VRAM and may make reflection probe updating slower. Consider lowering [member rendering/reflections/reflection_atlas/reflection_count] if increasing this value.
+			[b]Note:[/b] The fast filtering algorithm used in [constant ReflectionProbe.FILTER_MODE_REALTIME] is limited to 256×256 cubemaps, so [member ProjectSettings.rendering/reflections/reflection_atlas/reflection_size] must be set to [code]256[/code] if using that filter mode in the project. Otherwise, a warning is printed and the overridden reflection atlas size is ignored.
 		</member>
 		<member name="rendering/reflections/reflection_atlas/reflection_size.mobile" type="int" setter="" getter="" default="128">
 			Lower-end override for [member rendering/reflections/reflection_atlas/reflection_size] on mobile devices, due to performance concerns or driver support.
@@ -2913,7 +2914,7 @@
 			Lower-end override for [member rendering/reflections/sky_reflections/ggx_samples] on mobile devices, due to performance concerns or driver support.
 		</member>
 		<member name="rendering/reflections/sky_reflections/roughness_layers" type="int" setter="" getter="" default="8">
-			Limits the number of layers to use in radiance maps when using importance sampling. A lower number will be slightly faster and take up less VRAM.
+			Limits the number of layers to use in radiance maps when using importance sampling for the sky and reflection probes. A lower number will be slightly faster and take up less VRAM.
 		</member>
 		<member name="rendering/reflections/sky_reflections/texture_array_reflections" type="bool" setter="" getter="" default="true">
 			If [code]true[/code], uses texture arrays instead of mipmaps for reflection probes and panorama backgrounds (sky). This reduces jitter noise and upscaling artifacts on reflections, but is significantly slower to compute and uses [member rendering/reflections/sky_reflections/roughness_layers] times more memory.

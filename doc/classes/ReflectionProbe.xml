@@ -5,7 +5,7 @@
 	</brief_description>
 	<description>
 		Captures its surroundings as a cubemap, and stores versions of it with increasing levels of blur to simulate different material roughnesses.
-		The [ReflectionProbe] is used to create high-quality reflections at a low performance cost (when [member update_mode] is [constant UPDATE_ONCE]). [ReflectionProbe]s can be blended together and with the rest of the scene smoothly. [ReflectionProbe]s can also be combined with [VoxelGI], SDFGI ([member Environment.sdfgi_enabled]) and screen-space reflections ([member Environment.ssr_enabled]) to get more accurate reflections in specific areas. [ReflectionProbe]s render all objects within their [member cull_mask], so updating them can be quite expensive. It is best to update them once with the important static objects and then leave them as-is.
+		The [ReflectionProbe] is used to create high-quality reflections at a low performance cost (when [member update_mode] is [constant UPDATE_ONCE] or [constant UPDATE_STATIC]). [ReflectionProbe]s can be blended together and with the rest of the scene smoothly. [ReflectionProbe]s can also be combined with [VoxelGI], SDFGI ([member Environment.sdfgi_enabled]) and screen-space reflections ([member Environment.ssr_enabled]) to get more accurate reflections in specific areas. [ReflectionProbe]s render all objects within their [member cull_mask], so updating them can be quite expensive. It is best to update them once with the important static objects and then leave them as-is.
 		[b]Note:[/b] Unlike [VoxelGI] and SDFGI, [ReflectionProbe]s only source their environment from a [WorldEnvironment] node. If you specify an [Environment] resource within a [Camera3D] node, it will be ignored by the [ReflectionProbe]. This can lead to incorrect lighting within the [ReflectionProbe].
 		[b]Note:[/b] Reflection probes are only supported in the Forward+ and Mobile rendering methods, not Compatibility. When using the Mobile rendering method, only 8 reflection probes can be displayed on each mesh resource. Attempting to display more than 8 reflection probes on a single mesh resource will result in reflection probes flickering in and out as the camera moves.
 		[b]Note:[/b] When using the Mobile rendering method, reflection probes will only correctly affect meshes whose visibility AABB intersects with the reflection probe's AABB. If using a shader to deform the mesh in a way that makes it go outside its AABB, [member GeometryInstance3D.extra_cull_margin] must be increased on the mesh. Otherwise, the reflection probe may not be visible on the mesh.
@@ -13,6 +13,15 @@
 	<tutorials>
 		<link title="Reflection probes">$DOCS_URL/tutorials/3d/global_illumination/reflection_probes.html</link>
 	</tutorials>
+	<methods>
+		<method name="queue_update">
+			<return type="void" />
+			<description>
+				Queues an update of the ReflectionProbe cubemap and ambient lighting (if [member ambient_mode] is [constant AMBIENT_ENVIRONMENT]). The update will not be visible immediately; it will take a number of frames to be visible depending on [member update_slicing] and [member filter_mode]. [method queue_update] should be called [i]after[/i] modifying nearby objects to ensure the reflection remains up-to-date.
+				[b]Note:[/b] [method queue_update] only has an effect when [member update_mode] is [constant UPDATE_ONCE] or [constant UPDATE_STATIC].
+			</description>
+		</method>
+	</methods>
 	<members>
 		<member name="ambient_color" type="Color" setter="set_ambient_color" getter="get_ambient_color" default="Color(0, 0, 0, 1)">
 			The custom ambient color to use within the [ReflectionProbe]'s box defined by its [member size]. Only effective if [member ambient_mode] is [constant AMBIENT_COLOR].
@@ -36,6 +45,9 @@
 		</member>
 		<member name="enable_shadows" type="bool" setter="set_enable_shadows" getter="are_shadows_enabled" default="false">
 			If [code]true[/code], computes shadows in the reflection probe. This makes the reflection probe slower to render; you may want to disable this if using the [constant UPDATE_ALWAYS] [member update_mode].
+		</member>
+		<member name="filter_mode" type="int" setter="set_filter_mode" getter="get_filter_mode" enum="ReflectionProbe.FilterMode" default="0">
+			The filter mode to use for generating the radiance map, which affects rough reflections and ambient lighting if [member ambient_mode] is [constant AMBIENT_ENVIRONMENT]. Reflections on fully smooth materials (roughness equal to [code]0.0[/code]) are not affected by [member filter_mode].
 		</member>
 		<member name="intensity" type="float" setter="set_intensity" getter="get_intensity" default="1.0">
 			Defines the reflection intensity. Intensity modulates the strength of the reflection.
@@ -62,15 +74,46 @@
 			[b]Note:[/b] To better fit areas that are not aligned to the grid, you can rotate the [ReflectionProbe] node.
 		</member>
 		<member name="update_mode" type="int" setter="set_update_mode" getter="get_update_mode" enum="ReflectionProbe.UpdateMode" default="0">
-			Sets how frequently the [ReflectionProbe] is updated. Can be [constant UPDATE_ONCE] or [constant UPDATE_ALWAYS].
+			Sets how frequently the [ReflectionProbe] is updated. See also [member update_slicing].
+		</member>
+		<member name="update_slicing" type="int" setter="set_update_slicing" getter="get_update_slicing" enum="ReflectionProbe.UpdateSlicing" default="0">
+			Controls how fast reflection probes should update. Higher values will render more faces per frame, allowing the reflection to update faster, but at a much greater performance cost on both the CPU and GPU. Consider adjusting this depending on the speed objects move at in the scene, since faster-moving objects require higher update rates to look good.
 		</member>
 	</members>
 	<constants>
 		<constant name="UPDATE_ONCE" value="0" enum="UpdateMode">
-			Update the probe once on the next frame (recommended for most objects). The corresponding radiance map will be generated over the following six frames. This takes more time to update than [constant UPDATE_ALWAYS], but it has a lower performance cost and can result in higher-quality reflections. The ReflectionProbe is updated when its transform changes, but not when nearby geometry changes. You can force a [ReflectionProbe] update by moving the [ReflectionProbe] slightly in any direction.
+			Update the probe once on the next frame (recommended for most objects). The ReflectionProbe is updated when its transform changes, but not when nearby geometry changes. You can force a [ReflectionProbe] update by calling [method queue_update], moving it or changing one of its properties that affect its rendering.
 		</constant>
 		<constant name="UPDATE_ALWAYS" value="1" enum="UpdateMode">
 			Update the probe every frame. This provides better results for fast-moving dynamic objects (such as cars). However, it has a significant performance cost. Due to the cost, it's recommended to only use one ReflectionProbe with [constant UPDATE_ALWAYS] at most per scene. For all other use cases, use [constant UPDATE_ONCE].
+		</constant>
+		<constant name="UPDATE_STATIC" value="2" enum="UpdateMode">
+			Update the probe once on the next frame (recommended for most objects). The ReflectionProbe is [b]not[/b] updated when its transform changes and is not updated either when nearby geometry changes. You can force a [ReflectionProbe] update by calling [method queue_update] or changing one of its properties that affect its rendering.
+		</constant>
+		<constant name="UPDATE_SLICING_AUTOMATIC" value="0" enum="UpdateSlicing">
+			[constant UPDATE_SLICING_1_FACE_PER_FRAME] is used when [member update_mode] is [constant UPDATE_ONCE] or [constant UPDATE_STATIC] and [constant UPDATE_SLICING_6_FACES_PER_FRAME] is used when [member update_mode] is [constant UPDATE_ALWAYS]. This matches behavior found in Godot 4.3 and prior.
+		</constant>
+		<constant name="UPDATE_SLICING_1_FACE_PER_FRAME" value="1" enum="UpdateSlicing">
+			Render 1 face of the cubemap every frame (including post-processing steps when using [constant FILTER_MODE_INCREMENTAL]). For example, if using [constant FILTER_MODE_REALTIME] in a project that renders at 60 FPS, reflections will appear to update at 10 FPS. Low performance cost.
+		</constant>
+		<constant name="UPDATE_SLICING_2_FACES_PER_FRAME" value="2" enum="UpdateSlicing">
+			Render 2 faces of the cubemap every frame (including post-processing steps when using [constant FILTER_MODE_INCREMENTAL]). For example, if using [constant FILTER_MODE_REALTIME] in a project that renders at 60 FPS, reflections will appear to update at 20 FPS. Medium performance cost.
+		</constant>
+		<constant name="UPDATE_SLICING_3_FACES_PER_FRAME" value="3" enum="UpdateSlicing">
+			Render 3 faces of the cubemap every frame (including post-processing steps when using [constant FILTER_MODE_INCREMENTAL]). For example, if using [constant FILTER_MODE_REALTIME] in a project that renders at 60 FPS, reflections will appear to update at 30 FPS. High performance cost.
+		</constant>
+		<constant name="UPDATE_SLICING_6_FACES_PER_FRAME" value="4" enum="UpdateSlicing">
+			Render 6 faces of the cubemap every frame (including post-processing steps when using [constant FILTER_MODE_INCREMENTAL]). For example, if using [constant FILTER_MODE_REALTIME] in a project that renders at 60 FPS, reflections will appear to update at 60 FPS. Very high performance cost.
+		</constant>
+		<constant name="FILTER_MODE_AUTOMATIC" value="0" enum="FilterMode">
+			[constant FILTER_MODE_INCREMENTAL] is used when [member update_mode] is [constant UPDATE_ONCE] or [constant UPDATE_STATIC] and [constant FILTER_MODE_REALTIME] is used when [member update_mode] is [constant UPDATE_ALWAYS]. This matches behavior found in Godot 4.3 and prior.
+		</constant>
+		<constant name="FILTER_MODE_INCREMENTAL" value="1" enum="FilterMode">
+			Uses high-quality importance sampling to process the radiance map over several frames. The number of frames is determined by [member ProjectSettings.rendering/reflections/sky_reflections/roughness_layers]. Use this when you need highest quality radiance maps, but have a reflection probe that updates slowly. Equivalent to [constant Sky.PROCESS_MODE_INCREMENTAL].
+		</constant>
+		<constant name="FILTER_MODE_REALTIME" value="2" enum="FilterMode">
+			Uses the fast filtering algorithm to process the radiance map. In general, this results in lower quality, but substantially faster run times. Equivalent to [constant Sky.PROCESS_MODE_REALTIME].
+			[b]Note:[/b] The fast filtering algorithm is limited to 256×256 cubemaps, so [member ProjectSettings.rendering/reflections/reflection_atlas/reflection_size] must be set to [code]256[/code]. Otherwise, a warning is printed and the overridden reflection atlas size is ignored.
 		</constant>
 		<constant name="AMBIENT_DISABLED" value="0" enum="AmbientMode">
 			Do not apply any ambient lighting inside the [ReflectionProbe]'s box defined by its [member size].

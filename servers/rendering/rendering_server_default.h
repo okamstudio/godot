@@ -460,6 +460,8 @@ public:
 	FUNCRIDSPLIT(reflection_probe)
 
 	FUNC2(reflection_probe_set_update_mode, RID, ReflectionProbeUpdateMode)
+	FUNC2(reflection_probe_set_update_slicing, RID, ReflectionProbeUpdateSlicing)
+	FUNC2(reflection_probe_set_filter_mode, RID, ReflectionProbeFilterMode)
 	FUNC2(reflection_probe_set_intensity, RID, float)
 	FUNC2(reflection_probe_set_blend_distance, RID, float)
 	FUNC2(reflection_probe_set_ambient_color, RID, const Color &)
@@ -475,6 +477,7 @@ public:
 	FUNC2(reflection_probe_set_reflection_mask, RID, uint32_t)
 	FUNC2(reflection_probe_set_resolution, RID, int)
 	FUNC2(reflection_probe_set_mesh_lod_threshold, RID, float)
+	FUNC1(reflection_probe_queue_update, RID)
 
 	/* LIGHTMAP */
 

@@ -109,6 +109,8 @@ public:
 	virtual void reflection_probe_free(RID p_rid) = 0;
 
 	virtual void reflection_probe_set_update_mode(RID p_probe, RS::ReflectionProbeUpdateMode p_mode) = 0;
+	virtual void reflection_probe_set_update_slicing(RID p_probe, RS::ReflectionProbeUpdateSlicing p_slicing) = 0;
+	virtual void reflection_probe_set_filter_mode(RID p_probe, RS::ReflectionProbeFilterMode p_mode) = 0;
 	virtual void reflection_probe_set_resolution(RID p_probe, int p_resolution) = 0;
 	virtual void reflection_probe_set_intensity(RID p_probe, float p_intensity) = 0;
 	virtual void reflection_probe_set_blend_distance(RID p_probe, float p_blend_distance) = 0;
@@ -124,9 +126,12 @@ public:
 	virtual void reflection_probe_set_cull_mask(RID p_probe, uint32_t p_layers) = 0;
 	virtual void reflection_probe_set_reflection_mask(RID p_probe, uint32_t p_layers) = 0;
 	virtual void reflection_probe_set_mesh_lod_threshold(RID p_probe, float p_ratio) = 0;
+	virtual void reflection_probe_queue_update(RID p_probe) = 0;
 
 	virtual AABB reflection_probe_get_aabb(RID p_probe) const = 0;
 	virtual RS::ReflectionProbeUpdateMode reflection_probe_get_update_mode(RID p_probe) const = 0;
+	virtual RS::ReflectionProbeUpdateSlicing reflection_probe_get_update_slicing(RID p_probe) const = 0;
+	virtual RS::ReflectionProbeFilterMode reflection_probe_get_filter_mode(RID p_probe) const = 0;
 	virtual uint32_t reflection_probe_get_cull_mask(RID p_probe) const = 0;
 	virtual uint32_t reflection_probe_get_reflection_mask(RID p_probe) const = 0;
 	virtual Vector3 reflection_probe_get_size(RID p_probe) const = 0;

@@ -1066,6 +1066,22 @@ void LightStorage::reflection_probe_set_update_mode(RID p_probe, RS::ReflectionP
 	reflection_probe->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_REFLECTION_PROBE);
 }
 
+void LightStorage::reflection_probe_set_update_slicing(RID p_probe, RS::ReflectionProbeUpdateSlicing p_slicing) {
+	ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
+	ERR_FAIL_NULL(reflection_probe);
+
+	reflection_probe->update_slicing = p_slicing;
+	reflection_probe->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_REFLECTION_PROBE);
+}
+
+void LightStorage::reflection_probe_set_filter_mode(RID p_probe, RS::ReflectionProbeFilterMode p_mode) {
+	ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
+	ERR_FAIL_NULL(reflection_probe);
+
+	reflection_probe->filter_mode = p_mode;
+	reflection_probe->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_REFLECTION_PROBE);
+}
+
 void LightStorage::reflection_probe_set_intensity(RID p_probe, float p_intensity) {
 	ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
 	ERR_FAIL_NULL(reflection_probe);
@@ -1192,6 +1208,13 @@ void LightStorage::reflection_probe_set_baked_exposure(RID p_probe, float p_expo
 	reflection_probe->baked_exposure = p_exposure;
 }
 
+void LightStorage::reflection_probe_queue_update(RID p_probe) {
+	ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
+	ERR_FAIL_NULL(reflection_probe);
+
+	reflection_probe->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_REFLECTION_PROBE);
+}
+
 AABB LightStorage::reflection_probe_get_aabb(RID p_probe) const {
 	const ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
 	ERR_FAIL_NULL_V(reflection_probe, AABB());
@@ -1205,9 +1228,41 @@ AABB LightStorage::reflection_probe_get_aabb(RID p_probe) const {
 
 RS::ReflectionProbeUpdateMode LightStorage::reflection_probe_get_update_mode(RID p_probe) const {
 	const ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
-	ERR_FAIL_NULL_V(reflection_probe, RS::REFLECTION_PROBE_UPDATE_ALWAYS);
+	ERR_FAIL_NULL_V(reflection_probe, RS::REFLECTION_PROBE_UPDATE_ONCE);
 
 	return reflection_probe->update_mode;
+}
+
+RS::ReflectionProbeUpdateSlicing LightStorage::reflection_probe_get_update_slicing(RID p_probe) const {
+	const ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
+	ERR_FAIL_NULL_V(reflection_probe, RS::REFLECTION_PROBE_UPDATE_SLICING_1_FACE_PER_FRAME);
+
+	if (reflection_probe->update_slicing == RS::REFLECTION_PROBE_UPDATE_SLICING_AUTOMATIC) {
+		// Match existing behavior from Godot 4.3 and prior.
+		if (reflection_probe->update_mode == RS::REFLECTION_PROBE_UPDATE_ALWAYS) {
+			return RS::REFLECTION_PROBE_UPDATE_SLICING_6_FACES_PER_FRAME;
+		}
+
+		return RS::REFLECTION_PROBE_UPDATE_SLICING_1_FACE_PER_FRAME;
+	}
+
+	return reflection_probe->update_slicing;
+}
+
+RS::ReflectionProbeFilterMode LightStorage::reflection_probe_get_filter_mode(RID p_probe) const {
+	const ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
+	ERR_FAIL_NULL_V(reflection_probe, RS::REFLECTION_PROBE_FILTER_MODE_INCREMENTAL);
+
+	if (reflection_probe->filter_mode == RS::REFLECTION_PROBE_FILTER_MODE_AUTOMATIC) {
+		// Match existing behavior from Godot 4.3 and prior.
+		if (reflection_probe->update_mode == RS::REFLECTION_PROBE_UPDATE_ALWAYS) {
+			return RS::REFLECTION_PROBE_FILTER_MODE_REALTIME;
+		}
+
+		return RS::REFLECTION_PROBE_FILTER_MODE_INCREMENTAL;
+	}
+
+	return reflection_probe->filter_mode;
 }
 
 uint32_t LightStorage::reflection_probe_get_cull_mask(RID p_probe) const {
@@ -1415,7 +1470,11 @@ void LightStorage::reflection_probe_instance_set_transform(RID p_instance, const
 	ERR_FAIL_NULL(rpi);
 
 	rpi->transform = p_transform;
-	rpi->dirty = true;
+	if (LightStorage::get_singleton()->reflection_probe_get_update_mode(rpi->probe) != RS::REFLECTION_PROBE_UPDATE_STATIC) {
+		// Moving a ReflectionProbe does not cause it to update if using the Static update mode.
+		// FIXME: This doesn't appear to suffice to prevent updates when the probe is moved.
+		rpi->dirty = true;
+	}
 }
 
 bool LightStorage::reflection_probe_has_atlas_index(RID p_instance) {
@@ -1459,6 +1518,11 @@ bool LightStorage::reflection_probe_instance_needs_redraw(RID p_instance) {
 	ReflectionProbeInstance *rpi = reflection_probe_instance_owner.get_or_null(p_instance);
 	ERR_FAIL_NULL_V(rpi, false);
 
+	if (LightStorage::get_singleton()->reflection_probe_get_update_mode(rpi->probe) == RS::REFLECTION_PROBE_UPDATE_STATIC) {
+		// FIXME: This doesn't seem to have any effect, even though this line is run when the update mode is Static.
+		return false;
+	}
+
 	if (rpi->rendering) {
 		return false;
 	}
@@ -1495,12 +1559,12 @@ bool LightStorage::reflection_probe_instance_begin_render(RID p_instance, RID p_
 
 	RD::get_singleton()->draw_command_begin_label("Reflection probe render");
 
-	if (LightStorage::get_singleton()->reflection_probe_get_update_mode(rpi->probe) == RS::REFLECTION_PROBE_UPDATE_ALWAYS && atlas->reflection.is_valid() && atlas->size != 256) {
-		WARN_PRINT("ReflectionProbes set to UPDATE_ALWAYS must have an atlas size of 256. Please update the atlas size in the ProjectSettings.");
+	if (LightStorage::get_singleton()->reflection_probe_get_filter_mode(rpi->probe) == RS::REFLECTION_PROBE_FILTER_MODE_REALTIME && atlas->reflection.is_valid() && atlas->size != 256) {
+		WARN_PRINT("ReflectionProbes set to the Real-Time filter mode must have an atlas size of 256. Please update the atlas size in the Project Settings.");
 		reflection_atlas_set_size(p_reflection_atlas, 256, atlas->count);
 	}
 
-	if (LightStorage::get_singleton()->reflection_probe_get_update_mode(rpi->probe) == RS::REFLECTION_PROBE_UPDATE_ALWAYS && atlas->reflection.is_valid() && atlas->reflections[0].data.layers[0].mipmaps.size() != 8) {
+	if (LightStorage::get_singleton()->reflection_probe_get_filter_mode(rpi->probe) == RS::REFLECTION_PROBE_FILTER_MODE_REALTIME && atlas->reflection.is_valid() && atlas->reflections[0].data.layers[0].mipmaps.size() != 8) {
 		// Invalidate reflection atlas, need to regenerate
 		RD::get_singleton()->free(atlas->reflection);
 		atlas->reflection = RID();
@@ -1517,7 +1581,7 @@ bool LightStorage::reflection_probe_instance_begin_render(RID p_instance, RID p_
 
 	if (atlas->reflection.is_null()) {
 		int mipmaps = MIN(RendererSceneRenderRD::get_singleton()->get_sky()->roughness_layers, Image::get_image_required_mipmaps(atlas->size, atlas->size, Image::FORMAT_RGBAH) + 1);
-		mipmaps = LightStorage::get_singleton()->reflection_probe_get_update_mode(rpi->probe) == RS::REFLECTION_PROBE_UPDATE_ALWAYS ? 8 : mipmaps; // always use 8 mipmaps with real time filtering
+		mipmaps = LightStorage::get_singleton()->reflection_probe_get_filter_mode(rpi->probe) == RS::REFLECTION_PROBE_FILTER_MODE_REALTIME ? 8 : mipmaps; // always use 8 mipmaps with real time filtering
 		{
 			//reflection atlas was unused, create:
 			RD::TextureFormat tf;
@@ -1539,8 +1603,9 @@ bool LightStorage::reflection_probe_instance_begin_render(RID p_instance, RID p_
 			atlas->depth_buffer = RD::get_singleton()->texture_create(tf, RD::TextureView());
 		}
 		atlas->reflections.resize(atlas->count);
+
 		for (int i = 0; i < atlas->count; i++) {
-			atlas->reflections.write[i].data.update_reflection_data(atlas->size, mipmaps, false, atlas->reflection, i * 6, LightStorage::get_singleton()->reflection_probe_get_update_mode(rpi->probe) == RS::REFLECTION_PROBE_UPDATE_ALWAYS, RendererSceneRenderRD::get_singleton()->get_sky()->roughness_layers, RendererSceneRenderRD::get_singleton()->_render_buffers_get_color_format());
+			atlas->reflections.write[i].data.update_reflection_data(atlas->size, mipmaps, false, atlas->reflection, i * 6, LightStorage::get_singleton()->reflection_probe_get_filter_mode(rpi->probe) == RS::REFLECTION_PROBE_FILTER_MODE_REALTIME, RendererSceneRenderRD::get_singleton()->get_sky()->roughness_layers, RendererSceneRenderRD::get_singleton()->_render_buffers_get_color_format());
 			for (int j = 0; j < 6; j++) {
 				atlas->reflections.write[i].fbs[j] = RendererSceneRenderRD::get_singleton()->reflection_probe_create_framebuffer(atlas->reflections.write[i].data.layers[0].mipmaps[0].views[j], atlas->depth_buffer);
 			}
@@ -1609,8 +1674,8 @@ bool LightStorage::reflection_probe_instance_postprocess_step(RID p_instance) {
 		return false;
 	}
 
-	if (LightStorage::get_singleton()->reflection_probe_get_update_mode(rpi->probe) == RS::REFLECTION_PROBE_UPDATE_ALWAYS) {
-		// Using real time reflections, all roughness is done in one step
+	if (LightStorage::get_singleton()->reflection_probe_get_filter_mode(rpi->probe) == RS::REFLECTION_PROBE_FILTER_MODE_REALTIME) {
+		// Using real-time filter mode, all roughness is done in one step.
 		atlas->reflections.write[rpi->atlas_index].data.create_reflection_fast_filter(false);
 		rpi->rendering = false;
 		rpi->processing_side = 0;

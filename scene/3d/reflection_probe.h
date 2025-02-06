@@ -40,6 +40,21 @@ public:
 	enum UpdateMode {
 		UPDATE_ONCE,
 		UPDATE_ALWAYS,
+		UPDATE_STATIC,
+	};
+
+	enum UpdateSlicing {
+		UPDATE_SLICING_AUTOMATIC,
+		UPDATE_SLICING_1_FACE_PER_FRAME,
+		UPDATE_SLICING_2_FACES_PER_FRAME,
+		UPDATE_SLICING_3_FACES_PER_FRAME,
+		UPDATE_SLICING_6_FACES_PER_FRAME,
+	};
+
+	enum FilterMode {
+		FILTER_MODE_AUTOMATIC,
+		FILTER_MODE_INCREMENTAL,
+		FILTER_MODE_REALTIME,
 	};
 
 	enum AmbientMode {
@@ -66,6 +81,8 @@ private:
 	uint32_t cull_mask = (1 << 20) - 1;
 	uint32_t reflection_mask = (1 << 20) - 1;
 	UpdateMode update_mode = UPDATE_ONCE;
+	UpdateSlicing update_slicing = UPDATE_SLICING_AUTOMATIC;
+	FilterMode filter_mode = FILTER_MODE_AUTOMATIC;
 
 protected:
 	static void _bind_methods();
@@ -124,6 +141,14 @@ public:
 	void set_update_mode(UpdateMode p_mode);
 	UpdateMode get_update_mode() const;
 
+	void set_update_slicing(UpdateSlicing p_slicing);
+	UpdateSlicing get_update_slicing() const;
+
+	void set_filter_mode(FilterMode p_mode);
+	FilterMode get_filter_mode() const;
+
+	void queue_update();
+
 	virtual AABB get_aabb() const override;
 
 	ReflectionProbe();
@@ -132,5 +157,7 @@ public:
 
 VARIANT_ENUM_CAST(ReflectionProbe::AmbientMode);
 VARIANT_ENUM_CAST(ReflectionProbe::UpdateMode);
+VARIANT_ENUM_CAST(ReflectionProbe::UpdateSlicing);
+VARIANT_ENUM_CAST(ReflectionProbe::FilterMode);
 
 #endif // REFLECTION_PROBE_H

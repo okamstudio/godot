@@ -3723,22 +3723,8 @@ void RendererSceneCull::render_probes() {
 			SelfList<InstanceReflectionProbeData> *next = ref_probe->next();
 			RID base = ref_probe->self()->owner->base;
 
-			switch (RSG::light_storage->reflection_probe_get_update_mode(base)) {
-				case RS::REFLECTION_PROBE_UPDATE_ONCE: {
-					if (busy) { // Already rendering something.
-						break;
-					}
-
-					bool done = _render_reflection_probe_step(ref_probe->self()->owner, ref_probe->self()->render_step);
-					if (done) {
-						done_list.push_back(ref_probe);
-					} else {
-						ref_probe->self()->render_step++;
-					}
-
-					busy = true; // Do not render another one of this kind.
-				} break;
-				case RS::REFLECTION_PROBE_UPDATE_ALWAYS: {
+			switch (RSG::light_storage->reflection_probe_get_update_slicing(base)) {
+				case RS::REFLECTION_PROBE_UPDATE_SLICING_6_FACES_PER_FRAME: {
 					int step = 0;
 					bool done = false;
 					while (!done) {
@@ -3747,6 +3733,49 @@ void RendererSceneCull::render_probes() {
 					}
 
 					done_list.push_back(ref_probe);
+				} break;
+				default: {
+					if (busy) { // Already rendering something.
+						break;
+					}
+
+					int steps_per_frame = 1;
+					switch (RSG::light_storage->reflection_probe_get_update_slicing(base)) {
+						case RS::REFLECTION_PROBE_UPDATE_SLICING_AUTOMATIC:
+							// Handled to silence warning, but never returned by this method.
+							break;
+						case RS::REFLECTION_PROBE_UPDATE_SLICING_1_FACE_PER_FRAME:
+							steps_per_frame = 1;
+							break;
+						case RS::REFLECTION_PROBE_UPDATE_SLICING_2_FACES_PER_FRAME:
+							// FIXME: Not rendering correctly, some faces never get updated.
+							steps_per_frame = 2;
+							break;
+						case RS::REFLECTION_PROBE_UPDATE_SLICING_3_FACES_PER_FRAME:
+							// FIXME: Not rendering correctly, some faces never get updated.
+							steps_per_frame = 3;
+							break;
+						case RS::REFLECTION_PROBE_UPDATE_SLICING_6_FACES_PER_FRAME:
+							// Handled to silence warning, but never reached as it's handled above.
+							steps_per_frame = 6;
+							break;
+					}
+
+					bool done = false;
+					for (int i = 0; i < steps_per_frame; i++) {
+						done = _render_reflection_probe_step(ref_probe->self()->owner, ref_probe->self()->render_step + i);
+						if (done) {
+							break;
+						}
+					}
+
+					if (done) {
+						done_list.push_back(ref_probe);
+					} else {
+						ref_probe->self()->render_step += steps_per_frame;
+					}
+
+					busy = true; // Do not render another one of this kind.
 				} break;
 			}
 

@@ -3212,6 +3212,14 @@
 				[b]Note:[/b] The equivalent node is [ReflectionProbe].
 			</description>
 		</method>
+		<method name="reflection_probe_queue_update">
+			<return type="void" />
+			<param index="0" name="probe" type="RID" />
+			<description>
+				Queues an update of the ReflectionProbe cubemap and ambient lighting (if its ambient mode is [constant REFLECTION_PROBE_AMBIENT_ENVIRONMENT]). The update will not be visible immediately; it will take a number of frames to be visible depending on its update slicing and filter mode. [method reflection_probe_queue_update] should be called [i]after[/i] modifying nearby objects to ensure the reflection remains up-to-date.
+				[b]Note:[/b] [method reflection_probe_queue_update] only has an effect when the reflection probe's update mode is [constant REFLECTION_PROBE_UPDATE_ONCE] or [constant REFLECTION_PROBE_UPDATE_STATIC].
+			</description>
+		</method>
 		<method name="reflection_probe_set_ambient_color">
 			<return type="void" />
 			<param index="0" name="probe" type="RID" />
@@ -3276,6 +3284,14 @@
 				If [code]true[/code], computes shadows in the reflection probe. This makes the reflection much slower to compute. Equivalent to [member ReflectionProbe.enable_shadows].
 			</description>
 		</method>
+		<method name="reflection_probe_set_filter_mode">
+			<return type="void" />
+			<param index="0" name="probe" type="RID" />
+			<param index="1" name="mode" type="int" enum="RenderingServer.ReflectionProbeFilterMode" />
+			<description>
+				Sets how the roughness mipmaps should be generated in the radiance map of the reflection probe. See [enum ReflectionProbeFilterMode] for options.
+			</description>
+		</method>
 		<method name="reflection_probe_set_intensity">
 			<return type="void" />
 			<param index="0" name="probe" type="RID" />
@@ -3338,6 +3354,14 @@
 			<param index="1" name="mode" type="int" enum="RenderingServer.ReflectionProbeUpdateMode" />
 			<description>
 				Sets how often the reflection probe updates. Can either be once or every frame. See [enum ReflectionProbeUpdateMode] for options.
+			</description>
+		</method>
+		<method name="reflection_probe_set_update_slicing">
+			<return type="void" />
+			<param index="0" name="probe" type="RID" />
+			<param index="1" name="slicing" type="int" enum="RenderingServer.ReflectionProbeUpdateSlicing" />
+			<description>
+				Sets how fast the reflection probe updates. Can either be once or every frame. See [enum ReflectionProbeUpdateSlicing] for options.
 			</description>
 		</method>
 		<method name="request_frame_drawn_callback">
@@ -4881,10 +4905,37 @@
 			Represents the size of the [enum ShadowQuality] enum.
 		</constant>
 		<constant name="REFLECTION_PROBE_UPDATE_ONCE" value="0" enum="ReflectionProbeUpdateMode">
-			Reflection probe will update reflections once and then stop.
+			Reflection probe will update reflections once and then stop. Reflection probe will update after moving.
 		</constant>
 		<constant name="REFLECTION_PROBE_UPDATE_ALWAYS" value="1" enum="ReflectionProbeUpdateMode">
 			Reflection probe will update each frame. This mode is necessary to capture moving objects.
+		</constant>
+		<constant name="REFLECTION_PROBE_UPDATE_STATIC" value="2" enum="ReflectionProbeUpdateMode">
+			Reflection probe will update reflections once and then stop. Reflection probe will [b]not[/b] update after moving.
+		</constant>
+		<constant name="REFLECTION_PROBE_UPDATE_SLICING_AUTOMATIC" value="0" enum="ReflectionProbeUpdateSlicing">
+			[constant REFLECTION_PROBE_UPDATE_SLICING_1_FACE_PER_FRAME] is used when the update mode is [constant REFLECTION_PROBE_UPDATE_ONCE] or [constant REFLECTION_PROBE_UPDATE_STATIC] and [constant REFLECTION_PROBE_UPDATE_SLICING_6_FACES_PER_FRAME] is used when the update mode is [constant REFLECTION_PROBE_UPDATE_ALWAYS]. This matches behavior found in Godot 4.3 and prior.
+		</constant>
+		<constant name="REFLECTION_PROBE_UPDATE_SLICING_1_FACE_PER_FRAME" value="1" enum="ReflectionProbeUpdateSlicing">
+			Render 1 face of the cubemap every frame (including post-processing steps when using [constant REFLECTION_PROBE_FILTER_MODE_INCREMENTAL]). For example, if using [constant REFLECTION_PROBE_FILTER_MODE_REALTIME] in a project that renders at 60 FPS, reflections will appear to update at 10 FPS. Low performance cost.
+		</constant>
+		<constant name="REFLECTION_PROBE_UPDATE_SLICING_2_FACES_PER_FRAME" value="2" enum="ReflectionProbeUpdateSlicing">
+			Render 2 faces of the cubemap every frame (including post-processing steps when using [constant REFLECTION_PROBE_FILTER_MODE_INCREMENTAL]). For example, if using [constant REFLECTION_PROBE_FILTER_MODE_REALTIME] in a project that renders at 60 FPS, reflections will appear to update at 20 FPS. Medium performance cost.
+		</constant>
+		<constant name="REFLECTION_PROBE_UPDATE_SLICING_3_FACES_PER_FRAME" value="3" enum="ReflectionProbeUpdateSlicing">
+			Render 3 faces of the cubemap every frame (including post-processing steps when using [constant REFLECTION_PROBE_FILTER_MODE_INCREMENTAL]). For example, if using [constant REFLECTION_PROBE_FILTER_MODE_REALTIME] in a project that renders at 60 FPS, reflections will appear to update at 30 FPS. High performance cost.
+		</constant>
+		<constant name="REFLECTION_PROBE_UPDATE_SLICING_6_FACES_PER_FRAME" value="4" enum="ReflectionProbeUpdateSlicing">
+			Render 6 faces of the cubemap every frame (including post-processing steps when using [constant REFLECTION_PROBE_FILTER_MODE_INCREMENTAL]). For example, if using [constant REFLECTION_PROBE_FILTER_MODE_REALTIME] in a project that renders at 60 FPS, reflections will appear to update at 60 FPS. Very high performance cost.
+		</constant>
+		<constant name="REFLECTION_PROBE_FILTER_MODE_AUTOMATIC" value="0" enum="ReflectionProbeFilterMode">
+			[constant REFLECTION_PROBE_FILTER_MODE_INCREMENTAL] is used when the update mode is [constant REFLECTION_PROBE_UPDATE_ONCE] or [constant REFLECTION_PROBE_UPDATE_STATIC] and [constant REFLECTION_PROBE_FILTER_MODE_REALTIME] is used when the update mode is [constant REFLECTION_PROBE_UPDATE_ALWAYS]. This matches behavior found in Godot 4.3 and prior.
+		</constant>
+		<constant name="REFLECTION_PROBE_FILTER_MODE_INCREMENTAL" value="1" enum="ReflectionProbeFilterMode">
+			Uses high-quality importance sampling to process the radiance map over several frames. The number of frames is determined by [member ProjectSettings.rendering/reflections/sky_reflections/roughness_layers]. Use this when you need highest quality radiance maps, but have a reflection probe that updates slowly. Equivalent to [constant Sky.PROCESS_MODE_INCREMENTAL].
+		</constant>
+		<constant name="REFLECTION_PROBE_FILTER_MODE_REALTIME" value="2" enum="ReflectionProbeFilterMode">
+			Uses the fast filtering algorithm to process the radiance map. In general, this results in lower quality, but substantially faster run times. Equivalent to [constant Sky.PROCESS_MODE_REALTIME].
 		</constant>
 		<constant name="REFLECTION_PROBE_AMBIENT_DISABLED" value="0" enum="ReflectionProbeAmbientMode">
 			Do not apply any ambient lighting inside the reflection probe's box defined by its size.

@@ -2576,6 +2576,8 @@ void RenderingServer::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("reflection_probe_create"), &RenderingServer::reflection_probe_create);
 	ClassDB::bind_method(D_METHOD("reflection_probe_set_update_mode", "probe", "mode"), &RenderingServer::reflection_probe_set_update_mode);
+	ClassDB::bind_method(D_METHOD("reflection_probe_set_update_slicing", "probe", "slicing"), &RenderingServer::reflection_probe_set_update_slicing);
+	ClassDB::bind_method(D_METHOD("reflection_probe_set_filter_mode", "probe", "mode"), &RenderingServer::reflection_probe_set_filter_mode);
 	ClassDB::bind_method(D_METHOD("reflection_probe_set_intensity", "probe", "intensity"), &RenderingServer::reflection_probe_set_intensity);
 	ClassDB::bind_method(D_METHOD("reflection_probe_set_blend_distance", "probe", "blend_distance"), &RenderingServer::reflection_probe_set_blend_distance);
 	ClassDB::bind_method(D_METHOD("reflection_probe_set_ambient_mode", "probe", "mode"), &RenderingServer::reflection_probe_set_ambient_mode);
@@ -2591,9 +2593,21 @@ void RenderingServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("reflection_probe_set_reflection_mask", "probe", "layers"), &RenderingServer::reflection_probe_set_reflection_mask);
 	ClassDB::bind_method(D_METHOD("reflection_probe_set_resolution", "probe", "resolution"), &RenderingServer::reflection_probe_set_resolution);
 	ClassDB::bind_method(D_METHOD("reflection_probe_set_mesh_lod_threshold", "probe", "pixels"), &RenderingServer::reflection_probe_set_mesh_lod_threshold);
+	ClassDB::bind_method(D_METHOD("reflection_probe_queue_update", "probe"), &RenderingServer::reflection_probe_queue_update);
 
 	BIND_ENUM_CONSTANT(REFLECTION_PROBE_UPDATE_ONCE);
 	BIND_ENUM_CONSTANT(REFLECTION_PROBE_UPDATE_ALWAYS);
+	BIND_ENUM_CONSTANT(REFLECTION_PROBE_UPDATE_STATIC);
+
+	BIND_ENUM_CONSTANT(REFLECTION_PROBE_UPDATE_SLICING_AUTOMATIC);
+	BIND_ENUM_CONSTANT(REFLECTION_PROBE_UPDATE_SLICING_1_FACE_PER_FRAME);
+	BIND_ENUM_CONSTANT(REFLECTION_PROBE_UPDATE_SLICING_2_FACES_PER_FRAME);
+	BIND_ENUM_CONSTANT(REFLECTION_PROBE_UPDATE_SLICING_3_FACES_PER_FRAME);
+	BIND_ENUM_CONSTANT(REFLECTION_PROBE_UPDATE_SLICING_6_FACES_PER_FRAME);
+
+	BIND_ENUM_CONSTANT(REFLECTION_PROBE_FILTER_MODE_AUTOMATIC);
+	BIND_ENUM_CONSTANT(REFLECTION_PROBE_FILTER_MODE_INCREMENTAL);
+	BIND_ENUM_CONSTANT(REFLECTION_PROBE_FILTER_MODE_REALTIME);
 
 	BIND_ENUM_CONSTANT(REFLECTION_PROBE_AMBIENT_DISABLED);
 	BIND_ENUM_CONSTANT(REFLECTION_PROBE_AMBIENT_ENVIRONMENT);
