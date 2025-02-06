@@ -287,5 +287,10 @@ GDScriptFunctionState::~GDScriptFunctionState() {
 		MutexLock lock(GDScriptLanguage::singleton->mutex);
 		scripts_list.remove_from_list();
 		instances_list.remove_from_list();
+
+		_clear_connections();
+		if (ObjectDB::get_instance(get_instance_id())) {
+			_clear_stack();
+		}
 	}
 }
