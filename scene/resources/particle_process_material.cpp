@@ -1034,7 +1034,7 @@ void ParticleProcessMaterial::_update_shader() {
 			code += "	{\n";
 		}
 		code += "		float vel_mag = length(VELOCITY);\n";
-		code += "		float vel_infl = clamp(dynamic_params.turb_influence * turbulence_influence, 0.0, 1.0);\n";
+		code += "		float vel_infl = clamp(dynamic_params.turb_influence * turbulence_influence, 0.0, 1.0) * (DELTA <= 0.0 ? 0.0 : 1.0);\n";
 		code += "		VELOCITY = mix(VELOCITY, normalize(noise_direction) * vel_mag * (1.0 + (1.0 - vel_infl) * 0.2), vel_infl);\n";
 		code += "		vel_mag = length(controlled_displacement);\n";
 		code += "		controlled_displacement = mix(controlled_displacement, normalize(noise_direction) * vel_mag * (1.0 + (1.0 - vel_infl) * 0.2), vel_infl);\n";
