@@ -708,8 +708,9 @@ void BaseMaterial3D::_update_shader() {
 	}
 
 	String texfilter_str;
-	// Force linear filtering for the heightmap texture, as the heightmap effect
+	// Force linear filtering with no mipmaps for the heightmap texture, as the heightmap effect
 	// looks broken with nearest-neighbor filtering (with and without Deep Parallax).
+	// Mipmaps also result in stray pixel artifacts when Deep Parallax is enabled.
 	String texfilter_height_str;
 	switch (texture_filter) {
 		case TEXTURE_FILTER_NEAREST:
@@ -722,19 +723,19 @@ void BaseMaterial3D::_update_shader() {
 			break;
 		case TEXTURE_FILTER_NEAREST_WITH_MIPMAPS:
 			texfilter_str = "filter_nearest_mipmap";
-			texfilter_height_str = "filter_linear_mipmap";
+			texfilter_height_str = "filter_linear";
 			break;
 		case TEXTURE_FILTER_LINEAR_WITH_MIPMAPS:
 			texfilter_str = "filter_linear_mipmap";
-			texfilter_height_str = "filter_linear_mipmap";
+			texfilter_height_str = "filter_linear";
 			break;
 		case TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC:
 			texfilter_str = "filter_nearest_mipmap_anisotropic";
-			texfilter_height_str = "filter_linear_mipmap_anisotropic";
+			texfilter_height_str = "filter_linear";
 			break;
 		case TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC:
 			texfilter_str = "filter_linear_mipmap_anisotropic";
-			texfilter_height_str = "filter_linear_mipmap_anisotropic";
+			texfilter_height_str = "filter_linear";
 			break;
 		case TEXTURE_FILTER_MAX:
 			break; // Internal value, skip.
