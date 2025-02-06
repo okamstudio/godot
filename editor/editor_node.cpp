@@ -2093,17 +2093,23 @@ void EditorNode::restart_editor(bool p_goto_project_manager) {
 void EditorNode::_save_all_scenes() {
 	bool all_saved = true;
 	for (int i = 0; i < editor_data.get_edited_scene_count(); i++) {
-		Node *scene = editor_data.get_edited_scene_root(i);
-		if (scene) {
-			if (!scene->get_scene_file_path().is_empty() && DirAccess::exists(scene->get_scene_file_path().get_base_dir())) {
-				if (i != editor_data.get_edited_scene()) {
-					_save_scene(scene->get_scene_file_path(), i);
-				} else {
-					_save_scene_with_preview(scene->get_scene_file_path());
-				}
-			} else if (!scene->get_scene_file_path().is_empty()) {
-				all_saved = false;
-			}
+		if (!_is_scene_unsaved(i)) {
+			continue;
+		}
+
+		const Node *scene = editor_data.get_edited_scene_root(i);
+		ERR_FAIL_NULL(scene);
+
+		const String &scene_path = scene->get_scene_file_path();
+		if (!scene_path.is_empty() && !DirAccess::exists(scene_path.get_base_dir())) {
+			all_saved = false;
+			continue;
+		}
+
+		if (i == editor_data.get_edited_scene()) {
+			_save_scene_with_preview(scene_path);
+		} else {
+			_save_scene(scene_path, i);
 		}
 	}
 
@@ -2129,6 +2135,28 @@ void EditorNode::_mark_unsaved_scenes() {
 
 	_update_title();
 	scene_tabs->update_scene_tabs();
+}
+
+bool EditorNode::_is_scene_unsaved(int p_idx) {
+	const Node *scene = editor_data.get_edited_scene_root(p_idx);
+	if (!scene) {
+		return false;
+	}
+
+	if (EditorUndoRedoManager::get_singleton()->is_history_unsaved(editor_data.get_scene_history_id(p_idx))) {
+		return true;
+	}
+
+	const String &scene_path = scene->get_scene_file_path();
+	if (!scene_path.is_empty()) {
+		// Check if scene has unsaved changes in built-in resources.
+		for (int j = 0; j < editor_data.get_editor_plugin_count(); j++) {
+			if (!editor_data.get_editor_plugin(j)->get_unsaved_status(scene_path).is_empty()) {
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 void EditorNode::_dialog_action(String p_file) {
@@ -3481,6 +3509,20 @@ void EditorNode::_discard_changes(const String &p_str) {
 }
 
 void EditorNode::_update_file_menu_opened() {
+	bool has_unsaved = false;
+	for (int i = 0; i < editor_data.get_edited_scene_count(); i++) {
+		if (_is_scene_unsaved(i)) {
+			has_unsaved = true;
+			break;
+		}
+	}
+	if (has_unsaved) {
+		file_menu->set_item_disabled(file_menu->get_item_index(FILE_SAVE_ALL_SCENES), false);
+		file_menu->set_item_tooltip(file_menu->get_item_index(FILE_SAVE_ALL_SCENES), String());
+	} else {
+		file_menu->set_item_disabled(file_menu->get_item_index(FILE_SAVE_ALL_SCENES), true);
+		file_menu->set_item_tooltip(file_menu->get_item_index(FILE_SAVE_ALL_SCENES), TTR("All scenes are already saved."));
+	}
 	file_menu->set_item_disabled(file_menu->get_item_index(FILE_OPEN_PREV), previous_scenes.is_empty());
 	_update_undo_redo_allowed();
 }

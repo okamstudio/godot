@@ -343,7 +343,7 @@ String ShaderEditorPlugin::get_unsaved_status(const String &p_for_scene) const {
 
 void ShaderEditorPlugin::save_external_data() {
 	for (EditedShader &edited_shader : edited_shaders) {
-		if (edited_shader.shader_editor) {
+		if (edited_shader.shader_editor && edited_shader.shader_editor->is_unsaved()) {
 			edited_shader.shader_editor->save_external_data();
 		}
 	}
