@@ -95,6 +95,7 @@ class GridMapEditor : public VBoxContainer {
 	Button *rotate_y_button = nullptr;
 	Button *rotate_z_button = nullptr;
 
+	Label *cursor_label = nullptr;
 	EditorZoomWidget *zoom_widget = nullptr;
 	Button *mode_thumbnail = nullptr;
 	Button *mode_list = nullptr;
@@ -178,6 +179,7 @@ class GridMapEditor : public VBoxContainer {
 	Transform3D cursor_transform;
 
 	Vector3 cursor_origin;
+	Vector3i input_cursor_cell;
 
 	int display_mode = DISPLAY_THUMBNAIL;
 	int selected_palette = -1;
@@ -226,6 +228,7 @@ class GridMapEditor : public VBoxContainer {
 	void _item_selected_cbk(int idx);
 	void _update_cursor_transform();
 	void _update_cursor_instance();
+	void _update_cursor_label();
 	void _on_tool_mode_changed();
 	void _update_theme();
 

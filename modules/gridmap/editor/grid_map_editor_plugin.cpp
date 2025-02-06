@@ -331,7 +331,12 @@ void GridMapEditor::_validate_selection() {
 }
 
 void GridMapEditor::_set_selection(bool p_active, const Vector3 &p_begin, const Vector3 &p_end) {
-	selection.active = p_active;
+	if (selection.active != p_active) {
+		selection.active = p_active;
+		if (!p_active) {
+			_update_cursor_label();
+		}
+	}
 	selection.begin = p_begin;
 	selection.end = p_end;
 	selection.click = p_begin;
@@ -435,6 +440,8 @@ bool GridMapEditor::do_input_action(Camera3D *p_camera, const Point2 &p_point, b
 		}
 	}
 
+	input_cursor_cell = Vector3i(cell[0], cell[1], cell[2]);
+
 	RS::get_singleton()->instance_set_transform(grid_instance[edit_axis], node->get_global_transform() * edit_grid_xform);
 
 	if (cursor_instance.is_valid()) {
@@ -449,6 +456,7 @@ bool GridMapEditor::do_input_action(Camera3D *p_camera, const Point2 &p_point, b
 	}
 
 	if (input_action == INPUT_NONE) {
+		_update_cursor_label();
 		return false;
 	}
 
@@ -463,6 +471,7 @@ bool GridMapEditor::do_input_action(Camera3D *p_camera, const Point2 &p_point, b
 		}
 		selection.active = true;
 		_validate_selection();
+		_update_cursor_label();
 
 		return true;
 	} else if (input_action == INPUT_PICK) {
@@ -1300,6 +1309,20 @@ void GridMapEditor::_update_cursor_instance() {
 	_update_cursor_transform();
 }
 
+void GridMapEditor::_update_cursor_label() {
+	String text;
+	if (selection.active) {
+		if (selection.begin == selection.end) {
+			text = vformat(String::utf8(u8"%d, %d, %d  \u2317  %d, %d, %d"), (int)input_cursor_cell.x, (int)input_cursor_cell.y, (int)input_cursor_cell.z, (int)selection.begin.x, (int)selection.begin.y, (int)selection.begin.z);
+		} else {
+			text = vformat(String::utf8(u8"%d, %d, %d  \u2317  %d, %d, %d \u2192 %d, %d, %d"), (int)input_cursor_cell.x, (int)input_cursor_cell.y, (int)input_cursor_cell.z, (int)selection.begin.x, (int)selection.begin.y, (int)selection.begin.z, (int)selection.end.x, (int)selection.end.y, (int)selection.end.z);
+		}
+	} else {
+		text = vformat("%d, %d, %d", (int)input_cursor_cell.x, (int)input_cursor_cell.y, (int)input_cursor_cell.z);
+	}
+	cursor_label->set_text(text);
+}
+
 void GridMapEditor::_on_tool_mode_changed() {
 	_show_viewports_transform_gizmo(mode_buttons_group->get_pressed_button() == transform_mode_button);
 	_update_cursor_instance();
@@ -1501,6 +1524,14 @@ GridMapEditor::GridMapEditor() {
 
 	// Wide empty separation control. (like BoxContainer::add_spacer())
 	Control *c = memnew(Control);
+	c->set_mouse_filter(MOUSE_FILTER_PASS);
+	c->set_h_size_flags(SIZE_EXPAND_FILL);
+	toolbar->add_child(c);
+
+	cursor_label = memnew(Label);
+	toolbar->add_child(cursor_label);
+
+	c = memnew(Control);
 	c->set_mouse_filter(MOUSE_FILTER_PASS);
 	c->set_h_size_flags(SIZE_EXPAND_FILL);
 	toolbar->add_child(c);
