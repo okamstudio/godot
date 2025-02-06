@@ -26,11 +26,12 @@ namespace Godot.SourceGenerators
                toggle != null &&
                toggle.Equals("true", StringComparison.OrdinalIgnoreCase);
 
+        // NOTE: Settings in the editorconfig file (including csproj files) should not use ; as a separator as it will be treated as a comment
         public static bool IsGodotSourceGeneratorDisabled(this GeneratorExecutionContext context, string generatorName) =>
             AreGodotSourceGeneratorsDisabled(context) ||
             (context.TryGetGlobalAnalyzerProperty("GodotDisabledSourceGenerators", out string? disabledGenerators) &&
             disabledGenerators != null &&
-            disabledGenerators.Split(';').Contains(generatorName));
+            disabledGenerators.Split(';', ',').Contains(generatorName));
 
         public static bool InheritsFrom(this ITypeSymbol? symbol, string assemblyName, string typeFullName)
         {
