@@ -52,26 +52,6 @@ void ImageTexture::reload_from_file() {
 	}
 }
 
-bool ImageTexture::_set(const StringName &p_name, const Variant &p_value) {
-	if (p_name == "image") {
-		set_image(p_value);
-		return true;
-	}
-	return false;
-}
-
-bool ImageTexture::_get(const StringName &p_name, Variant &r_ret) const {
-	if (p_name == "image") {
-		r_ret = get_image();
-		return true;
-	}
-	return false;
-}
-
-void ImageTexture::_get_property_list(List<PropertyInfo> *p_list) const {
-	p_list->push_back(PropertyInfo(Variant::OBJECT, PNAME("image"), PROPERTY_HINT_RESOURCE_TYPE, "Image", PROPERTY_USAGE_STORAGE | PROPERTY_USAGE_RESOURCE_NOT_PERSISTENT));
-}
-
 Ref<ImageTexture> ImageTexture::create_from_image(const Ref<Image> &p_image) {
 	ERR_FAIL_COND_V_MSG(p_image.is_null(), Ref<ImageTexture>(), "Invalid image: null");
 	ERR_FAIL_COND_V_MSG(p_image->is_empty(), Ref<ImageTexture>(), "Invalid image: image is empty");
@@ -232,6 +212,10 @@ void ImageTexture::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_image", "image"), &ImageTexture::set_image);
 	ClassDB::bind_method(D_METHOD("update", "image"), &ImageTexture::update);
 	ClassDB::bind_method(D_METHOD("set_size_override", "size"), &ImageTexture::set_size_override);
+
+	ClassDB::bind_method(D_METHOD("_set_image", "image"), &ImageTexture::_set_image);
+
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "image", PROPERTY_HINT_RESOURCE_TYPE, "Image", PROPERTY_USAGE_STORAGE | PROPERTY_USAGE_INTERNAL | PROPERTY_USAGE_RESOURCE_NOT_PERSISTENT), "_set_image", "get_image");
 }
 
 ImageTexture::ImageTexture() {}

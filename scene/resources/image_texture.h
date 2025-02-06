@@ -50,15 +50,11 @@ class ImageTexture : public Texture2D {
 
 protected:
 	virtual void reload_from_file() override;
-
-	bool _set(const StringName &p_name, const Variant &p_value);
-	bool _get(const StringName &p_name, Variant &r_ret) const;
-	void _get_property_list(List<PropertyInfo> *p_list) const;
-
 	static void _bind_methods();
 
 public:
 	void set_image(const Ref<Image> &p_image);
+	void _set_image(const Ref<Image> &p_image) { set_image(p_image); }
 	static Ref<ImageTexture> create_from_image(const Ref<Image> &p_image);
 
 	Image::Format get_format() const;
