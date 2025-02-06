@@ -1367,7 +1367,11 @@ void CPUParticles3D::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_TRANSFORM_CHANGED: {
-			inv_emission_transform = get_global_transform().affine_inverse();
+			Transform3D global_transform = get_global_transform();
+			if (unlikely(global_transform.basis.determinant() == 0)) {
+				return;
+			}
+			inv_emission_transform = global_transform.affine_inverse();
 
 			if (!local_coords) {
 				int pc = particles.size();
