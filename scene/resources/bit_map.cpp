@@ -556,6 +556,18 @@ void BitMap::grow_mask(int p_pixels, const Rect2i &p_rect) {
 		return;
 	}
 
+	// Shortcuts
+	// Request enlarges any single pixel to the full bitmap's size
+	if (p_pixels >= width && p_pixels >= height && get_true_bit_count() > 0) {
+		set_bit_rect(Rect2i(0, 0, width, height), true);
+		return;
+	}
+	// Request shrinks past any bit that could be set
+	if (p_pixels <= -width && p_pixels <= -height) {
+		set_bit_rect(Rect2i(0, 0, width, height), false);
+		return;
+	}
+
 	bool bit_value = p_pixels > 0;
 	p_pixels = Math::abs(p_pixels);
 	const int pixels2 = p_pixels * p_pixels;
@@ -567,6 +579,20 @@ void BitMap::grow_mask(int p_pixels, const Rect2i &p_rect) {
 	copy->create(get_size());
 	copy->bitmask = bitmask;
 
+	// Pre-compute distances to avoid re-computations on every pixel
+	// Resulting bitmap looks like a circle
+	Ref<BitMap> distance_mask;
+	distance_mask.instantiate();
+	distance_mask->create(Size2i(p_pixels * 2 + 1, p_pixels * 2 + 1));
+
+	for (int y = 0; y < distance_mask->get_size().y; y++) {
+		for (int x = 0; x < distance_mask->get_size().x; x++) {
+			float d = Point2(p_pixels, p_pixels).distance_squared_to(Point2(x, y)) - CMP_EPSILON2;
+
+			distance_mask->set_bit(x, y, d <= pixels2);
+		}
+	}
+
 	for (int i = r.position.y; i < r.position.y + r.size.height; i++) {
 		for (int j = r.position.x; j < r.position.x + r.size.width; j++) {
 			if (bit_value == get_bit(j, i)) {
@@ -575,8 +601,20 @@ void BitMap::grow_mask(int p_pixels, const Rect2i &p_rect) {
 
 			bool found = false;
 
-			for (int y = i - p_pixels; y <= i + p_pixels; y++) {
-				for (int x = j - p_pixels; x <= j + p_pixels; x++) {
+			const int y0 = i - p_pixels;
+			const int y1 = i + p_pixels;
+			const int x0 = j - p_pixels;
+			const int x1 = j + p_pixels;
+
+			for (int y = y0; y <= y1; y++) {
+				int x = x0;
+
+				// Skip until we find the circle in the distance mask
+				while (x <= x1 && !distance_mask->get_bit(x - x0, y - y0)) {
+					x++;
+				}
+
+				for (; x <= x1; x++) {
 					bool outside = false;
 
 					if ((x < p_rect.position.x) || (x >= p_rect.position.x + p_rect.size.x) || (y < p_rect.position.y) || (y >= p_rect.position.y + p_rect.size.y)) {
@@ -588,9 +626,11 @@ void BitMap::grow_mask(int p_pixels, const Rect2i &p_rect) {
 						}
 					}
 
-					float d = Point2(j, i).distance_squared_to(Point2(x, y)) - CMP_EPSILON2;
-					if (d > pixels2) {
-						continue;
+					const int mask_y = y - y0;
+					const int mask_x = x - x0;
+					if (!distance_mask->get_bit(mask_x, mask_y)) {
+						// Safe to break- we are now stepping outside the distance bitmask circle
+						break;
 					}
 
 					if (outside || (bit_value == copy->get_bit(x, y))) {

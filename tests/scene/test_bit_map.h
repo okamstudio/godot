@@ -349,6 +349,48 @@ TEST_CASE("[BitMap] Grow and shrink mask") {
 	CHECK_MESSAGE(bit_map.get_bitv(Point2i(131, 131)) == false, "Bits that are on the edge of the shape should be set to false");
 }
 
+TEST_CASE("[BitMap] Grow and shrink very large mask") {
+	const Size2i dim{ 2040, 2040 };
+	Ref<BitMap> bit_map;
+	bit_map.instantiate();
+	bit_map->create(dim);
+
+	// Create sparse bit map that is a repetition of the given 3x3 pattern:
+	// | | | |
+	// | |X| |
+	// | | | |
+	for (int x = 1; x < dim.x; x += 3) {
+		for (int y = 1; y < dim.y; y += 3) {
+			bit_map->set_bit(x, y, true);
+		}
+	}
+
+	CHECK_MESSAGE(bit_map->get_true_bit_count() == 462400, "Creating a spaced grid of 3x3 cells with the center cell set in a 2040x2040 bit map should be (2040 / 3)^2=462400 bits");
+	bit_map->grow_mask(20, Rect2i(Point2i(), dim));
+	CHECK_MESSAGE(bit_map->get_true_bit_count() == 4161600, "Growing with size of 20 should set all bits surrounding all patterns (2040x2040=4161600) to true");
+
+	bit_map->set_bit_rect(Rect2i(Point2i(), dim), false);
+	for (int x = 1; x < dim.x; x += 3) {
+		for (int y = 1; y < dim.y; y += 3) {
+			bit_map->set_bit(x, y, true);
+		}
+	}
+
+	bit_map->grow_mask(-1, Rect2i(Point2i(), dim));
+	CHECK_MESSAGE(bit_map->get_true_bit_count() == 0, "Shrinking with size of 1 should set all bits to false");
+
+	bit_map->set_bit_rect(Rect2i(Point2i(), dim), false);
+	bit_map->set_bit(1020, 1020, true); // single bit on at the center of large bitmap
+
+	bit_map->grow_mask(dim.x, Rect2i(Point2i(), dim));
+	CHECK_MESSAGE(bit_map->get_true_bit_count() == 4161600, "Growing single bit with size of 2040 on a bitmap of 2040x2040 should set all bits to true");
+
+	bit_map->set_bit_rect(Rect2i(Point2i(), dim), true); // full bitmap
+
+	bit_map->grow_mask(-dim.x, Rect2i(Point2i(), dim));
+	CHECK_MESSAGE(bit_map->get_true_bit_count() == 0, "Shrinking full bitmap with size of 2040 on a bitmap of 2040x2040 should set all bits to true");
+}
+
 TEST_CASE("[BitMap] Blit") {
 	Point2i blit_pos{ 128, 128 };
 	Point2i bit_map_size{ 256, 256 };
