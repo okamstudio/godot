@@ -789,6 +789,11 @@ void PhysicalBone3D::_sync_body_state(PhysicsDirectBodyState3D *p_state) {
 
 	linear_velocity = p_state->get_linear_velocity();
 	angular_velocity = p_state->get_angular_velocity();
+
+	if (sleeping != p_state->is_sleeping()) {
+		sleeping = p_state->is_sleeping();
+		emit_signal(SceneStringName(sleeping_state_changed));
+	}
 }
 
 void PhysicalBone3D::_body_state_changed(PhysicsDirectBodyState3D *p_state) {
@@ -878,6 +883,9 @@ void PhysicalBone3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_use_custom_integrator", "enable"), &PhysicalBone3D::set_use_custom_integrator);
 	ClassDB::bind_method(D_METHOD("is_using_custom_integrator"), &PhysicalBone3D::is_using_custom_integrator);
 
+	ClassDB::bind_method(D_METHOD("set_sleeping", "sleeping"), &PhysicalBone3D::set_sleeping);
+	ClassDB::bind_method(D_METHOD("is_sleeping"), &PhysicalBone3D::is_sleeping);
+
 	ClassDB::bind_method(D_METHOD("set_can_sleep", "able_to_sleep"), &PhysicalBone3D::set_can_sleep);
 	ClassDB::bind_method(D_METHOD("is_able_to_sleep"), &PhysicalBone3D::is_able_to_sleep);
 
@@ -901,7 +909,10 @@ void PhysicalBone3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "angular_damp", PROPERTY_HINT_RANGE, "0,100,0.001,or_greater"), "set_angular_damp", "get_angular_damp");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "linear_velocity", PROPERTY_HINT_NONE, "suffix:m/s"), "set_linear_velocity", "get_linear_velocity");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "angular_velocity", PROPERTY_HINT_NONE, U"radians_as_degrees,suffix:\u00B0/s"), "set_angular_velocity", "get_angular_velocity");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "sleeping"), "set_sleeping", "is_sleeping");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "can_sleep"), "set_can_sleep", "is_able_to_sleep");
+
+	ADD_SIGNAL(MethodInfo("sleeping_state_changed"));
 
 	BIND_ENUM_CONSTANT(DAMP_MODE_COMBINE);
 	BIND_ENUM_CONSTANT(DAMP_MODE_REPLACE);
@@ -1263,6 +1274,11 @@ real_t PhysicalBone3D::get_angular_damp() const {
 	return angular_damp;
 }
 
+void PhysicalBone3D::set_sleeping(bool p_sleeping) {
+	sleeping = p_sleeping;
+	PhysicsServer3D::get_singleton()->body_set_state(get_rid(), PhysicsServer3D::BODY_STATE_SLEEPING, sleeping);
+}
+
 void PhysicalBone3D::set_can_sleep(bool p_active) {
 	can_sleep = p_active;
 	PhysicsServer3D::get_singleton()->body_set_state(get_rid(), PhysicsServer3D::BODY_STATE_CAN_SLEEP, p_active);
@@ -1270,6 +1286,10 @@ void PhysicalBone3D::set_can_sleep(bool p_active) {
 
 bool PhysicalBone3D::is_able_to_sleep() const {
 	return can_sleep;
+}
+
+bool PhysicalBone3D::is_sleeping() const {
+	return sleeping;
 }
 
 PhysicalBone3D::PhysicalBone3D() :

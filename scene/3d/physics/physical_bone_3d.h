@@ -195,6 +195,8 @@ private:
 	real_t linear_damp = 0.0;
 	real_t angular_damp = 0.0;
 
+	bool sleeping = false;
+
 protected:
 	bool _set(const StringName &p_name, const Variant &p_value);
 	bool _get(const StringName &p_name, Variant &r_ret) const;
@@ -284,6 +286,9 @@ public:
 
 	void set_angular_damp(real_t p_angular_damp);
 	real_t get_angular_damp() const;
+
+	void set_sleeping(bool p_sleeping);
+	bool is_sleeping() const;
 
 	void set_can_sleep(bool p_active);
 	bool is_able_to_sleep() const;

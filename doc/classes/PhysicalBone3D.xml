@@ -108,7 +108,18 @@
 		<member name="mass" type="float" setter="set_mass" getter="get_mass" default="1.0">
 			The body's mass.
 		</member>
+		<member name="sleeping" type="bool" setter="set_sleeping" getter="is_sleeping" default="false">
+			If [code]true[/code], the body will not move and will not calculate forces until woken up by another body through, for example, a collision.
+		</member>
 	</members>
+	<signals>
+		<signal name="sleeping_state_changed">
+			<description>
+				Emitted when the physics engine changes the body's sleeping state.
+				[b]Note:[/b] Changing the value [member sleeping] will not trigger this signal. It is only emitted if the sleeping state is changed by the physics engine or [code]emit_signal("sleeping_state_changed")[/code] is used.
+			</description>
+		</signal>
+	</signals>
 	<constants>
 		<constant name="DAMP_MODE_COMBINE" value="0" enum="DampMode">
 			In this mode, the body's damping value is added to any value set in areas or the default value.
