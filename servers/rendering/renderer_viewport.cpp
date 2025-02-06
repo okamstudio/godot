@@ -827,9 +827,9 @@ void RendererViewport::draw_viewports(bool p_swap_buffers) {
 				RSG::texture_storage->render_target_set_velocity_target_size(vp->render_target, xr_interface->get_velocity_target_size());
 
 				if (xr_interface->get_velocity_texture().is_valid()) {
-					viewport_set_force_motion_vectors(vp->self, true);
+					_viewport_set_force_motion_vectors(vp, true);
 				} else {
-					viewport_set_force_motion_vectors(vp->self, false);
+					_viewport_set_force_motion_vectors(vp, false);
 				}
 
 				RSG::texture_storage->render_target_set_render_region(vp->render_target, xr_interface->get_render_region());
@@ -843,7 +843,7 @@ void RendererViewport::draw_viewports(bool p_swap_buffers) {
 				// commit our eyes
 				Vector<BlitToScreen> blits = xr_interface->post_draw_viewport(vp->render_target, vp->viewport_to_screen_rect);
 				if (vp->viewport_to_screen != DisplayServer::INVALID_WINDOW_ID) {
-					if (OS::get_singleton()->get_current_rendering_driver_name().begins_with("opengl3")) {
+					if (RSG::rasterizer->is_opengl()) {
 						if (blits.size() > 0) {
 							RSG::rasterizer->blit_render_targets_to_screen(vp->viewport_to_screen, blits.ptr(), blits.size());
 							RSG::rasterizer->gl_end_frame(p_swap_buffers);
@@ -878,10 +878,8 @@ void RendererViewport::draw_viewports(bool p_swap_buffers) {
 					blit.dst_rect.size = vp->size;
 				}
 
-				if (OS::get_singleton()->get_current_rendering_driver_name().begins_with("opengl3")) {
-					Vector<BlitToScreen> blit_to_screen_vec;
-					blit_to_screen_vec.push_back(blit);
-					RSG::rasterizer->blit_render_targets_to_screen(vp->viewport_to_screen, blit_to_screen_vec.ptr(), 1);
+				if (RSG::rasterizer->is_opengl()) {
+					RSG::rasterizer->blit_render_targets_to_screen(vp->viewport_to_screen, &blit, 1);
 					RSG::rasterizer->gl_end_frame(p_swap_buffers);
 				} else {
 					Vector<BlitToScreen> *blits = blit_to_screen_list.getptr(vp->viewport_to_screen);
@@ -1394,19 +1392,23 @@ void RendererViewport::viewport_set_force_motion_vectors(RID p_viewport, bool p_
 	Viewport *viewport = viewport_owner.get_or_null(p_viewport);
 	ERR_FAIL_NULL(viewport);
 
-	if (viewport->force_motion_vectors == p_force_motion_vectors) {
+	_viewport_set_force_motion_vectors(viewport, p_force_motion_vectors);
+}
+
+void RendererViewport::_viewport_set_force_motion_vectors(RendererViewport::Viewport *p_viewport, bool p_force_motion_vectors) {
+	if (p_viewport->force_motion_vectors == p_force_motion_vectors) {
 		return;
 	}
 
-	bool motion_vectors_before = _viewport_requires_motion_vectors(viewport);
-	viewport->force_motion_vectors = p_force_motion_vectors;
+	bool motion_vectors_before = _viewport_requires_motion_vectors(p_viewport);
+	p_viewport->force_motion_vectors = p_force_motion_vectors;
 
-	bool motion_vectors_after = _viewport_requires_motion_vectors(viewport);
+	bool motion_vectors_after = _viewport_requires_motion_vectors(p_viewport);
 	if (motion_vectors_before != motion_vectors_after) {
 		num_viewports_with_motion_vectors += motion_vectors_after ? 1 : -1;
 	}
 
-	_configure_3d_render_buffers(viewport);
+	_configure_3d_render_buffers(p_viewport);
 }
 
 void RendererViewport::viewport_set_use_occlusion_culling(RID p_viewport, bool p_use_occlusion_culling) {

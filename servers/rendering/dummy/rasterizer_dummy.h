@@ -88,6 +88,7 @@ public:
 
 	void blit_render_targets_to_screen(int p_screen, const BlitToScreen *p_render_targets, int p_amount) override {}
 
+	bool is_opengl() override { return false; }
 	void gl_end_frame(bool p_swap_buffers) override {}
 
 	void end_frame(bool p_present) override {
