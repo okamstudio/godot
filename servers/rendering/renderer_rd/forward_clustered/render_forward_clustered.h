@@ -35,7 +35,9 @@
 #include "servers/rendering/renderer_rd/cluster_builder_rd.h"
 #include "servers/rendering/renderer_rd/effects/fsr2.h"
 #ifdef METAL_ENABLED
+#ifndef VISIONOS_SIMULATOR
 #include "servers/rendering/renderer_rd/effects/metal_fx.h"
+#endif
 #endif
 #include "servers/rendering/renderer_rd/effects/motion_vectors_store.h"
 #include "servers/rendering/renderer_rd/effects/resolve.h"
@@ -95,8 +97,10 @@ public:
 	private:
 		RenderSceneBuffersRD *render_buffers = nullptr;
 		RendererRD::FSR2Context *fsr2_context = nullptr;
-#ifdef METAL_ENABLED
+#if METAL_ENABLED
+#ifndef VISIONOS
 		RendererRD::MFXTemporalContext *mfx_temporal_context = nullptr;
+#endif
 #endif
 
 	public:
@@ -142,8 +146,10 @@ public:
 		RendererRD::FSR2Context *get_fsr2_context() const { return fsr2_context; }
 
 #ifdef METAL_ENABLED
+#ifndef VISIONOS
 		bool ensure_mfx_temporal(RendererRD::MFXTemporalEffect *p_effect);
 		RendererRD::MFXTemporalContext *get_mfx_temporal_context() const { return mfx_temporal_context; }
+#endif
 #endif
 
 		RID get_color_only_fb();
@@ -647,9 +653,12 @@ private:
 	RendererRD::FSR2Effect *fsr2_effect = nullptr;
 	RendererRD::SSEffects *ss_effects = nullptr;
 
-#ifdef METAL_ENABLED
+#if METAL_ENABLED
+#ifndef VISIONOS
 	RendererRD::MFXTemporalEffect *mfx_temporal_effect = nullptr;
 #endif
+#endif
+
 	RendererRD::MotionVectorsStore *motion_vectors_store = nullptr;
 
 	/* Cluster builder */

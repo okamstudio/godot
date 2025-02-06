@@ -35,8 +35,10 @@
 #import "app_delegate.h"
 #import "display_server_ios.h"
 #import "godot_view.h"
+#import "godot_vision_view.h"
 #import "ios_terminal_logger.h"
 #import "view_controller.h"
+#import "vision_view_controller.h"
 
 #include "core/config/project_settings.h"
 #include "core/io/dir_access.h"

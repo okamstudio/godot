@@ -89,6 +89,7 @@ void RenderForwardClustered::RenderBufferDataForwardClustered::ensure_fsr2(Rende
 }
 
 #ifdef METAL_ENABLED
+#ifndef VISIONOS
 bool RenderForwardClustered::RenderBufferDataForwardClustered::ensure_mfx_temporal(RendererRD::MFXTemporalEffect *p_effect) {
 	if (mfx_temporal_context == nullptr) {
 		RendererRD::MFXTemporalEffect::CreateParams params;
@@ -105,6 +106,7 @@ bool RenderForwardClustered::RenderBufferDataForwardClustered::ensure_mfx_tempor
 	}
 	return false;
 }
+#endif
 #endif
 
 void RenderForwardClustered::RenderBufferDataForwardClustered::free_data() {
@@ -128,10 +130,12 @@ void RenderForwardClustered::RenderBufferDataForwardClustered::free_data() {
 	}
 
 #ifdef METAL_ENABLED
+#ifndef VISIONOS
 	if (mfx_temporal_context) {
 		memdelete(mfx_temporal_context);
 		mfx_temporal_context = nullptr;
 	}
+#endif
 #endif
 
 	if (!render_sdfgi_uniform_set.is_null() && RD::get_singleton()->uniform_set_is_valid(render_sdfgi_uniform_set)) {
@@ -1749,8 +1753,10 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 			scale_type = SCALE_FSR2;
 			break;
 		case RS::VIEWPORT_SCALING_3D_MODE_METALFX_TEMPORAL:
-#ifdef METAL_ENABLED
+#ifndef VISIONOS
+#if METAL_ENABLED
 			scale_type = SCALE_MFX;
+#endif
 #else
 			scale_type = SCALE_NONE;
 #endif
@@ -2447,6 +2453,7 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 			RD::get_singleton()->draw_command_end_label();
 		} else if (scale_type == SCALE_MFX) {
 #ifdef METAL_ENABLED
+#ifndef VISIONOS
 			bool reset = rb_data->ensure_mfx_temporal(mfx_temporal_effect);
 
 			RID exposure;
@@ -2473,6 +2480,7 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 			}
 
 			RD::get_singleton()->draw_command_end_label();
+#endif
 #endif
 		} else if (using_taa) {
 			RD::get_singleton()->draw_command_begin_label("TAA");
@@ -4947,7 +4955,9 @@ RenderForwardClustered::RenderForwardClustered() {
 	ss_effects = memnew(RendererRD::SSEffects);
 #ifdef METAL_ENABLED
 	motion_vectors_store = memnew(RendererRD::MotionVectorsStore);
+#ifndef VISIONOS
 	mfx_temporal_effect = memnew(RendererRD::MFXTemporalEffect);
+#endif
 #endif
 }
 
@@ -4968,11 +4978,12 @@ RenderForwardClustered::~RenderForwardClustered() {
 	}
 
 #ifdef METAL_ENABLED
+#ifndef VISIONOS
 	if (mfx_temporal_effect) {
 		memdelete(mfx_temporal_effect);
 		mfx_temporal_effect = nullptr;
 	}
-
+#endif
 	if (motion_vectors_store) {
 		memdelete(motion_vectors_store);
 		motion_vectors_store = nullptr;

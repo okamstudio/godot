@@ -27,17 +27,33 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
-#if !defined(VISIONOS)
+#if defined(VISIONOS)
 #import <UIKit/UIKit.h>
+#import <CompositorServices/CompositorServices.h>
 
 @class GodotView;
 @class GodotNativeVideoView;
 @class GodotKeyboardInputView;
 
-@interface ViewController : UIViewController
+@protocol SwiftVisionController <NSObject>
+@required
+- (void) finishedLoading;
+- (void) setImmersiveSpace:(bool) immersive;
+- (void)presentViewController:(UIViewController *)viewControllerToPresent;
+@end
+
+
+
+@interface ViewController : NSObject
 
 @property(nonatomic, readonly, strong) GodotView *godotView;
 @property(nonatomic, readonly, strong) GodotKeyboardInputView *keyboardView;
+@property(nonatomic, readwrite) id<SwiftVisionController>  swiftController;
 
+-(void)loadView;
+-(void)presentViewController:(UIViewController *)viewControllerToPresent animated:(BOOL)flag completion:(void (^)(void))completion;
+-(void)viewDidAppear;
+-(void)runLoop;
+-(BOOL)setup:(cp_layer_renderer_t)renderer;
 @end
 #endif

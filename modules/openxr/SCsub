@@ -36,7 +36,7 @@ elif env["platform"] == "linuxbsd":
         env_openxr.AppendUnique(CPPDEFINES=["HAVE_SECURE_GETENV"])
 elif env["platform"] == "windows":
     env_openxr.AppendUnique(CPPDEFINES=["XR_OS_WINDOWS", "NOMINMAX", "XR_USE_PLATFORM_WIN32"])
-elif env["platform"] == "macos":
+elif env["platform"] == "macos" or env["platform"] == "ios":
     env_openxr.AppendUnique(CPPDEFINES=["XR_OS_APPLE"])
 
     # There does not seem to be a XR_USE_PLATFORM_XYZ for Apple

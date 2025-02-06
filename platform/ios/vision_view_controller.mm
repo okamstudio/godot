@@ -27,27 +27,58 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
-#if !defined(VISIONOS)
-#import "view_controller.h"
+#if defined(VISIONOS)
+#import "vision_view_controller.h"
 
 #import "display_server_ios.h"
-#import "godot_view.h"
+#import "godot_vision_view.h"
 #import "godot_view_renderer.h"
 #import "key_mapping_ios.h"
 #import "keyboard_input_view.h"
 #import "os_ios.h"
+#import "app_delegate.h"
 
 #include "core/config/project_settings.h"
 
 #import <AVFoundation/AVFoundation.h>
 #import <GameController/GameController.h>
+#import <Foundation/Foundation.h>
+
+
+@interface RenderThread : NSThread {
+    cp_layer_renderer_t _layerRenderer;
+	// ViewController * _viewController;
+}
+
+- (instancetype)initWithLayerRenderer:(cp_layer_renderer_t)layerRenderer;
+@end
+@implementation RenderThread
+
+- (instancetype)initWithLayerRenderer:(cp_layer_renderer_t)layerRenderer
+{
+    if (self = [self init]) {
+        _layerRenderer = layerRenderer;
+		// _viewController = [AppDelegate viewController];
+    }
+    return self;
+}
+
+- (void)main {
+    [[AppDelegate viewController] runLoop];
+}
+
+
+@end
+
 
 @interface ViewController () <GodotViewDelegate>
 
 @property(strong, nonatomic) GodotViewRenderer *renderer;
 @property(strong, nonatomic) GodotKeyboardInputView *keyboardView;
+@property(strong,readwrite, nonatomic) GodotView *view;
+@property (nonatomic, assign) cp_layer_renderer_t __unsafe_unretained layerRenderer;
 
-@property(strong, nonatomic) UIView *godotLoadingOverlay;
+// @property(strong, nonatomic) UIView *godotLoadingOverlay;
 
 @end
 
@@ -56,9 +87,48 @@
 - (GodotView *)godotView {
 	return (GodotView *)self.view;
 }
+- (BOOL)setup:(cp_layer_renderer_t)renderer {
+	self.layerRenderer = renderer;
+	RenderThread *renderThread = [[RenderThread alloc] initWithLayerRenderer:renderer];
+    renderThread.name = @"Spatial Renderer Thread";
+    [renderThread start];
+	return true;
+}
+
+- (void)presentViewController:(UIViewController *)viewControllerToPresent animated:(BOOL)flag completion:(void (^)(void))completion {
+	// [self.swiftController = presentViewController:viewControllerToPresent];
+	//TODO: Send this to the swift code
+}
+
+-(void) viewDidAppear{
+	[self.swiftController setImmersiveSpace:true];
+}
+
+ bool _running = true;
+ -(void) runLoop {
+		[self.view setup:self.layerRenderer];
+        while (_running) {
+            @autoreleasepool {
+                switch (cp_layer_renderer_get_state(self.layerRenderer)) {
+                    case cp_layer_renderer_state_paused:
+                        cp_layer_renderer_wait_until_running(self.layerRenderer);
+                        break;
+                        
+                    case cp_layer_renderer_state_running:
+                        [self.view drawView];
+                        break;
+                        
+                        
+                    case cp_layer_renderer_state_invalidated:
+                        _running = false;
+                        break;
+                }
+            }
+        }
+    }
 
 - (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
-	[super pressesBegan:presses withEvent:event];
+	// [super pressesBegan:presses withEvent:event];
 
 	if (!DisplayServerIOS::get_singleton() || DisplayServerIOS::get_singleton()->is_keyboard_active()) {
 		return;
@@ -93,7 +163,7 @@
 }
 
 - (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
-	[super pressesEnded:presses withEvent:event];
+	// [super pressesEnded:presses withEvent:event];
 
 	if (!DisplayServerIOS::get_singleton() || DisplayServerIOS::get_singleton()->is_keyboard_active()) {
 		return;
@@ -128,52 +198,14 @@
 
 	view.renderer = self.renderer;
 	view.delegate = self;
-}
-
-- (instancetype)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
-	self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
-
-	if (self) {
-		[self godot_commonInit];
-	}
-
-	return self;
-}
-
-- (instancetype)initWithCoder:(NSCoder *)coder {
-	self = [super initWithCoder:coder];
-
-	if (self) {
-		[self godot_commonInit];
-	}
-
-	return self;
-}
-
-- (void)godot_commonInit {
-	// Initialize view controller values.
-}
-
-- (void)didReceiveMemoryWarning {
-	[super didReceiveMemoryWarning];
-	print_verbose("Did receive memory warning!");
-}
-
-- (void)viewDidLoad {
-	[super viewDidLoad];
-
 	[self observeKeyboard];
-	[self displayLoadingOverlay];
-
-	[self setNeedsUpdateOfScreenEdgesDeferringSystemGestures];
 }
 
 - (void)observeKeyboard {
-	print_verbose("Setting up keyboard input view.");
 	self.keyboardView = [GodotKeyboardInputView new];
-	[self.view addSubview:self.keyboardView];
+	//TODO: Figure out the keyboard view
+	// [self.view addSubview:self.keyboardView];
 
-	print_verbose("Adding observer for keyboard show/hide.");
 	[[NSNotificationCenter defaultCenter]
 			addObserver:self
 			   selector:@selector(keyboardOnScreen:)
@@ -186,28 +218,11 @@
 				 object:nil];
 }
 
-- (void)displayLoadingOverlay {
-	NSBundle *bundle = [NSBundle mainBundle];
-	NSString *storyboardName = @"Launch Screen";
-
-	if ([bundle pathForResource:storyboardName ofType:@"storyboardc"] == nil) {
-		return;
-	}
-
-	UIStoryboard *launchStoryboard = [UIStoryboard storyboardWithName:storyboardName bundle:bundle];
-
-	UIViewController *controller = [launchStoryboard instantiateInitialViewController];
-	self.godotLoadingOverlay = controller.view;
-	self.godotLoadingOverlay.frame = self.view.bounds;
-	self.godotLoadingOverlay.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
-
-	[self.view addSubview:self.godotLoadingOverlay];
-}
-
 - (BOOL)godotViewFinishedSetup:(GodotView *)view {
-	[self.godotLoadingOverlay removeFromSuperview];
-	self.godotLoadingOverlay = nil;
-
+	
+	if(self.swiftController) {
+		[self.swiftController finishedLoading];
+	}
 	return YES;
 }
 
@@ -216,98 +231,25 @@
 
 	self.renderer = nil;
 
-	if (self.godotLoadingOverlay) {
-		[self.godotLoadingOverlay removeFromSuperview];
-		self.godotLoadingOverlay = nil;
-	}
 
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 // MARK: Orientation
 
-- (UIRectEdge)preferredScreenEdgesDeferringSystemGestures {
-	if (GLOBAL_GET("display/window/ios/suppress_ui_gesture")) {
-		return UIRectEdgeAll;
-	} else {
-		return UIRectEdgeNone;
-	}
-}
-
-- (BOOL)shouldAutorotate {
-	if (!DisplayServerIOS::get_singleton()) {
-		return NO;
-	}
-
-	switch (DisplayServerIOS::get_singleton()->screen_get_orientation(DisplayServer::SCREEN_OF_MAIN_WINDOW)) {
-		case DisplayServer::SCREEN_SENSOR:
-		case DisplayServer::SCREEN_SENSOR_LANDSCAPE:
-		case DisplayServer::SCREEN_SENSOR_PORTRAIT:
-			return YES;
-		default:
-			return NO;
-	}
-}
-
-- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
-	if (!DisplayServerIOS::get_singleton()) {
-		return UIInterfaceOrientationMaskAll;
-	}
-
-	switch (DisplayServerIOS::get_singleton()->screen_get_orientation(DisplayServer::SCREEN_OF_MAIN_WINDOW)) {
-		case DisplayServer::SCREEN_PORTRAIT:
-			return UIInterfaceOrientationMaskPortrait;
-		case DisplayServer::SCREEN_REVERSE_LANDSCAPE:
-			if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
-				return UIInterfaceOrientationMaskLandscapeLeft;
-			} else {
-				return UIInterfaceOrientationMaskLandscapeRight;
-			}
-		case DisplayServer::SCREEN_REVERSE_PORTRAIT:
-			return UIInterfaceOrientationMaskPortraitUpsideDown;
-		case DisplayServer::SCREEN_SENSOR_LANDSCAPE:
-			return UIInterfaceOrientationMaskLandscape;
-		case DisplayServer::SCREEN_SENSOR_PORTRAIT:
-			return UIInterfaceOrientationMaskPortrait | UIInterfaceOrientationMaskPortraitUpsideDown;
-		case DisplayServer::SCREEN_SENSOR:
-			return UIInterfaceOrientationMaskAll;
-		case DisplayServer::SCREEN_LANDSCAPE:
-			if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
-				return UIInterfaceOrientationMaskLandscapeRight;
-			} else {
-				return UIInterfaceOrientationMaskLandscapeLeft;
-			}
-	}
-}
-
-- (BOOL)prefersStatusBarHidden {
-	if (GLOBAL_GET("display/window/ios/hide_status_bar")) {
-		return YES;
-	} else {
-		return NO;
-	}
-}
-
-- (BOOL)prefersHomeIndicatorAutoHidden {
-	if (GLOBAL_GET("display/window/ios/hide_home_indicator")) {
-		return YES;
-	} else {
-		return NO;
-	}
-}
 
 // MARK: Keyboard
 
 - (void)keyboardOnScreen:(NSNotification *)notification {
-	NSDictionary *info = notification.userInfo;
-	NSValue *value = info[UIKeyboardFrameEndUserInfoKey];
+	// NSDictionary *info = notification.userInfo;
+	// NSValue *value = info[UIKeyboardFrameEndUserInfoKey];
 
-	CGRect rawFrame = [value CGRectValue];
-	CGRect keyboardFrame = [self.view convertRect:rawFrame fromView:nil];
+	// CGRect rawFrame = [value CGRectValue];
+	// CGRect keyboardFrame = [self.view convertRect:rawFrame fromView:nil];
 
-	if (DisplayServerIOS::get_singleton()) {
-		DisplayServerIOS::get_singleton()->virtual_keyboard_set_height(keyboardFrame.size.height);
-	}
+	// if (DisplayServerIOS::get_singleton()) {
+	// 	DisplayServerIOS::get_singleton()->virtual_keyboard_set_height(keyboardFrame.size.height);
+	// }
 }
 
 - (void)keyboardHidden:(NSNotification *)notification {
@@ -317,5 +259,4 @@
 }
 
 @end
-
 #endif

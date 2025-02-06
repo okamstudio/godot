@@ -141,10 +141,12 @@ void RenderSceneBuffersRD::cleanup() {
 	}
 
 #ifdef METAL_ENABLED
+#ifndef VISIONOS_SIMULATOR
 	if (mfx_spatial_context) {
 		memdelete(mfx_spatial_context);
 		mfx_spatial_context = nullptr;
 	}
+#endif
 #endif
 }
 
@@ -250,6 +252,7 @@ void RenderSceneBuffersRD::set_use_debanding(bool p_use_debanding) {
 }
 
 #ifdef METAL_ENABLED
+#ifndef VISIONOS_SIMULATOR
 void RenderSceneBuffersRD::ensure_mfx(RendererRD::MFXSpatialEffect *p_effect) {
 	if (mfx_spatial_context) {
 		return;
@@ -263,6 +266,7 @@ void RenderSceneBuffersRD::ensure_mfx(RendererRD::MFXSpatialEffect *p_effect) {
 
 	mfx_spatial_context = p_effect->create_context(params);
 }
+#endif
 #endif
 
 // Named textures

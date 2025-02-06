@@ -31,8 +31,10 @@
 #import "app_delegate.h"
 
 #import "godot_view.h"
+#import "godot_vision_view.h"
 #import "os_ios.h"
 #import "view_controller.h"
+#import "vision_view_controller.h"
 
 #include "core/config/project_settings.h"
 #import "drivers/coreaudio/audio_driver_coreaudio.h"
@@ -61,20 +63,37 @@ enum {
 };
 
 static ViewController *mainViewController = nil;
+static GodotView *mainGodotView = nil;
 
 + (ViewController *)viewController {
 	return mainViewController;
 }
 
+// + (GodotView *)godotView {
+// 	return mainGodotView;
+// }
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 	// TODO: might be required to make an early return, so app wouldn't crash because of timeout.
 	// TODO: logo screen is not displayed while shaders are compiling
 	// DummyViewController(Splash/LoadingViewController) -> setup -> GodotViewController
+#if defined(VISIONOS)
+	// CGRect windowBounds = CGRectMake(0, 0, VISIONOS_SCREEN_WIDTH, VISIONOS_SCREEN_HEIGHT);
+	//Vision doesn't have the static main. So we don't get the parameters
+	const char *arg0 = [[[NSBundle mainBundle] executablePath] UTF8String]; // Path to the running application
+	const char *newArgv[] = { arg0 };
+	gargc = sizeof(newArgv) / sizeof(newArgv[0]);
+	gargv = (char **)newArgv;
+	mainViewController = [ViewController alloc];
+	[mainViewController loadView];
+	mainGodotView = [mainViewController godotView];
 
+#else
 	CGRect windowBounds = [[UIScreen mainScreen] bounds];
 
 	// Create a full-screen window
 	self.window = [[UIWindow alloc] initWithFrame:windowBounds];
+#endif
+
 
 	int err = ios_main(gargc, gargv);
 
@@ -83,7 +102,7 @@ static ViewController *mainViewController = nil;
 		exit(0);
 		return NO;
 	}
-
+#if !defined(VISIONOS)
 	ViewController *viewController = [[ViewController alloc] init];
 	viewController.godotView.useCADisplayLink = bool(GLOBAL_DEF("display.iOS/use_cadisplaylink", true)) ? YES : NO;
 	viewController.godotView.renderingInterval = 1.0 / kRenderingFrequency;
@@ -92,6 +111,8 @@ static ViewController *mainViewController = nil;
 
 	// Show the window
 	[self.window makeKeyAndVisible];
+	mainViewController = viewController;
+#endif
 
 	[[NSNotificationCenter defaultCenter]
 			addObserver:self
@@ -99,7 +120,6 @@ static ViewController *mainViewController = nil;
 				   name:AVAudioSessionInterruptionNotification
 				 object:[AVAudioSession sharedInstance]];
 
-	mainViewController = viewController;
 
 	int sessionCategorySetting = GLOBAL_GET("audio/general/ios/session_category");
 
@@ -129,6 +149,14 @@ static ViewController *mainViewController = nil;
 	[[AVAudioSession sharedInstance] setCategory:category withOptions:options error:nil];
 
 	return YES;
+}
+
+- (UISceneConfiguration *)application:(UIApplication *)application
+		configurationForConnectingSceneSession:(UISceneSession *)connectingSceneSession
+									   options:(UISceneConnectionOptions *)options {
+	UISceneConfiguration * config = [[UISceneConfiguration alloc] initWithName:nil sessionRole:connectingSceneSession.role];
+	config.delegateClass = [self class];
+	return config;
 }
 
 - (void)onAudioInterruption:(NSNotification *)notification {
@@ -169,6 +197,12 @@ static ViewController *mainViewController = nil;
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {
 	OS_IOS::get_singleton()->on_focus_in();
+}
+- (void)sceneDidBecomeActive:(UIScene *)scene {
+	OS_IOS::get_singleton()->on_focus_in();
+}
+- (void)sceneWillResignActive:(UIScene *)scene {
+	OS_IOS::get_singleton()->on_focus_out();
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application {

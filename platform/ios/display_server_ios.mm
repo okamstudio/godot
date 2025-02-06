@@ -33,12 +33,14 @@
 #import "app_delegate.h"
 #import "device_metrics.h"
 #import "godot_view.h"
+#import "godot_vision_view.h"
 #import "ios.h"
 #import "key_mapping_ios.h"
 #import "keyboard_input_view.h"
 #import "os_ios.h"
 #import "tts_ios.h"
 #import "view_controller.h"
+#import "vision_view_controller.h"
 
 #include "core/config/project_settings.h"
 #include "core/io/file_access_pack.h"
@@ -69,7 +71,11 @@ DisplayServerIOS::DisplayServerIOS(const String &p_rendering_driver, WindowMode 
 	rendering_context = nullptr;
 	rendering_device = nullptr;
 
+	#if VISIONOS
+	GodotView *layer = nullptr;
+	#else
 	CALayer *layer = nullptr;
+	#endif
 
 	union {
 #ifdef VULKAN_ENABLED
@@ -98,7 +104,11 @@ DisplayServerIOS::DisplayServerIOS(const String &p_rendering_driver, WindowMode 
 	if (rendering_driver == "metal") {
 		if (@available(iOS 14.0, *)) {
 			layer = [AppDelegate.viewController.godotView initializeRenderingForDriver:@"metal"];
+			#if VISIONOS
+			wpd.metal.layer = (GodotView *)layer;
+			#else
 			wpd.metal.layer = (CAMetalLayer *)layer;
+			#endif
 			rendering_context = memnew(RenderingContextDriverMetal);
 		} else {
 			OS::get_singleton()->alert("Metal is only supported on iOS 14.0 and later.");
@@ -457,15 +467,9 @@ void DisplayServerIOS::emit_system_theme_changed() {
 }
 
 Rect2i DisplayServerIOS::get_display_safe_area() const {
-	UIEdgeInsets insets = UIEdgeInsetsZero;
-	UIView *view = AppDelegate.viewController.godotView;
-	if ([view respondsToSelector:@selector(safeAreaInsets)]) {
-		insets = [view safeAreaInsets];
-	}
-	float scale = screen_get_scale();
-	Size2i insets_position = Size2i(insets.left, insets.top) * scale;
-	Size2i insets_size = Size2i(insets.left + insets.right, insets.top + insets.bottom) * scale;
-	return Rect2i(screen_get_position() + insets_position, screen_get_size() - insets_size);
+
+	CGRect rect = [AppDelegate.viewController.godotView get_display_safe_area];
+	return Rect2i(Point2i(rect.origin.x,rect.origin.y),Size2i(rect.size.width,rect.size.height));
 }
 
 int DisplayServerIOS::get_screen_count() const {
@@ -481,13 +485,12 @@ Point2i DisplayServerIOS::screen_get_position(int p_screen) const {
 }
 
 Size2i DisplayServerIOS::screen_get_size(int p_screen) const {
-	CALayer *layer = AppDelegate.viewController.godotView.renderingLayer;
-
-	if (!layer) {
+	if (!AppDelegate.viewController.godotView) {
 		return Size2i();
 	}
+	CGSize size = AppDelegate.viewController.godotView.bounds.size;
 
-	return Size2i(layer.bounds.size.width, layer.bounds.size.height) * screen_get_scale(p_screen);
+	return Size2i(size.width, size.height) * screen_get_scale(p_screen);
 }
 
 Rect2i DisplayServerIOS::screen_get_usable_rect(int p_screen) const {
@@ -511,6 +514,9 @@ int DisplayServerIOS::screen_get_dpi(int p_screen) const {
 
 	// If device wasn't found in dictionary
 	// make a best guess from device metrics.
+	#if defined(VISIONOS)
+	return 458; // @visionOS TODO
+	#else
 	CGFloat scale = [UIScreen mainScreen].scale;
 
 	UIUserInterfaceIdiom idiom = [UIDevice currentDevice].userInterfaceIdiom;
@@ -529,18 +535,28 @@ int DisplayServerIOS::screen_get_dpi(int p_screen) const {
 		default:
 			return 72;
 	}
+	#endif
 }
 
 float DisplayServerIOS::screen_get_refresh_rate(int p_screen) const {
+	#if defined(VISIONOS)
+	return 90; // @visionOS TODO
+	#else
 	float fps = [UIScreen mainScreen].maximumFramesPerSecond;
 	if ([NSProcessInfo processInfo].lowPowerModeEnabled) {
 		fps = 60;
 	}
 	return fps;
+	#endif
 }
 
 float DisplayServerIOS::screen_get_scale(int p_screen) const {
+	#if defined(VISIONOS)
+	//No need to do a scale on VisionOS
+	return 1;
+	#else
 	return [UIScreen mainScreen].scale;
+	#endif
 }
 
 Vector<DisplayServer::WindowID> DisplayServerIOS::get_window_list() const {
@@ -628,8 +644,13 @@ void DisplayServerIOS::window_set_size(const Size2i p_size, WindowID p_window) {
 }
 
 Size2i DisplayServerIOS::window_get_size(WindowID p_window) const {
+	#if defined(VISIONOS)
+	CGSize size = [[AppDelegate viewController]godotView].bounds.size;
+	return Size2i(size.width, size.height);
+	#else
 	CGRect screenBounds = [UIScreen mainScreen].bounds;
 	return Size2i(screenBounds.size.width, screenBounds.size.height) * screen_get_max_scale();
+	#endif
 }
 
 Size2i DisplayServerIOS::window_get_size_with_decorations(WindowID p_window) const {
@@ -674,11 +695,13 @@ float DisplayServerIOS::screen_get_max_scale() const {
 
 void DisplayServerIOS::screen_set_orientation(DisplayServer::ScreenOrientation p_orientation, int p_screen) {
 	screen_orientation = p_orientation;
+	#if !defined(VISIONOS)
 	if (@available(iOS 16.0, *)) {
 		[AppDelegate.viewController setNeedsUpdateOfSupportedInterfaceOrientations];
 	} else {
 		[UIViewController attemptRotationToDeviceOrientation];
 	}
+	#endif
 }
 
 DisplayServer::ScreenOrientation DisplayServerIOS::screen_get_orientation(int p_screen) const {
@@ -784,10 +807,15 @@ String DisplayServerIOS::clipboard_get() const {
 }
 
 void DisplayServerIOS::screen_set_keep_on(bool p_enable) {
+#if !defined(VISIONOS)
 	[UIApplication sharedApplication].idleTimerDisabled = p_enable;
+#endif
 }
 
 bool DisplayServerIOS::screen_is_kept_on() const {
+#if defined(VISIONOS)
+	return true;
+#endif
 	return [UIApplication sharedApplication].idleTimerDisabled;
 }
 

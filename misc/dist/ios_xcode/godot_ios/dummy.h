@@ -29,3 +29,6 @@
 /**************************************************************************/
 
 // #import <Foundation/Foundation.h>
+#if TARGET_OS_VISION
+#import "AppDelegate.h"
+#endif

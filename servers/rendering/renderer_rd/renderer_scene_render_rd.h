@@ -38,7 +38,9 @@
 #include "servers/rendering/renderer_rd/effects/fsr.h"
 #include "servers/rendering/renderer_rd/effects/luminance.h"
 #ifdef METAL_ENABLED
+#ifndef VISIONOS_SIMULATOR
 #include "servers/rendering/renderer_rd/effects/metal_fx.h"
+#endif
 #endif
 #include "servers/rendering/renderer_rd/effects/tone_mapper.h"
 #include "servers/rendering/renderer_rd/effects/vrs.h"
@@ -65,7 +67,9 @@ protected:
 	RendererRD::FSR *fsr = nullptr;
 	RendererRD::VRS *vrs = nullptr;
 #ifdef METAL_ENABLED
+#ifndef VISIONOS_SIMULATOR
 	RendererRD::MFXSpatialEffect *mfx_spatial = nullptr;
+#endif
 #endif
 	double time = 0.0;
 	double time_step = 0.0;

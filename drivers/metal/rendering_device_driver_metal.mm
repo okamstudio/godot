@@ -290,7 +290,11 @@ RDD::TextureID RenderingDeviceDriverMetal::texture_create(const TextureFormat &p
 	// Usage.
 
 	MTLResourceOptions options = 0;
+	#if VISIONOS
+	const bool supports_memoryless = true;
+	#else
 	const bool supports_memoryless = (*device_properties).features.highestFamily >= MTLGPUFamilyApple2 && (*device_properties).features.highestFamily < MTLGPUFamilyMac1;
+	#endif
 	if (supports_memoryless && p_format.usage_bits & TEXTURE_USAGE_TRANSIENT_BIT) {
 		options = MTLResourceStorageModeMemoryless | MTLResourceHazardTrackingModeTracked;
 		desc.storageMode = MTLStorageModeMemoryless;
@@ -2043,6 +2047,10 @@ Vector<uint8_t> RenderingDeviceDriverMetal::shader_compile_binary_from_spirv(Vec
 	msl_options.platform = CompilerMSL::Options::iOS;
 #endif
 
+#if VISIONOS
+	msl_options.ios_support_base_vertex_instance = true;
+#endif
+
 #if TARGET_OS_IPHONE
 	msl_options.ios_use_simdgroup_functions = (*device_properties).features.simdPermute;
 #endif
@@ -2474,7 +2482,7 @@ RDD::ShaderID RenderingDeviceDriverMetal::shader_create_from_bytecode(const Vect
 		cd->name = binary_data.shader_name;
 		cd->stage = shader_data.stage;
 		options.preserveInvariance = shader_data.is_position_invariant;
-		options.fastMathEnabled = YES;
+		options.mathMode = MTLMathModeFast;
 		MDLibrary *library = [MDLibrary newLibraryWithCacheEntry:cd
 														  device:device
 														  source:source
@@ -3492,7 +3500,9 @@ RDD::PipelineID RenderingDeviceDriverMetal::render_pipeline_create(
 
 	// Rasterization.
 	desc.rasterizationEnabled = !p_rasterization_state.discard_primitives;
-	pipeline->raster_state.clip_mode = p_rasterization_state.enable_depth_clamp ? MTLDepthClipModeClamp : MTLDepthClipModeClip;
+#if !VISIONOS_SIMULATOR
+	 pipeline->raster_state.clip_mode = p_rasterization_state.enable_depth_clamp ? MTLDepthClipModeClamp : MTLDepthClipModeClip;
+#endif
 	pipeline->raster_state.fill_mode = p_rasterization_state.wireframe ? MTLTriangleFillModeLines : MTLTriangleFillModeFill;
 
 	static const MTLCullMode CULL_MODE[3] = {
@@ -4150,6 +4160,10 @@ Error RenderingDeviceDriverMetal::initialize(uint32_t p_device_index, uint32_t p
 		print_verbose("- Metal multiview not supported");
 	}
 
+#if defined(VISIONOS)
+	//This check for the GPU Family doesn't work on Vision. However it does support image cube array.
+	return OK;
+#endif
 	// The Metal renderer requires Apple4 family. This is 2017 era A11 chips and newer.
 	if (device_properties->features.highestFamily < MTLGPUFamilyApple4) {
 		String error_string = vformat("Your Apple GPU does not support the following features, which are required to use Metal-based renderers in Godot:\n\n");

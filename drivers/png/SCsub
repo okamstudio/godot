@@ -39,7 +39,7 @@ if env["builtin_libpng"]:
     env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
 
     if env["arch"].startswith("arm"):
-        if env.msvc:  # Can't compile assembly files with MSVC.
+        if env.msvc or env.get("visionos_simulator") or env.get("visionos"):  # Can't compile assembly files with MSVC.
             env_thirdparty.Append(CPPDEFINES=[("PNG_ARM_NEON_OPT", 0)])
         else:
             env_neon = env_thirdparty.Clone()

@@ -436,7 +436,7 @@ void RendererSceneRenderRD::_render_buffers_post_process_and_tonemap(const Rende
 		if (scale_mode == RS::VIEWPORT_SCALING_3D_MODE_FSR) {
 			spatial_upscaler = fsr;
 		} else if (scale_mode == RS::VIEWPORT_SCALING_3D_MODE_METALFX_SPATIAL) {
-#if METAL_ENABLED
+#if defined(METAL_ENABLED) && !defined (VISIONOS_SIMULATOR)
 			spatial_upscaler = mfx_spatial;
 #endif
 		}
@@ -1532,8 +1532,11 @@ void RendererSceneRenderRD::init() {
 	if (can_use_storage) {
 		fsr = memnew(RendererRD::FSR);
 	}
+
 #ifdef METAL_ENABLED
+#ifndef VISIONOS_SIMULATOR
 	mfx_spatial = memnew(RendererRD::MFXSpatialEffect);
+#endif
 #endif
 }
 
@@ -1563,10 +1566,13 @@ RendererSceneRenderRD::~RendererSceneRenderRD() {
 	if (fsr) {
 		memdelete(fsr);
 	}
+
 #ifdef METAL_ENABLED
+#ifndef VISIONOS_SIMULATOR
 	if (mfx_spatial) {
 		memdelete(mfx_spatial);
 	}
+#endif
 #endif
 
 	if (sky.sky_scene_state.uniform_set.is_valid() && RD::get_singleton()->uniform_set_is_valid(sky.sky_scene_state.uniform_set)) {

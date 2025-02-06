@@ -13,6 +13,7 @@
 		$modules_buildfile
 		$swift_runtime_buildfile
 		1FF8DBB11FBA9DE1009DE660 /* dummy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1FF8DBB01FBA9DE1009DE660 /* dummy.cpp */; };
+		CB8EAFBE2D402EAC00AA921E /* VisionApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB8EAFBD2D402EAC00AA921E /* VisionApp.swift */; };
 		D07CD44E1C5D589C00B7FB28 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D07CD44D1C5D589C00B7FB28 /* Images.xcassets */; };
 		9039D3BE24C093AC0020482C /* MoltenVK.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9039D3BD24C093AC0020482C /* MoltenVK.xcframework */; };
 		D0BCFE4618AEBDA2004A7AAE /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D0BCFE4418AEBDA2004A7AAE /* InfoPlist.strings */; };
@@ -44,6 +45,8 @@
 		1FF8DBB01FBA9DE1009DE660 /* dummy.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dummy.cpp; sourceTree = "<group>"; };
 		9039D3BD24C093AC0020482C /* MoltenVK.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = MoltenVK; path = MoltenVK.xcframework; sourceTree = "<group>"; };
 		054F8BE52D38852F00B81423 /* MetalFX.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalFX.framework; path = System/Library/Frameworks/MetalFX.framework; sourceTree = SDKROOT; };
+		CB8EAFBD2D402EAC00AA921E /* VisionApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionApp.swift; sourceTree = "<group>"; };
+		CBAF15772D42B52E0090641A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		D07CD44D1C5D589C00B7FB28 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		D0BCFE3418AEBDA2004A7AAE /* $binary.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "$binary.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0BCFE4318AEBDA2004A7AAE /* $binary-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "$binary-Info.plist"; sourceTree = "<group>"; };
@@ -123,6 +126,8 @@
 			children = (
 				D0BCFE4318AEBDA2004A7AAE /* $binary-Info.plist */,
 				D0BCFE4418AEBDA2004A7AAE /* InfoPlist.strings */,
+				CBAF15772D42B52E0090641A /* AppDelegate.h */,
+				CB8EAFBD2D402EAC00AA921E /* VisionApp.swift */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -206,6 +211,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1FF8DBB11FBA9DE1009DE660 /* dummy.cpp in Sources */,
+				CB8EAFBE2D402EAC00AA921E /* VisionApp.swift in Sources */,
 				$swift_runtime_build_phase
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -348,6 +354,7 @@
 				VALID_ARCHS = "arm64 x86_64";
 				WRAPPER_EXTENSION = app;
 				$swift_runtime_build_settings
+				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Debug;
 		};
@@ -384,6 +391,7 @@
 				VALID_ARCHS = "arm64 x86_64";
 				WRAPPER_EXTENSION = app;
 				$swift_runtime_build_settings
+				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Release;
 		};

@@ -33,6 +33,8 @@ def get_opts():
         ("IOS_SDK_PATH", "Path to the iOS SDK", ""),
         BoolVariable("ios_simulator", "Build for iOS Simulator", False),
         ("ios_triple", "Triple for ios toolchain", ""),
+        BoolVariable("visionos_simulator", "Build for visionOS Simulator", False),
+        BoolVariable("visionos", "Build for visionOS", False),
         BoolVariable("generate_bundle", "Generate an APP bundle after building iOS/macOS binaries", False),
     ]
 
@@ -108,6 +110,14 @@ def configure(env: "SConsEnvironment"):
         env.Append(CCFLAGS=["-mios-simulator-version-min=12.0"])
         env.Append(CPPDEFINES=["IOS_SIMULATOR"])
         env.extra_suffix = ".simulator" + env.extra_suffix
+    elif env["visionos_simulator"]:
+        detect_darwin_sdk_path("ios", env)
+        env.Append(CPPDEFINES=["IOS_SIMULATOR", "VISIONOS_SIMULATOR", "VISIONOS", "OPENGL_DISABLED", "METAL_ENABLED"])
+        env.extra_suffix = ".visionos.simulator" + env.extra_suffix
+    elif env["visionos"]:
+        detect_darwin_sdk_path("ios", env)
+        env.Append(CPPDEFINES=["VISIONOS", "OPENGL_DISABLED", "METAL_ENABLED"])
+        env.extra_suffix = ".visionos" + env.extra_suffix
     else:
         detect_darwin_sdk_path("ios", env)
         env.Append(ASFLAGS=["-miphoneos-version-min=12.0"])

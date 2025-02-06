@@ -32,6 +32,7 @@
 
 #import "app_delegate.h"
 #import "view_controller.h"
+#import "vision_view_controller.h"
 
 #import <CoreHaptics/CoreHaptics.h>
 #import <UIKit/UIKit.h>
@@ -159,18 +160,22 @@ void iOS::stop_haptic_engine() {
 }
 
 void iOS::alert(const char *p_alert, const char *p_title) {
-	NSString *title = [NSString stringWithUTF8String:p_title];
-	NSString *message = [NSString stringWithUTF8String:p_alert];
+	//Lets dispatch this to the main thread
+	dispatch_async(dispatch_get_main_queue(), ^{
+		NSString *title = [NSString stringWithUTF8String:p_title];
+		NSString *message = [NSString stringWithUTF8String:p_alert];
 
-	UIAlertController *alert = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
-	UIAlertAction *button = [UIAlertAction actionWithTitle:@"OK"
-													 style:UIAlertActionStyleCancel
-												   handler:^(id){
-												   }];
+		UIAlertController *alert = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
+		UIAlertAction *button = [UIAlertAction actionWithTitle:@"OK"
+														style:UIAlertActionStyleCancel
+													handler:^(id){
+													}];
 
-	[alert addAction:button];
+		[alert addAction:button];
 
-	[AppDelegate.viewController presentViewController:alert animated:YES completion:nil];
+		[AppDelegate.viewController presentViewController:alert animated:YES completion:nil];
+
+	});
 }
 
 String iOS::get_model() const {

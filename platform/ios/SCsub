@@ -38,17 +38,34 @@ def generate_bundle(target, source, env):
         shutil.rmtree(app_dir)
     shutil.copytree(templ, app_dir)
     if rel_target_bin != "":
-        shutil.copy(rel_target_bin, app_dir + "/libgodot.ios.release.xcframework/ios-arm64/libgodot.a")
+        if env.get("visionos"):
+            shutil.copy(rel_target_bin, app_dir + "/libgodot.ios.release.xcframework/xros-arm64/libgodot.a")
+        else:
+            shutil.copy(rel_target_bin, app_dir + "/libgodot.ios.release.xcframework/ios-arm64/libgodot.a")
+        
     if dbg_target_bin != "":
-        shutil.copy(dbg_target_bin, app_dir + "/libgodot.ios.debug.xcframework/ios-arm64/libgodot.a")
+        if env.get("visionos"):
+            shutil.copy(dbg_target_bin, app_dir + "/libgodot.ios.debug.xcframework/xros-arm64/libgodot.a")
+        else:
+            shutil.copy(dbg_target_bin, app_dir + "/libgodot.ios.debug.xcframework/ios-arm64/libgodot.a")
     if rel_target_bin_sim != "":
-        shutil.copy(
-            rel_target_bin_sim, app_dir + "/libgodot.ios.release.xcframework/ios-arm64_x86_64-simulator/libgodot.a"
-        )
+        if env.get("visionos_simulator"):
+            shutil.copy(
+                rel_target_bin_sim, app_dir + "/libgodot.ios.release.xcframework/xros-arm64_x86_64-simulator/libgodot.a"
+            )
+        else:
+            shutil.copy(
+                rel_target_bin_sim, app_dir + "/libgodot.ios.release.xcframework/ios-arm64_x86_64-simulator/libgodot.a"
+            )
     if dbg_target_bin_sim != "":
-        shutil.copy(
-            dbg_target_bin_sim, app_dir + "/libgodot.ios.debug.xcframework/ios-arm64_x86_64-simulator/libgodot.a"
-        )
+        if env.get("visionos_simulator"):
+            shutil.copy(
+                dbg_target_bin_sim, app_dir + "/libgodot.ios.debug.xcframework/xros-arm64_x86_64-simulator/libgodot.a"
+            )
+        else:
+            shutil.copy(
+                dbg_target_bin_sim, app_dir + "/libgodot.ios.debug.xcframework/ios-arm64_x86_64-simulator/libgodot.a"
+            )
     mvk_path = detect_mvk(env, "ios-arm64")
     if mvk_path != "":
         shutil.copytree(mvk_path, app_dir + "/MoltenVK.xcframework")
@@ -77,6 +94,8 @@ ios_lib = [
     "keyboard_input_view.mm",
     "key_mapping_ios.mm",
     "ios_terminal_logger.mm",
+    "godot_vision_view.mm",
+    "vision_view_controller.mm",
 ]
 
 env_ios = env.Clone()

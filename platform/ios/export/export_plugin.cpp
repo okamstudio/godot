@@ -513,7 +513,8 @@ void EditorExportPlatformIOS::_fix_config_file(const Ref<EditorExportPreset> &p_
 					xcode_value = "2";
 					break;
 				case 2: // iPhone & iPad
-					xcode_value = "1,2";
+				//This should be a multi select. So we could add in 3 for VisionOS which translates to 7 in xcode
+					xcode_value = "1,2,7";
 					break;
 			}
 			strnew += lines[i].replace("$targeted_device_family", xcode_value) + "\n";

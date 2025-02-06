@@ -32,7 +32,9 @@
 #define RENDER_SCENE_BUFFERS_RD_H
 
 #ifdef METAL_ENABLED
+#ifndef VISIONOS_SIMULATOR
 #include "../effects/metal_fx.h"
+#endif
 #endif
 #include "../effects/vrs.h"
 #include "core/templates/hash_map.h"
@@ -84,7 +86,9 @@ private:
 	RS::ViewportAnisotropicFiltering anisotropic_filtering_level = RS::VIEWPORT_ANISOTROPY_4X;
 
 #ifdef METAL_ENABLED
+#ifndef VISIONOS_SIMULATOR
 	RendererRD::MFXSpatialContext *mfx_spatial_context = nullptr;
+#endif
 #endif
 
 	// Aliasing settings
@@ -199,8 +203,10 @@ public:
 	virtual void set_use_debanding(bool p_use_debanding) override;
 
 #ifdef METAL_ENABLED
+#ifndef VISIONOS_SIMULATOR
 	void ensure_mfx(RendererRD::MFXSpatialEffect *p_effect);
 	_FORCE_INLINE_ RendererRD::MFXSpatialContext *get_mfx_spatial_context() const { return mfx_spatial_context; }
+#endif
 #endif
 
 	// Named Textures

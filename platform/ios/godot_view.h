@@ -27,7 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
-
+#if !defined(VISIONOS)
 #import <UIKit/UIKit.h>
 
 class String;
@@ -58,5 +58,9 @@ class String;
 - (CALayer<DisplayLayer> *)initializeRenderingForDriver:(NSString *)driverName;
 - (void)stopRendering;
 - (void)startRendering;
+- (CGSize)screen_get_size:(int)p_screen;
+- (CGRect)get_display_safe_area;
 
 @end
+
+#endif // !VISIONOS

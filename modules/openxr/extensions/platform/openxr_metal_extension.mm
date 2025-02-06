@@ -112,10 +112,15 @@ void OpenXRMetalExtension::get_usable_swapchain_formats(Vector<int64_t> &p_usabl
 	p_usable_swap_chains.push_back(MTLPixelFormatRGBA8Unorm_sRGB);
 	p_usable_swap_chains.push_back(MTLPixelFormatBGRA8Unorm_sRGB);
 	p_usable_swap_chains.push_back(MTLPixelFormatRGBA8Uint);
+	#ifdef VISIONOS
+	p_usable_swap_chains.push_back(MTLPixelFormatRGBA16Float);
+	#endif
 }
 
 void OpenXRMetalExtension::get_usable_depth_formats(Vector<int64_t> &p_usable_swap_chains) {
+	#ifndef VISIONOS
 	p_usable_swap_chains.push_back(MTLPixelFormatDepth24Unorm_Stencil8);
+	#endif
 	p_usable_swap_chains.push_back(MTLPixelFormatDepth32Float_Stencil8);
 	p_usable_swap_chains.push_back(MTLPixelFormatDepth32Float);
 }
@@ -133,8 +138,11 @@ String OpenXRMetalExtension::get_swapchain_format_name(int64_t p_swapchain_forma
 		ENUM_TO_STRING_CASE(MTLPixelFormatRGBA8Unorm_sRGB)
 		ENUM_TO_STRING_CASE(MTLPixelFormatBGRA8Unorm)
 		ENUM_TO_STRING_CASE(MTLPixelFormatBGRA8Unorm_sRGB)
+		ENUM_TO_STRING_CASE(MTLPixelFormatRGBA16Float)
 		ENUM_TO_STRING_CASE(MTLPixelFormatRGBA8Uint)
+#ifndef VISIONOS
 		ENUM_TO_STRING_CASE(MTLPixelFormatDepth24Unorm_Stencil8)
+#endif
 		ENUM_TO_STRING_CASE(MTLPixelFormatDepth32Float_Stencil8)
 		ENUM_TO_STRING_CASE(MTLPixelFormatDepth32Float)
 		default: {
@@ -208,10 +216,17 @@ bool OpenXRMetalExtension::get_swapchain_image_data(XrSwapchain p_swapchain, int
 			format = RenderingDevice::DATA_FORMAT_D32_SFLOAT;
 			usage_flags |= RenderingDevice::TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 			break;
+#ifndef VISIONOS
+		case MTLPixelFormatRGBA16Float:
+			format = RenderingDevice::DATA_FORMAT_R16_SFLOAT;
+			// DXGI_FORMAT_R16_TYPELESS, DXGI_FORMAT_R16_FLOAT
+			usage_flags |= RenderingDevice::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT;
+			break;
 		case MTLPixelFormatDepth24Unorm_Stencil8:
 			format = RenderingDevice::DATA_FORMAT_D24_UNORM_S8_UINT;
 			usage_flags |= RenderingDevice::TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 			break;
+#endif
 		case MTLPixelFormatDepth32Float_Stencil8:
 			format = RenderingDevice::DATA_FORMAT_D32_SFLOAT_S8_UINT;
 			usage_flags |= RenderingDevice::TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;

@@ -873,7 +873,9 @@ public:
 		_FORCE_INLINE_ void apply(id<MTLRenderCommandEncoder> __unsafe_unretained p_enc) const {
 			[p_enc setCullMode:cull_mode];
 			[p_enc setTriangleFillMode:fill_mode];
+#ifndef VISIONOS_SIMULATOR
 			[p_enc setDepthClipMode:clip_mode];
+#endif
 			[p_enc setFrontFacingWinding:winding];
 			depth_bias.apply(p_enc);
 			stencil.apply(p_enc);

@@ -41,6 +41,11 @@
 #ifdef __OBJC__
 #import "metal_objects.h"
 
+#if VISIONOS
+#import "godot_vision_view.h"
+#import <MetalKit/MetalKit.h>
+#import <CompositorServices/CompositorServices.h>
+#endif
 #import <Metal/Metal.h>
 #import <QuartzCore/CALayer.h>
 
@@ -49,6 +54,7 @@
 #else
 typedef enum MTLPixelFormat {
 	MTLPixelFormatBGRA8Unorm = 80,
+	MTLPixelFormatRGBA16Float = 115,
 } MTLPixelFormat;
 class MDCommandBuffer;
 #endif
@@ -88,7 +94,11 @@ public:
 	// Platform-specific data for the Windows embedded in this driver.
 	struct WindowPlatformData {
 #ifdef __OBJC__
+#ifdef VISIONOS
+		GodotView *__unsafe_unretained layer;;
+#else
 		CAMetalLayer *__unsafe_unretained layer;
+#endif
 #else
 		void *layer;
 #endif
@@ -120,7 +130,11 @@ public:
 		}
 		virtual ~Surface() = default;
 
+		#if VISIONOS
+		MTLPixelFormat get_pixel_format() const { return MTLPixelFormatRGBA16Float; }
+		#else
 		MTLPixelFormat get_pixel_format() const { return MTLPixelFormatBGRA8Unorm; }
+		#endif
 		virtual Error resize(uint32_t p_desired_framebuffer_count) = 0;
 		virtual RDD::FramebufferID acquire_next_frame_buffer() = 0;
 		virtual void present(MDCommandBuffer *p_cmd_buffer) = 0;
