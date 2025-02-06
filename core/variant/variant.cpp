@@ -3525,9 +3525,9 @@ String Variant::get_call_error_text(Object *p_base, const StringName &p_method, 
 			err_text = "Cannot convert argument " + itos(errorarg + 1) + " from [missing argptr, type unknown] to " + Variant::get_type_name(Variant::Type(ce.expected));
 		}
 	} else if (ce.error == Callable::CallError::CALL_ERROR_TOO_MANY_ARGUMENTS) {
-		err_text = "Method expected " + itos(ce.expected) + " arguments, but called with " + itos(p_argcount);
+		err_text = "Method expected " + itos(ce.expected) + " argument" + ((ce.expected != 1) ? "s" : "") + ", but called with " + itos(p_argcount);
 	} else if (ce.error == Callable::CallError::CALL_ERROR_TOO_FEW_ARGUMENTS) {
-		err_text = "Method expected " + itos(ce.expected) + " arguments, but called with " + itos(p_argcount);
+		err_text = "Method expected " + itos(ce.expected) + " argument" + ((ce.expected != 1) ? "s" : "") + ", but called with " + itos(p_argcount);
 	} else if (ce.error == Callable::CallError::CALL_ERROR_INVALID_METHOD) {
 		err_text = "Method not found";
 	} else if (ce.error == Callable::CallError::CALL_ERROR_INSTANCE_IS_NULL) {
