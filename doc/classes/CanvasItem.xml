@@ -621,6 +621,21 @@
 		</member>
 		<member name="modulate" type="Color" setter="set_modulate" getter="get_modulate" default="Color(1, 1, 1, 1)" keywords="color, colour">
 			The color applied to this [CanvasItem]. This property does affect child [CanvasItem]s, unlike [member self_modulate] which only affects the node itself.
+			[b]Note:[/b] Shader materials assigned to [member material] can override this value for the final render. To reapply the value, store it as the shader's uniform.
+			Script in [CanvasItem]:
+			[codeblock]
+			func set_modulate(value):
+			    material.set_shader_parameter("modulate", value)
+			    modulate = value
+			[/codeblock]
+			Script in [ShaderMaterial]:
+			[codeblock]
+			uniform vec4 modulate;
+
+			void fragment() {
+			    COLOR = modulate * texture(TEXTURE, UV);
+			}
+			[/codeblock]
 		</member>
 		<member name="self_modulate" type="Color" setter="set_self_modulate" getter="get_self_modulate" default="Color(1, 1, 1, 1)">
 			The color applied to this [CanvasItem]. This property does [b]not[/b] affect child [CanvasItem]s, unlike [member modulate] which affects both the node itself and its children.
