@@ -454,6 +454,13 @@
 				Sorts the elements of the array in ascending order.
 			</description>
 		</method>
+		<method name="to_color_array" qualifiers="const">
+			<return type="PackedColorArray" />
+			<description>
+				Returns a copy of the data converted to a [PackedColorArray], where each block of 16 bytes has been converted to a [Color] variant.
+				[b]Note:[/b] The size of the input array must be a multiple of 16 (size of four 32-bit float variables). The size of the new array will be [code]byte_array.size() / 16[/code]. If the original data can't be converted to [Color] variants, the resulting data is undefined.
+			</description>
+		</method>
 		<method name="to_float32_array" qualifiers="const">
 			<return type="PackedFloat32Array" />
 			<description>
@@ -484,6 +491,27 @@
 				Returns a copy of the data converted to a [PackedInt64Array], where each block of 8 bytes has been converted to a signed 64-bit integer (C++ [code]int64_t[/code], Godot [int]).
 				The size of the input array must be a multiple of 8 (size of 64-bit integer). The size of the new array will be [code]byte_array.size() / 8[/code].
 				If the original data can't be converted to signed 64-bit integers, the resulting data is undefined.
+			</description>
+		</method>
+		<method name="to_vector2_array" qualifiers="const">
+			<return type="PackedVector2Array" />
+			<description>
+				Returns a copy of the data converted to a [PackedVector2Array], where each block of 8 bytes or 16 bytes (32-bit or 64-bit) has been converted to a [Vector2] variant.
+				[b]Note:[/b] The size of the input array must be a multiple of 8 or 16 (depending on the build settings, see [Vector2] for more details). The size of the new array will be [code]byte_array.size() / (8 or 16)[/code]. If the original data can't be converted to [Vector2] variants, the resulting data is undefined.
+			</description>
+		</method>
+		<method name="to_vector3_array" qualifiers="const">
+			<return type="PackedVector3Array" />
+			<description>
+				Returns a copy of the data converted to a [PackedVector3Array], where each block of 12 or 24 bytes (32-bit or 64-bit) has been converted to a [Vector3] variant.
+				[b]Note:[/b] The size of the input array must be a multiple of 12 or 24 (depending on the build settings, see [Vector3] for more details). The size of the new array will be [code]byte_array.size() / (12 or 24)[/code]. If the original data can't be converted to [Vector3] variants, the resulting data is undefined.
+			</description>
+		</method>
+		<method name="to_vector4_array" qualifiers="const">
+			<return type="PackedVector4Array" />
+			<description>
+				Returns a copy of the data converted to a [PackedVector4Array], where each block of 16 or 32 bytes (32-bit or 64-bit) has been converted to a [Vector4] variant.
+				[b]Note:[/b] The size of the input array must be a multiple of 16 or 32 (depending on the build settings, see [Vector4] for more details). The size of the new array will be [code]byte_array.size() / (16 or 32)[/code]. If the original data can't be converted to [Vector4] variants, the resulting data is undefined.
 			</description>
 		</method>
 	</methods>
