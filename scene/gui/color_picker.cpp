@@ -1018,6 +1018,59 @@ void ColorPicker::_drop_data_fw(const Point2 &p_point, const Variant &p_data, Co
 		if (preset_from_id == hover_now || hover_now == -1) {
 			return;
 		}
+
+		{
+			List<Color>::Element *from = presets.front();
+			List<Color>::Element *to = presets.front();
+			{
+				int c = 0;
+				while (c < preset_from_id - 1) {
+					from = from->next();
+					c++;
+				}
+			}
+			{
+				int c = 0;
+				while (c < hover_now - 1) {
+					to = to->next();
+					c++;
+				}
+			}
+			if (hover_now == presets.size()) {
+				presets.move_to_back(from);
+			} else if (hover_now == 1) {
+				presets.move_to_front(from);
+			} else {
+				presets.move_before(from, to->next());
+			}
+		}
+
+		{
+			List<Color>::Element *from = preset_cache.front();
+			List<Color>::Element *to = preset_cache.front();
+			{
+				int c = 0;
+				while (c < preset_from_id - 1) {
+					from = from->next();
+					c++;
+				}
+			}
+			{
+				int c = 0;
+				while (c < hover_now - 1) {
+					to = to->next();
+					c++;
+				}
+			}
+			if (hover_now == presets.size()) {
+				preset_cache.move_to_back(from);
+			} else if (hover_now == 1) {
+				preset_cache.move_to_front(from);
+			} else {
+				preset_cache.move_before(from, to->next());
+			}
+		}
+
 		preset_container->move_child(preset_container->get_child(preset_from_id), hover_now);
 	}
 }
