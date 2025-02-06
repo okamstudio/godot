@@ -1770,13 +1770,13 @@ Node *Node::get_child(int p_index, bool p_include_internal) const {
 		if (p_index < 0) {
 			p_index += data.children_cache.size();
 		}
-		ERR_FAIL_INDEX_V(p_index, (int)data.children_cache.size(), nullptr);
+		ERR_FAIL_INDEX_V_MSG(p_index, (int)data.children_cache.size(), nullptr, vformat("Invalid child index: %d.", p_index));
 		return data.children_cache[p_index];
 	} else {
 		if (p_index < 0) {
 			p_index += (int)data.children_cache.size() - data.internal_children_front_count_cache - data.internal_children_back_count_cache;
 		}
-		ERR_FAIL_INDEX_V(p_index, (int)data.children_cache.size() - data.internal_children_front_count_cache - data.internal_children_back_count_cache, nullptr);
+		ERR_FAIL_INDEX_V_MSG(p_index, (int)data.children_cache.size() - data.internal_children_front_count_cache - data.internal_children_back_count_cache, nullptr, vformat("Invalid child index: %d.", p_index));
 		p_index += data.internal_children_front_count_cache;
 		return data.children_cache[p_index];
 	}
@@ -2178,7 +2178,7 @@ void Node::set_owner(Node *p_owner) {
 		_clean_up_owner();
 	}
 
-	ERR_FAIL_COND(p_owner == this);
+	ERR_FAIL_COND_MSG(p_owner == this, "Invalid owner. Owner cannot be self.");
 
 	if (!p_owner) {
 		return;
@@ -2277,7 +2277,7 @@ NodePath Node::get_path_to(const Node *p_node, bool p_use_unique_path) const {
 		common_parent = common_parent->data.parent;
 	}
 
-	ERR_FAIL_NULL_V(common_parent, NodePath()); //nodes not in the same tree
+	ERR_FAIL_NULL_V_MSG(common_parent, NodePath(), "Nodes do not share a common parent, make sure they are in the same tree.");
 
 	visited.clear();
 
@@ -3119,7 +3119,7 @@ static void find_owned_by(Node *p_by, Node *p_node, List<Node *> *p_owned) {
 void Node::replace_by(Node *p_node, bool p_keep_groups) {
 	ERR_THREAD_GUARD
 	ERR_FAIL_NULL(p_node);
-	ERR_FAIL_COND(p_node->data.parent);
+	ERR_FAIL_COND_MSG(p_node->data.parent, vformat("Can't replace '%s' with '%s', replacement already has a parent '%s'.", get_name(), p_node->get_name(), p_node->data.parent->get_name()));
 
 	List<Node *> owned = data.owned;
 	List<Node *> owned_by_owner;
