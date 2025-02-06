@@ -70,9 +70,9 @@ void NavigationLink3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 
 	p_gizmo->clear();
 
-	// Number of points in an octant. So there ill be 8 * points_in_octant points in total.
+	// Number of points in an octant. So there will be 8 * points_in_octant points in total.
 	// Correspond to the smoothness of the circle.
-	const uint32_t points_in_octant = 4;
+	const uint32_t points_in_octant = 8;
 	real_t inc = (Math_PI / (4 * points_in_octant));
 
 	Vector<Vector3> lines;
