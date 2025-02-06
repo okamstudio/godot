@@ -30,6 +30,7 @@
 
 #include "movie_writer_mjpeg.h"
 #include "core/config/project_settings.h"
+#include "core/io/image_loader.h"
 
 uint32_t MovieWriterMJPEG::get_audio_mix_rate() const {
 	return mix_rate;
@@ -192,6 +193,8 @@ Error MovieWriterMJPEG::write_begin(const Size2i &p_movie_size, uint32_t p_fps, 
 
 Error MovieWriterMJPEG::write_frame(const Ref<Image> &p_image, const int32_t *p_audio_data) {
 	ERR_FAIL_COND_V(f.is_null(), ERR_UNCONFIGURED);
+
+	ERR_FAIL_COND_V_MSG(ImageLoader::recognize("jpg").is_null(), ERR_UNAVAILABLE, "jpg module must be enabled to use MovieWriter to export to AVI.");
 
 	Vector<uint8_t> jpg_buffer = p_image->save_jpg_to_buffer(quality);
 	uint32_t s = jpg_buffer.size();
