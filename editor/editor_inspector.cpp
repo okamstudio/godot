@@ -4737,7 +4737,10 @@ void EditorInspector::_notification(int p_what) {
 			}
 
 			if (EditorSettings::get_singleton()->check_changed_settings_in_group("interface/inspector")) {
-				needs_update = true;
+				// Extra condition to avoid LineEdit focus loss when editing resources_to_open_in_new_inspector setting.
+				if (!get_meta(SNAME("editor_settings_inspector"), false) || !EditorSettings::get_singleton()->check_changed_settings_in_group("interface/inspector/resources_to_open_in_new_inspector")) {
+					needs_update = true;
+				}
 			}
 
 			if (needs_update) {
