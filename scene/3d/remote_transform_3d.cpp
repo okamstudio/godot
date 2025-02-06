@@ -51,58 +51,50 @@ void RemoteTransform3D::_update_remote() {
 		return;
 	}
 
-	Node3D *n = Object::cast_to<Node3D>(ObjectDB::get_instance(cache));
-	if (!n) {
+	Node3D *target_node = Object::cast_to<Node3D>(ObjectDB::get_instance(cache));
+	if (!target_node) {
 		return;
 	}
 
-	if (!n->is_inside_tree()) {
+	if (!target_node->is_inside_tree()) {
 		return;
 	}
 
-	//todo make faster
-	if (use_global_coordinates) {
-		if (update_remote_position && update_remote_rotation && update_remote_scale) {
-			n->set_global_transform(get_global_transform());
+	Transform3D our_trans = use_global_coordinates ? get_global_transform() : get_transform();
+
+	if (update_remote_position && update_remote_rotation && update_remote_scale) {
+		if (use_global_coordinates) {
+			target_node->set_global_transform(our_trans);
 		} else {
-			Transform3D our_trans = get_global_transform();
+			target_node->set_transform(our_trans);
+		}
+	} else {
+		Transform3D target_trans = use_global_coordinates ? target_node->get_global_transform() : target_node->get_transform();
 
-			if (update_remote_rotation) {
-				n->set_rotation(our_trans.basis.get_euler_normalized(EulerOrder(n->get_rotation_order())));
+		if (update_remote_rotation && update_remote_scale) {
+			target_trans.basis = our_trans.basis;
+		} else if (update_remote_rotation) {
+			for (int i = 0; i < 3; i++) {
+				Vector3 our_col = our_trans.basis.get_column(i);
+				Vector3 target_col = target_trans.basis.get_column(i);
+				target_trans.basis.set_column(i, our_col.normalized() * target_col.length());
 			}
-
-			if (update_remote_scale) {
-				n->set_scale(our_trans.basis.get_scale());
-			}
-
-			if (update_remote_position) {
-				Transform3D n_trans = n->get_global_transform();
-
-				n_trans.set_origin(our_trans.get_origin());
-				n->set_global_transform(n_trans);
+		} else if (update_remote_scale) {
+			for (int i = 0; i < 3; i++) {
+				Vector3 our_col = our_trans.basis.get_column(i);
+				Vector3 target_col = target_trans.basis.get_column(i);
+				target_trans.basis.set_column(i, target_col.normalized() * our_col.length());
 			}
 		}
 
-	} else {
-		if (update_remote_position && update_remote_rotation && update_remote_scale) {
-			n->set_transform(get_transform());
+		if (update_remote_position) {
+			target_trans.origin = our_trans.origin;
+		}
+
+		if (use_global_coordinates) {
+			target_node->set_global_transform(target_trans);
 		} else {
-			Transform3D our_trans = get_transform();
-
-			if (update_remote_rotation) {
-				n->set_rotation(our_trans.basis.get_euler_normalized(EulerOrder(n->get_rotation_order())));
-			}
-
-			if (update_remote_scale) {
-				n->set_scale(our_trans.basis.get_scale());
-			}
-
-			if (update_remote_position) {
-				Transform3D n_trans = n->get_transform();
-
-				n_trans.set_origin(our_trans.get_origin());
-				n->set_transform(n_trans);
-			}
+			target_node->set_transform(target_trans);
 		}
 	}
 }
