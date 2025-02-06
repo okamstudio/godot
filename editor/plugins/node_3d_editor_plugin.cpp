@@ -4268,6 +4268,7 @@ void Node3DEditorViewport::set_state(const Dictionary &p_state) {
 			previewing->connect(SceneStringName(tree_exiting), callable_mp(this, &Node3DEditorViewport::_preview_exited_scene));
 			RS::get_singleton()->viewport_attach_camera(viewport->get_viewport_rid(), previewing->get_camera()); //replace
 			surface->queue_redraw();
+			previewing_camera = true;
 			preview_camera->set_pressed(true);
 			preview_camera->show();
 		}
