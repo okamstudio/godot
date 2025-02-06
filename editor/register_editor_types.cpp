@@ -272,6 +272,7 @@ void register_editor_types() {
 
 	// For correct doc generation.
 	GLOBAL_DEF("editor/run/main_run_args", "");
+	GLOBAL_DEF("editor/run/enable_extension_reloading", false);
 
 	GLOBAL_DEF(PropertyInfo(Variant::STRING, "editor/script/templates_search_path", PROPERTY_HINT_DIR), "res://script_templates");
 

@@ -136,6 +136,10 @@ Error EditorRun::run(const String &p_scene, const String &p_write_movie, const V
 		args.push_back("--skip-breakpoints");
 	}
 
+	if (GLOBAL_GET("editor/run/enable_extension_reloading")) {
+		args.push_back("--gdextension-reload");
+	}
+
 	if (!p_scene.is_empty()) {
 		args.push_back(p_scene);
 	}

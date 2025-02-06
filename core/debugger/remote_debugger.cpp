@@ -35,6 +35,7 @@
 #include "core/debugger/engine_debugger.h"
 #include "core/debugger/engine_profiler.h"
 #include "core/debugger/script_debugger.h"
+#include "core/extension/gdextension_manager.h"
 #include "core/input/input.h"
 #include "core/io/resource_loader.h"
 #include "core/math/expression.h"
@@ -518,6 +519,8 @@ void RemoteDebugger::debug(bool p_can_continue, bool p_is_error_breakpoint) {
 				script_paths_to_reload = data;
 			} else if (command == "reload_all_scripts") {
 				reload_all_scripts = true;
+			} else if (command == "reload_extensions") {
+				reload_extensions = true;
 			} else if (command == "breakpoint") {
 				ERR_FAIL_COND(data.size() < 3);
 				bool set = data[2];
@@ -646,8 +649,14 @@ void RemoteDebugger::poll_events(bool p_is_idle) {
 			for (int i = 0; i < ScriptServer::get_language_count(); i++) {
 				ScriptServer::get_language(i)->reload_scripts(scripts_to_reload, true);
 			}
+			script_paths_to_reload.clear();
 		}
-		script_paths_to_reload.clear();
+		if (reload_extensions) {
+			if (Engine::get_singleton()->is_extension_reloading_enabled()) {
+				GDExtensionManager::get_singleton()->reload_extensions();
+			}
+			reload_extensions = false;
+		}
 	}
 }
 
@@ -657,6 +666,8 @@ Error RemoteDebugger::_core_capture(const String &p_cmd, const Array &p_data, bo
 		script_paths_to_reload = p_data;
 	} else if (p_cmd == "reload_all_scripts") {
 		reload_all_scripts = true;
+	} else if (p_cmd == "reload_extensions") {
+		reload_extensions = true;
 	} else if (p_cmd == "breakpoint") {
 		ERR_FAIL_COND_V(p_data.size() < 3, ERR_INVALID_DATA);
 		bool set = p_data[2];

@@ -984,6 +984,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 
 	Vector<String> breakpoints;
 	bool delta_smoothing_override = false;
+	bool gdextension_reload_in_game = false;
 
 	String default_renderer = "";
 	String default_renderer_mobile = "";
@@ -1780,6 +1781,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 				OS::get_singleton()->print("Missing <port> argument for --dap-port <port>.\n");
 				goto error;
 			}
+		} else if (arg == "--gdextension-reload") {
+			gdextension_reload_in_game = true;
 #endif // TOOLS_ENABLED
 		} else if (arg == "--wid") {
 			if (N) {
@@ -1868,6 +1871,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 #ifdef TOOLS_ENABLED
 	if (editor) {
 		Engine::get_singleton()->set_editor_hint(true);
+	}
+	if (editor || gdextension_reload_in_game) {
 		Engine::get_singleton()->set_extension_reloading_enabled(true);
 
 		// Create initialization lock file to detect crashes during startup.
