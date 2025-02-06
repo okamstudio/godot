@@ -1486,7 +1486,7 @@ TileSet::TerrainsPattern TileMapLayer::_get_best_terrain_pattern_for_constraints
 	RBMap<TileSet::TerrainsPattern, int> terrain_pattern_score;
 	RBSet<TileSet::TerrainsPattern> pattern_set = tile_set->get_terrains_pattern_set(p_terrain_set);
 	ERR_FAIL_COND_V(pattern_set.is_empty(), TileSet::TerrainsPattern());
-	for (TileSet::TerrainsPattern &terrain_pattern : pattern_set) {
+	for (const TileSet::TerrainsPattern &terrain_pattern : pattern_set) {
 		int score = 0;
 
 		// Check the center bit constraint.

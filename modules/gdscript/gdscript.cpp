@@ -1615,7 +1615,7 @@ void GDScript::clear(ClearData *p_clear_data) {
 		for (GDScriptFunction *E : clear_data->functions) {
 			memdelete(E);
 		}
-		for (Ref<Script> &E : clear_data->scripts) {
+		for (const Ref<Script> &E : clear_data->scripts) {
 			Ref<GDScript> gdscr = E;
 			if (gdscr.is_valid()) {
 				GDScriptCache::remove_script(gdscr->get_path());
@@ -2599,7 +2599,7 @@ void GDScriptLanguage::reload_scripts(const Array &p_scripts, bool p_soft_reload
 			HashMap<ObjectID, List<Pair<StringName, Variant>>> &map = to_reload[scr];
 
 			while (scr->instances.front()) {
-				Object *obj = scr->instances.front()->get();
+				Object *obj = scr->instances.front()->key();
 				//save instance info
 				List<Pair<StringName, Variant>> state;
 				if (obj->get_script_instance()) {

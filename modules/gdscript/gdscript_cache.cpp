@@ -476,7 +476,7 @@ void GDScriptCache::clear() {
 
 	singleton->parser_map.clear();
 
-	for (Ref<GDScriptParserRef> &E : parser_map_refs) {
+	for (const Ref<GDScriptParserRef> &E : parser_map_refs) {
 		if (E.is_valid()) {
 			E->clear();
 		}
