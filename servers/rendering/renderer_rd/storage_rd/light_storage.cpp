@@ -714,7 +714,9 @@ void LightStorage::update_light_buffers(RenderDataRD *p_render_data, const Paged
 						light_data.shadow_split_offsets[j] = split;
 						float bias_scale = light_instance->shadow_transform[j].bias_scale * light_data.soft_shadow_scale;
 						light_data.shadow_bias[j] = light->param[RS::LIGHT_PARAM_SHADOW_BIAS] / 100.0 * bias_scale;
-						light_data.shadow_normal_bias[j] = light->param[RS::LIGHT_PARAM_SHADOW_NORMAL_BIAS] * light_instance->shadow_transform[j].shadow_texel_size;
+						// Use lower shadow normal bias for distant splits, relative to the share taken by the split.
+						// This helps reduce peter-panning at a distance.
+						light_data.shadow_normal_bias[j] = light->param[RS::LIGHT_PARAM_SHADOW_NORMAL_BIAS] * light_instance->shadow_transform[j].shadow_texel_size * light_data.shadow_split_offsets[0] / split;
 						light_data.shadow_transmittance_bias[j] = light->param[RS::LIGHT_PARAM_TRANSMITTANCE_BIAS] / 100.0 * bias_scale;
 						light_data.shadow_z_range[j] = light_instance->shadow_transform[j].farplane;
 						light_data.shadow_range_begin[j] = light_instance->shadow_transform[j].range_begin;
