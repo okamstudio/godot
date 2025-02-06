@@ -8,6 +8,8 @@ indent_style = tab
 insert_final_newline = true
 max_line_length = 120
 trim_trailing_whitespace = true
+indent_style = tab
+indent_size = 4
 
 [{*.py,SConstruct,SCsub}]
 indent_style = space
