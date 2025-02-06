@@ -4236,14 +4236,6 @@ void Node3DEditorViewport::set_state(const Dictionary &p_state) {
 			_menu_option(VIEW_INFORMATION);
 		}
 	}
-	if (p_state.has("frame_time")) {
-		bool fps = p_state["frame_time"];
-
-		int idx = view_menu->get_popup()->get_item_index(VIEW_FRAME_TIME);
-		if (view_menu->get_popup()->is_item_checked(idx) != fps) {
-			_menu_option(VIEW_FRAME_TIME);
-		}
-	}
 	if (p_state.has("half_res")) {
 		bool half_res = p_state["half_res"];
 
@@ -4309,7 +4301,6 @@ Dictionary Node3DEditorViewport::get_state() const {
 	d["transform_gizmo"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_TRANSFORM_GIZMO));
 	d["grid"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_GRID));
 	d["information"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_INFORMATION));
-	d["frame_time"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_FRAME_TIME));
 	d["half_res"] = subviewport_container->get_stretch_shrink() > 1;
 	d["cinematic_preview"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_CINEMATIC_PREVIEW));
 	if (previewing) {
