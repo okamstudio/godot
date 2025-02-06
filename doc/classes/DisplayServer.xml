@@ -143,10 +143,12 @@
 			<param index="4" name="mode" type="int" enum="DisplayServer.FileDialogMode" />
 			<param index="5" name="filters" type="PackedStringArray" />
 			<param index="6" name="callback" type="Callable" />
+			<param index="7" name="parent_window_id" type="int" default="0" />
 			<description>
 				Displays OS native dialog for selecting files or directories in the file system.
 				Each filter string in the [param filters] array should be formatted like this: [code]*.png,*.jpg,*.jpeg;Image Files;image/png,image/jpeg[/code]. The description text of the filter is optional and can be omitted. It is recommended to set both file extension and MIME type. See also [member FileDialog.filters].
 				Callbacks have the following arguments: [code]status: bool, selected_paths: PackedStringArray, selected_filter_index: int[/code]. [b]On Android,[/b] callback argument [code]selected_filter_index[/code] is always zero.
+				If [param parent_window_id] is set to valid window ID, native dialog is displayed on top of this window and will return focus to this window when closed.
 				[b]Note:[/b] This method is implemented if the display server has the [constant FEATURE_NATIVE_DIALOG_FILE] feature. Supported platforms include Linux (X11/Wayland), Windows, macOS, and Android.
 				[b]Note:[/b] [param current_directory] might be ignored.
 				[b]Note:[/b] Embedded file dialog and Windows file dialog support only file extensions, while Android, Linux, and macOS file dialogs also support MIME types.
@@ -166,6 +168,7 @@
 			<param index="6" name="filters" type="PackedStringArray" />
 			<param index="7" name="options" type="Dictionary[]" />
 			<param index="8" name="callback" type="Callable" />
+			<param index="9" name="parent_window_id" type="int" default="0" />
 			<description>
 				Displays OS native dialog for selecting files or directories in the file system with additional user selectable options.
 				Each filter string in the [param filters] array should be formatted like this: [code]*.png,*.jpg,*.jpeg;Image Files;image/png,image/jpeg[/code]. The description text of the filter is optional and can be omitted. It is recommended to set both file extension and MIME type. See also [member FileDialog.filters].
@@ -174,6 +177,7 @@
 				- [code]"values"[/code] - [PackedStringArray] of values. If empty, boolean option (check box) is used.
 				- [code]"default"[/code] - default selected option index ([int]) or default boolean value ([bool]).
 				Callbacks have the following arguments: [code]status: bool, selected_paths: PackedStringArray, selected_filter_index: int, selected_option: Dictionary[/code].
+				If [param parent_window_id] is set to valid window ID, native dialog is displayed on top of this window and will return focus to this window when closed.
 				[b]Note:[/b] This method is implemented if the display server has the [constant FEATURE_NATIVE_DIALOG_FILE_EXTRA] feature. Supported platforms include Linux (X11/Wayland), Windows, and macOS.
 				[b]Note:[/b] [param current_directory] might be ignored.
 				[b]Note:[/b] Embedded file dialog and Windows file dialog support only file extensions, while Android, Linux, and macOS file dialogs also support MIME types.
