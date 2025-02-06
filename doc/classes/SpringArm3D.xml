@@ -29,6 +29,12 @@
 				Returns the spring arm's current length.
 			</description>
 		</method>
+		<method name="is_colliding" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns whether the SpringArm3D's ray or shape is intersecting with any colliders, and thus, if the spring arm's current length is less than its maximum length.
+			</description>
+		</method>
 		<method name="remove_excluded_object">
 			<return type="bool" />
 			<param index="0" name="RID" type="RID" />

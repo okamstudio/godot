@@ -36,6 +36,7 @@
 class SpringArm3D : public Node3D {
 	GDCLASS(SpringArm3D, Node3D);
 
+	bool collided = false;
 	Ref<Shape3D> shape;
 	HashSet<RID> excluded_objects;
 	real_t spring_length = 1.0;
@@ -59,6 +60,7 @@ public:
 	bool remove_excluded_object(RID p_rid);
 	void clear_excluded_objects();
 	real_t get_hit_length();
+	bool is_colliding() const;
 	void set_margin(real_t p_margin);
 	real_t get_margin();
 

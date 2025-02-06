@@ -55,6 +55,7 @@ void SpringArm3D::_notification(int p_what) {
 
 void SpringArm3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_hit_length"), &SpringArm3D::get_hit_length);
+	ClassDB::bind_method(D_METHOD("is_colliding"), &SpringArm3D::is_colliding);
 
 	ClassDB::bind_method(D_METHOD("set_length", "length"), &SpringArm3D::set_length);
 	ClassDB::bind_method(D_METHOD("get_length"), &SpringArm3D::get_length);
@@ -130,6 +131,10 @@ real_t SpringArm3D::get_hit_length() {
 	return current_spring_length;
 }
 
+bool SpringArm3D::is_colliding() const {
+	return collided;
+}
+
 void SpringArm3D::process_spring() {
 	// From
 	real_t motion_delta(1);
@@ -187,6 +192,8 @@ void SpringArm3D::process_spring() {
 
 		get_world_3d()->get_direct_space_state()->cast_motion(shape_params, motion_delta, motion_delta_unsafe);
 	}
+
+	collided = motion_delta < 1.0;
 
 	current_spring_length = spring_length * motion_delta;
 	Transform3D child_transform;
