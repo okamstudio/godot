@@ -527,8 +527,8 @@ class TextServerAdvanced : public TextServerExtension {
 		TrimData overrun_trim_data;
 		bool fit_width_minimum_reached = false;
 
-		Vector<Glyph> glyphs;
-		Vector<Glyph> glyphs_logical;
+		LocalVector<Glyph> glyphs;
+		LocalVector<Glyph> glyphs_logical;
 
 		/* Intermediate data */
 		Char16String utf16;
