@@ -966,6 +966,9 @@
 		<member name="editor/import/use_multiple_threads" type="bool" setter="" getter="" default="true">
 			If [code]true[/code] importing of resources is run on multiple threads.
 		</member>
+		<member name="editor/movie_writer/create_new_file_if_existing" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], uses a new file name with a [code]_N[/code] suffix (where [code]N[/code] is an incremental number starting from 1) when writing a movie if it already exists. If [code]false[/code], overwrites the existing file.
+		</member>
 		<member name="editor/movie_writer/disable_vsync" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], requests V-Sync to be disabled when writing a movie (similar to setting [member display/window/vsync/vsync_mode] to [b]Disabled[/b]). This can speed up video writing if the hardware is fast enough to render, encode and save the video at a framerate higher than the monitor's refresh rate.
 			[b]Note:[/b] [member editor/movie_writer/disable_vsync] has no effect if the operating system or graphics driver forces V-Sync with no way for applications to disable it.

@@ -66,7 +66,19 @@ Error MovieWriterPNGWAV::write_begin(const Size2i &p_movie_size, uint32_t p_fps,
 		base_path = "res://" + base_path;
 	}
 
-	{
+	if (GLOBAL_GET("editor/movie_writer/create_new_file_if_existing")) {
+		// Find a unique file name
+		uint32_t idx = 0;
+		String tmp_fullpath = base_path + "_" + zeros_str(idx) + ".png";
+		String tmp_basename = base_path;
+		int number = 1;
+		while (FileAccess::exists(tmp_fullpath)) {
+			tmp_basename = base_path + "_" + itos(number);
+			tmp_fullpath = tmp_basename + "_" + zeros_str(idx) + ".png";
+			number++;
+		}
+		base_path = tmp_basename;
+	} else {
 		//Remove existing files before writing anew
 		uint32_t idx = 0;
 		Ref<DirAccess> d = DirAccess::open(base_path.get_base_dir());
@@ -74,10 +86,11 @@ Error MovieWriterPNGWAV::write_begin(const Size2i &p_movie_size, uint32_t p_fps,
 
 		String file = base_path.get_file();
 		while (true) {
-			String path = file + zeros_str(idx) + ".png";
+			String path = file + "_" + zeros_str(idx) + ".png";
 			if (d->remove(path) != OK) {
 				break;
 			}
+			idx++;
 		}
 	}
 
@@ -144,7 +157,7 @@ Error MovieWriterPNGWAV::write_frame(const Ref<Image> &p_image, const int32_t *p
 
 	Vector<uint8_t> png_buffer = p_image->save_png_to_buffer();
 
-	Ref<FileAccess> fi = FileAccess::open(base_path + zeros_str(frame_count) + ".png", FileAccess::WRITE);
+	Ref<FileAccess> fi = FileAccess::open(base_path + "_" + zeros_str(frame_count) + ".png", FileAccess::WRITE);
 	fi->store_buffer(png_buffer.ptr(), png_buffer.size());
 	f_wav->store_buffer((const uint8_t *)p_audio_data, audio_block_size);
 

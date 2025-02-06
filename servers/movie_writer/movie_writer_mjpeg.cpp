@@ -56,6 +56,17 @@ Error MovieWriterMJPEG::write_begin(const Size2i &p_movie_size, uint32_t p_fps, 
 
 	base_path += ".avi";
 
+	if (GLOBAL_GET("editor/movie_writer/create_new_file_if_existing")) {
+		String tmp_fullpath = base_path;
+		String tmp_basename = base_path.get_basename();
+		int number = 1;
+		while (FileAccess::exists(tmp_fullpath)) {
+			tmp_fullpath = tmp_basename + "_" + itos(number) + ".avi";
+			number++;
+		}
+		base_path = tmp_fullpath;
+	}
+
 	f = FileAccess::open(base_path, FileAccess::WRITE_READ);
 
 	fps = p_fps;
