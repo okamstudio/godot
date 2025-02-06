@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="TrackBoneModifier3D" inherits="BoneConstraint3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		The [TrackBoneModifier3D] rotates a bone to look at a target bone.
+	</brief_description>
+	<description>
+		This is a simple version of [LookAtModifier3D] that only allows bone to the target without advanced options such as angle limitation or time-based interpolation.
+		The feature is simplified, but instead it is implemented with smooth tracking without euler, see [method set_use_euler].
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_forward_axis" qualifiers="const">
+			<return type="int" enum="SkeletonModifier3D.BoneAxis" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the forward axis of the bone.
+			</description>
+		</method>
+		<method name="get_primary_rotation_axis" qualifiers="const">
+			<return type="int" enum="Vector3.Axis" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the axis of the first rotation. It is enabled only if [method is_using_euler] is [code]true[/code].
+			</description>
+		</method>
+		<method name="is_using_euler" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns [code]true[/code] if it provides rotation with using euler.
+			</description>
+		</method>
+		<method name="is_using_secondary_rotation" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns [code]true[/code] if it provides rotation by two axes. It is enabled only if [method is_using_euler] is [code]true[/code].
+			</description>
+		</method>
+		<method name="set_forward_axis">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="axis" type="int" enum="SkeletonModifier3D.BoneAxis" />
+			<description>
+				Sets the forward axis of the bone.
+			</description>
+		</method>
+		<method name="set_primary_rotation_axis">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="axis" type="int" enum="Vector3.Axis" />
+			<description>
+				Sets the axis of the first rotation. It is enabled only if [method is_using_euler] is [code]true[/code].
+			</description>
+		</method>
+		<method name="set_use_euler">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+				If sets [param enabled] to [code]true[/code], it provides rotation with using euler.
+				If sets [param enabled] to [code]false[/code], it provides rotation with using rotation by arc generated from the forward axis vector and the vector toward the target.
+			</description>
+		</method>
+		<method name="set_use_secondary_rotation">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+				If sets [param enabled] to [code]true[/code], it provides rotation by two axes. It is enabled only if [method is_using_euler] is [code]true[/code].
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="setting_count" type="int" setter="set_setting_count" getter="get_setting_count" default="0">
+			The number of settings in the modifier.
+		</member>
+	</members>
+</class>
