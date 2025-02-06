@@ -520,6 +520,12 @@
 		<member name="editors/animation/default_create_reset_tracks" type="bool" setter="" getter="">
 			If [code]true[/code], create a [code]RESET[/code] track when creating a new animation track. This track can be used to restore the animation to a "default" state.
 		</member>
+		<member name="editors/animation/default_fps_compatibility" type="bool" setter="" getter="">
+			Controls whether [AnimationPlayer] will apply snapping to nearest integer FPS when snapping is in Seconds mode. The option is remembered locally for a scene and this option only determines the default value when scene doesn't have local state yet.
+		</member>
+		<member name="editors/animation/default_fps_mode" type="int" setter="" getter="">
+			Default step mode for [AnimationPlayer] (seconds or FPS). The option is remembered locally for a scene and this option only determines the default value when scene doesn't have local state yet.
+		</member>
 		<member name="editors/animation/onion_layers_future_color" type="Color" setter="" getter="">
 			The modulate color to use for "future" frames displayed in the animation editor's onion skinning feature.
 		</member>

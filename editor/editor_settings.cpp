@@ -899,6 +899,8 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	EDITOR_SETTING(Variant::FLOAT, PROPERTY_HINT_RANGE, "editors/polygon_editor/auto_bake_delay", 1.5, "-1.0,10.0,0.01");
 
 	// Animation
+	EDITOR_SETTING(Variant::INT, PROPERTY_HINT_ENUM, "editors/animation/default_fps_mode", 0, "Seconds,FPS");
+	_initial_set("editors/animation/default_fps_compatibility", true);
 	_initial_set("editors/animation/autorename_animation_tracks", true);
 	_initial_set("editors/animation/confirm_insert_track", true, true);
 	_initial_set("editors/animation/default_create_bezier_tracks", false, true);

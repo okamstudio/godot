@@ -923,6 +923,10 @@ void AnimationPlayerEditor::set_state(const Dictionary &p_state) {
 	}
 }
 
+void AnimationPlayerEditor::clear() {
+	track_editor->clear();
+}
+
 void AnimationPlayerEditor::_animation_resource_edit() {
 	String current = _get_current();
 	if (current != String()) {
