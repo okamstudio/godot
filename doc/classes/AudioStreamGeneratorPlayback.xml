@@ -30,6 +30,18 @@
 				Returns the number of frames that can be pushed to the audio sample data buffer without overflowing it. If the result is [code]0[/code], the buffer is full.
 			</description>
 		</method>
+		<method name="get_frames_buffer_length" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the total size of the internal audio sample data buffer in frames.
+			</description>
+		</method>
+		<method name="get_frames_buffered" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the number of frames that are currently queued in the audio sample data buffer. If the result is [code]0[/code], the buffer is empty.
+			</description>
+		</method>
 		<method name="get_skips" qualifiers="const">
 			<return type="int" />
 			<description>

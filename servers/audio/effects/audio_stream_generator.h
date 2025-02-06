@@ -87,6 +87,8 @@ public:
 	bool can_push_buffer(int p_frames) const;
 	bool push_buffer(const PackedVector2Array &p_frames);
 	int get_frames_available() const;
+	int get_frames_buffered() const;
+	int get_frames_buffer_length() const;
 	int get_skips() const;
 
 	virtual void tag_used_streams() override;

@@ -132,6 +132,14 @@ int AudioStreamGeneratorPlayback::get_frames_available() const {
 	return buffer.space_left();
 }
 
+int AudioStreamGeneratorPlayback::get_frames_buffered() const {
+	return buffer.data_left();
+}
+
+int AudioStreamGeneratorPlayback::get_frames_buffer_length() const {
+	return buffer.size();
+}
+
 int AudioStreamGeneratorPlayback::get_skips() const {
 	return skips;
 }
@@ -208,6 +216,8 @@ void AudioStreamGeneratorPlayback::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("can_push_buffer", "amount"), &AudioStreamGeneratorPlayback::can_push_buffer);
 	ClassDB::bind_method(D_METHOD("push_buffer", "frames"), &AudioStreamGeneratorPlayback::push_buffer);
 	ClassDB::bind_method(D_METHOD("get_frames_available"), &AudioStreamGeneratorPlayback::get_frames_available);
+	ClassDB::bind_method(D_METHOD("get_frames_buffered"), &AudioStreamGeneratorPlayback::get_frames_buffered);
+	ClassDB::bind_method(D_METHOD("get_frames_buffer_length"), &AudioStreamGeneratorPlayback::get_frames_buffer_length);
 	ClassDB::bind_method(D_METHOD("get_skips"), &AudioStreamGeneratorPlayback::get_skips);
 	ClassDB::bind_method(D_METHOD("clear_buffer"), &AudioStreamGeneratorPlayback::clear_buffer);
 }
