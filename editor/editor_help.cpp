@@ -40,6 +40,7 @@
 #include "core/string/string_builder.h"
 #include "core/version_generated.gen.h"
 #include "editor/doc_data_compressed.gen.h"
+#include "editor/editor_file_system.h"
 #include "editor/editor_main_screen.h"
 #include "editor/editor_node.h"
 #include "editor/editor_paths.h"
@@ -191,37 +192,6 @@ static String _contextualize_class_specifier(const String &p_class_specifier, co
 }
 
 /// EditorHelp ///
-
-// TODO: This is sometimes used directly as `doc->something`, other times as `EditorHelp::get_doc_data()`, which is thread-safe.
-// Might this be a problem?
-DocTools *EditorHelp::doc = nullptr;
-DocTools *EditorHelp::ext_doc = nullptr;
-
-int EditorHelp::doc_generation_count = 0;
-String EditorHelp::doc_version_hash;
-Thread EditorHelp::worker_thread;
-
-static bool _attempt_doc_load(const String &p_class) {
-	// Docgen always happens in the outer-most class: it also generates docs for inner classes.
-	const String outer_class = p_class.get_slicec('.', 0);
-	if (!ScriptServer::is_global_class(outer_class)) {
-		return false;
-	}
-
-	// `ResourceLoader` is used in order to have a script-agnostic way to load scripts.
-	// This forces GDScript to compile the code, which is unnecessary for docgen, but it's a good compromise right now.
-	const Ref<Script> script = ResourceLoader::load(ScriptServer::get_global_class_path(outer_class), outer_class);
-	if (script.is_valid()) {
-		const Vector<DocData::ClassDoc> docs = script->get_documentation();
-		for (int j = 0; j < docs.size(); j++) {
-			const DocData::ClassDoc &doc = docs.get(j);
-			EditorHelp::get_doc_data()->add_doc(doc);
-		}
-		return true;
-	}
-
-	return false;
-}
 
 void EditorHelp::_update_theme_item_cache() {
 	VBoxContainer::_update_theme_item_cache();
@@ -705,8 +675,7 @@ void EditorHelp::_pop_code_font() {
 }
 
 Error EditorHelp::_goto_desc(const String &p_class) {
-	// If class doesn't have docs listed, attempt on-demand docgen
-	if (!doc->class_list.has(p_class) && !_attempt_doc_load(p_class)) {
+	if (!doc->class_list.has(p_class)) {
 		return ERR_DOES_NOT_EXIST;
 	}
 
@@ -2402,12 +2371,10 @@ void EditorHelp::_help_callback(const String &p_topic) {
 }
 
 static void _add_text_to_rt(const String &p_bbcode, RichTextLabel *p_rt, const Control *p_owner_node, const String &p_class) {
-	const DocTools *doc = EditorHelp::get_doc_data();
-
 	bool is_native = false;
 	{
-		const HashMap<String, DocData::ClassDoc>::ConstIterator E = doc->class_list.find(p_class);
-		if (E && !E->value.is_script_doc) {
+		const DocData::ClassDoc *E = EditorHelp::get_doc(p_class);
+		if (E && !E->is_script_doc) {
 			is_native = true;
 		}
 	}
@@ -2621,7 +2588,7 @@ static void _add_text_to_rt(const String &p_bbcode, RichTextLabel *p_rt, const C
 			p_rt->pop(); // font
 
 			pos = brk_end + 1;
-		} else if (doc->class_list.has(tag)) {
+		} else if (EditorHelp::has_doc(tag)) {
 			// Use a monospace font for class reference tags such as [Node2D] or [SceneTree].
 
 			p_rt->push_font(doc_code_font);
@@ -2901,9 +2868,9 @@ void EditorHelp::_add_text(const String &p_bbcode) {
 	_add_text_to_rt(p_bbcode, class_desc, this, edited_class);
 }
 
-void EditorHelp::_wait_for_thread() {
-	if (worker_thread.is_started()) {
-		worker_thread.wait_to_finish();
+void EditorHelp::_wait_for_thread(Thread &p_thread) {
+	if (p_thread.is_started()) {
+		p_thread.wait_to_finish();
 	}
 }
 
@@ -2914,6 +2881,52 @@ void EditorHelp::_compute_doc_version_hash() {
 
 String EditorHelp::get_cache_full_path() {
 	return EditorPaths::get_singleton()->get_cache_dir().path_join(vformat("editor_doc_cache-%d.%d.res", VERSION_MAJOR, VERSION_MINOR));
+}
+
+String EditorHelp::get_script_doc_cache_full_path() {
+	return EditorPaths::get_singleton()->get_project_settings_dir().path_join("editor_script_doc_cache.res");
+}
+
+DocTools *EditorHelp::get_doc_data() {
+	_wait_for_thread();
+	return doc;
+}
+
+bool EditorHelp::has_doc(const String &p_class_name) {
+	return get_doc(p_class_name) != nullptr;
+}
+
+DocData::ClassDoc *EditorHelp::get_doc(const String &p_class_name) {
+	return get_doc_data()->class_list.getptr(p_class_name);
+}
+
+void EditorHelp::add_doc(const DocData::ClassDoc &p_class_doc) {
+	if (!_script_docs_loaded.is_set()) {
+		_docs_to_add.push_back(p_class_doc);
+		return;
+	}
+
+	get_doc_data()->add_doc(p_class_doc);
+}
+
+void EditorHelp::remove_doc(const String &p_class_name) {
+	if (!_script_docs_loaded.is_set()) {
+		_docs_to_remove.push_back(p_class_name);
+		return;
+	}
+
+	DocTools *dt = get_doc_data();
+	if (dt->has_doc(p_class_name)) {
+		dt->remove_doc(p_class_name);
+	}
+}
+
+void EditorHelp::remove_script_doc_by_path(const String &p_path) {
+	if (!_script_docs_loaded.is_set()) {
+		_docs_to_remove_by_path.push_back(p_path);
+		return;
+	}
+	get_doc_data()->remove_script_doc_by_path(p_path);
 }
 
 void EditorHelp::load_xml_buffer(const uint8_t *p_buffer, int p_size) {
@@ -2934,23 +2947,26 @@ void EditorHelp::remove_class(const String &p_class) {
 	}
 
 	if (doc && doc->has_doc(p_class)) {
-		doc->remove_doc(p_class);
+		remove_doc(p_class);
 	}
 }
 
 void EditorHelp::_load_doc_thread(void *p_udata) {
+	bool use_script_cache = (bool)p_udata;
 	Ref<Resource> cache_res = ResourceLoader::load(get_cache_full_path());
 	if (cache_res.is_valid() && cache_res->get_meta("version_hash", "") == doc_version_hash) {
 		Array classes = cache_res->get_meta("classes", Array());
 		for (int i = 0; i < classes.size(); i++) {
 			doc->add_doc(DocData::ClassDoc::from_dict(classes[i]));
 		}
-
+		if (use_script_cache) {
+			callable_mp_static(&EditorHelp::load_script_doc_cache).call_deferred();
+		}
 		// Extensions' docs are not cached. Generate them now (on the main thread).
 		callable_mp_static(&EditorHelp::_gen_extensions_docs).call_deferred();
 	} else {
 		// We have to go back to the main thread to start from scratch, bypassing any possibly existing cache.
-		callable_mp_static(&EditorHelp::generate_doc).call_deferred(false);
+		callable_mp_static(&EditorHelp::generate_doc).call_deferred(false, use_script_cache);
 	}
 
 	OS::get_singleton()->benchmark_end_measure("EditorHelp", vformat("Generate Documentation (Run %d)", doc_generation_count));
@@ -2980,6 +2996,12 @@ void EditorHelp::_gen_doc_thread(void *p_udata) {
 		ERR_PRINT("Cannot save editor help cache (" + get_cache_full_path() + ").");
 	}
 
+	// Load script docs after native ones are cached so native cache doesn't contain script docs.
+	bool use_script_cache = (bool)p_udata;
+	if (use_script_cache) {
+		callable_mp_static(&EditorHelp::load_script_doc_cache).call_deferred();
+	}
+
 	OS::get_singleton()->benchmark_end_measure("EditorHelp", vformat("Generate Documentation (Run %d)", doc_generation_count));
 }
 
@@ -2991,8 +3013,166 @@ void EditorHelp::_gen_extensions_docs() {
 		doc->merge_from(*ext_doc);
 	}
 }
+static void _load_script_doc_cache(bool p_changes) {
+	EditorHelp::load_script_doc_cache();
+}
 
-void EditorHelp::generate_doc(bool p_use_cache) {
+void EditorHelp::load_script_doc_cache() {
+	if (!ProjectSettings::get_singleton()->is_project_loaded()) {
+		print_verbose("Skipping loading script doc cache since no project is open.");
+		return;
+	}
+
+	_wait_for_thread();
+
+	if (!ResourceLoader::exists(get_script_doc_cache_full_path())) {
+		print_verbose("Script documentation cache not found. Regenerating it may take a while for projects with many scripts.");
+		regenerate_script_doc_cache();
+		return;
+	}
+
+	if (EditorFileSystem::get_singleton()->is_scanning()) {
+		// This is assuming EditorFileSystem is performing first scan. We must wait until it is done.
+		EditorFileSystem::get_singleton()->connect(SNAME("sources_changed"), callable_mp_static(_load_script_doc_cache), CONNECT_ONE_SHOT);
+		return;
+	}
+
+	worker_thread.start(_load_script_doc_cache_thread, nullptr);
+}
+
+void EditorHelp::_process_postponed_docs() {
+	for (const String &class_name : _docs_to_remove) {
+		doc->remove_doc(class_name);
+	}
+	for (const String &path : _docs_to_remove_by_path) {
+		doc->remove_script_doc_by_path(path);
+	}
+	for (const DocData::ClassDoc &cd : _docs_to_add) {
+		doc->add_doc(cd);
+	}
+	_docs_to_add.clear();
+	_docs_to_remove.clear();
+	_docs_to_remove_by_path.clear();
+}
+
+void EditorHelp::_load_script_doc_cache_thread(void *p_udata) {
+	ERR_FAIL_COND_MSG(!ProjectSettings::get_singleton()->is_project_loaded(), "Error: cannot load script doc cache without a project.");
+	ERR_FAIL_COND_MSG(!ResourceLoader::exists(get_script_doc_cache_full_path()), "Error: cannot load script doc cache from inexistent file.");
+
+	Ref<Resource> script_doc_cache_res = ResourceLoader::load(get_script_doc_cache_full_path(), "", ResourceFormatLoader::CACHE_MODE_IGNORE);
+	if (script_doc_cache_res.is_null()) {
+		print_verbose("Script doc cache is corrupted. Regenerating it instead.");
+		_delete_script_doc_cache();
+		callable_mp_static(EditorHelp::regenerate_script_doc_cache).call_deferred();
+		return;
+	}
+
+	Array classes = script_doc_cache_res->get_meta("classes", Array());
+	for (const Dictionary dict : classes) {
+		doc->add_doc(DocData::ClassDoc::from_dict(dict));
+	}
+
+	// Protect from race condition in other threads reading / this thread writing to _docs_to_add/remove/etc.
+	_script_docs_loaded.set();
+
+	// Deal with docs likely added from EditorFileSystem's scans while the cache was loading in EditorHelp::worker_thread.
+	_process_postponed_docs();
+
+	// Always delete the doc cache after successful load since most uses of editor will change a script, invalidating cache.
+	_delete_script_doc_cache();
+}
+
+// Helper method to deal with "sources_changed" signal having a parameter.
+static void _regenerate_script_doc_cache(bool p_changes) {
+	EditorHelp::regenerate_script_doc_cache();
+}
+
+void EditorHelp::regenerate_script_doc_cache() {
+	if (EditorFileSystem::get_singleton()->is_scanning()) {
+		// Wait until EditorFileSystem scanning is complete to use updated filesystem structure.
+		EditorFileSystem::get_singleton()->connect(SNAME("sources_changed"), callable_mp_static(_regenerate_script_doc_cache), CONNECT_ONE_SHOT);
+		return;
+	}
+
+	_wait_for_thread(worker_thread);
+	_wait_for_thread(loader_thread);
+	loader_thread.start(_regen_script_doc_thread, EditorFileSystem::get_singleton()->get_filesystem());
+}
+
+// Runs on worker_thread since it writes to DocData.
+void EditorHelp::_finish_regen_script_doc_thread(void *p_udata) {
+	loader_thread.wait_to_finish();
+	_process_postponed_docs();
+	_script_docs_loaded.set();
+
+	OS::get_singleton()->benchmark_end_measure("EditorHelp", "Generate Script Documentation");
+}
+
+// Runs on loader_thread since _reload_scripts_documentation calls ResourceLoader::load().
+// Avoids deadlocks of worker_thread needing main thread for load task dispatching, but main thread waiting on worker_thread.
+void EditorHelp::_regen_script_doc_thread(void *p_udata) {
+	OS::get_singleton()->benchmark_begin_measure("EditorHelp", "Generate Script Documentation");
+
+	EditorFileSystemDirectory *dir = static_cast<EditorFileSystemDirectory *>(p_udata);
+	_script_docs_loaded.set_to(false);
+
+	// Ignore changes from filesystem scan since script docs will be now.
+	_docs_to_add.clear();
+	_docs_to_remove.clear();
+	_docs_to_remove_by_path.clear();
+
+	_reload_scripts_documentation(dir);
+
+	// All ResourceLoader::load() calls are done, so we can no longer deadlock with main thread.
+	// Switch to back to worker_thread from loader_thread to resynchronize access to DocData.
+	worker_thread.start(_finish_regen_script_doc_thread, nullptr);
+}
+
+void EditorHelp::_reload_scripts_documentation(EditorFileSystemDirectory *p_dir) {
+	// Recursively force compile all scripts, which should generate their documentation.
+	for (int i = 0; i < p_dir->get_subdir_count(); i++) {
+		_reload_scripts_documentation(p_dir->get_subdir(i));
+	}
+
+	for (int i = 0; i < p_dir->get_file_count(); i++) {
+		if (ClassDB::is_parent_class(p_dir->get_file_type(i), SNAME("Script"))) {
+			Ref<Script> scr = ResourceLoader::load(p_dir->get_file_path(i));
+			if (scr.is_valid()) {
+				for (const DocData::ClassDoc &cd : scr->get_documentation()) {
+					_docs_to_add.push_back(cd);
+				}
+			}
+		}
+	}
+}
+
+void EditorHelp::_delete_script_doc_cache() {
+	if (FileAccess::exists(get_script_doc_cache_full_path())) {
+		DirAccess::remove_file_or_error(ProjectSettings::get_singleton()->globalize_path(get_script_doc_cache_full_path()));
+	}
+}
+
+void EditorHelp::save_script_doc_cache() {
+	if (!_script_docs_loaded.is_set()) {
+		print_verbose("Script docs haven't been properly loaded or regenerated, so don't save them to disk.");
+		return;
+	}
+
+	Ref<Resource> cache_res;
+	cache_res.instantiate();
+	Array classes;
+	for (const KeyValue<String, DocData::ClassDoc> &E : doc->class_list) {
+		if (E.value.is_script_doc) {
+			classes.push_back(DocData::ClassDoc::to_dict(E.value));
+		}
+	}
+
+	cache_res->set_meta("classes", classes);
+	Error err = ResourceSaver::save(cache_res, get_script_doc_cache_full_path(), ResourceSaver::FLAG_COMPRESS);
+	ERR_FAIL_COND_MSG(err != OK, vformat("Cannot save script documentation cache in %s.", get_script_doc_cache_full_path()));
+}
+
+void EditorHelp::generate_doc(bool p_use_cache, bool p_use_script_cache) {
 	doc_generation_count++;
 	OS::get_singleton()->benchmark_begin_measure("EditorHelp", vformat("Generate Documentation (Run %d)", doc_generation_count));
 
@@ -3008,11 +3188,11 @@ void EditorHelp::generate_doc(bool p_use_cache) {
 	}
 
 	if (p_use_cache && FileAccess::exists(get_cache_full_path())) {
-		worker_thread.start(_load_doc_thread, nullptr);
+		worker_thread.start(_load_doc_thread, (void *)p_use_script_cache);
 	} else {
 		print_verbose("Regenerating editor help cache");
 		doc->generate();
-		worker_thread.start(_gen_doc_thread, nullptr);
+		worker_thread.start(_gen_doc_thread, (void *)p_use_script_cache);
 	}
 }
 
@@ -3189,11 +3369,6 @@ EditorHelp::EditorHelp() {
 EditorHelp::~EditorHelp() {
 }
 
-DocTools *EditorHelp::get_doc_data() {
-	_wait_for_thread();
-	return doc;
-}
-
 /// EditorHelpBit ///
 
 #define HANDLE_DOC(m_string) ((is_native ? DTR(m_string) : (m_string)).strip_edges())
@@ -3205,13 +3380,13 @@ EditorHelpBit::HelpData EditorHelpBit::_get_class_help_data(const StringName &p_
 
 	HelpData result;
 
-	const HashMap<String, DocData::ClassDoc>::ConstIterator E = EditorHelp::get_doc_data()->class_list.find(p_class_name);
-	if (E) {
+	const DocData::ClassDoc *class_doc = EditorHelp::get_doc(p_class_name);
+	if (class_doc) {
 		// Non-native class shouldn't be cached, nor translated.
-		const bool is_native = !E->value.is_script_doc;
+		const bool is_native = !class_doc->is_script_doc;
 
-		const String brief_description = HANDLE_DOC(E->value.brief_description);
-		const String long_description = HANDLE_DOC(E->value.description);
+		const String brief_description = HANDLE_DOC(class_doc->brief_description);
+		const String long_description = HANDLE_DOC(class_doc->description);
 
 		if (!brief_description.is_empty()) {
 			result.description += "[b]" + brief_description + "[/b]";
@@ -3222,18 +3397,18 @@ EditorHelpBit::HelpData EditorHelpBit::_get_class_help_data(const StringName &p_
 			}
 			result.description += long_description;
 		}
-		if (E->value.is_deprecated) {
-			if (E->value.deprecated_message.is_empty()) {
+		if (class_doc->is_deprecated) {
+			if (class_doc->deprecated_message.is_empty()) {
 				result.deprecated_message = TTR("This class may be changed or removed in future versions.");
 			} else {
-				result.deprecated_message = HANDLE_DOC(E->value.deprecated_message);
+				result.deprecated_message = HANDLE_DOC(class_doc->deprecated_message);
 			}
 		}
-		if (E->value.is_experimental) {
-			if (E->value.experimental_message.is_empty()) {
+		if (class_doc->is_experimental) {
+			if (class_doc->experimental_message.is_empty()) {
 				result.experimental_message = TTR("This class may be changed or removed in future versions.");
 			} else {
-				result.experimental_message = HANDLE_DOC(E->value.experimental_message);
+				result.experimental_message = HANDLE_DOC(class_doc->experimental_message);
 			}
 		}
 
@@ -3252,13 +3427,12 @@ EditorHelpBit::HelpData EditorHelpBit::_get_enum_help_data(const StringName &p_c
 
 	HelpData result;
 
-	const DocTools *dd = EditorHelp::get_doc_data();
-	const HashMap<String, DocData::ClassDoc>::ConstIterator E = dd->class_list.find(p_class_name);
-	if (E) {
+	const DocData::ClassDoc *class_doc = EditorHelp::get_doc(p_class_name);
+	if (class_doc) {
 		// Non-native enums shouldn't be cached, nor translated.
-		const bool is_native = !E->value.is_script_doc;
+		const bool is_native = !class_doc->is_script_doc;
 
-		for (const KeyValue<String, DocData::EnumDoc> &kv : E->value.enums) {
+		for (const KeyValue<String, DocData::EnumDoc> &kv : class_doc->enums) {
 			const StringName enum_name = kv.key;
 			const DocData::EnumDoc &enum_doc = kv.value;
 
@@ -3303,13 +3477,12 @@ EditorHelpBit::HelpData EditorHelpBit::_get_constant_help_data(const StringName 
 
 	HelpData result;
 
-	const DocTools *dd = EditorHelp::get_doc_data();
-	const HashMap<String, DocData::ClassDoc>::ConstIterator E = dd->class_list.find(p_class_name);
-	if (E) {
+	const DocData::ClassDoc *class_doc = EditorHelp::get_doc(p_class_name);
+	if (class_doc) {
 		// Non-native constants shouldn't be cached, nor translated.
-		const bool is_native = !E->value.is_script_doc;
+		const bool is_native = !class_doc->is_script_doc;
 
-		for (const DocData::ConstantDoc &constant : E->value.constants) {
+		for (const DocData::ConstantDoc &constant : class_doc->constants) {
 			HelpData current;
 			current.description = HANDLE_DOC(constant.description);
 			if (constant.is_deprecated) {
@@ -3355,13 +3528,12 @@ EditorHelpBit::HelpData EditorHelpBit::_get_property_help_data(const StringName 
 
 	HelpData result;
 
-	const DocTools *dd = EditorHelp::get_doc_data();
-	const HashMap<String, DocData::ClassDoc>::ConstIterator E = dd->class_list.find(p_class_name);
-	if (E) {
+	const DocData::ClassDoc *class_doc = EditorHelp::get_doc(p_class_name);
+	if (class_doc) {
 		// Non-native properties shouldn't be cached, nor translated.
-		const bool is_native = !E->value.is_script_doc;
+		const bool is_native = !class_doc->is_script_doc;
 
-		for (const DocData::PropertyDoc &property : E->value.properties) {
+		for (const DocData::PropertyDoc &property : class_doc->properties) {
 			HelpData current;
 			current.description = HANDLE_DOC(property.description);
 			if (property.is_deprecated) {
@@ -3396,10 +3568,10 @@ EditorHelpBit::HelpData EditorHelpBit::_get_property_help_data(const StringName 
 
 			if (!enum_class_name.is_empty() && !enum_name.is_empty()) {
 				// Classes can use enums from other classes, so check from which it came.
-				const HashMap<String, DocData::ClassDoc>::ConstIterator enum_class = dd->class_list.find(enum_class_name);
+				const DocData::ClassDoc *enum_class = EditorHelp::get_doc(enum_class_name);
 				if (enum_class) {
 					const String enum_prefix = EditorPropertyNameProcessor::get_singleton()->process_name(enum_name, EditorPropertyNameProcessor::STYLE_CAPITALIZED) + " ";
-					for (DocData::ConstantDoc constant : enum_class->value.constants) {
+					for (DocData::ConstantDoc constant : enum_class->constants) {
 						// Don't display `_MAX` enum value descriptions, as these are never exposed in the inspector.
 						if (constant.enumeration == enum_name && !constant.name.ends_with("_MAX")) {
 							// Prettify the enum value display, so that "<ENUM_NAME>_<ITEM>" becomes "Item".
@@ -3440,13 +3612,12 @@ EditorHelpBit::HelpData EditorHelpBit::_get_theme_item_help_data(const StringNam
 	HelpData result;
 
 	bool found = false;
-	const DocTools *dd = EditorHelp::get_doc_data();
-	HashMap<String, DocData::ClassDoc>::ConstIterator E = dd->class_list.find(p_class_name);
-	while (E) {
+	DocData::ClassDoc *class_doc = EditorHelp::get_doc(p_class_name);
+	while (class_doc) {
 		// Non-native theme items shouldn't be cached, nor translated.
-		const bool is_native = !E->value.is_script_doc;
+		const bool is_native = !class_doc->is_script_doc;
 
-		for (const DocData::ThemeItemDoc &theme_item : E->value.theme_properties) {
+		for (const DocData::ThemeItemDoc &theme_item : class_doc->theme_properties) {
 			HelpData current;
 			current.description = HANDLE_DOC(theme_item.description);
 			if (theme_item.is_deprecated) {
@@ -3480,12 +3651,12 @@ EditorHelpBit::HelpData EditorHelpBit::_get_theme_item_help_data(const StringNam
 			}
 		}
 
-		if (found || E->value.inherits.is_empty()) {
+		if (found || class_doc->inherits.is_empty()) {
 			break;
 		}
 
 		// Check for inherited theme items.
-		E = dd->class_list.find(E->value.inherits);
+		class_doc = EditorHelp::get_doc(class_doc->inherits);
 	}
 
 	return result;
@@ -3498,12 +3669,12 @@ EditorHelpBit::HelpData EditorHelpBit::_get_method_help_data(const StringName &p
 
 	HelpData result;
 
-	const HashMap<String, DocData::ClassDoc>::ConstIterator E = EditorHelp::get_doc_data()->class_list.find(p_class_name);
-	if (E) {
+	const DocData::ClassDoc *class_doc = EditorHelp::get_doc(p_class_name);
+	if (class_doc) {
 		// Non-native methods shouldn't be cached, nor translated.
-		const bool is_native = !E->value.is_script_doc;
+		const bool is_native = !class_doc->is_script_doc;
 
-		for (const DocData::MethodDoc &method : E->value.methods) {
+		for (const DocData::MethodDoc &method : class_doc->methods) {
 			HelpData current;
 			current.description = HANDLE_DOC(method.description);
 			if (method.is_deprecated) {
@@ -3551,12 +3722,12 @@ EditorHelpBit::HelpData EditorHelpBit::_get_signal_help_data(const StringName &p
 
 	HelpData result;
 
-	const HashMap<String, DocData::ClassDoc>::ConstIterator E = EditorHelp::get_doc_data()->class_list.find(p_class_name);
-	if (E) {
+	const DocData::ClassDoc *class_doc = EditorHelp::get_doc(p_class_name);
+	if (class_doc) {
 		// Non-native signals shouldn't be cached, nor translated.
-		const bool is_native = !E->value.is_script_doc;
+		const bool is_native = !class_doc->is_script_doc;
 
-		for (const DocData::MethodDoc &signal : E->value.signals) {
+		for (const DocData::MethodDoc &signal : class_doc->signals) {
 			HelpData current;
 			current.description = HANDLE_DOC(signal.description);
 			if (signal.is_deprecated) {
@@ -3603,12 +3774,12 @@ EditorHelpBit::HelpData EditorHelpBit::_get_annotation_help_data(const StringNam
 
 	HelpData result;
 
-	const HashMap<String, DocData::ClassDoc>::ConstIterator E = EditorHelp::get_doc_data()->class_list.find(p_class_name);
-	if (E) {
+	const DocData::ClassDoc *class_doc = EditorHelp::get_doc(p_class_name);
+	if (class_doc) {
 		// Non-native annotations shouldn't be cached, nor translated.
-		const bool is_native = !E->value.is_script_doc;
+		const bool is_native = !class_doc->is_script_doc;
 
-		for (const DocData::MethodDoc &annotation : E->value.annotations) {
+		for (const DocData::MethodDoc &annotation : class_doc->annotations) {
 			HelpData current;
 			current.description = HANDLE_DOC(annotation.description);
 			if (annotation.is_deprecated) {
@@ -3698,8 +3869,7 @@ void EditorHelpBit::_update_labels() {
 				// Nothing to do.
 			} break;
 			case SYMBOL_HINT_INHERITANCE: {
-				const HashMap<String, DocData::ClassDoc> &class_list = EditorHelp::get_doc_data()->class_list;
-				const DocData::ClassDoc *class_doc = class_list.getptr(symbol_class_name);
+				const DocData::ClassDoc *class_doc = EditorHelp::get_doc(symbol_class_name);
 				String inherits = class_doc ? class_doc->inherits : String();
 
 				if (!inherits.is_empty()) {
@@ -3713,7 +3883,7 @@ void EditorHelpBit::_update_labels() {
 
 						_add_type_to_title({ inherits, String(), false });
 
-						inherits = class_list[inherits].inherits;
+						inherits = EditorHelp::get_doc(inherits)->inherits;
 					}
 
 					title->pop(); // font_size

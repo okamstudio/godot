@@ -2098,6 +2098,7 @@ void EditorFileSystem::_update_script_documentation() {
 
 		if (!efd || index < 0) {
 			// The file was removed
+			EditorHelp::remove_script_doc_by_path(path);
 			continue;
 		}
 
@@ -2115,7 +2116,7 @@ void EditorFileSystem::_update_script_documentation() {
 					scr->reload_from_file();
 				}
 				for (const DocData::ClassDoc &cd : scr->get_documentation()) {
-					EditorHelp::get_doc_data()->add_doc(cd);
+					EditorHelp::add_doc(cd);
 					if (!first_scan) {
 						// Update the documentation in the Script Editor if it is open.
 						ScriptEditor::get_singleton()->update_doc(cd.name);
