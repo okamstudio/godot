@@ -63,6 +63,7 @@ internal class GodotGestureHandler(private val inputHandler: GodotInputHandler) 
 
 	private var lastDragX: Float = 0.0f
 	private var lastDragY: Float = 0.0f
+	private var disableOsScrollDeadzone = false //TODO: project setting and documentation
 
 	override fun onDown(event: MotionEvent): Boolean {
 		inputHandler.handleMotionEvent(event, MotionEvent.ACTION_DOWN, nextDownIsDoubleTap)
@@ -153,7 +154,7 @@ internal class GodotGestureHandler(private val inputHandler: GodotInputHandler) 
 		if (contextClickInProgress) {
 			inputHandler.handleMouseEvent(event, event.actionMasked, MotionEvent.BUTTON_SECONDARY, false)
 			return true
-		} else if (!scaleInProgress) {
+		} else if (disableOsScrollDeadzone && !scaleInProgress) {
 			// The 'onScroll' event is triggered with a long delay.
 			// Force the 'InputEventScreenDrag' event earlier here.
 			// We don't toggle 'dragInProgress' here so that the scaling logic can override the drag operation if needed.
@@ -191,7 +192,7 @@ internal class GodotGestureHandler(private val inputHandler: GodotInputHandler) 
 		distanceY: Float
 	): Boolean {
 		if (scaleInProgress) {
-			if (dragInProgress || lastDragX != 0.0f || lastDragY != 0.0f) {
+			if (dragInProgress || (disableOsScrollDeadzone && (lastDragX != 0.0f || lastDragY != 0.0f))) {
 				if (originEvent != null) {
 					// Cancel the drag
 					inputHandler.handleMotionEvent(originEvent, MotionEvent.ACTION_CANCEL)
