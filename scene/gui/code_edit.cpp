@@ -3484,6 +3484,7 @@ void CodeEdit::_filter_code_completion_candidates_impl() {
 	int cofs = caret_column;
 	String string_to_complete;
 	bool prev_is_word = false;
+	char prev_char = ' ';
 
 	/* Cancel if we are at the close of a string. */
 	if (caret_column > 0 && in_string == -1 && first_quote_col == cofs - 1) {
@@ -3493,6 +3494,9 @@ void CodeEdit::_filter_code_completion_candidates_impl() {
 	} else if (in_string != -1 && first_quote_col != -1) {
 		int key_length = delimiters[in_string].start_key.length();
 		string_to_complete = line.substr(first_quote_col - key_length, (cofs - first_quote_col) + key_length);
+		if (first_quote_col - key_length - 1 >= 0) {
+			prev_char = line[first_quote_col - key_length - 1];
+		}
 		/* If we have a space, previous word might be a keyword. eg "func |". */
 	} else if (cofs > 0 && line[cofs - 1] == ' ') {
 		int ofs = cofs - 1;
@@ -3549,6 +3553,7 @@ void CodeEdit::_filter_code_completion_candidates_impl() {
 
 		if (in_string != -1) {
 			// The completion string may have a literal behind it, which should be removed before re-quoting.
+			// Or it can have a `&` or `^` before it, which should be removed too.
 			String literal;
 			if (option.insert_text.substr(1).is_quoted()) {
 				literal = option.display.left(1);
@@ -3557,7 +3562,11 @@ void CodeEdit::_filter_code_completion_candidates_impl() {
 			}
 			String quote = single_quote ? "'" : "\"";
 			option.display = literal + (option.display.unquote().quote(quote));
-			option.insert_text = literal + (option.insert_text.unquote().quote(quote));
+			if (prev_char != '&' && prev_char != '^') {
+				option.insert_text = literal + (option.insert_text.unquote().quote(quote));
+			} else {
+				option.insert_text = option.insert_text.unquote().quote(quote);
+			}
 		}
 
 		if (option.display.length() == 0) {
