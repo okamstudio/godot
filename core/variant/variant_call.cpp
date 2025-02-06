@@ -1222,34 +1222,36 @@ static void register_builtin_method(const Vector<String> &p_argnames, const Vect
 }
 
 void Variant::callp(const StringName &p_method, const Variant **p_args, int p_argcount, Variant &r_ret, Callable::CallError &r_error) {
-	if (type == Variant::OBJECT) {
-		//call object
-		Object *obj = _get_obj().obj;
-		if (!obj) {
-			r_error.error = Callable::CallError::CALL_ERROR_INSTANCE_IS_NULL;
-			return;
-		}
+    if (type == Variant::OBJECT) {
+        // Call Object
+        Object *obj = _get_obj().obj;
+        if (!obj) {
+            r_error.error = Callable::CallError::CALL_ERROR_INSTANCE_IS_NULL;
+            ERR_PRINT("Attempted to call method on a null instance.");
+            return;
+        }
 #ifdef DEBUG_ENABLED
-		if (EngineDebugger::is_active() && !_get_obj().id.is_ref_counted() && ObjectDB::get_instance(_get_obj().id) == nullptr) {
-			r_error.error = Callable::CallError::CALL_ERROR_INSTANCE_IS_NULL;
-			return;
-		}
-
+        if (EngineDebugger::is_active() && !_get_obj().id.is_ref_counted() && ObjectDB::get_instance(_get_obj().id) == nullptr) {
+            r_error.error = Callable::CallError::CALL_ERROR_INSTANCE_IS_NULL;
+            ERR_PRINT("Invalid object instance detected in debug mode.");
+            return;
+        }
 #endif
-		r_ret = _get_obj().obj->callp(p_method, p_args, p_argcount, r_error);
+        r_ret = _get_obj().obj->callp(p_method, p_args, p_argcount, r_error);
 
-	} else {
-		r_error.error = Callable::CallError::CALL_OK;
+    } else {
+        r_error.error = Callable::CallError::CALL_OK;
 
-		const VariantBuiltInMethodInfo *imf = builtin_method_info[type].lookup_ptr(p_method);
+        const VariantBuiltInMethodInfo *imf = builtin_method_info[type].lookup_ptr(p_method);
 
-		if (!imf) {
-			r_error.error = Callable::CallError::CALL_ERROR_INVALID_METHOD;
-			return;
-		}
+        if (!imf) {
+            r_error.error = Callable::CallError::CALL_ERROR_INVALID_METHOD;
+            ERR_PRINT(vformat("Invalid method called: %s.", p_method));
+            return;
+        }
 
-		imf->call(this, p_args, p_argcount, r_ret, imf->default_arguments, r_error);
-	}
+        imf->call(this, p_args, p_argcount, r_ret, imf->default_arguments, r_error);
+    }
 }
 
 void Variant::call_const(const StringName &p_method, const Variant **p_args, int p_argcount, Variant &r_ret, Callable::CallError &r_error) {

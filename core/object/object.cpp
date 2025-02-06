@@ -775,7 +775,7 @@ void Object::setvar(const Variant &p_key, const Variant &p_value, bool *r_valid)
 
 Variant Object::callv(const StringName &p_method, const Array &p_args) {
 	const Variant **argptrs = nullptr;
-
+	
 	if (p_args.size() > 0) {
 		argptrs = (const Variant **)alloca(sizeof(Variant *) * p_args.size());
 		for (int i = 0; i < p_args.size(); i++) {
@@ -785,11 +785,15 @@ Variant Object::callv(const StringName &p_method, const Array &p_args) {
 
 	Callable::CallError ce;
 	const Variant ret = callp(p_method, argptrs, p_args.size(), ce);
+
 	if (ce.error != Callable::CallError::CALL_OK) {
-		ERR_FAIL_V_MSG(Variant(), vformat("Error calling method from 'callv': %s.", Variant::get_call_error_text(this, p_method, argptrs, p_args.size(), ce)));
+		String error_message = Variant::get_call_error_text(this, p_method, argptrs, p_args.size(), ce);
+		ERR_FAIL_V_MSG(Variant(), vformat("Error calling method from 'callv': %s.", error_message));
 	}
+
 	return ret;
 }
+
 
 Variant Object::callp(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
 	r_error.error = Callable::CallError::CALL_OK;
