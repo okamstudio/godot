@@ -4050,6 +4050,9 @@ void CanvasItemEditor::_draw_viewport() {
 		force_over_plugin_list->forward_canvas_force_draw_over_viewport(viewport);
 	}
 
+	// Reset the transform in case some plugin changed it, potentially breaking the editor.
+	RenderingServer::get_singleton()->canvas_item_add_set_transform(ci, Transform2D());
+
 	if (show_rulers) {
 		_draw_rulers();
 	}
