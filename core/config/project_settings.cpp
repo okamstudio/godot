@@ -362,24 +362,28 @@ bool ProjectSettings::_get(const StringName &p_name, Variant &r_ret) const {
 Variant ProjectSettings::get_setting_with_override(const StringName &p_name) const {
 	_THREAD_SAFE_METHOD_
 
-	StringName name = p_name;
-	if (feature_overrides.has(name)) {
-		const LocalVector<Pair<StringName, StringName>> &overrides = feature_overrides[name];
-		for (uint32_t i = 0; i < overrides.size(); i++) {
-			if (OS::get_singleton()->has_feature(overrides[i].first)) { // Custom features are checked in OS.has_feature() already. No need to check twice.
-				if (props.has(overrides[i].second)) {
-					name = overrides[i].second;
-					break;
-				}
+	const LocalVector<Pair<StringName, StringName>> *overrides = feature_overrides.getptr(p_name);
+	if (overrides) {
+		for (uint32_t i = 0; i < overrides->size(); i++) {
+			if (!OS::get_singleton()->has_feature((*overrides)[i].first)) {
+				continue;
+			}
+
+			// Custom features are checked in OS.has_feature() already. No need to check twice.
+			const RBMap<StringName, VariantContainer>::Element *override_prop = props.find((*overrides)[i].second);
+			if (override_prop) {
+				return override_prop->get().variant;
 			}
 		}
 	}
 
-	if (!props.has(name)) {
-		WARN_PRINT(vformat("Property not found: '%s'.", String(name)));
+	const RBMap<StringName, VariantContainer>::Element *prop = props.find(p_name);
+	if (!prop) {
+		WARN_PRINT(vformat("Property not found: '%s'.", p_name));
 		return Variant();
 	}
-	return props[name].variant;
+
+	return prop->get().variant;
 }
 
 struct _VCSort {
