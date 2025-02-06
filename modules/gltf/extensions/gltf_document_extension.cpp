@@ -34,6 +34,7 @@ void GLTFDocumentExtension::_bind_methods() {
 	// Import process.
 	GDVIRTUAL_BIND(_import_preflight, "state", "extensions");
 	GDVIRTUAL_BIND(_get_supported_extensions);
+	GDVIRTUAL_BIND(_get_attribute_for_mesh_array, "state", "mesh_index", "mesh_array");
 	GDVIRTUAL_BIND(_parse_node_extensions, "state", "gltf_node", "extensions");
 	GDVIRTUAL_BIND(_parse_image_data, "state", "image_data", "mime_type", "ret_image");
 	GDVIRTUAL_BIND(_get_image_file_extension);
@@ -64,6 +65,14 @@ Error GLTFDocumentExtension::import_preflight(Ref<GLTFState> p_state, Vector<Str
 	Error err = OK;
 	GDVIRTUAL_CALL(_import_preflight, p_state, p_extensions, err);
 	return err;
+}
+
+void GLTFDocumentExtension::get_attribute_for_mesh_array(Ref<GLTFState> p_state, GLTFMeshIndex p_index, Mesh::ArrayType p_mesh_array, String &r_attribute) {
+	String ret;
+	GDVIRTUAL_CALL(_get_attribute_for_mesh_array, p_state, p_index, p_mesh_array, ret);
+	if (!ret.is_empty()) {
+		r_attribute = ret;
+	}
 }
 
 Vector<String> GLTFDocumentExtension::get_supported_extensions() {

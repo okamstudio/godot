@@ -143,38 +143,15 @@ private:
 	Vector<double> _decode_accessor(Ref<GLTFState> p_state,
 			const GLTFAccessorIndex p_accessor,
 			const bool p_for_vertex);
-	Vector<float> _decode_accessor_as_floats(Ref<GLTFState> p_state,
-			const GLTFAccessorIndex p_accessor,
-			const bool p_for_vertex,
-			const Vector<int> &p_packed_vertex_ids = Vector<int>());
-	Vector<int> _decode_accessor_as_ints(Ref<GLTFState> p_state,
-			const GLTFAccessorIndex p_accessor,
-			const bool p_for_vertex,
-			const Vector<int> &p_packed_vertex_ids = Vector<int>());
-	Vector<Vector2> _decode_accessor_as_vec2(Ref<GLTFState> p_state,
-			const GLTFAccessorIndex p_accessor,
-			const bool p_for_vertex,
-			const Vector<int> &p_packed_vertex_ids = Vector<int>());
-	Vector<Vector3> _decode_accessor_as_vec3(Ref<GLTFState> p_state,
-			const GLTFAccessorIndex p_accessor,
-			const bool p_for_vertex,
-			const Vector<int> &p_packed_vertex_ids = Vector<int>());
-	Vector<Color> _decode_accessor_as_color(Ref<GLTFState> p_state,
-			const GLTFAccessorIndex p_accessor,
-			const bool p_for_vertex,
-			const Vector<int> &p_packed_vertex_ids = Vector<int>());
-	Vector<Quaternion> _decode_accessor_as_quaternion(Ref<GLTFState> p_state,
-			const GLTFAccessorIndex p_accessor,
-			const bool p_for_vertex);
-	Vector<Transform2D> _decode_accessor_as_xform2d(Ref<GLTFState> p_state,
-			const GLTFAccessorIndex p_accessor,
-			const bool p_for_vertex);
-	Vector<Basis> _decode_accessor_as_basis(Ref<GLTFState> p_state,
-			const GLTFAccessorIndex p_accessor,
-			const bool p_for_vertex);
-	Vector<Transform3D> _decode_accessor_as_xform(Ref<GLTFState> p_state,
-			const GLTFAccessorIndex p_accessor,
-			const bool p_for_vertex);
+
+	template <typename T, int Elements, int Multiplier = 1, typename Func = void>
+	_FORCE_INLINE_ Vector<T> _decode_accessor_func(
+			Ref<GLTFState> p_state, const GLTFAccessorIndex p_accessor, const bool p_for_vertex, const Vector<int> &p_packed_vertex_ids, Func &&p_func);
+
+	template <typename T, int Elements = 1>
+	_FORCE_INLINE_ Vector<T> _decode_accessor(
+			Ref<GLTFState> p_state, const GLTFAccessorIndex p_accessor, const bool p_for_vertex, const Vector<int> &p_packed_vertex_ids = Vector<int>());
+
 	Vector<Variant> _decode_accessor_as_variant(Ref<GLTFState> p_state,
 			const GLTFAccessorIndex p_accessor,
 			Variant::Type p_variant_type,

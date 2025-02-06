@@ -92,6 +92,14 @@
 				[b]Note:[/b] The [param scene_parent] parameter may be [code]null[/code] if this is the single root node.
 			</description>
 		</method>
+		<method name="_get_attribute_for_mesh_array" qualifiers="virtual">
+			<return type="String" />
+			<param index="0" name="state" type="GLTFState" />
+			<param index="1" name="mesh_index" type="int" />
+			<param index="2" name="mesh_array" type="int" enum="Mesh.ArrayType" />
+			<description>
+			</description>
+		</method>
 		<method name="_get_image_file_extension" qualifiers="virtual">
 			<return type="String" />
 			<description>

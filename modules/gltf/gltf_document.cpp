@@ -76,6 +76,114 @@ constexpr int COMPONENT_COUNT_FOR_ACCESSOR_TYPE[7] = {
 	1, 2, 3, 4, 4, 9, 16
 };
 
+template <typename T, int Elements, int Multiplier, typename Func>
+Vector<T> GLTFDocument::_decode_accessor_func(Ref<GLTFState> p_state,
+		const GLTFAccessorIndex p_accessor,
+		const bool p_for_vertex,
+		const Vector<int> &p_packed_vertex_ids,
+		Func &&p_func) {
+	Vector<T> ret;
+
+	const Vector<double> attribs = _decode_accessor(p_state, p_accessor, p_for_vertex);
+
+	if (attribs.size() == 0) {
+		return ret;
+	}
+
+	const bool packed = !p_packed_vertex_ids.is_empty();
+	const int attr_size = attribs.size() / Elements;
+
+	ERR_FAIL_COND_V_MSG(((attribs.size() % Elements) != 0) || (packed && *(--p_packed_vertex_ids.end()) >= attr_size),
+			ret, "Custom attribute data is invalid.");
+
+	const int ret_size = (packed ? p_packed_vertex_ids.size() : attr_size);
+
+	ret.resize(ret_size * Multiplier);
+
+	for (int i = 0; i < ret_size; ++i) {
+		p_func(&ret.write[i * Multiplier], &attribs.ptr()[(packed ? p_packed_vertex_ids[i] : i) * Elements]);
+	}
+
+	return ret;
+}
+
+template <typename T, int Elements>
+_FORCE_INLINE_ Vector<T> GLTFDocument::_decode_accessor(Ref<GLTFState> p_state, const GLTFAccessorIndex p_accessor, const bool p_for_vertex, const Vector<int> &p_packed_vertex_ids) {
+	return _decode_accessor_func<T, Elements, Elements>(p_state, p_accessor, p_for_vertex, p_packed_vertex_ids, [](T *dst, const double *src) {
+		for (int i = 0; i < Elements; ++i) {
+			dst[i] = src[i];
+		}
+	});
+}
+
+template <>
+_FORCE_INLINE_ Vector<Vector2> GLTFDocument::_decode_accessor<Vector2>(Ref<GLTFState> p_state, const GLTFAccessorIndex p_accessor, const bool p_for_vertex, const Vector<int> &p_packed_vertex_ids) {
+	return _decode_accessor_func<Vector2, 2>(p_state, p_accessor, p_for_vertex, p_packed_vertex_ids, [](Vector2 *dst, const double *src) {
+		dst[0] = Vector2(src[0], src[1]);
+	});
+}
+
+template <>
+_FORCE_INLINE_ Vector<Vector3> GLTFDocument::_decode_accessor<Vector3>(Ref<GLTFState> p_state, const GLTFAccessorIndex p_accessor, const bool p_for_vertex, const Vector<int> &p_packed_vertex_ids) {
+	return _decode_accessor_func<Vector3, 3>(p_state, p_accessor, p_for_vertex, p_packed_vertex_ids, [](Vector3 *dst, const double *src) {
+		dst[0] = Vector3(src[0], src[1], src[2]);
+	});
+}
+
+template <>
+_FORCE_INLINE_ Vector<Quaternion> GLTFDocument::_decode_accessor<Quaternion>(Ref<GLTFState> p_state, const GLTFAccessorIndex p_accessor, const bool p_for_vertex, const Vector<int> &p_packed_vertex_ids) {
+	return _decode_accessor_func<Quaternion, 4>(p_state, p_accessor, p_for_vertex, p_packed_vertex_ids, [](Quaternion *dst, const double *src) {
+		dst[0] = Quaternion(src[0], src[1], src[2], src[3]).normalized();
+	});
+}
+
+template <>
+_FORCE_INLINE_ Vector<Transform2D> GLTFDocument::_decode_accessor<Transform2D>(Ref<GLTFState> p_state, const GLTFAccessorIndex p_accessor, const bool p_for_vertex, const Vector<int> &p_packed_vertex_ids) {
+	return _decode_accessor_func<Transform2D, 4>(p_state, p_accessor, p_for_vertex, p_packed_vertex_ids,
+			[](Transform2D *dst, const double *src) {
+				dst[0][0] = Vector2(src[0], src[1]);
+				dst[0][1] = Vector2(src[2], src[3]);
+			});
+}
+
+template <>
+_FORCE_INLINE_ Vector<Basis> GLTFDocument::_decode_accessor<Basis>(Ref<GLTFState> p_state, const GLTFAccessorIndex p_accessor, const bool p_for_vertex, const Vector<int> &p_packed_vertex_ids) {
+	return _decode_accessor_func<Basis, 9>(p_state, p_accessor, p_for_vertex, p_packed_vertex_ids,
+			[](Basis *dst, const double *src) {
+				dst[0].set_column(0, Vector3(src[0], src[1], src[2]));
+				dst[0].set_column(1, Vector3(src[3], src[4], src[5]));
+				dst[0].set_column(2, Vector3(src[6], src[7], src[8]));
+			});
+}
+
+template <>
+_FORCE_INLINE_ Vector<Transform3D> GLTFDocument::_decode_accessor<Transform3D>(Ref<GLTFState> p_state, const GLTFAccessorIndex p_accessor, const bool p_for_vertex, const Vector<int> &p_packed_vertex_ids) {
+	return _decode_accessor_func<Transform3D, 16>(p_state, p_accessor, p_for_vertex, p_packed_vertex_ids,
+			[](Transform3D *dst, const double *src) {
+				dst[0].basis.set_column(0, Vector3(src[0], src[1], src[2]));
+				dst[0].basis.set_column(1, Vector3(src[4], src[5], src[6]));
+				dst[0].basis.set_column(2, Vector3(src[8], src[9], src[10]));
+				dst[0].set_origin(Vector3(src[12], src[13], src[14]));
+			});
+}
+
+template <>
+_FORCE_INLINE_ Vector<Color> GLTFDocument::_decode_accessor<Color>(Ref<GLTFState> p_state, const GLTFAccessorIndex p_accessor, const bool p_for_vertex, const Vector<int> &p_packed_vertex_ids) {
+	switch (p_state->accessors[p_accessor]->accessor_type) {
+		case GLTFAccessor::TYPE_VEC4: {
+			return _decode_accessor_func<Color, 4>(p_state, p_accessor, p_for_vertex, p_packed_vertex_ids,
+					[](Color *dst, const double *src) { dst[0] = Color(src[0], src[1], src[2], src[3]); });
+		} break;
+		case GLTFAccessor::TYPE_VEC3: {
+			return _decode_accessor_func<Color, 3>(p_state, p_accessor, p_for_vertex, p_packed_vertex_ids,
+					[](Color *dst, const double *src) { dst[0] = Color(src[0], src[1], src[2]); });
+		} break;
+		default: {
+			ERR_FAIL_V_MSG(Vector<Color>(), "Color data is invalid.");
+		} break;
+	}
+}
+
 static void _attach_extras_to_meta(const Dictionary &p_extras, Ref<Resource> p_node) {
 	if (!p_extras.is_empty()) {
 		p_node->set_meta("extras", p_extras);
@@ -1692,56 +1800,6 @@ GLTFAccessorIndex GLTFDocument::_encode_accessor_as_ints(Ref<GLTFState> p_state,
 	return p_state->accessors.size() - 1;
 }
 
-Vector<int> GLTFDocument::_decode_accessor_as_ints(Ref<GLTFState> p_state, const GLTFAccessorIndex p_accessor, const bool p_for_vertex, const Vector<int> &p_packed_vertex_ids) {
-	const Vector<double> attribs = _decode_accessor(p_state, p_accessor, p_for_vertex);
-	Vector<int> ret;
-
-	if (attribs.size() == 0) {
-		return ret;
-	}
-
-	const double *attribs_ptr = attribs.ptr();
-	int ret_size = attribs.size();
-	if (!p_packed_vertex_ids.is_empty()) {
-		ERR_FAIL_COND_V(p_packed_vertex_ids[p_packed_vertex_ids.size() - 1] >= ret_size, ret);
-		ret_size = p_packed_vertex_ids.size();
-	}
-	ret.resize(ret_size);
-	for (int i = 0; i < ret_size; i++) {
-		int src_i = i;
-		if (!p_packed_vertex_ids.is_empty()) {
-			src_i = p_packed_vertex_ids[i];
-		}
-		ret.write[i] = int(attribs_ptr[src_i]);
-	}
-	return ret;
-}
-
-Vector<float> GLTFDocument::_decode_accessor_as_floats(Ref<GLTFState> p_state, const GLTFAccessorIndex p_accessor, const bool p_for_vertex, const Vector<int> &p_packed_vertex_ids) {
-	const Vector<double> attribs = _decode_accessor(p_state, p_accessor, p_for_vertex);
-	Vector<float> ret;
-
-	if (attribs.size() == 0) {
-		return ret;
-	}
-
-	const double *attribs_ptr = attribs.ptr();
-	int ret_size = attribs.size();
-	if (!p_packed_vertex_ids.is_empty()) {
-		ERR_FAIL_COND_V(p_packed_vertex_ids[p_packed_vertex_ids.size() - 1] >= ret_size, ret);
-		ret_size = p_packed_vertex_ids.size();
-	}
-	ret.resize(ret_size);
-	for (int i = 0; i < ret_size; i++) {
-		int src_i = i;
-		if (!p_packed_vertex_ids.is_empty()) {
-			src_i = p_packed_vertex_ids[i];
-		}
-		ret.write[i] = float(attribs_ptr[src_i]);
-	}
-	return ret;
-}
-
 void GLTFDocument::_round_min_max_components(Vector<double> &r_type_min, Vector<double> &r_type_max) {
 	// 3.6.2.5: For floating-point components, JSON-stored minimum and maximum values represent single precision
 	// floats and SHOULD be rounded to single precision before usage to avoid any potential boundary mismatches.
@@ -2025,32 +2083,6 @@ GLTFAccessorIndex GLTFDocument::_encode_accessor_as_quaternions(Ref<GLTFState> p
 	return p_state->accessors.size() - 1;
 }
 
-Vector<Vector2> GLTFDocument::_decode_accessor_as_vec2(Ref<GLTFState> p_state, const GLTFAccessorIndex p_accessor, const bool p_for_vertex, const Vector<int> &p_packed_vertex_ids) {
-	const Vector<double> attribs = _decode_accessor(p_state, p_accessor, p_for_vertex);
-	Vector<Vector2> ret;
-
-	if (attribs.size() == 0) {
-		return ret;
-	}
-
-	ERR_FAIL_COND_V(attribs.size() % 2 != 0, ret);
-	const double *attribs_ptr = attribs.ptr();
-	int ret_size = attribs.size() / 2;
-	if (!p_packed_vertex_ids.is_empty()) {
-		ERR_FAIL_COND_V(p_packed_vertex_ids[p_packed_vertex_ids.size() - 1] >= ret_size, ret);
-		ret_size = p_packed_vertex_ids.size();
-	}
-	ret.resize(ret_size);
-	for (int i = 0; i < ret_size; i++) {
-		int src_i = i;
-		if (!p_packed_vertex_ids.is_empty()) {
-			src_i = p_packed_vertex_ids[i];
-		}
-		ret.write[i] = Vector2(attribs_ptr[src_i * 2 + 0], attribs_ptr[src_i * 2 + 1]);
-	}
-	return ret;
-}
-
 GLTFAccessorIndex GLTFDocument::_encode_accessor_as_floats(Ref<GLTFState> p_state, const Vector<double> p_attribs, const bool p_for_vertex) {
 	if (p_attribs.size() == 0) {
 		return -1;
@@ -2329,137 +2361,6 @@ GLTFAccessorIndex GLTFDocument::_encode_accessor_as_xform(Ref<GLTFState> p_state
 	accessor->buffer_view = buffer_view_i;
 	p_state->accessors.push_back(accessor);
 	return p_state->accessors.size() - 1;
-}
-
-Vector<Vector3> GLTFDocument::_decode_accessor_as_vec3(Ref<GLTFState> p_state, const GLTFAccessorIndex p_accessor, const bool p_for_vertex, const Vector<int> &p_packed_vertex_ids) {
-	const Vector<double> attribs = _decode_accessor(p_state, p_accessor, p_for_vertex);
-	Vector<Vector3> ret;
-
-	if (attribs.size() == 0) {
-		return ret;
-	}
-
-	ERR_FAIL_COND_V(attribs.size() % 3 != 0, ret);
-	const double *attribs_ptr = attribs.ptr();
-	int ret_size = attribs.size() / 3;
-	if (!p_packed_vertex_ids.is_empty()) {
-		ERR_FAIL_COND_V(p_packed_vertex_ids[p_packed_vertex_ids.size() - 1] >= ret_size, ret);
-		ret_size = p_packed_vertex_ids.size();
-	}
-	ret.resize(ret_size);
-	for (int i = 0; i < ret_size; i++) {
-		int src_i = i;
-		if (!p_packed_vertex_ids.is_empty()) {
-			src_i = p_packed_vertex_ids[i];
-		}
-		ret.write[i] = Vector3(attribs_ptr[src_i * 3 + 0], attribs_ptr[src_i * 3 + 1], attribs_ptr[src_i * 3 + 2]);
-	}
-	return ret;
-}
-
-Vector<Color> GLTFDocument::_decode_accessor_as_color(Ref<GLTFState> p_state, const GLTFAccessorIndex p_accessor, const bool p_for_vertex, const Vector<int> &p_packed_vertex_ids) {
-	const Vector<double> attribs = _decode_accessor(p_state, p_accessor, p_for_vertex);
-	Vector<Color> ret;
-
-	if (attribs.size() == 0) {
-		return ret;
-	}
-
-	const int accessor_type = p_state->accessors[p_accessor]->accessor_type;
-	ERR_FAIL_COND_V(!(accessor_type == GLTFAccessor::TYPE_VEC3 || accessor_type == GLTFAccessor::TYPE_VEC4), ret);
-	int vec_len = 3;
-	if (accessor_type == GLTFAccessor::TYPE_VEC4) {
-		vec_len = 4;
-	}
-
-	ERR_FAIL_COND_V(attribs.size() % vec_len != 0, ret);
-	const double *attribs_ptr = attribs.ptr();
-	int ret_size = attribs.size() / vec_len;
-	if (!p_packed_vertex_ids.is_empty()) {
-		ERR_FAIL_COND_V(p_packed_vertex_ids[p_packed_vertex_ids.size() - 1] >= ret_size, ret);
-		ret_size = p_packed_vertex_ids.size();
-	}
-	ret.resize(ret_size);
-	for (int i = 0; i < ret_size; i++) {
-		int src_i = i;
-		if (!p_packed_vertex_ids.is_empty()) {
-			src_i = p_packed_vertex_ids[i];
-		}
-		ret.write[i] = Color(attribs_ptr[src_i * vec_len + 0], attribs_ptr[src_i * vec_len + 1], attribs_ptr[src_i * vec_len + 2], vec_len == 4 ? attribs_ptr[src_i * 4 + 3] : 1.0);
-	}
-	return ret;
-}
-Vector<Quaternion> GLTFDocument::_decode_accessor_as_quaternion(Ref<GLTFState> p_state, const GLTFAccessorIndex p_accessor, const bool p_for_vertex) {
-	const Vector<double> attribs = _decode_accessor(p_state, p_accessor, p_for_vertex);
-	Vector<Quaternion> ret;
-
-	if (attribs.size() == 0) {
-		return ret;
-	}
-
-	ERR_FAIL_COND_V(attribs.size() % 4 != 0, ret);
-	const double *attribs_ptr = attribs.ptr();
-	const int ret_size = attribs.size() / 4;
-	ret.resize(ret_size);
-	{
-		for (int i = 0; i < ret_size; i++) {
-			ret.write[i] = Quaternion(attribs_ptr[i * 4 + 0], attribs_ptr[i * 4 + 1], attribs_ptr[i * 4 + 2], attribs_ptr[i * 4 + 3]).normalized();
-		}
-	}
-	return ret;
-}
-Vector<Transform2D> GLTFDocument::_decode_accessor_as_xform2d(Ref<GLTFState> p_state, const GLTFAccessorIndex p_accessor, const bool p_for_vertex) {
-	const Vector<double> attribs = _decode_accessor(p_state, p_accessor, p_for_vertex);
-	Vector<Transform2D> ret;
-
-	if (attribs.size() == 0) {
-		return ret;
-	}
-
-	ERR_FAIL_COND_V(attribs.size() % 4 != 0, ret);
-	ret.resize(attribs.size() / 4);
-	for (int i = 0; i < ret.size(); i++) {
-		ret.write[i][0] = Vector2(attribs[i * 4 + 0], attribs[i * 4 + 1]);
-		ret.write[i][1] = Vector2(attribs[i * 4 + 2], attribs[i * 4 + 3]);
-	}
-	return ret;
-}
-
-Vector<Basis> GLTFDocument::_decode_accessor_as_basis(Ref<GLTFState> p_state, const GLTFAccessorIndex p_accessor, const bool p_for_vertex) {
-	const Vector<double> attribs = _decode_accessor(p_state, p_accessor, p_for_vertex);
-	Vector<Basis> ret;
-
-	if (attribs.size() == 0) {
-		return ret;
-	}
-
-	ERR_FAIL_COND_V(attribs.size() % 9 != 0, ret);
-	ret.resize(attribs.size() / 9);
-	for (int i = 0; i < ret.size(); i++) {
-		ret.write[i].set_column(0, Vector3(attribs[i * 9 + 0], attribs[i * 9 + 1], attribs[i * 9 + 2]));
-		ret.write[i].set_column(1, Vector3(attribs[i * 9 + 3], attribs[i * 9 + 4], attribs[i * 9 + 5]));
-		ret.write[i].set_column(2, Vector3(attribs[i * 9 + 6], attribs[i * 9 + 7], attribs[i * 9 + 8]));
-	}
-	return ret;
-}
-
-Vector<Transform3D> GLTFDocument::_decode_accessor_as_xform(Ref<GLTFState> p_state, const GLTFAccessorIndex p_accessor, const bool p_for_vertex) {
-	const Vector<double> attribs = _decode_accessor(p_state, p_accessor, p_for_vertex);
-	Vector<Transform3D> ret;
-
-	if (attribs.size() == 0) {
-		return ret;
-	}
-
-	ERR_FAIL_COND_V(attribs.size() % 16 != 0, ret);
-	ret.resize(attribs.size() / 16);
-	for (int i = 0; i < ret.size(); i++) {
-		ret.write[i].basis.set_column(0, Vector3(attribs[i * 16 + 0], attribs[i * 16 + 1], attribs[i * 16 + 2]));
-		ret.write[i].basis.set_column(1, Vector3(attribs[i * 16 + 4], attribs[i * 16 + 5], attribs[i * 16 + 6]));
-		ret.write[i].basis.set_column(2, Vector3(attribs[i * 16 + 8], attribs[i * 16 + 9], attribs[i * 16 + 10]));
-		ret.write[i].set_origin(Vector3(attribs[i * 16 + 12], attribs[i * 16 + 13], attribs[i * 16 + 14]));
-	}
-	return ret;
 }
 
 Vector<Variant> GLTFDocument::_decode_accessor_as_variant(Ref<GLTFState> p_state, const GLTFAccessorIndex p_accessor, Variant::Type p_variant_type, GLTFAccessor::GLTFAccessorType p_accessor_type) {
@@ -3216,6 +3117,7 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> p_state) {
 	Array meshes = p_state->json["meshes"];
 	for (GLTFMeshIndex i = 0; i < meshes.size(); i++) {
 		print_verbose("glTF: Parsing mesh: " + itos(i));
+
 		Dictionary mesh_dict = meshes[i];
 
 		Ref<GLTFMesh> mesh;
@@ -3269,10 +3171,25 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> p_state) {
 				primitive = primitives2[mode];
 			}
 
+			String attr_color = "COLOR_0";
+			String attr_uv1 = "TEXCOORD_0";
+			String attr_uv2 = "TEXCOORD_1";
+			String attr_custom[4] = { "", "", "", "" };
+
+			for (Ref<GLTFDocumentExtension> ext : document_extensions) {
+				ext->get_attribute_for_mesh_array(p_state, i, Mesh::ARRAY_COLOR, attr_color);
+				ext->get_attribute_for_mesh_array(p_state, i, Mesh::ARRAY_TEX_UV, attr_uv1);
+				ext->get_attribute_for_mesh_array(p_state, i, Mesh::ARRAY_TEX_UV2, attr_uv2);
+				ext->get_attribute_for_mesh_array(p_state, i, Mesh::ARRAY_CUSTOM0, attr_custom[0]);
+				ext->get_attribute_for_mesh_array(p_state, i, Mesh::ARRAY_CUSTOM1, attr_custom[1]);
+				ext->get_attribute_for_mesh_array(p_state, i, Mesh::ARRAY_CUSTOM2, attr_custom[2]);
+				ext->get_attribute_for_mesh_array(p_state, i, Mesh::ARRAY_CUSTOM3, attr_custom[3]);
+			}
+
 			int32_t orig_vertex_num = 0;
 			ERR_FAIL_COND_V(!a.has("POSITION"), ERR_PARSE_ERROR);
 			if (a.has("POSITION")) {
-				PackedVector3Array vertices = _decode_accessor_as_vec3(p_state, a["POSITION"], true);
+				PackedVector3Array vertices = _decode_accessor<Vector3>(p_state, a["POSITION"], true);
 				array[Mesh::ARRAY_VERTEX] = vertices;
 				orig_vertex_num = vertices.size();
 			}
@@ -3281,9 +3198,8 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> p_state) {
 			Vector<int> indices;
 			Vector<int> indices_mapping;
 			Vector<int> indices_rev_mapping;
-			Vector<int> indices_vec4_mapping;
 			if (mesh_prim.has("indices")) {
-				indices = _decode_accessor_as_ints(p_state, mesh_prim["indices"], false);
+				indices = _decode_accessor<int>(p_state, mesh_prim["indices"], false);
 				const int is = indices.size();
 
 				if (primitive == Mesh::PRIMITIVE_TRIANGLES) {
@@ -3310,10 +3226,6 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> p_state) {
 					if (used_w[vert_i]) {
 						rev_w[vert_i] = indices_mapping.size();
 						indices_mapping.push_back(vert_i);
-						indices_vec4_mapping.push_back(vert_i * 4 + 0);
-						indices_vec4_mapping.push_back(vert_i * 4 + 1);
-						indices_vec4_mapping.push_back(vert_i * 4 + 2);
-						indices_vec4_mapping.push_back(vert_i * 4 + 3);
 						vertex_num++;
 					}
 				}
@@ -3321,20 +3233,20 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> p_state) {
 			ERR_FAIL_COND_V(vertex_num <= 0, ERR_INVALID_DECLARATION);
 
 			if (a.has("POSITION")) {
-				PackedVector3Array vertices = _decode_accessor_as_vec3(p_state, a["POSITION"], true, indices_mapping);
+				PackedVector3Array vertices = _decode_accessor<Vector3>(p_state, a["POSITION"], true, indices_mapping);
 				array[Mesh::ARRAY_VERTEX] = vertices;
 			}
 			if (a.has("NORMAL")) {
-				array[Mesh::ARRAY_NORMAL] = _decode_accessor_as_vec3(p_state, a["NORMAL"], true, indices_mapping);
+				array[Mesh::ARRAY_NORMAL] = _decode_accessor<Vector3>(p_state, a["NORMAL"], true, indices_mapping);
 			}
 			if (a.has("TANGENT")) {
-				array[Mesh::ARRAY_TANGENT] = _decode_accessor_as_floats(p_state, a["TANGENT"], true, indices_vec4_mapping);
+				array[Mesh::ARRAY_TANGENT] = _decode_accessor<float, 4>(p_state, a["TANGENT"], true, indices_mapping);
 			}
-			if (a.has("TEXCOORD_0")) {
-				array[Mesh::ARRAY_TEX_UV] = _decode_accessor_as_vec2(p_state, a["TEXCOORD_0"], true, indices_mapping);
+			if (a.has(attr_uv1)) {
+				array[Mesh::ARRAY_TEX_UV] = _decode_accessor<Vector2>(p_state, a[attr_uv1], true, indices_mapping);
 			}
-			if (a.has("TEXCOORD_1")) {
-				array[Mesh::ARRAY_TEX_UV2] = _decode_accessor_as_vec2(p_state, a["TEXCOORD_1"], true, indices_mapping);
+			if (a.has(attr_uv2)) {
+				array[Mesh::ARRAY_TEX_UV2] = _decode_accessor<Vector2>(p_state, a[attr_uv2], true, indices_mapping);
 			}
 			for (int custom_i = 0; custom_i < 3; custom_i++) {
 				Vector<float> cur_custom;
@@ -3345,12 +3257,12 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> p_state) {
 				String gltf_texcoord_key = vformat("TEXCOORD_%d", texcoord_i);
 				int num_channels = 0;
 				if (a.has(gltf_texcoord_key)) {
-					texcoord_first = _decode_accessor_as_vec2(p_state, a[gltf_texcoord_key], true, indices_mapping);
+					texcoord_first = _decode_accessor<Vector2>(p_state, a[gltf_texcoord_key], true, indices_mapping);
 					num_channels = 2;
 				}
 				gltf_texcoord_key = vformat("TEXCOORD_%d", texcoord_i + 1);
 				if (a.has(gltf_texcoord_key)) {
-					texcoord_second = _decode_accessor_as_vec2(p_state, a[gltf_texcoord_key], true, indices_mapping);
+					texcoord_second = _decode_accessor<Vector2>(p_state, a[gltf_texcoord_key], true, indices_mapping);
 					num_channels = 4;
 				}
 				if (!num_channels) {
@@ -3390,17 +3302,17 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> p_state) {
 					}
 				}
 			}
-			if (a.has("COLOR_0")) {
-				array[Mesh::ARRAY_COLOR] = _decode_accessor_as_color(p_state, a["COLOR_0"], true, indices_mapping);
+			if (a.has(attr_color)) {
+				array[Mesh::ARRAY_COLOR] = _decode_accessor<Color>(p_state, a[attr_color], true, indices_mapping);
 				has_vertex_color = true;
 			}
 			if (a.has("JOINTS_0") && !a.has("JOINTS_1")) {
-				PackedInt32Array joints_0 = _decode_accessor_as_ints(p_state, a["JOINTS_0"], true, indices_vec4_mapping);
+				PackedInt32Array joints_0 = _decode_accessor<int, 4>(p_state, a["JOINTS_0"], true, indices_mapping);
 				ERR_FAIL_COND_V(joints_0.size() != 4 * vertex_num, ERR_INVALID_DATA);
 				array[Mesh::ARRAY_BONES] = joints_0;
 			} else if (a.has("JOINTS_0") && a.has("JOINTS_1")) {
-				PackedInt32Array joints_0 = _decode_accessor_as_ints(p_state, a["JOINTS_0"], true, indices_vec4_mapping);
-				PackedInt32Array joints_1 = _decode_accessor_as_ints(p_state, a["JOINTS_1"], true, indices_vec4_mapping);
+				PackedInt32Array joints_0 = _decode_accessor<int, 4>(p_state, a["JOINTS_0"], true, indices_mapping);
+				PackedInt32Array joints_1 = _decode_accessor<int, 4>(p_state, a["JOINTS_1"], true, indices_mapping);
 				ERR_FAIL_COND_V(joints_0.size() != joints_1.size(), ERR_INVALID_DATA);
 				ERR_FAIL_COND_V(joints_0.size() != 4 * vertex_num, ERR_INVALID_DATA);
 				int32_t weight_8_count = JOINT_GROUP_SIZE * 2;
@@ -3419,7 +3331,7 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> p_state) {
 				array[Mesh::ARRAY_BONES] = joints;
 			}
 			if (a.has("WEIGHTS_0") && !a.has("WEIGHTS_1")) {
-				Vector<float> weights = _decode_accessor_as_floats(p_state, a["WEIGHTS_0"], true, indices_vec4_mapping);
+				Vector<float> weights = _decode_accessor<float, 4>(p_state, a["WEIGHTS_0"], true, indices_mapping);
 				ERR_FAIL_COND_V(weights.size() != 4 * vertex_num, ERR_INVALID_DATA);
 				{ // glTF does not seem to normalize the weights for some reason.
 					int wc = weights.size();
@@ -3441,8 +3353,8 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> p_state) {
 				}
 				array[Mesh::ARRAY_WEIGHTS] = weights;
 			} else if (a.has("WEIGHTS_0") && a.has("WEIGHTS_1")) {
-				Vector<float> weights_0 = _decode_accessor_as_floats(p_state, a["WEIGHTS_0"], true, indices_vec4_mapping);
-				Vector<float> weights_1 = _decode_accessor_as_floats(p_state, a["WEIGHTS_1"], true, indices_vec4_mapping);
+				Vector<float> weights_0 = _decode_accessor<float, 4>(p_state, a["WEIGHTS_0"], true, indices_mapping);
+				Vector<float> weights_1 = _decode_accessor<float, 4>(p_state, a["WEIGHTS_1"], true, indices_mapping);
 				Vector<float> weights;
 				ERR_FAIL_COND_V(weights_0.size() != weights_1.size(), ERR_INVALID_DATA);
 				ERR_FAIL_COND_V(weights_0.size() != 4 * vertex_num, ERR_INVALID_DATA);
@@ -3515,7 +3427,7 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> p_state) {
 
 			bool generate_tangents = p_state->force_generate_tangents && (primitive == Mesh::PRIMITIVE_TRIANGLES && !a.has("TANGENT") && a.has("NORMAL"));
 
-			if (generate_tangents && !a.has("TEXCOORD_0")) {
+			if (generate_tangents && !a.has(attr_uv1)) {
 				// If we don't have UVs we provide a dummy tangent array.
 				Vector<float> tangents;
 				tangents.resize(vertex_num * 4);
@@ -3553,7 +3465,7 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> p_state) {
 				mesh_surface_tool->set_skin_weight_count(SurfaceTool::SKIN_8_WEIGHTS);
 			}
 			mesh_surface_tool->index();
-			if (generate_tangents && a.has("TEXCOORD_0")) {
+			if (generate_tangents && a.has(attr_uv1)) {
 				//must generate mikktspace tangents.. ergh..
 				mesh_surface_tool->generate_tangents();
 			}
@@ -3570,6 +3482,47 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> p_state) {
 						flags &= ~RS::ARRAY_FLAG_COMPRESS_ATTRIBUTES;
 					}
 				}
+			}
+
+			for (int custom_i = 0; custom_i < 4; ++custom_i) {
+				const String &attr = attr_custom[custom_i];
+				if (attr.is_empty() || !a.has(attr)) {
+					continue;
+				}
+
+				bool format_okay = true;
+				Mesh::ArrayCustomFormat format{};
+				const Ref<GLTFAccessor> accessor = p_state->accessors[a[attr]];
+				switch (accessor->accessor_type) {
+					case GLTFAccessor::TYPE_SCALAR: {
+						array[Mesh::ARRAY_CUSTOM0 + custom_i] = _decode_accessor<float>(p_state, a[attr], true, indices_mapping);
+						format = Mesh::ARRAY_CUSTOM_R_FLOAT;
+					} break;
+					case GLTFAccessor::TYPE_VEC2: {
+						array[Mesh::ARRAY_CUSTOM0 + custom_i] = _decode_accessor<float, 2>(p_state, a[attr], true, indices_mapping);
+						format = Mesh::ARRAY_CUSTOM_RG_FLOAT;
+					} break;
+					case GLTFAccessor::TYPE_VEC3: {
+						array[Mesh::ARRAY_CUSTOM0 + custom_i] = _decode_accessor<float, 3>(p_state, a[attr], true, indices_mapping);
+						format = Mesh::ARRAY_CUSTOM_RGB_FLOAT;
+					} break;
+					case GLTFAccessor::TYPE_VEC4: {
+						array[Mesh::ARRAY_CUSTOM0 + custom_i] = _decode_accessor<float, 4>(p_state, a[attr], true, indices_mapping);
+						format = Mesh::ARRAY_CUSTOM_RGBA_FLOAT;
+					} break;
+					default: {
+						format_okay = false;
+					} break;
+				}
+
+				if (!format_okay) {
+					Array arr;
+					arr.push_back(attr);
+					ERR_PRINT(String("Unknown format for {}, ignoring attribute.").format(arr));
+					continue;
+				}
+
+				flags |= format << (Mesh::ARRAY_FORMAT_CUSTOM_BASE + Mesh::ARRAY_FORMAT_CUSTOM_BITS * custom_i);
 			}
 
 			Array morphs;
@@ -3604,7 +3557,7 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> p_state) {
 					}
 
 					if (t.has("POSITION")) {
-						Vector<Vector3> varr = _decode_accessor_as_vec3(p_state, t["POSITION"], true, indices_mapping);
+						Vector<Vector3> varr = _decode_accessor<Vector3>(p_state, t["POSITION"], true, indices_mapping);
 						const Vector<Vector3> src_varr = array[Mesh::ARRAY_VERTEX];
 						const int size = src_varr.size();
 						ERR_FAIL_COND_V(size == 0, ERR_PARSE_ERROR);
@@ -3626,7 +3579,7 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> p_state) {
 						array_copy[Mesh::ARRAY_VERTEX] = varr;
 					}
 					if (t.has("NORMAL")) {
-						Vector<Vector3> narr = _decode_accessor_as_vec3(p_state, t["NORMAL"], true, indices_mapping);
+						Vector<Vector3> narr = _decode_accessor<Vector3>(p_state, t["NORMAL"], true, indices_mapping);
 						const Vector<Vector3> src_narr = array[Mesh::ARRAY_NORMAL];
 						int size = src_narr.size();
 						ERR_FAIL_COND_V(size == 0, ERR_PARSE_ERROR);
@@ -3648,7 +3601,7 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> p_state) {
 						array_copy[Mesh::ARRAY_NORMAL] = narr;
 					}
 					if (t.has("TANGENT")) {
-						const Vector<Vector3> tangents_v3 = _decode_accessor_as_vec3(p_state, t["TANGENT"], true, indices_mapping);
+						const Vector<Vector3> tangents_v3 = _decode_accessor<Vector3>(p_state, t["TANGENT"], true, indices_mapping);
 						const Vector<float> src_tangents = array[Mesh::ARRAY_TANGENT];
 						ERR_FAIL_COND_V(src_tangents.is_empty(), ERR_PARSE_ERROR);
 
@@ -4984,7 +4937,7 @@ Error GLTFDocument::_parse_skins(Ref<GLTFState> p_state) {
 		const Array &joints = d["joints"];
 
 		if (d.has("inverseBindMatrices")) {
-			skin->inverse_binds = _decode_accessor_as_xform(p_state, d["inverseBindMatrices"], false);
+			skin->inverse_binds = _decode_accessor<Transform3D>(p_state, d["inverseBindMatrices"], false);
 			ERR_FAIL_COND_V(skin->inverse_binds.size() != joints.size(), ERR_PARSE_ERROR);
 		}
 
@@ -5530,22 +5483,22 @@ Error GLTFDocument::_parse_animations(Ref<GLTFState> p_state) {
 				track = &animation->get_node_tracks()[node];
 
 				if (path == "translation") {
-					const Vector<Vector3> positions = _decode_accessor_as_vec3(p_state, output_value_accessor_index, false);
+					const Vector<Vector3> positions = _decode_accessor<Vector3>(p_state, output_value_accessor_index, false);
 					track->position_track.interpolation = interp;
 					track->position_track.times = times;
 					track->position_track.values = positions;
 				} else if (path == "rotation") {
-					const Vector<Quaternion> rotations = _decode_accessor_as_quaternion(p_state, output_value_accessor_index, false);
+					const Vector<Quaternion> rotations = _decode_accessor<Quaternion>(p_state, output_value_accessor_index, false);
 					track->rotation_track.interpolation = interp;
 					track->rotation_track.times = times;
 					track->rotation_track.values = rotations;
 				} else if (path == "scale") {
-					const Vector<Vector3> scales = _decode_accessor_as_vec3(p_state, output_value_accessor_index, false);
+					const Vector<Vector3> scales = _decode_accessor<Vector3>(p_state, output_value_accessor_index, false);
 					track->scale_track.interpolation = interp;
 					track->scale_track.times = times;
 					track->scale_track.values = scales;
 				} else if (path == "weights") {
-					const Vector<float> weights = _decode_accessor_as_floats(p_state, output_value_accessor_index, false);
+					const Vector<float> weights = _decode_accessor<float>(p_state, output_value_accessor_index, false);
 
 					ERR_FAIL_INDEX_V(p_state->nodes[node]->mesh, p_state->meshes.size(), ERR_PARSE_ERROR);
 					Ref<GLTFMesh> mesh = p_state->meshes[p_state->nodes[node]->mesh];
@@ -5601,22 +5554,22 @@ void GLTFDocument::_parse_animation_pointer(Ref<GLTFState> p_state, const String
 		}
 		GLTFAnimation::NodeTrack *track = &node_tracks[node_index];
 		if (split[2] == "translation") {
-			const Vector<Vector3> positions = _decode_accessor_as_vec3(p_state, p_output_value_accessor_index, false);
+			const Vector<Vector3> positions = _decode_accessor<Vector3>(p_state, p_output_value_accessor_index, false);
 			track->position_track.interpolation = p_interp;
 			track->position_track.times = p_times;
 			track->position_track.values = positions;
 		} else if (split[2] == "rotation") {
-			const Vector<Quaternion> rotations = _decode_accessor_as_quaternion(p_state, p_output_value_accessor_index, false);
+			const Vector<Quaternion> rotations = _decode_accessor<Quaternion>(p_state, p_output_value_accessor_index, false);
 			track->rotation_track.interpolation = p_interp;
 			track->rotation_track.times = p_times;
 			track->rotation_track.values = rotations;
 		} else if (split[2] == "scale") {
-			const Vector<Vector3> scales = _decode_accessor_as_vec3(p_state, p_output_value_accessor_index, false);
+			const Vector<Vector3> scales = _decode_accessor<Vector3>(p_state, p_output_value_accessor_index, false);
 			track->scale_track.interpolation = p_interp;
 			track->scale_track.times = p_times;
 			track->scale_track.values = scales;
 		} else if (split[2] == "matrix") {
-			const Vector<Transform3D> transforms = _decode_accessor_as_xform(p_state, p_output_value_accessor_index, false);
+			const Vector<Transform3D> transforms = _decode_accessor<Transform3D>(p_state, p_output_value_accessor_index, false);
 			track->position_track.interpolation = p_interp;
 			track->position_track.times = p_times;
 			track->position_track.values.resize(transforms.size());
@@ -5632,7 +5585,7 @@ void GLTFDocument::_parse_animation_pointer(Ref<GLTFState> p_state, const String
 				track->scale_track.values.write[i] = transforms[i].basis.get_scale();
 			}
 		} else { // if (split[2] == "weights")
-			const Vector<float> accessor_weights = _decode_accessor_as_floats(p_state, p_output_value_accessor_index, false);
+			const Vector<float> accessor_weights = _decode_accessor<float>(p_state, p_output_value_accessor_index, false);
 			const GLTFMeshIndex mesh_index = p_state->nodes[node_index]->mesh;
 			ERR_FAIL_INDEX(mesh_index, p_state->meshes.size());
 			const Ref<GLTFMesh> gltf_mesh = p_state->meshes[mesh_index];
