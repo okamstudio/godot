@@ -3029,7 +3029,9 @@ Error ResourceImporterScene::import(ResourceUID::ID p_source_id, const String &p
 		Ref<Script> root_script = nullptr;
 		if (ScriptServer::is_global_class(root_type)) {
 			root_script = ResourceLoader::load(ScriptServer::get_global_class_path(root_type));
-			root_type = ScriptServer::get_global_class_base(root_type);
+			// Global class script loaded, recursively check for native class the script inherits from.
+			// Needed for ClassDB::instantiate() as it expects native class.
+			root_type = ScriptServer::get_global_class_native_base(root_type);
 		}
 		if (scene->get_class_name() != root_type) {
 			// If the user specified a Godot node type that does not match
