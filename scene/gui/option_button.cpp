@@ -93,6 +93,7 @@ void OptionButton::_notification(int p_what) {
 			Color clr = Color(1, 1, 1);
 			if (theme_cache.modulate_arrow) {
 				switch (get_draw_mode()) {
+					case DRAW_FOCUS_PRESSED:
 					case DRAW_PRESSED:
 						clr = theme_cache.font_pressed_color;
 						break;

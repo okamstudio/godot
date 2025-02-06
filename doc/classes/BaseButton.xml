@@ -121,6 +121,9 @@
 		<constant name="DRAW_HOVER_PRESSED" value="4" enum="DrawMode">
 			The state of buttons are both hovered and pressed.
 		</constant>
+		<constant name="DRAW_FOCUS_PRESSED" value="5" enum="DrawMode">
+			The state of buttons are both focused and pressed.
+		</constant>
 		<constant name="ACTION_MODE_BUTTON_PRESS" value="0" enum="ActionMode">
 			Require just a press to consider the button clicked.
 		</constant>

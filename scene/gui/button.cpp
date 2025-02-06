@@ -151,6 +151,7 @@ Ref<StyleBox> Button::_get_current_stylebox() const {
 			}
 		}
 			[[fallthrough]];
+		case DRAW_FOCUS_PRESSED:
 		case DRAW_PRESSED: {
 			if (rtl && has_theme_stylebox(SNAME("pressed_mirrored"))) {
 				stylebox = theme_cache.pressed_mirrored;
@@ -300,6 +301,17 @@ void Button::_notification(int p_what) {
 						if (has_theme_color(SNAME("icon_normal_color"))) {
 							icon_modulate_color = theme_cache.icon_normal_color;
 						}
+					}
+				} break;
+				case DRAW_FOCUS_PRESSED: {
+					// Edge case for CheckButton and CheckBox.
+					if (has_theme_color(SNAME("font_focus_pressed_color"))) {
+						font_color = theme_cache.font_focus_pressed_color;
+					} else {
+						font_color = theme_cache.font_color;
+					}
+					if (has_theme_color(SNAME("icon_pressed_color"))) {
+						icon_modulate_color = theme_cache.icon_pressed_color;
 					}
 				} break;
 				case DRAW_HOVER_PRESSED: {
@@ -821,6 +833,7 @@ void Button::_bind_methods() {
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, Button, font_pressed_color);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, Button, font_hover_color);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, Button, font_hover_pressed_color);
+	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, Button, font_focus_pressed_color);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, Button, font_disabled_color);
 
 	BIND_THEME_ITEM(Theme::DATA_TYPE_FONT, Button, font);

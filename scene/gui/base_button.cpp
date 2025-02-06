@@ -291,6 +291,9 @@ BaseButton::DrawMode BaseButton::get_draw_mode() const {
 		}
 
 		if (pressing) {
+			if (has_focus()) {
+				return DRAW_FOCUS_PRESSED;
+			}
 			return DRAW_PRESSED;
 		} else {
 			return DRAW_NORMAL;
@@ -515,6 +518,7 @@ void BaseButton::_bind_methods() {
 	BIND_ENUM_CONSTANT(DRAW_HOVER);
 	BIND_ENUM_CONSTANT(DRAW_DISABLED);
 	BIND_ENUM_CONSTANT(DRAW_HOVER_PRESSED);
+	BIND_ENUM_CONSTANT(DRAW_FOCUS_PRESSED);
 
 	BIND_ENUM_CONSTANT(ACTION_MODE_BUTTON_PRESS);
 	BIND_ENUM_CONSTANT(ACTION_MODE_BUTTON_RELEASE);

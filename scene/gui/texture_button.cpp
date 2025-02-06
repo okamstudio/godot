@@ -129,6 +129,7 @@ void TextureButton::_notification(int p_what) {
 						texdraw = normal;
 					}
 				} break;
+				case DRAW_FOCUS_PRESSED:
 				case DRAW_HOVER_PRESSED:
 				case DRAW_PRESSED: {
 					if (pressed.is_null()) {

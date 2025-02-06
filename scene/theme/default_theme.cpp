@@ -175,6 +175,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_color("font_hover_color", "Button", control_font_hover_color);
 	theme->set_color("font_focus_color", "Button", control_font_focus_color);
 	theme->set_color("font_hover_pressed_color", "Button", control_font_pressed_color);
+	theme->set_color("font_focus_pressed_color", "Button", control_font_focus_color);
 	theme->set_color("font_disabled_color", "Button", control_font_disabled_color);
 	theme->set_color("font_outline_color", "Button", Color(0, 0, 0));
 
