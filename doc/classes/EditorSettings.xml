@@ -514,6 +514,10 @@
 			If [code]true[/code], display a confirmation dialog when adding a new track to an animation by pressing the "key" icon next to a property. Holding Shift will bypass the dialog.
 			If [code]false[/code], the behavior is reversed, i.e. the dialog only appears when Shift is held.
 		</member>
+		<member name="editors/animation/default_animation_step" type="float" setter="" getter="">
+			Default step used when creating a new [Animation] in the Animation bottom panel. Only affects the first animation created in the [AnimationPlayer]. By default, other newly created animations will use the step from the previous ones.
+			This value is always expressed in seconds. If you want e.g. [code]10[/code] FPS to be the default, you need to set the default step to [code]0.1[/code].
+		</member>
 		<member name="editors/animation/default_create_bezier_tracks" type="bool" setter="" getter="">
 			If [code]true[/code], create a Bezier track instead of a standard track when pressing the "key" icon next to a property. Bezier tracks provide more control over animation curves, but are more difficult to adjust quickly.
 		</member>

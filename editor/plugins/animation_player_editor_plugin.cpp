@@ -655,6 +655,8 @@ void AnimationPlayerEditor::_animation_name_edited() {
 				if (current_anim.is_valid()) {
 					new_anim->set_step(current_anim->get_step());
 				}
+			} else {
+				new_anim->set_step(EDITOR_GET("editors/animation/default_animation_step"));
 			}
 
 			String library_name;
