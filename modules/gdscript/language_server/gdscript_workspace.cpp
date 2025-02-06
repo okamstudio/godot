@@ -87,7 +87,22 @@ void GDScriptWorkspace::apply_new_signal(Object *obj, String function, PackedStr
 	if (EditorSettings::get_singleton()->get_setting("text_editor/completion/add_type_hints")) {
 		function_body += " -> void";
 	}
-	function_body += ":\n\tpass # Replace with function body.\n";
+
+	String function_indentation;
+	if (Engine::get_singleton()->is_editor_hint()) {
+		bool use_space_indentation = EDITOR_GET("text_editor/behavior/indent/type");
+
+		if (use_space_indentation) {
+			int indent_size = EDITOR_GET("text_editor/behavior/indent/size");
+			function_indentation += String(" ").repeat(indent_size);
+		} else {
+			function_indentation += "\t";
+		}
+	} else {
+		function_indentation += "\t";
+	}
+
+	function_body += ":\n" + function_indentation + "pass # Replace with function body.\n";
 
 	lsp::TextEdit text_edit;
 
