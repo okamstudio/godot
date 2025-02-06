@@ -639,6 +639,14 @@ TEST_CASE_TEMPLATE("[Math] bezier_interpolate", T, float, double) {
 	CHECK(Math::bezier_interpolate((T)0.0, (T)0.2, (T)0.8, (T)1.0, (T)1.0) == doctest::Approx((T)1.0));
 }
 
+TEST_CASE_TEMPLATE("[Math] bezier_derivative", T, float, double) {
+	CHECK(Math::bezier_derivative((T)0.0, (T)0.2, (T)0.8, (T)1.0, (T)0.0) == doctest::Approx((T)0.6));
+	CHECK(Math::bezier_derivative((T)0.0, (T)0.2, (T)0.8, (T)1.0, (T)0.25) == doctest::Approx((T)1.05));
+	CHECK(Math::bezier_derivative((T)0.0, (T)0.2, (T)0.8, (T)1.0, (T)0.5) == doctest::Approx((T)1.2));
+	CHECK(Math::bezier_derivative((T)0.0, (T)0.2, (T)0.8, (T)1.0, (T)0.75) == doctest::Approx((T)1.05));
+	CHECK(Math::bezier_derivative((T)0.0, (T)0.2, (T)0.8, (T)1.0, (T)1.0) == doctest::Approx((T)0.6));
+}
+
 } // namespace TestMath
 
 #endif // TEST_MATH_FUNCS_H

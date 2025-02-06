@@ -266,6 +266,16 @@ public:
 		return value;
 	}
 
+	static _ALWAYS_INLINE_ double fmod_TAU(double x) {
+		static constexpr double TAU_INV = 1.0 / Math_TAU;
+		return x - trunc(x * TAU_INV) * Math_TAU;
+	}
+
+	static _ALWAYS_INLINE_ float fmod_TAU(float x) {
+		static constexpr float TAU_INV = 1.0f / (float)Math_TAU;
+		return x - truncf(x * TAU_INV) * (float)Math_TAU;
+	}
+
 	static _ALWAYS_INLINE_ double deg_to_rad(double p_y) { return p_y * (Math_PI / 180.0); }
 	static _ALWAYS_INLINE_ float deg_to_rad(float p_y) { return p_y * (float)(Math_PI / 180.0); }
 
@@ -276,46 +286,47 @@ public:
 	static _ALWAYS_INLINE_ float lerp(float p_from, float p_to, float p_weight) { return p_from + (p_to - p_from) * p_weight; }
 
 	static _ALWAYS_INLINE_ double cubic_interpolate(double p_from, double p_to, double p_pre, double p_post, double p_weight) {
-		return 0.5 *
-				((p_from * 2.0) +
-						(-p_pre + p_to) * p_weight +
-						(2.0 * p_pre - 5.0 * p_from + 4.0 * p_to - p_post) * (p_weight * p_weight) +
-						(-p_pre + 3.0 * p_from - 3.0 * p_to + p_post) * (p_weight * p_weight * p_weight));
+		double pre_min_post = p_pre - p_post;
+		return p_from - 0.5 * p_weight * (p_pre - p_to - p_weight * (pre_min_post + p_pre - 5.0 * p_from + 4.0 * p_to - (pre_min_post - 3.0 * (p_from - p_to)) * p_weight));
 	}
+
+#ifdef __aarch64__
 	static _ALWAYS_INLINE_ float cubic_interpolate(float p_from, float p_to, float p_pre, float p_post, float p_weight) {
-		return 0.5f *
-				((p_from * 2.0f) +
-						(-p_pre + p_to) * p_weight +
-						(2.0f * p_pre - 5.0f * p_from + 4.0f * p_to - p_post) * (p_weight * p_weight) +
-						(-p_pre + 3.0f * p_from - 3.0f * p_to + p_post) * (p_weight * p_weight * p_weight));
+		return p_from + 0.5f * p_weight * ((-p_pre + p_to) + (2.0f * p_pre - 5.0f * p_from + 4.0f * p_to - p_post) * p_weight + (-p_pre + 3.0f * (p_from - p_to) + p_post) * p_weight * p_weight);
 	}
+#else
+	static _ALWAYS_INLINE_ float cubic_interpolate(float p_from, float p_to, float p_pre, float p_post, float p_weight) {
+		float pre_min_post = p_pre - p_post;
+		return p_from - 0.5f * p_weight * (p_pre - p_to - p_weight * (pre_min_post + p_pre - 5.0f * p_from + 4.0f * p_to - (pre_min_post - 3.0f * (p_from - p_to)) * p_weight));
+	}
+#endif
 
 	static _ALWAYS_INLINE_ double cubic_interpolate_angle(double p_from, double p_to, double p_pre, double p_post, double p_weight) {
-		double from_rot = fmod(p_from, Math_TAU);
+		double from_rot = fmod_TAU(p_from);
 
-		double pre_diff = fmod(p_pre - from_rot, Math_TAU);
-		double pre_rot = from_rot + fmod(2.0 * pre_diff, Math_TAU) - pre_diff;
+		double pre_diff = fmod_TAU(p_pre - from_rot);
+		double pre_rot = from_rot + fmod_TAU(2.0 * pre_diff) - pre_diff;
 
-		double to_diff = fmod(p_to - from_rot, Math_TAU);
-		double to_rot = from_rot + fmod(2.0 * to_diff, Math_TAU) - to_diff;
+		double to_diff = fmod_TAU(p_to - from_rot);
+		double to_rot = from_rot + fmod_TAU(2.0 * to_diff) - to_diff;
 
-		double post_diff = fmod(p_post - to_rot, Math_TAU);
-		double post_rot = to_rot + fmod(2.0 * post_diff, Math_TAU) - post_diff;
+		double post_diff = fmod_TAU(p_post - to_rot);
+		double post_rot = to_rot + fmod_TAU(2.0 * post_diff) - post_diff;
 
 		return cubic_interpolate(from_rot, to_rot, pre_rot, post_rot, p_weight);
 	}
 
 	static _ALWAYS_INLINE_ float cubic_interpolate_angle(float p_from, float p_to, float p_pre, float p_post, float p_weight) {
-		float from_rot = fmod(p_from, (float)Math_TAU);
+		float from_rot = fmod_TAU(p_from);
 
-		float pre_diff = fmod(p_pre - from_rot, (float)Math_TAU);
-		float pre_rot = from_rot + fmod(2.0f * pre_diff, (float)Math_TAU) - pre_diff;
+		float pre_diff = fmod_TAU(p_pre - from_rot);
+		float pre_rot = from_rot + fmod_TAU(2.0f * pre_diff) - pre_diff;
 
-		float to_diff = fmod(p_to - from_rot, (float)Math_TAU);
-		float to_rot = from_rot + fmod(2.0f * to_diff, (float)Math_TAU) - to_diff;
+		float to_diff = fmod_TAU(p_to - from_rot);
+		float to_rot = from_rot + fmod_TAU(2.0f * to_diff) - to_diff;
 
-		float post_diff = fmod(p_post - to_rot, (float)Math_TAU);
-		float post_rot = to_rot + fmod(2.0f * post_diff, (float)Math_TAU) - post_diff;
+		float post_diff = fmod_TAU(p_post - to_rot);
+		float post_rot = to_rot + fmod_TAU(2.0f * post_diff) - post_diff;
 
 		return cubic_interpolate(from_rot, to_rot, pre_rot, post_rot, p_weight);
 	}
@@ -346,32 +357,32 @@ public:
 
 	static _ALWAYS_INLINE_ double cubic_interpolate_angle_in_time(double p_from, double p_to, double p_pre, double p_post, double p_weight,
 			double p_to_t, double p_pre_t, double p_post_t) {
-		double from_rot = fmod(p_from, Math_TAU);
+		double from_rot = fmod_TAU(p_from);
 
-		double pre_diff = fmod(p_pre - from_rot, Math_TAU);
-		double pre_rot = from_rot + fmod(2.0 * pre_diff, Math_TAU) - pre_diff;
+		double pre_diff = fmod_TAU(p_pre - from_rot);
+		double pre_rot = from_rot + fmod_TAU(2.0 * pre_diff) - pre_diff;
 
-		double to_diff = fmod(p_to - from_rot, Math_TAU);
-		double to_rot = from_rot + fmod(2.0 * to_diff, Math_TAU) - to_diff;
+		double to_diff = fmod_TAU(p_to - from_rot);
+		double to_rot = from_rot + fmod_TAU(2.0 * to_diff) - to_diff;
 
-		double post_diff = fmod(p_post - to_rot, Math_TAU);
-		double post_rot = to_rot + fmod(2.0 * post_diff, Math_TAU) - post_diff;
+		double post_diff = fmod_TAU(p_post - to_rot);
+		double post_rot = to_rot + fmod_TAU(2.0 * post_diff) - post_diff;
 
 		return cubic_interpolate_in_time(from_rot, to_rot, pre_rot, post_rot, p_weight, p_to_t, p_pre_t, p_post_t);
 	}
 
 	static _ALWAYS_INLINE_ float cubic_interpolate_angle_in_time(float p_from, float p_to, float p_pre, float p_post, float p_weight,
 			float p_to_t, float p_pre_t, float p_post_t) {
-		float from_rot = fmod(p_from, (float)Math_TAU);
+		float from_rot = fmod_TAU(p_from);
 
-		float pre_diff = fmod(p_pre - from_rot, (float)Math_TAU);
-		float pre_rot = from_rot + fmod(2.0f * pre_diff, (float)Math_TAU) - pre_diff;
+		float pre_diff = fmod_TAU(p_pre - from_rot);
+		float pre_rot = from_rot + fmod_TAU(2.0f * pre_diff) - pre_diff;
 
-		float to_diff = fmod(p_to - from_rot, (float)Math_TAU);
-		float to_rot = from_rot + fmod(2.0f * to_diff, (float)Math_TAU) - to_diff;
+		float to_diff = fmod_TAU(p_to - from_rot);
+		float to_rot = from_rot + fmod_TAU(2.0f * to_diff) - to_diff;
 
-		float post_diff = fmod(p_post - to_rot, (float)Math_TAU);
-		float post_rot = to_rot + fmod(2.0f * post_diff, (float)Math_TAU) - post_diff;
+		float post_diff = fmod_TAU(p_post - to_rot);
+		float post_rot = to_rot + fmod_TAU(2.0f * post_diff) - post_diff;
 
 		return cubic_interpolate_in_time(from_rot, to_rot, pre_rot, post_rot, p_weight, p_to_t, p_pre_t, p_post_t);
 	}
@@ -380,51 +391,47 @@ public:
 		/* Formula from Wikipedia article on Bezier curves. */
 		double omt = (1.0 - p_t);
 		double omt2 = omt * omt;
-		double omt3 = omt2 * omt;
 		double t2 = p_t * p_t;
 		double t3 = t2 * p_t;
 
-		return p_start * omt3 + p_control_1 * omt2 * p_t * 3.0 + p_control_2 * omt * t2 * 3.0 + p_end * t3;
+		return omt * (p_start * omt2 + 3.0 * p_control_2 * t2) + 3.0 * p_control_1 * omt2 * p_t + p_end * t3;
 	}
 
 	static _ALWAYS_INLINE_ float bezier_interpolate(float p_start, float p_control_1, float p_control_2, float p_end, float p_t) {
 		/* Formula from Wikipedia article on Bezier curves. */
 		float omt = (1.0f - p_t);
 		float omt2 = omt * omt;
-		float omt3 = omt2 * omt;
 		float t2 = p_t * p_t;
 		float t3 = t2 * p_t;
 
-		return p_start * omt3 + p_control_1 * omt2 * p_t * 3.0f + p_control_2 * omt * t2 * 3.0f + p_end * t3;
+		return omt * (p_start * omt2 + 3.0f * p_control_2 * t2) + 3.0f * p_control_1 * omt2 * p_t + p_end * t3;
 	}
 
 	static _ALWAYS_INLINE_ double bezier_derivative(double p_start, double p_control_1, double p_control_2, double p_end, double p_t) {
 		/* Formula from Wikipedia article on Bezier curves. */
 		double omt = (1.0 - p_t);
-		double omt2 = omt * omt;
 		double t2 = p_t * p_t;
 
-		double d = (p_control_1 - p_start) * 3.0 * omt2 + (p_control_2 - p_control_1) * 6.0 * omt * p_t + (p_end - p_control_2) * 3.0 * t2;
-		return d;
+		double d = omt * ((p_control_1 - p_start) * omt + (p_control_2 - p_control_1) * 2.0 * p_t) + (p_end - p_control_2) * t2;
+		return 3.0 * d;
 	}
 
 	static _ALWAYS_INLINE_ float bezier_derivative(float p_start, float p_control_1, float p_control_2, float p_end, float p_t) {
 		/* Formula from Wikipedia article on Bezier curves. */
 		float omt = (1.0f - p_t);
-		float omt2 = omt * omt;
 		float t2 = p_t * p_t;
 
-		float d = (p_control_1 - p_start) * 3.0f * omt2 + (p_control_2 - p_control_1) * 6.0f * omt * p_t + (p_end - p_control_2) * 3.0f * t2;
-		return d;
+		float d = omt * ((p_control_1 - p_start) * omt + (p_control_2 - p_control_1) * 2.0f * p_t) + (p_end - p_control_2) * t2;
+		return 3.0f * d;
 	}
 
 	static _ALWAYS_INLINE_ double angle_difference(double p_from, double p_to) {
-		double difference = fmod(p_to - p_from, Math_TAU);
-		return fmod(2.0 * difference, Math_TAU) - difference;
+		double difference = fmod_TAU(p_to - p_from);
+		return fmod_TAU(2.0 * difference) - difference;
 	}
 	static _ALWAYS_INLINE_ float angle_difference(float p_from, float p_to) {
-		float difference = fmod(p_to - p_from, (float)Math_TAU);
-		return fmod(2.0f * difference, (float)Math_TAU) - difference;
+		float difference = fmod_TAU(p_to - p_from);
+		return fmod_TAU(2.0f * difference) - difference;
 	}
 
 	static _ALWAYS_INLINE_ double lerp_angle(double p_from, double p_to, double p_weight) {
