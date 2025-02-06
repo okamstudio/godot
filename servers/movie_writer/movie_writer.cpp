@@ -146,6 +146,7 @@ void MovieWriter::_bind_methods() {
 	// Used by the editor.
 	GLOBAL_DEF_BASIC("editor/movie_writer/movie_file", "");
 	GLOBAL_DEF_BASIC("editor/movie_writer/disable_vsync", false);
+	GLOBAL_DEF_BASIC("editor/movie_writer/create_new_file_if_existing", true);
 	GLOBAL_DEF_BASIC(PropertyInfo(Variant::INT, "editor/movie_writer/fps", PROPERTY_HINT_RANGE, "1,300,1,suffix:FPS"), 60);
 }
 
