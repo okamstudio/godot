@@ -52,6 +52,7 @@
 #ifdef TOOLS_ENABLED
 Dictionary Control::_edit_get_state() const {
 	Dictionary s;
+	s["custom_minimum_size"] = get_custom_minimum_size();
 	s["rotation"] = get_rotation();
 	s["scale"] = get_scale();
 	s["pivot"] = get_pivot_offset();
@@ -72,20 +73,25 @@ Dictionary Control::_edit_get_state() const {
 
 	s["layout_mode"] = _get_layout_mode();
 	s["anchors_layout_preset"] = _get_anchors_layout_preset();
+	s["visible"] = is_visible();
 
 	return s;
 }
 
 void Control::_edit_set_state(const Dictionary &p_state) {
 	ERR_FAIL_COND(p_state.is_empty() ||
+			!p_state.has("custom_minimum_size") ||
 			!p_state.has("rotation") || !p_state.has("scale") ||
 			!p_state.has("pivot") || !p_state.has("anchors") || !p_state.has("offsets") ||
-			!p_state.has("layout_mode") || !p_state.has("anchors_layout_preset"));
+			!p_state.has("layout_mode") || !p_state.has("anchors_layout_preset") ||
+			!p_state.has("visible"));
 	Dictionary state = p_state;
 
+	set_custom_minimum_size(state["custom_minimum_size"]);
 	set_rotation(state["rotation"]);
 	set_scale(state["scale"]);
 	set_pivot_offset(state["pivot"]);
+	set_visible(state["visible"]);
 
 	Array anchors = state["anchors"];
 

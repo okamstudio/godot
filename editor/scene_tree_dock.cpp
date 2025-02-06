@@ -3094,6 +3094,20 @@ void SceneTreeDock::replace_node(Node *p_node, Node *p_by_node) {
 	ur->add_do_method(this, "replace_node", p_node, p_by_node, true, false);
 	ur->add_do_reference(p_by_node);
 
+	bool is_current_node_container = Object::cast_to<Container>(p_node);
+	bool is_replacement_node_container = Object::cast_to<Container>(p_by_node);
+
+	// Make sure child controls of container remember their previous state,
+	// when put back into non Container control node.
+	if (!is_current_node_container && is_replacement_node_container) {
+		for (int i= 0; i< p_node.get_child_count(); i++) {
+			Control *c = Object::cast_to<Control>(p_node->get_child(i));
+			if (c) {
+				ur->add_undo_method(c, "_edit_set_state", c->_edit_get_state());
+			}
+		}
+	}
+
 	_replace_node(p_node, p_by_node, true, false);
 
 	ur->add_undo_method(this, "replace_node", p_by_node, p_node, false, false);
