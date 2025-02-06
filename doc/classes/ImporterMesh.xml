@@ -42,6 +42,29 @@
 				Removes all surfaces and blend shapes from this [ImporterMesh].
 			</description>
 		</method>
+		<method name="create_convex_shape" qualifiers="const">
+			<return type="ConvexPolygonShape3D" />
+			<param index="0" name="clean" type="bool" default="true" />
+			<param index="1" name="simplify" type="bool" default="false" />
+			<description>
+				Calculate a [ConvexPolygonShape3D] from this [ImporterMesh].
+				If [param clean] is [code]true[/code] (default), duplicate and interior vertices are removed automatically. You can set it to [code]false[/code] to make the process faster if not needed.
+				If [param simplify] is [code]true[/code], the geometry can be further simplified to reduce the number of vertices. Disabled by default.
+			</description>
+		</method>
+		<method name="create_simplified_trimesh_shape" qualifiers="const">
+			<return type="ConcavePolygonShape3D" />
+			<param index="0" name="settings" type="MeshSimplificationSettings" />
+			<description>
+				Calculate a simplified [ConcavePolygonShape3D] from this [ImporterMesh].
+			</description>
+		</method>
+		<method name="create_trimesh_shape" qualifiers="const">
+			<return type="ConcavePolygonShape3D" />
+			<description>
+				Calculate a [ConcavePolygonShape3D] from this [ImporterMesh].
+			</description>
+		</method>
 		<method name="generate_lods">
 			<return type="void" />
 			<param index="0" name="normal_merge_angle" type="float" />

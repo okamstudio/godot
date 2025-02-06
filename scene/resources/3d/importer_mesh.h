@@ -123,6 +123,7 @@ public:
 	Vector<Ref<Shape3D>> convex_decompose(const Ref<MeshConvexDecompositionSettings> &p_settings) const;
 	Ref<ConvexPolygonShape3D> create_convex_shape(bool p_clean = true, bool p_simplify = false) const;
 	Ref<ConcavePolygonShape3D> create_trimesh_shape() const;
+	Ref<ConcavePolygonShape3D> create_simplified_trimesh_shape(const Ref<MeshSimplificationSettings> &p_simplification_settings) const;
 	Ref<NavigationMesh> create_navigation_mesh();
 	Error lightmap_unwrap_cached(const Transform3D &p_base_transform, float p_texel_size, const Vector<uint8_t> &p_src_cache, Vector<uint8_t> &r_dst_cache);
 

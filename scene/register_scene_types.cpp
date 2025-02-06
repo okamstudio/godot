@@ -876,6 +876,7 @@ void register_scene_types() {
 
 	GDREGISTER_VIRTUAL_CLASS(Mesh);
 	GDREGISTER_CLASS(MeshConvexDecompositionSettings);
+	GDREGISTER_CLASS(MeshSimplificationSettings);
 	GDREGISTER_CLASS(ArrayMesh);
 	GDREGISTER_CLASS(PlaceholderMesh);
 	GDREGISTER_CLASS(ImmediateMesh);

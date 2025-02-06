@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="MeshSimplificationSettings" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Parameters to be used with a [Mesh] simplification operation.
+	</brief_description>
+	<description>
+		Parameters to be used with a [Mesh] simplification operation.
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="sloppy" type="bool" setter="set_sloppy" getter="get_sloppy" default="true">
+			If [code]true[/code], use the sloppy simplification algorithm. The sloppy algorithm does not try to follow the topography of the original mesh.
+		</member>
+		<member name="target_error" type="float" setter="set_target_error" getter="get_target_error" default="0.01">
+			How much the simplified mesh should be allowed to deviate from the source mesh normalized to 0..1 range. For example, a value of [code]0.01[/code] will try to maintain the error to be below 1% of the mesh extents.
+		</member>
+		<member name="target_vertex_reduction" type="float" setter="set_target_vertex_reduction" getter="get_target_vertex_reduction" default="0.2">
+			Fraction of vertices that should be in the simplified mesh.
+		</member>
+	</members>
+</class>

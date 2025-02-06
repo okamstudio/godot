@@ -43,6 +43,7 @@
 class ConcavePolygonShape3D;
 class ConvexPolygonShape3D;
 class MeshConvexDecompositionSettings;
+class MeshSimplificationSettings;
 class Shape3D;
 
 class Mesh : public Resource {
@@ -208,6 +209,28 @@ public:
 	virtual Ref<Resource> create_placeholder() const;
 
 	Mesh();
+};
+
+class MeshSimplificationSettings : public RefCounted {
+	GDCLASS(MeshSimplificationSettings, RefCounted);
+
+private:
+	bool sloppy = true;
+	real_t target_error = 0.01;
+	real_t target_vertex_reduction = 0.2;
+
+protected:
+	static void _bind_methods();
+
+public:
+	void set_sloppy(bool p_sloppy);
+	bool get_sloppy() const;
+
+	void set_target_error(real_t p_target_error);
+	real_t get_target_error() const;
+
+	void set_target_vertex_reduction(real_t p_target_vector_reduction);
+	real_t get_target_vertex_reduction() const;
 };
 
 class MeshConvexDecompositionSettings : public RefCounted {

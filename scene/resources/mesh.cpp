@@ -203,6 +203,43 @@ void MeshConvexDecompositionSettings::_bind_methods() {
 
 Mesh::ConvexDecompositionFunc Mesh::convex_decomposition_function = nullptr;
 
+void MeshSimplificationSettings::set_sloppy(bool p_sloppy) {
+	sloppy = p_sloppy;
+}
+
+bool MeshSimplificationSettings::get_sloppy() const {
+	return sloppy;
+};
+
+void MeshSimplificationSettings::set_target_error(real_t p_target_error) {
+	target_error = CLAMP(p_target_error, 0.001, 1.0);
+}
+
+real_t MeshSimplificationSettings::get_target_error() const {
+	return target_error;
+};
+
+void MeshSimplificationSettings::set_target_vertex_reduction(real_t p_target_vertex_reduction) {
+	target_vertex_reduction = CLAMP(target_vertex_reduction, 0.0, 1.0);
+};
+
+real_t MeshSimplificationSettings::get_target_vertex_reduction() const {
+	return target_vertex_reduction;
+};
+
+void MeshSimplificationSettings::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("set_sloppy", "sloppy"), &MeshSimplificationSettings::set_sloppy);
+	ClassDB::bind_method(D_METHOD("get_sloppy"), &MeshSimplificationSettings::get_sloppy);
+	ClassDB::bind_method(D_METHOD("set_target_error", "target_error"), &MeshSimplificationSettings::set_target_error);
+	ClassDB::bind_method(D_METHOD("get_target_error"), &MeshSimplificationSettings::get_target_error);
+	ClassDB::bind_method(D_METHOD("set_target_vertex_reduction", "target_vertex_reduction"), &MeshSimplificationSettings::set_target_vertex_reduction);
+	ClassDB::bind_method(D_METHOD("get_target_vertex_reduction"), &MeshSimplificationSettings::get_target_vertex_reduction);
+
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "sloppy"), "set_sloppy", "get_sloppy");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "target_error", PROPERTY_HINT_RANGE, "0.001,1.0,0.001,exp"), "set_target_error", "get_target_error");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "target_vertex_reduction", PROPERTY_HINT_RANGE, "0.0,1.0,0.01"), "set_target_vertex_reduction", "get_target_vertex_reduction");
+}
+
 int Mesh::get_surface_count() const {
 	int ret = 0;
 	GDVIRTUAL_CALL(_get_surface_count, ret);

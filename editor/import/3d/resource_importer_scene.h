@@ -426,7 +426,39 @@ Vector<Ref<Shape3D>> ResourceImporterScene::get_collision_shapes(const Ref<Impor
 		return shapes;
 	} else if (generate_shape_type == SHAPE_TYPE_TRIMESH) {
 		Vector<Ref<Shape3D>> shapes;
-		shapes.push_back(p_mesh->create_trimesh_shape());
+		int simplification = 0;
+		if (p_options.has(SNAME("physics/simplification"))) {
+			simplification = p_options[SNAME("physics/simplification")];
+		}
+
+		if (simplification > 0) {
+			Ref<MeshSimplificationSettings> simplification_settings = Ref<MeshSimplificationSettings>();
+			simplification_settings.instantiate();
+
+			switch (simplification) {
+				case 1: // Low
+					simplification_settings->set_sloppy(true);
+					simplification_settings->set_target_error(0.004);
+					simplification_settings->set_target_vertex_reduction(0.0);
+					break;
+
+				case 2: // Medium
+					simplification_settings->set_sloppy(false);
+					simplification_settings->set_target_error(0.004);
+					simplification_settings->set_target_vertex_reduction(0.05);
+					break;
+				case 3: // High
+					simplification_settings->set_sloppy(true);
+					simplification_settings->set_target_error(0.5);
+					simplification_settings->set_target_vertex_reduction(0.05);
+					break;
+			}
+
+			shapes.push_back(p_mesh->create_simplified_trimesh_shape(simplification_settings));
+		} else {
+			shapes.push_back(p_mesh->create_trimesh_shape());
+		}
+
 		return shapes;
 	} else if (generate_shape_type == SHAPE_TYPE_BOX) {
 		Ref<BoxShape3D> box;

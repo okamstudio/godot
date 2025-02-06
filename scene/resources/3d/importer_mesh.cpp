@@ -893,6 +893,76 @@ Ref<ConcavePolygonShape3D> ImporterMesh::create_trimesh_shape() const {
 	return shape;
 }
 
+Ref<ConcavePolygonShape3D> ImporterMesh::create_simplified_trimesh_shape(const Ref<MeshSimplificationSettings> &p_simplification_settings) const {
+	Vector<Vector3> face_points;
+	ERR_FAIL_COND_V(!SurfaceTool::simplify_sloppy_func, Ref<ConcavePolygonShape3D>());
+
+	for (int i = 0; i < surfaces.size(); i++) {
+		if (surfaces[i].primitive == Mesh::PRIMITIVE_TRIANGLES) {
+			Vector<Vector3> vertices = surfaces[i].arrays[Mesh::ARRAY_VERTEX];
+			Vector<int> indices = surfaces[i].arrays[Mesh::ARRAY_INDEX];
+
+			if (!indices.size()) {
+				// Meshoptimzer needs the vertices to be indexed.
+				indices.resize(vertices.size());
+				for (int j = 0; j < vertices.size(); ++j)
+					indices.set(j, j);
+			}
+
+			// Remap duplicate vertices
+			Vector<unsigned int> remap;
+			remap.resize(indices.size());
+			size_t new_vertex_count = SurfaceTool::generate_remap_func(
+					remap.ptrw(),
+					(unsigned int *)indices.ptr(), indices.size(),
+					vertices.ptr(), vertices.size(),
+					sizeof(Vector3));
+
+			SurfaceTool::remap_index_func(
+					(unsigned int *)indices.ptrw(),
+					(unsigned int *)indices.ptr(), indices.size(),
+					remap.ptr());
+
+			SurfaceTool::remap_vertex_func(
+					vertices.ptrw(),
+					vertices.ptr(), vertices.size(),
+					sizeof(Vector3),
+					remap.ptr());
+
+			vertices.resize(new_vertex_count);
+
+			float r_error;
+			Vector<int> result;
+			result.resize(indices.size());
+			int keep;
+
+			if (p_simplification_settings->get_sloppy()) {
+				keep = SurfaceTool::simplify_sloppy_func(
+						(unsigned int *)result.ptrw(),
+						(unsigned int *)indices.ptr(), indices.size(),
+						(float *)vertices.ptr(), vertices.size(),
+						sizeof(Vector3), size_t(p_simplification_settings->get_target_vertex_reduction() * vertices.size()), p_simplification_settings->get_target_error(),
+						&r_error);
+			} else {
+				keep = SurfaceTool::simplify_func(
+						(unsigned int *)result.ptrw(),
+						(unsigned int *)indices.ptr(), indices.size(),
+						(float *)vertices.ptr(), vertices.size(),
+						sizeof(Vector3), size_t(p_simplification_settings->get_target_vertex_reduction() * vertices.size()), p_simplification_settings->get_target_error(),
+						1, &r_error);
+			}
+
+			for (int j = 0; j < keep; ++j) {
+				face_points.push_back(vertices[result[j]]);
+			}
+		}
+	}
+
+	Ref<ConcavePolygonShape3D> shape = memnew(ConcavePolygonShape3D);
+	shape->set_faces(face_points);
+	return shape;
+}
+
 Ref<NavigationMesh> ImporterMesh::create_navigation_mesh() {
 	Vector<Face3> faces = get_faces();
 	if (faces.size() == 0) {
@@ -1178,6 +1248,11 @@ Size2i ImporterMesh::get_lightmap_size_hint() const {
 
 void ImporterMesh::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("add_blend_shape", "name"), &ImporterMesh::add_blend_shape);
+
+	ClassDB::bind_method(D_METHOD("create_convex_shape", "clean", "simplify"), &ImporterMesh::create_convex_shape, DEFVAL(true), DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("create_trimesh_shape"), &ImporterMesh::create_trimesh_shape);
+	ClassDB::bind_method(D_METHOD("create_simplified_trimesh_shape", "settings"), &ImporterMesh::create_simplified_trimesh_shape);
+
 	ClassDB::bind_method(D_METHOD("get_blend_shape_count"), &ImporterMesh::get_blend_shape_count);
 	ClassDB::bind_method(D_METHOD("get_blend_shape_name", "blend_shape_idx"), &ImporterMesh::get_blend_shape_name);
 
