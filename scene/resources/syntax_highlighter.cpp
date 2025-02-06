@@ -46,6 +46,23 @@ Dictionary SyntaxHighlighter::get_line_syntax_highlighting(int p_line) {
 		color_map = _get_line_syntax_highlighting_impl(p_line);
 	}
 
+	// This allows us to filter (only integers) and sort (ascending) the color_map
+	Dictionary sorted_color_map;
+	Vector<Variant> sorted_keys;
+	for (const Variant *key = color_map.next(nullptr); key; key = color_map.next(key)) {
+		if (key->get_type() != Variant::INT) {
+			continue;
+		}
+		sorted_keys.push_back(*key);
+	}
+	if (!sorted_keys.is_empty()) {
+		sorted_keys.sort();
+		for (int idx = 0; idx < sorted_keys.size(); ++idx) {
+			sorted_color_map[sorted_keys[idx]] = color_map[sorted_keys[idx]];
+		}
+		color_map = sorted_color_map;
+	}
+
 	highlighting_cache[p_line] = color_map;
 	return color_map;
 }
