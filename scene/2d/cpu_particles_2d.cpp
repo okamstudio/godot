@@ -1046,10 +1046,11 @@ void CPUParticles2D::_particles_process(double p_delta) {
 
 		if (particle_flags[PARTICLE_FLAG_ALIGN_Y_TO_VELOCITY]) {
 			if (p.velocity.length() > 0.0) {
-				p.transform.columns[1] = p.velocity.normalized();
-				p.transform.columns[0] = p.transform.columns[1].orthogonal();
+				p.transform.columns[1] = p.velocity;
 			}
 
+			p.transform.columns[1] = p.transform.columns[1].normalized();
+			p.transform.columns[0] = p.transform.columns[1].orthogonal();
 		} else {
 			p.transform.columns[0] = Vector2(Math::cos(p.rotation), -Math::sin(p.rotation));
 			p.transform.columns[1] = Vector2(Math::sin(p.rotation), Math::cos(p.rotation));
