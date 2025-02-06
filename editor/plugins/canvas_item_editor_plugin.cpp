@@ -2518,6 +2518,10 @@ bool CanvasItemEditor::_gui_input_select(const Ref<InputEvent> &p_event) {
 			Vector<_SelectResult> selection = Vector<_SelectResult>();
 			// Retrieve the canvas items.
 			_get_canvas_items_at_pos(click, selection);
+
+			// Sort retrieved items by z-index.
+			selection.sort();
+
 			if (!selection.is_empty()) {
 				ci = selection[0].item;
 			}
