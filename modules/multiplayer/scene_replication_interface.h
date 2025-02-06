@@ -73,7 +73,7 @@ private:
 	HashMap<int, PeerInfo> peers_info;
 	uint32_t last_net_id = 0;
 	HashMap<ObjectID, TrackedNode> tracked_nodes;
-	HashSet<ObjectID> spawned_nodes;
+	RBSet<ObjectID> spawned_nodes;
 	HashSet<ObjectID> sync_nodes;
 
 	// Pending local spawn information (handles spawning nested nodes during ready).
