@@ -2184,7 +2184,19 @@ GDScriptParser::IfNode *GDScriptParser::parse_if(const String &p_token) {
 		push_error(vformat(R"(Expected conditional expression after "%s".)", p_token));
 	}
 
-	consume(GDScriptTokenizer::Token::COLON, vformat(R"(Expected ":" after "%s" condition.)", p_token));
+	switch (current.type) {
+		case GDScriptTokenizer::Token::COLON:
+			advance();
+			break;
+		case GDScriptTokenizer::Token::IDENTIFIER:
+			push_error(vformat(R"(Expected ":" after "%s" condition before the identifier "%s".)", p_token, current.get_identifier()));
+			break;
+		case GDScriptTokenizer::Token::NEWLINE:
+			push_error(vformat(R"(Expected ":" after "%s" condition.)", p_token));
+			break;
+		default:
+			push_error(vformat(R"(Expected ":" after "%s" condition before "%s" token.)", p_token, current.get_name()));
+	}
 
 	n_if->true_block = parse_suite(vformat(R"("%s" block)", p_token));
 	n_if->true_block->parent_if = n_if;
