@@ -529,6 +529,12 @@
 				[b]Note:[/b] The Y position corresponds to the bottom side of the line. Use [method get_rect_at_line_column] to get the top side position.
 			</description>
 		</method>
+		<method name="get_prev_version" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the version number of the undo/redo state that will be applied if an undo is performed.
+			</description>
+		</method>
 		<method name="get_rect_at_line_column" qualifiers="const">
 			<return type="Rect2i" />
 			<param index="0" name="line" type="int" />
@@ -536,6 +542,12 @@
 			<description>
 				Returns the local position and size for the grapheme at the given [param line] and [param column]. If [code]x[/code] or [code]y[/code] position of the returned rect equal [code]-1[/code], the position is outside of the viewable area of the control.
 				[b]Note:[/b] The Y position of the returned rect corresponds to the top side of the line, unlike [method get_pos_at_line_column] which returns the bottom side.
+			</description>
+		</method>
+		<method name="get_redo_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the number of available "redo" actions in the undo/redo history.
 			</description>
 		</method>
 		<method name="get_saved_version" qualifiers="const">
@@ -658,6 +670,12 @@
 				Returns the total number of lines in the text. This includes wrapped lines and excludes folded lines. If [member wrap_mode] is set to [constant LINE_WRAPPING_NONE] and no lines are folded (see [method CodeEdit.is_line_folded]) then this is equivalent to [method get_line_count]. See [method get_visible_line_count_in_range] for a limited range of lines.
 			</description>
 		</method>
+		<method name="get_undo_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the number of available "undo" actions in the undo/redo history.
+			</description>
+		</method>
 		<method name="get_v_scroll_bar" qualifiers="const">
 			<return type="VScrollBar" />
 			<description>
@@ -667,7 +685,7 @@
 		<method name="get_version" qualifiers="const">
 			<return type="int" />
 			<description>
-				Returns the current version of the [TextEdit]. The version is a count of recorded operations by the undo/redo history.
+				Returns the current version of the [TextEdit]. Different undo/redo history states have different, increasing version numbers.
 			</description>
 		</method>
 		<method name="get_visible_line_count" qualifiers="const">
@@ -1418,6 +1436,13 @@
 			<description>
 				Emitted immediately when the text changes.
 				When text is added [param from_line] will be less than [param to_line]. On a remove [param to_line] will be less than [param from_line].
+			</description>
+		</signal>
+		<signal name="operation_done">
+			<param index="0" name="from_line" type="int" />
+			<param index="1" name="to_line" type="int" />
+			<description>
+				Emitted when the text changes and a new undo operation has been created for the change.
 			</description>
 		</signal>
 		<signal name="text_changed">
