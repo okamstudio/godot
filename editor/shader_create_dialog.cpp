@@ -130,6 +130,10 @@ void ShaderCreateDialog::_template_changed(int p_template) {
 void ShaderCreateDialog::ok_pressed() {
 	if (is_new_shader_created) {
 		_create_new();
+		if (built_in_enabled) {
+			// Only save state of built-in checkbox if it's enabled.
+			EditorSettings::get_singleton()->set_project_metadata("shader_setup", "create_built_in_shader", internal->is_pressed());
+		}
 	} else {
 		_load_exist();
 	}
@@ -408,6 +412,10 @@ void ShaderCreateDialog::config(const String &p_base_path, bool p_built_in_enabl
 
 	built_in_enabled = p_built_in_enabled;
 	load_enabled = p_load_enabled;
+
+	if (built_in_enabled) {
+		internal->set_pressed(EditorSettings::get_singleton()->get_project_metadata("shader_setup", "create_built_in_shader", false));
+	}
 
 	if (p_preferred_type > -1) {
 		type_menu->select(p_preferred_type);
