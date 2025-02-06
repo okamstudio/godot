@@ -1376,6 +1376,11 @@ void EditorInspectorPlugin::add_property_editor_for_multiple_properties(const St
 }
 
 bool EditorInspectorPlugin::can_handle(Object *p_object) {
+	const StringName object_class = p_object->get_class();
+	if (ClassDB::class_exists(object_class) && !ClassDB::is_class_exposed(object_class)) {
+		return false;
+	}
+
 	bool success = false;
 	GDVIRTUAL_CALL(_can_handle, p_object, success);
 	return success;
