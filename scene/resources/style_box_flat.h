@@ -50,7 +50,7 @@ class StyleBoxFlat : public StyleBox {
 	bool anti_aliased = true;
 
 	int corner_detail = 8;
-	int shadow_size = 0;
+	int shadow_size = -1;
 	Point2 shadow_offset;
 	real_t aa_size = 1;
 

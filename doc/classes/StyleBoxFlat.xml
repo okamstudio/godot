@@ -165,8 +165,8 @@
 		<member name="shadow_offset" type="Vector2" setter="set_shadow_offset" getter="get_shadow_offset" default="Vector2(0, 0)">
 			The shadow offset in pixels. Adjusts the position of the shadow relatively to the stylebox.
 		</member>
-		<member name="shadow_size" type="int" setter="set_shadow_size" getter="get_shadow_size" default="0">
-			The shadow size in pixels.
+		<member name="shadow_size" type="int" setter="set_shadow_size" getter="get_shadow_size" default="-1">
+			The shadow size in pixels. A size of [code]-1[/code] disables drawing of the shadow entirely.
 		</member>
 		<member name="skew" type="Vector2" setter="set_skew" getter="get_skew" default="Vector2(0, 0)">
 			If set to a non-zero value on either axis, [member skew] distorts the StyleBox horizontally and/or vertically. This can be used for "futuristic"-style UIs. Positive values skew the StyleBox towards the right (X axis) and upwards (Y axis), while negative values skew the StyleBox towards the left (X axis) and downwards (Y axis).
