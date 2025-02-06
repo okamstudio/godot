@@ -1663,7 +1663,11 @@ RID LightStorage::reflection_probe_instance_get_framebuffer(RID p_instance, int 
 
 	ReflectionAtlas *atlas = reflection_atlas_owner.get_or_null(rpi->atlas);
 	ERR_FAIL_NULL_V(atlas, RID());
-	return atlas->reflections[rpi->atlas_index].fbs[p_index];
+
+	int atlas_index = rpi->atlas_index;
+	ERR_FAIL_COND_V(atlas_index == -1, RID());
+
+	return atlas->reflections[atlas_index].fbs[p_index];
 }
 
 RID LightStorage::reflection_probe_instance_get_depth_framebuffer(RID p_instance, int p_index) {
