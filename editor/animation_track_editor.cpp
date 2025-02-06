@@ -5361,6 +5361,12 @@ void AnimationTrackEditor::_add_track(int p_type) {
 	pick_track->get_filter_line_edit()->grab_focus();
 }
 
+void AnimationTrackEditor::_add_multiple_tracks(Array p_multiple_properties) {
+	for (int i = 0; i < p_multiple_properties.size(); i++) {
+		_new_track_property_selected(p_multiple_properties[i]);
+	}
+}
+
 void AnimationTrackEditor::_fetch_value_track_options(const NodePath &p_path, Animation::UpdateMode *r_update_mode, Animation::InterpolationType *r_interpolation_type, bool *r_loop_wrap) {
 	AnimationPlayer *player = AnimationPlayerEditor::get_singleton()->get_player();
 	if (player->has_animation(SceneStringName(RESET))) {
@@ -7790,6 +7796,8 @@ AnimationTrackEditor::AnimationTrackEditor() {
 	prop_selector = memnew(PropertySelector);
 	add_child(prop_selector);
 	prop_selector->connect("selected", callable_mp(this, &AnimationTrackEditor::_new_track_property_selected));
+	prop_selector->connect("multiple_properties_selected", callable_mp(this, &AnimationTrackEditor::_add_multiple_tracks));
+	prop_selector->set_multiselect(true);
 
 	method_selector = memnew(PropertySelector);
 	add_child(method_selector);
