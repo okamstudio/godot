@@ -254,6 +254,113 @@ void SignExtend(inout float3 v1, uint mask, uint signFlag) {
 	v1 = v;
 }
 
+// Refine endpoints by insetting bounding box in log2 RGB space
+void InsetColorBBoxP1(float3 texels[16], inout float3 blockMin, inout float3 blockMax) {
+	float3 refinedBlockMin = blockMax;
+	float3 refinedBlockMax = blockMin;
+
+	for (uint i = 0; i < 16; ++i) {
+		refinedBlockMin = min(refinedBlockMin, texels[i] == blockMin ? refinedBlockMin : texels[i]);
+		refinedBlockMax = max(refinedBlockMax, texels[i] == blockMax ? refinedBlockMax : texels[i]);
+	}
+
+	float3 logRefinedBlockMax = log2(refinedBlockMax + 1.0f);
+	float3 logRefinedBlockMin = log2(refinedBlockMin + 1.0f);
+
+	float3 logBlockMax = log2(blockMax + 1.0f);
+	float3 logBlockMin = log2(blockMin + 1.0f);
+	float3 logBlockMaxExt = (logBlockMax - logBlockMin) * (1.0f / 32.0f);
+
+	logBlockMin += min(logRefinedBlockMin - logBlockMin, logBlockMaxExt);
+	logBlockMax -= min(logBlockMax - logRefinedBlockMax, logBlockMaxExt);
+
+	blockMin = exp2(logBlockMin) - 1.0f;
+	blockMax = exp2(logBlockMax) - 1.0f;
+}
+
+// Least squares optimization to find best endpoints for the selected block indices
+void OptimizeEndpointsP1(float3 texels[16], inout float3 blockMin, inout float3 blockMax, in float3 blockMinNonInset, in float3 blockMaxNonInset) {
+	float3 blockDir = blockMax - blockMin;
+	blockDir = blockDir / (blockDir.x + blockDir.y + blockDir.z);
+
+	float endPoint0Pos = f32tof16(dot(blockMin, blockDir));
+	float endPoint1Pos = f32tof16(dot(blockMax, blockDir));
+
+	float3 alphaTexelSum = float3(0.0f);
+	float3 betaTexelSum = float3(0.0f);
+	float alphaBetaSum = 0.0f;
+	float alphaSqSum = 0.0f;
+	float betaSqSum = 0.0f;
+
+	for (uint i = 0; i < 16; i++) {
+		float texelPos = f32tof16(dot(texels[i], blockDir));
+		uint texelIndex = ComputeIndex4(texelPos, endPoint0Pos, endPoint1Pos);
+
+		float beta = clamp(texelIndex / 15.0f, 0.0, 1.0);
+		float alpha = 1.0f - beta;
+
+		float3 texelF16 = f32tof16(texels[i].xyz);
+		alphaTexelSum += alpha * texelF16;
+		betaTexelSum += beta * texelF16;
+
+		alphaBetaSum += alpha * beta;
+
+		alphaSqSum += alpha * alpha;
+		betaSqSum += beta * beta;
+	}
+
+	float det = alphaSqSum * betaSqSum - alphaBetaSum * alphaBetaSum;
+
+	if (abs(det) > 0.00001f) {
+		float detRcp = 1.0 / det;
+		blockMin = clamp(f16tof32(uint3(clamp(detRcp * (alphaTexelSum * betaSqSum - betaTexelSum * alphaBetaSum), HALF_MIN, HALF_MAX))), blockMinNonInset, blockMaxNonInset);
+		blockMax = clamp(f16tof32(uint3(clamp(detRcp * (betaTexelSum * alphaSqSum - alphaTexelSum * alphaBetaSum), HALF_MIN, HALF_MAX))), blockMinNonInset, blockMaxNonInset);
+	}
+}
+
+// Least squares optimization to find best endpoints for the selected block indices
+void OptimizeEndpointsP2(float3 texels[16], uint pattern, uint patternSelector, inout float3 blockMin, inout float3 blockMax) {
+	float3 blockDir = blockMax - blockMin;
+	blockDir = blockDir / (blockDir.x + blockDir.y + blockDir.z);
+
+	float endPoint0Pos = f32tof16(dot(blockMin, blockDir));
+	float endPoint1Pos = f32tof16(dot(blockMax, blockDir));
+
+	float3 alphaTexelSum = float3(0.0f);
+	float3 betaTexelSum = float3(0.0f);
+	float alphaBetaSum = 0.0f;
+	float alphaSqSum = 0.0f;
+	float betaSqSum = 0.0f;
+
+	for (int i = 0; i < 16; i++) {
+		uint paletteID = Pattern(pattern, i);
+		if (paletteID == patternSelector) {
+			float texelPos = f32tof16(dot(texels[i], blockDir));
+			uint texelIndex = ComputeIndex3(texelPos, endPoint0Pos, endPoint1Pos);
+
+			float beta = clamp(texelIndex / 7.0f, 0.0, 1.0);
+			float alpha = 1.0f - beta;
+
+			float3 texelF16 = f32tof16(texels[i].xyz);
+			alphaTexelSum += alpha * texelF16;
+			betaTexelSum += beta * texelF16;
+
+			alphaBetaSum += alpha * beta;
+
+			alphaSqSum += alpha * alpha;
+			betaSqSum += beta * beta;
+		}
+	}
+
+	float det = alphaSqSum * betaSqSum - alphaBetaSum * alphaBetaSum;
+
+	if (abs(det) > 0.00001f) {
+		float detRcp = 1.0 / det;
+		blockMin = f16tof32(uint3(clamp(detRcp * (alphaTexelSum * betaSqSum - betaTexelSum * alphaBetaSum), HALF_MIN, HALF_MAX)));
+		blockMax = f16tof32(uint3(clamp(detRcp * (betaTexelSum * alphaSqSum - alphaTexelSum * alphaBetaSum), HALF_MIN, HALF_MAX)));
+	}
+}
+
 // Encodes a block with mode 11 (2x 10-bit endpoints).
 void EncodeP1(inout uint4 block, inout float blockMSLE, float3 texels[16]) {
 	// compute endpoints (min/max RGB bbox)
@@ -264,23 +371,11 @@ void EncodeP1(inout uint4 block, inout float blockMSLE, float3 texels[16]) {
 		blockMax = max(blockMax, texels[i]);
 	}
 
-	// refine endpoints in log2 RGB space
-	float3 refinedBlockMin = blockMax;
-	float3 refinedBlockMax = blockMin;
-	for (uint i = 0u; i < 16u; ++i) {
-		refinedBlockMin = min(refinedBlockMin, texels[i] == blockMin ? refinedBlockMin : texels[i]);
-		refinedBlockMax = max(refinedBlockMax, texels[i] == blockMax ? refinedBlockMax : texels[i]);
-	}
+	float3 blockMinNonInset = blockMin;
+	float3 blockMaxNonInset = blockMax;
+	InsetColorBBoxP1(texels, blockMin, blockMax);
 
-	float3 logBlockMax = log2(blockMax + 1.0f);
-	float3 logBlockMin = log2(blockMin + 1.0f);
-	float3 logRefinedBlockMax = log2(refinedBlockMax + 1.0f);
-	float3 logRefinedBlockMin = log2(refinedBlockMin + 1.0f);
-	float3 logBlockMaxExt = (logBlockMax - logBlockMin) * (1.0f / 32.0f);
-	logBlockMin += min(logRefinedBlockMin - logBlockMin, logBlockMaxExt);
-	logBlockMax -= min(logBlockMax - logRefinedBlockMax, logBlockMaxExt);
-	blockMin = exp2(logBlockMin) - 1.0f;
-	blockMax = exp2(logBlockMax) - 1.0f;
+	OptimizeEndpointsP1(texels, blockMin, blockMax, blockMinNonInset, blockMaxNonInset);
 
 	float3 blockDir = blockMax - blockMin;
 	blockDir = blockDir / (blockDir.x + blockDir.y + blockDir.z);
@@ -419,6 +514,9 @@ void EncodeP2Pattern(inout uint4 block, inout float blockMSLE, uint pattern, flo
 			p1BlockMax = max(p1BlockMax, texels[i]);
 		}
 	}
+
+	OptimizeEndpointsP2(texels, pattern, 0, p0BlockMin, p0BlockMax);
+	OptimizeEndpointsP2(texels, pattern, 1, p1BlockMin, p1BlockMax);
 
 	float3 p0BlockDir = p0BlockMax - p0BlockMin;
 	float3 p1BlockDir = p1BlockMax - p1BlockMin;
