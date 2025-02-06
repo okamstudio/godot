@@ -3800,10 +3800,12 @@ void AnimationTrackEditor::set_animation(const Ref<Animation> &p_anim, bool p_re
 		auto_fit_bezier->set_disabled(false);
 
 		imported_anim_warning->hide();
-		for (int i = 0; i < animation->get_track_count(); i++) {
-			if (animation->track_is_imported(i)) {
-				imported_anim_warning->show();
-				break;
+		if (!animation->get_path().is_resource_file()) {
+			for (int i = 0; i < animation->get_track_count(); i++) {
+				if (animation->track_is_imported(i)) {
+					imported_anim_warning->show();
+					break;
+				}
 			}
 		}
 
