@@ -14,36 +14,42 @@
 			<return type="float" />
 			<param index="0" name="voice_idx" type="int" />
 			<description>
+				Gets the cutoff frequency of a specific voice.
 			</description>
 		</method>
 		<method name="get_voice_delay_ms" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="voice_idx" type="int" />
 			<description>
+				Gets the delay of a specific voice in milliseconds.
 			</description>
 		</method>
 		<method name="get_voice_depth_ms" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="voice_idx" type="int" />
 			<description>
+				Gets the depth of a specific voice filter in milliseconds.
 			</description>
 		</method>
 		<method name="get_voice_level_db" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="voice_idx" type="int" />
 			<description>
+				Gets the volume of a specific voice in decibels.
 			</description>
 		</method>
 		<method name="get_voice_pan" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="voice_idx" type="int" />
 			<description>
+				Gets the pan level of a specific voice.
 			</description>
 		</method>
 		<method name="get_voice_rate_hz" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="voice_idx" type="int" />
 			<description>
+				Gets the filter rate frequency of a specific voice.
 			</description>
 		</method>
 		<method name="set_voice_cutoff_hz">
@@ -51,6 +57,7 @@
 			<param index="0" name="voice_idx" type="int" />
 			<param index="1" name="cutoff_hz" type="float" />
 			<description>
+				Sets the cutoff frequency of a specific voice in hertz (number of samples per second). Cutoff frequency refers to the top-most frequency beyond which the signal is blocked. This can be used to create a low pass filter to simulate a "muffled" sound. The recommended range is [code]0[/code] to [code]20500[/code].
 			</description>
 		</method>
 		<method name="set_voice_delay_ms">
@@ -58,6 +65,7 @@
 			<param index="0" name="voice_idx" type="int" />
 			<param index="1" name="delay_ms" type="float" />
 			<description>
+				Sets the delay of a specific voice in milliseconds. Longer delay creates more audible separation between the voices. The recommended range is [code]0[/code] to [code]50[/code]. [b]Note: [/b] the maximum recommended value can be exceeded to create longer more noticeable separation.
 			</description>
 		</method>
 		<method name="set_voice_depth_ms">
@@ -65,6 +73,7 @@
 			<param index="0" name="voice_idx" type="int" />
 			<param index="1" name="depth_ms" type="float" />
 			<description>
+				Sets the depth of a specific voice filter in milliseconds. Increasing the audio depth increases the intensity of a sound. The recommended range is [code]0[/code] to [code]20[/code]. [b]Note:[/b] The maximum value can be exceeded to create distortions.
 			</description>
 		</method>
 		<method name="set_voice_level_db">
@@ -72,6 +81,7 @@
 			<param index="0" name="voice_idx" type="int" />
 			<param index="1" name="level_db" type="float" />
 			<description>
+				Sets the volume of a specific voice in decibels. This is the base volume before attenuation. The recommended range is [code]-60[/code] to [code]24[/code].
 			</description>
 		</method>
 		<method name="set_voice_pan">
@@ -79,6 +89,7 @@
 			<param index="0" name="voice_idx" type="int" />
 			<param index="1" name="pan" type="float" />
 			<description>
+				Sets the pan level of a specific voice. Values range from [code]-1.0[/code] (left ear) to [code]1.0[/code] (right ear). [b]Note:[/b] This effect does not work with stereo sounds, but mono can be forced in import settings.
 			</description>
 		</method>
 		<method name="set_voice_rate_hz">
@@ -86,6 +97,7 @@
 			<param index="0" name="voice_idx" type="int" />
 			<param index="1" name="rate_hz" type="float" />
 			<description>
+				Sets the filter rate frequency of a specific voice in hertz (number of samples per second). The recommended range is [code]0.1[/code] to [code]20[/code].
 			</description>
 		</method>
 	</methods>
