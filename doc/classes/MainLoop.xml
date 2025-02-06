@@ -92,6 +92,13 @@
 		</method>
 	</methods>
 	<signals>
+		<signal name="on_file_open">
+			<param index="0" name="files" type="PackedStringArray" />
+			<description>
+				Emitted when a user opens file with the application. Signal is emitted only is [member ProjectSettings.application/config/emit_on_file_open] is [code]true[/code] or application is running in the macOS sandbox.
+				[b]Note:[/b] This signal is implemented only on macOS.
+			</description>
+		</signal>
 		<signal name="on_request_permissions_result">
 			<param index="0" name="permission" type="String" />
 			<param index="1" name="granted" type="bool" />

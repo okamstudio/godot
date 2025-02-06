@@ -43,6 +43,7 @@ void MainLoop::_bind_methods() {
 	BIND_CONSTANT(NOTIFICATION_TEXT_SERVER_CHANGED);
 
 	ADD_SIGNAL(MethodInfo("on_request_permissions_result", PropertyInfo(Variant::STRING, "permission"), PropertyInfo(Variant::BOOL, "granted")));
+	ADD_SIGNAL(MethodInfo("on_file_open", PropertyInfo(Variant::PACKED_STRING_ARRAY, "files")));
 
 	GDVIRTUAL_BIND(_initialize);
 	GDVIRTUAL_BIND(_physics_process, "delta");

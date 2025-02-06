@@ -179,8 +179,16 @@
 
 	if (!args.is_empty()) {
 		if (os->get_main_loop()) {
-			// Application is already running, open a new instance with the URL/files as command line arguments.
-			os->create_instance(args);
+			// Application is already running, open a new instance with the URL/files as command line arguments, or emit signal.
+			if ((OS::get_singleton()->is_sandboxed() || GLOBAL_GET("application/config/emit_on_file_open").operator bool()) && !Engine::get_singleton()->is_editor_hint()) {
+				Vector<String> args_vector;
+				for (List<String>::Element *E = args.front(); E; E = E->next()) {
+					args_vector.push_back(E->get());
+				}
+				os->get_main_loop()->emit_signal(SNAME("on_file_open"), args_vector);
+			} else {
+				os->create_instance(args);
+			}
 		} else {
 			// Application is just started, add to the list of command line arguments and continue.
 			os->set_cmdline_platform_args(args);

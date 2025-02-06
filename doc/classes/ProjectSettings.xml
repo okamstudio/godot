@@ -273,6 +273,10 @@
 		<member name="application/config/description" type="String" setter="" getter="" default="&quot;&quot;">
 			The project's description, displayed as a tooltip in the Project Manager when hovering the project.
 		</member>
+		<member name="application/config/emit_on_file_open" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], application will emit [signal MainLoop.on_file_open] signal instead of starting new application instance.
+			[b]Note:[/b] This setting is implemented only on macOS.
+		</member>
 		<member name="application/config/icon" type="String" setter="" getter="" default="&quot;&quot;">
 			Icon used for the project, set when project loads. Exporters will also use this icon as a fallback if necessary.
 		</member>
