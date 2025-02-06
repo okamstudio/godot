@@ -739,16 +739,25 @@ Error SceneState::_parse_node(Node *p_owner, Node *p_node, int p_parent_idx, Has
 	nd.name = _nm_get_string(p_node->get_name(), name_map);
 	nd.instance = -1; //not instantiated by default
 
-	//really convoluted condition, but it basically checks that index is only saved when part of an inherited scene OR the node parent is from the edited scene
-	if (p_owner->get_scene_inherited_state().is_null() && (p_node == p_owner || (p_node->get_owner() == p_owner && (p_node->get_parent() == p_owner || p_node->get_parent()->get_owner() == p_owner)))) {
-		//do not save index, because it belongs to saved scene and scene is not inherited
+	// We only want to store the index if the node is part of an edited scene (a saved scene marked as having Editable Children) or an inherited scene
+	if (p_node == p_owner) {
+		// This happens if the node is a scene root, so its index is irrelevant.
 		nd.index = -1;
-	} else if (p_node == p_owner) {
-		//This (hopefully) happens if the node is a scene root, so its index is irrelevant.
-		nd.index = -1;
-	} else {
-		//part of an inherited scene, or parent is from an instantiated scene
+	} else if (p_owner->get_scene_inherited_state().is_valid()) {
+		// Node is part of an inherited scene
 		nd.index = p_node->get_index();
+	} else if (p_node->get_parent() == p_owner) {
+		// Node's parent is the root, so it cannot be the descendant of an edited scene
+		nd.index = -1;
+	} else if (p_node->get_parent()->get_owner() != p_owner) {
+		// Node's parent is owned by an edited scene
+		nd.index = p_node->get_index();
+	} else if (p_owner->is_editable_instance(p_node->get_parent())) {
+		// Node's parent is an edited scene
+		nd.index = p_node->get_index();
+	} else {
+		// Otherwise the index is not needed
+		nd.index = -1;
 	}
 
 	// if this node is part of an instantiated scene or sub-instantiated scene
