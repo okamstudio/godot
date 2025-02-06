@@ -4105,7 +4105,7 @@ void TileMapLayerEditor::_tab_changed(int p_tab_id) {
 
 	TileMapLayer *tile_map_layer = _get_edited_layer();
 	if (tile_map_layer) {
-		if (tile_map_layer->get_tile_set().is_valid()) {
+		if (tile_map_layer->get_tile_set().is_valid() && tile_map_layer->is_enabled() && tile_map_layer->is_visible_in_tree()) {
 			tabs_data[tabs_bar->get_current_tab()].panel->show();
 		}
 	}
