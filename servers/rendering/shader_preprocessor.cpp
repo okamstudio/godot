@@ -1403,6 +1403,10 @@ Error ShaderPreprocessor::preprocess(const String &p_code, const String &p_filen
 				ScriptLanguage::CodeCompletionOption option("defined", ScriptLanguage::CODE_COMPLETION_KIND_PLAIN_TEXT);
 				r_completion_options->push_back(option);
 
+				for (const KeyValue<String, Define *> &E : state->defines) {
+					ScriptLanguage::CodeCompletionOption option2(E.key, ScriptLanguage::CODE_COMPLETION_KIND_CONSTANT);
+					r_completion_options->push_back(option2);
+				}
 			} break;
 			case COMPLETION_TYPE_INCLUDE_PATH: {
 				if (p_include_completion_func && r_completion_options) {
