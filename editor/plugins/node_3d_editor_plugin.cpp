@@ -696,9 +696,9 @@ void Node3DEditorViewport::cancel_transform() {
 }
 
 void Node3DEditorViewport::_update_shrink() {
-	bool shrink = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_HALF_RESOLUTION));
-	subviewport_container->set_stretch_shrink(shrink ? 2 : 1);
-	subviewport_container->set_texture_filter(shrink ? TEXTURE_FILTER_NEAREST : TEXTURE_FILTER_PARENT_NODE);
+	const float scaling_3d_scale = GLOBAL_GET("rendering/scaling_3d/scale");
+	const float shrink_factor = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_HALF_RESOLUTION)) ? 0.5 : 1.0;
+	viewport->set_scaling_3d_scale(MAX(0.25, scaling_3d_scale * shrink_factor));
 }
 
 float Node3DEditorViewport::get_znear() const {
@@ -2858,8 +2858,6 @@ void Node3DEditorViewport::_project_settings_changed() {
 	viewport->set_positional_shadow_atlas_quadrant_subdiv(2, Viewport::PositionalShadowAtlasQuadrantSubdiv(atlas_q2));
 	viewport->set_positional_shadow_atlas_quadrant_subdiv(3, Viewport::PositionalShadowAtlasQuadrantSubdiv(atlas_q3));
 
-	_update_shrink();
-
 	// Update MSAA, screen-space AA and debanding if changed
 
 	const int msaa_mode = GLOBAL_GET("rendering/anti_aliasing/quality/msaa_3d");
@@ -2887,8 +2885,7 @@ void Node3DEditorViewport::_project_settings_changed() {
 	const Viewport::Scaling3DMode scaling_3d_mode = Viewport::Scaling3DMode(int(GLOBAL_GET("rendering/scaling_3d/mode")));
 	viewport->set_scaling_3d_mode(scaling_3d_mode);
 
-	const float scaling_3d_scale = GLOBAL_GET("rendering/scaling_3d/scale");
-	viewport->set_scaling_3d_scale(scaling_3d_scale);
+	_update_shrink();
 
 	const float fsr_sharpness = GLOBAL_GET("rendering/scaling_3d/fsr_sharpness");
 	viewport->set_fsr_sharpness(fsr_sharpness);
