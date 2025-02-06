@@ -665,6 +665,10 @@ String ExtendGDScriptParser::get_text_for_lookup_symbol(const lsp::Position &p_c
 						first_part = line.substr(0, c);
 						first_part += p_symbol;
 						break;
+					} else if (left_cursor_text == ".") {
+						first_part = line.substr(0, c);
+						first_part += "." + p_symbol;
+						break;
 					}
 				}
 			}
