@@ -3002,6 +3002,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			EditorUndoRedoManager::get_singleton()->clear_history(editor_data.get_current_edited_scene_history_id(), false);
 			scene_tabs->set_current_tab(cur_idx);
 
+			EditorNode::get_log()->add_message(vformat("--- Scene reloaded: %s ---", filename), EditorLog::MSG_TYPE_EDITOR);
 		} break;
 
 		case EditorSceneTabs::SCENE_SHOW_IN_FILESYSTEM: {
