@@ -1184,7 +1184,9 @@ Control *EditorProperty::make_custom_tooltip(const String &p_text) const {
 void EditorProperty::menu_option(int p_option) {
 	switch (p_option) {
 		case MENU_COPY_VALUE: {
-			InspectorDock::get_inspector_singleton()->set_property_clipboard(object->get(property));
+			Variant value = object->get(property);
+			InspectorDock::get_inspector_singleton()->set_property_clipboard(value);
+			DisplayServer::get_singleton()->clipboard_set(value.get_construct_string());
 		} break;
 		case MENU_PASTE_VALUE: {
 			emit_changed(property, InspectorDock::get_inspector_singleton()->get_property_clipboard());
