@@ -453,7 +453,13 @@ void ConnectDialog::_update_ok_enabled() {
 }
 
 void ConnectDialog::_update_warning_label() {
-	Ref<Script> scr = source->get_node(dst_path)->get_script();
+	Node *dst = source->get_node(dst_path);
+	if (dst == nullptr) {
+		warning_label->set_visible(false);
+		return;
+	}
+
+	Ref<Script> scr = dst->get_script();
 	if (scr.is_null()) {
 		warning_label->set_visible(false);
 		return;
