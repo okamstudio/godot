@@ -308,6 +308,9 @@ void TileMap::move_layer(int p_layer, int p_to_pos) {
 }
 
 void TileMap::remove_layer(int p_layer) {
+	if (p_layer < 0) {
+		p_layer = layers.size() + p_layer;
+	}
 	ERR_FAIL_INDEX(p_layer, (int)layers.size());
 
 	// Clear before removing the layer.
