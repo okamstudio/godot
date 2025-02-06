@@ -93,6 +93,10 @@ void Container::_sort_children() {
 }
 
 void Container::fit_child_in_rect(Control *p_child, const Rect2 &p_rect) {
+	if (GDVIRTUAL_CALL(_fit_child_in_rect, p_child, p_rect)) {
+		return;
+	}
+
 	ERR_FAIL_NULL(p_child);
 	ERR_FAIL_COND(p_child->get_parent() != this);
 
@@ -214,6 +218,7 @@ void Container::_bind_methods() {
 
 	GDVIRTUAL_BIND(_get_allowed_size_flags_horizontal);
 	GDVIRTUAL_BIND(_get_allowed_size_flags_vertical);
+	GDVIRTUAL_BIND(_fit_child_in_rect);
 
 	BIND_CONSTANT(NOTIFICATION_PRE_SORT_CHILDREN);
 	BIND_CONSTANT(NOTIFICATION_SORT_CHILDREN);
