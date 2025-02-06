@@ -1113,7 +1113,7 @@ ExportTemplateManager::ExportTemplateManager() {
 	install_file_dialog->set_file_mode(FileDialog::FILE_MODE_OPEN_FILE);
 	install_file_dialog->set_current_dir(EDITOR_DEF("_export_template_download_directory", ""));
 	install_file_dialog->add_filter("*.tpz", TTR("Godot Export Templates"));
-	install_file_dialog->connect("file_selected", callable_mp(this, &ExportTemplateManager::_install_file_selected).bind(false));
+	install_file_dialog->connect("file_selected", callable_mp(this, &ExportTemplateManager::_install_file_selected).bind(false), CONNECT_DEFERRED);
 	add_child(install_file_dialog);
 
 	hide_dialog_accept = memnew(AcceptDialog);
