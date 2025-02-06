@@ -3107,7 +3107,8 @@ void Node3DEditorViewport::_notification(int p_what) {
 				// Prevent unrealistically low values.
 				cpu_time = MAX(0.01, cpu_time);
 
-				gpu_time_history[gpu_time_history_index] = RS::get_singleton()->viewport_get_measured_render_time_gpu(viewport->get_viewport_rid());
+				const float gpu_render_time = RS::get_singleton()->viewport_get_measured_render_time_gpu(viewport->get_viewport_rid());
+				gpu_time_history[gpu_time_history_index] = gpu_render_time;
 				gpu_time_history_index = (gpu_time_history_index + 1) % FRAME_TIME_HISTORY;
 				double gpu_time = 0.0;
 				for (int i = 0; i < FRAME_TIME_HISTORY; i++) {
@@ -3126,14 +3127,25 @@ void Node3DEditorViewport::_notification(int p_what) {
 						frame_time_gradient->get_color_at_offset(
 								Math::remap(cpu_time, 0, 30, 0, 1)));
 
-				gpu_time_label->set_text(vformat(TTR("GPU Time: %s ms"), rtos(gpu_time).pad_decimals(2)));
-				// Middle point is at 15 ms.
-				gpu_time_label->add_theme_color_override(
-						SceneStringName(font_color),
-						frame_time_gradient->get_color_at_offset(
-								Math::remap(gpu_time, 0, 30, 0, 1)));
+				double fps = 0.0;
+				// GPU time is not always available as it depends on the platform and rendering method in use.
+				// For instance, it's not available in the web editor due to WebGL limitations.
+				// In this case, it's reported as 0.0 ms so we display a fallback instead.
+				if (!Math::is_zero_approx(gpu_render_time)) {
+					gpu_time_label->set_text(vformat(TTR("GPU Time: %s ms"), rtos(gpu_time).pad_decimals(2)));
+					// Middle point is at 15 ms.
+					gpu_time_label->add_theme_color_override(
+							SceneStringName(font_color),
+							frame_time_gradient->get_color_at_offset(
+									Math::remap(gpu_time, 0, 30, 0, 1)));
 
-				const double fps = 1000.0 / gpu_time;
+					fps = 1000.0 / gpu_time;
+				} else {
+					gpu_time_label->set_text(TTR("GPU Time: N/A"));
+					// Fallback to the actual rendered frames per second, as GPU time information is not available.
+					fps = Engine::get_singleton()->get_frames_per_second();
+				}
+
 				fps_label->set_text(vformat(TTR("FPS: %d"), fps));
 				// Middle point is at 60 FPS.
 				fps_label->add_theme_color_override(
