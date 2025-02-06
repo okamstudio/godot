@@ -2230,7 +2230,7 @@ CSGBrush *CSGPolygon3D::_build_brush() {
 		}
 
 		if (mode == MODE_PATH) {
-			if (!path_local) {
+			if (!path_local && path->is_inside_tree()) {
 				base_xform = path->get_global_transform();
 			}
 
