@@ -3442,10 +3442,10 @@ struct EditorPropertyRangeHint {
 	bool radians_as_degrees = false;
 };
 
-static EditorPropertyRangeHint _parse_range_hint(PropertyHint p_hint, const String &p_hint_text, double p_default_step, bool is_int = false) {
+static EditorPropertyRangeHint _parse_range_hint(PropertyHint p_hint, const String &p_hint_text, double p_default_step, bool p_is_integer = false) {
 	EditorPropertyRangeHint hint;
 	hint.step = p_default_step;
-	if (is_int) {
+	if (p_is_integer) {
 		hint.hide_slider = false; // Always show slider for ints, unless specified in hint range.
 	}
 	Vector<String> slices = p_hint_text.split(",");
@@ -3497,8 +3497,8 @@ static EditorPropertyRangeHint _parse_range_hint(PropertyHint p_hint, const Stri
 		hint.suffix = U"\u00B0";
 	}
 
-	ERR_FAIL_COND_V_MSG(hint.step == 0, hint,
-			vformat("Invalid PROPERTY_HINT_RANGE with hint \"%s\": Step cannot be 0.", p_hint_text));
+	ERR_FAIL_COND_V_MSG(p_is_integer && hint.step == 0, hint,
+			vformat("Invalid PROPERTY_HINT_RANGE with hint \"%s\": Step cannot be 0 for integer types.", p_hint_text));
 
 	return hint;
 }
