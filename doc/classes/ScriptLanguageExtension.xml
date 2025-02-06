@@ -137,6 +137,13 @@
 			<description>
 			</description>
 		</method>
+		<method name="_format_code" qualifiers="virtual const">
+			<return type="String" />
+			<param index="0" name="code" type="String" />
+			<description>
+				Returns the formatted source code (e.g. with consistent indentation, spacing and punctuation across the file). Depending on the complexity of the language, you may have to call an external program to achieve this.
+			</description>
+		</method>
 		<method name="_frame" qualifiers="virtual">
 			<return type="void" />
 			<description>

@@ -120,6 +120,7 @@ void ScriptLanguageExtension::_bind_methods() {
 
 	GDVIRTUAL_BIND(_complete_code, "code", "path", "owner");
 	GDVIRTUAL_BIND(_lookup_code, "code", "symbol", "path", "owner");
+	GDVIRTUAL_BIND(_format_code, "code");
 	GDVIRTUAL_BIND(_auto_indent_code, "code", "from_line", "to_line");
 
 	GDVIRTUAL_BIND(_add_global_constant, "name", "value");

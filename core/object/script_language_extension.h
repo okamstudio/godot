@@ -490,6 +490,13 @@ public:
 		return result;
 	}
 
+	GDVIRTUAL1RC(String, _format_code, const String &)
+	virtual String format_code(const String &p_code) override {
+		String ret = p_code;
+		GDVIRTUAL_CALL(_format_code, p_code, ret);
+		return ret;
+	}
+
 	GDVIRTUAL3RC_REQUIRED(String, _auto_indent_code, const String &, int, int)
 	virtual void auto_indent_code(String &p_code, int p_from_line, int p_to_line) const override {
 		String ret;

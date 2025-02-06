@@ -709,6 +709,9 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	_initial_set("text_editor/behavior/indent/auto_indent", true);
 	_initial_set("text_editor/behavior/indent/indent_wrapped_lines", true);
 
+	// Behavior: Formatter
+	EDITOR_SETTING_USAGE(Variant::BOOL, PROPERTY_HINT_NONE, "text_editor/behavior/formatter/enabled", false, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
+
 	// Behavior: Files
 	_initial_set("text_editor/behavior/files/trim_trailing_whitespace_on_save", false);
 	_initial_set("text_editor/behavior/files/trim_final_newlines_on_save", true);

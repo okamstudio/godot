@@ -31,6 +31,7 @@
 #include "gdscript.h"
 
 #include "gdscript_analyzer.h"
+#include "gdscript_formatter.h"
 #include "gdscript_parser.h"
 #include "gdscript_tokenizer.h"
 #include "gdscript_utility_functions.h"
@@ -3608,6 +3609,16 @@ String GDScriptLanguage::_get_indentation() const {
 	}
 #endif
 	return "\t";
+}
+
+String GDScriptLanguage::format_code(const String &p_code) {
+	GDScriptFormatter formatter;
+	String formatted_code;
+	Error err = formatter.format(p_code, formatted_code);
+	if (err == OK) {
+		return formatted_code;
+	}
+	return p_code;
 }
 
 void GDScriptLanguage::auto_indent_code(String &p_code, int p_from_line, int p_to_line) const {

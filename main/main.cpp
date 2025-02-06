@@ -131,6 +131,7 @@
 
 #ifdef MODULE_GDSCRIPT_ENABLED
 #include "modules/gdscript/gdscript.h"
+#include "modules/gdscript/gdscript_formatter.h"
 #if defined(TOOLS_ENABLED) && !defined(GDSCRIPT_NO_LSP)
 #include "modules/gdscript/language_server/gdscript_language_server.h"
 #endif // TOOLS_ENABLED && !GDSCRIPT_NO_LSP
@@ -632,6 +633,7 @@ void Main::print_help(const char *p_binary) {
 	print_help_option("-s, --script <script>", "Run a script.\n");
 	print_help_option("--main-loop <main_loop_name>", "Run a MainLoop specified by its global class name.\n");
 	print_help_option("--check-only", "Only parse for errors and quit (use with --script).\n");
+	print_help_option("--format", "Format the script in-place (use with --script) or check if the file is formatted correctly (use with --script --check-only).\n");
 #ifdef TOOLS_ENABLED
 	print_help_option("--import", "Starts the editor, waits for any resources to be imported, and then quits.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("--export-release <preset> <path>", "Export the project in release mode using the given preset and output path. The preset name should match one defined in \"export_presets.cfg\".\n", CLI_OPTION_AVAILABILITY_EDITOR);
@@ -3574,6 +3576,9 @@ int Main::start() {
 	String script;
 	String main_loop_type;
 	bool check_only = false;
+#ifdef MODULE_GDSCRIPT_ENABLED
+	bool format = false;
+#endif
 
 #ifdef TOOLS_ENABLED
 	String doc_tool_path;
@@ -3604,6 +3609,10 @@ int Main::start() {
 		// Designed to override and pass arguments to the unit test handler.
 		if (E->get() == "--check-only") {
 			check_only = true;
+#ifdef MODULE_GDSCRIPT_ENABLED
+		} else if (E->get() == "--format") {
+			format = true;
+#endif
 #ifdef TOOLS_ENABLED
 		} else if (E->get() == "--no-docbase") {
 			gen_flags.set_flag(DocTools::GENERATE_FLAG_SKIP_BASIC_TYPES);
@@ -3871,6 +3880,26 @@ int Main::start() {
 	if (!script.is_empty()) {
 		Ref<Script> script_res = ResourceLoader::load(script);
 		ERR_FAIL_COND_V_MSG(script_res.is_null(), EXIT_FAILURE, "Can't load script: " + script);
+
+#ifdef MODULE_GDSCRIPT_ENABLED
+		// TODO: Implement using ScriptLanguage interface to keep it script language agnostic, see https://github.com/godotengine/godot/pull/97383#discussion_r1785205514.
+		if (format) {
+			ERR_FAIL_COND_V_MSG(Ref<GDScript>(script_res).is_null(), EXIT_FAILURE, "Given script is not GDScript.");
+			if (check_only) {
+				GDScriptFormatter formatter;
+				String formattedCode;
+				if (formatter.format(script_res->get_source_code(), formattedCode) != OK)
+					return EXIT_FAILURE;
+				if (script_res->get_source_code() != formattedCode) {
+					print_line("Would reformat the script."); // TODO: Print diff.
+					return EXIT_FAILURE;
+				}
+				return EXIT_SUCCESS;
+			} else {
+				ERR_FAIL_V_MSG(EXIT_FAILURE, "Formatting in-place is not supported yet.");
+			}
+		}
+#endif
 
 		if (check_only) {
 			return script_res->is_valid() ? EXIT_SUCCESS : EXIT_FAILURE;

@@ -119,6 +119,7 @@ class ScriptTextEditor : public ScriptEditorBase {
 		EDIT_AUTO_INDENT,
 		EDIT_TRIM_TRAILING_WHITESAPCE,
 		EDIT_TRIM_FINAL_NEWLINES,
+		EDIT_FORMAT_CODE,
 		EDIT_CONVERT_INDENT_TO_SPACES,
 		EDIT_CONVERT_INDENT_TO_TABS,
 		EDIT_TOGGLE_COMMENT,
@@ -233,6 +234,7 @@ public:
 	virtual void ensure_focus() override;
 	virtual void trim_trailing_whitespace() override;
 	virtual void trim_final_newlines() override;
+	virtual void format_code() override;
 	virtual void insert_final_newline() override;
 	virtual void convert_indent() override;
 	virtual void tag_saved_version() override;

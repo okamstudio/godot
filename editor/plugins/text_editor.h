@@ -136,6 +136,7 @@ public:
 	virtual void clear_executing_line() override;
 	virtual void trim_trailing_whitespace() override;
 	virtual void trim_final_newlines() override;
+	virtual void format_code() override {}
 	virtual void insert_final_newline() override;
 	virtual void convert_indent() override;
 	virtual void ensure_focus() override;
