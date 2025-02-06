@@ -87,7 +87,7 @@
 				Sets custom data for a specific instance. [param custom_data] is a [Color] type only to contain 4 floating-point numbers.
 				[b]Note:[/b] Each number is stored in 32 bits in the Forward+ and Mobile rendering methods, but is packed into 16 bits in the Compatibility rendering method.
 				For the custom data to be used, ensure that [member use_custom_data] is [code]true[/code].
-				This custom instance data has to be manually accessed in your custom shader using [code]INSTANCE_CUSTOM[/code].
+				This custom instance data has to be manually accessed in your custom shader using [code]INSTANCE_CUSTOM[/code] in the [code]vertex()[/code] function, or in the [code]fragment()[/code] function using a varying.
 			</description>
 		</method>
 		<method name="set_instance_transform">
