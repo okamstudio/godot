@@ -55,6 +55,27 @@ public:
 	EditorPropertyNil();
 };
 
+class EditorPropertyVariant : public EditorProperty {
+	GDCLASS(EditorPropertyVariant, EditorProperty);
+
+	HBoxContainer *content = nullptr;
+	EditorProperty *sub_property = nullptr;
+	MenuButton *change_type = nullptr;
+
+	Variant::Type current_type = Variant::VARIANT_MAX;
+	Variant::Type new_type = Variant::VARIANT_MAX;
+
+	void _change_type(int p_to_type);
+
+protected:
+	virtual void _set_read_only(bool p_read_only) override;
+	void _notification(int p_what);
+
+public:
+	virtual void update_property() override;
+	EditorPropertyVariant();
+};
+
 class EditorPropertyText : public EditorProperty {
 	GDCLASS(EditorPropertyText, EditorProperty);
 	LineEdit *text = nullptr;
