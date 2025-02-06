@@ -39,8 +39,8 @@
 #include "core/variant/native_ptr.h"
 #include "core/variant/typed_array.h"
 
-class OpenXRExtensionWrapperExtension : public Object, public OpenXRExtensionWrapper, public OpenXRCompositionLayerProvider {
-	GDCLASS(OpenXRExtensionWrapperExtension, Object);
+class OpenXRExtensionWrapperExtension : public OpenXRExtensionWrapper, public OpenXRCompositionLayerProvider {
+	GDCLASS(OpenXRExtensionWrapperExtension, OpenXRExtensionWrapper);
 
 protected:
 	_THREAD_SAFE_CLASS_

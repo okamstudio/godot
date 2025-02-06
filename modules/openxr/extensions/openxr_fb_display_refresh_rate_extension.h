@@ -41,6 +41,11 @@
 #include "openxr_extension_wrapper.h"
 
 class OpenXRDisplayRefreshRateExtension : public OpenXRExtensionWrapper {
+	GDCLASS(OpenXRDisplayRefreshRateExtension, OpenXRExtensionWrapper);
+
+protected:
+	static void _bind_methods() {}
+
 public:
 	static OpenXRDisplayRefreshRateExtension *get_singleton();
 

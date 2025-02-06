@@ -53,6 +53,7 @@
 #include "extensions/openxr_dpad_binding_extension.h"
 #include "extensions/openxr_eye_gaze_interaction.h"
 #include "extensions/openxr_fb_display_refresh_rate_extension.h"
+#include "extensions/openxr_future_extension.h"
 #include "extensions/openxr_hand_interaction_extension.h"
 #include "extensions/openxr_hand_tracking_extension.h"
 #include "extensions/openxr_htc_controller_extension.h"
@@ -110,8 +111,13 @@ static void _editor_init() {
 
 void initialize_openxr_module(ModuleInitializationLevel p_level) {
 	if (p_level == MODULE_INITIALIZATION_LEVEL_CORE) {
-		GDREGISTER_CLASS(OpenXRExtensionWrapperExtension);
+		GDREGISTER_ABSTRACT_CLASS(OpenXRExtensionWrapper);
+		GDREGISTER_VIRTUAL_CLASS(OpenXRExtensionWrapperExtension);
+		GDREGISTER_CLASS(OpenXRFutureExtension);
 		GDREGISTER_CLASS(OpenXRAPIExtension);
+
+		// Note, we're not registering all wrapper classes here, there is no point in exposing them
+		// if there isn't specific logic to expose.
 	}
 
 	if (p_level == MODULE_INITIALIZATION_LEVEL_SERVERS) {
@@ -139,6 +145,7 @@ void initialize_openxr_module(ModuleInitializationLevel p_level) {
 			OpenXRAPI::register_extension_wrapper(memnew(OpenXRHandInteractionExtension));
 			OpenXRAPI::register_extension_wrapper(memnew(OpenXRMxInkExtension));
 			OpenXRAPI::register_extension_wrapper(memnew(OpenXRVisibilityMaskExtension));
+			OpenXRAPI::register_extension_wrapper(memnew(OpenXRFutureExtension));
 
 			// register gated extensions
 			if (int(GLOBAL_GET("xr/openxr/extensions/debug_utils")) > 0) {

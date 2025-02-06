@@ -97,15 +97,15 @@ bool OpenXREyeGazeInteractionExtension::supports_eye_gaze_interaction() {
 }
 
 void OpenXREyeGazeInteractionExtension::on_register_metadata() {
-	OpenXRInteractionProfileMetadata *metadata = OpenXRInteractionProfileMetadata::get_singleton();
-	ERR_FAIL_NULL(metadata);
+	OpenXRInteractionProfileMetadata *openxr_metadata = OpenXRInteractionProfileMetadata::get_singleton();
+	ERR_FAIL_NULL(openxr_metadata);
 
 	// Eyes top path
-	metadata->register_top_level_path("Eye gaze tracker", "/user/eyes_ext", XR_EXT_EYE_GAZE_INTERACTION_EXTENSION_NAME);
+	openxr_metadata->register_top_level_path("Eye gaze tracker", "/user/eyes_ext", XR_EXT_EYE_GAZE_INTERACTION_EXTENSION_NAME);
 
 	// Eye gaze interaction
-	metadata->register_interaction_profile("Eye gaze", "/interaction_profiles/ext/eye_gaze_interaction", XR_EXT_EYE_GAZE_INTERACTION_EXTENSION_NAME);
-	metadata->register_io_path("/interaction_profiles/ext/eye_gaze_interaction", "Gaze pose", "/user/eyes_ext", "/user/eyes_ext/input/gaze_ext/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
+	openxr_metadata->register_interaction_profile("Eye gaze", "/interaction_profiles/ext/eye_gaze_interaction", XR_EXT_EYE_GAZE_INTERACTION_EXTENSION_NAME);
+	openxr_metadata->register_io_path("/interaction_profiles/ext/eye_gaze_interaction", "Gaze pose", "/user/eyes_ext", "/user/eyes_ext/input/gaze_ext/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
 }
 
 bool OpenXREyeGazeInteractionExtension::get_eye_gaze_pose(double p_dist, Vector3 &r_eye_pose) {
