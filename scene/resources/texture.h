@@ -60,6 +60,10 @@ protected:
 	GDVIRTUAL4C(_draw, RID, Point2, Color, bool)
 	GDVIRTUAL5C(_draw_rect, RID, Rect2, bool, Color, bool)
 	GDVIRTUAL6C(_draw_rect_region, RID, Rect2, Rect2, Color, bool, bool)
+	GDVIRTUAL2RC(Dictionary, _get_rect_region, Rect2, Rect2)
+
+	GDVIRTUAL0RC(Ref<Image>, _get_image)
+	GDVIRTUAL0RC(Ref<Resource>, _create_placeholder)
 
 public:
 	virtual int get_width() const;
@@ -75,7 +79,7 @@ public:
 	virtual void draw_rect_region(RID p_canvas_item, const Rect2 &p_rect, const Rect2 &p_src_rect, const Color &p_modulate = Color(1, 1, 1), bool p_transpose = false, bool p_clip_uv = true) const;
 	virtual bool get_rect_region(const Rect2 &p_rect, const Rect2 &p_src_rect, Rect2 &r_rect, Rect2 &r_src_rect) const;
 
-	virtual Ref<Image> get_image() const { return Ref<Image>(); }
+	virtual Ref<Image> get_image() const;
 
 	virtual Ref<Resource> create_placeholder() const;
 
