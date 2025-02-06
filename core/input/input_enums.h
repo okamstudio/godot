@@ -85,7 +85,7 @@ enum class JoyButton {
 	PADDLE4 = 19,
 	TOUCHPAD = 20,
 	SDL_MAX = 21,
-	MAX = 128, // Android supports up to 36 buttons. DirectInput supports up to 128 buttons.
+	MAX = 128, // DirectX supports up to 14 buttons. Android supports up to 36 buttons. DirectInput supports up to 128 buttons. Linux is clamped to 128 buttons.
 };
 
 enum class MIDIMessage {

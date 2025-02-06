@@ -12,6 +12,7 @@
 	<members>
 		<member name="button_index" type="int" setter="set_button_index" getter="get_button_index" enum="JoyButton" default="0">
 			Button identifier. One of the [enum JoyButton] button constants.
+			For unmapped joypads, this identifier does not necessarily match the [enum JoyButton] button constants. To check if your device is mapped, use [method Input.is_joy_known].
 		</member>
 		<member name="pressed" type="bool" setter="set_pressed" getter="is_pressed" default="false">
 			If [code]true[/code], the button's state is pressed. If [code]false[/code], the button's state is released.

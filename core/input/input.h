@@ -91,7 +91,7 @@ private:
 	RBSet<Key> key_label_pressed;
 	RBSet<Key> physical_keys_pressed;
 	RBSet<Key> keys_pressed;
-	RBSet<JoyButton> joy_buttons_pressed;
+	RBSet<JoyButton> joy_buttons_pressed; // Holds pseudo joy buttons, which requresents the actual button + device index.
 	RBMap<JoyAxis, float> _joy_axis;
 	//RBMap<StringName,int> custom_action_press;
 	bool gravity_enabled = false;
@@ -208,7 +208,7 @@ private:
 	struct JoyBinding {
 		JoyType inputType;
 		union {
-			JoyButton button;
+			JoyButton button; // The raw button index, which usually does not match the named JoyButton value.
 
 			struct {
 				JoyAxis axis;
@@ -225,7 +225,7 @@ private:
 
 		JoyType outputType;
 		union {
-			JoyButton button;
+			JoyButton button; // The JoyButton value `JoyBinding.input` maps to.
 
 			struct {
 				JoyAxis axis;
@@ -366,8 +366,8 @@ public:
 	void set_custom_mouse_cursor(const Ref<Resource> &p_cursor, CursorShape p_shape = Input::CURSOR_ARROW, const Vector2 &p_hotspot = Vector2());
 
 	void parse_mapping(const String &p_mapping);
-	void joy_button(int p_device, JoyButton p_button, bool p_pressed);
-	void joy_axis(int p_device, JoyAxis p_axis, float p_value);
+	void joy_button(int p_device, JoyButton p_input_button, bool p_pressed);
+	void joy_axis(int p_device, JoyAxis p_input_axis, float p_value);
 	void joy_hat(int p_device, BitField<HatMask> p_val);
 
 	void add_joy_mapping(const String &p_mapping, bool p_update_existing = false);

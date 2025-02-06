@@ -40,7 +40,8 @@
 #include "core/os/thread.h"
 #endif
 
-static const char *_joy_buttons[(size_t)JoyButton::SDL_MAX] = {
+// The naming convention follows the SDL game controller database.
+static const char *_joy_button_names[(size_t)JoyButton::SDL_MAX] = {
 	"a",
 	"b",
 	"x",
@@ -64,7 +65,7 @@ static const char *_joy_buttons[(size_t)JoyButton::SDL_MAX] = {
 	"touchpad",
 };
 
-static const char *_joy_axes[(size_t)JoyAxis::SDL_MAX] = {
+static const char *_joy_axes_names[(size_t)JoyAxis::SDL_MAX] = {
 	"leftx",
 	"lefty",
 	"rightx",
@@ -588,7 +589,7 @@ void Input::joy_connection_changed(int p_idx, bool p_connected, const String &p_
 		}
 		js.uid = uidname;
 		js.connected = true;
-		int mapping = fallback_mapping;
+		int mapping = fallback_mapping; // By default only used on Android for regular XR (not OpenXR).
 		for (int i = 0; i < map_db.size(); i++) {
 			if (js.uid == map_db[i].uid) {
 				mapping = i;
@@ -1222,21 +1223,23 @@ void Input::set_event_dispatch_function(EventDispatchFunc p_function) {
 	event_dispatch_function = p_function;
 }
 
-void Input::joy_button(int p_device, JoyButton p_button, bool p_pressed) {
+void Input::joy_button(int p_device, JoyButton p_input_button, bool p_pressed) {
 	_THREAD_SAFE_METHOD_;
 	Joypad &joy = joy_names[p_device];
-	ERR_FAIL_INDEX((int)p_button, (int)JoyButton::MAX);
+	ERR_FAIL_INDEX((int)p_input_button, (int)JoyButton::MAX);
 
-	if (joy.last_buttons[(size_t)p_button] == p_pressed) {
+	if (joy.last_buttons[(size_t)p_input_button] == p_pressed) {
 		return;
 	}
-	joy.last_buttons[(size_t)p_button] = p_pressed;
+	joy.last_buttons[(size_t)p_input_button] = p_pressed;
 	if (joy.mapping == -1) {
-		_button_event(p_device, p_button, p_pressed);
+		// Passing on the raw, unmapped button index.
+		_button_event(p_device, p_input_button, p_pressed);
 		return;
 	}
 
-	JoyEvent map = _get_mapped_button_event(map_db[joy.mapping], p_button);
+	// Map to an actual JoyButton.
+	JoyEvent map = _get_mapped_button_event(map_db[joy.mapping], p_input_button);
 
 	if (map.type == TYPE_BUTTON) {
 		_button_event(p_device, (JoyButton)map.index, p_pressed);
@@ -1249,26 +1252,28 @@ void Input::joy_button(int p_device, JoyButton p_button, bool p_pressed) {
 	// no event?
 }
 
-void Input::joy_axis(int p_device, JoyAxis p_axis, float p_value) {
+void Input::joy_axis(int p_device, JoyAxis p_input_axis, float p_value) {
 	_THREAD_SAFE_METHOD_;
 
-	ERR_FAIL_INDEX((int)p_axis, (int)JoyAxis::MAX);
+	ERR_FAIL_INDEX((int)p_input_axis, (int)JoyAxis::MAX);
 
 	Joypad &joy = joy_names[p_device];
 
-	if (joy.last_axis[(size_t)p_axis] == p_value) {
+	if (joy.last_axis[(size_t)p_input_axis] == p_value) {
 		return;
 	}
 
-	joy.last_axis[(size_t)p_axis] = p_value;
+	joy.last_axis[(size_t)p_input_axis] = p_value;
 
 	if (joy.mapping == -1) {
-		_axis_event(p_device, p_axis, p_value);
+		// Passing on the raw, unmapped axis index.
+		_axis_event(p_device, p_input_axis, p_value);
 		return;
 	}
 
+	// Map to an actual JoyAxis.
 	JoyAxisRange range;
-	JoyEvent map = _get_mapped_axis_event(map_db[joy.mapping], p_axis, p_value, range);
+	JoyEvent map = _get_mapped_axis_event(map_db[joy.mapping], p_input_axis, p_value, range);
 
 	if (map.type == TYPE_BUTTON) {
 		bool pressed = map.value > 0.5;
@@ -1560,7 +1565,7 @@ void Input::_get_mapped_hat_events(const JoyDeviceMapping &mapping, HatDir p_hat
 
 JoyButton Input::_get_output_button(const String &output) {
 	for (int i = 0; i < (int)JoyButton::SDL_MAX; i++) {
-		if (output == _joy_buttons[i]) {
+		if (output == _joy_button_names[i]) {
 			return JoyButton(i);
 		}
 	}
@@ -1569,7 +1574,7 @@ JoyButton Input::_get_output_button(const String &output) {
 
 JoyAxis Input::_get_output_axis(const String &output) {
 	for (int i = 0; i < (int)JoyAxis::SDL_MAX; i++) {
-		if (output == _joy_axes[i]) {
+		if (output == _joy_axes_names[i]) {
 			return JoyAxis(i);
 		}
 	}
@@ -1594,14 +1599,16 @@ void Input::parse_mapping(const String &p_mapping) {
 			continue;
 		}
 
-		String output = entry[idx].get_slice(":", 0).replace(" ", "");
-		String input = entry[idx].get_slice(":", 1).replace(" ", "");
+		String output = entry[idx].get_slice(":", 0).replace(" ", ""); // SDL button name for parsing, or metadata.
+		String input = entry[idx].get_slice(":", 1).replace(" ", ""); // Technical button ID for parsing.
 		if (output.length() < 1 || input.length() < 2) {
+			ERR_CONTINUE_MSG(output.length() < 2,
+					vformat("Invalid entry \"%s\" in mapping:\n%s", entry[idx], p_mapping));
 			continue;
 		}
 
 		if (output == "platform" || output == "hint") {
-			continue;
+			continue; // Skip metadata.
 		}
 
 		JoyAxisRange output_range = FULL_AXIS;
@@ -1662,13 +1669,19 @@ void Input::parse_mapping(const String &p_mapping) {
 				break;
 			case 'h':
 				ERR_CONTINUE_MSG(input.length() != 4 || input[2] != '.',
-						vformat("Invalid had input \"%s\" in mapping:\n%s", input, p_mapping));
+						vformat("Invalid hat input \"%s\" in mapping:\n%s", input, p_mapping));
 				binding.inputType = TYPE_HAT;
 				binding.input.hat.hat = (HatDir)input.substr(1, 1).to_int();
 				binding.input.hat.hat_mask = static_cast<HatMask>(input.substr(3).to_int());
 				break;
 			default:
 				ERR_CONTINUE_MSG(true, vformat("Unrecognized input string \"%s\" in mapping:\n%s", input, p_mapping));
+		}
+
+		if (binding.inputType == TYPE_BUTTON && binding.input.button >= JoyButton::MAX) {
+			// Can happen on Android and Linux:
+			WARN_PRINT(vformat("Too many joypad buttons, maximum %d are allowed.", (int)JoyButton::MAX));
+			continue; // Don't allow mapping. Would be thrown away by `Input::joy_button` anyway.
 		}
 
 		mapping.bindings.push_back(binding);

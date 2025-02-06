@@ -1092,7 +1092,7 @@ void InputEventMouseMotion::_bind_methods() {
 ///////////////////////////////////
 
 void InputEventJoypadMotion::set_axis(JoyAxis p_axis) {
-	ERR_FAIL_COND(p_axis < JoyAxis::INVALID || p_axis > JoyAxis::MAX);
+	ERR_FAIL_COND(p_axis < JoyAxis::INVALID || p_axis >= JoyAxis::MAX);
 
 	axis = p_axis;
 	emit_changed();
@@ -1208,6 +1208,8 @@ void InputEventJoypadMotion::_bind_methods() {
 ///////////////////////////////////
 
 void InputEventJoypadButton::set_button_index(JoyButton p_index) {
+	ERR_FAIL_COND(p_index < JoyButton::INVALID || p_index >= JoyButton::MAX);
+
 	button_index = p_index;
 	emit_changed();
 }
