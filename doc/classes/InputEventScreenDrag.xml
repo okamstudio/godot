@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="InputEventScreenDrag" inherits="InputEventFromWindow" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
 	<brief_description>
-		Represents a screen drag event.
+		Represents a screen drag event on a touchscreen device.
 	</brief_description>
 	<description>
 		Stores information about screen drag events. See [method Node._input].
