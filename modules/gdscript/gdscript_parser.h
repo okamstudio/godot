@@ -1316,7 +1316,10 @@ public:
 		FunctionNode *current_function = nullptr;
 		SuiteNode *current_suite = nullptr;
 		int current_line = -1;
-		int current_argument = -1;
+		union {
+			int current_argument = -1;
+			int type_chain_index;
+		};
 		Variant::Type builtin_type = Variant::VARIANT_MAX;
 		Node *node = nullptr;
 		Object *base = nullptr;
