@@ -252,5 +252,8 @@
 		<theme_item name="arrow" data_type="icon" type="Texture2D">
 			The arrow icon to be drawn on the right end of the button.
 		</theme_item>
+		<theme_item name="arrow_up" data_type="icon" type="Texture2D">
+			The alternative icon used when the menu is opened.
+		</theme_item>
 	</theme_items>
 </class>

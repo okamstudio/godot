@@ -114,6 +114,8 @@ class EditorResourcePicker : public HBoxContainer {
 	void _gather_resources_to_duplicate(const Ref<Resource> p_resource, TreeItem *p_item, const String &p_property_name = "") const;
 	void _duplicate_selected_resources();
 
+	void _popup_hide();
+
 protected:
 	virtual void _update_resource();
 

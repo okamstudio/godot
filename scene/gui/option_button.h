@@ -61,6 +61,7 @@ class OptionButton : public Button {
 		int h_separation = 0;
 
 		Ref<Texture2D> arrow_icon;
+		Ref<Texture2D> arrow_up;
 		int arrow_margin = 0;
 		int modulate_arrow = 0;
 	} theme_cache;

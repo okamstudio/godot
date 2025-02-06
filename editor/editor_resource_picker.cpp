@@ -191,6 +191,9 @@ void EditorResourcePicker::_update_menu() {
 	Vector2 popup_pos = gt.get_end() - Vector2(ms, 0);
 	edit_menu->set_position(popup_pos);
 	edit_menu->popup();
+	if (has_theme_icon(SNAME("unselect_arrow"))) {
+		edit_button->set_icon(get_theme_icon(SNAME("unselect_arrow")));
+	}
 }
 
 void EditorResourcePicker::_update_menu_items() {
@@ -997,7 +1000,12 @@ void EditorResourcePicker::_ensure_resource_menu() {
 	edit_menu->add_theme_constant_override("icon_max_width", get_theme_constant(SNAME("class_icon_size"), EditorStringName(Editor)));
 	add_child(edit_menu);
 	edit_menu->connect(SceneStringName(id_pressed), callable_mp(this, &EditorResourcePicker::_edit_menu_cbk));
-	edit_menu->connect("popup_hide", callable_mp((BaseButton *)edit_button, &BaseButton::set_pressed).bind(false));
+	edit_menu->connect("popup_hide", callable_mp(this, &EditorResourcePicker::_popup_hide));
+}
+
+void EditorResourcePicker::_popup_hide() {
+	edit_button->set_icon(get_theme_icon(SNAME("select_arrow"), SNAME("Tree")));
+	edit_button->set_pressed(false);
 }
 
 void EditorResourcePicker::_gather_resources_to_duplicate(const Ref<Resource> p_resource, TreeItem *p_item, const String &p_property_name) const {

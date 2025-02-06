@@ -122,7 +122,11 @@ void OptionButton::_notification(int p_what) {
 			} else {
 				ofs = Point2(size.width - theme_cache.arrow_icon->get_width() - theme_cache.arrow_margin, int(Math::abs((size.height - theme_cache.arrow_icon->get_height()) / 2)));
 			}
-			theme_cache.arrow_icon->draw(ci, ofs, clr);
+			if (has_theme_icon(SNAME("arrow_up")) && popup->is_visible()) {
+				theme_cache.arrow_up->draw(ci, ofs, clr);
+			} else {
+				theme_cache.arrow_icon->draw(ci, ofs, clr);
+			}
 		} break;
 
 		case NOTIFICATION_TRANSLATION_CHANGED:
@@ -560,6 +564,7 @@ void OptionButton::_bind_methods() {
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, OptionButton, h_separation);
 
 	BIND_THEME_ITEM_CUSTOM(Theme::DATA_TYPE_ICON, OptionButton, arrow_icon, "arrow");
+	BIND_THEME_ITEM_CUSTOM(Theme::DATA_TYPE_ICON, OptionButton, arrow_up, "arrow_up");
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, OptionButton, arrow_margin);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, OptionButton, modulate_arrow);
 

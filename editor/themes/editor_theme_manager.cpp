@@ -830,6 +830,7 @@ void EditorThemeManager::_populate_standard_styles(const Ref<EditorTheme> &p_the
 			p_theme->set_color("icon_disabled_color", "OptionButton", p_config.icon_disabled_color);
 
 			p_theme->set_icon("arrow", "OptionButton", p_theme->get_icon(SNAME("GuiOptionArrow"), EditorStringName(EditorIcons)));
+			p_theme->set_icon("arrow_up", "OptionButton", p_theme->get_icon(SNAME("GuiOptionArrowUp"), EditorStringName(EditorIcons)));
 			p_theme->set_constant("arrow_margin", "OptionButton", p_config.widget_margin.x - 2 * EDSCALE);
 			p_theme->set_constant("modulate_arrow", "OptionButton", true);
 			p_theme->set_constant("h_separation", "OptionButton", 4 * EDSCALE);
@@ -2287,6 +2288,10 @@ void EditorThemeManager::_populate_editor_styles(const Ref<EditorTheme> &p_theme
 			style_dictionary_add_item->set_expand_margin(SIDE_RIGHT, 2 * EDSCALE);
 			p_theme->set_stylebox("DictionaryAddItem" + itos(i + 1), EditorStringName(EditorStyles), style_dictionary_add_item);
 		}
+
+		// EditorResourcePicker.
+		p_theme->set_icon("unselect_arrow", "EditorResourcePicker", p_theme->get_icon(SNAME("GuiDropdownUp"), EditorStringName(EditorIcons)));
+
 		Color si_base_color = p_config.accent_color;
 
 		// Sub-inspector background.

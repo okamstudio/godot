@@ -250,6 +250,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_stylebox("disabled_mirrored", "OptionButton", sb_optbutton_disabled_mirrored);
 
 	theme->set_icon("arrow", "OptionButton", icons["option_button_arrow"]);
+	theme->set_icon("arrow_up", "OptionButton", icons["option_button_arrow_up"]);
 
 	theme->set_font(SceneStringName(font), "OptionButton", Ref<Font>());
 	theme->set_font_size(SceneStringName(font_size), "OptionButton", -1);
