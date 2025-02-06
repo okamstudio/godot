@@ -2033,6 +2033,13 @@ Window *Node::get_last_exclusive_window() const {
 	return w;
 }
 
+Ref<SceneTreeTimer> Node::create_timer(float time_sec, bool process_always) {
+    if (is_inside_tree()) {
+        return get_tree()->create_timer(time_sec, process_always);
+    }
+    return Ref<SceneTreeTimer>();
+}
+
 bool Node::is_ancestor_of(const Node *p_node) const {
 	ERR_FAIL_NULL_V(p_node, false);
 	Node *p = p_node->data.parent;
@@ -3704,6 +3711,7 @@ void Node::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_window"), &Node::get_window);
 	ClassDB::bind_method(D_METHOD("get_last_exclusive_window"), &Node::get_last_exclusive_window);
+	ClassDB::bind_method(D_METHOD("create_timer", "time_sec", "process_always"), &Node::create_timer, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("get_tree"), &Node::get_tree);
 	ClassDB::bind_method(D_METHOD("create_tween"), &Node::create_tween);
 

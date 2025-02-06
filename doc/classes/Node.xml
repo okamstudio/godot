@@ -238,6 +238,24 @@
 				If the node is not inside the tree, returns [code]false[/code] no matter the value of [member process_mode].
 			</description>
 		</method>
+		<method name="create_timer">
+			<description>
+				Creates a [SceneTreeTimer] that will timeout after the specified time_sec. 
+				The timer will continue processing even during physics pauses if [code]process_always[/code] is [code]true[/code].
+				Returns an empty reference if the node is not inside the scene tree.
+				Example usage:
+				[codeblocks]
+				[gdscript]
+				var timer = create_timer(3.0, true)
+				if timer:
+					print("Timer created successfully!")
+				else:
+					print("Timer creation failed.")
+				[/gdscript]
+				[/codeblocks]
+				[b]Note:[/b] The method can only create a timer if the node is inside the scene tree.
+			</description>
+		</method>
 		<method name="create_tween">
 			<return type="Tween" />
 			<description>

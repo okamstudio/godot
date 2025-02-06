@@ -481,6 +481,8 @@ public:
 	Window *get_window() const;
 	Window *get_last_exclusive_window() const;
 
+	Ref<SceneTreeTimer> create_timer(float time_sec, bool process_always = false);
+
 	_FORCE_INLINE_ SceneTree *get_tree() const {
 		ERR_FAIL_NULL_V(data.tree, nullptr);
 		return data.tree;
