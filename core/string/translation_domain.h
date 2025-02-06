@@ -66,8 +66,8 @@ protected:
 
 public:
 	// Methods in this section are not intended for scripting.
-	StringName get_message_from_translations(const String &p_locale, const StringName &p_message, const StringName &p_context) const;
-	StringName get_message_from_translations(const String &p_locale, const StringName &p_message, const StringName &p_message_plural, int p_n, const StringName &p_context) const;
+	String get_message_from_translations(const String &p_locale, const StringName &p_message, const StringName &p_context) const;
+	String get_message_from_translations(const String &p_locale, const StringName &p_message, const StringName &p_message_plural, int p_n, const StringName &p_context) const;
 	PackedStringArray get_loaded_locales() const;
 
 public:
@@ -77,8 +77,8 @@ public:
 	void remove_translation(const Ref<Translation> &p_translation);
 	void clear();
 
-	StringName translate(const StringName &p_message, const StringName &p_context) const;
-	StringName translate_plural(const StringName &p_message, const StringName &p_message_plural, int p_n, const StringName &p_context) const;
+	String translate(const StringName &p_message, const StringName &p_context) const;
+	String translate_plural(const StringName &p_message, const StringName &p_message_plural, int p_n, const StringName &p_context) const;
 
 	bool is_pseudolocalization_enabled() const;
 	void set_pseudolocalization_enabled(bool p_enabled);
@@ -99,7 +99,7 @@ public:
 	String get_pseudolocalization_suffix() const;
 	void set_pseudolocalization_suffix(const String &p_suffix);
 
-	StringName pseudolocalize(const StringName &p_message) const;
+	String pseudolocalize(const StringName &p_message) const;
 
 	TranslationDomain();
 };

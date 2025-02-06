@@ -121,7 +121,7 @@
 			</description>
 		</method>
 		<method name="pseudolocalize" qualifiers="const">
-			<return type="StringName" />
+			<return type="String" />
 			<param index="0" name="message" type="StringName" />
 			<description>
 				Returns the pseudolocalized string based on the [param message] passed in.
@@ -166,7 +166,7 @@
 			</description>
 		</method>
 		<method name="translate" qualifiers="const">
-			<return type="StringName" />
+			<return type="String" />
 			<param index="0" name="message" type="StringName" />
 			<param index="1" name="context" type="StringName" default="&amp;&quot;&quot;" />
 			<description>
@@ -175,7 +175,7 @@
 			</description>
 		</method>
 		<method name="translate_plural" qualifiers="const">
-			<return type="StringName" />
+			<return type="String" />
 			<param index="0" name="message" type="StringName" />
 			<param index="1" name="plural_message" type="StringName" />
 			<param index="2" name="n" type="int" />

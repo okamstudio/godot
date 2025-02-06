@@ -75,7 +75,7 @@ void OptimizedTranslation::generate(const Ref<Translation> &p_from) {
 		buckets.write[h % size].push_back(p);
 
 		//compress string
-		CharString src_s = p_from->get_message(E).operator String().utf8();
+		CharString src_s = p_from->get_message(E).utf8();
 		CompressedString ps;
 		ps.orig_len = src_s.size();
 		ps.offset = total_compression_size;
@@ -210,13 +210,13 @@ bool OptimizedTranslation::_get(const StringName &p_name, Variant &r_ret) const 
 	return true;
 }
 
-StringName OptimizedTranslation::get_message(const StringName &p_src_text, const StringName &p_context) const {
+String OptimizedTranslation::get_message(const StringName &p_src_text, const StringName &p_context) const {
 	// p_context passed in is ignore. The use of context is not yet supported in OptimizedTranslation.
 
 	int htsize = hash_table.size();
 
 	if (htsize == 0) {
-		return StringName();
+		return String();
 	}
 
 	CharString str = p_src_text.operator String().utf8();
@@ -232,7 +232,7 @@ StringName OptimizedTranslation::get_message(const StringName &p_src_text, const
 	uint32_t p = htptr[h % htsize];
 
 	if (p == 0xFFFFFFFF) {
-		return StringName(); //nothing
+		return String(); //nothing
 	}
 
 	const Bucket &bucket = *(const Bucket *)&btptr[p];
@@ -249,7 +249,7 @@ StringName OptimizedTranslation::get_message(const StringName &p_src_text, const
 	}
 
 	if (idx == -1) {
-		return StringName();
+		return String();
 	}
 
 	if (bucket.elem[idx].comp_size == bucket.elem[idx].uncomp_size) {
@@ -300,7 +300,7 @@ Vector<String> OptimizedTranslation::get_translated_message_list() const {
 	return msgs;
 }
 
-StringName OptimizedTranslation::get_plural_message(const StringName &p_src_text, const StringName &p_plural_text, int p_n, const StringName &p_context) const {
+String OptimizedTranslation::get_plural_message(const StringName &p_src_text, const StringName &p_plural_text, int p_n, const StringName &p_context) const {
 	// The use of plurals translation is not yet supported in OptimizedTranslation.
 	return get_message(p_src_text, p_context);
 }

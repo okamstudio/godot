@@ -44,7 +44,7 @@ class TranslationPO : public Translation {
 	// The value Vector<StringName> in the second map stores the translated strings. Index 0, 1, 2 matches msgstr[0], msgstr[1], msgstr[2]... in the case of plurals.
 	// Otherwise index 0 matches to msgstr in a singular translation.
 	// Strings without context have "" as first key.
-	HashMap<StringName, HashMap<StringName, Vector<StringName>>> translation_map;
+	HashMap<StringName, HashMap<StringName, Vector<String>>> translation_map;
 
 	int plural_forms = 0; // 0 means no "Plural-Forms" is given in the PO header file. The min for all languages is 1.
 	String plural_rule;
@@ -83,10 +83,10 @@ public:
 	Vector<String> get_translated_message_list() const override;
 	void get_message_list(List<StringName> *r_messages) const override;
 	int get_message_count() const override;
-	void add_message(const StringName &p_src_text, const StringName &p_xlated_text, const StringName &p_context = "") override;
+	void add_message(const StringName &p_src_text, const String &p_xlated_text, const StringName &p_context = "") override;
 	void add_plural_message(const StringName &p_src_text, const Vector<String> &p_plural_xlated_texts, const StringName &p_context = "") override;
-	StringName get_message(const StringName &p_src_text, const StringName &p_context = "") const override;
-	StringName get_plural_message(const StringName &p_src_text, const StringName &p_plural_text, int p_n, const StringName &p_context = "") const override;
+	String get_message(const StringName &p_src_text, const StringName &p_context = "") const override;
+	String get_plural_message(const StringName &p_src_text, const StringName &p_plural_text, int p_n, const StringName &p_context = "") const override;
 	void erase_message(const StringName &p_src_text, const StringName &p_context = "") override;
 
 	void set_plural_rule(const String &p_plural_rule);

@@ -197,16 +197,16 @@ bool TranslationDomain::_is_placeholder(const String &p_message, int p_index) co
 					p_message[p_index + 1] == 'o' || p_message[p_index + 1] == 'x' || p_message[p_index + 1] == 'X' || p_message[p_index + 1] == 'f');
 }
 
-StringName TranslationDomain::get_message_from_translations(const String &p_locale, const StringName &p_message, const StringName &p_context) const {
-	StringName res;
+String TranslationDomain::get_message_from_translations(const String &p_locale, const StringName &p_message, const StringName &p_context) const {
+	String res;
 	int best_score = 0;
 
 	for (const Ref<Translation> &E : translations) {
 		ERR_CONTINUE(E.is_null());
 		int score = TranslationServer::get_singleton()->compare_locales(p_locale, E->get_locale());
 		if (score > 0 && score >= best_score) {
-			const StringName r = E->get_message(p_message, p_context);
-			if (!r) {
+			const String r = E->get_message(p_message, p_context);
+			if (r.is_empty()) {
 				continue;
 			}
 			res = r;
@@ -220,16 +220,16 @@ StringName TranslationDomain::get_message_from_translations(const String &p_loca
 	return res;
 }
 
-StringName TranslationDomain::get_message_from_translations(const String &p_locale, const StringName &p_message, const StringName &p_message_plural, int p_n, const StringName &p_context) const {
-	StringName res;
+String TranslationDomain::get_message_from_translations(const String &p_locale, const StringName &p_message, const StringName &p_message_plural, int p_n, const StringName &p_context) const {
+	String res;
 	int best_score = 0;
 
 	for (const Ref<Translation> &E : translations) {
 		ERR_CONTINUE(E.is_null());
 		int score = TranslationServer::get_singleton()->compare_locales(p_locale, E->get_locale());
 		if (score > 0 && score >= best_score) {
-			const StringName r = E->get_plural_message(p_message, p_message_plural, p_n, p_context);
-			if (!r) {
+			const String r = E->get_plural_message(p_message, p_message_plural, p_n, p_context);
+			if (r.is_empty()) {
 				continue;
 			}
 			res = r;
@@ -286,31 +286,31 @@ void TranslationDomain::clear() {
 	translations.clear();
 }
 
-StringName TranslationDomain::translate(const StringName &p_message, const StringName &p_context) const {
+String TranslationDomain::translate(const StringName &p_message, const StringName &p_context) const {
 	const String &locale = TranslationServer::get_singleton()->get_locale();
-	StringName res = get_message_from_translations(locale, p_message, p_context);
+	String res = get_message_from_translations(locale, p_message, p_context);
 
 	const String &fallback = TranslationServer::get_singleton()->get_fallback_locale();
-	if (!res && fallback.length() >= 2) {
+	if (res.is_empty() && fallback.length() >= 2) {
 		res = get_message_from_translations(fallback, p_message, p_context);
 	}
 
-	if (!res) {
-		return pseudolocalization.enabled ? pseudolocalize(p_message) : p_message;
+	if (res.is_empty()) {
+		return pseudolocalization.enabled ? pseudolocalize(p_message) : String(p_message);
 	}
 	return pseudolocalization.enabled ? pseudolocalize(res) : res;
 }
 
-StringName TranslationDomain::translate_plural(const StringName &p_message, const StringName &p_message_plural, int p_n, const StringName &p_context) const {
+String TranslationDomain::translate_plural(const StringName &p_message, const StringName &p_message_plural, int p_n, const StringName &p_context) const {
 	const String &locale = TranslationServer::get_singleton()->get_locale();
-	StringName res = get_message_from_translations(locale, p_message, p_message_plural, p_n, p_context);
+	String res = get_message_from_translations(locale, p_message, p_message_plural, p_n, p_context);
 
 	const String &fallback = TranslationServer::get_singleton()->get_fallback_locale();
-	if (!res && fallback.length() >= 2) {
+	if (res.is_empty() && fallback.length() >= 2) {
 		res = get_message_from_translations(fallback, p_message, p_message_plural, p_n, p_context);
 	}
 
-	if (!res) {
+	if (res.is_empty()) {
 		if (p_n == 1) {
 			return p_message;
 		}
@@ -391,7 +391,7 @@ void TranslationDomain::set_pseudolocalization_suffix(const String &p_suffix) {
 	pseudolocalization.suffix = p_suffix;
 }
 
-StringName TranslationDomain::pseudolocalize(const StringName &p_message) const {
+String TranslationDomain::pseudolocalize(const StringName &p_message) const {
 	if (p_message.is_empty()) {
 		return p_message;
 	}

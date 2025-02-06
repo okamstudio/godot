@@ -40,7 +40,7 @@ class Translation : public Resource {
 	RES_BASE_EXTENSION("translation");
 
 	String locale = "en";
-	HashMap<StringName, StringName> translation_map;
+	HashMap<StringName, String> translation_map;
 
 	virtual Vector<String> _get_message_list() const;
 	virtual Dictionary _get_messages() const;
@@ -58,10 +58,10 @@ public:
 	void set_locale(const String &p_locale);
 	_FORCE_INLINE_ String get_locale() const { return locale; }
 
-	virtual void add_message(const StringName &p_src_text, const StringName &p_xlated_text, const StringName &p_context = "");
+	virtual void add_message(const StringName &p_src_text, const String &p_xlated_text, const StringName &p_context = "");
 	virtual void add_plural_message(const StringName &p_src_text, const Vector<String> &p_plural_xlated_texts, const StringName &p_context = "");
-	virtual StringName get_message(const StringName &p_src_text, const StringName &p_context = "") const; //overridable for other implementations
-	virtual StringName get_plural_message(const StringName &p_src_text, const StringName &p_plural_text, int p_n, const StringName &p_context = "") const;
+	virtual String get_message(const StringName &p_src_text, const StringName &p_context = "") const; //overridable for other implementations
+	virtual String get_plural_message(const StringName &p_src_text, const StringName &p_plural_text, int p_n, const StringName &p_context = "") const;
 	virtual void erase_message(const StringName &p_src_text, const StringName &p_context = "");
 	virtual void get_message_list(List<StringName> *r_messages) const;
 	virtual int get_message_count() const;
