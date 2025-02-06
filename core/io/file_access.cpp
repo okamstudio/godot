@@ -347,9 +347,9 @@ float FileAccess::get_half() const {
 }
 
 float FileAccess::get_float() const {
-	MarshallFloat m;
-	m.i = get_32();
-	return m.f;
+	BitCastFloat bitcast;
+	bitcast.i = get_32();
+	return bitcast.f;
 }
 
 real_t FileAccess::get_real() const {
@@ -375,9 +375,9 @@ Variant FileAccess::get_var(bool p_allow_objects) const {
 }
 
 double FileAccess::get_double() const {
-	MarshallDouble m;
-	m.l = get_64();
-	return m.d;
+	BitCastDouble bitcast;
+	bitcast.i = get_64();
+	return bitcast.f;
 }
 
 String FileAccess::get_token() const {
@@ -610,15 +610,13 @@ bool FileAccess::store_half(float p_dest) {
 }
 
 bool FileAccess::store_float(float p_dest) {
-	MarshallFloat m;
-	m.f = p_dest;
-	return store_32(m.i);
+	BitCastFloat bitcast = { p_dest };
+	return store_32(bitcast.i);
 }
 
 bool FileAccess::store_double(double p_dest) {
-	MarshallDouble m;
-	m.d = p_dest;
-	return store_64(m.l);
+	BitCastDouble bitcast = { p_dest };
+	return store_64(bitcast.i);
 }
 
 uint64_t FileAccess::get_modified_time(const String &p_file) {

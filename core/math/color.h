@@ -145,21 +145,16 @@ struct [[nodiscard]] Color {
 		// add 15 to it.  When added to the channels, it causes the implicit '1.0'
 		// bit and the first 8 mantissa bits to be shifted down to the low 9 bits
 		// of the mantissa, rounding the truncated bits.
-		union {
-			float f;
-			uint32_t i;
-		} R, G, B, E;
-
-		E.f = MaxChannel;
+		BitCastFloat E = { MaxChannel };
 		E.i += 0x07804000; // Add 15 to the exponent and 0x4000 to the mantissa
 		E.i &= 0x7F800000; // Zero the mantissa
 
 		// This shifts the 9-bit values we need into the lowest bits, rounding as
 		// needed. Note that if the channel has a smaller exponent than the max
 		// channel, it will shift even more.  This is intentional.
-		R.f = _r + E.f;
-		G.f = _g + E.f;
-		B.f = _b + E.f;
+		BitCastFloat R = { _r + E.f };
+		BitCastFloat G = { _g + E.f };
+		BitCastFloat B = { _b + E.f };
 
 		// Convert the Bias to the correct exponent in the upper 5 bits.
 		E.i <<= 4;
@@ -235,40 +230,30 @@ struct [[nodiscard]] Color {
 	_FORCE_INLINE_ void set_ok_hsl_s(float p_s) { set_ok_hsl(get_ok_hsl_h(), p_s, get_ok_hsl_l(), a); }
 	_FORCE_INLINE_ void set_ok_hsl_l(float p_l) { set_ok_hsl(get_ok_hsl_h(), get_ok_hsl_s(), p_l, a); }
 
-	_FORCE_INLINE_ Color() {}
+	constexpr Color() :
+			r(0), g(0), b(0), a(1) {}
 
 	/**
 	 * RGBA construct parameters.
 	 * Alpha is not optional as otherwise we can't bind the RGB version for scripting.
 	 */
-	_FORCE_INLINE_ Color(float p_r, float p_g, float p_b, float p_a) {
-		r = p_r;
-		g = p_g;
-		b = p_b;
-		a = p_a;
-	}
+	constexpr Color(float p_r, float p_g, float p_b, float p_a) :
+			r(p_r), g(p_g), b(p_b), a(p_a) {}
 
 	/**
 	 * RGB construct parameters.
 	 */
-	_FORCE_INLINE_ Color(float p_r, float p_g, float p_b) {
-		r = p_r;
-		g = p_g;
-		b = p_b;
-		a = 1.0f;
-	}
+	constexpr Color(float p_r, float p_g, float p_b) :
+			r(p_r), g(p_g), b(p_b), a(1) {}
 
 	/**
 	 * Construct a Color from another Color, but with the specified alpha value.
 	 */
-	_FORCE_INLINE_ Color(const Color &p_c, float p_a) {
-		r = p_c.r;
-		g = p_c.g;
-		b = p_c.b;
-		a = p_a;
-	}
+	constexpr Color(const Color &p_c, float p_a) :
+			r(p_c.r), g(p_c.g), b(p_c.b), a(p_a) {}
 
-	Color(const String &p_code) {
+	Color(const String &p_code) :
+			Color() {
 		if (html_is_valid(p_code)) {
 			*this = html(p_code);
 		} else {
@@ -276,8 +261,8 @@ struct [[nodiscard]] Color {
 		}
 	}
 
-	Color(const String &p_code, float p_a) {
-		*this = Color(p_code);
+	Color(const String &p_code, float p_a) :
+			Color(p_code) {
 		a = p_a;
 	}
 };

@@ -43,27 +43,6 @@ typedef uint64_t uintr_t;
 typedef uint32_t uintr_t;
 #endif
 
-/**
- * Miscellaneous helpers for marshaling data types, and encoding
- * in an endian independent way
- */
-
-union MarshallFloat {
-	uint32_t i; ///< int
-	float f; ///< float
-};
-
-union MarshallDouble {
-	uint64_t l; ///< long long
-	double d; ///< double
-};
-
-// Behaves like one of the above, depending on compilation setting.
-union MarshallReal {
-	uintr_t i;
-	real_t r;
-};
-
 static inline unsigned int encode_uint16(uint16_t p_uint, uint8_t *p_arr) {
 	for (int i = 0; i < 2; i++) {
 		*p_arr = p_uint & 0xFF;
@@ -91,9 +70,8 @@ static inline unsigned int encode_half(float p_float, uint8_t *p_arr) {
 }
 
 static inline unsigned int encode_float(float p_float, uint8_t *p_arr) {
-	MarshallFloat mf;
-	mf.f = p_float;
-	encode_uint32(mf.i, p_arr);
+	BitCastFloat bitcast = { p_float };
+	encode_uint32(bitcast.i, p_arr);
 
 	return sizeof(uint32_t);
 }
@@ -109,9 +87,8 @@ static inline unsigned int encode_uint64(uint64_t p_uint, uint8_t *p_arr) {
 }
 
 static inline unsigned int encode_double(double p_double, uint8_t *p_arr) {
-	MarshallDouble md;
-	md.d = p_double;
-	encode_uint64(md.l, p_arr);
+	BitCastDouble bitcast = { p_double };
+	encode_uint64(bitcast.i, p_arr);
 
 	return sizeof(uint64_t);
 }
@@ -127,9 +104,8 @@ static inline unsigned int encode_uintr(uintr_t p_uint, uint8_t *p_arr) {
 }
 
 static inline unsigned int encode_real(real_t p_real, uint8_t *p_arr) {
-	MarshallReal mr;
-	mr.r = p_real;
-	encode_uintr(mr.i, p_arr);
+	BitCastReal bitcast = { p_real };
+	encode_uintr(bitcast.i, p_arr);
 
 	return sizeof(uintr_t);
 }
@@ -183,9 +159,9 @@ static inline float decode_half(const uint8_t *p_arr) {
 }
 
 static inline float decode_float(const uint8_t *p_arr) {
-	MarshallFloat mf;
-	mf.i = decode_uint32(p_arr);
-	return mf.f;
+	BitCastFloat bitcast;
+	bitcast.i = decode_uint32(p_arr);
+	return bitcast.f;
 }
 
 static inline uint64_t decode_uint64(const uint8_t *p_arr) {
@@ -202,9 +178,9 @@ static inline uint64_t decode_uint64(const uint8_t *p_arr) {
 }
 
 static inline double decode_double(const uint8_t *p_arr) {
-	MarshallDouble md;
-	md.l = decode_uint64(p_arr);
-	return md.d;
+	BitCastDouble bitcast;
+	bitcast.i = decode_uint64(p_arr);
+	return bitcast.f;
 }
 
 class EncodedObjectAsID : public RefCounted {

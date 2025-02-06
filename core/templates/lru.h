@@ -31,7 +31,6 @@
 #ifndef LRU_H
 #define LRU_H
 
-#include "core/math/math_funcs.h"
 #include "hash_map.h"
 #include "list.h"
 

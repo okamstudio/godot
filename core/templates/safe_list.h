@@ -37,7 +37,6 @@
 #include <atomic>
 #include <functional>
 #include <initializer_list>
-#include <type_traits>
 
 // Design goals for these classes:
 // - Accessing this list with an iterator will never result in a use-after free,

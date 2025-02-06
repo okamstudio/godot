@@ -204,7 +204,6 @@ void Camera3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 
 			Vector3 right, up;
 			Vector3 back(0, 0, -1.0);
-			Vector3 front(0, 0, 0);
 
 			if (aspect == Camera3D::KeepAspect::KEEP_WIDTH) {
 				right = Vector3(keep_size, 0, 0);

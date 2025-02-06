@@ -31,7 +31,7 @@
 #ifndef VERSION_H
 #define VERSION_H
 
-#include "core/version_generated.gen.h"
+#include "core/version_generated.gen.h" // IWYU pragma: export
 
 #include <stdint.h>
 

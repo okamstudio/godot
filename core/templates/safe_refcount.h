@@ -38,7 +38,7 @@
 #endif
 
 #include <atomic>
-#include <type_traits>
+#include <type_traits> // IWYU pragma: keep // Used in macros.
 
 // Design goals for these classes:
 // - No automatic conversions or arithmetic operators,

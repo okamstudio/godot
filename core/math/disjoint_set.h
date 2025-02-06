@@ -31,7 +31,7 @@
 #ifndef DISJOINT_SET_H
 #define DISJOINT_SET_H
 
-#include "core/templates/rb_map.h"
+#include "core/templates/hash_map.h"
 #include "core/templates/vector.h"
 
 /* This DisjointSet class uses Find with path compression and Union by rank */

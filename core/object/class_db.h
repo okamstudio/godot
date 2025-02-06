@@ -33,11 +33,11 @@
 
 #include "core/object/method_bind.h"
 #include "core/object/object.h"
-#include "core/string/print_string.h"
+#include "core/string/print_string.h" // IWYU pragma: export
 
 // Makes callable_mp readily available in all classes connecting signals.
 // Needs to come after method_bind and object have been included.
-#include "core/object/callable_method_pointer.h"
+#include "core/object/callable_method_pointer.h" // IWYU pragma: export
 #include "core/templates/hash_set.h"
 
 #include <type_traits>
@@ -564,6 +564,6 @@ _FORCE_INLINE_ Vector<Error> errarray(P... p_args) {
 
 #define GDREGISTER_NATIVE_STRUCT(m_class, m_code) ClassDB::register_native_struct(#m_class, m_code, sizeof(m_class))
 
-#include "core/disabled_classes.gen.h"
+#include "core/disabled_classes.gen.h" // IWYU pragma: export
 
 #endif // CLASS_DB_H

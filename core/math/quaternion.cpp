@@ -160,7 +160,7 @@ Quaternion Quaternion::slerpni(const Quaternion &p_to, real_t p_weight) const {
 
 	real_t dot = from.dot(p_to);
 
-	if (Math::absf(dot) > 0.9999f) {
+	if (Math::abs(dot) > 0.9999f) {
 		return from;
 	}
 

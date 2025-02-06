@@ -31,6 +31,8 @@
 #ifndef BVH_ABB_H
 #define BVH_ABB_H
 
+#include "core/math/aabb.h"
+
 // special optimized version of axis aligned bounding box
 template <typename BOUNDS = AABB, typename POINT = Vector3>
 struct BVH_ABB {

@@ -53,7 +53,12 @@ struct [[nodiscard]] Projection {
 		PLANE_BOTTOM
 	};
 
-	Vector4 columns[4];
+	Vector4 columns[4] = {
+		{ 1, 0, 0, 0 },
+		{ 0, 1, 0, 0 },
+		{ 0, 0, 1, 0 },
+		{ 0, 0, 0, 1 },
+	};
 
 	_FORCE_INLINE_ const Vector4 &operator[](int p_axis) const {
 		DEV_ASSERT((unsigned int)p_axis < 4);
@@ -150,10 +155,10 @@ struct [[nodiscard]] Projection {
 
 	real_t get_lod_multiplier() const;
 
-	Projection();
-	Projection(const Vector4 &p_x, const Vector4 &p_y, const Vector4 &p_z, const Vector4 &p_w);
+	constexpr Projection() = default;
+	constexpr Projection(const Vector4 &p_x, const Vector4 &p_y, const Vector4 &p_z, const Vector4 &p_w) :
+			columns{ p_x, p_y, p_z, p_w } {}
 	Projection(const Transform3D &p_transform);
-	~Projection();
 };
 
 Vector3 Projection::xform(const Vector3 &p_vec3) const {

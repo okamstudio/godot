@@ -38,7 +38,7 @@
 #include "core/typedefs.h"
 
 #include <type_traits>
-#include <typeinfo>
+#include <typeinfo> // IWYU pragma: keep // Used in macro.
 
 template <typename T, bool thread_safe = false, uint32_t DEFAULT_PAGE_SIZE = 4096>
 class PagedAllocator {

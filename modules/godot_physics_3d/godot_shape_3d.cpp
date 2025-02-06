@@ -755,7 +755,7 @@ bool GodotCylinderShape3D::intersect_point(const Vector3 &p_point) const {
 }
 
 Vector3 GodotCylinderShape3D::get_closest_point_to(const Vector3 &p_point) const {
-	if (Math::absf(p_point.y) > height * 0.5) {
+	if (Math::abs(p_point.y) > height * 0.5) {
 		// Project point to top disk.
 		real_t dir = p_point.y > 0.0 ? 1.0 : -1.0;
 		Vector3 circle_pos(0.0, dir * height * 0.5, 0.0);

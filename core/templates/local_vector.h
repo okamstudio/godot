@@ -281,7 +281,7 @@ public:
 	}
 
 	void sort() {
-		sort_custom<_DefaultComparator<T>>();
+		sort_custom<Comparator<T>>();
 	}
 
 	void ordered_insert(T p_val) {

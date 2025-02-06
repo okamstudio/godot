@@ -40,8 +40,8 @@ class TriangleMesh : public RefCounted {
 public:
 	struct Triangle {
 		Vector3 normal;
-		int indices[3];
-		int32_t surface_index;
+		int indices[3] = {};
+		int32_t surface_index = 0;
 	};
 
 private:
@@ -51,10 +51,10 @@ private:
 	struct BVH {
 		AABB aabb;
 		Vector3 center; //used for sorting
-		int left;
-		int right;
+		int left = 0;
+		int right = 0;
 
-		int face_index;
+		int face_index = 0;
 	};
 
 	struct BVHCmpX {

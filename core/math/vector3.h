@@ -187,12 +187,10 @@ struct [[nodiscard]] Vector3 {
 	operator String() const;
 	operator Vector3i() const;
 
-	_FORCE_INLINE_ Vector3() {}
-	_FORCE_INLINE_ Vector3(real_t p_x, real_t p_y, real_t p_z) {
-		x = p_x;
-		y = p_y;
-		z = p_z;
-	}
+	constexpr Vector3() :
+			x(0), y(0), z(0) {}
+	constexpr Vector3(real_t p_x, real_t p_y, real_t p_z) :
+			x(p_x), y(p_y), z(p_z) {}
 };
 
 Vector3 Vector3::cross(const Vector3 &p_with) const {

@@ -36,8 +36,6 @@
 #include "core/math/random_pcg.h"
 #include "core/typedefs.h"
 
-#include "thirdparty/misc/pcg.h"
-
 #include <float.h>
 #include <math.h>
 
@@ -129,77 +127,11 @@ public:
 	static _ALWAYS_INLINE_ double exp(double p_x) { return ::exp(p_x); }
 	static _ALWAYS_INLINE_ float exp(float p_x) { return ::expf(p_x); }
 
-	static _ALWAYS_INLINE_ bool is_nan(double p_val) {
-#ifdef _MSC_VER
-		return _isnan(p_val);
-#elif defined(__GNUC__) && __GNUC__ < 6
-		union {
-			uint64_t u;
-			double f;
-		} ieee754;
-		ieee754.f = p_val;
-		// (unsigned)(0x7ff0000000000001 >> 32) : 0x7ff00000
-		return ((((unsigned)(ieee754.u >> 32) & 0x7fffffff) + ((unsigned)ieee754.u != 0)) > 0x7ff00000);
-#else
-		return isnan(p_val);
-#endif
-	}
+	static _ALWAYS_INLINE_ bool is_nan(double p_val) { return ::isnan(p_val); }
+	static _ALWAYS_INLINE_ bool is_nan(float p_val) { return ::isnan(p_val); }
 
-	static _ALWAYS_INLINE_ bool is_nan(float p_val) {
-#ifdef _MSC_VER
-		return _isnan(p_val);
-#elif defined(__GNUC__) && __GNUC__ < 6
-		union {
-			uint32_t u;
-			float f;
-		} ieee754;
-		ieee754.f = p_val;
-		// -----------------------------------
-		// (single-precision floating-point)
-		// NaN : s111 1111 1xxx xxxx xxxx xxxx xxxx xxxx
-		//     : (> 0x7f800000)
-		// where,
-		//   s : sign
-		//   x : non-zero number
-		// -----------------------------------
-		return ((ieee754.u & 0x7fffffff) > 0x7f800000);
-#else
-		return isnan(p_val);
-#endif
-	}
-
-	static _ALWAYS_INLINE_ bool is_inf(double p_val) {
-#ifdef _MSC_VER
-		return !_finite(p_val);
-// use an inline implementation of isinf as a workaround for problematic libstdc++ versions from gcc 5.x era
-#elif defined(__GNUC__) && __GNUC__ < 6
-		union {
-			uint64_t u;
-			double f;
-		} ieee754;
-		ieee754.f = p_val;
-		return ((unsigned)(ieee754.u >> 32) & 0x7fffffff) == 0x7ff00000 &&
-				((unsigned)ieee754.u == 0);
-#else
-		return isinf(p_val);
-#endif
-	}
-
-	static _ALWAYS_INLINE_ bool is_inf(float p_val) {
-#ifdef _MSC_VER
-		return !_finite(p_val);
-// use an inline implementation of isinf as a workaround for problematic libstdc++ versions from gcc 5.x era
-#elif defined(__GNUC__) && __GNUC__ < 6
-		union {
-			uint32_t u;
-			float f;
-		} ieee754;
-		ieee754.f = p_val;
-		return (ieee754.u & 0x7fffffff) == 0x7f800000;
-#else
-		return isinf(p_val);
-#endif
-	}
+	static _ALWAYS_INLINE_ bool is_inf(double p_val) { return ::isinf(p_val); }
+	static _ALWAYS_INLINE_ bool is_inf(float p_val) { return ::isinf(p_val); }
 
 	// These methods assume (p_num + p_den) doesn't overflow.
 	static _ALWAYS_INLINE_ int32_t division_round_up(int32_t p_num, int32_t p_den) {
@@ -217,11 +149,11 @@ public:
 		return (p_num + p_den - 1) / p_den;
 	}
 
-	static _ALWAYS_INLINE_ bool is_finite(double p_val) { return isfinite(p_val); }
-	static _ALWAYS_INLINE_ bool is_finite(float p_val) { return isfinite(p_val); }
+	static _ALWAYS_INLINE_ bool is_finite(double p_val) { return ::isfinite(p_val); }
+	static _ALWAYS_INLINE_ bool is_finite(float p_val) { return ::isfinite(p_val); }
 
-	static _ALWAYS_INLINE_ double abs(double g) { return absd(g); }
-	static _ALWAYS_INLINE_ float abs(float g) { return absf(g); }
+	static _ALWAYS_INLINE_ double abs(double g) { return ::fabs(g); }
+	static _ALWAYS_INLINE_ float abs(float g) { return ::fabs(g); }
 	static _ALWAYS_INLINE_ int abs(int g) { return g > 0 ? g : -g; }
 
 	static _ALWAYS_INLINE_ double fposmod(double p_x, double p_y) {
@@ -620,27 +552,6 @@ public:
 		return abs(s) < CMP_EPSILON;
 	}
 
-	static _ALWAYS_INLINE_ float absf(float g) {
-		union {
-			float f;
-			uint32_t i;
-		} u;
-
-		u.f = g;
-		u.i &= 2147483647u;
-		return u.f;
-	}
-
-	static _ALWAYS_INLINE_ double absd(double g) {
-		union {
-			double d;
-			uint64_t i;
-		} u;
-		u.d = g;
-		u.i &= (uint64_t)9223372036854775807ll;
-		return u.d;
-	}
-
 	// This function should be as fast as possible and rounding mode should not matter.
 	static _ALWAYS_INLINE_ int fast_ftoi(float a) {
 		// Assuming every supported compiler has `lrint()`.
@@ -679,13 +590,9 @@ public:
 	}
 
 	static _ALWAYS_INLINE_ float halfptr_to_float(const uint16_t *h) {
-		union {
-			uint32_t u32;
-			float f32;
-		} u;
-
-		u.u32 = halfbits_to_floatbits(*h);
-		return u.f32;
+		BitCastFloat bitcast;
+		bitcast.i = halfbits_to_floatbits(*h);
+		return bitcast.f;
 	}
 
 	static _ALWAYS_INLINE_ float half_to_float(const uint16_t h) {
@@ -693,13 +600,9 @@ public:
 	}
 
 	static _ALWAYS_INLINE_ uint16_t make_half_float(float f) {
-		union {
-			float fv;
-			uint32_t ui;
-		} ci;
-		ci.fv = f;
+		BitCastFloat bitcast = { f };
 
-		uint32_t x = ci.ui;
+		uint32_t x = bitcast.i;
 		uint32_t sign = (unsigned short)(x >> 31);
 		uint32_t mantissa;
 		uint32_t exponent;

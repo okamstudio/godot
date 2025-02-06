@@ -31,6 +31,8 @@
 #ifndef MATH_DEFS_H
 #define MATH_DEFS_H
 
+#include "core/typedefs.h"
+
 #define CMP_EPSILON 0.00001
 #define CMP_EPSILON2 (CMP_EPSILON * CMP_EPSILON)
 
@@ -126,15 +128,29 @@ enum class EulerOrder {
 	ZYX
 };
 
+// TODO: Replace BitCast unions with `bit::bit_cast` in C++20.
+
+union BitCastDouble {
+	double f = 0.0;
+	uint64_t i;
+};
+
+union BitCastFloat {
+	float f = 0.0f;
+	uint32_t i;
+};
+
 /**
  * The "Real" type is an abstract type used for real numbers, such as 1.5,
  * in contrast to integer numbers. Precision can be controlled with the
  * presence or absence of the REAL_T_IS_DOUBLE define.
  */
 #ifdef REAL_T_IS_DOUBLE
-typedef double real_t;
+using real_t = double;
+using BitCastReal = BitCastDouble;
 #else
-typedef float real_t;
+using real_t = float;
+using BitCastReal = BitCastFloat;
 #endif
 
 #endif // MATH_DEFS_H

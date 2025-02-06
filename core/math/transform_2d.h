@@ -53,7 +53,11 @@ struct [[nodiscard]] Transform2D {
 	// WARNING: Be aware that unlike 3D code, 2D code uses a left-handed coordinate system:
 	// Y-axis points down, and angle is measure from +X to +Y in a clockwise-fashion.
 
-	Vector2 columns[3];
+	Vector2 columns[3] = {
+		{ 1, 0 },
+		{ 0, 1 },
+		{ 0, 0 },
+	};
 
 	_FORCE_INLINE_ real_t tdotx(const Vector2 &p_v) const { return columns[0][0] * p_v.x + columns[1][0] * p_v.y; }
 	_FORCE_INLINE_ real_t tdoty(const Vector2 &p_v) const { return columns[0][1] * p_v.x + columns[1][1] * p_v.y; }
@@ -128,29 +132,21 @@ struct [[nodiscard]] Transform2D {
 
 	operator String() const;
 
-	Transform2D(real_t p_xx, real_t p_xy, real_t p_yx, real_t p_yy, real_t p_ox, real_t p_oy) {
-		columns[0][0] = p_xx;
-		columns[0][1] = p_xy;
-		columns[1][0] = p_yx;
-		columns[1][1] = p_yy;
-		columns[2][0] = p_ox;
-		columns[2][1] = p_oy;
-	}
+	constexpr Transform2D(real_t p_xx, real_t p_xy, real_t p_yx, real_t p_yy, real_t p_ox, real_t p_oy) :
+			columns{
+				{ p_xx, p_xy },
+				{ p_yx, p_yy },
+				{ p_ox, p_oy },
+			} {}
 
-	Transform2D(const Vector2 &p_x, const Vector2 &p_y, const Vector2 &p_origin) {
-		columns[0] = p_x;
-		columns[1] = p_y;
-		columns[2] = p_origin;
-	}
+	constexpr Transform2D(const Vector2 &p_x, const Vector2 &p_y, const Vector2 &p_origin) :
+			columns{ p_x, p_y, p_origin } {}
 
 	Transform2D(real_t p_rot, const Vector2 &p_pos);
 
 	Transform2D(real_t p_rot, const Size2 &p_scale, real_t p_skew, const Vector2 &p_pos);
 
-	Transform2D() {
-		columns[0][0] = 1.0;
-		columns[1][1] = 1.0;
-	}
+	constexpr Transform2D() = default;
 };
 
 Vector2 Transform2D::basis_xform(const Vector2 &p_vec) const {

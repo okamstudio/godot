@@ -1521,7 +1521,7 @@ void EditorPropertyEasing::_drag_easing(const Ref<InputEvent> &p_ev) {
 
 		float val = get_edited_property_value();
 		bool sg = val < 0;
-		val = Math::absf(val);
+		val = Math::abs(val);
 
 		val = Math::log(val) / Math::log((float)2.0);
 		// Logarithmic space.

@@ -33,7 +33,6 @@
 
 #include "core/math/delaunay_3d.h"
 #include "core/math/face3.h"
-#include "core/object/object.h"
 #include "core/templates/local_vector.h"
 #include "core/templates/vector.h"
 
@@ -560,8 +559,8 @@ public:
 		LocalVector<Face> faces;
 
 		struct Edge {
-			int vertex_a, vertex_b;
-			int face_a, face_b;
+			int vertex_a = 0, vertex_b = 0;
+			int face_a = 0, face_b = 0;
 		};
 
 		LocalVector<Edge> edges;

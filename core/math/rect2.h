@@ -361,15 +361,11 @@ struct [[nodiscard]] Rect2 {
 	operator String() const;
 	operator Rect2i() const;
 
-	Rect2() {}
-	Rect2(real_t p_x, real_t p_y, real_t p_width, real_t p_height) :
-			position(Point2(p_x, p_y)),
-			size(Size2(p_width, p_height)) {
-	}
-	Rect2(const Point2 &p_pos, const Size2 &p_size) :
-			position(p_pos),
-			size(p_size) {
-	}
+	constexpr Rect2() = default;
+	constexpr Rect2(real_t p_x, real_t p_y, real_t p_width, real_t p_height) :
+			position(Point2(p_x, p_y)), size(Size2(p_width, p_height)) {}
+	constexpr Rect2(const Point2 &p_pos, const Size2 &p_size) :
+			position(p_pos), size(p_size) {}
 };
 
 #endif // RECT2_H

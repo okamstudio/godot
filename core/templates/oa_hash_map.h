@@ -31,7 +31,6 @@
 #ifndef OA_HASH_MAP_H
 #define OA_HASH_MAP_H
 
-#include "core/math/math_funcs.h"
 #include "core/os/memory.h"
 #include "core/templates/hashfuncs.h"
 #include "core/templates/pair.h"
@@ -308,13 +307,13 @@ public:
 	}
 
 	struct Iterator {
-		bool valid;
+		bool valid = false;
 
-		const TKey *key;
+		const TKey *key = nullptr;
 		TValue *value = nullptr;
 
 	private:
-		uint32_t pos;
+		uint32_t pos = 0;
 		friend class OAHashMap;
 	};
 

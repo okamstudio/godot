@@ -142,11 +142,10 @@ struct [[nodiscard]] Vector2i {
 	operator String() const;
 	operator Vector2() const;
 
-	inline Vector2i() {}
-	inline Vector2i(int32_t p_x, int32_t p_y) {
-		x = p_x;
-		y = p_y;
-	}
+	constexpr Vector2i() :
+			x(0), y(0) {}
+	constexpr Vector2i(int32_t p_x, int32_t p_y) :
+			x(p_x), y(p_y) {}
 };
 
 // Multiplication operators required to workaround issues with LLVM using implicit conversion.

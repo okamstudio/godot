@@ -33,10 +33,10 @@
 
 #include <core/templates/sort_array.h>
 
-template <typename T, typename Comparator = _DefaultComparator<T>>
+template <typename T, typename Comparator = Comparator<T>>
 class SearchArray {
 public:
-	Comparator compare;
+	Comparator compare{};
 
 	inline int64_t bisect(const T *p_array, int64_t p_len, const T &p_value, bool p_before) const {
 		int64_t lo = 0;

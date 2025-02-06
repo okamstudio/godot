@@ -35,16 +35,11 @@
 #include "core/typedefs.h"
 
 static inline float undenormalize(volatile float f) {
-	union {
-		uint32_t i;
-		float f;
-	} v;
-
-	v.f = f;
+	BitCastFloat bitcast = { f };
 
 	// original: return (v.i & 0x7f800000) == 0 ? 0.0f : f;
 	// version from Tim Blechmann:
-	return (v.i & 0x7f800000) < 0x08000000 ? 0.0f : f;
+	return (bitcast.i & 0x7f800000) < 0x08000000 ? 0.0f : f;
 }
 
 static const float AUDIO_PEAK_OFFSET = 0.0000000001f;
@@ -54,15 +49,19 @@ struct AudioFrame {
 	// Left and right samples.
 	union {
 		struct {
-			float left;
-			float right;
+			union {
+				float left;
+#ifdef DISABLE_DEPRECATED
+				float l;
+#endif // DISABLE_DEPRECATED
+			};
+			union {
+				float right;
+#ifdef DISABLE_DEPRECATED
+				float r;
+#endif // DISABLE_DEPRECATED
+			};
 		};
-#ifndef DISABLE_DEPRECATED
-		struct {
-			float l;
-			float r;
-		};
-#endif
 		float levels[2] = { 0.0 };
 	};
 
@@ -133,14 +132,10 @@ struct AudioFrame {
 		return res;
 	}
 
-	_ALWAYS_INLINE_ AudioFrame(float p_left, float p_right) {
-		left = p_left;
-		right = p_right;
-	}
-	_ALWAYS_INLINE_ AudioFrame(const AudioFrame &p_frame) {
-		left = p_frame.left;
-		right = p_frame.right;
-	}
+	constexpr AudioFrame(float p_left, float p_right) :
+			left(p_left), right(p_right) {}
+	constexpr AudioFrame(const AudioFrame &p_frame) :
+			left(p_frame.left), right(p_frame.right) {}
 
 	_ALWAYS_INLINE_ void operator=(const AudioFrame &p_frame) {
 		left = p_frame.left;
@@ -151,11 +146,10 @@ struct AudioFrame {
 		return Vector2(left, right);
 	}
 
-	_ALWAYS_INLINE_ AudioFrame(const Vector2 &p_v2) {
-		left = p_v2.x;
-		right = p_v2.y;
-	}
-	_ALWAYS_INLINE_ AudioFrame() {}
+	constexpr AudioFrame(const Vector2 &p_v2) :
+			left(p_v2.x), right(p_v2.y) {}
+	constexpr AudioFrame() :
+			left(0), right(0) {}
 };
 
 _ALWAYS_INLINE_ AudioFrame operator*(float p_scalar, const AudioFrame &p_frame) {

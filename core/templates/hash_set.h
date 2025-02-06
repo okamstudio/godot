@@ -31,11 +31,8 @@
 #ifndef HASH_SET_H
 #define HASH_SET_H
 
-#include "core/math/math_funcs.h"
 #include "core/os/memory.h"
-#include "core/templates/hash_map.h"
 #include "core/templates/hashfuncs.h"
-#include "core/templates/paged_allocator.h"
 
 /**
  * Implementation of Set using a bidi indexed hash map.

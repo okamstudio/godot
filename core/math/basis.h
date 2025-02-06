@@ -204,9 +204,12 @@ struct [[nodiscard]] Basis {
 				rows[0].z * p_m[0].y + rows[1].z * p_m[1].y + rows[2].z * p_m[2].y,
 				rows[0].z * p_m[0].z + rows[1].z * p_m[1].z + rows[2].z * p_m[2].z);
 	}
-	Basis(real_t p_xx, real_t p_xy, real_t p_xz, real_t p_yx, real_t p_yy, real_t p_yz, real_t p_zx, real_t p_zy, real_t p_zz) {
-		set(p_xx, p_xy, p_xz, p_yx, p_yy, p_yz, p_zx, p_zy, p_zz);
-	}
+	constexpr Basis(real_t p_xx, real_t p_xy, real_t p_xz, real_t p_yx, real_t p_yy, real_t p_yz, real_t p_zx, real_t p_zy, real_t p_zz) :
+			rows{
+				{ p_xx, p_xy, p_xz },
+				{ p_yx, p_yy, p_yz },
+				{ p_zx, p_zy, p_zz },
+			} {}
 
 	void orthonormalize();
 	Basis orthonormalized() const;
@@ -230,11 +233,14 @@ struct [[nodiscard]] Basis {
 	Basis(const Vector3 &p_axis, real_t p_angle, const Vector3 &p_scale) { set_axis_angle_scale(p_axis, p_angle, p_scale); }
 	static Basis from_scale(const Vector3 &p_scale);
 
-	_FORCE_INLINE_ Basis(const Vector3 &p_x_axis, const Vector3 &p_y_axis, const Vector3 &p_z_axis) {
-		set_columns(p_x_axis, p_y_axis, p_z_axis);
-	}
+	constexpr Basis(const Vector3 &p_x_axis, const Vector3 &p_y_axis, const Vector3 &p_z_axis) :
+			rows{
+				{ p_x_axis.x, p_y_axis.x, p_z_axis.x },
+				{ p_x_axis.y, p_y_axis.y, p_z_axis.y },
+				{ p_x_axis.z, p_y_axis.z, p_z_axis.z },
+			} {}
 
-	_FORCE_INLINE_ Basis() {}
+	constexpr Basis() = default;
 
 private:
 	// Helper method.

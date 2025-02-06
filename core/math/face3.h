@@ -44,7 +44,11 @@ struct [[nodiscard]] Face3 {
 		SIDE_COPLANAR
 	};
 
-	Vector3 vertex[3];
+	Vector3 vertex[3] = {
+		{ 0, 0, 0 },
+		{ 0, 0, 0 },
+		{ 0, 0, 0 },
+	};
 
 	/**
 	 * @param p_plane plane used to split the face
@@ -79,12 +83,9 @@ struct [[nodiscard]] Face3 {
 	_FORCE_INLINE_ bool intersects_aabb2(const AABB &p_aabb) const;
 	operator String() const;
 
-	inline Face3() {}
-	inline Face3(const Vector3 &p_v1, const Vector3 &p_v2, const Vector3 &p_v3) {
-		vertex[0] = p_v1;
-		vertex[1] = p_v2;
-		vertex[2] = p_v3;
-	}
+	constexpr Face3() = default;
+	constexpr Face3(const Vector3 &p_v1, const Vector3 &p_v2, const Vector3 &p_v3) :
+			vertex{ p_v1, p_v2, p_v3 } {}
 };
 
 bool Face3::intersects_aabb2(const AABB &p_aabb) const {

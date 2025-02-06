@@ -35,16 +35,6 @@
 
 class Image;
 
-#if !defined(__aligned)
-
-#if defined(_WIN32) && defined(_MSC_VER)
-#define __aligned(...) __declspec(align(__VA_ARGS__))
-#else
-#define __aligned(...) __attribute__((aligned(__VA_ARGS__)))
-#endif
-
-#endif
-
 class LightmapDenoiser : public RefCounted {
 	GDCLASS(LightmapDenoiser, RefCounted)
 protected:
@@ -62,7 +52,7 @@ protected:
 
 public:
 	// Compatible with embree4 rays.
-	struct __aligned(16) Ray {
+	struct alignas(16) Ray {
 		const static unsigned int INVALID_GEOMETRY_ID = ((unsigned int)-1); // from rtcore_common.h
 
 		/*! Default construction does nothing. */

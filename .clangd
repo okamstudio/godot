@@ -5,7 +5,6 @@
 Diagnostics:
   Includes:
     IgnoreHeader:
-      - core/typedefs\.h # Our "main" header, featuring transitive includes; allow everywhere.
       - \.compat\.inc
 ---
 # Header-specific conditions.

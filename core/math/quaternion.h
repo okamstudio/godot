@@ -115,23 +115,16 @@ struct [[nodiscard]] Quaternion {
 
 	operator String() const;
 
-	_FORCE_INLINE_ Quaternion() {}
+	constexpr Quaternion() :
+			x(0), y(0), z(0), w(1) {}
 
-	_FORCE_INLINE_ Quaternion(real_t p_x, real_t p_y, real_t p_z, real_t p_w) :
-			x(p_x),
-			y(p_y),
-			z(p_z),
-			w(p_w) {
-	}
+	constexpr Quaternion(real_t p_x, real_t p_y, real_t p_z, real_t p_w) :
+			x(p_x), y(p_y), z(p_z), w(p_w) {}
 
 	Quaternion(const Vector3 &p_axis, real_t p_angle);
 
-	Quaternion(const Quaternion &p_q) :
-			x(p_q.x),
-			y(p_q.y),
-			z(p_q.z),
-			w(p_q.w) {
-	}
+	constexpr Quaternion(const Quaternion &p_q) :
+			x(p_q.x), y(p_q.y), z(p_q.z), w(p_q.w) {}
 
 	void operator=(const Quaternion &p_q) {
 		x = p_q.x;

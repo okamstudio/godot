@@ -80,12 +80,12 @@ struct [[nodiscard]] Plane {
 	_FORCE_INLINE_ bool operator!=(const Plane &p_plane) const;
 	operator String() const;
 
-	_FORCE_INLINE_ Plane() {}
-	_FORCE_INLINE_ Plane(real_t p_a, real_t p_b, real_t p_c, real_t p_d) :
-			normal(p_a, p_b, p_c),
-			d(p_d) {}
+	constexpr Plane() = default;
+	constexpr Plane(real_t p_a, real_t p_b, real_t p_c, real_t p_d) :
+			normal(p_a, p_b, p_c), d(p_d) {}
+	constexpr Plane(const Vector3 &p_normal, real_t p_d = 0.0) :
+			normal(p_normal), d(p_d) {}
 
-	_FORCE_INLINE_ Plane(const Vector3 &p_normal, real_t p_d = 0.0);
 	_FORCE_INLINE_ Plane(const Vector3 &p_normal, const Vector3 &p_point);
 	_FORCE_INLINE_ Plane(const Vector3 &p_point1, const Vector3 &p_point2, const Vector3 &p_point3, ClockDirection p_dir = CLOCKWISE);
 };
@@ -102,11 +102,6 @@ bool Plane::has_point(const Vector3 &p_point, real_t p_tolerance) const {
 	real_t dist = normal.dot(p_point) - d;
 	dist = ABS(dist);
 	return (dist <= p_tolerance);
-}
-
-Plane::Plane(const Vector3 &p_normal, real_t p_d) :
-		normal(p_normal),
-		d(p_d) {
 }
 
 Plane::Plane(const Vector3 &p_normal, const Vector3 &p_point) :

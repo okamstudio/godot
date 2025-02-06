@@ -31,12 +31,12 @@
 #ifndef ERROR_MACROS_H
 #define ERROR_MACROS_H
 
-#include "core/object/object_id.h"
 #include "core/typedefs.h"
 
-#include <atomic> // We'd normally use safe_refcount.h, but that would cause circular includes.
+#include <atomic> // IWYU pragma: keep // We'd normally use `safe_refcount.h`, but that would cause circular includes.
 
 class String;
+class ObjectID;
 
 enum ErrorHandlerType {
 	ERR_HANDLER_ERROR,

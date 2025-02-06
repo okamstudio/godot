@@ -124,10 +124,14 @@ struct [[nodiscard]] Transform3D {
 
 	operator String() const;
 
-	Transform3D() {}
-	Transform3D(const Basis &p_basis, const Vector3 &p_origin = Vector3());
-	Transform3D(const Vector3 &p_x, const Vector3 &p_y, const Vector3 &p_z, const Vector3 &p_origin);
-	Transform3D(real_t p_xx, real_t p_xy, real_t p_xz, real_t p_yx, real_t p_yy, real_t p_yz, real_t p_zx, real_t p_zy, real_t p_zz, real_t p_ox, real_t p_oy, real_t p_oz);
+	constexpr Transform3D() = default;
+	constexpr Transform3D(const Basis &p_basis, const Vector3 &p_origin = Vector3()) :
+			basis(p_basis), origin(p_origin) {}
+	constexpr Transform3D(const Vector3 &p_x, const Vector3 &p_y, const Vector3 &p_z, const Vector3 &p_origin) :
+			basis(p_x, p_y, p_z), origin(p_origin) {}
+	constexpr Transform3D(real_t p_xx, real_t p_xy, real_t p_xz, real_t p_yx, real_t p_yy, real_t p_yz, real_t p_zx, real_t p_zy, real_t p_zz, real_t p_ox, real_t p_oy, real_t p_oz) :
+			basis(p_xx, p_xy, p_xz, p_yx, p_yy, p_yz, p_zx, p_zy, p_zz),
+			origin(p_ox, p_oy, p_oz) {}
 };
 
 _FORCE_INLINE_ Vector3 Transform3D::xform(const Vector3 &p_vector) const {

@@ -2712,8 +2712,6 @@ Transform3D OpenXRAPI::transform_from_pose(const XrPosef &p_pose) {
 
 template <typename T>
 XRPose::TrackingConfidence _transform_from_location(const T &p_location, Transform3D &r_transform) {
-	Basis basis;
-	Vector3 origin;
 	XRPose::TrackingConfidence confidence = XRPose::XR_TRACKING_CONFIDENCE_NONE;
 	const XrPosef &pose = p_location.pose;
 
