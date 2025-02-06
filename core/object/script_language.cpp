@@ -771,10 +771,16 @@ void PlaceHolderScriptInstance::update(const List<PropertyInfo> &p_properties, c
 		StringName n = E.name;
 		new_values.insert(n);
 
-		if (!values.has(n) || values[n].get_type() != E.type) {
-			if (p_values.has(n)) {
-				values[n] = p_values[n];
+		bool is_same = false;
+		for (const PropertyInfo &F : properties) {
+			if (F.name == n && F.type == E.type) {
+				is_same = true;
+				break;
 			}
+		}
+
+		if (!is_same && p_values.has(n)) {
+			values[n] = p_values[n];
 		}
 	}
 
