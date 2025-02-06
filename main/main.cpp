@@ -4513,7 +4513,13 @@ bool Main::iteration() {
 	frames++;
 	Engine::get_singleton()->_process_frames++;
 
-	if (frame > 1000000) {
+	// Smoothly update FPS over time, while ensuring the speed at which FPS stabilizes is not dependent on FPS.
+	// The FPS smooth factor is tuned to always *mostly* converge within a second.
+	constexpr int FPS_SMOOTH_FACTOR = 5;
+	const double ratio = MIN(1.0, FPS_SMOOTH_FACTOR * USEC_TO_SEC(ticks_elapsed));
+	Engine::get_singleton()->_fps = Engine::get_singleton()->_fps * (1 - ratio) + ratio * 1'000'000.0 / ticks_elapsed;
+
+	if (frame > 1'000'000) {
 		// Wait a few seconds before printing FPS, as FPS reporting just after the engine has started is inaccurate.
 		if (hide_print_fps_attempts == 0) {
 			if (editor || project_manager) {
@@ -4527,7 +4533,6 @@ bool Main::iteration() {
 			hide_print_fps_attempts--;
 		}
 
-		Engine::get_singleton()->_fps = frames;
 		performance->set_process_time(USEC_TO_SEC(process_max));
 		performance->set_physics_process_time(USEC_TO_SEC(physics_process_max));
 		performance->set_navigation_process_time(USEC_TO_SEC(navigation_process_max));
@@ -4535,7 +4540,7 @@ bool Main::iteration() {
 		physics_process_max = 0;
 		navigation_process_max = 0;
 
-		frame %= 1000000;
+		frame %= 1'000'000;
 		frames = 0;
 	}
 

@@ -50,7 +50,8 @@
 		<method name="get_frames_per_second" qualifiers="const">
 			<return type="float" />
 			<description>
-				Returns the average frames rendered every second (FPS), also known as the framerate.
+				Returns the average frames rendered every second (FPS), also known as the framerate. This uses an averaging algorithm to smooth out the reported FPS over (roughly) the last second.¨
+				[b]Note:[/b] Comparing performance is usually better done using [i]milliseconds per frame[/i] (mspf) instead of [i]frames per second[/i], as mspf measurements are linear across the entire spectrum of values. To get the milliseconds per frame, use [code]1000.0 / Engine.get_frames_per_second()[/code].
 			</description>
 		</method>
 		<method name="get_license_info" qualifiers="const">

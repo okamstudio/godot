@@ -61,7 +61,9 @@ private:
 
 	int ips = 60;
 	double physics_jitter_fix = 0.5;
-	double _fps = 1;
+	// Assume to be rendering at 60 FPS at first, so that the FPS counter can
+	// smoothly interpolate from that value (which is more realistic than going up from 1 FPS).
+	double _fps = 60;
 	int _max_fps = 0;
 	int _audio_output_latency = 0;
 	double _time_scale = 1.0;

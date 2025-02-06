@@ -56,7 +56,7 @@
 #define UNIT_EPSILON 0.001
 #endif
 
-#define USEC_TO_SEC(m_usec) ((m_usec) / 1000000.0)
+#define USEC_TO_SEC(m_usec) ((m_usec) * 0.000'001)
 
 enum ClockDirection {
 	CLOCKWISE,

@@ -160,7 +160,7 @@ String Performance::get_monitor_name(Monitor p_monitor) const {
 double Performance::get_monitor(Monitor p_monitor) const {
 	switch (p_monitor) {
 		case TIME_FPS:
-			return Engine::get_singleton()->get_frames_per_second();
+			return Math::round(Engine::get_singleton()->get_frames_per_second());
 		case TIME_PROCESS:
 			return _process_time;
 		case TIME_PHYSICS_PROCESS:
