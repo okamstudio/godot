@@ -66,6 +66,11 @@ void register_exporter_types() {{
         # Add all .cpp files in export folder
         env.add_source_files(env.editor_sources, f"../platform/{e}/export/*.cpp")
 
+    for e in env.platform_exporters:
+        scsub_path = os.path.join(Dir("#platform/%s/editor" % e).abspath, "SCsub")
+        if os.path.exists(scsub_path):
+            SConscript(scsub_path)
+
     # Core API documentation.
     docs = []
     docs += Glob("#doc/classes/*.xml")
