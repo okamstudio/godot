@@ -2721,6 +2721,17 @@ typedef void (*GDExtensionInterfacePlaceHolderScriptInstanceUpdate)(GDExtensionS
  */
 typedef GDExtensionScriptInstanceDataPtr (*GDExtensionInterfaceObjectGetScriptInstance)(GDExtensionConstObjectPtr p_object, GDExtensionObjectPtr p_language);
 
+/**
+ * @name object_set_script_instance
+ * @since 4.5
+ *
+ * Set the script instance data attached to this object.
+ *
+ * @param p_object A pointer to the Object.
+ * @param p_script_instance A pointer to the script instance data to attach to this object.
+ */
+typedef void (*GDExtensionInterfaceObjectSetScriptInstance)(GDExtensionObjectPtr p_object, GDExtensionScriptInstanceDataPtr p_script_instance);
+
 /* INTERFACE: Callable */
 
 /**

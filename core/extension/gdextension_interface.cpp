@@ -1572,6 +1572,15 @@ static GDExtensionScriptInstancePtr gdextension_object_get_script_instance(GDExt
 	return script_instance_extension->instance;
 }
 
+static void gdextension_object_set_script_instance(GDExtensionObjectPtr p_object, GDExtensionScriptInstancePtr p_script_instance) {
+	ERR_FAIL_NULL(p_object);
+
+	Object *o = (Object *)p_object;
+	ScriptInstance *script_instance = (ScriptInstanceExtension *)p_script_instance;
+
+	o->set_script_instance(script_instance);
+}
+
 #ifndef DISABLE_DEPRECATED
 static void gdextension_callable_custom_create(GDExtensionUninitializedTypePtr r_callable, GDExtensionCallableCustomInfo *p_custom_callable_info) {
 	memnew_placement(r_callable, Callable(memnew(CallableCustomExtension(p_custom_callable_info))));
@@ -1809,6 +1818,7 @@ void gdextension_setup_interface() {
 	REGISTER_INTERFACE_FUNC(placeholder_script_instance_create);
 	REGISTER_INTERFACE_FUNC(placeholder_script_instance_update);
 	REGISTER_INTERFACE_FUNC(object_get_script_instance);
+	REGISTER_INTERFACE_FUNC(object_set_script_instance);
 #ifndef DISABLE_DEPRECATED
 	REGISTER_INTERFACE_FUNC(callable_custom_create);
 #endif // DISABLE_DEPRECATED
