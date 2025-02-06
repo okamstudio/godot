@@ -178,6 +178,15 @@ repos:
         language: python
         entry: python misc/scripts/dotnet_format.py
         types_or: [c#]
+
+      - id: check-dependencies
+        name: check-dependencies
+        language: python
+        entry: python misc/scripts/check_dependencies.py
+        files: \.(h|hpp|hh|hxx|inc)$
+        pass_filenames: true
+        require_serial: true
+        stages: [manual]
 #
 # End of upstream Godot pre-commit hooks.
 #

@@ -13,6 +13,11 @@ jobs:
         with:
           fetch-depth: 2
 
+      - name: Style checks via pre-commit
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --hook-stage manual -a check-dependencies
+
       - name: Install APT dependencies
         run: |
           sudo apt install -y libxml2-utils
