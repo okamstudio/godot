@@ -200,7 +200,12 @@ public:
 		}
 	}
 
-	_FORCE_INLINE_ void clear() { resize(0); }
+	// Destructs all elements and resets size to 0.
+	// Note: In other APIs, this keeps the capacity as before.
+	//       In CowData, it also resets the capacity, making it an alias of reset().
+	_FORCE_INLINE_ void clear() { _unref(); }
+	// Destructs all elements and resets capacity to 0.
+	_FORCE_INLINE_ void reset() { _unref(); }
 	_FORCE_INLINE_ bool is_empty() const { return _ptr == nullptr; }
 
 	_FORCE_INLINE_ void set(Size p_index, const T &p_elem) {

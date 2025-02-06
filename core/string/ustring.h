@@ -330,7 +330,12 @@ public:
 
 	void remove_at(int p_index) { _cowdata.remove_at(p_index); }
 
-	_FORCE_INLINE_ void clear() { resize(0); }
+	// Destructs all elements and resets size to 0.
+	// Note: In other APIs, this keeps the capacity as before.
+	//       In String, it also resets the capacity, making it an alias of reset().
+	_FORCE_INLINE_ void clear() { _cowdata.clear(); }
+	// Destructs all elements and resets capacity to 0.
+	_FORCE_INLINE_ void reset() { _cowdata.reset(); }
 
 	_FORCE_INLINE_ char32_t get(int p_index) const { return _cowdata.get(p_index); }
 	_FORCE_INLINE_ void set(int p_index, const char32_t &p_elem) { _cowdata.set(p_index, p_elem); }

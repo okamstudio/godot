@@ -90,9 +90,13 @@ public:
 
 	_FORCE_INLINE_ T *ptrw() { return _cowdata.ptrw(); }
 	_FORCE_INLINE_ const T *ptr() const { return _cowdata.ptr(); }
-	_FORCE_INLINE_ void clear() { resize(0); }
+	// Destructs all elements and resets size to 0.
+	// Note: In other APIs, this keeps the capacity as before.
+	//       In Vector, it also resets the capacity, making it an alias of reset().
+	_FORCE_INLINE_ void clear() { _cowdata.clear(); }
+	// Destructs all elements and resets capacity to 0.
+	_FORCE_INLINE_ void reset() { _cowdata.reset(); }
 	_FORCE_INLINE_ bool is_empty() const { return _cowdata.is_empty(); }
-
 	_FORCE_INLINE_ T get(Size p_index) { return _cowdata.get(p_index); }
 	_FORCE_INLINE_ const T &get(Size p_index) const { return _cowdata.get(p_index); }
 	_FORCE_INLINE_ void set(Size p_index, const T &p_elem) { _cowdata.set(p_index, p_elem); }
