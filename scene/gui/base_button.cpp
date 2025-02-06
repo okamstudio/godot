@@ -75,12 +75,30 @@ void BaseButton::gui_input(const Ref<InputEvent> &p_event) {
 	if (mouse_motion.is_valid()) {
 		if (status.press_attempt) {
 			bool last_press_inside = status.pressing_inside;
+			bool redraw = false;
+
 			status.pressing_inside = has_point(mouse_motion->get_position());
 			if (last_press_inside != status.pressing_inside) {
+				redraw = true;
+			}
+
+			if (is_scrolling) {
+				Point2 diff = Input::get_singleton()->get_mouse_position() - drag_from;
+				if (Math::abs(diff.x) > pressed_tolerance || Math::abs(diff.y) > pressed_tolerance) {
+					status.press_attempt = false;
+					redraw = true;
+				}
+			}
+
+			if (redraw) {
 				queue_redraw();
 			}
 		}
 	}
+}
+
+float BaseButton::_calculate_pressed_tolerance() {
+	return Math::round(DisplayServer::get_singleton()->screen_get_dpi() / 50.0);
 }
 
 void BaseButton::_notification(int p_what) {
@@ -97,10 +115,18 @@ void BaseButton::_notification(int p_what) {
 
 		case NOTIFICATION_DRAG_BEGIN:
 		case NOTIFICATION_SCROLL_BEGIN: {
-			if (status.press_attempt) {
-				status.press_attempt = false;
-				queue_redraw();
-			}
+			is_scrolling = true;
+			drag_from = Input::get_singleton()->get_mouse_position();
+		} break;
+
+		case NOTIFICATION_DRAG_END:
+		case NOTIFICATION_SCROLL_END: {
+			is_scrolling = false;
+			drag_from = Vector2();
+		} break;
+
+		case NOTIFICATION_WM_DPI_CHANGE: {
+			pressed_tolerance = _calculate_pressed_tolerance();
 		} break;
 
 		case NOTIFICATION_FOCUS_ENTER: {
@@ -524,6 +550,7 @@ void BaseButton::_bind_methods() {
 
 BaseButton::BaseButton() {
 	set_focus_mode(FOCUS_ALL);
+	pressed_tolerance = _calculate_pressed_tolerance();
 }
 
 BaseButton::~BaseButton() {

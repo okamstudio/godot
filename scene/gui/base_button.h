@@ -54,6 +54,9 @@ private:
 	bool shortcut_feedback = true;
 	Ref<Shortcut> shortcut;
 	ObjectID shortcut_context;
+	bool is_scrolling = false;
+	Point2 drag_from;
+	float pressed_tolerance; // Calculated in constructor and NOTIFICATION_WM_DPI_CHANGE.
 
 	ActionMode action_mode = ACTION_MODE_BUTTON_RELEASE;
 	struct Status {
@@ -71,6 +74,7 @@ private:
 	void _unpress_group();
 	void _pressed();
 	void _toggled(bool p_pressed);
+	float _calculate_pressed_tolerance();
 
 	void on_action_event(Ref<InputEvent> p_event);
 
