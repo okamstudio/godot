@@ -113,6 +113,9 @@
 #include "editor/gui/editor_scene_tabs.h"
 #include "editor/gui/editor_title_bar.h"
 #include "editor/gui/editor_toaster.h"
+#ifdef ANDROID_ENABLED
+#include "editor/gui/touch_actions_panel.h"
+#endif
 #include "editor/history_dock.h"
 #include "editor/import/3d/editor_import_collada.h"
 #include "editor/import/3d/resource_importer_obj.h"
@@ -7710,6 +7713,11 @@ EditorNode::EditorNode() {
 	default_layout->set_value(docks_section, "dock_hsplit_4", 0);
 
 	_update_layouts_menu();
+
+#ifdef ANDROID_ENABLED
+	// Add TouchActionsPanel node.
+	add_child(memnew(TouchActionsPanel));
+#endif
 
 	// Bottom panels.
 
