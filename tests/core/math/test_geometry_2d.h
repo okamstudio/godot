@@ -144,6 +144,11 @@ TEST_CASE("[Geometry2D] Segment intersection") {
 	CHECK_FALSE(Geometry2D::segment_intersects_segment(Vector2(-1, 1), Vector2(1, -1), Vector2(1, 1), Vector2(0.1, 0.1), &r));
 	CHECK_FALSE(Geometry2D::segment_intersects_segment(Vector2(-1, 1), Vector2(1, -1), Vector2(0.1, 0.1), Vector2(1, 1), &r));
 
+	CHECK_FALSE(Geometry2D::segment_intersects_segment(Vector2(0, 2), Vector2(2, 0), Vector2(0, 0), Vector2(0.999999, 0.999999), &r));
+	CHECK_FALSE(Geometry2D::segment_intersects_segment(Vector2(0, 2), Vector2(2, 0), Vector2(0.999999, 0.999999), Vector2(0, 0), &r));
+	CHECK_FALSE(Geometry2D::segment_intersects_segment(Vector2(0, 0), Vector2(0.999999, 0.999999), Vector2(0, 2), Vector2(2, 0), &r));
+	CHECK_FALSE(Geometry2D::segment_intersects_segment(Vector2(0.999999, 0.999999), Vector2(0, 0), Vector2(0, 2), Vector2(2, 0), &r));
+
 	CHECK_FALSE_MESSAGE(
 			Geometry2D::segment_intersects_segment(Vector2(-1, 1), Vector2(1, -1), Vector2(0, 1), Vector2(2, -1), &r),
 			"Parallel segments should not intersect.");

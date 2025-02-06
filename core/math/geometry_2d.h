@@ -184,31 +184,34 @@ public:
 		if (ABlen <= 0) {
 			return false;
 		}
-		Vector2 Bn = B / ABlen;
-		C = Vector2(C.x * Bn.x + C.y * Bn.y, C.y * Bn.x - C.x * Bn.y);
-		D = Vector2(D.x * Bn.x + D.y * Bn.y, D.y * Bn.x - D.x * Bn.y);
+
+		float B_dot_Cperp = B.x * C.y - B.y * C.x;
+		float B_dot_Dperp = B.x * D.y - B.y * D.x;
 
 		// Fail if C x B and D x B have the same sign (segments don't intersect).
-		if ((C.y < (real_t)-CMP_EPSILON && D.y < (real_t)-CMP_EPSILON) || (C.y > (real_t)CMP_EPSILON && D.y > (real_t)CMP_EPSILON)) {
+		if ((B_dot_Cperp * B_dot_Dperp) > 0) {
 			return false;
 		}
 
 		// Fail if segments are parallel or colinear.
 		// (when A x B == zero, i.e (C - D) x B == zero, i.e C x B == D x B)
-		if (Math::is_equal_approx(C.y, D.y)) {
+		if (B_dot_Cperp == B_dot_Dperp) {
 			return false;
 		}
 
-		real_t ABpos = D.x + (C.x - D.x) * D.y / (D.y - C.y);
+		float B_dot_C = B.x * C.x + B.y * C.y;
+		float B_dot_D = B.x * D.x + B.y * D.y;
+
+		real_t ABpos = B_dot_D + ((B_dot_C - B_dot_D) * B_dot_Dperp / (B_dot_Dperp - B_dot_Cperp));
 
 		// Fail if segment C-D crosses line A-B outside of segment A-B.
-		if ((ABpos < 0) || (ABpos > 1)) {
+		if ((ABpos < 0) || (ABpos > ABlen)) {
 			return false;
 		}
 
 		// Apply the discovered position to line A-B in the original coordinate system.
 		if (r_result) {
-			*r_result = p_from_a + B * ABpos;
+			*r_result = p_from_a + B * ABpos / ABlen;
 		}
 
 		return true;
