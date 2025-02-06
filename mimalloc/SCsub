@@ -1,0 +1,100 @@
+#!/usr/bin/env python
+from misc.utility.scons_hints import *
+
+Import("env")
+
+# For platforms not supported out-of-the-box by mimalloc, the following options
+# can be used to add support for them:
+# mimalloc_custom_prims (bool): If true, the prim.c file is not included. Important because otherwise it falls back to UNIX.
+# mimalloc_custom_tls_slot (bool): If true, mimalloc is built assuming primitives for TLS operations will be provided separately.
+# mimalloc_custom_get_thread_id (string): If non-empty, mimalloc will use the function named here to get the current thread id.
+
+
+mimalloc_sources = []
+
+if env["platform"] == "windows":
+    override_type = "windows"
+elif env.get("mimalloc_custom_prims"):
+    override_type = "none"
+else:
+    override_type = "static"
+
+use_mingw_custom_tls_slot = override_type == "windows" and not env.msvc
+
+# Thirdparty source files
+
+env_thirdparty = env.Clone()
+env_thirdparty.disable_warnings()
+
+thirdparty_obj = []
+
+thirdparty_dir = "#thirdparty/mimalloc/"
+if override_type == "static":
+    thirdparty_sources = ["src/static.c"]
+    env_thirdparty.Append(CPPDEFINES=["MI_MALLOC_OVERRIDE"])
+else:
+    thirdparty_sources = [
+        "src/alloc.c",
+        "src/alloc-aligned.c",
+        "src/alloc-posix.c",
+        "src/arena.c",
+        "src/bitmap.c",
+        "src/heap.c",
+        "src/init.c",
+        "src/libc.c",
+        "src/options.c",
+        "src/os.c",
+        "src/page.c",
+        "src/random.c",
+        "src/segment-map.c",
+        "src/segment.c",
+        "src/stats.c",
+    ]
+    if not env.get("mimalloc_custom_prims"):
+        thirdparty_sources += ["src/prim/prim.c"]
+
+thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
+
+if use_mingw_custom_tls_slot:
+    thirdparty_sources += ["#mimalloc/mingw_custom_tls_slot.cpp"]
+
+env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
+
+env_thirdparty.Append(CPPDEFINES=[("MI_TRACK_ASAN", 1 if env.get("use_asan") else 0)])
+
+if env.get("mimalloc_custom_tls_slot") or use_mingw_custom_tls_slot:
+    env_thirdparty.Append(CPPFLAGS=["-includemimalloc/custom_tls_slot.h"])
+
+if env.get("mimalloc_custom_get_thread_id"):
+    env_thirdparty.Append(CPPDEFINES=[("MI_PRIM_THREAD_ID", env.get("mimalloc_custom_get_thread_id"))])
+
+env_thirdparty.Append(CPPPATH=[f"{thirdparty_dir}include/"])
+
+mimalloc_sources += thirdparty_obj
+
+
+# Godot source files
+
+if override_type == "windows":
+    godot_obj = []
+
+    env_mimalloc = env_thirdparty.Clone()
+    env_mimalloc.Append(CPPPATH=[thirdparty_dir])
+
+    env_mimalloc.add_source_files(godot_obj, "windows_override.cpp")
+
+    mimalloc_sources += godot_obj
+
+    if env.msvc:
+        if env["arch"] == "x86_32":
+            env.Append(LINKFLAGS=["/INCLUDE:_mimalloc_godot_force_override"])
+        else:
+            env.Append(LINKFLAGS=["/INCLUDE:mimalloc_godot_force_override"])
+
+lib = env.add_library("mimalloc", mimalloc_sources)
+
+# For override to work on non-Windows platforms, it must be linked first.
+# This way is somewhat hacky, but reliable.
+env.Prepend(LINKFLAGS=[f"mimalloc/{lib[0].get_path()}"])
+# We still add it the regular way to ensure the program depends on it.
+env.Prepend(LIBS=[lib])

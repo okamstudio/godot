@@ -1069,6 +1069,9 @@ SConscript("main/SCsub")
 
 SConscript("platform/" + env["platform"] + "/SCsub")  # Build selected platform.
 
+if "mimalloc" in env.get("supported", []):
+    SConscript("mimalloc/SCsub")
+
 # Microsoft Visual Studio Project Generation
 if env["vsproj"]:
     methods.generate_cpp_hint_file("cpp.hint")

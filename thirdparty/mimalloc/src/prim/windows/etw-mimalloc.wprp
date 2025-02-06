@@ -1,0 +1,61 @@
+<WindowsPerformanceRecorder Version="1.0">
+  <Profiles>
+    <SystemCollector Id="WPR_initiated_WprApp_WPR_System_Collector" Name="WPR_initiated_WprApp_WPR System Collector">
+      <BufferSize Value="1024" />
+      <Buffers Value="100" />
+    </SystemCollector>
+    <EventCollector Id="Mimalloc_Collector" Name="Mimalloc Collector">
+      <BufferSize Value="1024" />
+      <Buffers Value="100" />
+    </EventCollector>
+    <SystemProvider Id="WPR_initiated_WprApp_WPR_System_Collector_Provider">
+      <Keywords>
+        <Keyword Value="Loader" />
+      </Keywords>
+    </SystemProvider>
+    <EventProvider Id="MimallocEventProvider" Name="138f4dbb-ee04-4899-aa0a-572ad4475779" NonPagedMemory="true" Stack="true">
+      <EventFilters FilterIn="true">
+        <EventId Value="100" />
+        <EventId Value="101" />
+      </EventFilters>
+    </EventProvider>
+    <Profile Id="CustomHeap.Verbose.File" Name="CustomHeap" Description="RunningProfile:CustomHeap.Verbose.File" LoggingMode="File" DetailLevel="Verbose">
+      <ProblemCategories>
+        <ProblemCategory Value="Resource Analysis" />
+      </ProblemCategories>
+      <Collectors>
+        <SystemCollectorId Value="WPR_initiated_WprApp_WPR_System_Collector">
+          <SystemProviderId Value="WPR_initiated_WprApp_WPR_System_Collector_Provider" />
+        </SystemCollectorId>
+        <EventCollectorId Value="Mimalloc_Collector">
+          <EventProviders>
+            <EventProviderId Value="MimallocEventProvider" >
+              <Keywords>
+                <Keyword Value="100"/>
+                <Keyword Value="101"/>
+              </Keywords>
+            </EventProviderId>
+          </EventProviders>
+        </EventCollectorId>
+      </Collectors>
+      <TraceMergeProperties>
+        <TraceMergeProperty Id="BaseVerboseTraceMergeProperties" Name="BaseTraceMergeProperties">
+          <DeletePreMergedTraceFiles Value="true" />
+          <FileCompression Value="false" />
+          <InjectOnly Value="false" />
+          <SkipMerge Value="false" />
+          <CustomEvents>
+            <CustomEvent Value="ImageId" />
+            <CustomEvent Value="BuildInfo" />
+            <CustomEvent Value="VolumeMapping" />
+            <CustomEvent Value="EventMetadata" />
+            <CustomEvent Value="PerfTrackMetadata" />
+            <CustomEvent Value="WinSAT" />
+            <CustomEvent Value="NetworkInterface" />
+          </CustomEvents>
+        </TraceMergeProperty>
+      </TraceMergeProperties>
+    </Profile>
+  </Profiles>
+</WindowsPerformanceRecorder>
+

@@ -61,7 +61,7 @@ def get_flags():
         "arch": detect_arch(),
         "use_volk": False,
         "metal": True,
-        "supported": ["metal", "mono"],
+        "supported": ["mimalloc", "metal", "mono"],
     }
 
 
