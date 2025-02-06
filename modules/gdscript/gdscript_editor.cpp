@@ -1826,11 +1826,19 @@ static bool _guess_expression_type(GDScriptParser::CompletionContext &p_context,
 						GDScriptParser::DataType native_type = base.type;
 
 						while (native_type.kind == GDScriptParser::DataType::CLASS) {
-							native_type = native_type.class_type->base_type;
+							if (native_type.is_meta_type) {
+								native_type.kind = GDScriptParser::DataType::NATIVE;
+								native_type.native_type = GDScript::get_class_static();
+							} else {
+								native_type = native_type.class_type->base_type;
+							}
 						}
 
 						while (native_type.kind == GDScriptParser::DataType::SCRIPT) {
-							if (native_type.script_type.is_valid()) {
+							if (native_type.is_meta_type) {
+								native_type.kind = GDScriptParser::DataType::NATIVE;
+								native_type.native_type = native_type.script_type->is_valid() ? native_type.script_type->get_class() : Script::get_class_static();
+							} else if (native_type.script_type.is_valid()) {
 								Ref<Script> parent = native_type.script_type->get_base_script();
 								if (parent.is_valid()) {
 									native_type.script_type = parent;
