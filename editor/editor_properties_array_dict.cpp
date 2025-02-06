@@ -447,6 +447,7 @@ void EditorPropertyArray::update_property() {
 			size_slider = memnew(EditorSpinSlider);
 			size_slider->set_step(1);
 			size_slider->set_max(INT32_MAX);
+			size_slider->set_editing_integer(true);
 			size_slider->set_h_size_flags(SIZE_EXPAND_FILL);
 			size_slider->set_read_only(is_read_only());
 			size_slider->connect(SceneStringName(value_changed), callable_mp(this, &EditorPropertyArray::_length_changed));
