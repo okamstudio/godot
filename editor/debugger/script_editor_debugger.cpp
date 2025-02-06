@@ -2166,7 +2166,6 @@ ScriptEditorDebugger::ScriptEditorDebugger() {
 	msgdialog = memnew(AcceptDialog);
 	add_child(msgdialog);
 
-	live_debug = true;
 	camera_override = CameraOverride::OVERRIDE_NONE;
 	last_path_id = false;
 	error_count = 0;
