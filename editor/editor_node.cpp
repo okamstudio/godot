@@ -3425,6 +3425,7 @@ int EditorNode::_next_unsaved_scene(bool p_valid_filename, int p_start) {
 
 void EditorNode::_exit_editor(int p_exit_code) {
 	exiting = true;
+	waiting_for_first_scan = false;
 	resource_preview->stop(); // Stop early to avoid crashes.
 	_save_editor_layout();
 
