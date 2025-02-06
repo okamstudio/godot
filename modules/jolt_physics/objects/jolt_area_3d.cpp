@@ -30,6 +30,7 @@
 
 #include "jolt_area_3d.h"
 
+#include "../jolt_physics_server_3d.h"
 #include "../jolt_project_settings.h"
 #include "../misc/jolt_type_conversions.h"
 #include "../shapes/jolt_shape_3d.h"
@@ -592,6 +593,37 @@ void JoltArea3D::set_gravity_mode(OverrideMode p_mode) {
 	gravity_mode = p_mode;
 
 	_gravity_changed();
+}
+
+void JoltArea3D::_update_overlapping_bodies_damping() {
+	JoltPhysicsServer3D *physics_server = JoltPhysicsServer3D::get_singleton();
+	ERR_FAIL_NULL(physics_server);
+	for (auto &[_, overlap] : bodies_by_id) {
+		JoltBody3D *body = physics_server->get_body(overlap.rid);
+		if (body != nullptr) {
+			body->_update_damp();
+		}
+	}
+}
+
+void JoltArea3D::set_linear_damp_mode(OverrideMode p_mode) {
+	if (linear_damp_mode == p_mode) {
+		return;
+	}
+
+	linear_damp_mode = p_mode;
+
+	_update_overlapping_bodies_damping();
+}
+
+void JoltArea3D::set_angular_damp_mode(OverrideMode p_mode) {
+	if (linear_damp_mode == p_mode) {
+		return;
+	}
+
+	angular_damp_mode = p_mode;
+
+	_update_overlapping_bodies_damping();
 }
 
 void JoltArea3D::set_gravity_vector(const Vector3 &p_vector) {

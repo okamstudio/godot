@@ -42,6 +42,8 @@ class JoltBody3D final : public JoltShapedObject3D {
 public:
 	typedef PhysicsServer3D::BodyDampMode DampMode;
 
+	friend JoltArea3D;
+
 	struct Contact {
 		Vector3 normal;
 		Vector3 position;
