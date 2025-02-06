@@ -60,6 +60,16 @@
 				Clears the whole configuration (not recommended, may break things).
 			</description>
 		</method>
+		<method name="get_autoload_list" qualifiers="const">
+			<return type="Dictionary[]" />
+			<description>
+				Returns an [Array] of registered autoloads. Each entry is represented as a [Dictionary] that contains the following entries:
+				- [code]name[/code] is the name for both the node and the global variable of the autoload;
+				- [code]path[/code] is the path to the autoloaded resource;
+				- [code]is_global_variable[/code] is [code]true[/code] if the autoload can be accessed as a global variable, otherwise it is [code]false[/code];
+				[b]Note:[/b] The script path is local to the project filesystem, i.e. it starts with [code]res://[/code].
+			</description>
+		</method>
 		<method name="get_global_class_list">
 			<return type="Dictionary[]" />
 			<description>

@@ -1314,6 +1314,19 @@ const HashMap<StringName, ProjectSettings::AutoloadInfo> &ProjectSettings::get_a
 	return autoloads;
 }
 
+TypedArray<Dictionary> ProjectSettings::_get_autoload_list_bind() const {
+	TypedArray<Dictionary> result;
+	for (const KeyValue<StringName, AutoloadInfo> &kv : autoloads) {
+		Dictionary kv_data;
+		kv_data["name"] = kv.value.name;
+		kv_data["path"] = kv.value.path;
+		kv_data["is_global_variable"] = kv.value.is_singleton;
+		result.append(kv_data);
+	}
+
+	return result;
+}
+
 void ProjectSettings::add_autoload(const AutoloadInfo &p_autoload) {
 	ERR_FAIL_COND_MSG(p_autoload.name == StringName(), "Trying to add autoload with no name.");
 	autoloads[p_autoload.name] = p_autoload;
@@ -1440,6 +1453,7 @@ void ProjectSettings::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("load_resource_pack", "pack", "replace_files", "offset"), &ProjectSettings::load_resource_pack, DEFVAL(true), DEFVAL(0));
 
 	ClassDB::bind_method(D_METHOD("save_custom", "file"), &ProjectSettings::_save_custom_bnd);
+	ClassDB::bind_method(D_METHOD("get_autoload_list"), &ProjectSettings::_get_autoload_list_bind);
 
 	ADD_SIGNAL(MethodInfo("settings_changed"));
 }

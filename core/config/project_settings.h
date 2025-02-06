@@ -139,6 +139,7 @@ protected:
 	bool _load_resource_pack(const String &p_pack, bool p_replace_files = true, int p_offset = 0, bool p_main_pack = false);
 
 	void _add_property_info_bind(const Dictionary &p_info);
+	TypedArray<Dictionary> _get_autoload_list_bind() const;
 
 	Error _setup(const String &p_path, const String &p_main_pack, bool p_upwards = false, bool p_ignore_override = false);
 
@@ -201,6 +202,7 @@ public:
 	bool has_custom_feature(const String &p_feature) const;
 
 	const HashMap<StringName, AutoloadInfo> &get_autoload_list() const;
+
 	void add_autoload(const AutoloadInfo &p_autoload);
 	void remove_autoload(const StringName &p_autoload);
 	bool has_autoload(const StringName &p_autoload) const;
