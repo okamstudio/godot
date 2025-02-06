@@ -158,6 +158,16 @@ bool CharString::operator<(const CharString &p_right) const {
 	return is_str_less(get_data(), p_right.get_data());
 }
 
+bool CharString::operator==(const char *p_right) const {
+	// nullptr and null terminator translate to the same CharString, length 0.
+	if (p_right == nullptr || p_right[0] == 0) {
+		return length() == 0;
+	} else if (length() == 0) {
+		return false;
+	}
+	return strcmp(ptr(), p_right) == 0;
+}
+
 bool CharString::operator==(const CharString &p_right) const {
 	if (length() == 0) {
 		// True if both have length 0, false if only p_right has a length

@@ -104,6 +104,10 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * Always try to return processable data, so the engine can keep running well.
  * Use the _MSG versions to print a meaningful message to help with debugging.
  *
+ * NOTE: Error and warning messages are deduplicated on a per-frame basis, to prevent
+ * spam. If you wish to output multiple similar errors / warnings, be sure to differentiate them.
+ * See _err_print_error().
+ *
  * The `((void)0)` no-op statement is used as a trick to force us to put a semicolon after
  * those macros, making them look like proper statements.
  * The if wrappers are used to ensure that the macro replacement does not trigger unexpected

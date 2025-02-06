@@ -5,4 +5,7 @@ Import("env")
 
 env_error = env.Clone()
 
+if env["tests"]:
+    env_error.Append(CPPDEFINES=["TESTS_ENABLED"])
+
 env_error.add_source_files(env.core_sources, "*.cpp")

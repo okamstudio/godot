@@ -89,6 +89,29 @@ void _err_print_error(const char *p_function, const char *p_file, int p_line, co
 
 // Main error printing function.
 void _err_print_error(const char *p_function, const char *p_file, int p_line, const char *p_error, const char *p_message, bool p_editor_notify, ErrorHandlerType p_type) {
+#ifndef TESTS_ENABLED
+	_global_lock();
+	// Eliminate duplicate errors to stop locking up the editor due to spam.
+	static int prev_line = INT_MAX;
+	static uint32_t prev_frame = UINT32_MAX;
+	static CharString prev_function;
+	static CharString prev_file;
+	static CharString prev_error;
+
+	// Only de-duplicate on the current frame.
+	uint32_t curr_frame = Engine::get_singleton()->get_process_frames();
+	if ((prev_frame == curr_frame) && (prev_line == p_line) && (prev_function == p_function) && (prev_file == p_file) && (prev_error == p_error)) {
+		_global_unlock();
+		return;
+	}
+	prev_function = p_function;
+	prev_file = p_file;
+	prev_line = p_line;
+	prev_error = p_error;
+	prev_frame = curr_frame;
+	_global_unlock();
+#endif
+
 	if (OS::get_singleton()) {
 		OS::get_singleton()->print_error(p_function, p_file, p_line, p_error, p_message, p_editor_notify, (Logger::ErrorType)p_type);
 	} else {
