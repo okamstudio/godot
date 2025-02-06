@@ -198,6 +198,7 @@ public:
 	virtual int get_priority() const;
 	virtual bool can_be_hidden() const;
 	virtual bool is_selectable_when_hidden() const;
+	virtual bool can_commit_handle_on_click() const;
 
 	virtual void redraw(EditorNode3DGizmo *p_gizmo);
 	virtual bool is_handle_highlighted(const EditorNode3DGizmo *p_gizmo, int p_id, bool p_secondary) const;
