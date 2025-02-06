@@ -2953,6 +2953,10 @@ bool Viewport::_sub_windows_forward_input(const Ref<InputEvent> &p_event) {
 
 	gui.subwindow_focused->_window_input(ev);
 
+	if (gui.subwindow_focused) {
+		return gui.subwindow_focused->is_input_handled() || gui.subwindow_focused->is_handling_input_locally();
+	}
+
 	return true;
 }
 
