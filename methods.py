@@ -109,10 +109,6 @@ def force_optimization_on_debug(self):
         self.AppendUnique(CCFLAGS=["-O3"])
 
 
-def add_module_version_string(self, s):
-    self.module_version_string += "." + s
-
-
 def get_version_info(module_version_string="", silent=False):
     build_name = "custom_build"
     if os.getenv("BUILD_NAME") is not None:
@@ -210,6 +206,11 @@ def get_cmdline_bool(option, default):
         return default
 
 
+############################################################
+# MODULE LOADING
+############################################################
+
+
 def detect_modules(search_path, recursive=False):
     """Detects and collects a list of C++ modules at specified path
 
@@ -226,6 +227,10 @@ def detect_modules(search_path, recursive=False):
     values. If a path is relative, then it is a built-in module. If a path is
     absolute, then it is a custom module collected outside of the engine source.
     """
+
+    from SCons.Script import Dir
+
+    engine_dir = Dir("#").get_abspath()
     modules = OrderedDict()
 
     def add_module(path):
@@ -236,12 +241,8 @@ def detect_modules(search_path, recursive=False):
     def is_engine(path):
         # Prevent recursively detecting modules in self and other
         # Godot sources when using `custom_modules` build option.
-        version_path = os.path.join(path, "version.py")
-        if os.path.exists(version_path):
-            with open(version_path, "r", encoding="utf-8") as f:
-                if 'short_name = "godot"' in f.read():
-                    return True
-        return False
+        if os.path.isdir(path):
+            return engine_dir == Dir(path).get_abspath()
 
     def get_files(path):
         files = glob.glob(os.path.join(path, "*"))
@@ -250,26 +251,27 @@ def detect_modules(search_path, recursive=False):
         files.sort()
         return files
 
-    if not recursive:
-        if is_module(search_path):
-            add_module(search_path)
-        for path in get_files(search_path):
-            if is_engine(path):
-                continue
-            if is_module(path):
-                add_module(path)
-    else:
-        to_search = [search_path]
-        while to_search:
-            path = to_search.pop()
-            if is_module(path):
-                add_module(path)
-            for child in get_files(path):
-                if not os.path.isdir(child):
+    if not is_engine(search_path):
+        if not recursive:
+            if is_module(search_path):
+                add_module(search_path)
+            for path in get_files(search_path):
+                if is_engine(path):
                     continue
-                if is_engine(child):
-                    continue
-                to_search.insert(0, child)
+                if is_module(path):
+                    add_module(path)
+        else:
+            to_search = [search_path]
+            while to_search:
+                path = to_search.pop()
+                if is_module(path):
+                    add_module(path)
+                for child in get_files(path):
+                    if not os.path.isdir(child):
+                        continue
+                    if is_engine(child):
+                        continue
+                    to_search.insert(0, child)
     return modules
 
 
@@ -318,7 +320,7 @@ def module_check_dependencies(self, module):
     missing_deps = set()
     required_deps = self.module_dependencies[module][0] if module in self.module_dependencies else []
     for dep in required_deps:
-        opt = "module_{}_enabled".format(dep)
+        opt = f"module_{dep}_enabled"
         if opt not in self or not self[opt] or not module_check_dependencies(self, dep):
             missing_deps.add(dep)
 
@@ -350,6 +352,10 @@ def sort_module_list(env):
         explored.append(cur)
     for k in explored:
         env.module_list.move_to_end(k)
+
+
+def add_module_version_string(self, s):
+    self.module_version_string += "." + s
 
 
 def use_windows_spawn_fix(self, platform=None):
