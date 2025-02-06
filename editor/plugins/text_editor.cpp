@@ -285,11 +285,9 @@ Variant TextEditor::get_navigation_state() {
 }
 
 void TextEditor::trim_trailing_whitespace() {
-	code_editor->trim_trailing_whitespace();
 }
 
 void TextEditor::trim_final_newlines() {
-	code_editor->trim_final_newlines();
 }
 
 void TextEditor::insert_final_newline() {
