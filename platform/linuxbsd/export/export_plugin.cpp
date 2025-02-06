@@ -50,7 +50,7 @@ Error EditorExportPlatformLinuxBSD::_export_debug_script(const Ref<EditorExportP
 	}
 
 	f->store_line("#!/bin/sh");
-	f->store_line("echo -ne '\\033c\\033]0;" + p_app_name + "\\a'");
+	f->store_line("echo -ne '\\033c\\033]0;" + p_app_name.replace("'", "'\"'\"'") + "\\a'");
 	f->store_line("base_path=\"$(dirname \"$(realpath \"$0\")\")\"");
 	f->store_line("\"$base_path/" + p_pkg_name + "\" \"$@\"");
 

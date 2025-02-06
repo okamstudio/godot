@@ -1500,7 +1500,7 @@ Error EditorExportPlatformMacOS::_export_debug_script(const Ref<EditorExportPres
 	}
 
 	f->store_line("#!/bin/sh");
-	f->store_line("echo -ne '\\033c\\033]0;" + p_app_name + "\\a'");
+	f->store_line("echo -ne '\\033c\\033]0;" + p_app_name.replace("'", "'\"'\"'") + "\\a'");
 	f->store_line("");
 	f->store_line("function app_realpath() {");
 	f->store_line("    SOURCE=$1");
