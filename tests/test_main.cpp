@@ -379,6 +379,9 @@ struct GodotTestCaseListener : public doctest::IReporter {
 		if (EditorPaths::get_singleton()) {
 			EditorPaths::free();
 		}
+		if (EditorPaths::get_singleton()) {
+			EditorPaths::free();
+		}
 #endif // TOOLS_ENABLED
 
 		Engine::get_singleton()->set_editor_hint(false);

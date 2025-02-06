@@ -1,0 +1,32 @@
+0001 class_name MyClass
+>>>> Kw        SN
+0002
+>>>>
+0003 class InnerClass extends RefCounted: pass
+>>>> Kw   SN         SKw     SEt        S Cf
+0004 enum MyEnum {A = 123, B}
+>>>> Kw  SN     S NS  NumS NS
+0005
+>>>>
+0006 var variant: Variant
+>>>> Kw SN      S Bt
+0007 var variant_type: Variant.Type
+>>>> Kw SN           S Bt     SBt
+0008 var builtin: int
+>>>> Kw SN      S Bt
+0009 var typed_array: Array[Node]
+>>>> Kw SN          S Bt   SEt  S
+0010 var native: Node
+>>>> Kw SN     S Et
+0011 var global: MyClass
+>>>> Kw SN     S Bt
+0012 var inner: InnerClass
+>>>> Kw SN    S Bt
+0013 var my_enum: MyEnum
+>>>> Kw SN      S Bt
+0014
+>>>>
+0015 var a : int
+>>>> Kw SNS  Bt
+0016
+>>>>
