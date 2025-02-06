@@ -37,6 +37,8 @@
 
 PhysicalBone3DGizmoPlugin::PhysicalBone3DGizmoPlugin() {
 	create_material("joint_material", EDITOR_GET("editors/3d_gizmos/gizmo_colors/joint"));
+	create_material("joint_body_a_material", EDITOR_DEF_RST("editors/3d_gizmos/gizmo_colors/joint_body_a", Color(0.6, 0.8, 1)));
+	create_material("joint_body_b_material", EDITOR_DEF_RST("editors/3d_gizmos/gizmo_colors/joint_body_b", Color(0.6, 0.9, 1)));
 }
 
 bool PhysicalBone3DGizmoPlugin::has_gizmo(Node3D *p_spatial) {
@@ -75,7 +77,13 @@ void PhysicalBone3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 		return;
 	}
 
+	Ref<Material> common_material = get_material("joint_material", p_gizmo);
+	Ref<Material> body_a_material = get_material("joint_body_a_material", p_gizmo);
+	Ref<Material> body_b_material = get_material("joint_body_b_material", p_gizmo);
+
 	Vector<Vector3> points;
+	Vector<Vector3> body_a_points;
+	Vector<Vector3> body_b_points;
 
 	switch (physical_bone->get_joint_type()) {
 		case PhysicalBone3D::JOINT_TYPE_PIN: {
@@ -90,8 +98,8 @@ void PhysicalBone3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 					pbp->get_global_transform(),
 					cjd->swing_span,
 					cjd->twist_span,
-					&points,
-					&points);
+					&body_a_points,
+					&body_b_points);
 		} break;
 		case PhysicalBone3D::JOINT_TYPE_HINGE: {
 			const PhysicalBone3D::HingeJointData *hjd(static_cast<const PhysicalBone3D::HingeJointData *>(physical_bone->get_joint_data()));
@@ -104,8 +112,8 @@ void PhysicalBone3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 					hjd->angular_limit_upper,
 					hjd->angular_limit_enabled,
 					points,
-					&points,
-					&points);
+					&body_a_points,
+					&body_b_points);
 		} break;
 		case PhysicalBone3D::JOINT_TYPE_SLIDER: {
 			const PhysicalBone3D::SliderJointData *sjd(static_cast<const PhysicalBone3D::SliderJointData *>(physical_bone->get_joint_data()));
@@ -119,8 +127,8 @@ void PhysicalBone3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 					sjd->linear_limit_lower,
 					sjd->linear_limit_upper,
 					points,
-					&points,
-					&points);
+					&body_a_points,
+					&body_b_points);
 		} break;
 		case PhysicalBone3D::JOINT_TYPE_6DOF: {
 			const PhysicalBone3D::SixDOFJointData *sdofjd(static_cast<const PhysicalBone3D::SixDOFJointData *>(physical_bone->get_joint_data()));
@@ -153,15 +161,18 @@ void PhysicalBone3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 					sdofjd->axis_data[2].linear_limit_enabled,
 
 					points,
-					&points,
-					&points);
+					&body_a_points,
+					&body_b_points);
 		} break;
 		default:
 			return;
 	}
 
-	Ref<Material> material = get_material("joint_material", p_gizmo);
-
 	p_gizmo->add_collision_segments(points);
-	p_gizmo->add_lines(points, material);
+	p_gizmo->add_collision_segments(body_a_points);
+	p_gizmo->add_collision_segments(body_b_points);
+
+	p_gizmo->add_lines(points, common_material);
+	p_gizmo->add_lines(body_a_points, body_a_material);
+	p_gizmo->add_lines(body_b_points, body_b_material);
 }
