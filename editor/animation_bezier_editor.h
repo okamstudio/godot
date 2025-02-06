@@ -109,7 +109,7 @@ class AnimationBezierTrackEdit : public Control {
 	typedef Pair<int, int> IntPair;
 
 	bool moving_selection_attempt = false;
-	float moving_selection_mouse_begin_x = 0.0;
+	Point2 moving_selection_mouse_begin;
 	IntPair select_single_attempt;
 	bool moving_selection = false;
 	int moving_selection_from_key = 0;
@@ -122,6 +122,15 @@ class AnimationBezierTrackEdit : public Control {
 	bool box_selecting_add = false;
 	Vector2 box_selection_from;
 	Vector2 box_selection_to;
+
+	Rect2 selection_rect;
+	Rect2 selection_handles_rect;
+
+	bool scaling_selection = false;
+	Vector2i scaling_selection_handles;
+	Vector2 scaling_selection_scale = Vector2(1, 1);
+	Vector2 scaling_selection_offset;
+	Point2 scaling_selection_pivot;
 
 	int moving_handle = 0; //0 no move -1 or +1 out, 2 both (drawing only)
 	int moving_handle_key = 0;
