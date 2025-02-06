@@ -394,7 +394,7 @@
 			<param index="5" name="transpose" type="bool" default="false" />
 			<param index="6" name="clip_uv" type="bool" default="true" />
 			<description>
-				Draws the specified region of a 2D textured rectangle on the [CanvasItem] pointed to by the [param item] [RID]. See also [method CanvasItem.draw_texture_rect_region] and [method Texture2D.draw_rect_region].
+				Draws the specified region of a 2D textured rectangle on the [CanvasItem] pointed to by the [param item] [RID]. When [param clip_uv] is true, the UV (texture coordinate) values passed in [param src_rect] will be clipped to ensure you don't read outside of the [param src_rect] (e.g. due to precision issues). See also [method CanvasItem.draw_texture_rect_region] and [method Texture2D.draw_rect_region].
 			</description>
 		</method>
 		<method name="canvas_item_add_triangle_array">

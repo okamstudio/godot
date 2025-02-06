@@ -110,7 +110,7 @@
 			<param index="4" name="transpose" type="bool" default="false" />
 			<param index="5" name="clip_uv" type="bool" default="true" />
 			<description>
-				Draws a part of the texture using a [CanvasItem] with the [RenderingServer] API.
+				Draws a part of the texture using a [CanvasItem] with the [RenderingServer] API. When [param clip_uv] is true, the UV (texture coordinate) values passed in [param src_rect] will be clipped to ensure you don't read outside of the [param src_rect] (e.g. due to precision issues).
 			</description>
 		</method>
 		<method name="get_height" qualifiers="const">
