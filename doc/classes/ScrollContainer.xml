@@ -52,23 +52,23 @@
 		<member name="scroll_deadzone" type="int" setter="set_deadzone" getter="get_deadzone" default="0">
 			Deadzone for touch scrolling. Lower deadzone makes the scrolling more sensitive.
 		</member>
-		<member name="scroll_horizontal" type="int" setter="set_h_scroll" getter="get_h_scroll" default="0">
+		<member name="scroll_horizontal" type="float" setter="set_h_scroll" getter="get_h_scroll" default="0">
 			The current horizontal scroll value.
 			[b]Note:[/b] If you are setting this value in the [method Node._ready] function or earlier, it needs to be wrapped with [method Object.set_deferred], since scroll bar's [member Range.max_value] is not initialized yet.
 			[codeblock]
 			func _ready():
-			    set_deferred("scroll_horizontal", 600)
+			    set_deferred("scroll_horizontal", 600.0)
 			[/codeblock]
 		</member>
 		<member name="scroll_horizontal_custom_step" type="float" setter="set_horizontal_custom_step" getter="get_horizontal_custom_step" default="-1.0">
 			Overrides the [member ScrollBar.custom_step] used when clicking the internal scroll bar's horizontal increment and decrement buttons or when using arrow keys when the [ScrollBar] is focused.
 		</member>
-		<member name="scroll_vertical" type="int" setter="set_v_scroll" getter="get_v_scroll" default="0">
+		<member name="scroll_vertical" type="float" setter="set_v_scroll" getter="get_v_scroll" default="0">
 			The current vertical scroll value.
 			[b]Note:[/b] Setting it early needs to be deferred, just like in [member scroll_horizontal].
 			[codeblock]
 			func _ready():
-			    set_deferred("scroll_vertical", 600)
+			    set_deferred("scroll_vertical", 600.0)
 			[/codeblock]
 		</member>
 		<member name="scroll_vertical_custom_step" type="float" setter="set_vertical_custom_step" getter="get_vertical_custom_step" default="-1.0">

@@ -482,21 +482,21 @@ void ScrollContainer::_scroll_moved(float) {
 	queue_sort();
 }
 
-void ScrollContainer::set_h_scroll(int p_pos) {
+void ScrollContainer::set_h_scroll(float p_pos) {
 	h_scroll->set_value(p_pos);
 	_cancel_drag();
 }
 
-int ScrollContainer::get_h_scroll() const {
+float ScrollContainer::get_h_scroll() const {
 	return h_scroll->get_value();
 }
 
-void ScrollContainer::set_v_scroll(int p_pos) {
+void ScrollContainer::set_v_scroll(float p_pos) {
 	v_scroll->set_value(p_pos);
 	_cancel_drag();
 }
 
-int ScrollContainer::get_v_scroll() const {
+float ScrollContainer::get_v_scroll() const {
 	return v_scroll->get_value();
 }
 
@@ -631,8 +631,8 @@ void ScrollContainer::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "draw_focus_border"), "set_draw_focus_border", "get_draw_focus_border");
 
 	ADD_GROUP("Scroll", "scroll_");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "scroll_horizontal", PROPERTY_HINT_NONE, "suffix:px"), "set_h_scroll", "get_h_scroll");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "scroll_vertical", PROPERTY_HINT_NONE, "suffix:px"), "set_v_scroll", "get_v_scroll");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "scroll_horizontal", PROPERTY_HINT_NONE, "suffix:px"), "set_h_scroll", "get_h_scroll");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "scroll_vertical", PROPERTY_HINT_NONE, "suffix:px"), "set_v_scroll", "get_v_scroll");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "scroll_horizontal_custom_step", PROPERTY_HINT_RANGE, "-1,4096,suffix:px"), "set_horizontal_custom_step", "get_horizontal_custom_step");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "scroll_vertical_custom_step", PROPERTY_HINT_RANGE, "-1,4096,suffix:px"), "set_vertical_custom_step", "get_vertical_custom_step");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "horizontal_scroll_mode", PROPERTY_HINT_ENUM, "Disabled,Auto,Always Show,Never Show,Reserve"), "set_horizontal_scroll_mode", "get_horizontal_scroll_mode");

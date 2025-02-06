@@ -100,11 +100,11 @@ protected:
 public:
 	virtual void gui_input(const Ref<InputEvent> &p_gui_input) override;
 
-	void set_h_scroll(int p_pos);
-	int get_h_scroll() const;
+	void set_h_scroll(float p_pos);
+	float get_h_scroll() const;
 
-	void set_v_scroll(int p_pos);
-	int get_v_scroll() const;
+	void set_v_scroll(float p_pos);
+	float get_v_scroll() const;
 
 	void set_horizontal_custom_step(float p_custom_step);
 	float get_horizontal_custom_step() const;
