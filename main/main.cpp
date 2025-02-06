@@ -4113,20 +4113,20 @@ int Main::start() {
 			String stretch_scale_mode = GLOBAL_GET("display/window/stretch/scale_mode");
 
 			Window::ContentScaleMode cs_sm = Window::CONTENT_SCALE_MODE_DISABLED;
-			if (stretch_mode == "canvas_items") {
+			if (stretch_mode == "Canvas Items") {
 				cs_sm = Window::CONTENT_SCALE_MODE_CANVAS_ITEMS;
-			} else if (stretch_mode == "viewport") {
+			} else if (stretch_mode == "Viewport") {
 				cs_sm = Window::CONTENT_SCALE_MODE_VIEWPORT;
 			}
 
 			Window::ContentScaleAspect cs_aspect = Window::CONTENT_SCALE_ASPECT_IGNORE;
-			if (stretch_aspect == "keep") {
+			if (stretch_aspect == "Keep") {
 				cs_aspect = Window::CONTENT_SCALE_ASPECT_KEEP;
-			} else if (stretch_aspect == "keep_width") {
+			} else if (stretch_aspect == "Keep Width") {
 				cs_aspect = Window::CONTENT_SCALE_ASPECT_KEEP_WIDTH;
-			} else if (stretch_aspect == "keep_height") {
+			} else if (stretch_aspect == "Keep Height") {
 				cs_aspect = Window::CONTENT_SCALE_ASPECT_KEEP_HEIGHT;
-			} else if (stretch_aspect == "expand") {
+			} else if (stretch_aspect == "Expand") {
 				cs_aspect = Window::CONTENT_SCALE_ASPECT_EXPAND;
 			}
 
