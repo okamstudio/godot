@@ -2058,6 +2058,14 @@ void Node3DEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 
 	// Instant transforms process mouse motion in input() to handle wrapping.
 	if (m.is_valid() && !_edit.instant) {
+		if (spatial_editor->get_tool_mode() != spatial_editor->get_prev_tool_mode()) {
+			spatial_editor->update_prev_tool_mode();
+			if (_edit.mode != TRANSFORM_NONE) {
+				commit_transform();
+			}
+			return;
+		}
+
 		_edit.mouse_pos = m->get_position();
 
 		if (spatial_editor->get_single_selected_node()) {
@@ -8808,6 +8816,7 @@ Node3DEditor::Node3DEditor() {
 	snap_enabled = false;
 	snap_key_enabled = false;
 	tool_mode = TOOL_MODE_SELECT;
+	prev_tool_mode = TOOL_MODE_SELECT;
 
 	// Add some margin to the sides for better aesthetics.
 	// This prevents the first button's hover/pressed effect from "touching" the panel's border,

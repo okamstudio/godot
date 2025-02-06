@@ -193,6 +193,9 @@ private:
 	bool selection_menu_additive_selection = false;
 
 	Tool tool = TOOL_SELECT;
+	Tool prev_tool = TOOL_SELECT;
+	bool tool_changed = false;
+
 	Control *viewport = nullptr;
 	Control *viewport_scrollable = nullptr;
 

@@ -1532,7 +1532,7 @@ bool CanvasItemEditor::_gui_input_rotate(const Ref<InputEvent> &p_event) {
 
 	if (drag_type == DRAG_ROTATE) {
 		// Rotate the node
-		if (m.is_valid()) {
+		if (!tool_changed && m.is_valid()) {
 			_restore_canvas_item_state(drag_selection);
 			for (CanvasItem *ci : drag_selection) {
 				drag_to = transform.affine_inverse().xform(m->get_position());
@@ -1554,7 +1554,7 @@ bool CanvasItemEditor::_gui_input_rotate(const Ref<InputEvent> &p_event) {
 		}
 
 		// Confirms the node rotation
-		if (b.is_valid() && b->get_button_index() == MouseButton::LEFT && !b->is_pressed()) {
+		if (tool_changed || (b.is_valid() && b->get_button_index() == MouseButton::LEFT && !b->is_pressed())) {
 			if (drag_selection.size() != 1) {
 				_commit_canvas_item_state(
 						drag_selection,
@@ -2017,7 +2017,7 @@ bool CanvasItemEditor::_gui_input_scale(const Ref<InputEvent> &p_event) {
 		}
 	} else if (drag_type == DRAG_SCALE_BOTH || drag_type == DRAG_SCALE_X || drag_type == DRAG_SCALE_Y) {
 		// Resize the node
-		if (m.is_valid()) {
+		if (!tool_changed && m.is_valid()) {
 			_restore_canvas_item_state(drag_selection);
 
 			drag_to = transform.affine_inverse().xform(m->get_position());
@@ -2099,7 +2099,7 @@ bool CanvasItemEditor::_gui_input_scale(const Ref<InputEvent> &p_event) {
 		}
 
 		// Confirm resize
-		if (b.is_valid() && b->get_button_index() == MouseButton::LEFT && !b->is_pressed()) {
+		if (tool_changed || (b.is_valid() && b->get_button_index() == MouseButton::LEFT && !b->is_pressed())) {
 			if (drag_selection.size() != 1) {
 				_commit_canvas_item_state(
 						drag_selection,
@@ -2189,7 +2189,7 @@ bool CanvasItemEditor::_gui_input_move(const Ref<InputEvent> &p_event) {
 
 	if (drag_type == DRAG_MOVE || drag_type == DRAG_MOVE_X || drag_type == DRAG_MOVE_Y) {
 		// Move the nodes
-		if (m.is_valid() && !drag_selection.is_empty()) {
+		if (!tool_changed && m.is_valid() && !drag_selection.is_empty()) {
 			_restore_canvas_item_state(drag_selection, true);
 
 			drag_to = transform.affine_inverse().xform(m->get_position());
@@ -2235,8 +2235,14 @@ bool CanvasItemEditor::_gui_input_move(const Ref<InputEvent> &p_event) {
 		}
 
 		// Confirm the move (only if it was moved)
-		if (b.is_valid() && !b->is_pressed() && b->get_button_index() == MouseButton::LEFT) {
-			if (transform.affine_inverse().xform(b->get_position()) != drag_from) {
+		if (tool_changed || (b.is_valid() && !b->is_pressed() && b->get_button_index() == MouseButton::LEFT)) {
+			bool was_dragged = false;
+			if (!tool_changed) {
+				was_dragged = transform.affine_inverse().xform(b->get_position()) != drag_from;
+			} else if (m.is_valid()) {
+				was_dragged = transform.affine_inverse().xform(m->get_position()) != drag_from;
+			}
+			if (was_dragged) {
 				if (drag_selection.size() != 1) {
 					_commit_canvas_item_state(
 							drag_selection,
@@ -2732,6 +2738,13 @@ void CanvasItemEditor::_gui_input_viewport(const Ref<InputEvent> &p_event) {
 
 	Ref<InputEventMouseButton> mb = p_event;
 	bool release_lmb = (mb.is_valid() && !mb->is_pressed() && mb->get_button_index() == MouseButton::LEFT); // Required to properly release some stuff (e.g. selection box) while panning.
+
+	tool_changed = false;
+
+	if (tool != prev_tool) {
+		tool_changed = true;
+		prev_tool = tool;
+	}
 
 	if (EDITOR_GET("editors/panning/simple_panning") || !pan_pressed || release_lmb) {
 		accepted = true;
