@@ -60,6 +60,7 @@
 #include "core/variant/array.h"
 #include "core/variant/callable.h"
 #include "core/variant/dictionary.h"
+#include "core/variant/variant_enums.h"
 
 class Object;
 class RefCounted;
@@ -84,58 +85,75 @@ typedef Vector<Vector4> PackedVector4Array;
 
 class Variant {
 public:
-	// If this changes the table in variant_op must be updated
-	enum Type {
-		NIL,
+	using Type = VariantType;
+	static constexpr Type NIL = VariantType::NIL;
+	static constexpr Type BOOL = VariantType::BOOL;
+	static constexpr Type INT = VariantType::INT;
+	static constexpr Type FLOAT = VariantType::FLOAT;
+	static constexpr Type STRING = VariantType::STRING;
+	static constexpr Type VECTOR2 = VariantType::VECTOR2;
+	static constexpr Type VECTOR2I = VariantType::VECTOR2I;
+	static constexpr Type RECT2 = VariantType::RECT2;
+	static constexpr Type RECT2I = VariantType::RECT2I;
+	static constexpr Type VECTOR3 = VariantType::VECTOR3;
+	static constexpr Type VECTOR3I = VariantType::VECTOR3I;
+	static constexpr Type TRANSFORM2D = VariantType::TRANSFORM2D;
+	static constexpr Type VECTOR4 = VariantType::VECTOR4;
+	static constexpr Type VECTOR4I = VariantType::VECTOR4I;
+	static constexpr Type PLANE = VariantType::PLANE;
+	static constexpr Type QUATERNION = VariantType::QUATERNION;
+	static constexpr Type AABB = VariantType::AABB;
+	static constexpr Type BASIS = VariantType::BASIS;
+	static constexpr Type TRANSFORM3D = VariantType::TRANSFORM3D;
+	static constexpr Type PROJECTION = VariantType::PROJECTION;
+	static constexpr Type COLOR = VariantType::COLOR;
+	static constexpr Type STRING_NAME = VariantType::STRING_NAME;
+	static constexpr Type NODE_PATH = VariantType::NODE_PATH;
+	static constexpr Type RID = VariantType::RID;
+	static constexpr Type OBJECT = VariantType::OBJECT;
+	static constexpr Type CALLABLE = VariantType::CALLABLE;
+	static constexpr Type SIGNAL = VariantType::SIGNAL;
+	static constexpr Type DICTIONARY = VariantType::DICTIONARY;
+	static constexpr Type ARRAY = VariantType::ARRAY;
+	static constexpr Type PACKED_BYTE_ARRAY = VariantType::PACKED_BYTE_ARRAY;
+	static constexpr Type PACKED_INT32_ARRAY = VariantType::PACKED_INT32_ARRAY;
+	static constexpr Type PACKED_INT64_ARRAY = VariantType::PACKED_INT64_ARRAY;
+	static constexpr Type PACKED_FLOAT32_ARRAY = VariantType::PACKED_FLOAT32_ARRAY;
+	static constexpr Type PACKED_FLOAT64_ARRAY = VariantType::PACKED_FLOAT64_ARRAY;
+	static constexpr Type PACKED_STRING_ARRAY = VariantType::PACKED_STRING_ARRAY;
+	static constexpr Type PACKED_VECTOR2_ARRAY = VariantType::PACKED_VECTOR2_ARRAY;
+	static constexpr Type PACKED_VECTOR3_ARRAY = VariantType::PACKED_VECTOR3_ARRAY;
+	static constexpr Type PACKED_COLOR_ARRAY = VariantType::PACKED_COLOR_ARRAY;
+	static constexpr Type PACKED_VECTOR4_ARRAY = VariantType::PACKED_VECTOR4_ARRAY;
+	static constexpr Type VARIANT_MAX = VariantType::VARIANT_MAX;
 
-		// atomic types
-		BOOL,
-		INT,
-		FLOAT,
-		STRING,
-
-		// math types
-		VECTOR2,
-		VECTOR2I,
-		RECT2,
-		RECT2I,
-		VECTOR3,
-		VECTOR3I,
-		TRANSFORM2D,
-		VECTOR4,
-		VECTOR4I,
-		PLANE,
-		QUATERNION,
-		AABB,
-		BASIS,
-		TRANSFORM3D,
-		PROJECTION,
-
-		// misc types
-		COLOR,
-		STRING_NAME,
-		NODE_PATH,
-		RID,
-		OBJECT,
-		CALLABLE,
-		SIGNAL,
-		DICTIONARY,
-		ARRAY,
-
-		// typed arrays
-		PACKED_BYTE_ARRAY,
-		PACKED_INT32_ARRAY,
-		PACKED_INT64_ARRAY,
-		PACKED_FLOAT32_ARRAY,
-		PACKED_FLOAT64_ARRAY,
-		PACKED_STRING_ARRAY,
-		PACKED_VECTOR2_ARRAY,
-		PACKED_VECTOR3_ARRAY,
-		PACKED_COLOR_ARRAY,
-		PACKED_VECTOR4_ARRAY,
-
-		VARIANT_MAX
-	};
+	using Operator = VariantOperator;
+	static constexpr Operator OP_EQUAL = VariantOperator::OP_EQUAL;
+	static constexpr Operator OP_NOT_EQUAL = VariantOperator::OP_NOT_EQUAL;
+	static constexpr Operator OP_LESS = VariantOperator::OP_LESS;
+	static constexpr Operator OP_LESS_EQUAL = VariantOperator::OP_LESS_EQUAL;
+	static constexpr Operator OP_GREATER = VariantOperator::OP_GREATER;
+	static constexpr Operator OP_GREATER_EQUAL = VariantOperator::OP_GREATER_EQUAL;
+	static constexpr Operator OP_ADD = VariantOperator::OP_ADD;
+	static constexpr Operator OP_SUBTRACT = VariantOperator::OP_SUBTRACT;
+	static constexpr Operator OP_MULTIPLY = VariantOperator::OP_MULTIPLY;
+	static constexpr Operator OP_DIVIDE = VariantOperator::OP_DIVIDE;
+	static constexpr Operator OP_NEGATE = VariantOperator::OP_NEGATE;
+	static constexpr Operator OP_POSITIVE = VariantOperator::OP_POSITIVE;
+	static constexpr Operator OP_MODULE = VariantOperator::OP_MODULE;
+	static constexpr Operator OP_POWER = VariantOperator::OP_POWER;
+	static constexpr Operator OP_SHIFT_LEFT = VariantOperator::OP_SHIFT_LEFT;
+	static constexpr Operator OP_SHIFT_RIGHT = VariantOperator::OP_SHIFT_RIGHT;
+	static constexpr Operator OP_BIT_AND = VariantOperator::OP_BIT_AND;
+	static constexpr Operator OP_BIT_OR = VariantOperator::OP_BIT_OR;
+	static constexpr Operator OP_BIT_XOR = VariantOperator::OP_BIT_XOR;
+	static constexpr Operator OP_BIT_NEGATE = VariantOperator::OP_BIT_NEGATE;
+	static constexpr Operator OP_AND = VariantOperator::OP_AND;
+	static constexpr Operator OP_OR = VariantOperator::OP_OR;
+	static constexpr Operator OP_XOR = VariantOperator::OP_XOR;
+	static constexpr Operator OP_NOT = VariantOperator::OP_NOT;
+	static constexpr Operator OP_IN = VariantOperator::OP_IN;
+	static constexpr Operator OP_MAX = VariantOperator::OP_MAX;
 
 	enum {
 		// Maximum recursion depth allowed when serializing variants.
@@ -563,42 +581,6 @@ public:
 	VARIANT_ENUM_CLASS_CONSTRUCTOR(MouseButton)
 
 #undef VARIANT_ENUM_CLASS_CONSTRUCTOR
-
-	// If this changes the table in variant_op must be updated
-	enum Operator {
-		//comparison
-		OP_EQUAL,
-		OP_NOT_EQUAL,
-		OP_LESS,
-		OP_LESS_EQUAL,
-		OP_GREATER,
-		OP_GREATER_EQUAL,
-		//mathematic
-		OP_ADD,
-		OP_SUBTRACT,
-		OP_MULTIPLY,
-		OP_DIVIDE,
-		OP_NEGATE,
-		OP_POSITIVE,
-		OP_MODULE,
-		OP_POWER,
-		//bitwise
-		OP_SHIFT_LEFT,
-		OP_SHIFT_RIGHT,
-		OP_BIT_AND,
-		OP_BIT_OR,
-		OP_BIT_XOR,
-		OP_BIT_NEGATE,
-		//logic
-		OP_AND,
-		OP_OR,
-		OP_XOR,
-		OP_NOT,
-		//containment
-		OP_IN,
-		OP_MAX
-
-	};
 
 	static String get_operator_name(Operator p_op);
 	static void evaluate(const Operator &p_op, const Variant &p_a, const Variant &p_b, Variant &r_ret, bool &r_valid);
