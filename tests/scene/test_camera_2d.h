@@ -156,11 +156,12 @@ TEST_CASE("[SceneTree][Camera2D] Getters and setters") {
 	}
 
 	SUBCASE("Position") {
-		constexpr float smoothing_speed = 20.0f;
+		constexpr float smoothing_speed_horizontal = 20.0f;
+		constexpr float smoothing_speed_vertical = 20.0f;
 		test_camera->set_position_smoothing_enabled(true);
 		CHECK(test_camera->is_position_smoothing_enabled());
-		test_camera->set_position_smoothing_speed(smoothing_speed);
-		CHECK(test_camera->get_position_smoothing_speed() == smoothing_speed);
+		test_camera->set_position_smoothing_velocity(Vector2(smoothing_speed_horizontal, smoothing_speed_vertical));
+		CHECK(test_camera->get_position_smoothing_velocity() == Vector2(smoothing_speed_horizontal, smoothing_speed_vertical));
 	}
 
 	memdelete(test_camera);
