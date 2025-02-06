@@ -93,6 +93,18 @@ TEST_CASE("[Dictionary] Assignment using bracket notation ([])") {
 	map.make_read_only();
 	CHECK(int(map["This key does not exist"].get_type()) == Variant::NIL);
 	CHECK(map.size() == length);
+
+	ERR_PRINT_OFF;
+	CHECK(int(map.get_or_add("This key does not exist", String()).get_type()) == Variant::NIL);
+	CHECK(map.size() == length);
+
+	map.set("This key does not exist", String());
+	CHECK_FALSE(map.has("This key does not exist"));
+	CHECK(map.size() == length);
+
+	CHECK(map.set_safe("This key does not exist", String()) == ERR_LOCKED);
+	CHECK(map.size() == length);
+	ERR_PRINT_ON;
 }
 
 TEST_CASE("[Dictionary] List init") {

@@ -117,6 +117,7 @@ public:
 	const Variant &operator[](int p_idx) const;
 
 	void set(int p_idx, const Variant &p_value);
+	Error set_safe(int p_idx, const Variant &p_value);
 	const Variant &get(int p_idx) const;
 
 	int size() const;

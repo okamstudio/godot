@@ -489,7 +489,18 @@ void Array::set(int p_idx, const Variant &p_value) {
 	Variant value = p_value;
 	ERR_FAIL_COND(!_p->typed.validate(value, "set"));
 
+	ERR_FAIL_INDEX(p_idx, size());
 	operator[](p_idx) = value;
+}
+
+Error Array::set_safe(int p_idx, const Variant &p_value) {
+	ERR_FAIL_COND_V_MSG(_p->read_only, ERR_LOCKED, "Array is in read-only state.");
+	Variant value = p_value;
+	ERR_FAIL_COND_V(!_p->typed.validate(value, "set"), ERR_INVALID_PARAMETER);
+
+	ERR_FAIL_INDEX_V(p_idx, size(), ERR_PARAMETER_RANGE_ERROR);
+	operator[](p_idx) = value;
+	return OK;
 }
 
 const Variant &Array::get(int p_idx) const {
