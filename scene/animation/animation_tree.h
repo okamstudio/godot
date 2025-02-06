@@ -54,6 +54,11 @@ public:
 		FILTER_BLEND
 	};
 
+	enum NotifyReason {
+		NOTIFY_STARTED,
+		NOTIFY_FINISHED
+	};
+
 	struct Input {
 		String name;
 	};
@@ -181,6 +186,8 @@ protected:
 
 	void _validate_property(PropertyInfo &p_property) const;
 
+	void _notify_tree(AnimationNode::NotifyReason p_reason);
+
 	GDVIRTUAL0RC(Dictionary, _get_child_nodes)
 	GDVIRTUAL0RC(Array, _get_parameter_list)
 	GDVIRTUAL1RC(Ref<AnimationNode>, _get_child_by_name, StringName)
@@ -243,6 +250,7 @@ public:
 };
 
 VARIANT_ENUM_CAST(AnimationNode::FilterAction)
+VARIANT_ENUM_CAST(AnimationNode::NotifyReason)
 
 // Root node does not allow inputs.
 class AnimationRootNode : public AnimationNode {

@@ -45,6 +45,13 @@
 				Emitted when the [member anim_player] is changed.
 			</description>
 		</signal>
+		<signal name="node_notify">
+			<param index="0" name="node" type="StringName" />
+			<param index="1" name="reason" type="int" />
+			<description>
+				Emitted when the [param node] state changes during processing or playback.
+			</description>
+		</signal>
 	</signals>
 	<constants>
 		<constant name="ANIMATION_PROCESS_PHYSICS" value="0" enum="AnimationProcessCallback" deprecated="See [constant AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_PHYSICS].">

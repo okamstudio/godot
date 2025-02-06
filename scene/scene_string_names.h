@@ -85,6 +85,7 @@ public:
 	const StringName sort_children = StaticCString::create("sort_children");
 
 	const StringName finished = StaticCString::create("finished");
+	const StringName node_notify = StaticCString::create("node_notify");
 	const StringName animation_finished = StaticCString::create("animation_finished");
 	const StringName animation_changed = StaticCString::create("animation_changed");
 	const StringName animation_started = StaticCString::create("animation_started");

@@ -587,6 +587,19 @@ void AnimationNode::_bind_methods() {
 	BIND_ENUM_CONSTANT(FILTER_PASS);
 	BIND_ENUM_CONSTANT(FILTER_STOP);
 	BIND_ENUM_CONSTANT(FILTER_BLEND);
+
+	BIND_ENUM_CONSTANT(NOTIFY_STARTED);
+	BIND_ENUM_CONSTANT(NOTIFY_FINISHED);
+}
+
+void AnimationNode::_notify_tree(AnimationNode::NotifyReason p_reason) {
+	AnimationNodeBlendTree *blend_tree = Object::cast_to<AnimationNodeBlendTree>(node_state.parent);
+	if (blend_tree) {
+		StringName node_name = blend_tree->get_node_name(this);
+		if (!node_name.is_empty()) {
+			process_state->tree->emit_signal(SceneStringName(node_notify), node_name, p_reason);
+		}
+	}
 }
 
 AnimationNode::AnimationNode() {
@@ -991,6 +1004,7 @@ void AnimationTree::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "anim_player", PROPERTY_HINT_NODE_PATH_VALID_TYPES, "AnimationPlayer"), "set_animation_player", "get_animation_player");
 
 	ADD_SIGNAL(MethodInfo(SNAME("animation_player_changed")));
+	ADD_SIGNAL(MethodInfo(SceneStringName(node_notify), PropertyInfo(Variant::STRING_NAME, "node"), PropertyInfo(Variant::INT, "reason")));
 }
 
 AnimationTree::AnimationTree() {
