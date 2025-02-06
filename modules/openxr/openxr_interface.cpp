@@ -35,6 +35,7 @@
 
 #include "extensions/openxr_eye_gaze_interaction.h"
 #include "extensions/openxr_hand_interaction_extension.h"
+#include "extensions/openxr_performance_settings_extension.h"
 #include "servers/rendering/renderer_compositor.h"
 
 #include <openxr/openxr.h>
@@ -49,6 +50,9 @@ void OpenXRInterface::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("instance_exiting"));
 	ADD_SIGNAL(MethodInfo("pose_recentered"));
 	ADD_SIGNAL(MethodInfo("refresh_rate_changed", PropertyInfo(Variant::FLOAT, "refresh_rate")));
+
+	ADD_SIGNAL(MethodInfo("cpu_level_changed", PropertyInfo(Variant::INT, "sub_domain"), PropertyInfo(Variant::INT, "from_level"), PropertyInfo(Variant::INT, "to_level")));
+	ADD_SIGNAL(MethodInfo("gpu_level_changed", PropertyInfo(Variant::INT, "sub_domain"), PropertyInfo(Variant::INT, "from_level"), PropertyInfo(Variant::INT, "to_level")));
 
 	// Display refresh rate
 	ClassDB::bind_method(D_METHOD("get_display_refresh_rate"), &OpenXRInterface::get_display_refresh_rate);
@@ -104,6 +108,10 @@ void OpenXRInterface::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_vrs_strength"), &OpenXRInterface::get_vrs_strength);
 	ClassDB::bind_method(D_METHOD("set_vrs_strength", "strength"), &OpenXRInterface::set_vrs_strength);
 
+	// Performance settings.
+	ClassDB::bind_method(D_METHOD("set_cpu_level", "level"), &OpenXRInterface::set_cpu_level);
+	ClassDB::bind_method(D_METHOD("set_gpu_level", "level"), &OpenXRInterface::set_gpu_level);
+
 	ADD_GROUP("Vulkan VRS", "vrs_");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "vrs_min_radius", PROPERTY_HINT_RANGE, "1.0,100.0,1.0"), "set_vrs_min_radius", "get_vrs_min_radius");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "vrs_strength", PROPERTY_HINT_RANGE, "0.1,10.0,0.1"), "set_vrs_strength", "get_vrs_strength");
@@ -148,6 +156,19 @@ void OpenXRInterface::_bind_methods() {
 	BIND_ENUM_CONSTANT(HAND_JOINT_LITTLE_DISTAL);
 	BIND_ENUM_CONSTANT(HAND_JOINT_LITTLE_TIP);
 	BIND_ENUM_CONSTANT(HAND_JOINT_MAX);
+
+	BIND_ENUM_CONSTANT(PERF_SETTINGS_LEVEL_POWER_SAVINGS);
+	BIND_ENUM_CONSTANT(PERF_SETTINGS_LEVEL_SUSTAINED_LOW);
+	BIND_ENUM_CONSTANT(PERF_SETTINGS_LEVEL_SUSTAINED_HIGH);
+	BIND_ENUM_CONSTANT(PERF_SETTINGS_LEVEL_BOOST);
+
+	BIND_ENUM_CONSTANT(PERF_SETTINGS_SUB_DOMAIN_COMPOSITING);
+	BIND_ENUM_CONSTANT(PERF_SETTINGS_SUB_DOMAIN_RENDERING);
+	BIND_ENUM_CONSTANT(PERF_SETTINGS_SUB_DOMAIN_THERMAL);
+
+	BIND_ENUM_CONSTANT(PERF_SETTINGS_NOTIF_LEVEL_NORMAL);
+	BIND_ENUM_CONSTANT(PERF_SETTINGS_NOTIF_LEVEL_WARNING);
+	BIND_ENUM_CONSTANT(PERF_SETTINGS_NOTIF_LEVEL_IMPAIRED);
 
 	BIND_BITFIELD_FLAG(HAND_JOINT_NONE);
 	BIND_BITFIELD_FLAG(HAND_JOINT_ORIENTATION_VALID);
@@ -1534,6 +1555,28 @@ RID OpenXRInterface::get_vrs_texture() {
 	xr_vrs.set_vrs_render_region(get_render_region());
 
 	return xr_vrs.make_vrs_texture(target_size, eye_foci);
+}
+
+void OpenXRInterface::set_cpu_level(PerfSettingsLevel p_level) {
+	OpenXRPerformanceSettingsExtension *performance_settings_ext = OpenXRPerformanceSettingsExtension::get_singleton();
+	if (performance_settings_ext && performance_settings_ext->is_available()) {
+		performance_settings_ext->set_cpu_level(p_level);
+	}
+}
+
+void OpenXRInterface::set_gpu_level(PerfSettingsLevel p_level) {
+	OpenXRPerformanceSettingsExtension *performance_settings_ext = OpenXRPerformanceSettingsExtension::get_singleton();
+	if (performance_settings_ext && performance_settings_ext->is_available()) {
+		performance_settings_ext->set_gpu_level(p_level);
+	}
+}
+
+void OpenXRInterface::on_cpu_level_changed(PerfSettingsSubDomain p_sub_domain, PerfSettingsNotificationLevel p_from_level, PerfSettingsNotificationLevel p_to_level) {
+	emit_signal(SNAME("cpu_level_changed"), p_sub_domain, p_from_level, p_to_level);
+}
+
+void OpenXRInterface::on_gpu_level_changed(PerfSettingsSubDomain p_sub_domain, PerfSettingsNotificationLevel p_from_level, PerfSettingsNotificationLevel p_to_level) {
+	emit_signal(SNAME("gpu_level_changed"), p_sub_domain, p_from_level, p_to_level);
 }
 
 OpenXRInterface::OpenXRInterface() {

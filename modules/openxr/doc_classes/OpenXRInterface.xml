@@ -128,6 +128,20 @@
 				Sets the given action set as active or inactive.
 			</description>
 		</method>
+		<method name="set_cpu_level">
+			<return type="void" />
+			<param index="0" name="level" type="int" enum="OpenXRInterface.PerfSettingsLevel" />
+			<description>
+				Sets the CPU performance level of the OpenXR device.
+			</description>
+		</method>
+		<method name="set_gpu_level">
+			<return type="void" />
+			<param index="0" name="level" type="int" enum="OpenXRInterface.PerfSettingsLevel" />
+			<description>
+				Sets the GPU performance level of the OpenXR device.
+			</description>
+		</method>
 		<method name="set_motion_range">
 			<return type="void" />
 			<param index="0" name="hand" type="int" enum="OpenXRInterface.Hand" />
@@ -162,6 +176,22 @@
 		</member>
 	</members>
 	<signals>
+		<signal name="cpu_level_changed">
+			<param index="0" name="sub_domain" type="int" />
+			<param index="1" name="from_level" type="int" />
+			<param index="2" name="to_level" type="int" />
+			<description>
+				Informs the device CPU performance level has changed in the specified subdomain.
+			</description>
+		</signal>
+		<signal name="gpu_level_changed">
+			<param index="0" name="sub_domain" type="int" />
+			<param index="1" name="from_level" type="int" />
+			<param index="2" name="to_level" type="int" />
+			<description>
+				Informs the device GPU performance level has changed in the specified subdomain.
+			</description>
+		</signal>
 		<signal name="instance_exiting">
 			<description>
 				Informs our OpenXR instance is exiting.
@@ -316,6 +346,36 @@
 		</constant>
 		<constant name="HAND_JOINT_MAX" value="26" enum="HandJoints">
 			Maximum value for the hand joint enum.
+		</constant>
+		<constant name="PERF_SETTINGS_LEVEL_POWER_SAVINGS" value="0" enum="PerfSettingsLevel">
+			The application has entered a non-XR section (head-locked / static screen), during which power savings are to be prioritized.
+		</constant>
+		<constant name="PERF_SETTINGS_LEVEL_SUSTAINED_LOW" value="1" enum="PerfSettingsLevel">
+			The application has entered a low and stable complexity section, during which reducing power is more important than occasional late rendering frames.
+		</constant>
+		<constant name="PERF_SETTINGS_LEVEL_SUSTAINED_HIGH" value="2" enum="PerfSettingsLevel">
+			The application has entered a high or dynamic complexity section, during which the XR Runtime strives for consistent XR compositing and frame rendering within a thermally sustainable range.
+		</constant>
+		<constant name="PERF_SETTINGS_LEVEL_BOOST" value="3" enum="PerfSettingsLevel">
+			The application has entered a section with very high complexity, during which the XR Runtime is allowed to step up beyond the thermally sustainable range.
+		</constant>
+		<constant name="PERF_SETTINGS_SUB_DOMAIN_COMPOSITING" value="0" enum="PerfSettingsSubDomain">
+			The compositing performance within the runtime has reached a new level.
+		</constant>
+		<constant name="PERF_SETTINGS_SUB_DOMAIN_RENDERING" value="1" enum="PerfSettingsSubDomain">
+			The application rendering performance has reached a new level.
+		</constant>
+		<constant name="PERF_SETTINGS_SUB_DOMAIN_THERMAL" value="2" enum="PerfSettingsSubDomain">
+			The temperature of the device has reached a new level.
+		</constant>
+		<constant name="PERF_SETTINGS_NOTIF_LEVEL_NORMAL" value="0" enum="PerfSettingsNotificationLevel">
+			The sub-domain has reached a level where no further actions other than currently applied are necessary.
+		</constant>
+		<constant name="PERF_SETTINGS_NOTIF_LEVEL_WARNING" value="1" enum="PerfSettingsNotificationLevel">
+			The sub-domain has reached an early warning level where the application should start proactive mitigation actions.
+		</constant>
+		<constant name="PERF_SETTINGS_NOTIF_LEVEL_IMPAIRED" value="2" enum="PerfSettingsNotificationLevel">
+			The sub-domain has reached a critical level where the application should start drastic mitigation actions.
 		</constant>
 		<constant name="HAND_JOINT_NONE" value="0" enum="HandJointFlags" is_bitfield="true">
 			No flags are set.
