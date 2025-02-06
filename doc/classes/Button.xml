@@ -62,6 +62,12 @@
 		<member name="icon_alignment" type="int" setter="set_icon_alignment" getter="get_icon_alignment" enum="HorizontalAlignment" default="0">
 			Specifies if the icon should be aligned horizontally to the left, right, or center of a button. Uses the same [enum HorizontalAlignment] constants as the text alignment. If centered horizontally and vertically, text will draw on top of the icon.
 		</member>
+		<member name="icon_flip_h" type="bool" setter="set_icon_flip_h" getter="is_icon_flipped_h" default="false">
+			If [code]true[/code], the icon texture is flipped horizontally.
+		</member>
+		<member name="icon_flip_v" type="bool" setter="set_icon_flip_v" getter="is_icon_flipped_v" default="false">
+			If [code]true[/code], the icon texture is flipped vertically.
+		</member>
 		<member name="language" type="String" setter="set_language" getter="get_language" default="&quot;&quot;">
 			Language code used for line-breaking and text shaping algorithms, if left empty current locale is used instead.
 		</member>

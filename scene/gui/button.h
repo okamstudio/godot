@@ -50,6 +50,8 @@ private:
 
 	Ref<Texture2D> icon;
 	bool expand_icon = false;
+	bool icon_hflip = false;
+	bool icon_vflip = false;
 	bool clip_text = false;
 	HorizontalAlignment alignment = HORIZONTAL_ALIGNMENT_CENTER;
 	HorizontalAlignment horizontal_icon_alignment = HORIZONTAL_ALIGNMENT_LEFT;
@@ -143,6 +145,12 @@ public:
 
 	void set_expand_icon(bool p_enabled);
 	bool is_expand_icon() const;
+
+	void set_icon_flip_h(bool p_flip);
+	bool is_icon_flipped_h() const;
+
+	void set_icon_flip_v(bool p_flip);
+	bool is_icon_flipped_v() const;
 
 	void set_flat(bool p_enabled);
 	bool is_flat() const;

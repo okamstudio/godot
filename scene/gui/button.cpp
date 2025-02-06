@@ -413,8 +413,18 @@ void Button::_notification(int p_what) {
 					}
 					icon_ofs = icon_ofs.floor();
 
-					Rect2 icon_region = Rect2(icon_ofs, icon_size);
-					draw_texture_rect(_icon, icon_region, false, icon_modulate_color);
+
+					Rect2 icon_draw_region = Rect2(icon_ofs, icon_size);
+
+					if (icon_hflip) {
+						icon_draw_region.size.x = -icon_draw_region.size.x;
+					}
+
+					if (icon_vflip) {
+						icon_draw_region.size.y = -icon_draw_region.size.y;
+					}
+
+					draw_texture_rect(_icon, icon_draw_region, false, icon_modulate_color);
 				}
 
 				if (!xl_text.is_empty()) {
@@ -691,6 +701,32 @@ bool Button::is_expand_icon() const {
 	return expand_icon;
 }
 
+void Button::set_icon_flip_h(bool p_flip) {
+	if (icon_hflip == p_flip) {
+		return;
+	}
+
+	icon_hflip = p_flip;
+	queue_redraw();
+}
+
+bool Button::is_icon_flipped_h() const {
+	return icon_hflip;
+}
+
+void Button::set_icon_flip_v(bool p_flip) {
+	if (icon_vflip == p_flip) {
+		return;
+	}
+
+	icon_vflip = p_flip;
+	queue_redraw();
+}
+
+bool Button::is_icon_flipped_v() const {
+	return icon_vflip;
+}
+
 void Button::set_flat(bool p_enabled) {
 	if (flat != p_enabled) {
 		flat = p_enabled;
@@ -784,6 +820,10 @@ void Button::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_vertical_icon_alignment"), &Button::get_vertical_icon_alignment);
 	ClassDB::bind_method(D_METHOD("set_expand_icon", "enabled"), &Button::set_expand_icon);
 	ClassDB::bind_method(D_METHOD("is_expand_icon"), &Button::is_expand_icon);
+	ClassDB::bind_method(D_METHOD("set_icon_flip_h", "flip"), &Button::set_icon_flip_h);
+	ClassDB::bind_method(D_METHOD("is_icon_flipped_h"), &Button::is_icon_flipped_h);
+	ClassDB::bind_method(D_METHOD("set_icon_flip_v", "flip"), &Button::set_icon_flip_v);
+	ClassDB::bind_method(D_METHOD("is_icon_flipped_v"), &Button::is_icon_flipped_v);
 
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "text", PROPERTY_HINT_MULTILINE_TEXT), "set_text", "get_text");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "icon", PROPERTY_HINT_RESOURCE_TYPE, "Texture2D"), "set_button_icon", "get_button_icon");
@@ -799,6 +839,8 @@ void Button::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "icon_alignment", PROPERTY_HINT_ENUM, "Left,Center,Right"), "set_icon_alignment", "get_icon_alignment");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "vertical_icon_alignment", PROPERTY_HINT_ENUM, "Top,Center,Bottom"), "set_vertical_icon_alignment", "get_vertical_icon_alignment");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "expand_icon"), "set_expand_icon", "is_expand_icon");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "icon_flip_h"), "set_icon_flip_h", "is_icon_flipped_h");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "icon_flip_v"), "set_icon_flip_v", "is_icon_flipped_v");
 
 	ADD_GROUP("BiDi", "");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "text_direction", PROPERTY_HINT_ENUM, "Auto,Left-to-Right,Right-to-Left,Inherited"), "set_text_direction", "get_text_direction");
