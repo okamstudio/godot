@@ -183,20 +183,6 @@ void ConnectDialog::_focus_currently_connected() {
 	tree->set_selected(source);
 }
 
-void ConnectDialog::_unbind_count_changed(double p_count) {
-	for (Control *control : bind_controls) {
-		BaseButton *b = Object::cast_to<BaseButton>(control);
-		if (b) {
-			b->set_disabled(p_count > 0);
-		}
-
-		EditorInspector *e = Object::cast_to<EditorInspector>(control);
-		if (e) {
-			e->set_read_only(p_count > 0);
-		}
-	}
-}
-
 void ConnectDialog::_method_selected() {
 	TreeItem *selected_item = method_tree->get_selected();
 	dst_method->set_text(selected_item->get_metadata(0));
@@ -667,9 +653,7 @@ void ConnectDialog::init(const ConnectionData &p_cd, const PackedStringArray &p_
 	one_shot->set_pressed(b_oneshot);
 
 	unbind_count->set_max(p_signal_args.size());
-
 	unbind_count->set_value(p_cd.unbinds);
-	_unbind_count_changed(p_cd.unbinds);
 
 	cdbinds->params.clear();
 	cdbinds->params = p_cd.binds;
@@ -829,30 +813,25 @@ ConnectDialog::ConnectDialog() {
 
 		type_list->add_item(Variant::get_type_name(Variant::Type(i)), i);
 	}
-	bind_controls.push_back(type_list);
 
 	Button *add_bind = memnew(Button);
 	add_bind->set_text(TTR("Add"));
 	add_bind_hb->add_child(add_bind);
 	add_bind->connect(SceneStringName(pressed), callable_mp(this, &ConnectDialog::_add_bind));
-	bind_controls.push_back(add_bind);
 
 	Button *del_bind = memnew(Button);
 	del_bind->set_text(TTR("Remove"));
 	add_bind_hb->add_child(del_bind);
 	del_bind->connect(SceneStringName(pressed), callable_mp(this, &ConnectDialog::_remove_bind));
-	bind_controls.push_back(del_bind);
 
 	vbc_right->add_margin_child(TTR("Add Extra Call Argument:"), add_bind_hb);
 
 	bind_editor = memnew(EditorInspector);
-	bind_controls.push_back(bind_editor);
 
 	vbc_right->add_margin_child(TTR("Extra Call Arguments:"), bind_editor, true);
 
 	unbind_count = memnew(SpinBox);
 	unbind_count->set_tooltip_text(TTR("Allows to drop arguments sent by signal emitter."));
-	unbind_count->connect(SceneStringName(value_changed), callable_mp(this, &ConnectDialog::_unbind_count_changed));
 
 	vbc_right->add_margin_child(TTR("Unbind Signal Arguments:"), unbind_count);
 
@@ -940,9 +919,7 @@ void ConnectionsDock::_make_or_edit_connection() {
 	cd.signal = connect_dialog->get_signal_name();
 	cd.method = connect_dialog->get_dst_method_name();
 	cd.unbinds = connect_dialog->get_unbinds();
-	if (cd.unbinds == 0) {
-		cd.binds = connect_dialog->get_binds();
-	}
+	cd.binds = connect_dialog->get_binds();
 	bool b_deferred = connect_dialog->get_deferred();
 	bool b_oneshot = connect_dialog->get_one_shot();
 	cd.flags = CONNECT_PERSIST | (b_deferred ? CONNECT_DEFERRED : 0) | (b_oneshot ? CONNECT_ONE_SHOT : 0);
@@ -1557,9 +1534,7 @@ void ConnectionsDock::update_tree() {
 				if (cd.flags & CONNECT_ONE_SHOT) {
 					path += " (one-shot)";
 				}
-				if (cd.unbinds > 0) {
-					path += " unbinds(" + itos(cd.unbinds) + ")";
-				} else if (!cd.binds.is_empty()) {
+				if (!cd.binds.is_empty()) {
 					path += " binds(";
 					for (int i = 0; i < cd.binds.size(); i++) {
 						if (i > 0) {
@@ -1568,6 +1543,9 @@ void ConnectionsDock::update_tree() {
 						path += cd.binds[i].operator String();
 					}
 					path += ")";
+				}
+				if (cd.unbinds > 0) {
+					path += " unbinds(" + itos(cd.unbinds) + ")";
 				}
 
 				TreeItem *connection_item = tree->create_item(signal_item);

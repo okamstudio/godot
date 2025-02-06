@@ -587,22 +587,17 @@ Node *SceneState::instantiate(GenEditState p_edit_state) const {
 		}
 
 		Callable callable(cto, snames[c.method]);
+
+		if (!c.binds.is_empty()) {
+			const Variant **argptrs = (const Variant **)alloca(sizeof(Variant *) * c.binds.size());
+			for (int j = 0; j < c.binds.size(); j++) {
+				argptrs[j] = &props[c.binds[j]];
+			}
+			callable = callable.bindp(argptrs, c.binds.size());
+		}
+
 		if (c.unbinds > 0) {
 			callable = callable.unbind(c.unbinds);
-		} else if (!c.binds.is_empty()) {
-			Vector<Variant> binds;
-			if (c.binds.size()) {
-				binds.resize(c.binds.size());
-				for (int j = 0; j < c.binds.size(); j++) {
-					binds.write[j] = props[c.binds[j]];
-				}
-			}
-
-			const Variant **argptrs = (const Variant **)alloca(sizeof(Variant *) * binds.size());
-			for (int j = 0; j < binds.size(); j++) {
-				argptrs[j] = &binds[j];
-			}
-			callable = callable.bindp(argptrs, binds.size());
 		}
 
 		cfrom->connect(snames[c.signal], callable, CONNECT_PERSIST | c.flags | (p_edit_state == GEN_EDIT_STATE_MAIN ? 0 : CONNECT_INHERITED));
@@ -1073,16 +1068,22 @@ Error SceneState::_parse_connections(Node *p_owner, Node *p_node, HashMap<String
 			Callable base_callable;
 
 			if (c.callable.is_custom()) {
-				CallableCustomBind *ccb = dynamic_cast<CallableCustomBind *>(c.callable.get_custom());
-				if (ccb) {
-					binds = ccb->get_binds();
-					base_callable = ccb->get_callable();
-				}
+				CallableCustom *next_callable = c.callable.get_custom();
 
-				CallableCustomUnbind *ccu = dynamic_cast<CallableCustomUnbind *>(c.callable.get_custom());
+				CallableCustomUnbind *ccu = dynamic_cast<CallableCustomUnbind *>(next_callable);
 				if (ccu) {
 					unbinds = ccu->get_unbinds();
 					base_callable = ccu->get_callable();
+
+					if (base_callable.is_custom()) {
+						next_callable = base_callable.get_custom();
+					}
+				}
+
+				CallableCustomBind *ccb = dynamic_cast<CallableCustomBind *>(next_callable);
+				if (ccb) {
+					binds = ccb->get_binds();
+					base_callable = ccb->get_callable();
 				}
 			} else {
 				base_callable = c.callable;

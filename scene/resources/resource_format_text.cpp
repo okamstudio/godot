@@ -2063,7 +2063,7 @@ Error ResourceFormatSaverTextInstance::save(const String &p_path, const Ref<Reso
 			if (binds.size()) {
 				String vars;
 				VariantWriter::write_to_string(binds, vars, _write_resources, this, use_compat);
-				f->store_string(" binds= " + vars);
+				f->store_string(" binds=" + vars);
 			}
 
 			f->store_line("]");

@@ -69,16 +69,22 @@ public:
 
 			Callable base_callable;
 			if (p_connection.callable.is_custom()) {
-				CallableCustomBind *ccb = dynamic_cast<CallableCustomBind *>(p_connection.callable.get_custom());
-				if (ccb) {
-					binds = ccb->get_binds();
-					base_callable = ccb->get_callable();
-				}
+				CallableCustom *next_callable = p_connection.callable.get_custom();
 
-				CallableCustomUnbind *ccu = dynamic_cast<CallableCustomUnbind *>(p_connection.callable.get_custom());
+				CallableCustomUnbind *ccu = dynamic_cast<CallableCustomUnbind *>(next_callable);
 				if (ccu) {
 					unbinds = ccu->get_unbinds();
 					base_callable = ccu->get_callable();
+
+					if (base_callable.is_custom()) {
+						next_callable = base_callable.get_custom();
+					}
+				}
+
+				CallableCustomBind *ccb = dynamic_cast<CallableCustomBind *>(next_callable);
+				if (ccb) {
+					binds = ccb->get_binds();
+					base_callable = ccb->get_callable();
 				}
 			} else {
 				base_callable = p_connection.callable;
@@ -87,17 +93,21 @@ public:
 		}
 
 		Callable get_callable() const {
-			if (unbinds > 0) {
-				return Callable(target, method).unbind(unbinds);
-			} else if (!binds.is_empty()) {
+			Callable callable = Callable(target, method);
+
+			if (!binds.is_empty()) {
 				const Variant **argptrs = (const Variant **)alloca(sizeof(Variant *) * binds.size());
 				for (int i = 0; i < binds.size(); i++) {
 					argptrs[i] = &binds[i];
 				}
-				return Callable(target, method).bindp(argptrs, binds.size());
-			} else {
-				return Callable(target, method);
+				callable = callable.bindp(argptrs, binds.size());
 			}
+
+			if (unbinds > 0) {
+				callable = callable.unbind(unbinds);
+			}
+
+			return callable;
 		}
 	};
 
@@ -132,7 +142,6 @@ private:
 	CheckBox *deferred = nullptr;
 	CheckBox *one_shot = nullptr;
 	CheckButton *advanced = nullptr;
-	Vector<Control *> bind_controls;
 
 	Label *warning_label = nullptr;
 	Label *error_label = nullptr;
