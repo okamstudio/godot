@@ -88,7 +88,7 @@ void Timer::_notification(int p_what) {
 }
 
 void Timer::set_wait_time(double p_time) {
-	ERR_FAIL_COND_MSG(p_time <= 0, "Time should be greater than zero.");
+	ERR_FAIL_COND_MSG(p_time <= 0, vformat("%s: The wait time should be greater than 0 seconds, but a wait time of %f was provided.", is_inside_tree() ? String(get_path()) : String(get_name()) + " (out-of-tree)", p_time));
 	wait_time = p_time;
 	update_configuration_warnings();
 }
@@ -114,7 +114,7 @@ bool Timer::has_autostart() const {
 }
 
 void Timer::start(double p_time) {
-	ERR_FAIL_COND_MSG(!is_inside_tree(), "Timer was not added to the SceneTree. Either add it or set autostart to true.");
+	ERR_FAIL_COND_MSG(!is_inside_tree(), vformat("%s (out-of-tree): Timer was not added to the SceneTree. Either add it to the SceneTree using `add_child()`, or set the `autostart` property to `true`.", get_name()));
 
 	if (p_time > 0) {
 		set_wait_time(p_time);
