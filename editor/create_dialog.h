@@ -47,6 +47,11 @@ class CreateDialog : public ConfirmationDialog {
 		OTHER_TYPE
 	};
 
+	struct TypeInfo {
+		StringName type_name;
+		PackedStringArray search_keywords;
+	};
+
 	LineEdit *search_box = nullptr;
 	Tree *search_options = nullptr;
 
@@ -64,14 +69,14 @@ class CreateDialog : public ConfirmationDialog {
 	HashMap<String, TreeItem *> search_options_types;
 	HashMap<String, String> custom_type_parents;
 	HashMap<String, int> custom_type_indices;
-	List<StringName> type_list;
+	List<TypeInfo> type_info_list;
 	HashSet<StringName> type_blacklist;
 	HashSet<StringName> custom_type_blocklist;
 
 	void _update_search();
 	bool _should_hide_type(const StringName &p_type) const;
-	void _add_type(const StringName &p_type, TypeCategory p_type_category);
-	void _configure_search_option_item(TreeItem *r_item, const StringName &p_type, TypeCategory p_type_category);
+	void _add_type(const StringName &p_type, TypeCategory p_type_category, const String &p_match_keyword);
+	void _configure_search_option_item(TreeItem *r_item, const StringName &p_type, TypeCategory p_type_category, const String &p_match_keyword);
 	float _score_type(const String &p_type, const String &p_search) const;
 	bool _is_type_preferred(const String &p_type) const;
 	void _script_button_clicked(TreeItem *p_item, int p_column, int p_button_id, MouseButton p_mouse_button_index);
