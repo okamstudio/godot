@@ -298,6 +298,7 @@ static VkPipelineStageFlags _rd_to_vk_pipeline_stages(BitField<RDD::PipelineStag
 	if (p_stages.has_flag(RDD::PIPELINE_STAGE_COPY_BIT) || p_stages.has_flag(RDD::PIPELINE_STAGE_RESOLVE_BIT)) {
 		// Transfer has been split into copy and resolve bits. Clear them and merge them into one bit.
 		vk_flags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+		vk_flags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 		p_stages.clear_flag(RDD::PIPELINE_STAGE_COPY_BIT);
 		p_stages.clear_flag(RDD::PIPELINE_STAGE_RESOLVE_BIT);
 	}
