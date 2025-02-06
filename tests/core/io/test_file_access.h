@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_FILE_ACCESS_H
-#define TEST_FILE_ACCESS_H
+#pragma once
 
 #include "core/io/file_access.h"
 #include "tests/test_macros.h"
@@ -200,5 +199,3 @@ TEST_CASE("[FileAccess] Get/Store floating point half precision values") {
 }
 
 } // namespace TestFileAccess
-
-#endif // TEST_FILE_ACCESS_H

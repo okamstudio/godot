@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef THREAD_SAFE_H
-#define THREAD_SAFE_H
+#pragma once
 
 #include "core/os/mutex.h" // IWYU pragma: keep // Used in macro.
 
@@ -40,5 +39,3 @@
 
 bool is_current_thread_safe_for_nodes();
 void set_current_thread_safe_for_nodes(bool p_safe);
-
-#endif // THREAD_SAFE_H

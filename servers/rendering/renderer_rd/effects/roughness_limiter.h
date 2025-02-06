@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ROUGHNESS_LIMITER_RD_H
-#define ROUGHNESS_LIMITER_RD_H
+#pragma once
 
 #include "servers/rendering/renderer_rd/shaders/effects/roughness_limiter.glsl.gen.h"
 
@@ -59,5 +58,3 @@ public:
 };
 
 } // namespace RendererRD
-
-#endif // ROUGHNESS_LIMITER_RD_H

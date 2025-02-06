@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SHADER_FILE_EDITOR_PLUGIN_H
-#define SHADER_FILE_EDITOR_PLUGIN_H
+#pragma once
 
 #include "editor/plugins/editor_plugin.h"
 #include "scene/gui/box_container.h"
@@ -84,5 +83,3 @@ public:
 	ShaderFileEditorPlugin();
 	~ShaderFileEditorPlugin();
 };
-
-#endif // SHADER_FILE_EDITOR_PLUGIN_H

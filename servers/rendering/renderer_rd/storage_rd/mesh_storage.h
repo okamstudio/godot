@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MESH_STORAGE_RD_H
-#define MESH_STORAGE_RD_H
+#pragma once
 
 #include "../../rendering_server_globals.h"
 #include "core/templates/local_vector.h"
@@ -799,5 +798,3 @@ public:
 };
 
 } // namespace RendererRD
-
-#endif // MESH_STORAGE_RD_H

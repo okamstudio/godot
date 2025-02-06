@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_INTERACTION_PROFILE_METADATA_H
-#define OPENXR_INTERACTION_PROFILE_METADATA_H
+#pragma once
 
 ///////////////////////////////////////////////////////////////////////////
 // Stores available interaction profile metadata
@@ -121,5 +120,3 @@ public:
 	void register_io_path(const String &p_interaction_profile, const String &p_display_name, const String &p_toplevel_path, const String &p_openxr_path, const String &p_openxr_extension_name, OpenXRAction::ActionType p_action_type);
 	const IOPath *get_io_path(const String p_interaction_profile, const String p_io_path) const;
 };
-
-#endif // OPENXR_INTERACTION_PROFILE_METADATA_H

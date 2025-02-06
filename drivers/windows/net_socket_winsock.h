@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef NET_SOCKET_WINSOCK_H
-#define NET_SOCKET_WINSOCK_H
+#pragma once
 
 #ifdef WINDOWS_ENABLED
 
@@ -98,5 +97,3 @@ public:
 };
 
 #endif // WINDOWS_ENABLED
-
-#endif // NET_SOCKET_WINSOCK_H

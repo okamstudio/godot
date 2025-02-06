@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MONO_STRING_UTILS_H
-#define MONO_STRING_UTILS_H
+#pragma once
 
 #include "core/string/ustring.h"
 #include "core/variant/variant.h"
@@ -59,5 +58,3 @@ String str_format(const char *p_format, ...) _PRINTF_FORMAT_ATTRIBUTE_1_2;
 String str_format(const char *p_format, va_list p_list) _PRINTF_FORMAT_ATTRIBUTE_1_0;
 char *str_format_new(const char *p_format, ...) _PRINTF_FORMAT_ATTRIBUTE_1_2;
 char *str_format_new(const char *p_format, va_list p_list) _PRINTF_FORMAT_ATTRIBUTE_1_0;
-
-#endif // MONO_STRING_UTILS_H

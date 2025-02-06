@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GDSCRIPT_CODEGEN_H
-#define GDSCRIPT_CODEGEN_H
+#pragma once
 
 #include "gdscript_function.h"
 #include "gdscript_utility_functions.h"
@@ -165,5 +164,3 @@ public:
 
 	virtual ~GDScriptCodeGenerator() {}
 };
-
-#endif // GDSCRIPT_CODEGEN_H

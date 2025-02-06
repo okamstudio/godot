@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef LIGHTMAP_PROBE_H
-#define LIGHTMAP_PROBE_H
+#pragma once
 
 #include "scene/3d/node_3d.h"
 
@@ -38,5 +37,3 @@ class LightmapProbe : public Node3D {
 public:
 	LightmapProbe();
 };
-
-#endif // LIGHTMAP_PROBE_H

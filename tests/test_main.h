@@ -28,9 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_MAIN_H
-#define TEST_MAIN_H
+#pragma once
 
 int test_main(int argc, char *argv[]);
-
-#endif // TEST_MAIN_H

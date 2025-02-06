@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENDERING_LIGHT_CULLER_H
-#define RENDERING_LIGHT_CULLER_H
+#pragma once
 
 #include "core/math/plane.h"
 #include "core/math/vector3.h"
@@ -277,5 +276,3 @@ private:
 	LocalVector<uint8_t> _calculated_LUT[LUT_SIZE];
 #endif
 };
-
-#endif // RENDERING_LIGHT_CULLER_H

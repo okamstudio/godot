@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_GLTF_EXTRAS_H
-#define TEST_GLTF_EXTRAS_H
+#pragma once
 
 #include "test_gltf.h"
 #include "tests/test_macros.h"
@@ -174,5 +173,3 @@ TEST_CASE("[SceneTree][Node] GLTF test skeleton and bone export and import") {
 } //namespace TestGltf
 
 #endif // TOOLS_ENABLED
-
-#endif // TEST_GLTF_EXTRAS_H

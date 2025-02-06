@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MULTI_NODE_EDIT_H
-#define MULTI_NODE_EDIT_H
+#pragma once
 
 #include "core/object/ref_counted.h"
 
@@ -82,5 +81,3 @@ public:
 	}
 	MultiNodeEdit();
 };
-
-#endif // MULTI_NODE_EDIT_H

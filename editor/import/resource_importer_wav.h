@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RESOURCE_IMPORTER_WAV_H
-#define RESOURCE_IMPORTER_WAV_H
+#pragma once
 
 #include "core/io/resource_importer.h"
 #include "scene/resources/audio_stream_wav.h"
@@ -56,5 +55,3 @@ public:
 
 	ResourceImporterWAV();
 };
-
-#endif // RESOURCE_IMPORTER_WAV_H

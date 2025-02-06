@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef AUDIO_STREAM_GENERATOR_H
-#define AUDIO_STREAM_GENERATOR_H
+#pragma once
 
 #include "core/templates/ring_buffer.h"
 #include "servers/audio/audio_stream.h"
@@ -95,5 +94,3 @@ public:
 
 	AudioStreamGeneratorPlayback();
 };
-
-#endif // AUDIO_STREAM_GENERATOR_H

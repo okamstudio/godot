@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ANDROID_INPUT_HANDLER_H
-#define ANDROID_INPUT_HANDLER_H
+#pragma once
 
 #include "core/input/input.h"
 
@@ -105,5 +104,3 @@ public:
 	void process_joy_event(JoypadEvent p_event);
 	void process_key_event(int p_physical_keycode, int p_unicode, int p_key_label, bool p_pressed, bool p_echo);
 };
-
-#endif // ANDROID_INPUT_HANDLER_H

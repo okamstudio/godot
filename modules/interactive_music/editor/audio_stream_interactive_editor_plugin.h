@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef AUDIO_STREAM_INTERACTIVE_EDITOR_PLUGIN_H
-#define AUDIO_STREAM_INTERACTIVE_EDITOR_PLUGIN_H
+#pragma once
 
 #include "editor/editor_inspector.h"
 #include "editor/plugins/editor_plugin.h"
@@ -106,5 +105,3 @@ public:
 
 	AudioStreamInteractiveEditorPlugin();
 };
-
-#endif // AUDIO_STREAM_INTERACTIVE_EDITOR_PLUGIN_H

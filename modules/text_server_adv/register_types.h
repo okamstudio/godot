@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEXT_SERVER_ADV_REGISTER_TYPES_H
-#define TEXT_SERVER_ADV_REGISTER_TYPES_H
+#pragma once
 
 #ifdef GDEXTENSION
 #include <godot_cpp/core/class_db.hpp>
@@ -40,5 +39,3 @@ using namespace godot;
 
 void initialize_text_server_adv_module(ModuleInitializationLevel p_level);
 void uninitialize_text_server_adv_module(ModuleInitializationLevel p_level);
-
-#endif // TEXT_SERVER_ADV_REGISTER_TYPES_H

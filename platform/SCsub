@@ -18,7 +18,7 @@ def export_icon_builder(target, source, env):
     platform = src_path.parent.parent.stem
     with open(str(source[0]), "r") as file:
         svg = file.read()
-    with methods.generated_wrapper(target, prefix=platform) as file:
+    with methods.generated_wrapper(target) as file:
         file.write(
             f"""\
 static const char *_{platform}_{src_name}_svg = {methods.to_raw_cstring(svg)};

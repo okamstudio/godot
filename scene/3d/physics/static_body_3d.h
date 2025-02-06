@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef STATIC_BODY_3D_H
-#define STATIC_BODY_3D_H
+#pragma once
 
 #include "scene/3d/physics/physics_body_3d.h"
 
@@ -70,5 +69,3 @@ public:
 	static void navmesh_parse_init();
 	static void navmesh_parse_source_geometry(const Ref<NavigationMesh> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data, Node *p_node);
 };
-
-#endif // STATIC_BODY_3D_H

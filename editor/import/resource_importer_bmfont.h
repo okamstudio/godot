@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RESOURCE_IMPORTER_BMFONT_H
-#define RESOURCE_IMPORTER_BMFONT_H
+#pragma once
 
 #include "core/io/resource_importer.h"
 #include "scene/resources/font.h"
@@ -54,5 +53,3 @@ public:
 
 	ResourceImporterBMFont();
 };
-
-#endif // RESOURCE_IMPORTER_BMFONT_H

@@ -28,10 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef JOLT_GLOBALS_H
-#define JOLT_GLOBALS_H
+#pragma once
 
 void jolt_initialize();
 void jolt_deinitialize();
-
-#endif // JOLT_GLOBALS_H

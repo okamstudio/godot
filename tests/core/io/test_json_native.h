@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_JSON_NATIVE_H
-#define TEST_JSON_NATIVE_H
+#pragma once
 
 #include "core/io/json.h"
 
@@ -223,5 +222,3 @@ TEST_CASE("[JSON][Native] Conversion between native and JSON formats") {
 }
 
 } // namespace TestJSONNative
-
-#endif // TEST_JSON_NATIVE_H

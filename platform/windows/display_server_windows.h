@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef DISPLAY_SERVER_WINDOWS_H
-#define DISPLAY_SERVER_WINDOWS_H
+#pragma once
 
 #include "crash_handler_windows.h"
 #include "joypad_windows.h"
@@ -886,5 +885,3 @@ public:
 	DisplayServerWindows(const String &p_rendering_driver, WindowMode p_mode, VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error);
 	~DisplayServerWindows();
 };
-
-#endif // DISPLAY_SERVER_WINDOWS_H

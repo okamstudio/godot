@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_INSTANCE_PLACEHOLDER_H
-#define TEST_INSTANCE_PLACEHOLDER_H
+#pragma once
 
 #include "scene/main/instance_placeholder.h"
 #include "scene/resources/packed_scene.h"
@@ -530,5 +529,3 @@ TEST_CASE("[SceneTree][InstancePlaceholder] Instance a PackedScene containing an
 #endif // TOOLS_ENABLED
 
 } //namespace TestInstancePlaceholder
-
-#endif // TEST_INSTANCE_PLACEHOLDER_H

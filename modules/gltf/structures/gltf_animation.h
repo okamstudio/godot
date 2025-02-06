@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GLTF_ANIMATION_H
-#define GLTF_ANIMATION_H
+#pragma once
 
 #include "scene/resources/animation.h"
 
@@ -86,5 +85,3 @@ public:
 
 	GLTFAnimation();
 };
-
-#endif // GLTF_ANIMATION_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PIPELINE_HASH_MAP_RD_H
-#define PIPELINE_HASH_MAP_RD_H
+#pragma once
 
 #include "servers/rendering/rendering_device.h"
 #include "servers/rendering_server.h"
@@ -217,5 +216,3 @@ public:
 		clear_pipelines();
 	}
 };
-
-#endif // PIPELINE_HASH_MAP_RD_H

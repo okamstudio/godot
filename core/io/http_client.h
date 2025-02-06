@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef HTTP_CLIENT_H
-#define HTTP_CLIENT_H
+#pragma once
 
 #include "core/crypto/crypto.h"
 #include "core/io/ip.h"
@@ -205,5 +204,3 @@ public:
 VARIANT_ENUM_CAST(HTTPClient::ResponseCode)
 VARIANT_ENUM_CAST(HTTPClient::Method);
 VARIANT_ENUM_CAST(HTTPClient::Status);
-
-#endif // HTTP_CLIENT_H

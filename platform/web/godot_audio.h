@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_AUDIO_H
-#define GODOT_AUDIO_H
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -85,5 +84,3 @@ extern void godot_audio_script_start(float *p_in_buf, int p_in_size, float *p_ou
 #ifdef __cplusplus
 }
 #endif
-
-#endif // GODOT_AUDIO_H

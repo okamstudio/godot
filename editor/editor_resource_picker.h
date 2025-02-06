@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_RESOURCE_PICKER_H
-#define EDITOR_RESOURCE_PICKER_H
+#pragma once
 
 #include "scene/gui/box_container.h"
 
@@ -216,5 +215,3 @@ protected:
 public:
 	EditorAudioStreamPicker();
 };
-
-#endif // EDITOR_RESOURCE_PICKER_H

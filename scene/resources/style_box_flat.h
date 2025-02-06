@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef STYLE_BOX_FLAT_H
-#define STYLE_BOX_FLAT_H
+#pragma once
 
 #include "scene/resources/style_box.h"
 
@@ -114,5 +113,3 @@ public:
 	StyleBoxFlat();
 	~StyleBoxFlat();
 };
-
-#endif // STYLE_BOX_FLAT_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef JOLT_WORLD_BOUNDARY_SHAPE_3D_H
-#define JOLT_WORLD_BOUNDARY_SHAPE_3D_H
+#pragma once
 
 #include "jolt_shape_3d.h"
 
@@ -52,5 +51,3 @@ public:
 
 	String to_string() const;
 };
-
-#endif // JOLT_WORLD_BOUNDARY_SHAPE_3D_H

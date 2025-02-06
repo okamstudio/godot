@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef AUDIO_DRIVER_XAUDIO2_H
-#define AUDIO_DRIVER_XAUDIO2_H
+#pragma once
 
 #include "core/os/mutex.h"
 #include "core/os/thread.h"
@@ -108,5 +107,3 @@ public:
 	AudioDriverXAudio2();
 	~AudioDriverXAudio2() {}
 };
-
-#endif // AUDIO_DRIVER_XAUDIO2_H

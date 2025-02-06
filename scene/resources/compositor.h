@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef COMPOSITOR_H
-#define COMPOSITOR_H
+#pragma once
 
 #include "core/io/resource.h"
 #include "core/object/gdvirtual.gen.inc"
@@ -123,5 +122,3 @@ public:
 	void set_compositor_effects(const TypedArray<CompositorEffect> &p_compositor_effects);
 	TypedArray<CompositorEffect> get_compositor_effects() const;
 };
-
-#endif // COMPOSITOR_H

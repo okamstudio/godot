@@ -28,12 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef BMP_REGISTER_TYPES_H
-#define BMP_REGISTER_TYPES_H
+#pragma once
 
 #include "modules/register_module_types.h"
 
 void initialize_bmp_module(ModuleInitializationLevel p_level);
 void uninitialize_bmp_module(ModuleInitializationLevel p_level);
-
-#endif // BMP_REGISTER_TYPES_H

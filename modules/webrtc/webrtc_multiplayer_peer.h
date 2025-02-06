@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef WEBRTC_MULTIPLAYER_PEER_H
-#define WEBRTC_MULTIPLAYER_PEER_H
+#pragma once
 
 #include "webrtc_peer_connection.h"
 
@@ -123,5 +122,3 @@ public:
 
 	virtual ConnectionStatus get_connection_status() const override;
 };
-
-#endif // WEBRTC_MULTIPLAYER_PEER_H

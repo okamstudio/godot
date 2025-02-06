@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_META_CONTROLLER_EXTENSION_H
-#define OPENXR_META_CONTROLLER_EXTENSION_H
+#pragma once
 
 #include "openxr_extension_wrapper.h"
 
@@ -51,5 +50,3 @@ public:
 private:
 	bool available[META_MAX_CONTROLLERS] = { false, false, false };
 };
-
-#endif // OPENXR_META_CONTROLLER_EXTENSION_H

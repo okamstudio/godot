@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ANDROID_EXPORT_PLUGIN_H
-#define ANDROID_EXPORT_PLUGIN_H
+#pragma once
 
 #ifndef DISABLE_DEPRECATED
 #include "godot_plugin_config.h"
@@ -269,5 +268,3 @@ public:
 
 	~EditorExportPlatformAndroid();
 };
-
-#endif // ANDROID_EXPORT_PLUGIN_H

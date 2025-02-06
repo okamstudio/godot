@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef AUDIO_EFFECT_STEREO_ENHANCE_H
-#define AUDIO_EFFECT_STEREO_ENHANCE_H
+#pragma once
 
 #include "servers/audio/audio_effect.h"
 
@@ -81,5 +80,3 @@ public:
 
 	AudioEffectStereoEnhance();
 };
-
-#endif // AUDIO_EFFECT_STEREO_ENHANCE_H

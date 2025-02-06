@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef FONT_CONFIG_PLUGIN_H
-#define FONT_CONFIG_PLUGIN_H
+#pragma once
 
 #include "editor/editor_properties.h"
 #include "editor/editor_properties_array_dict.h"
@@ -281,5 +280,3 @@ public:
 
 	virtual String get_plugin_name() const override { return "Font"; }
 };
-
-#endif // FONT_CONFIG_PLUGIN_H

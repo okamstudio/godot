@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OS_ANDROID_H
-#define OS_ANDROID_H
+#pragma once
 
 #include "audio_driver_opensl.h"
 
@@ -188,5 +187,3 @@ private:
 	// Copy a dynamic library to the given location to make it accessible for loading.
 	bool copy_dynamic_library(const String &p_library_path, const String &p_target_dir, String *r_copy_path = nullptr);
 };
-
-#endif // OS_ANDROID_H

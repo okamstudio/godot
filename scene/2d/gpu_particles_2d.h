@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GPU_PARTICLES_2D_H
-#define GPU_PARTICLES_2D_H
+#pragma once
 
 #include "scene/2d/node_2d.h"
 
@@ -200,5 +199,3 @@ public:
 
 VARIANT_ENUM_CAST(GPUParticles2D::DrawOrder)
 VARIANT_ENUM_CAST(GPUParticles2D::EmitFlags)
-
-#endif // GPU_PARTICLES_2D_H

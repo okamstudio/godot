@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_VCS_INTERFACE_H
-#define EDITOR_VCS_INTERFACE_H
+#pragma once
 
 #include "core/object/gdvirtual.gen.inc"
 #include "core/string/ustring.h"
@@ -177,5 +176,3 @@ public:
 
 VARIANT_ENUM_CAST(EditorVCSInterface::ChangeType);
 VARIANT_ENUM_CAST(EditorVCSInterface::TreeArea);
-
-#endif // EDITOR_VCS_INTERFACE_H

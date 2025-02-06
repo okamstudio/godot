@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SEMAPHORE_H
-#define SEMAPHORE_H
+#pragma once
 
 #include <cstdint>
 
@@ -148,5 +147,3 @@ public:
 };
 
 #endif // THREADS_ENABLED
-
-#endif // SEMAPHORE_H

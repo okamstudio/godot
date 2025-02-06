@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef LIPO_H
-#define LIPO_H
+#pragma once
 
 // Universal / Universal 2 fat binary file creator and extractor.
 
@@ -68,5 +67,3 @@ public:
 
 	~LipO();
 };
-
-#endif // LIPO_H

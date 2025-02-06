@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_CONSTRAINT_3D_H
-#define GODOT_CONSTRAINT_3D_H
+#pragma once
 
 class GodotBody3D;
 class GodotSoftBody3D;
@@ -77,5 +76,3 @@ public:
 
 	virtual ~GodotConstraint3D() {}
 };
-
-#endif // GODOT_CONSTRAINT_3D_H

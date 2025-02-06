@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_COLOR_MAP_H
-#define EDITOR_COLOR_MAP_H
+#pragma once
 
 #include "core/math/color.h"
 #include "core/string/string_name.h"
@@ -56,5 +55,3 @@ public:
 	static void create();
 	static void finish();
 };
-
-#endif // EDITOR_COLOR_MAP_H

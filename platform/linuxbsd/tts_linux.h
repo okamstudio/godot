@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TTS_LINUX_H
-#define TTS_LINUX_H
+#pragma once
 
 #include "core/os/thread.h"
 #include "core/os/thread_safe.h"
@@ -90,5 +89,3 @@ public:
 	TTS_Linux();
 	~TTS_Linux();
 };
-
-#endif // TTS_LINUX_H

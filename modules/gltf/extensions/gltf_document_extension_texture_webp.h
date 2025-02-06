@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GLTF_DOCUMENT_EXTENSION_TEXTURE_WEBP_H
-#define GLTF_DOCUMENT_EXTENSION_TEXTURE_WEBP_H
+#pragma once
 
 #include "gltf_document_extension.h"
 
@@ -49,5 +48,3 @@ public:
 	Error save_image_at_path(Ref<GLTFState> p_state, Ref<Image> p_image, const String &p_full_path, const String &p_image_format, float p_lossy_quality) override;
 	Error serialize_texture_json(Ref<GLTFState> p_state, Dictionary p_texture_json, Ref<GLTFTexture> p_gltf_texture, const String &p_image_format) override;
 };
-
-#endif // GLTF_DOCUMENT_EXTENSION_TEXTURE_WEBP_H

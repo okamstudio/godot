@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PHYSICS_MATERIAL_H
-#define PHYSICS_MATERIAL_H
+#pragma once
 
 #include "core/io/resource.h"
 
@@ -69,5 +68,3 @@ public:
 
 	PhysicsMaterial() {}
 };
-
-#endif // PHYSICS_MATERIAL_H

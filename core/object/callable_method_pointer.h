@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef CALLABLE_METHOD_POINTER_H
-#define CALLABLE_METHOD_POINTER_H
+#pragma once
 
 #include "core/object/object.h"
 #include "core/variant/binder_common.h"
@@ -292,5 +291,3 @@ Callable create_custom_callable_static_function_pointer(
 #else
 #define callable_mp_static(M) create_custom_callable_static_function_pointer(M)
 #endif
-
-#endif // CALLABLE_METHOD_POINTER_H

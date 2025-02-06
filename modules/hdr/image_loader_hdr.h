@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef IMAGE_LOADER_HDR_H
-#define IMAGE_LOADER_HDR_H
+#pragma once
 
 #include "core/io/image_loader.h"
 
@@ -40,5 +39,3 @@ public:
 
 	ImageLoaderHDR();
 };
-
-#endif // IMAGE_LOADER_HDR_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RESOURCE_IMPORTER_BITMASK_H
-#define RESOURCE_IMPORTER_BITMASK_H
+#pragma once
 
 #include "core/io/resource_importer.h"
 
@@ -55,5 +54,3 @@ public:
 	ResourceImporterBitMap();
 	~ResourceImporterBitMap();
 };
-
-#endif // RESOURCE_IMPORTER_BITMASK_H

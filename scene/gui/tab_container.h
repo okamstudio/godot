@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TAB_CONTAINER_H
-#define TAB_CONTAINER_H
+#pragma once
 
 #include "scene/gui/container.h"
 #include "scene/gui/popup.h"
@@ -211,5 +210,3 @@ public:
 };
 
 VARIANT_ENUM_CAST(TabContainer::TabPosition);
-
-#endif // TAB_CONTAINER_H

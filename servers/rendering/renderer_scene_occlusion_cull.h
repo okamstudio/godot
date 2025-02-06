@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENDERER_SCENE_OCCLUSION_CULL_H
-#define RENDERER_SCENE_OCCLUSION_CULL_H
+#pragma once
 
 #include "core/math/projection.h"
 #include "core/templates/local_vector.h"
@@ -240,5 +239,3 @@ public:
 		singleton = nullptr;
 	}
 };
-
-#endif // RENDERER_SCENE_OCCLUSION_CULL_H

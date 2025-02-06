@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef AUDIO_DRIVER_WEB_H
-#define AUDIO_DRIVER_WEB_H
+#pragma once
 
 #include "godot_audio.h"
 #include "godot_js.h"
@@ -191,5 +190,3 @@ public:
 
 	AudioDriverScriptProcessor() { singleton = this; }
 };
-
-#endif // AUDIO_DRIVER_WEB_H

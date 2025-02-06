@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef CORE_STRING_NAMES_H
-#define CORE_STRING_NAMES_H
+#pragma once
 
 #include "core/string/string_name.h"
 
@@ -87,5 +86,3 @@ public:
 };
 
 #define CoreStringName(m_name) CoreStringNames::get_singleton()->m_name
-
-#endif // CORE_STRING_NAMES_H

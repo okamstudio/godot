@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_INPUT_EVENT_H
-#define TEST_INPUT_EVENT_H
+#pragma once
 
 #include "core/input/input_event.h"
 #include "core/math/rect2.h"
@@ -111,5 +110,3 @@ TEST_CASE("[InputEvent] Test xformed_by") {
 	CHECK(iemm2->get_position().is_equal_approx(Vector2(2.0f, 3.0f)));
 }
 } // namespace TestInputEvent
-
-#endif // TEST_INPUT_EVENT_H

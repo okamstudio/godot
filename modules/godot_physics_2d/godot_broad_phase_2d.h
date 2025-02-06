@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_BROAD_PHASE_2D_H
-#define GODOT_BROAD_PHASE_2D_H
+#pragma once
 
 #include "core/math/math_funcs.h"
 #include "core/math/rect2.h"
@@ -67,5 +66,3 @@ public:
 
 	virtual ~GodotBroadPhase2D();
 };
-
-#endif // GODOT_BROAD_PHASE_2D_H

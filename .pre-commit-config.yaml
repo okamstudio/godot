@@ -154,7 +154,12 @@ repos:
         language: python
         entry: python misc/scripts/header_guards.py
         files: \.(h|hpp|hh|hxx)$
-        exclude: ^.*/(dummy|thread|platform_config|platform_gl)\.h$
+        exclude: |
+          (?x)^(
+            drivers/(apple|coreaudio|coremidi|metal)/.*|
+            misc/dist/ios_xcode/.*|
+            platform/(ios|macos)/(?!platform_(config|gl))[^/]*\.h
+          )$
 
       - id: file-format
         name: file-format

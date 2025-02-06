@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GPU_PARTICLES_3D_GIZMO_PLUGIN_H
-#define GPU_PARTICLES_3D_GIZMO_PLUGIN_H
+#pragma once
 
 #include "editor/plugins/node_3d_editor_gizmos.h"
 
@@ -45,5 +44,3 @@ public:
 
 	GPUParticles3DGizmoPlugin();
 };
-
-#endif // GPU_PARTICLES_3D_GIZMO_PLUGIN_H

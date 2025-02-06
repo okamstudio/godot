@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GDEXTENSION_INTERFACE_H
-#define GDEXTENSION_INTERFACE_H
+#pragma once
 
 /* This is a C class header, you can copy it and use it directly in your own binders.
  * Together with the JSON file, you should be able to generate any binder.
@@ -3081,5 +3080,3 @@ typedef void (*GDExtensionsInterfaceEditorHelpLoadXmlFromUtf8CharsAndLen)(const 
 #ifdef __cplusplus
 }
 #endif
-
-#endif // GDEXTENSION_INTERFACE_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PHYSICS_SERVER_2D_EXTENSION_H
-#define PHYSICS_SERVER_2D_EXTENSION_H
+#pragma once
 
 #include "core/extension/ext_wrappers.gen.inc"
 #include "core/object/gdvirtual.gen.inc"
@@ -451,5 +450,3 @@ public:
 	PhysicsServer2DExtension();
 	~PhysicsServer2DExtension();
 };
-
-#endif // PHYSICS_SERVER_2D_EXTENSION_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_ZOOM_WIDGET_H
-#define EDITOR_ZOOM_WIDGET_H
+#pragma once
 
 #include "scene/gui/box_container.h"
 #include "scene/gui/button.h"
@@ -67,5 +66,3 @@ public:
 	// Sets the shortcut context for the zoom buttons. By default their context is this EditorZoomWidget control.
 	void set_shortcut_context(Node *p_node) const;
 };
-
-#endif // EDITOR_ZOOM_WIDGET_H

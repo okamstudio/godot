@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef NAV_BASE_ITERATION_3D_H
-#define NAV_BASE_ITERATION_3D_H
+#pragma once
 
 #include "servers/navigation/navigation_utilities.h"
 
@@ -53,5 +52,3 @@ struct NavBaseIteration {
 	real_t get_travel_cost() const { return travel_cost; }
 	bool get_use_edge_connections() const { return owner_use_edge_connections; }
 };
-
-#endif // NAV_BASE_ITERATION_3D_H

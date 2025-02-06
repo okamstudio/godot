@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef CORE_CONSTANTS_H
-#define CORE_CONSTANTS_H
+#pragma once
 
 #include "core/string/string_name.h"
 #include "core/templates/hash_map.h"
@@ -47,5 +46,3 @@ public:
 	static bool is_global_enum(const StringName &p_enum);
 	static void get_enum_values(const StringName &p_enum, HashMap<StringName, int64_t> *p_values);
 };
-
-#endif // CORE_CONSTANTS_H

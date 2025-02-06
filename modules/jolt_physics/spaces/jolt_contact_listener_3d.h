@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef JOLT_CONTACT_LISTENER_3D_H
-#define JOLT_CONTACT_LISTENER_3D_H
+#pragma once
 
 #include "core/templates/hash_map.h"
 #include "core/templates/hash_set.h"
@@ -138,5 +137,3 @@ public:
 	void set_max_debug_contacts(int p_count) { debug_contacts.resize(p_count); }
 #endif
 };
-
-#endif // JOLT_CONTACT_LISTENER_3D_H

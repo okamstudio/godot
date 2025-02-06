@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_DIR_DIALOG_H
-#define EDITOR_DIR_DIALOG_H
+#pragma once
 
 #include "scene/gui/dialogs.h"
 
@@ -73,5 +72,3 @@ public:
 
 	EditorDirDialog();
 };
-
-#endif // EDITOR_DIR_DIALOG_H

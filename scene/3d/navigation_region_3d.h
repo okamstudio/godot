@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef NAVIGATION_REGION_3D_H
-#define NAVIGATION_REGION_3D_H
+#pragma once
 
 #include "scene/3d/node_3d.h"
 #include "scene/resources/navigation_mesh.h"
@@ -123,5 +122,3 @@ private:
 	void _region_exit_navigation_map();
 	void _region_update_transform();
 };
-
-#endif // NAVIGATION_REGION_3D_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef VELOCITY_TRACKER_3D_H
-#define VELOCITY_TRACKER_3D_H
+#pragma once
 
 #include "core/object/ref_counted.h"
 
@@ -55,5 +54,3 @@ public:
 
 	VelocityTracker3D();
 };
-
-#endif // VELOCITY_TRACKER_3D_H

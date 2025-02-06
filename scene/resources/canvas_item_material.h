@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef CANVAS_ITEM_MATERIAL_H
-#define CANVAS_ITEM_MATERIAL_H
+#pragma once
 
 #include "scene/resources/material.h"
 
@@ -149,5 +148,3 @@ public:
 
 VARIANT_ENUM_CAST(CanvasItemMaterial::BlendMode)
 VARIANT_ENUM_CAST(CanvasItemMaterial::LightMode)
-
-#endif // CANVAS_ITEM_MATERIAL_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_TRANSLATION_H
-#define TEST_TRANSLATION_H
+#pragma once
 
 #include "core/string/optimized_translation.h"
 #include "core/string/translation.h"
@@ -201,5 +200,3 @@ TEST_CASE("[TranslationCSV] CSV import") {
 #endif // TOOLS_ENABLED
 
 } // namespace TestTranslation
-
-#endif // TEST_TRANSLATION_H

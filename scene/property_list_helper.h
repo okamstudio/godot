@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PROPERTY_LIST_HELPER_H
-#define PROPERTY_LIST_HELPER_H
+#pragma once
 
 #include "core/object/method_bind.h"
 #include "core/object/object.h"
@@ -90,5 +89,3 @@ public:
 
 	void clear();
 };
-
-#endif // PROPERTY_LIST_HELPER_H

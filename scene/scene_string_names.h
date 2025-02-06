@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SCENE_STRING_NAMES_H
-#define SCENE_STRING_NAMES_H
+#pragma once
 
 #include "core/string/node_path.h"
 #include "core/string/string_name.h"
@@ -159,5 +158,3 @@ public:
 };
 
 #define SceneStringName(m_name) SceneStringNames::get_singleton()->m_name
-
-#endif // SCENE_STRING_NAMES_H

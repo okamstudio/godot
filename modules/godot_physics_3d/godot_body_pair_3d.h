@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_BODY_PAIR_3D_H
-#define GODOT_BODY_PAIR_3D_H
+#pragma once
 
 #include "godot_body_3d.h"
 #include "godot_constraint_3d.h"
@@ -143,5 +142,3 @@ public:
 	GodotBodySoftBodyPair3D(GodotBody3D *p_A, int p_shape_A, GodotSoftBody3D *p_B);
 	~GodotBodySoftBodyPair3D();
 };
-
-#endif // GODOT_BODY_PAIR_3D_H

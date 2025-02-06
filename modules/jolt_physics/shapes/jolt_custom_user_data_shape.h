@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef JOLT_CUSTOM_USER_DATA_SHAPE_H
-#define JOLT_CUSTOM_USER_DATA_SHAPE_H
+#pragma once
 
 #include "jolt_custom_decorated_shape.h"
 #include "jolt_custom_shape_type.h"
@@ -57,5 +56,3 @@ public:
 
 	virtual JPH::uint64 GetSubShapeUserData(const JPH::SubShapeID &p_sub_shape_id) const override { return GetUserData(); }
 };
-
-#endif // JOLT_CUSTOM_USER_DATA_SHAPE_H

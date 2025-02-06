@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_EXPORT_PLUGIN_H
-#define EDITOR_EXPORT_PLUGIN_H
+#pragma once
 
 #include "core/os/shared_object.h"
 #include "editor_export_platform.h"
@@ -186,5 +185,3 @@ public:
 	const Vector<String> &get_macos_plugin_files() const;
 	Variant get_option(const StringName &p_name) const;
 };
-
-#endif // EDITOR_EXPORT_PLUGIN_H

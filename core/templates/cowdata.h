@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef COWDATA_H
-#define COWDATA_H
+#pragma once
 
 #include "core/error/error_macros.h"
 #include "core/os/memory.h"
@@ -520,5 +519,3 @@ CowData<T>::CowData(std::initializer_list<T> p_init) {
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
-
-#endif // COWDATA_H

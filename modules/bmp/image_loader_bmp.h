@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef IMAGE_LOADER_BMP_H
-#define IMAGE_LOADER_BMP_H
+#pragma once
 
 #include "core/io/image_loader.h"
 
@@ -106,5 +105,3 @@ public:
 	virtual void get_recognized_extensions(List<String> *p_extensions) const;
 	ImageLoaderBMP();
 };
-
-#endif // IMAGE_LOADER_BMP_H

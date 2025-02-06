@@ -28,12 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef KTX_REGISTER_TYPES_H
-#define KTX_REGISTER_TYPES_H
+#pragma once
 
 #include "modules/register_module_types.h"
 
 void initialize_ktx_module(ModuleInitializationLevel p_level);
 void uninitialize_ktx_module(ModuleInitializationLevel p_level);
-
-#endif // KTX_REGISTER_TYPES_H

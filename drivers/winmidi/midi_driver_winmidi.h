@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MIDI_DRIVER_WINMIDI_H
-#define MIDI_DRIVER_WINMIDI_H
+#pragma once
 
 #ifdef WINMIDI_ENABLED
 
@@ -56,5 +55,3 @@ public:
 };
 
 #endif // WINMIDI_ENABLED
-
-#endif // MIDI_DRIVER_WINMIDI_H

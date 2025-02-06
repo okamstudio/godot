@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef COLOR_CHANNEL_SELECTOR_H
-#define COLOR_CHANNEL_SELECTOR_H
+#pragma once
 
 #include "scene/gui/box_container.h"
 
@@ -61,5 +60,3 @@ private:
 	PanelContainer *panel = nullptr;
 	Button *toggle_button = nullptr;
 };
-
-#endif // COLOR_CHANNEL_SELECTOR_H

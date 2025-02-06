@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_VERSION_BUTTON_H
-#define EDITOR_VERSION_BUTTON_H
+#pragma once
 
 #include "scene/gui/link_button.h"
 
@@ -57,5 +56,3 @@ protected:
 public:
 	EditorVersionButton(VersionFormat p_format);
 };
-
-#endif // EDITOR_VERSION_BUTTON_H

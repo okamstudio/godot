@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PARTICLE_PROCESS_MATERIAL_H
-#define PARTICLE_PROCESS_MATERIAL_H
+#pragma once
 
 #include "core/templates/rid.h"
 #include "core/templates/self_list.h"
@@ -515,5 +514,3 @@ VARIANT_ENUM_CAST(ParticleProcessMaterial::ParticleFlags)
 VARIANT_ENUM_CAST(ParticleProcessMaterial::EmissionShape)
 VARIANT_ENUM_CAST(ParticleProcessMaterial::SubEmitterMode)
 VARIANT_ENUM_CAST(ParticleProcessMaterial::CollisionMode)
-
-#endif // PARTICLE_PROCESS_MATERIAL_H

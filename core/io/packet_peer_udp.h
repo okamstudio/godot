@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PACKET_PEER_UDP_H
-#define PACKET_PEER_UDP_H
+#pragma once
 
 #include "core/io/ip.h"
 #include "core/io/net_socket.h"
@@ -97,5 +96,3 @@ public:
 	PacketPeerUDP();
 	~PacketPeerUDP();
 };
-
-#endif // PACKET_PEER_UDP_H

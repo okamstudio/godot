@@ -28,12 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SIMPLE_TYPE_H
-#define SIMPLE_TYPE_H
+#pragma once
 
 #include <type_traits>
 
 template <typename T>
 using GetSimpleTypeT = typename std::remove_cv_t<std::remove_reference_t<T>>;
-
-#endif // SIMPLE_TYPE_H

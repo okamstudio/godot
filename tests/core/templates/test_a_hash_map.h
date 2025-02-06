@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_A_HASH_MAP_H
-#define TEST_A_HASH_MAP_H
+#pragma once
 
 #include "core/templates/a_hash_map.h"
 
@@ -309,5 +308,3 @@ TEST_CASE("[AHashMap] Array methods") {
 }
 
 } // namespace TestAHashMap
-
-#endif // TEST_A_HASH_MAP_H

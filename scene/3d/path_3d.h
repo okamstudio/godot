@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PATH_3D_H
-#define PATH_3D_H
+#pragma once
 
 #include "scene/3d/node_3d.h"
 #include "scene/resources/curve.h"
@@ -131,5 +130,3 @@ public:
 };
 
 VARIANT_ENUM_CAST(PathFollow3D::RotationMode);
-
-#endif // PATH_3D_H

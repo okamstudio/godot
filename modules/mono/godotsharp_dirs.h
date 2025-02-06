@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOTSHARP_DIRS_H
-#define GODOTSHARP_DIRS_H
+#pragma once
 
 #include "core/string/ustring.h"
 
@@ -48,5 +47,3 @@ String get_data_editor_tools_dir();
 #endif
 
 } // namespace GodotSharpDirs
-
-#endif // GODOTSHARP_DIRS_H

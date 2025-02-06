@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_ACTION_MAP_EDITOR_H
-#define OPENXR_ACTION_MAP_EDITOR_H
+#pragma once
 
 #include "../action_map/openxr_action_map.h"
 #include "openxr_action_set_editor.h"
@@ -113,5 +112,3 @@ public:
 	OpenXRActionMapEditor();
 	~OpenXRActionMapEditor();
 };
-
-#endif // OPENXR_ACTION_MAP_EDITOR_H

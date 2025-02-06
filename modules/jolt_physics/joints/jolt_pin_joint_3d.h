@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef JOLT_PIN_JOINT_3D_H
-#define JOLT_PIN_JOINT_3D_H
+#pragma once
 
 #include "jolt_joint_3d.h"
 
@@ -60,5 +59,3 @@ public:
 
 	virtual void rebuild() override;
 };
-
-#endif // JOLT_PIN_JOINT_3D_H

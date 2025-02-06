@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PROJECT_SETTINGS_EDITOR_H
-#define PROJECT_SETTINGS_EDITOR_H
+#pragma once
 
 #include "core/config/project_settings.h"
 #include "editor/action_map_editor.h"
@@ -136,5 +135,3 @@ public:
 
 	ProjectSettingsEditor(EditorData *p_data);
 };
-
-#endif // PROJECT_SETTINGS_EDITOR_H

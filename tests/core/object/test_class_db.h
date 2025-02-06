@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_CLASS_DB_H
-#define TEST_CLASS_DB_H
+#pragma once
 
 #include "core/core_bind.h"
 #include "core/core_constants.h"
@@ -900,5 +899,3 @@ TEST_SUITE("[ClassDB]") {
 	}
 }
 } // namespace TestClassDB
-
-#endif // TEST_CLASS_DB_H

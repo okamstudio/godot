@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef FILE_ACCESS_ENCRYPTED_H
-#define FILE_ACCESS_ENCRYPTED_H
+#pragma once
 
 #include "core/io/file_access.h"
 
@@ -100,5 +99,3 @@ public:
 	FileAccessEncrypted() {}
 	~FileAccessEncrypted();
 };
-
-#endif // FILE_ACCESS_ENCRYPTED_H

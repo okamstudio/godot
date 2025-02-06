@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_TRANSFORM_2D_H
-#define TEST_TRANSFORM_2D_H
+#pragma once
 
 #include "core/math/transform_2d.h"
 
@@ -245,5 +244,3 @@ TEST_CASE("[Transform2D] Is conformal checks") {
 }
 
 } // namespace TestTransform2D
-
-#endif // TEST_TRANSFORM_2D_H

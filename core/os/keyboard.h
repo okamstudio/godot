@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef KEYBOARD_H
-#define KEYBOARD_H
+#pragma once
 
 #include "core/string/ustring.h"
 
@@ -347,5 +346,3 @@ const char *keycode_get_name_by_index(int p_index);
 char32_t fix_unicode(char32_t p_char);
 Key fix_keycode(char32_t p_char, Key p_key);
 Key fix_key_label(char32_t p_char, Key p_key);
-
-#endif // KEYBOARD_H

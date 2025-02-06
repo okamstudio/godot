@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MISSING_RESOURCE_H
-#define MISSING_RESOURCE_H
+#pragma once
 
 #include "core/io/resource.h"
 
@@ -61,5 +60,3 @@ public:
 
 	MissingResource();
 };
-
-#endif // MISSING_RESOURCE_H

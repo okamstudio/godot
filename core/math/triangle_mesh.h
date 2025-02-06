@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TRIANGLE_MESH_H
-#define TRIANGLE_MESH_H
+#pragma once
 
 #include "core/math/face3.h"
 #include "core/object/ref_counted.h"
@@ -94,5 +93,3 @@ public:
 	void create(const Vector<Vector3> &p_faces, const Vector<int32_t> &p_surface_indices = Vector<int32_t>());
 	TriangleMesh();
 };
-
-#endif // TRIANGLE_MESH_H

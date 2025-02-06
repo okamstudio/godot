@@ -28,12 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef CSG_REGISTER_TYPES_H
-#define CSG_REGISTER_TYPES_H
+#pragma once
 
 #include "modules/register_module_types.h"
 
 void initialize_csg_module(ModuleInitializationLevel p_level);
 void uninitialize_csg_module(ModuleInitializationLevel p_level);
-
-#endif // CSG_REGISTER_TYPES_H

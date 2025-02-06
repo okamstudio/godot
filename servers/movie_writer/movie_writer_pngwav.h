@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MOVIE_WRITER_PNGWAV_H
-#define MOVIE_WRITER_PNGWAV_H
+#pragma once
 
 #include "servers/movie_writer/movie_writer.h"
 
@@ -67,5 +66,3 @@ protected:
 public:
 	MovieWriterPNGWAV();
 };
-
-#endif // MOVIE_WRITER_PNGWAV_H

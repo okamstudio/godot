@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_SHAPE_3D_H
-#define GODOT_SHAPE_3D_H
+#pragma once
 
 #include "core/math/geometry_3d.h"
 #include "core/templates/local_vector.h"
@@ -510,5 +509,3 @@ struct GodotMotionShape3D : public GodotShape3D {
 
 	GodotMotionShape3D() { configure(AABB()); }
 };
-
-#endif // GODOT_SHAPE_3D_H

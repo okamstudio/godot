@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ANIMATION_H
-#define ANIMATION_H
+#pragma once
 
 #include "core/io/resource.h"
 #include "core/templates/local_vector.h"
@@ -586,5 +585,3 @@ VARIANT_ENUM_CAST(Animation::FindMode);
 VARIANT_ENUM_CAST(Animation::HandleMode);
 VARIANT_ENUM_CAST(Animation::HandleSetMode);
 #endif // TOOLS_ENABLED
-
-#endif // ANIMATION_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef IP_ADDRESS_H
-#define IP_ADDRESS_H
+#pragma once
 
 #include "core/string/ustring.h"
 
@@ -95,5 +94,3 @@ public:
 	IPAddress(uint32_t p_a, uint32_t p_b, uint32_t p_c, uint32_t p_d, bool is_v6 = false);
 	IPAddress() { clear(); }
 };
-
-#endif // IP_ADDRESS_H

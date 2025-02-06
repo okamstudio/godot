@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_BINDING_MODIFIERS_DIALOG_H
-#define OPENXR_BINDING_MODIFIERS_DIALOG_H
+#pragma once
 
 #include "../action_map/openxr_action_map.h"
 #include "../action_map/openxr_interaction_profile.h"
@@ -77,5 +76,3 @@ public:
 
 	void setup(Ref<OpenXRActionMap> p_action_map, Ref<OpenXRInteractionProfile> p_interaction_profile, Ref<OpenXRIPBinding> p_ip_binding = Ref<OpenXRIPBinding>());
 };
-
-#endif // OPENXR_BINDING_MODIFIERS_DIALOG_H

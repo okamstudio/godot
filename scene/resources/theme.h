@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef THEME_H
-#define THEME_H
+#pragma once
 
 #include "core/io/resource.h"
 #include "scene/resources/font.h"
@@ -228,5 +227,3 @@ public:
 };
 
 VARIANT_ENUM_CAST(Theme::DataType);
-
-#endif // THEME_H

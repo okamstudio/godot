@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef AUDIO_FRAME_H
-#define AUDIO_FRAME_H
+#pragma once
 
 #include "core/math/vector2.h"
 #include "core/typedefs.h"
@@ -169,5 +168,3 @@ _ALWAYS_INLINE_ AudioFrame operator*(int32_t p_scalar, const AudioFrame &p_frame
 _ALWAYS_INLINE_ AudioFrame operator*(int64_t p_scalar, const AudioFrame &p_frame) {
 	return AudioFrame(p_frame.left * p_scalar, p_frame.right * p_scalar);
 }
-
-#endif // AUDIO_FRAME_H

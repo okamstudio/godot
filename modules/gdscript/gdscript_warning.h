@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GDSCRIPT_WARNING_H
-#define GDSCRIPT_WARNING_H
+#pragma once
 
 #ifdef DEBUG_ENABLED
 
@@ -171,5 +170,3 @@ public:
 };
 
 #endif // DEBUG_ENABLED
-
-#endif // GDSCRIPT_WARNING_H

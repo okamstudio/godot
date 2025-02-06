@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef LIGHT_OCCLUDER_2D_EDITOR_PLUGIN_H
-#define LIGHT_OCCLUDER_2D_EDITOR_PLUGIN_H
+#pragma once
 
 #include "editor/plugins/abstract_polygon_2d_editor.h"
 #include "scene/2d/light_occluder_2d.h"
@@ -65,5 +64,3 @@ class LightOccluder2DEditorPlugin : public AbstractPolygon2DEditorPlugin {
 public:
 	LightOccluder2DEditorPlugin();
 };
-
-#endif // LIGHT_OCCLUDER_2D_EDITOR_PLUGIN_H

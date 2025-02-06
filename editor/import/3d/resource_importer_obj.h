@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RESOURCE_IMPORTER_OBJ_H
-#define RESOURCE_IMPORTER_OBJ_H
+#pragma once
 
 #include "resource_importer_scene.h"
 
@@ -64,5 +63,3 @@ public:
 
 	ResourceImporterOBJ();
 };
-
-#endif // RESOURCE_IMPORTER_OBJ_H

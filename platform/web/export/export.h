@@ -28,10 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef WEB_EXPORT_H
-#define WEB_EXPORT_H
+#pragma once
 
 void register_web_exporter_types();
 void register_web_exporter();
-
-#endif // WEB_EXPORT_H

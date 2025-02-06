@@ -28,12 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ETCPAK_REGISTER_TYPES_H
-#define ETCPAK_REGISTER_TYPES_H
+#pragma once
 
 #include "modules/register_module_types.h"
 
 void initialize_etcpak_module(ModuleInitializationLevel p_level);
 void uninitialize_etcpak_module(ModuleInitializationLevel p_level);
-
-#endif // ETCPAK_REGISTER_TYPES_H

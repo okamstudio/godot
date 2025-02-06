@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OS_WINDOWS_H
-#define OS_WINDOWS_H
+#pragma once
 
 #include "crash_handler_windows.h"
 #include "key_mapping_windows.h"
@@ -256,5 +255,3 @@ public:
 	OS_Windows(HINSTANCE _hInstance);
 	~OS_Windows();
 };
-
-#endif // OS_WINDOWS_H

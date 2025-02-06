@@ -28,12 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef WEBP_REGISTER_TYPES_H
-#define WEBP_REGISTER_TYPES_H
+#pragma once
 
 #include "modules/register_module_types.h"
 
 void initialize_webp_module(ModuleInitializationLevel p_level);
 void uninitialize_webp_module(ModuleInitializationLevel p_level);
-
-#endif // WEBP_REGISTER_TYPES_H

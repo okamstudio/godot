@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TILE_SET_H
-#define TILE_SET_H
+#pragma once
 
 #include "core/io/resource.h"
 #include "core/object/object.h"
@@ -1015,5 +1014,3 @@ VARIANT_ENUM_CAST(TileSet::TileLayout);
 VARIANT_ENUM_CAST(TileSet::TileOffsetAxis);
 
 VARIANT_ENUM_CAST(TileSetAtlasSource::TileAnimationMode);
-
-#endif // TILE_SET_H

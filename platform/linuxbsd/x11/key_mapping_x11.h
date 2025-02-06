@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef KEY_MAPPING_X11_H
-#define KEY_MAPPING_X11_H
+#pragma once
 
 #include "core/os/keyboard.h"
 #include "core/templates/hash_map.h"
@@ -68,5 +67,3 @@ public:
 	static char32_t get_unicode_from_keysym(KeySym p_keysym);
 	static KeyLocation get_location(unsigned int p_code);
 };
-
-#endif // KEY_MAPPING_X11_H

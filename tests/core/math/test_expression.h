@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_EXPRESSION_H
-#define TEST_EXPRESSION_H
+#pragma once
 
 #include "core/math/expression.h"
 
@@ -505,5 +504,3 @@ TEST_CASE("[Expression] Unusual expressions") {
 	//		"`(-9223372036854775807 - 1) / -1` should return the expected result.");
 }
 } // namespace TestExpression
-
-#endif // TEST_EXPRESSION_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RID_OWNER_H
-#define RID_OWNER_H
+#pragma once
 
 #include "core/os/memory.h"
 #include "core/os/mutex.h"
@@ -576,5 +575,3 @@ public:
 	RID_Owner(uint32_t p_target_chunk_byte_size = 65536, uint32_t p_maximum_number_of_elements = 262144) :
 			alloc(p_target_chunk_byte_size, p_maximum_number_of_elements) {}
 };
-
-#endif // RID_OWNER_H

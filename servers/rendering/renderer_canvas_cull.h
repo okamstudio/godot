@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENDERER_CANVAS_CULL_H
-#define RENDERER_CANVAS_CULL_H
+#pragma once
 
 #include "core/templates/paged_allocator.h"
 #include "renderer_compositor.h"
@@ -412,5 +411,3 @@ public:
 	RendererCanvasCull();
 	~RendererCanvasCull();
 };
-
-#endif // RENDERER_CANVAS_CULL_H

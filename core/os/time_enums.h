@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TIME_ENUMS_H
-#define TIME_ENUMS_H
+#pragma once
 
 #include <cstdint>
 
@@ -59,5 +58,3 @@ enum Weekday : uint8_t {
 	WEEKDAY_FRIDAY,
 	WEEKDAY_SATURDAY,
 };
-
-#endif // TIME_ENUMS_H

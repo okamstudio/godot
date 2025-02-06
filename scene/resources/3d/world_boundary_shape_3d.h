@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef WORLD_BOUNDARY_SHAPE_3D_H
-#define WORLD_BOUNDARY_SHAPE_3D_H
+#pragma once
 
 #include "scene/resources/3d/shape_3d.h"
 
@@ -56,5 +55,3 @@ public:
 
 	WorldBoundaryShape3D();
 };
-
-#endif // WORLD_BOUNDARY_SHAPE_3D_H

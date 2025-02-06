@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GLTF_DOCUMENT_H
-#define GLTF_DOCUMENT_H
+#pragma once
 
 #include "extensions/gltf_document_extension.h"
 #include "extensions/gltf_spec_gloss.h"
@@ -388,5 +387,3 @@ public:
 };
 
 VARIANT_ENUM_CAST(GLTFDocument::RootNodeMode);
-
-#endif // GLTF_DOCUMENT_H

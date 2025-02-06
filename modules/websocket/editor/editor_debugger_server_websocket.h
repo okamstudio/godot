@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_DEBUGGER_SERVER_WEBSOCKET_H
-#define EDITOR_DEBUGGER_SERVER_WEBSOCKET_H
+#pragma once
 
 #ifdef TOOLS_ENABLED
 
@@ -66,5 +65,3 @@ public:
 };
 
 #endif // TOOLS_ENABLED
-
-#endif // EDITOR_DEBUGGER_SERVER_WEBSOCKET_H

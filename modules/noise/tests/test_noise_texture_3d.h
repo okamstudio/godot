@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_NOISE_TEXTURE_3D_H
-#define TEST_NOISE_TEXTURE_3D_H
+#pragma once
 
 #include "../noise_texture_3d.h"
 
@@ -234,5 +233,3 @@ TEST_CASE("[NoiseTexture3D][SceneTree] Generating a seamless noise texture") {
 }
 
 } //namespace TestNoiseTexture3D
-
-#endif // TEST_NOISE_TEXTURE_3D_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MESH_INSTANCE_3D_H
-#define MESH_INSTANCE_3D_H
+#pragma once
 
 #include "core/templates/local_vector.h"
 #include "scene/3d/visual_instance_3d.h"
@@ -120,5 +119,3 @@ public:
 	MeshInstance3D();
 	~MeshInstance3D();
 };
-
-#endif // MESH_INSTANCE_3D_H

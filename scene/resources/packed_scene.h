@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PACKED_SCENE_H
-#define PACKED_SCENE_H
+#pragma once
 
 #include "core/io/resource.h"
 #include "scene/main/node.h"
@@ -280,5 +279,3 @@ public:
 };
 
 VARIANT_ENUM_CAST(PackedScene::GenEditState)
-
-#endif // PACKED_SCENE_H

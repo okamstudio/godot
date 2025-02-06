@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef XR_BODY_TRACKER_H
-#define XR_BODY_TRACKER_H
+#pragma once
 
 #include "servers/xr/xr_positional_tracker.h"
 
@@ -171,5 +170,3 @@ private:
 VARIANT_BITFIELD_CAST(XRBodyTracker::BodyFlags)
 VARIANT_ENUM_CAST(XRBodyTracker::Joint)
 VARIANT_BITFIELD_CAST(XRBodyTracker::JointFlags)
-
-#endif // XR_BODY_TRACKER_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PROGRESS_BAR_H
-#define PROGRESS_BAR_H
+#pragma once
 
 #include "scene/gui/range.h"
 
@@ -90,5 +89,3 @@ private:
 };
 
 VARIANT_ENUM_CAST(ProgressBar::FillMode);
-
-#endif // PROGRESS_BAR_H

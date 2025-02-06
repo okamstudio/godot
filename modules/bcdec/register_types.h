@@ -28,12 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef BCDEC_REGISTER_TYPES_H
-#define BCDEC_REGISTER_TYPES_H
+#pragma once
 
 #include "modules/register_module_types.h"
 
 void initialize_bcdec_module(ModuleInitializationLevel p_level);
 void uninitialize_bcdec_module(ModuleInitializationLevel p_level);
-
-#endif // BCDEC_REGISTER_TYPES_H

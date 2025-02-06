@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_ANDROID_EXTENSION_H
-#define OPENXR_ANDROID_EXTENSION_H
+#pragma once
 
 #include "../../util.h"
 #include "../openxr_extension_wrapper.h"
@@ -59,5 +58,3 @@ private:
 	// Initialize the loader
 	EXT_PROTO_XRRESULT_FUNC1(xrInitializeLoaderKHR, (const XrLoaderInitInfoBaseHeaderKHR *), loaderInitInfo)
 };
-
-#endif // OPENXR_ANDROID_EXTENSION_H

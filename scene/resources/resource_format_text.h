@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RESOURCE_FORMAT_TEXT_H
-#define RESOURCE_FORMAT_TEXT_H
+#pragma once
 
 #include "core/io/file_access.h"
 #include "core/io/resource_loader.h"
@@ -213,5 +212,3 @@ public:
 
 	ResourceFormatSaverText();
 };
-
-#endif // RESOURCE_FORMAT_TEXT_H

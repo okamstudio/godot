@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef NAV_RID_H
-#define NAV_RID_H
+#pragma once
 
 #include "core/templates/rid.h"
 
@@ -40,5 +39,3 @@ public:
 	_FORCE_INLINE_ void set_self(const RID &p_self) { self = p_self; }
 	_FORCE_INLINE_ RID get_self() const { return self; }
 };
-
-#endif // NAV_RID_H

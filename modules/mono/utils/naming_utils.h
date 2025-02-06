@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MONO_NAMING_UTILS_H
-#define MONO_NAMING_UTILS_H
+#pragma once
 
 #include "core/string/ustring.h"
 
@@ -38,5 +37,3 @@ String pascal_to_pascal_case(const String &p_identifier);
 String snake_to_pascal_case(const String &p_identifier, bool p_input_is_upper = false);
 
 String snake_to_camel_case(const String &p_identifier, bool p_input_is_upper = false);
-
-#endif // MONO_NAMING_UTILS_H

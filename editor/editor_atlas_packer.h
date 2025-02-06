@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_ATLAS_PACKER_H
-#define EDITOR_ATLAS_PACKER_H
+#pragma once
 
 #include "core/math/vector2.h"
 #include "core/math/vector2i.h"
@@ -68,5 +67,3 @@ private:
 public:
 	static void chart_pack(Vector<Chart> &charts, int &r_width, int &r_height, int p_atlas_max_size = 2048, int p_cell_resolution = 4);
 };
-
-#endif // EDITOR_ATLAS_PACKER_H

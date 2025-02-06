@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GLTF_SKIN_H
-#define GLTF_SKIN_H
+#pragma once
 
 #include "../gltf_defines.h"
 
@@ -116,5 +115,3 @@ public:
 	Dictionary to_dictionary();
 	Error from_dictionary(const Dictionary &dict);
 };
-
-#endif // GLTF_SKIN_H

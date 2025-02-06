@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MONO_GC_HANDLE_H
-#define MONO_GC_HANDLE_H
+#pragma once
 
 #include "core/object/ref_counted.h"
 
@@ -85,5 +84,3 @@ struct MonoGCHandleData {
 			type(p_type) {
 	}
 };
-
-#endif // MONO_GC_HANDLE_H

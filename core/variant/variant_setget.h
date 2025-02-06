@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef VARIANT_SETGET_H
-#define VARIANT_SETGET_H
+#pragma once
 
 #include "variant.h"
 
@@ -359,5 +358,3 @@ SETGET_NUMBER_STRUCT_FUNC(Color, double, v, set_v, get_v)
 SETGET_NUMBER_STRUCT_FUNC(Color, double, ok_hsl_h, set_ok_hsl_h, get_ok_hsl_h)
 SETGET_NUMBER_STRUCT_FUNC(Color, double, ok_hsl_s, set_ok_hsl_s, get_ok_hsl_s)
 SETGET_NUMBER_STRUCT_FUNC(Color, double, ok_hsl_l, set_ok_hsl_l, get_ok_hsl_l)
-
-#endif // VARIANT_SETGET_H

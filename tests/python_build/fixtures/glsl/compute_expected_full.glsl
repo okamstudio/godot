@@ -1,6 +1,5 @@
 /* WARNING, THIS FILE WAS GENERATED, DO NOT EDIT */
-#ifndef COMPUTE_SHADER_GLSL_RAW_H
-#define COMPUTE_SHADER_GLSL_RAW_H
+#pragma once
 
 static const char compute_shader_glsl[] = {
 R"<!>(#[compute]
@@ -17,4 +16,3 @@ void main() {
 }
 )<!>"
 };
-#endif

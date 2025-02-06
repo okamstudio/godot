@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SHADER_PREPROCESSOR_H
-#define SHADER_PREPROCESSOR_H
+#pragma once
 
 #include "core/string/ustring.h"
 #include "core/templates/list.h"
@@ -228,5 +227,3 @@ public:
 	ShaderPreprocessor();
 	~ShaderPreprocessor();
 };
-
-#endif // SHADER_PREPROCESSOR_H

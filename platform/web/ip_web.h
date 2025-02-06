@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef IP_WEB_H
-#define IP_WEB_H
+#pragma once
 
 #include "core/io/ip.h"
 
@@ -47,5 +46,3 @@ public:
 	static void make_default();
 	IPWeb();
 };
-
-#endif // IP_WEB_H

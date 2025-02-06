@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef CSHARP_SCRIPT_H
-#define CSHARP_SCRIPT_H
+#pragma once
 
 #include "mono_gc_handle.h"
 #include "mono_gd/gd_mono.h"
@@ -603,5 +602,3 @@ public:
 	void get_recognized_extensions(const Ref<Resource> &p_resource, List<String> *p_extensions) const override;
 	bool recognize(const Ref<Resource> &p_resource) const override;
 };
-
-#endif // CSHARP_SCRIPT_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_HAND_TRACKING_EXTENSION_H
-#define OPENXR_HAND_TRACKING_EXTENSION_H
+#pragma once
 
 #include "../util.h"
 #include "core/math/quaternion.h"
@@ -122,5 +121,3 @@ private:
 	EXT_PROTO_XRRESULT_FUNC1(xrDestroyHandTrackerEXT, (XrHandTrackerEXT), p_handTracker)
 	EXT_PROTO_XRRESULT_FUNC3(xrLocateHandJointsEXT, (XrHandTrackerEXT), p_handTracker, (const XrHandJointsLocateInfoEXT *), p_locateInfo, (XrHandJointLocationsEXT *), p_locations)
 };
-
-#endif // OPENXR_HAND_TRACKING_EXTENSION_H

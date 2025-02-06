@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ASSET_LIBRARY_EDITOR_PLUGIN_H
-#define ASSET_LIBRARY_EDITOR_PLUGIN_H
+#pragma once
 
 #include "editor/editor_asset_installer.h"
 #include "editor/plugins/editor_plugin.h"
@@ -351,5 +350,3 @@ public:
 	AssetLibraryEditorPlugin();
 	~AssetLibraryEditorPlugin();
 };
-
-#endif // ASSET_LIBRARY_EDITOR_PLUGIN_H

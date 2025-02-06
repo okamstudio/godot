@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef FSR_RD_H
-#define FSR_RD_H
+#pragma once
 
 #include "spatial_upscaler.h"
 
@@ -71,5 +70,3 @@ private:
 };
 
 } // namespace RendererRD
-
-#endif // FSR_RD_H

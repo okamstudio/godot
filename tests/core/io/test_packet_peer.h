@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_PACKET_PEER_H
-#define TEST_PACKET_PEER_H
+#pragma once
 
 #include "core/io/packet_peer.h"
 #include "tests/test_macros.h"
@@ -200,5 +199,3 @@ TEST_CASE("[PacketPeer][PacketPeerStream] Put packet buffer when is empty") {
 }
 
 } // namespace TestPacketPeer
-
-#endif // TEST_PACKET_PEER_H

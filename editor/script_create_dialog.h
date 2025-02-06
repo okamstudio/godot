@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SCRIPT_CREATE_DIALOG_H
-#define SCRIPT_CREATE_DIALOG_H
+#pragma once
 
 #include "core/object/script_language.h"
 #include "scene/gui/check_box.h"
@@ -126,5 +125,3 @@ public:
 	void set_inheritance_base_type(const String &p_base);
 	ScriptCreateDialog();
 };
-
-#endif // SCRIPT_CREATE_DIALOG_H

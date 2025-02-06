@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OS_UNIX_H
-#define OS_UNIX_H
+#pragma once
 
 #ifdef UNIX_ENABLED
 
@@ -116,5 +115,3 @@ public:
 };
 
 #endif // UNIX_ENABLED
-
-#endif // OS_UNIX_H

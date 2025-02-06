@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TILES_EDITOR_PLUGIN_H
-#define TILES_EDITOR_PLUGIN_H
+#pragma once
 
 #include "editor/plugins/editor_plugin.h"
 
@@ -163,5 +162,3 @@ public:
 	TileSetEditorPlugin();
 	~TileSetEditorPlugin();
 };
-
-#endif // TILES_EDITOR_PLUGIN_H

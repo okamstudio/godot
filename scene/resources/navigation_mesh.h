@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef NAVIGATION_MESH_H
-#define NAVIGATION_MESH_H
+#pragma once
 
 #include "core/os/rw_lock.h"
 #include "scene/resources/mesh.h"
@@ -211,5 +210,3 @@ public:
 VARIANT_ENUM_CAST(NavigationMesh::SamplePartitionType);
 VARIANT_ENUM_CAST(NavigationMesh::ParsedGeometryType);
 VARIANT_ENUM_CAST(NavigationMesh::SourceGeometryMode);
-
-#endif // NAVIGATION_MESH_H

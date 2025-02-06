@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef FBX_DOCUMENT_H
-#define FBX_DOCUMENT_H
+#pragma once
 
 #include "fbx_state.h"
 
@@ -99,5 +98,3 @@ public:
 			const GLTFAnimationIndex p_index, const bool p_trimming, const bool p_remove_immutable_tracks);
 	Error _parse(Ref<FBXState> p_state, String p_path, Ref<FileAccess> p_file);
 };
-
-#endif // FBX_DOCUMENT_H

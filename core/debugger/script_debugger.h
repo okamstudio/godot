@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SCRIPT_DEBUGGER_H
-#define SCRIPT_DEBUGGER_H
+#pragma once
 
 #include "core/object/script_language.h"
 #include "core/string/string_name.h"
@@ -82,5 +81,3 @@ public:
 	Vector<StackInfo> get_error_stack_info() const;
 	ScriptDebugger() {}
 };
-
-#endif // SCRIPT_DEBUGGER_H

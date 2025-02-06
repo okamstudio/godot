@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef USTRING_GODOT_H
-#define USTRING_GODOT_H
+#pragma once
 
 // Note: _GODOT suffix added to header guard to avoid conflict with ICU header.
 
@@ -792,5 +791,3 @@ _FORCE_INLINE_ Vector<String> sarray(P... p_args) {
 	sarray_add_str(arr, p_args...);
 	return arr;
 }
-
-#endif // USTRING_GODOT_H

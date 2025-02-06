@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_REGISTER_TYPES_H
-#define OPENXR_REGISTER_TYPES_H
+#pragma once
 
 #define MODULE_OPENXR_HAS_PREREGISTER
 
@@ -37,5 +36,3 @@
 
 void initialize_openxr_module(ModuleInitializationLevel p_level);
 void uninitialize_openxr_module(ModuleInitializationLevel p_level);
-
-#endif // OPENXR_REGISTER_TYPES_H

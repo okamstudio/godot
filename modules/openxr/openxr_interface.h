@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_INTERFACE_H
-#define OPENXR_INTERFACE_H
+#pragma once
 
 // A note on multithreading and thread safety in OpenXR.
 //
@@ -301,5 +300,3 @@ VARIANT_ENUM_CAST(OpenXRInterface::HandMotionRange)
 VARIANT_ENUM_CAST(OpenXRInterface::HandTrackedSource)
 VARIANT_ENUM_CAST(OpenXRInterface::HandJoints)
 VARIANT_BITFIELD_CAST(OpenXRInterface::HandJointFlags)
-
-#endif // OPENXR_INTERFACE_H

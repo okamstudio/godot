@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_SLIDER_JOINT_3D_H
-#define GODOT_SLIDER_JOINT_3D_H
+#pragma once
 
 /*
 Adapted to Godot from the Bullet library.
@@ -242,5 +241,3 @@ public:
 
 	virtual PhysicsServer3D::JointType get_type() const override { return PhysicsServer3D::JOINT_TYPE_SLIDER; }
 };
-
-#endif // GODOT_SLIDER_JOINT_3D_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef DISPLAY_SERVER_HEADLESS_H
-#define DISPLAY_SERVER_HEADLESS_H
+#pragma once
 
 #include "servers/display_server.h"
 
@@ -208,5 +207,3 @@ public:
 		}
 	}
 };
-
-#endif // DISPLAY_SERVER_HEADLESS_H

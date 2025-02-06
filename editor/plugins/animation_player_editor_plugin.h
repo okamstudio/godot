@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ANIMATION_PLAYER_EDITOR_PLUGIN_H
-#define ANIMATION_PLAYER_EDITOR_PLUGIN_H
+#pragma once
 
 #include "editor/animation_track_editor.h"
 #include "editor/plugins/animation_library_editor.h"
@@ -363,5 +362,3 @@ public:
 
 	AnimationMarkerKeyEditEditorPlugin();
 };
-
-#endif // ANIMATION_PLAYER_EDITOR_PLUGIN_H

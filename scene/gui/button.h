@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef BUTTON_H
-#define BUTTON_H
+#pragma once
 
 #include "scene/gui/base_button.h"
 #include "scene/resources/text_paragraph.h"
@@ -161,5 +160,3 @@ public:
 	Button(const String &p_text = String());
 	~Button();
 };
-
-#endif // BUTTON_H

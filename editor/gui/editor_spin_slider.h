@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_SPIN_SLIDER_H
-#define EDITOR_SPIN_SLIDER_H
+#pragma once
 
 #include "scene/gui/line_edit.h"
 #include "scene/gui/range.h"
@@ -131,5 +130,3 @@ public:
 	virtual Size2 get_minimum_size() const override;
 	EditorSpinSlider();
 };
-
-#endif // EDITOR_SPIN_SLIDER_H

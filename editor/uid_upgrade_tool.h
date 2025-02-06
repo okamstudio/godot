@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef UID_UPGRADE_TOOL_H
-#define UID_UPGRADE_TOOL_H
+#pragma once
 
 #include "scene/gui/dialogs.h"
 
@@ -78,5 +77,3 @@ public:
 
 	UIDUpgradeDialog();
 };
-
-#endif // UID_UPGRADE_TOOL_H

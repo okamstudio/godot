@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef DISPLAY_SERVER_WEB_H
-#define DISPLAY_SERVER_WEB_H
+#pragma once
 
 #include "servers/display_server.h"
 
@@ -293,5 +292,3 @@ public:
 	DisplayServerWeb(const String &p_rendering_driver, WindowMode p_window_mode, VSyncMode p_vsync_mode, uint32_t p_flags, const Point2i *p_position, const Size2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error);
 	~DisplayServerWeb();
 };
-
-#endif // DISPLAY_SERVER_WEB_H

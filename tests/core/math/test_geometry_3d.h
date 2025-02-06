@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_GEOMETRY_3D_H
-#define TEST_GEOMETRY_3D_H
+#pragma once
 
 #include "core/math/geometry_3d.h"
 #include "tests/test_macros.h"
@@ -200,5 +199,3 @@ TEST_CASE("[Geometry3D] Triangle and Sphere Intersect") {
 	CHECK(Geometry3D::triangle_sphere_intersection_test(&triangle[0], Vector3(0, 1, 0), Vector3(20, 0, 0), 5, triangle_contact, sphere_contact) == false);
 }
 } // namespace TestGeometry3D
-
-#endif // TEST_GEOMETRY_3D_H

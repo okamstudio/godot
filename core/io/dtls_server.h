@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef DTLS_SERVER_H
-#define DTLS_SERVER_H
+#pragma once
 
 #include "core/io/net_socket.h"
 #include "core/io/packet_peer_dtls.h"
@@ -53,5 +52,3 @@ public:
 
 	DTLSServer() {}
 };
-
-#endif // DTLS_SERVER_H

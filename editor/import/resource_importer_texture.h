@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RESOURCE_IMPORTER_TEXTURE_H
-#define RESOURCE_IMPORTER_TEXTURE_H
+#pragma once
 
 #include "core/io/file_access.h"
 #include "core/io/image.h"
@@ -115,5 +114,3 @@ public:
 	ResourceImporterTexture(bool p_singleton = false);
 	~ResourceImporterTexture();
 };
-
-#endif // RESOURCE_IMPORTER_TEXTURE_H

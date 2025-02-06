@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef JOYPAD_WINDOWS_H
-#define JOYPAD_WINDOWS_H
+#pragma once
 
 #include "os_windows.h"
 
@@ -148,5 +147,3 @@ private:
 	XInputSetState_t xinput_set_state;
 	joyGetDevCaps_t winmm_get_joycaps; // Only for reading info on XInput joypads.
 };
-
-#endif // JOYPAD_WINDOWS_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef REFLECTION_PROBE_GIZMO_PLUGIN_H
-#define REFLECTION_PROBE_GIZMO_PLUGIN_H
+#pragma once
 
 #include "editor/plugins/node_3d_editor_gizmos.h"
 
@@ -55,5 +54,3 @@ public:
 	ReflectionProbeGizmoPlugin();
 	~ReflectionProbeGizmoPlugin();
 };
-
-#endif // REFLECTION_PROBE_GIZMO_PLUGIN_H

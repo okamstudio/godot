@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_CAMERA_3D_H
-#define TEST_CAMERA_3D_H
+#pragma once
 
 #include "scene/3d/camera_3d.h"
 #include "scene/main/viewport.h"
@@ -372,5 +371,3 @@ TEST_CASE("[SceneTree][Camera3D] Project ray") {
 }
 
 #undef SQRT3
-
-#endif // TEST_CAMERA_3D_H

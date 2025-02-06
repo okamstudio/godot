@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GLTF_SKELETON_H
-#define GLTF_SKELETON_H
+#pragma once
 
 #include "../gltf_defines.h"
 
@@ -103,5 +102,3 @@ public:
 
 	int32_t get_bone_attachment_count();
 };
-
-#endif // GLTF_SKELETON_H

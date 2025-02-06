@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TCP_SERVER_H
-#define TCP_SERVER_H
+#pragma once
 
 #include "core/io/ip.h"
 #include "core/io/net_socket.h"
@@ -59,5 +58,3 @@ public:
 	TCPServer();
 	~TCPServer();
 };
-
-#endif // TCP_SERVER_H

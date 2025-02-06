@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_SHORTCUT_H
-#define TEST_SHORTCUT_H
+#pragma once
 
 #include "core/input/input_event.h"
 #include "core/input/shortcut.h"
@@ -231,5 +230,3 @@ TEST_CASE("[Shortcut] Equal arrays should be recognized as such.") {
 	CHECK(s.is_event_array_equal(same, different3) == false);
 }
 } // namespace TestShortcut
-
-#endif // TEST_SHORTCUT_H

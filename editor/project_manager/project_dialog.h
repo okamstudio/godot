@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PROJECT_DIALOG_H
-#define PROJECT_DIALOG_H
+#pragma once
 
 #include "scene/gui/dialogs.h"
 
@@ -150,5 +149,3 @@ public:
 
 	ProjectDialog();
 };
-
-#endif // PROJECT_DIALOG_H

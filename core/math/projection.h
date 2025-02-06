@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PROJECTION_H
-#define PROJECTION_H
+#pragma once
 
 #include "core/math/vector3.h"
 #include "core/math/vector4.h"
@@ -164,5 +163,3 @@ Vector3 Projection::xform(const Vector3 &p_vec3) const {
 	real_t w = columns[0][3] * p_vec3.x + columns[1][3] * p_vec3.y + columns[2][3] * p_vec3.z + columns[3][3];
 	return ret / w;
 }
-
-#endif // PROJECTION_H

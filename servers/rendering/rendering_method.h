@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENDERING_METHOD_H
-#define RENDERING_METHOD_H
+#pragma once
 
 #include "servers/rendering/storage/render_scene_buffers.h"
 #include "servers/rendering_server.h"
@@ -372,5 +371,3 @@ public:
 	RenderingMethod();
 	virtual ~RenderingMethod();
 };
-
-#endif // RENDERING_METHOD_H

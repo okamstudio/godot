@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TRANSFORM_2D_H
-#define TRANSFORM_2D_H
+#pragma once
 
 #include "core/math/math_funcs.h"
 #include "core/math/rect2.h"
@@ -249,5 +248,3 @@ Vector<Vector2> Transform2D::xform_inv(const Vector<Vector2> &p_array) const {
 	}
 	return array;
 }
-
-#endif // TRANSFORM_2D_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GDSCRIPT_COMPILER_H
-#define GDSCRIPT_COMPILER_H
+#pragma once
 
 #include "gdscript.h"
 #include "gdscript_codegen.h"
@@ -186,5 +185,3 @@ public:
 
 	GDScriptCompiler();
 };
-
-#endif // GDSCRIPT_COMPILER_H

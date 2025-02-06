@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GDSCRIPT_FUNCTION_H
-#define GDSCRIPT_FUNCTION_H
+#pragma once
 
 #include "gdscript_utility_functions.h"
 
@@ -622,5 +621,3 @@ public:
 	GDScriptFunctionState();
 	~GDScriptFunctionState();
 };
-
-#endif // GDSCRIPT_FUNCTION_H

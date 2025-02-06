@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_BINDING_MODIFIER_EDITOR_H
-#define OPENXR_BINDING_MODIFIER_EDITOR_H
+#pragma once
 
 #include "../action_map/openxr_action_map.h"
 #include "../action_map/openxr_action_set.h"
@@ -109,5 +108,3 @@ public:
 
 	OpenXRBindingModifierEditor();
 };
-
-#endif // OPENXR_BINDING_MODIFIER_EDITOR_H

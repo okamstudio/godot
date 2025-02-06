@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PAGED_ALLOCATOR_H
-#define PAGED_ALLOCATOR_H
+#pragma once
 
 #include "core/core_globals.h"
 #include "core/os/memory.h"
@@ -177,5 +176,3 @@ public:
 		}
 	}
 };
-
-#endif // PAGED_ALLOCATOR_H

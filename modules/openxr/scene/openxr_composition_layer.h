@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_COMPOSITION_LAYER_H
-#define OPENXR_COMPOSITION_LAYER_H
+#pragma once
 
 #include <openxr/openxr.h>
 
@@ -121,5 +120,3 @@ public:
 
 	~OpenXRCompositionLayer();
 };
-
-#endif // OPENXR_COMPOSITION_LAYER_H

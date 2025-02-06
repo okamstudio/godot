@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RESOURCE_IMPORTER_DYNAMIC_FONT_H
-#define RESOURCE_IMPORTER_DYNAMIC_FONT_H
+#pragma once
 
 #include "core/io/resource_importer.h"
 
@@ -64,5 +63,3 @@ public:
 
 	ResourceImporterDynamicFont();
 };
-
-#endif // RESOURCE_IMPORTER_DYNAMIC_FONT_H

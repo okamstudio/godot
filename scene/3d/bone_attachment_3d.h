@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef BONE_ATTACHMENT_3D_H
-#define BONE_ATTACHMENT_3D_H
+#pragma once
 
 #include "scene/3d/skeleton_3d.h"
 
@@ -99,5 +98,3 @@ public:
 
 	BoneAttachment3D();
 };
-
-#endif // BONE_ATTACHMENT_3D_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RESOLVE_RD_H
-#define RESOLVE_RD_H
+#pragma once
 
 #include "servers/rendering/renderer_rd/shaders/effects/resolve.glsl.gen.h"
 
@@ -66,5 +65,3 @@ public:
 };
 
 } // namespace RendererRD
-
-#endif // RESOLVE_RD_H

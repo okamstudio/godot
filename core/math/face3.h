@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef FACE3_H
-#define FACE3_H
+#pragma once
 
 #include "core/math/aabb.h"
 #include "core/math/plane.h"
@@ -237,5 +236,3 @@ bool Face3::intersects_aabb2(const AABB &p_aabb) const {
 	}
 	return true;
 }
-
-#endif // FACE3_H

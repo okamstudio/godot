@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef VSET_H
-#define VSET_H
+#pragma once
 
 #include "core/templates/vector.h"
 #include "core/typedefs.h"
@@ -142,5 +141,3 @@ public:
 	_FORCE_INLINE_ VSet(std::initializer_list<T> p_init) :
 			_data(p_init) {}
 };
-
-#endif // VSET_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_QUATERNION_H
-#define TEST_QUATERNION_H
+#pragma once
 
 #include "core/math/math_defs.h"
 #include "core/math/math_funcs.h"
@@ -492,5 +491,3 @@ TEST_CASE("[Quaternion] Finite number checks") {
 }
 
 } // namespace TestQuaternion
-
-#endif // TEST_QUATERNION_H

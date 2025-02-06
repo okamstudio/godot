@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PROGRESS_DIALOG_H
-#define PROGRESS_DIALOG_H
+#pragma once
 
 #include "scene/gui/box_container.h"
 #include "scene/gui/button.h"
@@ -108,5 +107,3 @@ public:
 
 	ProgressDialog();
 };
-
-#endif // PROGRESS_DIALOG_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef JOLT_GROUP_FILTER_H
-#define JOLT_GROUP_FILTER_H
+#pragma once
 
 #include "Jolt/Jolt.h"
 
@@ -47,5 +46,3 @@ public:
 	static void encode_object(const JoltObject3D *p_object, JPH::CollisionGroup::GroupID &r_group_id, JPH::CollisionGroup::SubGroupID &r_sub_group_id);
 	static const JoltObject3D *decode_object(JPH::CollisionGroup::GroupID p_group_id, JPH::CollisionGroup::SubGroupID p_sub_group_id);
 };
-
-#endif // JOLT_GROUP_FILTER_H

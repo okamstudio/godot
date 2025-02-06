@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MULTIMESH_INSTANCE_3D_H
-#define MULTIMESH_INSTANCE_3D_H
+#pragma once
 
 #include "scene/3d/visual_instance_3d.h"
 #include "scene/resources/multimesh.h"
@@ -68,5 +67,3 @@ public:
 	MultiMeshInstance3D();
 	~MultiMeshInstance3D();
 };
-
-#endif // MULTIMESH_INSTANCE_3D_H

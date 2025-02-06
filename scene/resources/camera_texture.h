@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef CAMERA_TEXTURE_H
-#define CAMERA_TEXTURE_H
+#pragma once
 
 #include "scene/resources/texture.h"
 
@@ -65,5 +64,3 @@ public:
 	CameraTexture();
 	~CameraTexture();
 };
-
-#endif // CAMERA_TEXTURE_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef XR_TRACKER_H
-#define XR_TRACKER_H
+#pragma once
 
 #include "core/os/thread_safe.h"
 #include "servers/xr_server.h"
@@ -57,5 +56,3 @@ public:
 	void set_tracker_desc(const String &p_desc);
 	String get_tracker_desc() const;
 };
-
-#endif // XR_TRACKER_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_TRANSLATION_SERVER_H
-#define TEST_TRANSLATION_SERVER_H
+#pragma once
 
 #include "core/string/translation_server.h"
 
@@ -222,5 +221,3 @@ TEST_CASE("[TranslationServer] Comparing locales") {
 	CHECK(res == 10);
 }
 } // namespace TestTranslationServer
-
-#endif // TEST_TRANSLATION_SERVER_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PHYSICAL_BONE_3D_EDITOR_PLUGIN_H
-#define PHYSICAL_BONE_3D_EDITOR_PLUGIN_H
+#pragma once
 
 #include "editor/plugins/editor_plugin.h"
 #include "scene/gui/box_container.h"
@@ -73,5 +72,3 @@ public:
 
 	PhysicalBone3DEditorPlugin();
 };
-
-#endif // PHYSICAL_BONE_3D_EDITOR_PLUGIN_H

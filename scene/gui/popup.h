@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef POPUP_H
-#define POPUP_H
+#pragma once
 
 #include "scene/main/window.h"
 
@@ -107,5 +106,3 @@ public:
 
 	PopupPanel();
 };
-
-#endif // POPUP_H

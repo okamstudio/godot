@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_SPLIT_CONTAINER_H
-#define TEST_SPLIT_CONTAINER_H
+#pragma once
 
 #include "scene/gui/split_container.h"
 #include "scene/main/window.h"
@@ -1476,5 +1475,3 @@ TEST_CASE("[SceneTree][SplitContainer] Two children") {
 }
 
 } // namespace TestSplitContainer
-
-#endif // TEST_SPLIT_CONTAINER_H

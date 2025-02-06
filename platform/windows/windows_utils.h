@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef WINDOWS_UTILS_H
-#define WINDOWS_UTILS_H
+#pragma once
 
 #ifdef WINDOWS_ENABLED
 
@@ -45,5 +44,3 @@ public:
 };
 
 #endif // WINDOWS_ENABLED
-
-#endif // WINDOWS_UTILS_H

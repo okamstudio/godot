@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ROOT_MOTION_EDITOR_PLUGIN_H
-#define ROOT_MOTION_EDITOR_PLUGIN_H
+#pragma once
 
 #include "editor/editor_inspector.h"
 
@@ -67,5 +66,3 @@ public:
 	virtual bool can_handle(Object *p_object) override;
 	virtual bool parse_property(Object *p_object, const Variant::Type p_type, const String &p_path, const PropertyHint p_hint, const String &p_hint_text, const BitField<PropertyUsageFlags> p_usage, const bool p_wide = false) override;
 };
-
-#endif // ROOT_MOTION_EDITOR_PLUGIN_H

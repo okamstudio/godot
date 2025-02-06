@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TYPED_DICTIONARY_H
-#define TYPED_DICTIONARY_H
+#pragma once
 
 #include "core/object/object.h"
 #include "core/variant/binder_common.h"
@@ -360,5 +359,3 @@ MAKE_TYPED_DICTIONARY(IPAddress, Variant::STRING)
 #undef MAKE_TYPED_DICTIONARY_NIL
 #undef MAKE_TYPED_DICTIONARY_EXPANDED
 #undef MAKE_TYPED_DICTIONARY_WITH_OBJECT
-
-#endif // TYPED_DICTIONARY_H

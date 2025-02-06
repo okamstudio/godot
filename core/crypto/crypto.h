@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef CRYPTO_H
-#define CRYPTO_H
+#pragma once
 
 #include "core/crypto/hashing_context.h"
 #include "core/io/resource.h"
@@ -167,5 +166,3 @@ public:
 	virtual void get_recognized_extensions(const Ref<Resource> &p_resource, List<String> *p_extensions) const override;
 	virtual bool recognize(const Ref<Resource> &p_resource) const override;
 };
-
-#endif // CRYPTO_H

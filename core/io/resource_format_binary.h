@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RESOURCE_FORMAT_BINARY_H
-#define RESOURCE_FORMAT_BINARY_H
+#pragma once
 
 #include "core/io/file_access.h"
 #include "core/io/resource_loader.h"
@@ -189,5 +188,3 @@ public:
 
 	ResourceFormatSaverBinary();
 };
-
-#endif // RESOURCE_FORMAT_BINARY_H

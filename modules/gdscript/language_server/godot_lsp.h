@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_LSP_H
-#define GODOT_LSP_H
+#pragma once
 
 #include "core/doc_data.h"
 #include "core/object/class_db.h"
@@ -1954,5 +1953,3 @@ static String marked_documentation(const String &p_bbcode) {
 	return markdown;
 }
 } // namespace lsp
-
-#endif // GODOT_LSP_H

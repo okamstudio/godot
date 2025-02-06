@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef CODE_EDIT_H
-#define CODE_EDIT_H
+#pragma once
 
 #include "core/object/script_language.h"
 #include "scene/gui/text_edit.h"
@@ -527,5 +526,3 @@ VARIANT_ENUM_CAST(CodeEdit::CodeCompletionLocation);
 struct CodeCompletionOptionCompare {
 	_FORCE_INLINE_ bool operator()(const ScriptLanguage::CodeCompletionOption &l, const ScriptLanguage::CodeCompletionOption &r) const;
 };
-
-#endif // CODE_EDIT_H

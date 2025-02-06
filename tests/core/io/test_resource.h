@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_RESOURCE_H
-#define TEST_RESOURCE_H
+#pragma once
 
 #include "core/io/resource.h"
 #include "core/io/resource_loader.h"
@@ -167,5 +166,3 @@ TEST_CASE("[Resource] Breaking circular references on save") {
 	resource_c->remove_meta("next");
 }
 } // namespace TestResource
-
-#endif // TEST_RESOURCE_H

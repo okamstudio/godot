@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RESOURCE_IMPORTER_TEXTURE_ATLAS_H
-#define RESOURCE_IMPORTER_TEXTURE_ATLAS_H
+#pragma once
 
 #include "core/io/image.h"
 #include "core/io/resource_importer.h"
@@ -71,5 +70,3 @@ public:
 
 	ResourceImporterTextureAtlas();
 };
-
-#endif // RESOURCE_IMPORTER_TEXTURE_ATLAS_H

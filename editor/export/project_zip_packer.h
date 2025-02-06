@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PROJECT_ZIP_PACKER_H
-#define PROJECT_ZIP_PACKER_H
+#pragma once
 
 #include "core/io/zip_io.h"
 #include "core/variant/variant.h"
@@ -42,5 +41,3 @@ public:
 	static String get_project_zip_safe_name();
 	static void pack_project_zip(const String &p_path);
 };
-
-#endif // PROJECT_ZIP_PACKER_H

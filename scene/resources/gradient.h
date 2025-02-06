@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GRADIENT_H
-#define GRADIENT_H
+#pragma once
 
 #include "core/io/resource.h"
 
@@ -240,5 +239,3 @@ public:
 
 VARIANT_ENUM_CAST(Gradient::InterpolationMode);
 VARIANT_ENUM_CAST(Gradient::ColorSpace);
-
-#endif // GRADIENT_H

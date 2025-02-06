@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_ARRAYMESH_H
-#define TEST_ARRAYMESH_H
+#pragma once
 
 #include "scene/resources/3d/primitive_meshes.h"
 #include "scene/resources/mesh.h"
@@ -449,5 +448,3 @@ TEST_CASE("[SceneTree][ArrayMesh] Get/Set mesh metadata and actions") {
 }
 
 } // namespace TestArrayMesh
-
-#endif // TEST_ARRAYMESH_H

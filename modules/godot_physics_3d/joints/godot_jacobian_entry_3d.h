@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_JACOBIAN_ENTRY_3D_H
-#define GODOT_JACOBIAN_ENTRY_3D_H
+#pragma once
 
 /*
 Adapted to Godot from the Bullet library.
@@ -165,5 +164,3 @@ public:
 	//Optimization: can be stored in the w/last component of one of the vectors
 	real_t m_Adiag = 1.0;
 };
-
-#endif // GODOT_JACOBIAN_ENTRY_3D_H

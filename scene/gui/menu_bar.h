@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MENU_BAR_H
-#define MENU_BAR_H
+#pragma once
 
 #include "scene/gui/popup_menu.h"
 
@@ -195,5 +194,3 @@ public:
 	MenuBar();
 	~MenuBar();
 };
-
-#endif // MENU_BAR_H

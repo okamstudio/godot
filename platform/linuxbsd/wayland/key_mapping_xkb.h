@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef KEY_MAPPING_XKB_H
-#define KEY_MAPPING_XKB_H
+#pragma once
 
 #include "core/os/keyboard.h"
 #include "core/templates/hash_map.h"
@@ -62,5 +61,3 @@ public:
 	static Key get_scancode(unsigned int p_code);
 	static KeyLocation get_location(unsigned int p_code);
 };
-
-#endif // KEY_MAPPING_XKB_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_PATH_2D_H
-#define TEST_PATH_2D_H
+#pragma once
 
 #include "scene/2d/path_2d.h"
 
@@ -105,5 +104,3 @@ TEST_CASE("[SceneTree][Path2D] Curve setter and getter") {
 }
 
 } // namespace TestPath2D
-
-#endif // TEST_PATH_2D_H

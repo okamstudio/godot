@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef DISPLAY_SERVER_MOCK_H
-#define DISPLAY_SERVER_MOCK_H
+#pragma once
 
 #include "servers/display_server_headless.h"
 
@@ -146,5 +145,3 @@ public:
 		register_create_function("mock", create_func, get_rendering_drivers_func);
 	}
 };
-
-#endif // DISPLAY_SERVER_MOCK_H

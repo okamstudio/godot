@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_METHOD_BIND_H
-#define TEST_METHOD_BIND_H
+#pragma once
 
 #include "core/object/class_db.h"
 
@@ -171,5 +170,3 @@ TEST_CASE("[MethodBind] check all method binds") {
 	memdelete(mbt);
 }
 } // namespace TestMethodBind
-
-#endif // TEST_METHOD_BIND_H

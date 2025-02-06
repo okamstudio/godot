@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef CHARACTER_BODY_2D_H
-#define CHARACTER_BODY_2D_H
+#pragma once
 
 #include "scene/2d/physics/kinematic_collision_2d.h"
 #include "scene/2d/physics/physics_body_2d.h"
@@ -168,5 +167,3 @@ protected:
 
 VARIANT_ENUM_CAST(CharacterBody2D::MotionMode);
 VARIANT_ENUM_CAST(CharacterBody2D::PlatformOnLeave);
-
-#endif // CHARACTER_BODY_2D_H

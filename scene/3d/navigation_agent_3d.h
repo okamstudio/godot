@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef NAVIGATION_AGENT_3D_H
-#define NAVIGATION_AGENT_3D_H
+#pragma once
 
 #include "scene/main/node.h"
 #include "servers/navigation/navigation_path_query_parameters_3d.h"
@@ -278,5 +277,3 @@ private:
 	void _update_debug_path();
 #endif // DEBUG_ENABLED
 };
-
-#endif // NAVIGATION_AGENT_3D_H

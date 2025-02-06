@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef IMAGE_LOADER_TGA_H
-#define IMAGE_LOADER_TGA_H
+#pragma once
 
 #include "core/io/image_loader.h"
 
@@ -79,5 +78,3 @@ public:
 	virtual void get_recognized_extensions(List<String> *p_extensions) const;
 	ImageLoaderTGA();
 };
-
-#endif // IMAGE_LOADER_TGA_H

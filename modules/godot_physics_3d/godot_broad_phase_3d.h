@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_BROAD_PHASE_3D_H
-#define GODOT_BROAD_PHASE_3D_H
+#pragma once
 
 #include "core/math/aabb.h"
 #include "core/math/math_funcs.h"
@@ -68,5 +67,3 @@ public:
 
 	virtual ~GodotBroadPhase3D();
 };
-
-#endif // GODOT_BROAD_PHASE_3D_H

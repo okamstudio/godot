@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SPLIT_CONTAINER_H
-#define SPLIT_CONTAINER_H
+#pragma once
 
 #include "scene/gui/container.h"
 
@@ -157,5 +156,3 @@ public:
 	VSplitContainer() :
 			SplitContainer(true) { is_fixed = true; }
 };
-
-#endif // SPLIT_CONTAINER_H

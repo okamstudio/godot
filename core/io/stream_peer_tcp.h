@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef STREAM_PEER_TCP_H
-#define STREAM_PEER_TCP_H
+#pragma once
 
 #include "core/io/ip.h"
 #include "core/io/ip_address.h"
@@ -92,5 +91,3 @@ public:
 };
 
 VARIANT_ENUM_CAST(StreamPeerTCP::Status);
-
-#endif // STREAM_PEER_TCP_H

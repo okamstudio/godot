@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef NAV_REGION_H
-#define NAV_REGION_H
+#pragma once
 
 #include "nav_base.h"
 #include "nav_utils.h"
@@ -109,5 +108,3 @@ public:
 private:
 	void update_polygons();
 };
-
-#endif // NAV_REGION_H

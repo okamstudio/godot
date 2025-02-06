@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef XR_HAND_MODIFIER_3D_H
-#define XR_HAND_MODIFIER_3D_H
+#pragma once
 
 #include "scene/3d/skeleton_modifier_3d.h"
 #include "servers/xr/xr_hand_tracker.h"
@@ -83,5 +82,3 @@ private:
 };
 
 VARIANT_ENUM_CAST(XRHandModifier3D::BoneUpdate)
-
-#endif // XR_HAND_MODIFIER_3D_H

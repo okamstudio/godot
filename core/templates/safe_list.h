@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SAFE_LIST_H
-#define SAFE_LIST_H
+#pragma once
 
 #include "core/os/memory.h"
 #include "core/typedefs.h"
@@ -244,5 +243,3 @@ public:
 #endif
 	}
 };
-
-#endif // SAFE_LIST_H

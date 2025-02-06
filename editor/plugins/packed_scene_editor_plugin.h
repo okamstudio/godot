@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PACKED_SCENE_EDITOR_PLUGIN_H
-#define PACKED_SCENE_EDITOR_PLUGIN_H
+#pragma once
 
 #include "editor/editor_inspector.h"
 #include "editor/plugins/editor_plugin.h"
@@ -64,5 +63,3 @@ class PackedSceneEditorPlugin : public EditorPlugin {
 public:
 	PackedSceneEditorPlugin();
 };
-
-#endif // PACKED_SCENE_EDITOR_PLUGIN_H

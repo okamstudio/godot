@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_GLTF_H
-#define TEST_GLTF_H
+#pragma once
 
 #include "tests/test_macros.h"
 
@@ -162,5 +161,3 @@ void init(const String &p_test, const String &p_copy_target = String()) {
 } //namespace TestGltf
 
 #endif // TOOLS_ENABLED
-
-#endif // TEST_GLTF_H

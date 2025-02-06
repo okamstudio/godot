@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GLTF_PHYSICS_SHAPE_H
-#define GLTF_PHYSICS_SHAPE_H
+#pragma once
 
 #include "../../gltf_defines.h"
 
@@ -89,5 +88,3 @@ public:
 	static Ref<GLTFPhysicsShape> from_dictionary(const Dictionary p_dictionary);
 	Dictionary to_dictionary() const;
 };
-
-#endif // GLTF_PHYSICS_SHAPE_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef NAV_LINK_H
-#define NAV_LINK_H
+#pragma once
 
 #include "3d/nav_base_iteration_3d.h"
 #include "nav_base.h"
@@ -93,5 +92,3 @@ public:
 
 	void get_iteration_update(NavLinkIteration &r_iteration);
 };
-
-#endif // NAV_LINK_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RETARGET_MODIFIER_3D_H
-#define RETARGET_MODIFIER_3D_H
+#pragma once
 
 #include "scene/3d/skeleton_modifier_3d.h"
 #include "scene/resources/skeleton_profile.h"
@@ -126,5 +125,3 @@ public:
 };
 
 VARIANT_BITFIELD_CAST(RetargetModifier3D::TransformFlag);
-
-#endif // RETARGET_MODIFIER_3D_H

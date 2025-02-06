@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef UPNP_MINIUPNP_H
-#define UPNP_MINIUPNP_H
+#pragma once
 
 #ifndef WEB_ENABLED
 
@@ -89,5 +88,3 @@ public:
 };
 
 #endif // WEB_ENABLED
-
-#endif // UPNP_MINIUPNP_H

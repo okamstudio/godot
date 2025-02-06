@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ANIMATION_BEZIER_EDITOR_H
-#define ANIMATION_BEZIER_EDITOR_H
+#pragma once
 
 #include "animation_track_editor.h"
 #include "core/templates/hashfuncs.h"
@@ -225,5 +224,3 @@ public:
 
 	AnimationBezierTrackEdit();
 };
-
-#endif // ANIMATION_BEZIER_EDITOR_H

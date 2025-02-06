@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ROOT_MOTION_VIEW_H
-#define ROOT_MOTION_VIEW_H
+#pragma once
 
 #include "scene/3d/visual_instance_3d.h"
 #include "scene/resources/immediate_mesh.h"
@@ -75,5 +74,3 @@ public:
 	RootMotionView();
 	~RootMotionView();
 };
-
-#endif // ROOT_MOTION_VIEW_H

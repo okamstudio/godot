@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MONO_PATH_UTILS_H
-#define MONO_PATH_UTILS_H
+#pragma once
 
 #include "core/string/ustring.h"
 
@@ -60,5 +59,3 @@ String relative_to(const String &p_path, const String &p_relative_to);
 
 String get_csharp_project_name();
 } // namespace path
-
-#endif // MONO_PATH_UTILS_H

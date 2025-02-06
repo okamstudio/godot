@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_PLATFORM_INC_H
-#define OPENXR_PLATFORM_INC_H
+#pragma once
 
 // In various places we need to include platform definitions but we can't
 // include these in our normal header files as we'll end up with issues.
@@ -86,5 +85,3 @@
 
 // Include platform dependent structs.
 #include <openxr/openxr_platform.h>
-
-#endif // OPENXR_PLATFORM_INC_H

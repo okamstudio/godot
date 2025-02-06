@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GLTF_DOCUMENT_EXTENSION_TEXTURE_KTX_H
-#define GLTF_DOCUMENT_EXTENSION_TEXTURE_KTX_H
+#pragma once
 
 #include "gltf_document_extension.h"
 
@@ -43,5 +42,3 @@ public:
 	Error parse_image_data(Ref<GLTFState> p_state, const PackedByteArray &p_image_data, const String &p_mime_type, Ref<Image> r_image) override;
 	Error parse_texture_json(Ref<GLTFState> p_state, const Dictionary &p_texture_json, Ref<GLTFTexture> r_gltf_texture) override;
 };
-
-#endif // GLTF_DOCUMENT_EXTENSION_TEXTURE_KTX_H

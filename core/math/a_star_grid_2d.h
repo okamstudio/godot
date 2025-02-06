@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef A_STAR_GRID_2D_H
-#define A_STAR_GRID_2D_H
+#pragma once
 
 #include "core/object/gdvirtual.gen.inc"
 #include "core/object/ref_counted.h"
@@ -230,5 +229,3 @@ public:
 VARIANT_ENUM_CAST(AStarGrid2D::DiagonalMode);
 VARIANT_ENUM_CAST(AStarGrid2D::Heuristic);
 VARIANT_ENUM_CAST(AStarGrid2D::CellShape)
-
-#endif // A_STAR_GRID_2D_H

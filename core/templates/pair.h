@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PAIR_H
-#define PAIR_H
+#pragma once
 
 #include "core/templates/hashfuncs.h"
 #include "core/typedefs.h"
@@ -110,5 +109,3 @@ struct KeyValueSort {
 		return A.key < B.key;
 	}
 };
-
-#endif // PAIR_H

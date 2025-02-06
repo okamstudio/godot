@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PLACEHOLDER_TEXTURES_H
-#define PLACEHOLDER_TEXTURES_H
+#pragma once
 
 #include "scene/resources/texture.h"
 
@@ -128,5 +127,3 @@ public:
 	PlaceholderCubemapArray() :
 			PlaceholderTextureLayered(LAYERED_TYPE_CUBEMAP_ARRAY) {}
 };
-
-#endif // PLACEHOLDER_TEXTURES_H

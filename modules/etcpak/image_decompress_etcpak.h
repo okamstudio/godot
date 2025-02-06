@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef IMAGE_DECOMPRESS_ETCPAK_H
-#define IMAGE_DECOMPRESS_ETCPAK_H
+#pragma once
 
 #include "core/io/image.h"
 
@@ -41,5 +40,3 @@ enum EtcpakFormat {
 };
 
 void _decompress_etc(Image *p_image);
-
-#endif // IMAGE_DECOMPRESS_ETCPAK_H

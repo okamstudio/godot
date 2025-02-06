@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_OBJECT_H
-#define TEST_OBJECT_H
+#pragma once
 
 #include "core/object/class_db.h"
 #include "core/object/object.h"
@@ -603,5 +602,3 @@ TEST_CASE("[Object] Destruction at the end of the call chain is safe") {
 }
 
 } // namespace TestObject
-
-#endif // TEST_OBJECT_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PROPERTY_UTILS_H
-#define PROPERTY_UTILS_H
+#pragma once
 
 #include "scene/main/node.h"
 #include "scene/resources/packed_scene.h"
@@ -47,5 +46,3 @@ public:
 	// to override property values.)
 	static Vector<SceneState::PackState> get_node_states_stack(const Node *p_node, const Node *p_owner = nullptr, bool *r_instantiated_by_owner = nullptr);
 };
-
-#endif // PROPERTY_UTILS_H

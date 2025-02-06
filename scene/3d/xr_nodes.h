@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef XR_NODES_H
-#define XR_NODES_H
+#pragma once
 
 #include "scene/3d/camera_3d.h"
 #include "servers/xr/xr_positional_tracker.h"
@@ -211,5 +210,3 @@ public:
 	XROrigin3D() {}
 	~XROrigin3D() {}
 };
-
-#endif // XR_NODES_H

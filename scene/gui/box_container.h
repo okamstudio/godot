@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef BOX_CONTAINER_H
-#define BOX_CONTAINER_H
+#pragma once
 
 #include "scene/gui/container.h"
 
@@ -97,5 +96,3 @@ public:
 };
 
 VARIANT_ENUM_CAST(BoxContainer::AlignmentMode);
-
-#endif // BOX_CONTAINER_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef A_HASH_MAP_H
-#define A_HASH_MAP_H
+#pragma once
 
 #include "core/templates/hash_map.h"
 
@@ -736,5 +735,3 @@ extern template class AHashMap<String, int>;
 extern template class AHashMap<StringName, StringName>;
 extern template class AHashMap<StringName, Variant>;
 extern template class AHashMap<StringName, int>;
-
-#endif // A_HASH_MAP_H

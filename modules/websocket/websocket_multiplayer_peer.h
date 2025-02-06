@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef WEBSOCKET_MULTIPLAYER_PEER_H
-#define WEBSOCKET_MULTIPLAYER_PEER_H
+#pragma once
 
 #include "websocket_peer.h"
 
@@ -140,5 +139,3 @@ public:
 	WebSocketMultiplayerPeer();
 	~WebSocketMultiplayerPeer();
 };
-
-#endif // WEBSOCKET_MULTIPLAYER_PEER_H

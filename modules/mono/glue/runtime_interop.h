@@ -28,13 +28,10 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RUNTIME_INTEROP_H
-#define RUNTIME_INTEROP_H
+#pragma once
 
 #include "core/typedefs.h"
 
 namespace godotsharp {
 const void **get_runtime_interop_funcs(int32_t &r_size);
 }
-
-#endif // RUNTIME_INTEROP_H

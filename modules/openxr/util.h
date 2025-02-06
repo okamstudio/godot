@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef UTIL_H
-#define UTIL_H
+#pragma once
 
 #define UNPACK(...) __VA_ARGS__
 
@@ -127,5 +126,3 @@
 		}                                                                                                                                                                                                              \
 		return (*func_name##_ptr)(p_##arg1, p_##arg2, p_##arg3, p_##arg4, p_##arg5, p_##arg6);                                                                                                                         \
 	}
-
-#endif // UTIL_H

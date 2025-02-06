@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef LIGHTMAPPER_H
-#define LIGHTMAPPER_H
+#pragma once
 
 #include "core/object/ref_counted.h"
 
@@ -200,5 +199,3 @@ public:
 
 	Lightmapper();
 };
-
-#endif // LIGHTMAPPER_H

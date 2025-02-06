@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_MXINK_EXTENSION_H
-#define OPENXR_MXINK_EXTENSION_H
+#pragma once
 
 #include "openxr_extension_wrapper.h"
 
@@ -44,5 +43,3 @@ public:
 private:
 	bool available = false;
 };
-
-#endif // OPENXR_MXINK_EXTENSION_H

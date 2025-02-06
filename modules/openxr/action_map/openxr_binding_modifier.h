@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_BINDING_MODIFIER_H
-#define OPENXR_BINDING_MODIFIER_H
+#pragma once
 
 #include "../action_map/openxr_action.h"
 #include "core/io/resource.h"
@@ -77,5 +76,3 @@ protected:
 public:
 	OpenXRIPBinding *get_ip_binding() const { return ip_binding; }
 };
-
-#endif // OPENXR_BINDING_MODIFIER_H

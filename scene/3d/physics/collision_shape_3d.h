@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef COLLISION_SHAPE_3D_H
-#define COLLISION_SHAPE_3D_H
+#pragma once
 
 #include "scene/3d/node_3d.h"
 #include "scene/resources/3d/shape_3d.h"
@@ -90,5 +89,3 @@ public:
 	CollisionShape3D();
 	~CollisionShape3D();
 };
-
-#endif // COLLISION_SHAPE_3D_H

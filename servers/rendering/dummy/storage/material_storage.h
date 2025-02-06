@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MATERIAL_STORAGE_DUMMY_H
-#define MATERIAL_STORAGE_DUMMY_H
+#pragma once
 
 #include "servers/rendering/shader_compiler.h"
 #include "servers/rendering/shader_language.h"
@@ -128,5 +127,3 @@ public:
 };
 
 } // namespace RendererDummy
-
-#endif // MATERIAL_STORAGE_DUMMY_H

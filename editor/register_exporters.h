@@ -28,10 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef REGISTER_EXPORTERS_H
-#define REGISTER_EXPORTERS_H
+#pragma once
 
 void register_exporter_types();
 void register_exporters();
-
-#endif // REGISTER_EXPORTERS_H
