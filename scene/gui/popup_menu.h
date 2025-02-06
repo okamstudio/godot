@@ -37,6 +37,7 @@
 #include "scene/property_list_helper.h"
 #include "scene/resources/text_line.h"
 
+class JoypadHelper;
 class PanelContainer;
 
 class PopupMenu : public Popup {
@@ -158,9 +159,8 @@ class PopupMenu : public Popup {
 	ScrollContainer *scroll_container = nullptr;
 	Control *control = nullptr;
 
-	const float DEFAULT_GAMEPAD_EVENT_DELAY_MS = 0.5;
-	const float GAMEPAD_EVENT_REPEAT_RATE_MS = 1.0 / 20;
-	float gamepad_event_delay_ms = DEFAULT_GAMEPAD_EVENT_DELAY_MS;
+	Ref<JoypadHelper> joypad_helper;
+	void _cursor_move(const Vector2i &p_movement);
 
 	struct ThemeCache {
 		Ref<StyleBox> panel_style;

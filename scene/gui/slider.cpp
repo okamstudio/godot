@@ -30,6 +30,7 @@
 
 #include "slider.h"
 
+#include "scene/gui/joypad_helper.h"
 #include "scene/theme/theme_db.h"
 
 Size2 Slider::get_minimum_size() const {
@@ -40,6 +41,14 @@ Size2 Slider::get_minimum_size() const {
 		return Size2i(ss.width, MAX(ss.height, rs.height));
 	} else {
 		return Size2i(MAX(ss.width, rs.width), ss.height);
+	}
+}
+
+void Slider::_value_move(const Vector2i &p_movement) {
+	if (is_layout_rtl()) {
+		set_value(get_value() + (custom_step >= 0 ? custom_step : get_step()) * (-p_movement.x - p_movement.y));
+	} else {
+		set_value(get_value() + (custom_step >= 0 ? custom_step : get_step()) * (p_movement.x - p_movement.y));
 	}
 }
 
@@ -125,67 +134,34 @@ void Slider::gui_input(const Ref<InputEvent> &p_event) {
 		}
 	}
 
-	Input *input = Input::get_singleton();
-	Ref<InputEventJoypadMotion> joypadmotion_event = p_event;
-	Ref<InputEventJoypadButton> joypadbutton_event = p_event;
-	bool is_joypad_event = (joypadmotion_event.is_valid() || joypadbutton_event.is_valid());
-
 	if (mm.is_null() && mb.is_null()) {
+		if (joypad_helper->process_event(p_event)) {
+			return;
+		}
+
 		if (p_event->is_action_pressed("ui_left", true)) {
 			if (orientation != HORIZONTAL) {
 				return;
 			}
-			if (is_joypad_event) {
-				if (!input->is_action_just_pressed("ui_left", true)) {
-					return;
-				}
-				set_process_internal(true);
-			}
-			if (is_layout_rtl()) {
-				set_value(get_value() + (custom_step >= 0 ? custom_step : get_step()));
-			} else {
-				set_value(get_value() - (custom_step >= 0 ? custom_step : get_step()));
-			}
+			_value_move(Vector2i(-1, 0));
 			accept_event();
 		} else if (p_event->is_action_pressed("ui_right", true)) {
 			if (orientation != HORIZONTAL) {
 				return;
 			}
-			if (is_joypad_event) {
-				if (!input->is_action_just_pressed("ui_right", true)) {
-					return;
-				}
-				set_process_internal(true);
-			}
-			if (is_layout_rtl()) {
-				set_value(get_value() - (custom_step >= 0 ? custom_step : get_step()));
-			} else {
-				set_value(get_value() + (custom_step >= 0 ? custom_step : get_step()));
-			}
+			_value_move(Vector2i(1, 0));
 			accept_event();
 		} else if (p_event->is_action_pressed("ui_up", true)) {
 			if (orientation != VERTICAL) {
 				return;
 			}
-			if (is_joypad_event) {
-				if (!input->is_action_just_pressed("ui_up", true)) {
-					return;
-				}
-				set_process_internal(true);
-			}
-			set_value(get_value() + (custom_step >= 0 ? custom_step : get_step()));
+			_value_move(Vector2i(0, -1));
 			accept_event();
 		} else if (p_event->is_action_pressed("ui_down", true)) {
 			if (orientation != VERTICAL) {
 				return;
 			}
-			if (is_joypad_event) {
-				if (!input->is_action_just_pressed("ui_down", true)) {
-					return;
-				}
-				set_process_internal(true);
-			}
-			set_value(get_value() - (custom_step >= 0 ? custom_step : get_step()));
+			_value_move(Vector2i(0, 1));
 			accept_event();
 		} else if (p_event->is_action("ui_home", true) && p_event->is_pressed()) {
 			set_value(get_min());
@@ -200,44 +176,7 @@ void Slider::gui_input(const Ref<InputEvent> &p_event) {
 void Slider::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_INTERNAL_PROCESS: {
-			Input *input = Input::get_singleton();
-
-			if (input->is_action_just_released("ui_left") || input->is_action_just_released("ui_right") || input->is_action_just_released("ui_up") || input->is_action_just_released("ui_down")) {
-				gamepad_event_delay_ms = DEFAULT_GAMEPAD_EVENT_DELAY_MS;
-				set_process_internal(false);
-				return;
-			}
-
-			gamepad_event_delay_ms -= get_process_delta_time();
-			if (gamepad_event_delay_ms <= 0) {
-				gamepad_event_delay_ms = GAMEPAD_EVENT_REPEAT_RATE_MS + gamepad_event_delay_ms;
-				if (orientation == HORIZONTAL) {
-					if (input->is_action_pressed("ui_left")) {
-						if (is_layout_rtl()) {
-							set_value(get_value() + (custom_step >= 0 ? custom_step : get_step()));
-						} else {
-							set_value(get_value() - (custom_step >= 0 ? custom_step : get_step()));
-						}
-					}
-
-					if (input->is_action_pressed("ui_right")) {
-						if (is_layout_rtl()) {
-							set_value(get_value() - (custom_step >= 0 ? custom_step : get_step()));
-						} else {
-							set_value(get_value() + (custom_step >= 0 ? custom_step : get_step()));
-						}
-					}
-				} else if (orientation == VERTICAL) {
-					if (input->is_action_pressed("ui_down")) {
-						set_value(get_value() - (custom_step >= 0 ? custom_step : get_step()));
-					}
-
-					if (input->is_action_pressed("ui_up")) {
-						set_value(get_value() + (custom_step >= 0 ? custom_step : get_step()));
-					}
-				}
-			}
-
+			joypad_helper->process_internal(get_process_delta_time());
 		} break;
 
 		case NOTIFICATION_THEME_CHANGED: {
@@ -428,4 +367,13 @@ void Slider::_bind_methods() {
 Slider::Slider(Orientation p_orientation) {
 	orientation = p_orientation;
 	set_focus_mode(FOCUS_ALL);
+
+	joypad_helper.instantiate();
+	joypad_helper->setup(this, orientation == HORIZONTAL, orientation == VERTICAL);
+	joypad_helper->set_move_callback(callable_mp(this, &Slider::_value_move));
+}
+
+Slider::~Slider() {
+	// Do not remove, kept to prevent forward declaration issues, see:
+	// https://github.com/godotengine/godot/pull/80330
 }

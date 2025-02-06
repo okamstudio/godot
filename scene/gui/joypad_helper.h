@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  slider.h                                                              */
+/*  joypad_helper.h                                                       */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,90 +28,40 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SLIDER_H
-#define SLIDER_H
+#ifndef JOYPAD_HELPER_H
+#define JOYPAD_HELPER_H
 
-#include "scene/gui/range.h"
+#include "core/object/ref_counted.h"
 
-class JoypadHelper;
+class InputEvent;
+class Node;
 
-class Slider : public Range {
-	GDCLASS(Slider, Range);
+class JoypadHelper : public RefCounted {
+	GDCLASS(JoypadHelper, RefCounted);
 
-	struct Grab {
-		int pos = 0;
-		double uvalue = 0.0; // Value at `pos`.
-		double value_before_dragging = 0.0;
-		bool active = false;
-	} grab;
+private:
+	const float DEFAULT_GAMEPAD_EVENT_DELAY_MS = 0.5;
+	const float GAMEPAD_EVENT_REPEAT_RATE_MS = 1.0 / 20;
+	float gamepad_event_delay_ms = DEFAULT_GAMEPAD_EVENT_DELAY_MS;
 
-	int ticks = 0;
-	bool mouse_inside = false;
-	Orientation orientation;
-	double custom_step = -1.0;
-	bool editable = true;
-	bool scrollable = true;
+	Node *owner = nullptr;
+	bool use_horizontal_axis = false;
+	bool use_vertical_axis = false;
 
-	Ref<JoypadHelper> joypad_helper;
-	void _value_move(const Vector2i &p_movement);
+	Callable move_callback;
+	bool toggle_process = true;
+	bool active = false;
 
-	struct ThemeCache {
-		Ref<StyleBox> slider_style;
-		Ref<StyleBox> grabber_area_style;
-		Ref<StyleBox> grabber_area_hl_style;
-
-		Ref<Texture2D> grabber_icon;
-		Ref<Texture2D> grabber_hl_icon;
-		Ref<Texture2D> grabber_disabled_icon;
-		Ref<Texture2D> tick_icon;
-
-		bool center_grabber = false;
-		int grabber_offset = 0;
-	} theme_cache;
-
-protected:
-	bool ticks_on_borders = false;
-
-	virtual void gui_input(const Ref<InputEvent> &p_event) override;
-	void _notification(int p_what);
-	static void _bind_methods();
+	bool _check_initial_action(const Ref<InputEvent> &p_event, const StringName &p_action_name);
+	void _set_active(bool p_active);
 
 public:
-	virtual Size2 get_minimum_size() const override;
+	void setup(Node *p_owner, bool p_use_horizontal_axis, bool p_use_vertical_axis);
+	void set_move_callback(const Callable &p_callback);
+	void disable_process_toggle();
 
-	void set_custom_step(double p_custom_step);
-	double get_custom_step() const;
-
-	void set_ticks(int p_count);
-	int get_ticks() const;
-
-	void set_ticks_on_borders(bool);
-	bool get_ticks_on_borders() const;
-
-	void set_editable(bool p_editable);
-	bool is_editable() const;
-
-	void set_scrollable(bool p_scrollable);
-	bool is_scrollable() const;
-
-	Slider(Orientation p_orientation = VERTICAL);
-	~Slider();
+	bool process_event(const Ref<InputEvent> &p_event);
+	void process_internal(double p_delta);
 };
 
-class HSlider : public Slider {
-	GDCLASS(HSlider, Slider);
-
-public:
-	HSlider() :
-			Slider(HORIZONTAL) { set_v_size_flags(0); }
-};
-
-class VSlider : public Slider {
-	GDCLASS(VSlider, Slider);
-
-public:
-	VSlider() :
-			Slider(VERTICAL) { set_h_size_flags(0); }
-};
-
-#endif // SLIDER_H
+#endif // JOYPAD_HELPER_H

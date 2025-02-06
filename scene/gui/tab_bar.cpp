@@ -31,6 +31,7 @@
 #include "tab_bar.h"
 
 #include "scene/gui/box_container.h"
+#include "scene/gui/joypad_helper.h"
 #include "scene/gui/label.h"
 #include "scene/gui/texture_rect.h"
 #include "scene/main/viewport.h"
@@ -294,27 +295,15 @@ void TabBar::gui_input(const Ref<InputEvent> &p_event) {
 	}
 
 	if (p_event->is_pressed()) {
-		Input *input = Input::get_singleton();
-		Ref<InputEventJoypadMotion> joypadmotion_event = p_event;
-		Ref<InputEventJoypadButton> joypadbutton_event = p_event;
-		bool is_joypad_event = (joypadmotion_event.is_valid() || joypadbutton_event.is_valid());
+		if (joypad_helper->process_event(p_event)) {
+			return;
+		}
+
 		if (p_event->is_action("ui_right", true)) {
-			if (is_joypad_event) {
-				if (!input->is_action_just_pressed("ui_right", true)) {
-					return;
-				}
-				set_process_internal(true);
-			}
 			if (is_layout_rtl() ? select_previous_available() : select_next_available()) {
 				accept_event();
 			}
 		} else if (p_event->is_action("ui_left", true)) {
-			if (is_joypad_event) {
-				if (!input->is_action_just_pressed("ui_left", true)) {
-					return;
-				}
-				set_process_internal(true);
-			}
 			if (is_layout_rtl() ? select_next_available() : select_previous_available()) {
 				accept_event();
 			}
@@ -358,25 +347,7 @@ void TabBar::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_INTERNAL_PROCESS: {
-			Input *input = Input::get_singleton();
-
-			if (input->is_action_just_released("ui_left") || input->is_action_just_released("ui_right")) {
-				gamepad_event_delay_ms = DEFAULT_GAMEPAD_EVENT_DELAY_MS;
-				set_process_internal(false);
-				return;
-			}
-
-			gamepad_event_delay_ms -= get_process_delta_time();
-			if (gamepad_event_delay_ms <= 0) {
-				gamepad_event_delay_ms = GAMEPAD_EVENT_REPEAT_RATE_MS + gamepad_event_delay_ms;
-				if (input->is_action_pressed("ui_right")) {
-					is_layout_rtl() ? select_previous_available() : select_next_available();
-				}
-
-				if (input->is_action_pressed("ui_left")) {
-					is_layout_rtl() ? select_next_available() : select_previous_available();
-				}
-			}
+			joypad_helper->process_internal(get_process_delta_time());
 		} break;
 
 		case NOTIFICATION_LAYOUT_DIRECTION_CHANGED: {
@@ -1479,6 +1450,14 @@ void TabBar::move_tab(int p_from, int p_to) {
 	notify_property_list_changed();
 }
 
+void TabBar::_tab_cursor_move(const Vector2i &p_movement) {
+	if (p_movement.x > 0) {
+		is_layout_rtl() ? select_previous_available() : select_next_available();
+	} else if (p_movement.x < 0) {
+		is_layout_rtl() ? select_next_available() : select_previous_available();
+	}
+}
+
 int TabBar::get_tab_width(int p_idx) const {
 	ERR_FAIL_INDEX_V(p_idx, tabs.size(), 0);
 
@@ -1893,4 +1872,7 @@ TabBar::TabBar() {
 	connect(SceneStringName(mouse_exited), callable_mp(this, &TabBar::_on_mouse_exited));
 
 	property_helper.setup_for_instance(base_property_helper, this);
+	joypad_helper.instantiate();
+	joypad_helper->setup(this, true, false);
+	joypad_helper->set_move_callback(callable_mp(this, &TabBar::_tab_cursor_move));
 }
