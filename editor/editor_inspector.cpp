@@ -3616,6 +3616,20 @@ void EditorInspector::update_tree() {
 								doc_path = doc_path_current;
 							}
 						}
+					} else if (slices.size() == 2 && slices[0].begins_with("item_")) {
+						for (int i = 0; i < F->get().methods.size(); i++) {
+							if (F->get().methods[i].name == "set_item_" + slices[1]) {
+								descr = DTR(F->get().methods[i].description);
+								break;
+							}
+						}
+					} else if (slices.size() == 2 && slices[0].begins_with("tab_")) {
+						for (int i = 0; i < F->get().methods.size(); i++) {
+							if (F->get().methods[i].name == "set_tab_" + slices[1]) {
+								descr = DTR(F->get().methods[i].description);
+								break;
+							}
+						}
 					}
 
 					if (is_native_class) {
