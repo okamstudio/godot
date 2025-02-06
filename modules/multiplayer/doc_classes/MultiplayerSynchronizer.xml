@@ -79,8 +79,9 @@
 			</description>
 		</signal>
 		<signal name="synchronized">
+			<param index="0" name="updates_skipped" type="int" />
 			<description>
-				Emitted when a new synchronization state is received by this synchronizer after the properties have been updated.
+				Emitted when a new synchronization state is received by this synchronizer after the properties have been updated. The argument [param updates_skipped] is the update timestamp relative to the last received update.
 			</description>
 		</signal>
 		<signal name="visibility_changed">

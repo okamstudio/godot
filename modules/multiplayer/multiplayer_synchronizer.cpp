@@ -133,14 +133,26 @@ bool MultiplayerSynchronizer::update_outbound_sync_time(uint64_t p_usec) {
 	return true;
 }
 
-bool MultiplayerSynchronizer::update_inbound_sync_time(uint16_t p_network_time) {
-	if (!sync_started) {
+int16_t MultiplayerSynchronizer::update_inbound_sync_time(uint16_t p_network_time) {
+	int16_t offset = 0;
+
+	if (sync_started) {
+		if (p_network_time >= last_inbound_sync) {
+			offset = p_network_time - last_inbound_sync;
+			last_inbound_sync = p_network_time;
+		} else {
+			offset = (int16_t)(65536 - last_inbound_sync) + p_network_time;
+			if (offset > 0) {
+				last_inbound_sync = p_network_time;
+			}
+		};
+	} else {
+		last_inbound_sync = p_network_time;
+		offset = 1;
 		sync_started = true;
-	} else if (p_network_time <= last_inbound_sync && last_inbound_sync - p_network_time < 32767) {
-		return false;
 	}
-	last_inbound_sync = p_network_time;
-	return true;
+
+	return offset;
 }
 
 PackedStringArray MultiplayerSynchronizer::get_configuration_warnings() const {
@@ -278,7 +290,7 @@ void MultiplayerSynchronizer::_bind_methods() {
 	BIND_ENUM_CONSTANT(VISIBILITY_PROCESS_PHYSICS);
 	BIND_ENUM_CONSTANT(VISIBILITY_PROCESS_NONE);
 
-	ADD_SIGNAL(MethodInfo("synchronized"));
+	ADD_SIGNAL(MethodInfo("synchronized", PropertyInfo(Variant::INT, "updates_skipped")));
 	ADD_SIGNAL(MethodInfo("delta_synchronized"));
 	ADD_SIGNAL(MethodInfo("visibility_changed", PropertyInfo(Variant::INT, "for_peer")));
 }

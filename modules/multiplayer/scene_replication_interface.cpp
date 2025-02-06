@@ -144,11 +144,11 @@ void SceneReplicationInterface::on_network_process() {
 	// Process syncs.
 	uint64_t usec = OS::get_singleton()->get_ticks_usec();
 	for (KeyValue<int, PeerInfo> &E : peers_info) {
+		uint16_t sync_net_time = ++E.value.last_sent_sync;
 		const HashSet<ObjectID> to_sync = E.value.sync_nodes;
 		if (to_sync.is_empty()) {
 			continue; // Nothing to sync
 		}
-		uint16_t sync_net_time = ++E.value.last_sent_sync;
 		_send_sync(E.key, to_sync, sync_net_time, usec);
 		_send_delta(E.key, to_sync, usec, E.value.last_watch_usecs);
 	}
@@ -879,7 +879,9 @@ Error SceneReplicationInterface::on_sync_receive(int p_from, const uint8_t *p_bu
 			ofs += size;
 			ERR_CONTINUE_MSG(true, "Ignoring sync data from non-authority or for missing node.");
 		}
-		if (!sync->update_inbound_sync_time(time)) {
+
+		short sync_time_offset = sync->update_inbound_sync_time(time);
+		if (sync_time_offset <= 0) {
 			// State is too old.
 			ofs += size;
 			continue;
@@ -893,7 +895,7 @@ Error SceneReplicationInterface::on_sync_receive(int p_from, const uint8_t *p_bu
 		err = MultiplayerSynchronizer::set_state(props, node, vars);
 		ERR_FAIL_COND_V(err, err);
 		ofs += size;
-		sync->emit_signal(SNAME("synchronized"));
+		sync->emit_signal(SNAME("synchronized"), sync_time_offset - 1);
 #ifdef DEBUG_ENABLED
 		_profile_node_data("sync_in", sync->get_instance_id(), size);
 #endif
