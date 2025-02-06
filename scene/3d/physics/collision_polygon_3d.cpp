@@ -243,8 +243,7 @@ PackedStringArray CollisionPolygon3D::get_configuration_warnings() const {
 		warnings.push_back(RTR("An empty CollisionPolygon3D has no effect on collision."));
 	}
 
-	Vector3 scale = get_transform().get_basis().get_scale();
-	if (!(Math::is_zero_approx(scale.x - scale.y) && Math::is_zero_approx(scale.y - scale.z))) {
+	if (!get_transform().get_basis().is_conformal() || !get_global_transform().get_basis().is_conformal()) {
 		warnings.push_back(RTR("A non-uniformly scaled CollisionPolygon3D node will probably not function as expected.\nPlease make its scale uniform (i.e. the same on all axes), and change its polygon's vertices instead."));
 	}
 
