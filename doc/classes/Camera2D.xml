@@ -142,6 +142,9 @@
 		<member name="limit_bottom" type="int" setter="set_limit" getter="get_limit" default="10000000">
 			Bottom scroll limit in pixels. The camera stops moving when reaching this value, but [member offset] can push the view past the limit.
 		</member>
+		<member name="limit_enabled" type="bool" setter="set_limit_enabled" getter="is_limit_enabled" default="true">
+			If [code]true[/code], the limits will be enabled. Disabling this will allow the camera to focus anywhere, when the four [code]limit_*[/code] properties will not work.
+		</member>
 		<member name="limit_left" type="int" setter="set_limit" getter="get_limit" default="-10000000">
 			Left scroll limit in pixels. The camera stops moving when reaching this value, but [member offset] can push the view past the limit.
 		</member>
