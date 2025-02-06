@@ -397,7 +397,7 @@ void Window::move_to_center() {
 	if (is_embedded()) {
 		parent_rect = get_embedder()->get_visible_rect();
 	} else {
-		int parent_screen = DisplayServer::get_singleton()->window_get_current_screen(get_window_id());
+		int parent_screen = get_current_screen();
 		parent_rect.position = DisplayServer::get_singleton()->screen_get_position(parent_screen);
 		parent_rect.size = DisplayServer::get_singleton()->screen_get_size(parent_screen);
 	}
