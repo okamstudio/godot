@@ -31,8 +31,10 @@
 #ifndef TEST_VARIANT_H
 #define TEST_VARIANT_H
 
+#include "core/object/ref_counted.h"
 #include "core/variant/variant.h"
 #include "core/variant/variant_parser.h"
+#include "core/variant/variant_utility.h"
 
 #include "tests/test_macros.h"
 
@@ -2214,6 +2216,24 @@ TEST_CASE("[Variant] Operator NOT") {
 		REQUIRE_EQ(result.get_type(), Variant::BOOL);
 		CHECK_EQ(!value.booleanize(), result.operator bool());
 	}
+}
+
+TEST_CASE("[Variant] Constructed from a dying RefCounted") {
+	RefCounted *obj = memnew(RefCounted);
+	const uint64_t obj_id = obj->get_instance_id();
+	obj->init_ref();
+	CHECK(obj->get_reference_count() == 1);
+	obj->unreference();
+	CHECK(obj->get_reference_count() == 0);
+	{
+		Variant v(obj);
+		CHECK(!v.is_null());
+		CHECK(VariantUtilityFunctions::is_instance_valid(v));
+		Object *o = v;
+		CHECK(o == (Object *)obj);
+	}
+	CHECK(VariantUtilityFunctions::is_instance_id_valid(obj_id));
+	memdelete(obj);
 }
 
 } // namespace TestVariant

@@ -509,7 +509,7 @@
 		<method name="cancel_free">
 			<return type="void" />
 			<description>
-				If this method is called during [constant NOTIFICATION_PREDELETE], this object will reject being freed and will remain allocated. This is mostly an internal function used for error handling to avoid the user from freeing objects when they are not intended to.
+				If this method is called during [constant NOTIFICATION_PREDELETE], this object will reject being freed and will remain allocated. This is mostly an internal function used for error handling to avoid the user from freeing objects when they are not intended to. After cancellation the reference count of a [RefCounted] will remain zero and cannot be revived, it must be manually freed.
 			</description>
 		</method>
 		<method name="connect">

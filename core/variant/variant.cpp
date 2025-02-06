@@ -1092,10 +1092,16 @@ void Variant::ObjData::ref(const ObjData &p_from) {
 
 	*this = p_from;
 	if (id.is_ref_counted()) {
-		RefCounted *reference = static_cast<RefCounted *>(obj);
 		// Assuming reference is not null because id.is_ref_counted() was true.
-		if (!reference->reference()) {
-			*this = ObjData();
+		RefCounted *reference = static_cast<RefCounted *>(obj);
+		// The RefCounted object might be dying (count == 0) but there are
+		// still reasons of using it (e.g. predeleted callback). In such case
+		// we treat it as a regular object and do not attempt to ref-count it
+		// (will not succeed and end up with a null object).
+		if (reference->get_reference_count() > 0) {
+			if (!reference->reference()) {
+				*this = ObjData();
+			}
 		}
 	}
 
@@ -1114,8 +1120,10 @@ void Variant::ObjData::ref_pointer(Object *p_object) {
 		*this = ObjData{ p_object->get_instance_id(), p_object };
 		if (p_object->is_ref_counted()) {
 			RefCounted *reference = static_cast<RefCounted *>(p_object);
-			if (!reference->init_ref()) {
-				*this = ObjData();
+			if (reference->get_reference_count() > 0) {
+				if (!reference->init_ref()) {
+					*this = ObjData();
+				}
 			}
 		}
 	} else {
@@ -1129,9 +1137,11 @@ void Variant::ObjData::unref() {
 	// Mirrors Ref::unref in refcounted.h
 	if (id.is_ref_counted()) {
 		RefCounted *reference = static_cast<RefCounted *>(obj);
-		// Assuming reference is not null because id.is_ref_counted() was true.
-		if (reference->unreference()) {
-			memdelete(reference);
+		if (reference->get_reference_count() > 0) {
+			// Assuming reference is not null because id.is_ref_counted() was true.
+			if (reference->unreference()) {
+				memdelete(reference);
+			}
 		}
 	}
 	*this = ObjData();
