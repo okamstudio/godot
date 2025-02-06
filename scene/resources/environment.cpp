@@ -1120,8 +1120,7 @@ void Environment::_validate_property(PropertyInfo &p_property) const {
 		}
 	}
 
-	if (p_property.name == "tonemap_white" && (tone_mapper == TONE_MAPPER_LINEAR || tone_mapper == TONE_MAPPER_AGX)) {
-		// Whitepoint adjustment is not available with AgX or linear as it's hardcoded there.
+	if (p_property.name == "tonemap_white" && tone_mapper == TONE_MAPPER_LINEAR) {
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 
@@ -1278,7 +1277,7 @@ void Environment::_bind_methods() {
 	ADD_GROUP("Tonemap", "tonemap_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "tonemap_mode", PROPERTY_HINT_ENUM, "Linear,Reinhard,Filmic,ACES,AgX"), "set_tonemapper", "get_tonemapper");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "tonemap_exposure", PROPERTY_HINT_RANGE, "0,16,0.01"), "set_tonemap_exposure", "get_tonemap_exposure");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "tonemap_white", PROPERTY_HINT_RANGE, "0,16,0.01"), "set_tonemap_white", "get_tonemap_white");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "tonemap_white", PROPERTY_HINT_RANGE, "0.01,16,0.01"), "set_tonemap_white", "get_tonemap_white");
 
 	// SSR
 

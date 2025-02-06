@@ -208,7 +208,7 @@ void RendererEnvironmentStorage::environment_set_tonemap(RID p_env, RS::Environm
 	ERR_FAIL_NULL(env);
 	env->exposure = p_exposure;
 	env->tone_mapper = p_tone_mapper;
-	env->white = p_white;
+	env->white = p_tone_mapper == RS::ENV_TONE_MAPPER_AGX ? log2f((p_white < 1.172f ? 1.172f : p_white) / 0.18) : p_white;
 }
 
 RS::EnvironmentToneMapper RendererEnvironmentStorage::environment_get_tone_mapper(RID p_env) const {

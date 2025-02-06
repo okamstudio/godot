@@ -264,22 +264,19 @@ vec3 tonemap_aces(vec3 color, float white) {
 	return color_tonemapped / white_tonemapped;
 }
 
-// Polynomial approximation of EaryChow's AgX sigmoid curve.
-// x must be within the range [0.0, 1.0]
-vec3 agx_contrast_approx(vec3 x) {
-	// Generated with Excel trendline
-	// Input data: Generated using python sigmoid with EaryChow's configuration and 57 steps
-	// Additional padding values were added to give correct intersections at 0.0 and 1.0
-	// 6th order, intercept of 0.0 to remove an operation and ensure intersection at 0.0
-	vec3 x2 = x * x;
-	vec3 x4 = x2 * x2;
-	return 0.021 * x + 4.0111 * x2 - 25.682 * x2 * x + 70.359 * x4 - 74.778 * x4 * x + 27.069 * x4 * x2;
-}
-
-// This is an approximation and simplification of EaryChow's AgX implementation that is used by Blender.
+// This is a simplified glsl implementation of EaryChow's AgX that is used by Blender.
+// Input: unbounded linear Rec. 709
+// Output: unbounded linear Rec. 709 (Most any value you care about will be within [0.0, 1.0], thus safe to clip.)
 // This code is based off of the script that generates the AgX_Base_sRGB.cube LUT that Blender uses.
 // Source: https://github.com/EaryChow/AgX_LUT_Gen/blob/main/AgXBasesRGB.py
-vec3 tonemap_agx(vec3 color) {
+// Changes: Negative clipping in input color space without "guard rails" and no chroma-angle mixing.
+// Added parameter normalized_log2_maximum to allow white value to be changed.
+// Default normalized_log2_maximum is 6.5.
+// If you have a white value in linear space, you can transform it to a normalized_log2_maximum parameter like this:
+// white = max(1.172, white); // Sigmoid function breaks down with white lower than this.
+// float normalized_log2_maximum = log2(white / 0.18); // 0.18 is "midgrey".
+// Repository for this code: https://github.com/allenwp/AgX-GLSL-Shaders
+vec3 tonemap_agx(vec3 color, float normalized_log2_maximum) {
 	// Combined linear sRGB to linear Rec 2020 and Blender AgX inset matrices:
 	const mat3 srgb_to_rec2020_agx_inset_matrix = mat3(
 			0.54490813676363087053, 0.14044005884001287035, 0.088827411851915368603,
@@ -292,11 +289,11 @@ vec3 tonemap_agx(vec3 color) {
 			-0.85585845117807513559, 1.3264510741502356555, -0.23822464068860595117,
 			-0.10886710826831608324, -0.027084020983874825605, 1.402665347143271889);
 
-	// LOG2_MIN      = -10.0
-	// LOG2_MAX      =  +6.5
-	// MIDDLE_GRAY   =  0.18
-	const float min_ev = -12.4739311883324; // log2(pow(2, LOG2_MIN) * MIDDLE_GRAY)
-	const float max_ev = 4.02606881166759; // log2(pow(2, LOG2_MAX) * MIDDLE_GRAY)
+	// These constants cannot be changed without regenerating the curve.
+	const float normalized_log2_minimum = -10.0;
+	const float midgrey = 0.18;
+	const float power = 1.5;
+	const vec3 inverse_power = vec3(1.0 / 1.5);
 
 	// Large negative values in one channel and large positive values in other
 	// channels can result in a colour that appears darker and more saturated than
@@ -305,28 +302,28 @@ vec3 tonemap_agx(vec3 color) {
 	// This is done before the Rec. 2020 transform to allow the Rec. 2020
 	// transform to be combined with the AgX inset matrix. This results in a loss
 	// of color information that could be correctly interpreted within the
-	// Rec. 2020 color space as positive RGB values, but it is less common for Godot
-	// to provide this function with negative sRGB values and therefore not worth
+	// Rec. 2020 color space as positive RGB values, but is often not worth
 	// the performance cost of an additional matrix multiplication.
 	// A value of 2e-10 intentionally introduces insignificant error to prevent
 	// log2(0.0) after the inset matrix is applied; color will be >= 1e-10 after
 	// the matrix transform.
 	color = max(color, 2e-10);
 
-	// Do AGX in rec2020 to match Blender and then apply inset matrix.
+	// Apply inset matrix.
 	color = srgb_to_rec2020_agx_inset_matrix * color;
 
-	// Log2 space encoding.
-	// Must be clamped because agx_contrast_approx may not work
-	// well with values outside of the range [0.0, 1.0]
-	color = clamp(log2(color), min_ev, max_ev);
-	color = (color - min_ev) / (max_ev - min_ev);
+	float log_range = normalized_log2_maximum - normalized_log2_minimum;
+	color = (log2(color / midgrey) - normalized_log2_minimum) / log_range;
+	color = max(color, 0.0);
 
-	// Apply sigmoid function approximation.
-	color = agx_contrast_approx(color);
+	float x_pivot = 10.0 / log_range;
+	vec3 pivot_distance = x_pivot - color;
 
-	// Convert back to linear before applying outset matrix.
-	color = pow(color, vec3(2.4));
+	vec3 a_bottom = (10.858542784410849080 - (1.0 / pow(x_pivot, power))) * pow(pivot_distance, vec3(power));
+	vec3 a_top = (-1 + 10.191614048660063014 * pow(1.0 - x_pivot, power)) / pow((x_pivot - 1.0) / (pivot_distance), vec3(power));
+	vec3 a = mix(a_top, a_bottom, lessThan(color, vec3(x_pivot)));
+
+	color = pow(0.48943708957387834110 + ((-2.4 * x_pivot) + (2.4 * color)) / pow(1.0 + a, inverse_power), vec3(2.4));
 
 	// Apply outset to make the result more chroma-laden and then go back to linear sRGB.
 	color = agx_outset_rec2020_to_srgb_matrix * color;
@@ -362,7 +359,7 @@ vec3 apply_tonemapping(vec3 color, float white) { // inputs are LINEAR
 	} else if (params.tonemapper == TONEMAPPER_ACES) {
 		return tonemap_aces(max(vec3(0.0f), color), white);
 	} else { // TONEMAPPER_AGX
-		return tonemap_agx(color);
+		return tonemap_agx(color, white);
 	}
 }
 
