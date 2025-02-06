@@ -159,6 +159,10 @@ private:
 	bool move_to_foreground = true;
 	bool can_request_idle_draw = false;
 
+	Vector2 restore_mouse_position;
+	uint64_t restore_mouse_by_time = 0;
+	const uint64_t restore_mouse_within_ms = 300;
+
 	bool live_debug;
 
 	uint64_t debugging_thread_id = Thread::UNASSIGNED_ID;
