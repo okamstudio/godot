@@ -118,11 +118,29 @@ class EditorInspectorPluginMaterial : public EditorInspectorPlugin {
 	GDCLASS(EditorInspectorPluginMaterial, EditorInspectorPlugin);
 	Ref<Environment> env;
 
+	// Values must be written in PascalCase.
+	// The file name is stripped from its extension, then each component (each word separated by `-`, `_` or `.`)
+	// is checked individually for a match. Each component will check for the original casing,
+	// convert to lowercase, then convert the first character to lowercase. This covers the PascalCase,
+	// lowercase and camelCase file naming conventions.
+	//
+	// The order of the keys is important, since we want some material maps to be checked before others (e.g. albedo takes
+	// priority over metallic, so that `metal_grate_albedo.png` is correctly detected as an albedo map).
+	//
+	// Websites used to determine common file names:
+	//
+	// - https://polyhaven.com/
+	// - http://cgbookcase.com/
+	// - https://ambientcg.com/
+	Dictionary texture_types_from_components;
+
 public:
 	virtual bool can_handle(Object *p_object) override;
 	virtual void parse_begin(Object *p_object) override;
 
 	void _undo_redo_inspector_callback(Object *p_undo_redo, Object *p_edited, const String &p_property, const Variant &p_new_value);
+
+	Dictionary get_material_from_texture_path(const String &p_file_path) const;
 
 	EditorInspectorPluginMaterial();
 };

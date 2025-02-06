@@ -918,6 +918,9 @@
 		<member name="interface/editors/show_scene_tree_root_selection" type="bool" setter="" getter="">
 			If [code]true[/code], the Scene dock will display buttons to quickly add a root node to a newly created scene.
 		</member>
+		<member name="interface/inspector/auto_assign_pbr_material_textures" type="bool" setter="" getter="">
+			If [code]true[/code], when assigning textures to [BaseMaterial3D] in the Inspector, related textures' properties will automatically be set, based on their file name. For example, if the texture at [code]res://levels/wood_albedo.png[/code] is assigned to [member BaseMaterial3D.albedo_texture], then the texture at [code]res://levels/wood_normal.png[/code] will be automatically assigned to [member BaseMaterial3D.normal_texture], and so on. This behavior is based on common naming conventions.
+		</member>
 		<member name="interface/inspector/auto_unfold_foreign_scenes" type="bool" setter="" getter="">
 			If [code]true[/code], automatically expands property groups in the Inspector dock when opening a scene that hasn't been opened previously. If [code]false[/code], all groups remain collapsed by default.
 		</member>

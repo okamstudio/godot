@@ -64,6 +64,7 @@
 		<member name="albedo_texture" type="Texture2D" setter="set_texture" getter="get_texture" keywords="diffuse_texture">
 			Texture to multiply by [member albedo_color]. Used for basic texturing of objects.
 			If the texture appears unexpectedly too dark or too bright, check [member albedo_texture_force_srgb].
+			[b]Note:[/b] When assigned in the editor, other textures' properties will automatically be set based on their texture name. For example, if you assign [code]res://levels/wood_albedo.png[/code] to [member albedo_texture], then [code]res://levels/wood_normal.png[/code] will be assigned to [member normal_texture] and so on. This is based on common texture name conventions, so most texture websites should be handled automatically out of the box. This behavior can be disabled by setting [member EditorSettings.interface/inspector/auto_assign_pbr_material_textures] to [code]false[/code].
 		</member>
 		<member name="albedo_texture_force_srgb" type="bool" setter="set_flag" getter="get_flag" default="false" keywords="diffuse_texture_force_srgb">
 			If [code]true[/code], forces a conversion of the [member albedo_texture] from sRGB color space to linear color space. See also [member vertex_color_is_srgb].
@@ -107,6 +108,7 @@
 		</member>
 		<member name="ao_texture" type="Texture2D" setter="set_texture" getter="get_texture">
 			Texture that defines the amount of ambient occlusion for a given point on the object.
+			[b]Note:[/b] When assigned in the editor, other textures' properties will automatically be set based on their texture name. For example, if you assign [code]res://levels/wood_ao.png[/code] to [member ao_texture], then [code]res://levels/wood_normal.png[/code] will be assigned to [member normal_texture] and so on. This is based on common texture name conventions, so most texture websites should be handled automatically out of the box. This behavior can be disabled by setting [member EditorSettings.interface/inspector/auto_assign_pbr_material_textures] to [code]false[/code].
 		</member>
 		<member name="ao_texture_channel" type="int" setter="set_ao_texture_channel" getter="get_ao_texture_channel" enum="BaseMaterial3D.TextureChannel" default="0">
 			Specifies the channel of the [member ao_texture] in which the ambient occlusion information is stored. This is useful when you store the information for multiple effects in a single texture. For example if you stored metallic in the red channel, roughness in the blue, and ambient occlusion in the green you could reduce the number of textures you use.
@@ -119,6 +121,7 @@
 		</member>
 		<member name="backlight_texture" type="Texture2D" setter="set_texture" getter="get_texture">
 			Texture used to control the backlight effect per-pixel. Added to [member backlight].
+			[b]Note:[/b] When assigned in the editor, other textures' properties will automatically be set based on their texture name. For example, if you assign [code]res://levels/wood_backlight.png[/code] to [member backlight_texture], then [code]res://levels/wood_normal.png[/code] will be assigned to [member normal_texture] and so on. This is based on common texture name conventions, so most texture websites should be handled automatically out of the box. This behavior can be disabled by setting [member EditorSettings.interface/inspector/auto_assign_pbr_material_textures] to [code]false[/code].
 		</member>
 		<member name="billboard_keep_scale" type="bool" setter="set_flag" getter="get_flag" default="false">
 			If [code]true[/code], the shader will keep the scale set for the mesh. Otherwise, the scale is lost when billboarding. Only applies when [member billboard_mode] is not [constant BILLBOARD_DISABLED].
@@ -143,6 +146,7 @@
 		</member>
 		<member name="clearcoat_texture" type="Texture2D" setter="set_texture" getter="get_texture">
 			Texture that defines the strength of the clearcoat effect and the glossiness of the clearcoat. Strength is specified in the red channel while glossiness is specified in the green channel.
+			[b]Note:[/b] When assigned in the editor, other textures' properties will automatically be set based on their texture name. For example, if you assign [code]res://levels/wood_clearcoat.png[/code] to [member clearcoat_texture], then [code]res://levels/wood_normal.png[/code] will be assigned to [member normal_texture] and so on. This is based on common texture name conventions, so most texture websites should be handled automatically out of the box. This behavior can be disabled by setting [member EditorSettings.interface/inspector/auto_assign_pbr_material_textures] to [code]false[/code].
 		</member>
 		<member name="cull_mode" type="int" setter="set_cull_mode" getter="get_cull_mode" enum="BaseMaterial3D.CullMode" default="0">
 			Determines which side of the triangle to cull depending on whether the triangle faces towards or away from the camera. See [enum CullMode].
@@ -153,6 +157,7 @@
 		<member name="detail_albedo" type="Texture2D" setter="set_texture" getter="get_texture">
 			Texture that specifies the color of the detail overlay. [member detail_albedo]'s alpha channel is used as a mask, even when the material is opaque. To use a dedicated texture as a mask, see [member detail_mask].
 			[b]Note:[/b] [member detail_albedo] is [i]not[/i] modulated by [member albedo_color].
+			[b]Note:[/b] When assigned in the editor, other textures' properties will automatically be set based on their texture name. For example, if you assign [code]res://levels/wood_detail.png[/code] to [member detail_albedo], then [code]res://levels/wood_normal.png[/code] will be assigned to [member normal_texture] and so on. This is based on common texture name conventions, so most texture websites should be handled automatically out of the box. This behavior can be disabled by setting [member EditorSettings.interface/inspector/auto_assign_pbr_material_textures] to [code]false[/code].
 		</member>
 		<member name="detail_blend_mode" type="int" setter="set_detail_blend_mode" getter="get_detail_blend_mode" enum="BaseMaterial3D.BlendMode" default="0">
 			Specifies how the [member detail_albedo] should blend with the current [code]ALBEDO[/code]. See [enum BlendMode] for options.
@@ -213,6 +218,7 @@
 		</member>
 		<member name="emission_texture" type="Texture2D" setter="set_texture" getter="get_texture">
 			Texture that specifies how much surface emits light at a given point.
+			[b]Note:[/b] When assigned in the editor, other textures' properties will automatically be set based on their texture name. For example, if you assign [code]res://levels/wood_emission.png[/code] to [member emission_texture], then [code]res://levels/wood_normal.png[/code] will be assigned to [member normal_texture] and so on. This is based on common texture name conventions, so most texture websites should be handled automatically out of the box. This behavior can be disabled by setting [member EditorSettings.interface/inspector/auto_assign_pbr_material_textures] to [code]false[/code].
 		</member>
 		<member name="fixed_size" type="bool" setter="set_flag" getter="get_flag" default="false">
 			If [code]true[/code], the object is rendered at the same size regardless of distance.
@@ -257,6 +263,7 @@
 			The texture to use as a height map. See also [member heightmap_enabled].
 			For best results, the texture should be normalized (with [member heightmap_scale] reduced to compensate). In [url=https://gimp.org]GIMP[/url], this can be done using [b]Colors &gt; Auto &gt; Equalize[/b]. If the texture only uses a small part of its available range, the parallax effect may look strange, especially when the camera moves.
 			[b]Note:[/b] To reduce memory usage and improve loading times, you may be able to use a lower-resolution heightmap texture as most heightmaps are only comprised of low-frequency data.
+			[b]Note:[/b] When assigned in the editor, other textures' properties will automatically be set based on their texture name. For example, if you assign [code]res://levels/wood_heightmap.png[/code] to [member heightmap_texture], then [code]res://levels/wood_normal.png[/code] will be assigned to [member normal_texture] and so on. This is based on common texture name conventions, so most texture websites should be handled automatically out of the box. This behavior can be disabled by setting [member EditorSettings.interface/inspector/auto_assign_pbr_material_textures] to [code]false[/code].
 		</member>
 		<member name="metallic" type="float" setter="set_metallic" getter="get_metallic" default="0.0">
 			A high value makes the material appear more like a metal. Non-metals use their albedo as the diffuse color and add diffuse to the specular reflection. With non-metals, the reflection appears on top of the albedo color. Metals use their albedo as a multiplier to the specular reflection and set the diffuse color to black resulting in a tinted reflection. Materials work better when fully metal or fully non-metal, values between [code]0[/code] and [code]1[/code] should only be used for blending between metal and non-metal sections. To alter the amount of reflection use [member roughness].
@@ -267,6 +274,7 @@
 		</member>
 		<member name="metallic_texture" type="Texture2D" setter="set_texture" getter="get_texture">
 			Texture used to specify metallic for an object. This is multiplied by [member metallic].
+			[b]Note:[/b] When assigned in the editor, other textures' properties will automatically be set based on their texture name. For example, if you assign [code]res://levels/wood_metallic.png[/code] to [member metallic_texture], then [code]res://levels/wood_normal.png[/code] will be assigned to [member normal_texture] and so on. This is based on common texture name conventions, so most texture websites should be handled automatically out of the box. This behavior can be disabled by setting [member EditorSettings.interface/inspector/auto_assign_pbr_material_textures] to [code]false[/code].
 		</member>
 		<member name="metallic_texture_channel" type="int" setter="set_metallic_texture_channel" getter="get_metallic_texture_channel" enum="BaseMaterial3D.TextureChannel" default="0">
 			Specifies the channel of the [member metallic_texture] in which the metallic information is stored. This is useful when you store the information for multiple effects in a single texture. For example if you stored metallic in the red channel, roughness in the blue, and ambient occlusion in the green you could reduce the number of textures you use.
@@ -291,9 +299,11 @@
 			[b]Note:[/b] The mesh must have both normals and tangents defined in its vertex data. Otherwise, the normal map won't render correctly and will only appear to darken the whole surface. If creating geometry with [SurfaceTool], you can use [method SurfaceTool.generate_normals] and [method SurfaceTool.generate_tangents] to automatically generate normals and tangents respectively.
 			[b]Note:[/b] Godot expects the normal map to use X+, Y+, and Z+ coordinates. See [url=http://wiki.polycount.com/wiki/Normal_Map_Technical_Details#Common_Swizzle_Coordinates]this page[/url] for a comparison of normal map coordinates expected by popular engines.
 			[b]Note:[/b] If [member detail_enabled] is [code]true[/code], the [member detail_albedo] texture is drawn [i]below[/i] the [member normal_texture]. To display a normal map [i]above[/i] the [member detail_albedo] texture, use [member detail_normal] instead.
+			[b]Note:[/b] When assigned in the editor, other textures' properties will automatically be set based on their texture name. For example, if you assign [code]res://levels/wood_normal.png[/code] to [member normal_texture], then [code]res://levels/wood_albedo.png[/code] will be assigned to [member albedo_texture] and so on. This is based on common texture name conventions, so most texture websites should be handled automatically out of the box. This behavior can be disabled by setting [member EditorSettings.interface/inspector/auto_assign_pbr_material_textures] to [code]false[/code].
 		</member>
 		<member name="orm_texture" type="Texture2D" setter="set_texture" getter="get_texture">
 			The Occlusion/Roughness/Metallic texture to use. This is a more efficient replacement of [member ao_texture], [member roughness_texture] and [member metallic_texture] in [ORMMaterial3D]. Ambient occlusion is stored in the red channel. Roughness map is stored in the green channel. Metallic map is stored in the blue channel. The alpha channel is ignored.
+			[b]Note:[/b] When assigned in the editor, other textures' properties will automatically be set based on their texture name. For example, if you assign [code]res://levels/wood_orm.png[/code] to [member orm_texture], then [code]res://levels/wood_normal.png[/code] will be assigned to [member normal_texture] and so on. This is based on common texture name conventions, so most texture websites should be handled automatically out of the box. This behavior can be disabled by setting [member EditorSettings.interface/inspector/auto_assign_pbr_material_textures] to [code]false[/code].
 		</member>
 		<member name="particles_anim_h_frames" type="int" setter="set_particles_anim_h_frames" getter="get_particles_anim_h_frames">
 			The number of horizontal frames in the particle sprite sheet. Only enabled when using [constant BILLBOARD_PARTICLES]. See [member billboard_mode].
@@ -322,6 +332,7 @@
 		</member>
 		<member name="refraction_texture" type="Texture2D" setter="set_texture" getter="get_texture">
 			Texture that controls the strength of the refraction per-pixel. Multiplied by [member refraction_scale].
+			[b]Note:[/b] When assigned in the editor, other textures' properties will automatically be set based on their texture name. For example, if you assign [code]res://levels/wood_refraction.png[/code] to [member refraction_texture], then [code]res://levels/wood_normal.png[/code] will be assigned to [member normal_texture] and so on. This is based on common texture name conventions, so most texture websites should be handled automatically out of the box. This behavior can be disabled by setting [member EditorSettings.interface/inspector/auto_assign_pbr_material_textures] to [code]false[/code].
 		</member>
 		<member name="refraction_texture_channel" type="int" setter="set_refraction_texture_channel" getter="get_refraction_texture_channel" enum="BaseMaterial3D.TextureChannel" default="0">
 			Specifies the channel of the [member refraction_texture] in which the refraction information is stored. This is useful when you store the information for multiple effects in a single texture. For example if you stored refraction in the red channel, roughness in the blue, and ambient occlusion in the green you could reduce the number of textures you use.
@@ -335,6 +346,7 @@
 		</member>
 		<member name="rim_texture" type="Texture2D" setter="set_texture" getter="get_texture">
 			Texture used to set the strength of the rim lighting effect per-pixel. Multiplied by [member rim].
+			[b]Note:[/b] When assigned in the editor, other textures' properties will automatically be set based on their texture name. For example, if you assign [code]res://levels/wood_rim.png[/code] to [member rim_texture], then [code]res://levels/wood_normal.png[/code] will be assigned to [member normal_texture] and so on. This is based on common texture name conventions, so most texture websites should be handled automatically out of the box. This behavior can be disabled by setting [member EditorSettings.interface/inspector/auto_assign_pbr_material_textures] to [code]false[/code].
 		</member>
 		<member name="rim_tint" type="float" setter="set_rim_tint" getter="get_rim_tint" default="0.5">
 			The amount of to blend light and albedo color when rendering rim effect. If [code]0[/code] the light color is used, while [code]1[/code] means albedo color is used. An intermediate value generally works best.
@@ -344,6 +356,7 @@
 		</member>
 		<member name="roughness_texture" type="Texture2D" setter="set_texture" getter="get_texture">
 			Texture used to control the roughness per-pixel. Multiplied by [member roughness].
+			[b]Note:[/b] When assigned in the editor, other textures' properties will automatically be set based on their texture name. For example, if you assign [code]res://levels/wood_roughness.png[/code] to [member roughness_texture], then [code]res://levels/wood_normal.png[/code] will be assigned to [member normal_texture] and so on. This is based on common texture name conventions, so most texture websites should be handled automatically out of the box. This behavior can be disabled by setting [member EditorSettings.interface/inspector/auto_assign_pbr_material_textures] to [code]false[/code].
 		</member>
 		<member name="roughness_texture_channel" type="int" setter="set_roughness_texture_channel" getter="get_roughness_texture_channel" enum="BaseMaterial3D.TextureChannel" default="0">
 			Specifies the channel of the [member roughness_texture] in which the roughness information is stored. This is useful when you store the information for multiple effects in a single texture. For example if you stored metallic in the red channel, roughness in the blue, and ambient occlusion in the green you could reduce the number of textures you use.
@@ -369,6 +382,7 @@
 		</member>
 		<member name="subsurf_scatter_texture" type="Texture2D" setter="set_texture" getter="get_texture">
 			Texture used to control the subsurface scattering strength. Stored in the red texture channel. Multiplied by [member subsurf_scatter_strength].
+			[b]Note:[/b] When assigned in the editor, other textures' properties will automatically be set based on their texture name. For example, if you assign [code]res://levels/wood_subsurf.png[/code] to [member subsurf_scatter_texture], then [code]res://levels/wood_normal.png[/code] will be assigned to [member normal_texture] and so on. This is based on common texture name conventions, so most texture websites should be handled automatically out of the box. This behavior can be disabled by setting [member EditorSettings.interface/inspector/auto_assign_pbr_material_textures] to [code]false[/code].
 		</member>
 		<member name="subsurf_scatter_transmittance_boost" type="float" setter="set_transmittance_boost" getter="get_transmittance_boost" default="0.0">
 			The intensity of the subsurface scattering transmittance effect.
@@ -384,6 +398,7 @@
 		</member>
 		<member name="subsurf_scatter_transmittance_texture" type="Texture2D" setter="set_texture" getter="get_texture">
 			The texture to use for multiplying the intensity of the subsurface scattering transmittance intensity. See also [member subsurf_scatter_texture]. Ignored if [member subsurf_scatter_skin_mode] is [code]true[/code].
+			[b]Note:[/b] When assigned in the editor, other textures' properties will automatically be set based on their texture name. For example, if you assign [code]res://levels/wood_transmittance.png[/code] to [member subsurf_scatter_transmittance_texture], then [code]res://levels/wood_normal.png[/code] will be assigned to [member normal_texture] and so on. This is based on common texture name conventions, so most texture websites should be handled automatically out of the box. This behavior can be disabled by setting [member EditorSettings.interface/inspector/auto_assign_pbr_material_textures] to [code]false[/code].
 		</member>
 		<member name="texture_filter" type="int" setter="set_texture_filter" getter="get_texture_filter" enum="BaseMaterial3D.TextureFilter" default="3">
 			Filter flags for the texture. See [enum TextureFilter] for options.

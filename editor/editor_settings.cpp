@@ -533,6 +533,8 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	open_in_new_inspector_defaults.push_back("MeshLibrary");
 	_initial_set("interface/inspector/resources_to_open_in_new_inspector", open_in_new_inspector_defaults);
 
+	_initial_set("interface/inspector/auto_assign_pbr_material_textures", true);
+
 	EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_ENUM, "interface/inspector/default_color_picker_mode", (int32_t)ColorPicker::MODE_RGB, "RGB,HSV,RAW,OKHSL")
 	EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_ENUM, "interface/inspector/default_color_picker_shape", (int32_t)ColorPicker::SHAPE_OKHSL_CIRCLE, "HSV Rectangle,HSV Rectangle Wheel,VHS Circle,OKHSL Circle")
 

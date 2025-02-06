@@ -35,6 +35,7 @@
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
 #include "editor/editor_undo_redo_manager.h"
+#include "editor/gui/editor_toaster.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/3d/camera_3d.h"
 #include "scene/3d/light_3d.h"
@@ -390,35 +391,224 @@ void EditorInspectorPluginMaterial::_undo_redo_inspector_callback(Object *p_undo
 	EditorUndoRedoManager *undo_redo = Object::cast_to<EditorUndoRedoManager>(p_undo_redo);
 	ERR_FAIL_NULL(undo_redo);
 
-	// For BaseMaterial3D, if a roughness or metallic textures is being assigned to an empty slot,
-	// set the respective metallic or roughness factor to 1.0 as a convenience feature
+	bool orm_material = false;
 	BaseMaterial3D *base_material = Object::cast_to<StandardMaterial3D>(p_edited);
-	if (base_material) {
-		Texture2D *texture = Object::cast_to<Texture2D>(p_new_value);
-		if (texture) {
-			if (p_property == "roughness_texture") {
-				if (base_material->get_texture(StandardMaterial3D::TEXTURE_ROUGHNESS).is_null()) {
-					undo_redo->add_do_property(p_edited, "roughness", 1.0);
+	if (!base_material) {
+		base_material = Object::cast_to<ORMMaterial3D>(p_edited);
+		if (!base_material) {
+			return;
+		}
+		orm_material = true;
+	}
 
-					bool valid = false;
-					Variant value = p_edited->get("roughness", &valid);
-					if (valid) {
-						undo_redo->add_undo_property(p_edited, "roughness", value);
+	Texture2D *texture = Object::cast_to<Texture2D>(p_new_value);
+	if (texture) {
+		// Register "do" and "undo" actions automatically, setting the specified property to the specified value.
+#define REGISTER_DO_AND_UNDO(m_property, m_value)                      \
+	{                                                                  \
+		undo_redo->add_do_property(p_edited, m_property, m_value);     \
+		bool valid = false;                                            \
+		Variant value = p_edited->get(m_property, &valid);             \
+		if (valid) {                                                   \
+			undo_redo->add_undo_property(p_edited, m_property, value); \
+		}                                                              \
+	}
+
+		// For BaseMaterial3D, if a roughness or metallic textures is being assigned to an empty slot,
+		// set the respective metallic or roughness factor to 1.0 as a convenience feature.
+		if (p_property == "roughness_texture") {
+			if (base_material->get_texture(StandardMaterial3D::TEXTURE_ROUGHNESS).is_null()) {
+				REGISTER_DO_AND_UNDO("roughness", 1.0);
+			}
+		} else if (p_property == "metallic_texture") {
+			if (base_material->get_texture(StandardMaterial3D::TEXTURE_METALLIC).is_null()) {
+				REGISTER_DO_AND_UNDO("metallic", 1.0);
+			}
+		}
+
+		if (EDITOR_GET("interface/inspector/auto_assign_pbr_material_textures")) {
+			// Fill in material texture slots based on the specified texture name.
+			const String texture_path = texture->get_path();
+			const Dictionary found_textures = get_material_from_texture_path(texture_path);
+
+			PackedStringArray assigned_textures;
+			if (!found_textures.is_empty()) {
+				if (found_textures.has("albedo")) {
+					REGISTER_DO_AND_UNDO("albedo_texture", ResourceLoader::load(found_textures["albedo"]));
+					assigned_textures.push_back("albedo");
+				}
+
+				if (found_textures.has("normal")) {
+					REGISTER_DO_AND_UNDO("normal_enabled", true);
+					REGISTER_DO_AND_UNDO("normal_texture", ResourceLoader::load(found_textures["normal"]));
+					assigned_textures.push_back("normal");
+				}
+
+				if (found_textures.has("orm")) {
+					REGISTER_DO_AND_UNDO("ao_enabled", true);
+					REGISTER_DO_AND_UNDO("orm_texture", ResourceLoader::load(found_textures["orm"]));
+					if (orm_material) {
+						assigned_textures.push_back("ORM");
+					} else {
+						EditorToaster::get_singleton()->popup_str(vformat(TTR("%s: An ORM texture is available, but this is a StandardMaterial3D. The ORM texture won't be assigned to the material. To resolve this, create an ORMMaterial3D in place of this StandardMaterial3D."), texture_path));
 					}
 				}
-			} else if (p_property == "metallic_texture") {
-				if (base_material->get_texture(StandardMaterial3D::TEXTURE_METALLIC).is_null()) {
-					undo_redo->add_do_property(p_edited, "metallic", 1.0);
 
-					bool valid = false;
-					Variant value = p_edited->get("metallic", &valid);
-					if (valid) {
-						undo_redo->add_undo_property(p_edited, "metallic", value);
+				if (found_textures.has("ao")) {
+					REGISTER_DO_AND_UNDO("ao_enabled", true);
+					REGISTER_DO_AND_UNDO("ao_texture", ResourceLoader::load(found_textures["ao"]));
+					if (!orm_material) {
+						assigned_textures.push_back("ambient occlusion");
+					} else {
+						EditorToaster::get_singleton()->popup_str(vformat(TTR("%s: An ambient occlusion texture is available, but this is an ORMMaterial3D. The ambient occlusion texture won't be assigned to the material. To resolve this, create a StandardMaterial3D in place of this ORMMaterial3D."), texture_path));
 					}
+				}
+
+				if (found_textures.has("roughness")) {
+					REGISTER_DO_AND_UNDO("roughness", 1.0);
+					REGISTER_DO_AND_UNDO("roughness_texture", ResourceLoader::load(found_textures["roughness"]));
+					if (!orm_material) {
+						assigned_textures.push_back("roughness");
+					} else {
+						EditorToaster::get_singleton()->popup_str(vformat(TTR("%s: A roughness texture is available, but this is an ORMMaterial3D. The roughness texture won't be assigned to the material. To resolve this, create a StandardMaterial3D in place of this ORMMaterial3D."), texture_path));
+					}
+				}
+
+				if (found_textures.has("metallic")) {
+					REGISTER_DO_AND_UNDO("metallic", 1.0);
+					REGISTER_DO_AND_UNDO("metallic_texture", ResourceLoader::load(found_textures["metallic"]));
+					if (!orm_material) {
+						assigned_textures.push_back("metallic");
+					} else {
+						EditorToaster::get_singleton()->popup_str(vformat(TTR("%s: A metallic texture is available, but this is an ORMMaterial3D. The metallic texture won't be assigned to the material. To resolve this, create a StandardMaterial3D in place of this ORMMaterial3D."), texture_path));
+					}
+				}
+
+				if (found_textures.has("emission")) {
+					REGISTER_DO_AND_UNDO("emission_enabled", true);
+					REGISTER_DO_AND_UNDO("emission_texture", ResourceLoader::load(found_textures["emission"]));
+					assigned_textures.push_back("emission");
+				}
+
+				if (found_textures.has("heightmap")) {
+					REGISTER_DO_AND_UNDO("heightmap_enabled", true);
+					REGISTER_DO_AND_UNDO("heightmap_texture", ResourceLoader::load(found_textures["heightmap"]));
+					assigned_textures.push_back("heightmap");
+				}
+
+				if (found_textures.has("rim")) {
+					REGISTER_DO_AND_UNDO("rim_enabled", true);
+					REGISTER_DO_AND_UNDO("rim_texture", ResourceLoader::load(found_textures["rim"]));
+					assigned_textures.push_back("rim");
+				}
+
+				if (found_textures.has("clearcoat")) {
+					REGISTER_DO_AND_UNDO("clearcoat_enabled", true);
+					REGISTER_DO_AND_UNDO("clearcoat_texture", ResourceLoader::load(found_textures["clearcoat"]));
+					assigned_textures.push_back("clearcoat");
+				}
+
+				if (found_textures.has("anisotropy")) {
+					REGISTER_DO_AND_UNDO("anisotropy_enabled", true);
+					REGISTER_DO_AND_UNDO("anisotropy_flowmap", ResourceLoader::load(found_textures["anisotropy"]));
+					assigned_textures.push_back("anisotropy");
+				}
+
+				if (found_textures.has("subsurf_scatter")) {
+					REGISTER_DO_AND_UNDO("subsurf_scatter_enabled", true);
+					REGISTER_DO_AND_UNDO("subsurf_scatter_texture", ResourceLoader::load(found_textures["subsurf_scatter"]));
+					assigned_textures.push_back("subsurface scattering");
+				}
+
+				if (found_textures.has("subsurf_scatter_transmittance")) {
+					REGISTER_DO_AND_UNDO("subsurf_scatter_transmittance_enabled", true);
+					REGISTER_DO_AND_UNDO("subsurf_scatter_transmittance_texture", ResourceLoader::load(found_textures["subsurf_scatter_transmittance"]));
+					assigned_textures.push_back("subsurface scattering transmittance");
+				}
+
+				if (found_textures.has("backlight")) {
+					REGISTER_DO_AND_UNDO("backlight_enabled", true);
+					REGISTER_DO_AND_UNDO("backlight_texture", ResourceLoader::load(found_textures["backlight"]));
+					assigned_textures.push_back("backlight");
+				}
+
+				if (found_textures.has("refraction")) {
+					REGISTER_DO_AND_UNDO("refraction_enabled", true);
+					REGISTER_DO_AND_UNDO("refraction_texture", ResourceLoader::load(found_textures["refraction"]));
+					assigned_textures.push_back("refraction");
+				}
+
+				if (found_textures.has("detail_albedo")) {
+					REGISTER_DO_AND_UNDO("detail_enabled", true);
+					REGISTER_DO_AND_UNDO("detail_albedo", ResourceLoader::load(found_textures["detail_albedo"]));
+					assigned_textures.push_back("detail albedo");
+				}
+			}
+
+			if (!assigned_textures.is_empty()) {
+				EditorToaster::get_singleton()->popup_str(vformat(TTR("%s: Automatically assigned %d textures (%s) based on file names."), texture_path, assigned_textures.size(), String(", ").join(assigned_textures)));
+			}
+		}
+	}
+#undef REGISTER_DO_AND_UNDO
+}
+
+Dictionary EditorInspectorPluginMaterial::get_material_from_texture_path(const String &p_file_path) const {
+	if (p_file_path.is_empty()) {
+		// We can't detect the material if the texture is built-in and therefore doesn't have a file name.
+		return Dictionary();
+	}
+
+	String path_type;
+	String found_suffix;
+	// Read from the last component to the first, so that names like `blue_metal_diff`
+	// are seen as an albedo (diffuse) texture instead of a metallic map.
+	PackedStringArray components = p_file_path.get_basename().get_file().replace("-", "_").replace(" ", "_").replace(".", "_").split("_", false);
+	components.reverse();
+
+	for (const String &component : components) {
+		if (found_suffix.is_empty()) {
+			for (const String type : texture_types_from_components.keys()) {
+				for (const String &suffix : PackedStringArray(texture_types_from_components[type])) {
+					// Check PascalCase, lowercase and camelCase.
+					for (const String &suffix_casing : PackedStringArray({ suffix, suffix.to_lower(), suffix.to_camel_case() })) {
+						if (component == suffix_casing) {
+							path_type = type;
+							found_suffix = suffix_casing;
+							break;
+						}
+					}
+				}
+			}
+		} else {
+			break;
+		}
+	}
+
+	if (found_suffix.is_empty()) {
+		// Couldn't detect material based on file name.
+		return Dictionary();
+	}
+
+	Dictionary found_textures;
+	for (const String type : texture_types_from_components.keys()) {
+		if (type == path_type) {
+			// We already know this texture's type, since it was the texture originally specified.
+			found_textures[type] = p_file_path;
+			continue;
+		}
+
+		for (const String &suffix : PackedStringArray(texture_types_from_components[type])) {
+			for (const String &suffix_casing : PackedStringArray({ suffix, suffix.to_lower(), suffix.to_camel_case() })) {
+				const String file_path_casing = p_file_path.replace(found_suffix, suffix_casing);
+				if (FileAccess::exists(file_path_casing)) {
+					found_textures[type] = file_path_casing;
 				}
 			}
 		}
 	}
+
+	return found_textures;
 }
 
 EditorInspectorPluginMaterial::EditorInspectorPluginMaterial() {
@@ -428,6 +618,26 @@ EditorInspectorPluginMaterial::EditorInspectorPluginMaterial() {
 	env->set_background(Environment::BG_COLOR);
 	env->set_ambient_source(Environment::AMBIENT_SOURCE_SKY);
 	env->set_reflection_source(Environment::REFLECTION_SOURCE_SKY);
+
+	// Common PBR material texture types, standardized across engines.
+	texture_types_from_components["albedo"] = PackedStringArray({ "Albedo", "BaseColor", "BaseColour", "Base", "Color", "Colour", "Diffuse", "Diff", "C", "D" });
+	texture_types_from_components["normal"] = PackedStringArray({ "Normal", "NormalMap", "NormalGL", "NormalDX", "Local", "Norm", "Nor", "Nor_GL", "Nor_DX", "NM", "N" });
+	texture_types_from_components["orm"] = PackedStringArray({ "ORM", "ARM" });
+	texture_types_from_components["ao"] = PackedStringArray({ "AO", "AmbientOcclusion", "Ambient", "Occlusion", "A", "O" });
+	texture_types_from_components["roughness"] = PackedStringArray({ "Roughness", "Rough", "R" });
+	texture_types_from_components["metallic"] = PackedStringArray({ "Metallic", "Metalness", "Metal", "M" });
+	texture_types_from_components["emission"] = PackedStringArray({ "Emission", "Emissive", "Glow", "Luma", "E", "G" });
+	texture_types_from_components["heightmap"] = PackedStringArray({ "Height", "HeightMap", "Displacement", "Disp", "H", "Z" });
+
+	// Less common and not as standardized across engines.
+	texture_types_from_components["rim"] = PackedStringArray({ "Rim" });
+	texture_types_from_components["clearcoat"] = PackedStringArray({ "Clearcoat" });
+	texture_types_from_components["anisotropy"] = PackedStringArray({ "Anisotropy", "Aniso", "Flowmap", "Flow" });
+	texture_types_from_components["subsurf_scatter"] = PackedStringArray({ "Subsurface", "Subsurf", "Scattering", "Scatter", "SSS" });
+	texture_types_from_components["subsurf_scatter_transmittance"] = PackedStringArray({ "Transmittance", "Transmission", "Transmissive" });
+	texture_types_from_components["backlight"] = PackedStringArray({ "BackLighting", "Backlight" });
+	texture_types_from_components["refraction"] = PackedStringArray({ "Refraction", "Refract" });
+	texture_types_from_components["detail_albedo"] = PackedStringArray({ "Detail" });
 
 	EditorNode::get_editor_data().add_undo_redo_inspector_hook_callback(callable_mp(this, &EditorInspectorPluginMaterial::_undo_redo_inspector_callback));
 }
