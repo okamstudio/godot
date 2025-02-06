@@ -328,20 +328,20 @@ public:
 	}
 
 	_FORCE_INLINE_ static void object_assign(Variant *v, const Variant *vo) {
-		v->_get_obj().ref(vo->_get_obj());
+		v->_get_obj().ref(vo->_get_obj(), v->is_weak_ref, vo->is_weak_ref);
 	}
 
-	_FORCE_INLINE_ static void object_assign(Variant *v, Object *o) {
-		v->_get_obj().ref_pointer(o);
+	_FORCE_INLINE_ static void object_assign(Variant *v, Object *o, bool p_is_weak_ref = false) {
+		v->_get_obj().ref_pointer(o, v->is_weak_ref, p_is_weak_ref);
 	}
 
-	_FORCE_INLINE_ static void object_assign(Variant *v, const Object *o) {
-		v->_get_obj().ref_pointer(const_cast<Object *>(o));
+	_FORCE_INLINE_ static void object_assign(Variant *v, const Object *o, bool p_is_weak_ref = false) {
+		v->_get_obj().ref_pointer(const_cast<Object *>(o), v->is_weak_ref, p_is_weak_ref);
 	}
 
 	template <typename T>
-	_FORCE_INLINE_ static void object_assign(Variant *v, const Ref<T> &r) {
-		v->_get_obj().ref(r);
+	_FORCE_INLINE_ static void object_assign(Variant *v, const Ref<T> &r, bool p_is_weak_ref = false) {
+		v->_get_obj().ref(r, v->is_weak_ref, p_is_weak_ref);
 	}
 
 	_FORCE_INLINE_ static void object_reset_data(Variant *v) {

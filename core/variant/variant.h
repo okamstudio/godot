@@ -175,22 +175,23 @@ private:
 	// and PackedArray/Array/Dictionary (platform-dependent).
 
 	Type type = NIL;
+	bool is_weak_ref = false;
 
 	struct ObjData {
 		ObjectID id;
 		Object *obj = nullptr;
 
-		void ref(const ObjData &p_from);
-		void ref_pointer(Object *p_object);
-		void ref_pointer(RefCounted *p_object);
-		void unref();
+		void ref(const ObjData &p_from, bool p_is_weak_ref_old, bool p_is_weak_ref);
+		void ref_pointer(Object *p_object, bool p_is_weak_ref_old, bool is_weak_ref);
+		void ref_pointer(RefCounted *p_object, bool p_is_weak_ref_old, bool p_is_weak_ref);
+		void unref(bool p_is_weak_ref);
 
 		template <typename T>
-		_ALWAYS_INLINE_ void ref(const Ref<T> &p_from) {
+		_ALWAYS_INLINE_ void ref(const Ref<T> &p_from, bool p_is_weak_ref_old, bool p_is_weak_ref) {
 			if (p_from.is_valid()) {
-				ref(ObjData{ p_from->get_instance_id(), p_from.ptr() });
+				ref(ObjData{ p_from->get_instance_id(), p_from.ptr() }, p_is_weak_ref_old, p_is_weak_ref);
 			} else {
-				unref();
+				unref(p_is_weak_ref_old);
 			}
 		}
 	};
@@ -326,6 +327,7 @@ private:
 			_clear_internal();
 		}
 		type = NIL;
+		is_weak_ref = false;
 	}
 
 	static void _register_variant_operators();
@@ -523,6 +525,7 @@ public:
 	Variant(const NodePath &p_node_path);
 	Variant(const ::RID &p_rid);
 	Variant(const Object *p_object);
+	Variant(const RefCounted *p_object, bool p_is_weak_ref = false);
 	Variant(const Callable &p_callable);
 	Variant(const Signal &p_signal);
 	Variant(const Dictionary &p_dictionary);

@@ -34,11 +34,13 @@
 #include "core/extension/gdextension_interface.h"
 #include "core/object/message_queue.h"
 #include "core/object/object_id.h"
+#include "core/os/mutex.h"
 #include "core/os/rw_lock.h"
 #include "core/os/spin_lock.h"
 #include "core/templates/hash_map.h"
 #include "core/templates/hash_set.h"
 #include "core/templates/list.h"
+#include "core/templates/paged_array.h"
 #include "core/templates/rb_map.h"
 #include "core/templates/safe_refcount.h"
 #include "core/variant/callable_bind.h"
@@ -1009,23 +1011,41 @@ void postinitialize_handler(Object *p_object);
 
 class ObjectDB {
 // This needs to add up to 63, 1 bit is for reference.
-#define OBJECTDB_VALIDATOR_BITS 39
+#define OBJECTDB_VALIDATOR_BITS 32
 #define OBJECTDB_VALIDATOR_MASK ((uint64_t(1) << OBJECTDB_VALIDATOR_BITS) - 1)
-#define OBJECTDB_SLOT_MAX_COUNT_BITS 24
-#define OBJECTDB_SLOT_MAX_COUNT_MASK ((uint64_t(1) << OBJECTDB_SLOT_MAX_COUNT_BITS) - 1)
-#define OBJECTDB_REFERENCE_BIT (uint64_t(1) << (OBJECTDB_SLOT_MAX_COUNT_BITS + OBJECTDB_VALIDATOR_BITS))
+#define OBJECTDB_SLOT_MAX_BLOCKS_COUNT_BITS 5
+#define OBJECTDB_SLOT_MAX_COUNT_BITS 26
+#define OBJECTDB_SLOT_MAX_POSITION_BITS (OBJECTDB_SLOT_MAX_BLOCKS_COUNT_BITS + OBJECTDB_SLOT_MAX_COUNT_BITS)
+#define OBJECTDB_SLOT_MAX_BLOCKS_COUNT_MASK ((uint64_t(1) << OBJECTDB_SLOT_MAX_BLOCKS_COUNT_BITS) - 1)
+#define OBJECTDB_SLOT_MAX_POSITION_MASK ((uint64_t(1) << OBJECTDB_SLOT_MAX_POSITION_BITS) - 1)
+#define OBJECTDB_REFERENCE_BIT (uint64_t(1) << (OBJECTDB_SLOT_MAX_POSITION_BITS + OBJECTDB_VALIDATOR_BITS))
+#define OBJECTDB_MAX_BLOCKS 32
 
-	struct ObjectSlot { // 128 bits per slot.
-		uint64_t validator : OBJECTDB_VALIDATOR_BITS;
-		uint64_t next_free : OBJECTDB_SLOT_MAX_COUNT_BITS;
-		uint64_t is_ref_counted : 1;
+	union NextFree {
+		uint32_t position : OBJECTDB_SLOT_MAX_POSITION_BITS;
+		struct {
+			uint32_t block_number : OBJECTDB_SLOT_MAX_BLOCKS_COUNT_BITS;
+			uint32_t block_position : OBJECTDB_SLOT_MAX_COUNT_BITS;
+		};
+	};
+
+	struct ObjectSlot {
+		uint64_t validator;
+		NextFree next_free;
+		bool is_ref_counted;
 		Object *object = nullptr;
 	};
 
-	static SpinLock spin_lock;
+	static ObjectSlot *blocks[OBJECTDB_MAX_BLOCKS];
+	static const uint32_t blocks_max_sizes[OBJECTDB_MAX_BLOCKS];
+
 	static uint32_t slot_count;
+	static uint32_t block_count;
+
 	static uint32_t slot_max;
-	static ObjectSlot *object_slots;
+	static uint32_t block_max;
+
+	static BinaryMutex mutex;
 	static uint64_t validator_counter;
 
 	friend class Object;
@@ -1041,27 +1061,7 @@ class ObjectDB {
 public:
 	typedef void (*DebugFunc)(Object *p_obj);
 
-	_ALWAYS_INLINE_ static Object *get_instance(ObjectID p_instance_id) {
-		uint64_t id = p_instance_id;
-		uint32_t slot = id & OBJECTDB_SLOT_MAX_COUNT_MASK;
-
-		ERR_FAIL_COND_V(slot >= slot_max, nullptr); // This should never happen unless RID is corrupted.
-
-		spin_lock.lock();
-
-		uint64_t validator = (id >> OBJECTDB_SLOT_MAX_COUNT_BITS) & OBJECTDB_VALIDATOR_MASK;
-
-		if (unlikely(object_slots[slot].validator != validator)) {
-			spin_lock.unlock();
-			return nullptr;
-		}
-
-		Object *object = object_slots[slot].object;
-
-		spin_lock.unlock();
-
-		return object;
-	}
+	static Object *get_instance(ObjectID p_instance_id);
 	static void debug_objects(DebugFunc p_func);
 	static int get_object_count();
 };
