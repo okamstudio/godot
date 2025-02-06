@@ -123,6 +123,40 @@ Ref<Resource> SceneState::get_remap_resource(const Ref<Resource> &p_resource, Ha
 	return remap_resource;
 }
 
+static void _parse_dictionary_hint_string(const String &p_hint_string, Variant::Type &r_key_subtype, PropertyHint &r_key_subtype_hint, String *r_key_class_name, Variant::Type &r_value_subtype, PropertyHint &r_value_subtype_hint, String *r_value_class_name) {
+	r_key_subtype = Variant::NIL;
+	r_key_subtype_hint = PropertyHint::PROPERTY_HINT_NONE;
+	r_value_subtype = Variant::NIL;
+	r_value_subtype_hint = PropertyHint::PROPERTY_HINT_NONE;
+
+	int key_value_separator = p_hint_string.find_char(';');
+	if (key_value_separator >= 0) {
+		int key_subtype_separator = p_hint_string.find_char(':');
+		String key_subtype_string = p_hint_string.substr(0, key_subtype_separator);
+		int key_slash_pos = key_subtype_string.find_char('/');
+		if (key_slash_pos >= 0) {
+			r_key_subtype_hint = PropertyHint(key_subtype_string.get_slice("/", 1).to_int());
+			key_subtype_string = key_subtype_string.substr(0, key_slash_pos);
+		}
+		r_key_subtype = Variant::Type(key_subtype_string.to_int());
+		if (r_key_class_name != nullptr) {
+			*r_key_class_name = p_hint_string.substr(key_subtype_separator + 1, key_value_separator - (key_subtype_separator + 1));
+		}
+
+		int value_subtype_separator = p_hint_string.find_char(':', key_value_separator) - (key_value_separator + 1);
+		String value_subtype_string = p_hint_string.substr(key_value_separator + 1, value_subtype_separator);
+		int value_slash_pos = value_subtype_string.find_char('/');
+		if (value_slash_pos >= 0) {
+			r_value_subtype_hint = PropertyHint(value_subtype_string.get_slice("/", 1).to_int());
+			value_subtype_string = value_subtype_string.substr(0, value_slash_pos);
+		}
+		r_value_subtype = Variant::Type(value_subtype_string.to_int());
+		if (r_value_class_name != nullptr) {
+			*r_value_class_name = p_hint_string.substr(key_value_separator + 1 + value_subtype_separator + 1);
+		}
+	}
+}
+
 Node *SceneState::instantiate(GenEditState p_edit_state) const {
 	// Nodes where instantiation failed (because something is missing.)
 	List<Node *> stray_instances;
@@ -538,9 +572,38 @@ Node *SceneState::instantiate(GenEditState p_edit_state) const {
 			Dictionary paths = dnp.value;
 
 			bool valid;
-			Dictionary dict = dnp.base->get(dnp.property, &valid);
+			Variant property_value = dnp.base->get(dnp.property, &valid);
 			ERR_CONTINUE_EDMSG(!valid, vformat("Failed to get property '%s' from node '%s'.", dnp.property, dnp.base->get_name()));
-			dict = dict.duplicate();
+
+			Dictionary dict;
+			if (property_value.get_type() != Variant::DICTIONARY) {
+				// The value of the property is currently not a dictionary.
+				// This can happen if we have an exported dictionary from .NET with its default value of null.
+				// This means we have to find the property in the property list and parse out the key and value types.
+
+				List<PropertyInfo> all_dnp_base_props;
+				dnp.base->get_property_list(&all_dnp_base_props);
+				for (const PropertyInfo &dnp_base_prop : all_dnp_base_props) {
+					if (dnp_base_prop.name == dnp.property) {
+						if (dnp_base_prop.type == Variant::DICTIONARY) {
+							Variant::Type key_subtype;
+							PropertyHint key_subtype_hint;
+							String key_class_name;
+							Variant::Type value_subtype;
+							PropertyHint value_subtype_hint;
+							String value_class_name;
+
+							_parse_dictionary_hint_string(dnp_base_prop.hint_string, key_subtype, key_subtype_hint, &key_class_name, value_subtype, value_subtype_hint, &value_class_name);
+
+							dict.set_typed(key_subtype, StringName(key_class_name), Variant(), value_subtype, StringName(value_class_name), Variant());
+						}
+						break;
+					}
+				}
+			} else {
+				dict = property_value;
+				dict = dict.duplicate();
+			}
 			bool convert_key = dict.get_typed_key_builtin() == Variant::OBJECT &&
 					ClassDB::is_parent_class(dict.get_typed_key_class_name(), "Node");
 			bool convert_value = dict.get_typed_value_builtin() == Variant::OBJECT &&
@@ -850,51 +913,36 @@ Error SceneState::_parse_node(Node *p_owner, Node *p_node, int p_parent_idx, Has
 				}
 			}
 		} else if (E.type == Variant::DICTIONARY && E.hint == PROPERTY_HINT_TYPE_STRING) {
-			int key_value_separator = E.hint_string.find_char(';');
-			if (key_value_separator >= 0) {
-				int key_subtype_separator = E.hint_string.find_char(':');
-				String key_subtype_string = E.hint_string.substr(0, key_subtype_separator);
-				int key_slash_pos = key_subtype_string.find_char('/');
-				PropertyHint key_subtype_hint = PropertyHint::PROPERTY_HINT_NONE;
-				if (key_slash_pos >= 0) {
-					key_subtype_hint = PropertyHint(key_subtype_string.get_slice("/", 1).to_int());
-					key_subtype_string = key_subtype_string.substr(0, key_slash_pos);
-				}
-				Variant::Type key_subtype = Variant::Type(key_subtype_string.to_int());
-				bool convert_key = key_subtype == Variant::OBJECT && key_subtype_hint == PROPERTY_HINT_NODE_TYPE;
+			Variant::Type key_subtype;
+			PropertyHint key_subtype_hint;
+			Variant::Type value_subtype;
+			PropertyHint value_subtype_hint;
 
-				int value_subtype_separator = E.hint_string.find_char(':', key_value_separator) - (key_value_separator + 1);
-				String value_subtype_string = E.hint_string.substr(key_value_separator + 1, value_subtype_separator);
-				int value_slash_pos = value_subtype_string.find_char('/');
-				PropertyHint value_subtype_hint = PropertyHint::PROPERTY_HINT_NONE;
-				if (value_slash_pos >= 0) {
-					value_subtype_hint = PropertyHint(value_subtype_string.get_slice("/", 1).to_int());
-					value_subtype_string = value_subtype_string.substr(0, value_slash_pos);
-				}
-				Variant::Type value_subtype = Variant::Type(value_subtype_string.to_int());
-				bool convert_value = value_subtype == Variant::OBJECT && value_subtype_hint == PROPERTY_HINT_NODE_TYPE;
+			_parse_dictionary_hint_string(E.hint_string, key_subtype, key_subtype_hint, nullptr, value_subtype, value_subtype_hint, nullptr);
 
-				if (convert_key || convert_value) {
-					use_deferred_node_path_bit = true;
-					Dictionary dict = value;
-					Dictionary new_dict;
-					for (int i = 0; i < dict.size(); i++) {
-						Variant new_key = dict.get_key_at_index(i);
-						if (convert_key && new_key.get_type() == Variant::OBJECT) {
-							if (Node *n = Object::cast_to<Node>(new_key)) {
-								new_key = p_node->get_path_to(n);
-							}
+			bool convert_key = key_subtype == Variant::OBJECT && key_subtype_hint == PROPERTY_HINT_NODE_TYPE;
+			bool convert_value = value_subtype == Variant::OBJECT && value_subtype_hint == PROPERTY_HINT_NODE_TYPE;
+
+			if (convert_key || convert_value) {
+				use_deferred_node_path_bit = true;
+				Dictionary dict = value;
+				Dictionary new_dict;
+				for (int i = 0; i < dict.size(); i++) {
+					Variant new_key = dict.get_key_at_index(i);
+					if (convert_key && new_key.get_type() == Variant::OBJECT) {
+						if (Node *n = Object::cast_to<Node>(new_key)) {
+							new_key = p_node->get_path_to(n);
 						}
-						Variant new_value = dict.get_value_at_index(i);
-						if (convert_value && new_value.get_type() == Variant::OBJECT) {
-							if (Node *n = Object::cast_to<Node>(new_value)) {
-								new_value = p_node->get_path_to(n);
-							}
-						}
-						new_dict[new_key] = new_value;
 					}
-					value = new_dict;
+					Variant new_value = dict.get_value_at_index(i);
+					if (convert_value && new_value.get_type() == Variant::OBJECT) {
+						if (Node *n = Object::cast_to<Node>(new_value)) {
+							new_value = p_node->get_path_to(n);
+						}
+					}
+					new_dict[new_key] = new_value;
 				}
+				value = new_dict;
 			}
 		}
 
