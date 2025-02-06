@@ -2954,7 +2954,10 @@ Error GDScriptCompiler::_compile_class(GDScript *p_script, const GDScriptParser:
 			}
 		} else if (member.type == member.VARIABLE) {
 			const GDScriptParser::VariableNode *variable = member.variable;
-			if (variable->property == GDScriptParser::VariableNode::PROP_INLINE) {
+			if (variable->is_immutable) {
+				// This flag makes the VM throw an error if we try to modify an immutable value.
+				p_script->member_indices[variable->identifier->name].property_info.usage |= PROPERTY_USAGE_IS_IMMUTABLE;
+			} else if (variable->property == GDScriptParser::VariableNode::PROP_INLINE) {
 				if (variable->setter != nullptr) {
 					Error err = _parse_setter_getter(p_script, p_class, variable, true);
 					if (err) {

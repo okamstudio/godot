@@ -1171,6 +1171,17 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 				const StringName *index = &_global_names_ptr[indexname];
 
 				bool valid;
+
+#ifdef DEBUG_ENABLED
+				// Do a runtime check if the variable is immutable.
+				// NOTE: We only have to do this in OPCODE_SET_NAMED, since any indexed set was already verified by the analyzer.
+				// NOTE: Only do error check in debug for perf, but still modify the value even if it's immutable. This keeps the behavior the same between debug and release builds.
+				if (dst->property_is_immutable(*index)) {
+					err_text = vformat(R"(Cannot assign to immutable variable "%s" (on base "%s"). Change "let" to "var" to make it mutable.)", String(*index), _get_var_type(dst));
+					OPCODE_BREAK;
+				}
+#endif
+
 				dst->set_named(*index, *value, valid);
 
 #ifdef DEBUG_ENABLED

@@ -700,6 +700,8 @@ public:
 	void set_named(const StringName &p_member, const Variant &p_value, bool &r_valid);
 	Variant get_named(const StringName &p_member, bool &r_valid) const;
 
+	bool property_is_immutable(const StringName &p_member) const;
+
 	typedef void (*ValidatedSetter)(Variant *base, const Variant *value);
 	typedef void (*ValidatedGetter)(const Variant *base, Variant *value);
 

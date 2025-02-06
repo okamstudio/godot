@@ -304,6 +304,16 @@ Variant Variant::get_named(const StringName &p_member, bool &r_valid) const {
 	return Variant();
 }
 
+bool Variant::property_is_immutable(const StringName &p_member) const {
+	if (type == Variant::OBJECT) {
+		const Object *obj = get_validated_object();
+		if (obj) {
+			return obj->property_is_immutable(p_member);
+		}
+	}
+	return false;
+}
+
 /**** INDEXED SETTERS AND GETTERS ****/
 
 #ifdef DEBUG_ENABLED

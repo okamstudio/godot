@@ -1,0 +1,6 @@
+GDTEST_RUNTIME_ERROR
+>> SCRIPT ERROR
+>> on function: test()
+>> runtime/errors/immutable_external_member_attempt_to_modify.gd
+>> 4
+>> Cannot assign to immutable variable "immutable_member" (on base "RefCounted (ImmutableTestObject)"). Change "let" to "var" to make it mutable.

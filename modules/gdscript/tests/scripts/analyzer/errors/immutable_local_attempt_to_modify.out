@@ -1,0 +1,2 @@
+GDTEST_ANALYZER_ERROR
+Cannot assign to immutable variable "immutable_local". Change "let" to "var" make it mutable.

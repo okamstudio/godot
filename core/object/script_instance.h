@@ -46,6 +46,10 @@ public:
 
 	virtual bool property_can_revert(const StringName &p_name) const = 0;
 	virtual bool property_get_revert(const StringName &p_name, Variant &r_ret) const = 0;
+	virtual bool property_is_immutable(const StringName &p_name) const {
+		// Immutable properties are only implemented for GDScriptInstance. By default this returns false.
+		return false;
+	}
 
 	virtual Object *get_owner() { return nullptr; }
 	virtual void get_property_state(List<Pair<StringName, Variant>> &state);

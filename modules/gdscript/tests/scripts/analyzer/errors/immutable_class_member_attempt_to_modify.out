@@ -1,0 +1,2 @@
+GDTEST_ANALYZER_ERROR
+Cannot assign to an immutable variable "immutable_member". Change "let" to "var" to make it mutable.

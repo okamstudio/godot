@@ -1,0 +1,2 @@
+GDTEST_ANALYZER_ERROR
+Cannot assign to immutable function parameter "delta". Remove the "let" to make it mutable.

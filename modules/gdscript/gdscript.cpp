@@ -1987,6 +1987,30 @@ bool GDScriptInstance::property_get_revert(const StringName &p_name, Variant &r_
 	return false;
 }
 
+bool GDScriptInstance::property_is_immutable(const StringName &p_name) const {
+	{
+		// Check member variables.
+		HashMap<StringName, GDScript::MemberInfo>::ConstIterator member = script->member_indices.find(p_name);
+		if (member) {
+			return (member->value.property_info.usage & PROPERTY_USAGE_IS_IMMUTABLE);
+		}
+		return false;
+	}
+
+	GDScript *sptr = script.ptr();
+	while (sptr) {
+		// Check static variables.
+		HashMap<StringName, GDScript::MemberInfo>::ConstIterator member = sptr->static_variables_indices.find(p_name);
+		if (member) {
+			return (member->value.property_info.usage & PROPERTY_USAGE_IS_IMMUTABLE);
+		}
+
+		sptr = sptr->_base;
+	}
+
+	return false;
+}
+
 void GDScriptInstance::get_method_list(List<MethodInfo> *p_list) const {
 	const GDScript *sptr = script.ptr();
 	while (sptr) {
@@ -2749,6 +2773,7 @@ void GDScriptLanguage::get_reserved_words(List<String> *p_words) const {
 		"enum",
 		"extends",
 		"func",
+		"let",
 		"namespace", // Reserved for potential future use.
 		"signal",
 		"static",

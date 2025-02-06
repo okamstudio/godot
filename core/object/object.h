@@ -124,6 +124,7 @@ enum PropertyUsageFlags {
 	PROPERTY_USAGE_EDITOR_BASIC_SETTING = 1 << 27, //for project or editor settings, show when basic settings are selected.
 	PROPERTY_USAGE_READ_ONLY = 1 << 28, // Mark a property as read-only in the inspector.
 	PROPERTY_USAGE_SECRET = 1 << 29, // Export preset credentials that should be stored separately from the rest of the export config.
+	PROPERTY_USAGE_IS_IMMUTABLE = 1 << 30, // This value cannot be mutated after its initial set. Declare properties with `let` to give it this flag.
 
 	PROPERTY_USAGE_DEFAULT = PROPERTY_USAGE_STORAGE | PROPERTY_USAGE_EDITOR,
 	PROPERTY_USAGE_NO_EDITOR = PROPERTY_USAGE_STORAGE,
@@ -862,6 +863,8 @@ public:
 	void validate_property(PropertyInfo &p_property) const;
 	bool property_can_revert(const StringName &p_name) const;
 	Variant property_get_revert(const StringName &p_name) const;
+
+	bool property_is_immutable(const StringName &p_name) const;
 
 	bool has_method(const StringName &p_method) const;
 	int get_method_argument_count(const StringName &p_method, bool *r_is_valid = nullptr) const;
