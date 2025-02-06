@@ -9,6 +9,17 @@ env_png = env.Clone()
 
 thirdparty_obj = []
 
+if env["fpng"]:
+    fpng_dir = "#thirdparty/fpng/"
+    env_png.Prepend(CPPPATH=[fpng_dir])  # required for "fpng.h"
+
+    env_fpng = env.Clone()
+    env_fpng.Prepend(CPPPATH=[fpng_dir])
+    env_fpng.disable_warnings()
+    env_fpng.add_source_files(thirdparty_obj, [fpng_dir + "fpng.cpp"])
+    env_fpng.Append(CPPDEFINES=["FPNG_NO_STDIO"])  # We don't need fpng's stdio support
+
+
 if env["builtin_libpng"]:
     thirdparty_dir = "#thirdparty/libpng/"
     thirdparty_sources = [
@@ -61,8 +72,7 @@ if env["builtin_libpng"]:
         env_thirdparty.add_source_files(thirdparty_obj, thirdparty_dir + "powerpc/powerpc_init.c")
         env_thirdparty.add_source_files(thirdparty_obj, thirdparty_dir + "powerpc/filter_vsx_intrinsics.c")
 
-    env.drivers_sources += thirdparty_obj
-
+env.drivers_sources += thirdparty_obj
 
 # Godot source files
 

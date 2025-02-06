@@ -181,6 +181,7 @@ opts.Add(BoolVariable("deprecated", "Enable compatibility code for deprecated an
 opts.Add(EnumVariable("precision", "Set the floating-point precision level", "single", ("single", "double")))
 opts.Add(BoolVariable("minizip", "Enable ZIP archive support using minizip", True))
 opts.Add(BoolVariable("brotli", "Enable Brotli for decompression and WOFF2 fonts support", True))
+opts.Add(BoolVariable("fpng", "Use fpng for PNG encoding RGB and RGBA PNGs", False))
 opts.Add(BoolVariable("xaudio2", "Enable the XAudio2 audio driver on supported platforms", False))
 opts.Add(BoolVariable("vulkan", "Enable the vulkan rendering driver", True))
 opts.Add(BoolVariable("opengl3", "Enable the OpenGL/GLES3 rendering driver", True))
@@ -1007,6 +1008,8 @@ if env["minizip"]:
     env.Append(CPPDEFINES=["MINIZIP_ENABLED"])
 if env["brotli"]:
     env.Append(CPPDEFINES=["BROTLI_ENABLED"])
+if env["fpng"]:
+    env.Append(CPPDEFINES=["FPNG_ENABLED"])
 
 if not env["verbose"]:
     methods.no_verbose(env)

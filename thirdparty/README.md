@@ -322,6 +322,14 @@ All fonts are converted from the unhinted `.ttf` sources using the
 Use UI font variant if available, because it has tight vertical metrics and good
 for UI.
 
+## fpng
+
+- Upstream: https://github.com/richgel999/fpng
+- Version: 925796543b9d26b8edfcdcecd94c1dac280f29fc (2024)
+- License: Unlicense
+
+Files extracted from upstream source:
+- `fpng.h`, `fpng.cpp`
 
 ## freetype
 
