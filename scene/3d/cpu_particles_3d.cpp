@@ -327,42 +327,25 @@ void CPUParticles3D::set_param_curve(Parameter p_param, const Ref<Curve> &p_curv
 	curve_parameters[p_param] = p_curve;
 
 	switch (p_param) {
-		case PARAM_INITIAL_LINEAR_VELOCITY: {
-			//do none for this one
-		} break;
-		case PARAM_ANGULAR_VELOCITY: {
-			_adjust_curve_range(p_curve, -360, 360);
-		} break;
-		case PARAM_ORBIT_VELOCITY: {
-			_adjust_curve_range(p_curve, -500, 500);
-		} break;
-		case PARAM_LINEAR_ACCEL: {
-			_adjust_curve_range(p_curve, -200, 200);
-		} break;
-		case PARAM_RADIAL_ACCEL: {
-			_adjust_curve_range(p_curve, -200, 200);
-		} break;
-		case PARAM_TANGENTIAL_ACCEL: {
-			_adjust_curve_range(p_curve, -200, 200);
-		} break;
-		case PARAM_DAMPING: {
-			_adjust_curve_range(p_curve, 0, 100);
-		} break;
-		case PARAM_ANGLE: {
-			_adjust_curve_range(p_curve, -360, 360);
-		} break;
-		case PARAM_SCALE: {
-		} break;
+		case PARAM_ANGULAR_VELOCITY:
+		case PARAM_ORBIT_VELOCITY:
+		case PARAM_LINEAR_ACCEL:
+		case PARAM_RADIAL_ACCEL:
+		case PARAM_TANGENTIAL_ACCEL:
+		case PARAM_ANGLE:
 		case PARAM_HUE_VARIATION: {
 			_adjust_curve_range(p_curve, -1, 1);
 		} break;
-		case PARAM_ANIM_SPEED: {
-			_adjust_curve_range(p_curve, 0, 200);
-		} break;
+		case PARAM_DAMPING:
+		case PARAM_SCALE:
+		case PARAM_ANIM_SPEED:
 		case PARAM_ANIM_OFFSET: {
+			_adjust_curve_range(p_curve, 0, 1);
 		} break;
-		default: {
-		}
+		case PARAM_INITIAL_LINEAR_VELOCITY:
+		case PARAM_MAX: {
+			// No curve available.
+		} break;
 	}
 
 	update_configuration_warnings();

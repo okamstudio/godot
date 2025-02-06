@@ -1419,37 +1419,34 @@ void ParticleProcessMaterial::set_param_texture(Parameter p_param, const Ref<Tex
 	Variant tex_rid = p_texture.is_valid() ? Variant(p_texture->get_rid()) : Variant();
 
 	switch (p_param) {
-		case PARAM_INITIAL_LINEAR_VELOCITY: {
-			//do none for this one
-		} break;
 		case PARAM_ANGULAR_VELOCITY: {
 			RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->angular_velocity_texture, tex_rid);
-			_adjust_curve_range(p_texture, -360, 360);
+			_adjust_curve_range(p_texture, -1, 1);
 		} break;
 		case PARAM_ORBIT_VELOCITY: {
 			RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->orbit_velocity_texture, tex_rid);
-			_adjust_curve_range(p_texture, -2, 2);
+			_adjust_curve_range(p_texture, -1, 1);
 			notify_property_list_changed();
 		} break;
 		case PARAM_LINEAR_ACCEL: {
 			RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->linear_accel_texture, tex_rid);
-			_adjust_curve_range(p_texture, -200, 200);
+			_adjust_curve_range(p_texture, -1, 1);
 		} break;
 		case PARAM_RADIAL_ACCEL: {
 			RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->radial_accel_texture, tex_rid);
-			_adjust_curve_range(p_texture, -200, 200);
+			_adjust_curve_range(p_texture, -1, 1);
 		} break;
 		case PARAM_TANGENTIAL_ACCEL: {
 			RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->tangent_accel_texture, tex_rid);
-			_adjust_curve_range(p_texture, -200, 200);
+			_adjust_curve_range(p_texture, -1, 1);
 		} break;
 		case PARAM_DAMPING: {
 			RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->damping_texture, tex_rid);
-			_adjust_curve_range(p_texture, 0, 100);
+			_adjust_curve_range(p_texture, 0, 1);
 		} break;
 		case PARAM_ANGLE: {
 			RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->angle_texture, tex_rid);
-			_adjust_curve_range(p_texture, -360, 360);
+			_adjust_curve_range(p_texture, -1, 1);
 		} break;
 		case PARAM_SCALE: {
 			RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->scale_texture, tex_rid);
@@ -1461,35 +1458,36 @@ void ParticleProcessMaterial::set_param_texture(Parameter p_param, const Ref<Tex
 		} break;
 		case PARAM_ANIM_SPEED: {
 			RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->anim_speed_texture, tex_rid);
-			_adjust_curve_range(p_texture, 0, 200);
+			_adjust_curve_range(p_texture, 0, 1);
 		} break;
 		case PARAM_ANIM_OFFSET: {
 			RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->anim_offset_texture, tex_rid);
+			_adjust_curve_range(p_texture, 0, 1);
 		} break;
 		case PARAM_TURB_INFLUENCE_OVER_LIFE: {
 			RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->turbulence_influence_over_life, tex_rid);
 			_adjust_curve_range(p_texture, 0, 1);
 		} break;
-		case PARAM_TURB_VEL_INFLUENCE: {
-			// Can't happen, but silences warning
-		} break;
-		case PARAM_TURB_INIT_DISPLACEMENT: {
-			// Can't happen, but silences warning
-		} break;
 		case PARAM_RADIAL_VELOCITY: {
 			RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->radial_velocity_texture, tex_rid);
+			_adjust_curve_range(p_texture, 0, 1);
 		} break;
 		case PARAM_SCALE_OVER_VELOCITY: {
 			RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->scale_over_velocity_texture, tex_rid);
-			_adjust_curve_range(p_texture, 0, 3);
+			_adjust_curve_range(p_texture, 0, 1);
 			notify_property_list_changed();
 		} break;
 		case PARAM_DIRECTIONAL_VELOCITY: {
 			RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->directional_velocity_texture, tex_rid);
+			_adjust_curve_range(p_texture, 0, 1);
 			notify_property_list_changed();
 		} break;
-		case PARAM_MAX:
-			break; // Can't happen, but silences warning
+		case PARAM_INITIAL_LINEAR_VELOCITY:
+		case PARAM_TURB_VEL_INFLUENCE:
+		case PARAM_TURB_INIT_DISPLACEMENT:
+		case PARAM_MAX: {
+			// No curve available.
+		} break;
 	}
 
 	_queue_shader_change();
