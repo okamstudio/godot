@@ -496,27 +496,78 @@ Vector<Vector3> Camera3D::get_near_plane_points() const {
 	return points;
 }
 
-Point2 Camera3D::unproject_position(const Vector3 &p_pos) const {
-	ERR_FAIL_COND_V_MSG(!is_inside_tree(), Vector2(), "Camera is not inside scene.");
+bool Camera3D::safe_unproject_position(const Vector3 &p_pos, Point2 &r_result) const {
+	ERR_FAIL_COND_V_MSG(!is_inside_tree(), false, "Camera is not inside scene.");
 
 	Size2 viewport_size = get_viewport()->get_visible_rect().size;
 
 	Projection cm = _get_camera_projection(_near);
 
+	// These are homogeneous coordinates.
+	// The 1.0 will later become w, the perspective divide.
 	Plane p(get_camera_transform().xform_inv(p_pos), 1.0);
 
 	p = cm.xform4(p);
 
-	// Prevent divide by zero.
-	// TODO: Investigate, this was causing NaNs.
-	ERR_FAIL_COND_V(p.d == 0, Point2());
+	// If p.d is zero, there is a potential divide by zero ahead.
+	// This can occur if the test point is exactly on the focal plane
+	// with a perspective camera matrix (i.e. behind the near plane).
 
+	// There are two possibilities here:
+	// Either the test point is exactly at the origin, in which case the unprojected
+	// point should theoretically be the center of the viewport, OR
+	// infinity distance from the center of the viewport.
+
+	// We should also handle the case where the test point is CLOSE
+	// to the focal plane.
+	// This can cause returned unprojected results near infinity.
+	// The epsilon chosen here must be small, but still allow for near planes quite close to zero.
+
+	// Here we return false and let the calling routine handle this error condition.
+	if (Math::absf(p.d) < CMP_EPSILON) {
+		// Bodge some kind of result at infinity from the viewport center.
+		r_result = Point2();
+
+		// The viewport size here is irrelevant, we just want a high number
+		// (representing infinity) but not actually close to infinity to prevent
+		// knock on bugs if later maths later does something with these values.
+		// Suffice is for them to be WAY off the main viewport.
+		const float SOME_HIGH_VALUE = 100000.0f;
+		if (p.normal.x > 0) {
+			r_result.x = SOME_HIGH_VALUE;
+		} else if (p.normal.x < 0) {
+			r_result.x = -SOME_HIGH_VALUE;
+		}
+		if (p.normal.y > 0) {
+			r_result.y = SOME_HIGH_VALUE;
+		} else if (p.normal.y < 0) {
+			r_result.y = -SOME_HIGH_VALUE;
+		}
+
+		return false;
+	}
 	p.normal /= p.d;
 
-	Point2 res;
-	res.x = (p.normal.x * 0.5 + 0.5) * viewport_size.x;
-	res.y = (-p.normal.y * 0.5 + 0.5) * viewport_size.y;
+	r_result.x = (p.normal.x * 0.5 + 0.5) * viewport_size.x;
+	r_result.y = (-p.normal.y * 0.5 + 0.5) * viewport_size.y;
 
+	return true;
+}
+
+Point2 Camera3D::unproject_position(const Vector3 &p_pos) const {
+	ERR_FAIL_COND_V_MSG(!is_inside_tree(), Point2(), "Camera is not inside scene.");
+
+	Point2 res;
+
+	// Unproject can fail if the test point is on the camera matrix focal plane
+	// with a perspective transform.
+	// In this case, the unprojected point is potentially at infinity from the viewport
+	// center.
+	if (!safe_unproject_position(p_pos, res)) {
+#ifdef DEV_ENABLED
+		WARN_PRINT_ONCE("Camera::unproject_position() unprojecting points on the focal plane is unreliable.");
+#endif
+	}
 	return res;
 }
 

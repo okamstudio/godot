@@ -181,6 +181,7 @@ public:
 	virtual Vector3 project_ray_origin(const Point2 &p_pos) const;
 	virtual Vector3 project_local_ray_normal(const Point2 &p_pos) const;
 	virtual Point2 unproject_position(const Vector3 &p_pos) const;
+	bool safe_unproject_position(const Vector3 &p_pos, Point2 &r_result) const;
 	bool is_position_behind(const Vector3 &p_pos) const;
 	virtual Vector3 project_position(const Point2 &p_point, real_t p_z_depth) const;
 
