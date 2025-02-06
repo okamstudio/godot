@@ -322,7 +322,7 @@ String GDScriptLanguage::debug_get_stack_level_source(int p_level) const {
 	return _call_stack.levels[l].function->get_source();
 }
 
-void GDScriptLanguage::debug_get_stack_level_locals(int p_level, List<String> *p_locals, List<Variant> *p_values, int p_max_subitems, int p_max_depth) {
+void GDScriptLanguage::debug_get_stack_level_locals(int p_level, LocalVector<Pair<String, Variant>> &p_locals, int p_max_subitems, int p_max_depth) {
 	if (_debug_parse_err_line >= 0) {
 		return;
 	}
@@ -336,12 +336,11 @@ void GDScriptLanguage::debug_get_stack_level_locals(int p_level, List<String> *p
 
 	f->debug_get_stack_member_state(*_call_stack.levels[l].line, &locals);
 	for (const Pair<StringName, int> &E : locals) {
-		p_locals->push_back(E.first);
-		p_values->push_back(_call_stack.levels[l].stack[E.second]);
+		p_locals.push_back(Pair(String(E.first), _call_stack.levels[l].stack[E.second]));
 	}
 }
 
-void GDScriptLanguage::debug_get_stack_level_members(int p_level, List<String> *p_members, List<Variant> *p_values, int p_max_subitems, int p_max_depth) {
+void GDScriptLanguage::debug_get_stack_level_members(int p_level, LocalVector<Pair<String, Variant>> &p_members, int p_max_subitems, int p_max_depth) {
 	if (_debug_parse_err_line >= 0) {
 		return;
 	}
@@ -361,8 +360,7 @@ void GDScriptLanguage::debug_get_stack_level_members(int p_level, List<String> *
 	const HashMap<StringName, GDScript::MemberInfo> &mi = scr->debug_get_member_indices();
 
 	for (const KeyValue<StringName, GDScript::MemberInfo> &E : mi) {
-		p_members->push_back(E.key);
-		p_values->push_back(instance->debug_get_member_by_index(E.value.index));
+		p_members.push_back(Pair(String(E.key), instance->debug_get_member_by_index(E.value.index)));
 	}
 }
 
@@ -379,7 +377,7 @@ ScriptInstance *GDScriptLanguage::debug_get_stack_level_instance(int p_level) {
 	return instance;
 }
 
-void GDScriptLanguage::debug_get_globals(List<String> *p_globals, List<Variant> *p_values, int p_max_subitems, int p_max_depth) {
+void GDScriptLanguage::debug_get_globals(LocalVector<Pair<String, Variant>> &p_globals, int p_max_subitems, int p_max_depth) {
 	const HashMap<StringName, int> &name_idx = GDScriptLanguage::get_singleton()->get_global_map();
 	const Variant *gl_array = GDScriptLanguage::get_singleton()->get_global_array();
 
@@ -422,24 +420,19 @@ void GDScriptLanguage::debug_get_globals(List<String> *p_globals, List<Variant> 
 			continue;
 		}
 
-		p_globals->push_back(E.key);
-		p_values->push_back(var);
+		p_globals.push_back(Pair(String(E.key), var));
 	}
 }
 
 String GDScriptLanguage::debug_parse_stack_level_expression(int p_level, const String &p_expression, int p_max_subitems, int p_max_depth) {
-	List<String> names;
-	List<Variant> values;
-	debug_get_stack_level_locals(p_level, &names, &values, p_max_subitems, p_max_depth);
+	LocalVector<Pair<String, Variant>> locals;
+	debug_get_stack_level_locals(p_level, locals, p_max_subitems, p_max_depth);
 
 	Vector<String> name_vector;
-	for (const String &name : names) {
-		name_vector.push_back(name);
-	}
-
 	Array value_array;
-	for (const Variant &value : values) {
-		value_array.push_back(value);
+	for (const Pair<String, Variant> &E : locals) {
+		name_vector.push_back(E.first);
+		value_array.push_back(E.second);
 	}
 
 	Expression expression;

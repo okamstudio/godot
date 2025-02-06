@@ -538,9 +538,9 @@ public:
 	int debug_get_stack_level_line(int p_level) const override;
 	String debug_get_stack_level_function(int p_level) const override;
 	String debug_get_stack_level_source(int p_level) const override;
-	/* TODO */ void debug_get_stack_level_locals(int p_level, List<String> *p_locals, List<Variant> *p_values, int p_max_subitems, int p_max_depth) override {}
-	/* TODO */ void debug_get_stack_level_members(int p_level, List<String> *p_members, List<Variant> *p_values, int p_max_subitems, int p_max_depth) override {}
-	/* TODO */ void debug_get_globals(List<String> *p_locals, List<Variant> *p_values, int p_max_subitems, int p_max_depth) override {}
+	/* TODO */ void debug_get_stack_level_locals(int p_level, LocalVector<Pair<String, Variant>> &p_locals, int p_max_subitems, int p_max_depth) override {}
+	/* TODO */ void debug_get_stack_level_members(int p_level, LocalVector<Pair<String, Variant>> &p_members, int p_max_subitems, int p_max_depth) override {}
+	/* TODO */ void debug_get_globals(LocalVector<Pair<String, Variant>> &p_globals, int p_max_subitems, int p_max_depth) override {}
 	/* TODO */ String debug_parse_stack_level_expression(int p_level, const String &p_expression, int p_max_subitems, int p_max_depth) override {
 		return "";
 	}
