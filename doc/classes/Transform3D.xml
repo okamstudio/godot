@@ -170,6 +170,42 @@
 				This can be seen as transforming with respect to the local frame.
 			</description>
 		</method>
+		<method name="left" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+				Returns the left direction vector of this transform.
+			</description>
+		</method>
+		<method name="right" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+				Returns the right direction vector of this transform.
+			</description>
+		</method>
+		<method name="forward" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+				Returns the forward direction vector of this transform.
+			</description>
+		</method>
+		<method name="back" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+				Returns the back (opposite of forward) direction vector of this transform.
+			</description>
+		</method>
+		<method name="up" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+				Returns the upward direction vector of this transform.
+			</description>
+		</method>
+		<method name="down" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+				Returns the downward direction vector of this transform.
+			</description>
+		</method>
 	</methods>
 	<members>
 		<member name="basis" type="Basis" setter="" getter="" default="Basis(1, 0, 0, 0, 1, 0, 0, 0, 1)">

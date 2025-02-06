@@ -80,6 +80,13 @@ struct [[nodiscard]] Transform3D {
 	bool operator==(const Transform3D &p_transform) const;
 	bool operator!=(const Transform3D &p_transform) const;
 
+	_FORCE_INLINE_ Vector3 right() const;
+	_FORCE_INLINE_ Vector3 left() const;
+	_FORCE_INLINE_ Vector3 up() const;
+	_FORCE_INLINE_ Vector3 down() const;
+	_FORCE_INLINE_ Vector3 forward() const;
+	_FORCE_INLINE_ Vector3 back() const;
+
 	_FORCE_INLINE_ Vector3 xform(const Vector3 &p_vector) const;
 	_FORCE_INLINE_ AABB xform(const AABB &p_aabb) const;
 	_FORCE_INLINE_ Vector<Vector3> xform(const Vector<Vector3> &p_array) const;
@@ -129,6 +136,30 @@ struct [[nodiscard]] Transform3D {
 	Transform3D(const Vector3 &p_x, const Vector3 &p_y, const Vector3 &p_z, const Vector3 &p_origin);
 	Transform3D(real_t p_xx, real_t p_xy, real_t p_xz, real_t p_yx, real_t p_yy, real_t p_yz, real_t p_zx, real_t p_zy, real_t p_zz, real_t p_ox, real_t p_oy, real_t p_oz);
 };
+
+_FORCE_INLINE_ Vector3 Transform3D::right() const {
+	return basis.get_column(0).normalized();
+}
+
+_FORCE_INLINE_ Vector3 Transform3D::left() const {
+	return -basis.get_column(0).normalized();
+}
+
+_FORCE_INLINE_ Vector3 Transform3D::up() const {
+	return basis.get_column(1).normalized();
+}
+
+_FORCE_INLINE_ Vector3 Transform3D::down() const {
+	return -basis.get_column(1).normalized();
+}
+
+_FORCE_INLINE_ Vector3 Transform3D::forward() const {
+	return -basis.get_column(2).normalized();
+}
+
+_FORCE_INLINE_ Vector3 Transform3D::back() const {
+	return basis.get_column(2).normalized();
+}
 
 _FORCE_INLINE_ Vector3 Transform3D::xform(const Vector3 &p_vector) const {
 	return Vector3(
