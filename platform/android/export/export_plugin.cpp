@@ -2434,6 +2434,20 @@ String EditorExportPlatformAndroid::get_apksigner_path(int p_target_sdk, bool p_
 	String java_sdk_path = EDITOR_GET("export/android/java_sdk_path");
 	if (!java_sdk_path.is_empty()) {
 		OS::get_singleton()->set_environment("JAVA_HOME", java_sdk_path);
+
+#ifdef UNIX_ENABLED
+		// Check for the `java` command.
+		String java_path = get_java_path();
+		if (!FileAccess::exists(java_path)) {
+			print_error("Unable to find 'java' command using the Java SDK path specified in Editor Settings.");
+			return "<FAILED>";
+		} else {
+			String env_path = OS::get_singleton()->get_environment("PATH");
+			if (!env_path.contains(java_sdk_path)) {
+				OS::get_singleton()->set_environment("PATH", java_sdk_path + "/bin:" + env_path);
+			}
+		}
+#endif
 	}
 
 	List<String> args;
