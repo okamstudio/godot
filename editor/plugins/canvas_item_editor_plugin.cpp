@@ -2347,6 +2347,16 @@ bool CanvasItemEditor::_gui_input_move(const Ref<InputEvent> &p_event) {
 				new_pos = previous_pos + (drag_to - drag_from);
 			}
 
+			Point2 canvas_obj_position = transform.xform(new_pos);
+			Size2 hmin = h_scroll->get_minimum_size();
+			Size2 vmin = v_scroll->get_minimum_size();
+			// Get the visible frame.
+			Rect2 local_rect = Rect2(Point2(), viewport->get_size() - Size2(vmin.width, hmin.height));
+			// Check if the new position is inside the visible frame.
+			if (!local_rect.has_point(canvas_obj_position)) {
+				view_offset += dir;
+			}
+
 			for (CanvasItem *ci : drag_selection) {
 				Transform2D xform = ci->get_global_transform_with_canvas().affine_inverse() * ci->get_transform();
 				ci->_edit_set_position(ci->_edit_get_position() + xform.xform(new_pos) - xform.xform(previous_pos));
@@ -4127,6 +4137,69 @@ void CanvasItemEditor::_notification(int p_what) {
 
 		case NOTIFICATION_PROCESS: {
 			// Update the viewport if the canvas_item changes
+			bool moved_viewport = false;
+			if (drag_type == DRAG_MOVE || drag_type == DRAG_MOVE_X ||
+					drag_type == DRAG_MOVE_Y) {
+				Size2 hmin = h_scroll->get_minimum_size();
+				Size2 vmin = v_scroll->get_minimum_size();
+				// Get the visible frame.
+				Rect2 local_rect =
+						Rect2(Point2(), viewport->get_size() - Size2(vmin.width, hmin.height));
+				Vector2 mouse_position = Input::get_singleton()->get_mouse_position() -
+						viewport->get_global_position();
+				// Check if the mouse is outside the visible frame.
+				if (!local_rect.has_point(mouse_position)) {
+					Vector2 direction = Vector2(0, 0);
+
+					if (mouse_position.x < local_rect.get_position().x) {
+						direction.x = -1;
+					} else if (mouse_position.x >
+							local_rect.get_position().x + local_rect.get_size().x) {
+						direction.x = 1;
+					}
+					if (mouse_position.y < local_rect.get_position().y) {
+						direction.y = -1;
+					} else if (mouse_position.y >
+							local_rect.get_position().y + local_rect.get_size().y) {
+						direction.y = 1;
+					}
+
+					Vector2 nearest_point = Vector2(0, 0);
+					bool mouse_in_x = false;
+					bool mouse_in_y = false;
+					if (mouse_position.x < local_rect.get_position().x) {
+						nearest_point.x = local_rect.get_position().x;
+						mouse_in_x = true;
+
+					} else if (mouse_position.x >
+							local_rect.get_position().x + local_rect.get_size().x) {
+						nearest_point.x = local_rect.get_position().x + local_rect.get_size().x;
+						mouse_in_x = true;
+					}
+					if (mouse_position.y < local_rect.get_position().y) {
+						nearest_point.y = local_rect.get_position().y;
+						mouse_in_y = true;
+					} else if (mouse_position.y >
+							local_rect.get_position().y + local_rect.get_size().y) {
+						nearest_point.y = local_rect.get_position().y + local_rect.get_size().y;
+						mouse_in_y = true;
+					}
+
+					float distance;
+					if (mouse_in_x && !mouse_in_y) {
+						distance = abs(nearest_point.x - mouse_position.x);
+					} else if (mouse_in_y && !mouse_in_x) {
+						distance = abs(nearest_point.y - mouse_position.y);
+					} else {
+						distance = nearest_point.distance_to(mouse_position);
+					}
+
+					// Use the distance to adjust the speed of the viewport shift
+					float speed = distance * 0.01 / zoom; // Adjust the multiplier as needed
+					view_offset += direction * speed;
+					moved_viewport = true; // Used to update the viewport
+				}
+			}
 			List<CanvasItem *> selection = _get_edited_canvas_items(true);
 			for (CanvasItem *ci : selection) {
 				CanvasItemEditorSelectedItem *se = editor_selection->get_node_editor_data<CanvasItemEditorSelectedItem>(ci);
@@ -4139,7 +4212,7 @@ void CanvasItemEditor::_notification(int p_what) {
 				}
 				Transform2D xform = ci->get_global_transform();
 
-				if (rect != se->prev_rect || xform != se->prev_xform) {
+				if (rect != se->prev_rect || xform != se->prev_xform || moved_viewport) {
 					viewport->queue_redraw();
 					se->prev_rect = rect;
 					se->prev_xform = xform;
