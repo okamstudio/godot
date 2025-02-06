@@ -101,6 +101,7 @@ private:
 	bool active = false;
 
 	void _update_playback_instances();
+	void _seek_or_start(double p_from_pos, bool is_start);
 
 public:
 	virtual void start(double p_from_pos = 0.0) override;
