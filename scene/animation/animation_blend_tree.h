@@ -428,6 +428,8 @@ protected:
 	virtual void _animation_node_renamed(const ObjectID &p_oid, const String &p_old_name, const String &p_new_name) override;
 	virtual void _animation_node_removed(const ObjectID &p_oid, const StringName &p_node) override;
 
+	Vector<String> _get_node_list() const;
+
 	virtual void reset_state() override;
 
 public:
@@ -469,7 +471,7 @@ public:
 	virtual String get_caption() const override;
 	virtual NodeTimeInfo _process(const AnimationMixer::PlaybackInfo p_playback_info, bool p_test_only = false) override;
 
-	void get_node_list(List<StringName> *r_list);
+	void get_node_list(List<StringName> *r_list) const;
 
 	void set_graph_offset(const Vector2 &p_graph_offset);
 	Vector2 get_graph_offset() const;

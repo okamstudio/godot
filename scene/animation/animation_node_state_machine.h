@@ -161,6 +161,8 @@ protected:
 	virtual void _animation_node_renamed(const ObjectID &p_oid, const String &p_old_name, const String &p_new_name) override;
 	virtual void _animation_node_removed(const ObjectID &p_oid, const StringName &p_node) override;
 
+	Vector<String> _get_node_list() const;
+
 	virtual void reset_state() override;
 
 public:

@@ -1667,7 +1667,7 @@ AnimationNode::NodeTimeInfo AnimationNodeBlendTree::_process(const AnimationMixe
 	return _blend_node(output, "output", this, pi, FILTER_IGNORE, true, p_test_only, nullptr);
 }
 
-void AnimationNodeBlendTree::get_node_list(List<StringName> *r_list) {
+void AnimationNodeBlendTree::get_node_list(List<StringName> *r_list) const {
 	for (const KeyValue<StringName, Node> &E : nodes) {
 		r_list->push_back(E.key);
 	}
@@ -1787,6 +1787,16 @@ void AnimationNodeBlendTree::_animation_node_removed(const ObjectID &p_oid, cons
 	AnimationRootNode::_animation_node_removed(p_oid, p_node);
 }
 
+Vector<String> AnimationNodeBlendTree::_get_node_list() const {
+	List<StringName> node_list;
+	get_node_list(&node_list);
+	Vector<String> ret;
+	for (const StringName &node : node_list) {
+		ret.push_back(node);
+	}
+	return ret;
+}
+
 void AnimationNodeBlendTree::reset_state() {
 	graph_offset = Vector2();
 	nodes.clear();
@@ -1822,6 +1832,7 @@ void AnimationNodeBlendTree::get_argument_options(const StringName &p_function, 
 void AnimationNodeBlendTree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("add_node", "name", "node", "position"), &AnimationNodeBlendTree::add_node, DEFVAL(Vector2()));
 	ClassDB::bind_method(D_METHOD("get_node", "name"), &AnimationNodeBlendTree::get_node);
+	ClassDB::bind_method(D_METHOD("get_node_list"), &AnimationNodeBlendTree::_get_node_list);
 	ClassDB::bind_method(D_METHOD("remove_node", "name"), &AnimationNodeBlendTree::remove_node);
 	ClassDB::bind_method(D_METHOD("rename_node", "name", "new_name"), &AnimationNodeBlendTree::rename_node);
 	ClassDB::bind_method(D_METHOD("has_node", "name"), &AnimationNodeBlendTree::has_node);

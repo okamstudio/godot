@@ -51,6 +51,12 @@
 				Returns the animation node with the given name.
 			</description>
 		</method>
+		<method name="get_node_list" qualifiers="const">
+			<return type="PackedStringArray" />
+			<description>
+				Returns the names of all nodes in this sub-tree.
+			</description>
+		</method>
 		<method name="get_node_name" qualifiers="const">
 			<return type="StringName" />
 			<param index="0" name="node" type="AnimationNode" />
