@@ -1152,7 +1152,9 @@ void GodotSoftBody3D::query_ray(const Vector3 &p_from, const Vector3 &p_to, Godo
 	query_result.result_callback = p_result_callback;
 	query_result.userdata = p_userdata;
 
-	face_tree.ray_query(p_from, p_to, query_result);
+	Vector3 segment = p_to - p_from;
+	real_t length = segment.length();
+	face_tree.ray_query(p_from, segment / length, length, query_result);
 }
 
 void GodotSoftBody3D::initialize_face_tree() {
