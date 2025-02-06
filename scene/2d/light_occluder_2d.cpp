@@ -179,28 +179,6 @@ void LightOccluder2D::_notification(int p_what) {
 			RS::get_singleton()->canvas_light_occluder_set_enabled(occluder, is_visible_in_tree());
 		} break;
 
-		case NOTIFICATION_DRAW: {
-			if (Engine::get_singleton()->is_editor_hint()) {
-				if (occluder_polygon.is_valid()) {
-					Vector<Vector2> poly = occluder_polygon->get_polygon();
-
-					if (poly.size()) {
-						if (occluder_polygon->is_closed()) {
-							Vector<Color> color;
-							color.push_back(Color(0, 0, 0, 0.6));
-							draw_polygon(Variant(poly), color);
-						} else {
-							int ps = poly.size();
-							const Vector2 *r = poly.ptr();
-							for (int i = 0; i < ps - 1; i++) {
-								draw_line(r[i], r[i + 1], Color(0, 0, 0, 0.6), 3);
-							}
-						}
-					}
-				}
-			}
-		} break;
-
 		case NOTIFICATION_EXIT_CANVAS: {
 			RS::get_singleton()->canvas_light_occluder_attach_to_canvas(occluder, RID());
 		} break;
