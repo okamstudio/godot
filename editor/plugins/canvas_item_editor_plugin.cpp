@@ -3209,9 +3209,10 @@ void CanvasItemEditor::_draw_ruler_tool() {
 		font_secondary_color.set_v(font_secondary_color.get_v() > 0.5 ? 0.7 : 0.3);
 		Color outline_color = font_color.inverted();
 		float text_height = font->get_height(font_size);
+		String text_vector_length = TS->format_number(vformat("%.1f px", length_vector.length()));
+		float text_width = font->get_string_size(text_vector_length, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x;
 
 		const float outline_size = 4;
-		const float text_width = 76;
 		const float angle_text_width = 54;
 
 		Point2 text_pos = (begin + end) / 2 - Vector2(text_width / 2, text_height / 2);
@@ -3261,15 +3262,16 @@ void CanvasItemEditor::_draw_ruler_tool() {
 			return;
 		}
 
-		viewport->draw_string_outline(font, text_pos, TS->format_number(vformat("%.1f px", length_vector.length())), HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, outline_size, outline_color);
-		viewport->draw_string(font, text_pos, TS->format_number(vformat("%.1f px", length_vector.length())), HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, font_color);
+		viewport->draw_string_outline(font, text_pos, text_vector_length, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, outline_size, outline_color);
+		viewport->draw_string(font, text_pos, text_vector_length, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, font_color);
 
 		if (draw_secondary_lines) {
 			const int horizontal_angle = round(180 * horizontal_angle_rad / Math_PI);
 			const int vertical_angle = round(180 * vertical_angle_rad / Math_PI);
 
 			Point2 text_pos2 = text_pos;
-			text_pos2.x = begin.x < text_pos.x ? MIN(text_pos.x - text_width, begin.x - text_width / 2) : MAX(text_pos.x + text_width, begin.x - text_width / 2);
+			float text_width2 = font->get_string_size(TS->format_number(vformat("%.1f px", length_vector.y)), HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x;
+			text_pos2.x = begin.x < text_pos.x ? MIN(text_pos.x - text_width2, begin.x - text_width2 / 2) : MAX(text_pos.x + text_width, begin.x - text_width / 2);
 			viewport->draw_string_outline(font, text_pos2, TS->format_number(vformat("%.1f px", length_vector.y)), HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, outline_size, outline_color);
 			viewport->draw_string(font, text_pos2, TS->format_number(vformat("%.1f px", length_vector.y)), HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, font_secondary_color);
 
@@ -3304,16 +3306,19 @@ void CanvasItemEditor::_draw_ruler_tool() {
 		}
 
 		if (grid_snap_active) {
+			String text_vector_length_grid = TS->format_number(vformat("%.2f " + TTR("units"), (length_vector / grid_step).length()));
+			text_width = font->get_string_size(text_vector_length_grid, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x;
 			text_pos = (begin + end) / 2 + Vector2(-text_width / 2, text_height / 2);
 			text_pos.x = CLAMP(text_pos.x, text_width / 2, viewport->get_rect().size.x - text_width * 1.5);
 			text_pos.y = CLAMP(text_pos.y, text_height * 2.5, viewport->get_rect().size.y - text_height / 2);
 
-			if (draw_secondary_lines) {
-				viewport->draw_string_outline(font, text_pos, TS->format_number(vformat("%.2f " + TTR("units"), (length_vector / grid_step).length())), HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, outline_size, outline_color);
-				viewport->draw_string(font, text_pos, TS->format_number(vformat("%.2f " + TTR("units"), (length_vector / grid_step).length())), HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, font_color);
+			viewport->draw_string_outline(font, text_pos, text_vector_length_grid, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, outline_size, outline_color);
+			viewport->draw_string(font, text_pos, text_vector_length_grid, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, font_color);
 
+			if (draw_secondary_lines) {
 				Point2 text_pos2 = text_pos;
-				text_pos2.x = begin.x < text_pos.x ? MIN(text_pos.x - text_width, begin.x - text_width / 2) : MAX(text_pos.x + text_width, begin.x - text_width / 2);
+				float text_width2 = font->get_string_size(TS->format_number(vformat("%d " + TTR("units"), roundf(length_vector.y / grid_step.y))), HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x;
+				text_pos2.x = begin.x < text_pos.x ? MIN(text_pos.x - text_width2, begin.x - text_width2 / 2) : MAX(text_pos.x + text_width, begin.x - text_width / 2);
 				viewport->draw_string_outline(font, text_pos2, TS->format_number(vformat("%d " + TTR("units"), roundf(length_vector.y / grid_step.y))), HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, outline_size, outline_color);
 				viewport->draw_string(font, text_pos2, TS->format_number(vformat("%d " + TTR("units"), roundf(length_vector.y / grid_step.y))), HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, font_secondary_color);
 
