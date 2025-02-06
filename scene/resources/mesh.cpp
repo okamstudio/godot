@@ -1676,6 +1676,7 @@ void ArrayMesh::_set_surfaces(const Array &p_surfaces) {
 		RS::get_singleton()->mesh_set_path(mesh, get_path());
 	}
 
+	surface_count_changed -= surfaces.size();
 	surfaces.clear();
 
 	aabb = AABB();
@@ -1697,6 +1698,7 @@ void ArrayMesh::_set_surfaces(const Array &p_surfaces) {
 		s.array_length = surface_data[i].vertex_count;
 		s.index_array_length = surface_data[i].index_count;
 
+		surface_count_changed++;
 		surfaces.push_back(s);
 	}
 }
@@ -1762,6 +1764,17 @@ void ArrayMesh::_recompute_aabb() {
 	}
 }
 
+void ArrayMesh::_queue_notify_property() {
+	callable_mp(this, &ArrayMesh::_check_notify_property).call_deferred();
+}
+
+void ArrayMesh::_check_notify_property() {
+	if (surface_count_changed != 0) {
+		notify_property_list_changed();
+		surface_count_changed = 0;
+	}
+}
+
 // TODO: Need to add binding to add_surface using future MeshSurfaceData object.
 void ArrayMesh::add_surface(BitField<ArrayFormat> p_format, PrimitiveType p_primitive, const Vector<uint8_t> &p_array, const Vector<uint8_t> &p_attribute_array, const Vector<uint8_t> &p_skin_array, int p_vertex_count, const Vector<uint8_t> &p_index_array, int p_index_count, const AABB &p_aabb, const Vector<uint8_t> &p_blend_shape_data, const Vector<AABB> &p_bone_aabbs, const Vector<RS::SurfaceData::LOD> &p_lods, const Vector4 p_uv_scale) {
 	ERR_FAIL_COND(surfaces.size() == RS::MAX_MESH_SURFACES);
@@ -1775,6 +1788,7 @@ void ArrayMesh::add_surface(BitField<ArrayFormat> p_format, PrimitiveType p_prim
 	s.index_array_length = p_index_count;
 	s.format = p_format;
 
+	surface_count_changed++;
 	surfaces.push_back(s);
 	_recompute_aabb();
 
@@ -1796,7 +1810,7 @@ void ArrayMesh::add_surface(BitField<ArrayFormat> p_format, PrimitiveType p_prim
 	RenderingServer::get_singleton()->mesh_add_surface(mesh, sd);
 
 	clear_cache();
-	notify_property_list_changed();
+	_queue_notify_property();
 	emit_changed();
 }
 
@@ -2003,6 +2017,7 @@ void ArrayMesh::clear_surfaces() {
 		return;
 	}
 	RS::get_singleton()->mesh_clear(mesh);
+	surface_count_changed -= surfaces.size();
 	surfaces.clear();
 	aabb = AABB();
 }
@@ -2010,11 +2025,12 @@ void ArrayMesh::clear_surfaces() {
 void ArrayMesh::surface_remove(int p_surface) {
 	ERR_FAIL_INDEX(p_surface, surfaces.size());
 	RS::get_singleton()->mesh_surface_remove(mesh, p_surface);
+	surface_count_changed--;
 	surfaces.remove_at(p_surface);
 
 	clear_cache();
 	_recompute_aabb();
-	notify_property_list_changed();
+	_queue_notify_property();
 	emit_changed();
 }
 
@@ -2329,6 +2345,7 @@ void ArrayMesh::_bind_methods() {
 
 void ArrayMesh::reload_from_file() {
 	RenderingServer::get_singleton()->mesh_clear(mesh);
+	surface_count_changed = 0;
 	surfaces.clear();
 	clear_blend_shapes();
 	clear_cache();

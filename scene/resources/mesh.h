@@ -322,9 +322,12 @@ private:
 	BlendShapeMode blend_shape_mode = BLEND_SHAPE_MODE_RELATIVE;
 	Vector<StringName> blend_shapes;
 	AABB custom_aabb;
+	int surface_count_changed = 0;
 
 	_FORCE_INLINE_ void _create_if_empty() const;
 	void _recompute_aabb();
+	void _queue_notify_property();
+	void _check_notify_property();
 
 protected:
 	virtual bool _is_generated() const { return false; }
