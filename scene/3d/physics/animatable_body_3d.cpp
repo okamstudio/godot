@@ -77,6 +77,7 @@ void AnimatableBody3D::_body_state_changed(PhysicsDirectBodyState3D *p_state) {
 	}
 
 	last_valid_transform = p_state->get_transform();
+	transform_accumulator = last_valid_transform;
 	set_notify_local_transform(false);
 	set_global_transform(last_valid_transform);
 	set_notify_local_transform(true);
@@ -92,6 +93,7 @@ void AnimatableBody3D::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_ENTER_TREE: {
 			last_valid_transform = get_global_transform();
+			transform_accumulator = last_valid_transform;
 			_update_kinematic_motion();
 		} break;
 
@@ -103,8 +105,10 @@ void AnimatableBody3D::_notification(int p_what) {
 		case NOTIFICATION_LOCAL_TRANSFORM_CHANGED: {
 			// Used by sync to physics, send the new transform to the physics...
 			Transform3D new_transform = get_global_transform();
+			transform_accumulator.origin += new_transform.origin - last_valid_transform.origin;
+			transform_accumulator.basis *= (last_valid_transform.basis.inverse() * new_transform.basis);
 
-			PhysicsServer3D::get_singleton()->body_set_state(get_rid(), PhysicsServer3D::BODY_STATE_TRANSFORM, new_transform);
+			PhysicsServer3D::get_singleton()->body_set_state(get_rid(), PhysicsServer3D::BODY_STATE_TRANSFORM, transform_accumulator);
 
 			// ... but then revert changes.
 			set_notify_local_transform(false);

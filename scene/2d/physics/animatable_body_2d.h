@@ -40,6 +40,7 @@ private:
 	bool sync_to_physics = true;
 
 	Transform2D last_valid_transform;
+	Transform2D transform_accumulator;
 
 	static void _body_state_changed_callback(void *p_instance, PhysicsDirectBodyState2D *p_state);
 	void _body_state_changed(PhysicsDirectBodyState2D *p_state);

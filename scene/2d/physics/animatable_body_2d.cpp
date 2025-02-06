@@ -68,6 +68,7 @@ void AnimatableBody2D::_body_state_changed(PhysicsDirectBodyState2D *p_state) {
 	}
 
 	last_valid_transform = p_state->get_transform();
+	transform_accumulator = last_valid_transform;
 	set_notify_local_transform(false);
 	set_global_transform(last_valid_transform);
 	set_notify_local_transform(true);
@@ -77,6 +78,7 @@ void AnimatableBody2D::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_ENTER_TREE: {
 			last_valid_transform = get_global_transform();
+			transform_accumulator = last_valid_transform;
 			_update_kinematic_motion();
 		} break;
 
@@ -89,7 +91,8 @@ void AnimatableBody2D::_notification(int p_what) {
 			// Used by sync to physics, send the new transform to the physics...
 			Transform2D new_transform = get_global_transform();
 
-			PhysicsServer2D::get_singleton()->body_set_state(get_rid(), PhysicsServer2D::BODY_STATE_TRANSFORM, new_transform);
+			transform_accumulator *= (last_valid_transform.inverse() * new_transform).orthonormalized();
+			PhysicsServer2D::get_singleton()->body_set_state(get_rid(), PhysicsServer2D::BODY_STATE_TRANSFORM, transform_accumulator);
 
 			// ... but then revert changes.
 			set_notify_local_transform(false);

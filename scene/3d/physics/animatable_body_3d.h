@@ -43,6 +43,7 @@ private:
 	bool sync_to_physics = true;
 
 	Transform3D last_valid_transform;
+	Transform3D transform_accumulator;
 
 	static void _body_state_changed_callback(void *p_instance, PhysicsDirectBodyState3D *p_state);
 	void _body_state_changed(PhysicsDirectBodyState3D *p_state);
