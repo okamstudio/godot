@@ -2072,12 +2072,16 @@ Rect2i Window::get_usable_parent_rect() const {
 }
 
 void Window::add_child_notify(Node *p_child) {
+	Viewport::add_child_notify(p_child);
+
 	if (is_inside_tree() && wrap_controls) {
 		child_controls_changed();
 	}
 }
 
 void Window::remove_child_notify(Node *p_child) {
+	Viewport::remove_child_notify(p_child);
+
 	if (is_inside_tree() && wrap_controls) {
 		child_controls_changed();
 	}

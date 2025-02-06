@@ -557,15 +557,18 @@ void Node::_propagate_groups_dirty() {
 }
 
 void Node::add_child_notify(Node *p_child) {
-	// to be used when not wanted
+	// Called when a node is added as a child to this one.
+	GDVIRTUAL_CALL(_add_child_notify, p_child);
 }
 
 void Node::remove_child_notify(Node *p_child) {
-	// to be used when not wanted
+	// Called when a child is removed from this node.
+	GDVIRTUAL_CALL(_remove_child_notify, p_child);
 }
 
 void Node::move_child_notify(Node *p_child) {
-	// to be used when not wanted
+	// Called when a child is moved inside this node.
+	GDVIRTUAL_CALL(_move_child_notify, p_child);
 }
 
 void Node::owner_changed_notify() {
@@ -3910,6 +3913,9 @@ void Node::_bind_methods() {
 	GDVIRTUAL_BIND(_shortcut_input, "event");
 	GDVIRTUAL_BIND(_unhandled_input, "event");
 	GDVIRTUAL_BIND(_unhandled_key_input, "event");
+	GDVIRTUAL_BIND(_add_child_notify, "child");
+	GDVIRTUAL_BIND(_remove_child_notify, "child");
+	GDVIRTUAL_BIND(_move_child_notify, "child");
 }
 
 String Node::_get_name_num_separator() {

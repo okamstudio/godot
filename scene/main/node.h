@@ -396,6 +396,10 @@ protected:
 	GDVIRTUAL1(_unhandled_input, Ref<InputEvent>)
 	GDVIRTUAL1(_unhandled_key_input, Ref<InputEvent>)
 
+	GDVIRTUAL1(_add_child_notify, Node *)
+	GDVIRTUAL1(_remove_child_notify, Node *)
+	GDVIRTUAL1(_move_child_notify, Node *)
+
 public:
 	enum {
 		// You can make your own, but don't use the same numbers as other notifications in other nodes.

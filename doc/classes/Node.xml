@@ -22,6 +22,14 @@
 		<link title="All Demos">https://github.com/godotengine/godot-demo-projects/</link>
 	</tutorials>
 	<methods>
+		<method name="_add_child_notify" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="child" type="Node" />
+			<description>
+				Called after a node is added as a child.
+				[b]Note:[/b] This method is called on application start for every node already in the tree as well.
+			</description>
+		</method>
 		<method name="_enter_tree" qualifiers="virtual">
 			<return type="void" />
 			<description>
@@ -67,6 +75,13 @@
 				[b]Note:[/b] This method is only called if the node is present in the scene tree (i.e. if it's not an orphan).
 			</description>
 		</method>
+		<method name="_move_child_notify" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="child" type="Node" />
+			<description>
+				Called after a child is moved within the node.
+			</description>
+		</method>
 		<method name="_physics_process" qualifiers="virtual">
 			<return type="void" />
 			<param index="0" name="delta" type="float" />
@@ -98,6 +113,13 @@
 				Corresponds to the [constant NOTIFICATION_READY] notification in [method Object._notification]. See also the [code]@onready[/code] annotation for variables.
 				Usually used for initialization. For even earlier initialization, [method Object._init] may be used. See also [method _enter_tree].
 				[b]Note:[/b] This method may be called only once for each node. After removing a node from the scene tree and adding it again, [method _ready] will [b]not[/b] be called a second time. This can be bypassed by requesting another call with [method request_ready], which may be called anywhere before adding the node again.
+			</description>
+		</method>
+		<method name="_remove_child_notify" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="child" type="Node" />
+			<description>
+				Called when a child is removed within the node.
 			</description>
 		</method>
 		<method name="_shortcut_input" qualifiers="virtual">
