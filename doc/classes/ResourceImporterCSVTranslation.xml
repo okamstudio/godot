@@ -24,5 +24,11 @@
 		<member name="delimiter" type="int" setter="" getter="" default="0">
 			The delimiter to use in the CSV file. The default value matches the common CSV convention. Tab-separated values are sometimes called TSV files.
 		</member>
+		<member name="unescape_keys" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], message keys in the CSV file are unescaped using [method String.c_unescape] during the import process.
+		</member>
+		<member name="unescape_translations" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], message translations in the CSV file are unescaped using [method String.c_unescape] during the import process.
+		</member>
 	</members>
 </class>

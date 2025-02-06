@@ -70,10 +70,14 @@ String ResourceImporterCSVTranslation::get_preset_name(int p_idx) const {
 void ResourceImporterCSVTranslation::get_import_options(const String &p_path, List<ImportOption> *r_options, int p_preset) const {
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "compress"), true));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "delimiter", PROPERTY_HINT_ENUM, "Comma,Semicolon,Tab"), 0));
+	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "unescape_keys"), false));
+	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "unescape_translations"), true));
 }
 
 Error ResourceImporterCSVTranslation::import(ResourceUID::ID p_source_id, const String &p_source_file, const String &p_save_path, const HashMap<StringName, Variant> &p_options, List<String> *r_platform_variants, List<String> *r_gen_files, Variant *r_metadata) {
-	bool compress = p_options["compress"];
+	const bool compress = p_options["compress"];
+	const bool unescape_keys = p_options.has("unescape_keys") ? bool(p_options["unescape_keys"]) : false;
+	const bool unescape_translations = p_options.has("unescape_translations") ? bool(p_options["unescape_translations"]) : true;
 
 	String delimiter;
 	switch ((int)p_options["delimiter"]) {
@@ -118,7 +122,7 @@ Error ResourceImporterCSVTranslation::import(ResourceUID::ID p_source_id, const 
 
 	do {
 		line = f->get_csv_line(delimiter);
-		String key = line[0];
+		const String key = unescape_keys ? line[0].c_unescape() : line[0];
 		if (!key.is_empty()) {
 			ERR_CONTINUE_MSG(line.size() != locales.size() + (int)skipped_locales.size() + 1, vformat("Error importing CSV translation: expected %d locale(s), but the '%s' key has %d locale(s).", locales.size(), key, line.size() - 1));
 
@@ -127,7 +131,7 @@ Error ResourceImporterCSVTranslation::import(ResourceUID::ID p_source_id, const 
 				if (skipped_locales.has(i)) {
 					continue;
 				}
-				translations.write[write_index++]->add_message(key, line[i].c_unescape());
+				translations.write[write_index++]->add_message(key, unescape_translations ? line[i].c_unescape() : line[i]);
 			}
 		}
 	} while (!f->eof_reached());
