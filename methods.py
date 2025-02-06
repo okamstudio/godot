@@ -14,8 +14,7 @@ from typing import Generator, List, Optional, Union, cast
 from misc.utility.color import print_error, print_info, print_warning
 
 # Get the "Godot" folder name ahead of time
-base_folder_path = str(os.path.abspath(Path(__file__).parent)) + "/"
-base_folder_only = os.path.basename(os.path.normpath(base_folder_path))
+base_folder = Path(__file__).parent.resolve()
 
 # Listing all the folders we have converted
 # for SCU in scu_builders.py
@@ -77,6 +76,34 @@ def add_source_files(self, sources, files, allow_gen=False):
         add_source_files_orig(self, sources, files, allow_gen)
         return False
     return True
+
+
+def redirect_emitter(target, source, env):
+    """
+    Emitter to automatically redirect object/library build files to the `bin/obj` directory,
+    retaining subfolder structure. External build files will attempt to retain subfolder
+    structure relative to their environment's parent directory, sorted under `bin/obj/external`.
+    If `redirect_build_objects` is `False`, or an external build file isn't relative to the
+    passed environment, this emitter does nothing.
+    """
+    if not env["redirect_build_objects"]:
+        return target, source
+    redirected_targets = []
+    for item in env.Flatten(target):
+        if isinstance(item, str):
+            item = env.File(item)
+        path = Path(item.get_abspath()).resolve()
+        try:
+            item = env.File(f"#bin/obj/{path.relative_to(base_folder)}")
+        except ValueError:
+            # External file; most likely a custom module. Assume relevant environment was passed.
+            alt_base = Path(env.Dir(".").get_abspath()).parent.resolve()
+            try:
+                item = env.File(f"#bin/obj/external/{path.relative_to(alt_base)}")
+            except ValueError:
+                pass
+        redirected_targets.append(item)
+    return redirected_targets, source
 
 
 def disable_warnings(self):
@@ -754,7 +781,7 @@ def show_progress(env):
     if env["ninja"]:
         return
 
-    NODE_COUNT_FILENAME = f"{base_folder_path}.scons_node_count"
+    NODE_COUNT_FILENAME = base_folder / ".scons_node_count"
 
     class ShowProgress:
         def __init__(self):

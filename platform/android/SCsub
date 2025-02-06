@@ -43,7 +43,7 @@ env_thirdparty.disable_warnings()
 thirdparty_obj = env_thirdparty.SharedObject("#thirdparty/misc/ifaddrs-android.cc")
 android_objects.append(thirdparty_obj)
 
-lib = env_android.add_shared_library("#bin/libgodot", [android_objects], SHLIBSUFFIX=env["SHLIBSUFFIX"])
+lib = env_android.add_shared_library("#bin/libgodot", android_objects, redirect_build_objects=False)
 
 # Needed to force rebuilding the platform files when the thirdparty code is updated.
 env.Depends(lib, thirdparty_obj)
@@ -77,9 +77,7 @@ if lib_arch_dir != "":
         lib_tools_dir = ""
 
     out_dir = "#platform/android/java/lib/libs/" + lib_tools_dir + lib_type_dir + "/" + lib_arch_dir
-    env_android.Command(
-        out_dir + "/libgodot_android.so", "#bin/libgodot" + env["SHLIBSUFFIX"], Move("$TARGET", "$SOURCE")
-    )
+    env_android.Command(out_dir + "/libgodot_android.so", lib, Move("$TARGET", "$SOURCE"))
 
     stl_lib_path = (
         str(env["ANDROID_NDK_ROOT"]) + "/sources/cxx-stl/llvm-libc++/libs/" + lib_arch_dir + "/libc++_shared.so"
