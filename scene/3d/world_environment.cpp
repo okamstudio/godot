@@ -30,6 +30,7 @@
 
 #include "world_environment.h"
 
+#include "core/config/project_settings.h"
 #include "scene/3d/node_3d.h"
 #include "scene/main/viewport.h"
 
@@ -37,6 +38,8 @@ void WorldEnvironment::_notification(int p_what) {
 	switch (p_what) {
 		case Node3D::NOTIFICATION_ENTER_WORLD:
 		case Node3D::NOTIFICATION_ENTER_TREE: {
+			_check_sky_warning();
+
 			if (environment.is_valid()) {
 				add_to_group("_world_environment_" + itos(get_viewport()->find_world_3d()->get_scenario().get_id()));
 				_update_current_environment();
@@ -110,14 +113,20 @@ void WorldEnvironment::set_environment(const Ref<Environment> &p_environment) {
 	if (environment == p_environment) {
 		return;
 	}
-	if (is_inside_tree() && environment.is_valid()) {
-		remove_from_group("_world_environment_" + itos(get_viewport()->find_world_3d()->get_scenario().get_id()));
+	if (environment.is_valid()) {
+		environment->disconnect(StringName("sky_changed"), callable_mp(this, &WorldEnvironment::_check_sky_warning));
+		if (is_inside_tree()) {
+			remove_from_group("_world_environment_" + itos(get_viewport()->find_world_3d()->get_scenario().get_id()));
+		}
 	}
 
 	environment = p_environment;
 
-	if (is_inside_tree() && environment.is_valid()) {
-		add_to_group("_world_environment_" + itos(get_viewport()->find_world_3d()->get_scenario().get_id()));
+	if (environment.is_valid()) {
+		environment->connect(StringName("sky_changed"), callable_mp(this, &WorldEnvironment::_check_sky_warning));
+		if (is_inside_tree()) {
+			add_to_group("_world_environment_" + itos(get_viewport()->find_world_3d()->get_scenario().get_id()));
+		}
 	}
 
 	if (is_inside_tree()) {
@@ -207,6 +216,20 @@ PackedStringArray WorldEnvironment::get_configuration_warnings() const {
 	return warnings;
 }
 
+void WorldEnvironment::_check_sky_warning() {
+	if ((environment.is_valid() && !environment->get_sky().is_valid()) || !is_inside_tree()) {
+		return;
+	}
+	Viewport *viewport = get_viewport();
+	if (viewport->get_parent_viewport() == get_tree()->get_root() || String(get_name()).begins_with("@")) {
+		if (GLOBAL_GET("rendering/viewport/transparent_background")) {
+			WARN_PRINT("Environment sky will not render when transparent background is active in project settings.");
+		}
+	} else if (viewport->has_transparent_background()) {
+		WARN_PRINT("Environment sky will not render when transparent background is active in subviewport.");
+	}
+}
+
 void WorldEnvironment::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_environment", "env"), &WorldEnvironment::set_environment);
 	ClassDB::bind_method(D_METHOD("get_environment"), &WorldEnvironment::get_environment);
@@ -222,4 +245,10 @@ void WorldEnvironment::_bind_methods() {
 }
 
 WorldEnvironment::WorldEnvironment() {
+}
+
+WorldEnvironment::~WorldEnvironment() {
+	if (environment.is_valid() && !environment->get_sky().is_valid()) {
+		environment->disconnect(StringName("sky_changed"), callable_mp(this, &WorldEnvironment::_check_sky_warning));
+	}
 }

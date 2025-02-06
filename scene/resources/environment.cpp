@@ -59,6 +59,7 @@ void Environment::set_sky(const Ref<Sky> &p_sky) {
 	if (bg_sky.is_valid()) {
 		sb_rid = bg_sky->get_rid();
 	}
+	emit_signal(StringName("sky_changed"));
 	RS::get_singleton()->environment_set_sky(environment, sb_rid);
 }
 
@@ -1595,6 +1596,9 @@ void Environment::_bind_methods() {
 	BIND_ENUM_CONSTANT(SDFGI_Y_SCALE_50_PERCENT);
 	BIND_ENUM_CONSTANT(SDFGI_Y_SCALE_75_PERCENT);
 	BIND_ENUM_CONSTANT(SDFGI_Y_SCALE_100_PERCENT);
+
+	// Signals
+	ADD_SIGNAL(MethodInfo("sky_changed"));
 }
 
 Environment::Environment() {
