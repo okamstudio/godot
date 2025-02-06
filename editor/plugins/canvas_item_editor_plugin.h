@@ -189,6 +189,8 @@ private:
 	};
 
 	const String locked_transform_warning = TTRC("All selected CanvasItems are either invisible or locked in some way and can't be transformed.");
+	const StringName horizontal_guides_meta = StaticCString::create("_edit_horizontal_guides_");
+	const StringName vertical_guides_meta = StaticCString::create("_edit_vertical_guides_");
 
 	bool selection_menu_additive_selection = false;
 
