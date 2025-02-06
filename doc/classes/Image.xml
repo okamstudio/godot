@@ -358,6 +358,7 @@
 			<param index="0" name="buffer" type="PackedByteArray" />
 			<description>
 				Loads an image from the binary contents of a JPEG file.
+				[b]Note:[/b] This method is only available in engine builds with the JPEG module enabled. By default, the JPEG module is enabled, but it can be disabled at build-time using the [code]module_jpg_enabled=no[/code] SCons option.
 			</description>
 		</method>
 		<method name="load_ktx_from_buffer">
@@ -408,6 +409,7 @@
 			<param index="0" name="buffer" type="PackedByteArray" />
 			<description>
 				Loads an image from the binary contents of a WebP file.
+				[b]Note:[/b] This method is only available in engine builds with the WebP module enabled. By default, the WebP module is enabled, but it can be disabled at build-time using the [code]module_webp_enabled=no[/code] SCons option.
 			</description>
 		</method>
 		<method name="normal_map_to_xy">
@@ -464,6 +466,7 @@
 			<param index="1" name="grayscale" type="bool" default="false" />
 			<description>
 				Saves the image as an EXR file to [param path]. If [param grayscale] is [code]true[/code] and the image has only one channel, it will be saved explicitly as monochrome rather than one red channel. This function will return [constant ERR_UNAVAILABLE] if Godot was compiled without the TinyEXR module.
+				[b]Note:[/b] This method is only available in engine builds with the TinyEXR module enabled. By default, the TinyEXR module is enabled, but it can be disabled at build-time using the [code]module_tinyexr_enabled=no[/code] SCons option.
 				[b]Note:[/b] The TinyEXR module is disabled in non-editor builds, which means [method save_exr] will return [constant ERR_UNAVAILABLE] when it is called from an exported project.
 			</description>
 		</method>
@@ -472,7 +475,8 @@
 			<param index="0" name="grayscale" type="bool" default="false" />
 			<description>
 				Saves the image as an EXR file to a byte array. If [param grayscale] is [code]true[/code] and the image has only one channel, it will be saved explicitly as monochrome rather than one red channel. This function will return an empty byte array if Godot was compiled without the TinyEXR module.
-				[b]Note:[/b] The TinyEXR module is disabled in non-editor builds, which means [method save_exr] will return an empty byte array when it is called from an exported project.
+				[b]Note:[/b] This method is only available in engine builds with the TinyEXR module enabled. By default, the TinyEXR module is enabled, but it can be disabled at build-time using the [code]module_tinyexr_enabled=no[/code] SCons option.
+				[b]Note:[/b] The TinyEXR module is disabled in non-editor builds, which means [method save_exr_to_buffer] will return an empty byte array when it is called from an exported project.
 			</description>
 		</method>
 		<method name="save_jpg" qualifiers="const">
@@ -482,6 +486,7 @@
 			<description>
 				Saves the image as a JPEG file to [param path] with the specified [param quality] between [code]0.01[/code] and [code]1.0[/code] (inclusive). Higher [param quality] values result in better-looking output at the cost of larger file sizes. Recommended [param quality] values are between [code]0.75[/code] and [code]0.90[/code]. Even at quality [code]1.00[/code], JPEG compression remains lossy.
 				[b]Note:[/b] JPEG does not save an alpha channel. If the [Image] contains an alpha channel, the image will still be saved, but the resulting JPEG file won't contain the alpha channel.
+				[b]Note:[/b] This method is only available in engine builds with the JPEG module enabled. By default, the JPEG module is enabled, but it can be disabled at build-time using the [code]module_jpg_enabled=no[/code] SCons option.
 			</description>
 		</method>
 		<method name="save_jpg_to_buffer" qualifiers="const">
@@ -490,6 +495,7 @@
 			<description>
 				Saves the image as a JPEG file to a byte array with the specified [param quality] between [code]0.01[/code] and [code]1.0[/code] (inclusive). Higher [param quality] values result in better-looking output at the cost of larger byte array sizes (and therefore memory usage). Recommended [param quality] values are between [code]0.75[/code] and [code]0.90[/code]. Even at quality [code]1.00[/code], JPEG compression remains lossy.
 				[b]Note:[/b] JPEG does not save an alpha channel. If the [Image] contains an alpha channel, the image will still be saved, but the resulting byte array won't contain the alpha channel.
+				[b]Note:[/b] This method is only available in engine builds with the JPEG module enabled. By default, the JPEG module is enabled, but it can be disabled at build-time using the [code]module_jpg_enabled=no[/code] SCons option.
 			</description>
 		</method>
 		<method name="save_png" qualifiers="const">
@@ -513,6 +519,7 @@
 			<description>
 				Saves the image as a WebP (Web Picture) file to the file at [param path]. By default it will save lossless. If [param lossy] is [code]true[/code], the image will be saved lossy, using the [param quality] setting between [code]0.0[/code] and [code]1.0[/code] (inclusive). Lossless WebP offers more efficient compression than PNG.
 				[b]Note:[/b] The WebP format is limited to a size of 16383×16383 pixels, while PNG can save larger images.
+				[b]Note:[/b] This method is only available in engine builds with the WebP module enabled. By default, the WebP module is enabled, but it can be disabled at build-time using the [code]module_webp_enabled=no[/code] SCons option.
 			</description>
 		</method>
 		<method name="save_webp_to_buffer" qualifiers="const">
@@ -522,6 +529,7 @@
 			<description>
 				Saves the image as a WebP (Web Picture) file to a byte array. By default it will save lossless. If [param lossy] is [code]true[/code], the image will be saved lossy, using the [param quality] setting between [code]0.0[/code] and [code]1.0[/code] (inclusive). Lossless WebP offers more efficient compression than PNG.
 				[b]Note:[/b] The WebP format is limited to a size of 16383×16383 pixels, while PNG can save larger images.
+				[b]Note:[/b] This method is only available in engine builds with the WebP module enabled. By default, the WebP module is enabled, but it can be disabled at build-time using the [code]module_webp_enabled=no[/code] SCons option.
 			</description>
 		</method>
 		<method name="set_data">

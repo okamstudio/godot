@@ -2565,9 +2565,10 @@ Error Image::save_png(const String &p_path) const {
 }
 
 Error Image::save_jpg(const String &p_path, float p_quality) const {
-	if (save_jpg_func == nullptr) {
-		return ERR_UNAVAILABLE;
-	}
+	ERR_FAIL_NULL_V_MSG(
+			save_jpg_func,
+			ERR_UNAVAILABLE,
+			"The JPEG module isn't enabled. Recompile the Godot editor or export template binary with the `module_jpg_enabled=yes` SCons option.");
 
 	return save_jpg_func(p_path, Ref<Image>((Image *)this), p_quality);
 }
@@ -2589,9 +2590,16 @@ Vector<uint8_t> Image::save_jpg_to_buffer(float p_quality) const {
 }
 
 Error Image::save_exr(const String &p_path, bool p_grayscale) const {
-	if (save_exr_func == nullptr) {
-		return ERR_UNAVAILABLE;
-	}
+#ifdef TOOLS_ENABLED
+	ERR_FAIL_NULL_V_MSG(
+			save_exr_func,
+			ERR_UNAVAILABLE,
+			"The TinyEXR module isn't enabled. Recompile the Godot editor with the `module_tinyexr_enabled=yes` SCons option.");
+#else
+	ERR_FAIL_V_MSG(
+			ERR_UNAVAILABLE,
+			"The TinyEXR module is only available in editor builds. EXR images cannot be saved using an export template.");
+#endif
 
 	return save_exr_func(p_path, Ref<Image>((Image *)this), p_grayscale);
 }
@@ -2604,9 +2612,11 @@ Vector<uint8_t> Image::save_exr_to_buffer(bool p_grayscale) const {
 }
 
 Error Image::save_webp(const String &p_path, const bool p_lossy, const float p_quality) const {
-	if (save_webp_func == nullptr) {
-		return ERR_UNAVAILABLE;
-	}
+	ERR_FAIL_NULL_V_MSG(
+			save_webp_func,
+			ERR_UNAVAILABLE,
+			"The WebP module isn't enabled. Recompile the Godot editor or export template binary with the `module_webp_enabled=yes` SCons option.");
+
 	ERR_FAIL_COND_V_MSG(p_lossy && !(0.0f <= p_quality && p_quality <= 1.0f), ERR_INVALID_PARAMETER, vformat("The WebP lossy quality was set to %f, which is not valid. WebP lossy quality must be between 0.0 and 1.0 (inclusive).", p_quality));
 
 	return save_webp_func(p_path, Ref<Image>((Image *)this), p_lossy, p_quality);
@@ -4049,10 +4059,18 @@ Error Image::load_png_from_buffer(const Vector<uint8_t> &p_array) {
 }
 
 Error Image::load_jpg_from_buffer(const Vector<uint8_t> &p_array) {
+	ERR_FAIL_NULL_V_MSG(
+			_jpg_mem_loader_func,
+			ERR_UNAVAILABLE,
+			"The JPEG module isn't enabled. Recompile the Godot editor or export template binary with the `module_jpg_enabled=yes` SCons option.");
 	return _load_from_buffer(p_array, _jpg_mem_loader_func);
 }
 
 Error Image::load_webp_from_buffer(const Vector<uint8_t> &p_array) {
+	ERR_FAIL_NULL_V_MSG(
+			_webp_mem_loader_func,
+			ERR_UNAVAILABLE,
+			"The WebP module isn't enabled. Recompile the Godot editor or export template binary with the `module_webp_enabled=yes` SCons option.");
 	return _load_from_buffer(p_array, _webp_mem_loader_func);
 }
 
