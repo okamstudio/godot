@@ -184,11 +184,13 @@ void AudioDriverOpenSL::start() {
 }
 
 void AudioDriverOpenSL::_record_buffer_callback(SLAndroidSimpleBufferQueueItf queueItf) {
+	lock();
 	for (int i = 0; i < rec_buffer.size(); i++) {
 		int32_t sample = rec_buffer[i] << 16;
 		input_buffer_write(sample);
 		input_buffer_write(sample); // call twice to convert to Stereo
 	}
+	unlock();
 
 	SLresult res = (*recordBufferQueueItf)->Enqueue(recordBufferQueueItf, rec_buffer.ptrw(), rec_buffer.size() * sizeof(int16_t));
 	ERR_FAIL_COND(res != SL_RESULT_SUCCESS);
@@ -272,29 +274,30 @@ Error AudioDriverOpenSL::input_start() {
 		return ERR_ALREADY_IN_USE;
 	}
 
-	if (OS::get_singleton()->request_permission("RECORD_AUDIO")) {
-		return init_input_device();
+	if (!OS::get_singleton()->request_permission("RECORD_AUDIO")) {
+		WARN_PRINT("Unable to start audio capture - No RECORD_AUDIO permission -- yet");
+		return ERR_UNAUTHORIZED;
 	}
-
-	WARN_PRINT("Unable to start audio capture - No RECORD_AUDIO permission");
-	return ERR_UNAUTHORIZED;
+	return init_input_device();
 }
 
 Error AudioDriverOpenSL::input_stop() {
-	if (!recordItf || !recordBufferQueueItf) {
-		return ERR_CANT_OPEN;
+	//if (!recordItf || !recordBufferQueueItf) {
+	//	return ERR_CANT_OPEN;
+	//}
+	if (recordItf) {
+		(*recordItf)->SetRecordState(recordItf, SL_RECORDSTATE_STOPPED);
+		recordItf = nullptr;
 	}
 
-	SLuint32 state;
-	SLresult res = (*recordItf)->GetRecordState(recordItf, &state);
-	ERR_FAIL_COND_V(res != SL_RESULT_SUCCESS, ERR_CANT_OPEN);
+	if (recordBufferQueueItf) {
+		(*recordBufferQueueItf)->Clear(recordBufferQueueItf);
+		recordBufferQueueItf = nullptr;
+	}
 
-	if (state != SL_RECORDSTATE_STOPPED) {
-		res = (*recordItf)->SetRecordState(recordItf, SL_RECORDSTATE_STOPPED);
-		ERR_FAIL_COND_V(res != SL_RESULT_SUCCESS, ERR_CANT_OPEN);
-
-		res = (*recordBufferQueueItf)->Clear(recordBufferQueueItf);
-		ERR_FAIL_COND_V(res != SL_RESULT_SUCCESS, ERR_CANT_OPEN);
+	if (recorder) {
+		(*recorder)->Destroy(recorder);
+		recorder = nullptr;
 	}
 
 	return OK;
@@ -312,6 +315,13 @@ void AudioDriverOpenSL::lock() {
 	if (active) {
 		mutex.lock();
 	}
+}
+
+bool AudioDriverOpenSL::try_lock() {
+	if (active) {
+		return mutex.try_lock();
+	}
+	return true;
 }
 
 void AudioDriverOpenSL::unlock() {

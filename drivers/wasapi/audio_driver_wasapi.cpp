@@ -907,6 +907,7 @@ void AudioDriverWASAPI::thread_func(void *p_udata) {
 					ERR_BREAK(hr != S_OK);
 
 					// fixme: Only works for floating point atm
+					ad->lock();
 					for (UINT32 j = 0; j < num_frames_available; j++) {
 						int32_t l, r;
 
@@ -927,6 +928,7 @@ void AudioDriverWASAPI::thread_func(void *p_udata) {
 						ad->input_buffer_write(l);
 						ad->input_buffer_write(r);
 					}
+					ad->unlock();
 
 					read_frames += num_frames_available;
 

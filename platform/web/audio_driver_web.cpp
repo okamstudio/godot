@@ -105,6 +105,8 @@ void AudioDriverWeb::_audio_driver_capture(int p_from, int p_samples) {
 	if (to_read == 0) {
 		to_read = max_samples;
 	}
+
+	lock();
 	// High part
 	if (read_pos + to_read > max_samples) {
 		const int samples_high = max_samples - read_pos;
@@ -118,6 +120,7 @@ void AudioDriverWeb::_audio_driver_capture(int p_from, int p_samples) {
 	for (int i = read_pos; i < read_pos + to_read; i++) {
 		input_buffer_write(int32_t(input_rb[i] * 32768.f) * (1U << 16));
 	}
+	unlock();
 }
 
 Error AudioDriverWeb::init() {
