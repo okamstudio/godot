@@ -159,15 +159,15 @@ bool CharString::operator<(const CharString &p_right) const {
 }
 
 bool CharString::operator==(const CharString &p_right) const {
-	if (length() == 0) {
-		// True if both have length 0, false if only p_right has a length
-		return p_right.length() == 0;
-	} else if (p_right.length() == 0) {
-		// False due to unequal length
+	if (unlikely(ptr() == p_right.ptr())) {
+		// We have the same buffer (or are both null).
+		return true;
+	}
+	if (length() != p_right.length()) {
 		return false;
 	}
 
-	return strcmp(ptr(), p_right.ptr()) == 0;
+	return memcmp(ptr(), p_right.ptr(), length() * sizeof(char)) == 0;
 }
 
 CharString &CharString::operator+=(char p_char) {
@@ -541,40 +541,41 @@ bool String::operator==(const wchar_t *p_str) const {
 }
 
 bool String::operator==(const char32_t *p_str) const {
-	const int len = strlen(p_str);
+	if (unlikely(p_str == ptr())) {
+		// We have the same buffer (or are both null).
+		return true;
+	}
 
+	const int len = strlen(p_str);
 	if (length() != len) {
 		return false;
-	}
-	if (is_empty()) {
-		return true;
 	}
 
 	return memcmp(ptr(), p_str, len * sizeof(char32_t)) == 0;
 }
 
 bool String::operator==(const String &p_str) const {
+	if (unlikely(p_str.ptr() == ptr())) {
+		// We have the same buffer (or are both null).
+		return true;
+	}
 	if (length() != p_str.length()) {
 		return false;
-	}
-	if (is_empty()) {
-		return true;
 	}
 
 	return memcmp(ptr(), p_str.ptr(), length() * sizeof(char32_t)) == 0;
 }
 
 bool String::operator==(const StrRange<char32_t> &p_str_range) const {
-	const int len = p_str_range.len;
-
-	if (length() != len) {
-		return false;
-	}
-	if (is_empty()) {
+	if (unlikely(p_str_range.c_str == ptr() && p_str_range.len == (size_t)length())) {
+		// We have the same buffer (or are both null).
 		return true;
 	}
+	if ((size_t)length() != p_str_range.len) {
+		return false;
+	}
 
-	return memcmp(ptr(), p_str_range.c_str, len * sizeof(char32_t)) == 0;
+	return memcmp(ptr(), p_str_range.c_str, p_str_range.len * sizeof(char32_t)) == 0;
 }
 
 bool operator==(const char *p_chr, const String &p_str) {
@@ -676,7 +677,8 @@ bool String::operator<(const String &p_str) const {
 }
 
 signed char String::nocasecmp_to(const String &p_str) const {
-	if (is_empty() && p_str.is_empty()) {
+	if (unlikely(p_str.ptr() == ptr())) {
+		// We have the same buffer (or are both null).
 		return 0;
 	}
 	if (is_empty()) {
@@ -708,7 +710,8 @@ signed char String::nocasecmp_to(const String &p_str) const {
 }
 
 signed char String::casecmp_to(const String &p_str) const {
-	if (is_empty() && p_str.is_empty()) {
+	if (unlikely(p_str.ptr() == ptr())) {
+		// We have the same buffer (or are both null).
 		return 0;
 	}
 	if (is_empty()) {

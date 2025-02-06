@@ -196,6 +196,11 @@ public:
 	}
 
 	bool operator==(const Vector<T> &p_arr) const {
+		if (ptr() == p_arr.ptr()) {
+			// We have the same buffer (or are both null).
+			return true;
+		}
+
 		Size s = size();
 		if (s != p_arr.size()) {
 			return false;
