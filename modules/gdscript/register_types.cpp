@@ -159,9 +159,10 @@ void initialize_gdscript_module(ModuleInitializationLevel p_level) {
 	if (p_level == MODULE_INITIALIZATION_LEVEL_SERVERS) {
 		EditorNode::add_init_callback(_editor_init);
 
+	} else if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
 		gdscript_translation_parser_plugin.instantiate();
 		EditorTranslationParser::get_singleton()->add_parser(gdscript_translation_parser_plugin, EditorTranslationParser::STANDARD);
-	} else if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
+
 		ClassDB::APIType prev_api = ClassDB::get_current_api();
 		ClassDB::set_current_api(ClassDB::API_EDITOR);
 

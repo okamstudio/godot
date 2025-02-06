@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  editor_debugger_inspector.h                                           */
+/*  objectdb_profiler_plugin.cpp                                          */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,81 +28,39 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_DEBUGGER_INSPECTOR_H
-#define EDITOR_DEBUGGER_INSPECTOR_H
+#include "objectdb_profiler_plugin.h"
 
-#include "editor/editor_inspector.h"
+#include "objectdb_profiler_panel.h"
 
-class SceneDebuggerObject;
+bool ObjectDBProfilerDebuggerPlugin::has_capture(const String &p_capture) const {
+	return p_capture == "snapshot";
+}
 
-class EditorDebuggerRemoteObject : public Object {
-	GDCLASS(EditorDebuggerRemoteObject, Object);
+bool ObjectDBProfilerDebuggerPlugin::capture(const String &p_message, const Array &p_data, int p_index) {
+	ERR_FAIL_NULL_V(debugger_panel, false);
+	return debugger_panel->handle_debug_message(p_message, p_data, p_index);
+}
 
-protected:
-	bool _set(const StringName &p_name, const Variant &p_value);
-	bool _get(const StringName &p_name, Variant &r_ret) const;
-	void _get_property_list(List<PropertyInfo> *p_list) const;
-	static void _bind_methods();
+void ObjectDBProfilerDebuggerPlugin::setup_session(int p_session_id) {
+	Ref<EditorDebuggerSession> session = get_session(p_session_id);
+	ERR_FAIL_COND(session.is_null());
+	debugger_panel = memnew(ObjectDBProfilerPanel);
+	session->connect(SNAME("started"), callable_mp(debugger_panel, &ObjectDBProfilerPanel::set_enabled).bind(true));
+	session->connect(SNAME("stopped"), callable_mp(debugger_panel, &ObjectDBProfilerPanel::set_enabled).bind(false));
+	session->add_session_tab(debugger_panel);
+}
 
-	bool read_only = false;
-	bool _is_read_only();
+ObjectDBProfilerPlugin::ObjectDBProfilerPlugin() {
+	debugger.instantiate();
+}
 
-public:
-	ObjectID remote_object_id;
-	String type_name;
-	List<PropertyInfo> prop_list;
-	HashMap<StringName, Variant> prop_values;
-
-	ObjectID get_remote_object_id() { return remote_object_id; }
-	String get_title();
-
-	int update_props(SceneDebuggerObject &p_obj, HashSet<String> *p_changed, HashSet<Ref<Resource>> *p_remote_dependencies);
-
-	void set_read_only(bool p_read_only);
-	bool is_read_only();
-
-	Variant get_variant(const StringName &p_name);
-
-	void clear() {
-		prop_list.clear();
-		prop_values.clear();
+void ObjectDBProfilerPlugin::_notification(int p_what) {
+	switch (p_what) {
+		case Node::NOTIFICATION_ENTER_TREE: {
+			add_debugger_plugin(debugger);
+		} break;
+		case Node::NOTIFICATION_EXIT_TREE: {
+			remove_debugger_plugin(debugger);
+		}
 	}
-
-	void update() { notify_property_list_changed(); }
-
-	EditorDebuggerRemoteObject() {}
-	EditorDebuggerRemoteObject(SceneDebuggerObject &p_obj);
-};
-
-class EditorDebuggerInspector : public EditorInspector {
-	GDCLASS(EditorDebuggerInspector, EditorInspector);
-
-private:
-	ObjectID inspected_object_id;
-	HashMap<ObjectID, EditorDebuggerRemoteObject *> remote_objects;
-	HashSet<Ref<Resource>> remote_dependencies;
-	EditorDebuggerRemoteObject *variables = nullptr;
-
-	void _object_selected(ObjectID p_object);
-	void _object_edited(ObjectID p_id, const String &p_prop, const Variant &p_value);
-
-protected:
-	void _notification(int p_what);
-	static void _bind_methods();
-
-public:
-	EditorDebuggerInspector();
-	~EditorDebuggerInspector();
-
-	// Remote Object cache
-	ObjectID add_object(const Array &p_arr);
-	Object *get_object(ObjectID p_id);
-	void clear_cache();
-
-	// Stack Dump variables
-	String get_stack_variable(const String &p_var);
-	void add_stack_variable(const Array &p_arr, int p_offset = -1);
-	void clear_stack_variables();
-};
-
-#endif // EDITOR_DEBUGGER_INSPECTOR_H
+}

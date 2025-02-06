@@ -436,18 +436,20 @@ void SceneDebugger::reload_cached_files(const PackedStringArray &p_files) {
 	}
 }
 
+SceneDebuggerObject::SceneDebuggerObject(ObjectID p_id) :
+		SceneDebuggerObject(ObjectDB::get_instance(p_id)) {
+}
+
 /// SceneDebuggerObject
-SceneDebuggerObject::SceneDebuggerObject(ObjectID p_id) {
-	id = ObjectID();
-	Object *obj = ObjectDB::get_instance(p_id);
-	if (!obj) {
+SceneDebuggerObject::SceneDebuggerObject(Object *p_obj) {
+	if (!p_obj) {
 		return;
 	}
 
-	id = p_id;
-	class_name = obj->get_class();
+	id = p_obj->get_instance_id();
+	class_name = p_obj->get_class();
 
-	if (ScriptInstance *si = obj->get_script_instance()) {
+	if (ScriptInstance *si = p_obj->get_script_instance()) {
 		// Read script instance constants and variables
 		if (!si->get_script().is_null()) {
 			Script *s = si->get_script().ptr();
@@ -455,7 +457,7 @@ SceneDebuggerObject::SceneDebuggerObject(ObjectID p_id) {
 		}
 	}
 
-	if (Node *node = Object::cast_to<Node>(obj)) {
+	if (Node *node = Object::cast_to<Node>(p_obj)) {
 		// For debugging multiplayer.
 		{
 			PropertyInfo pi(Variant::INT, String("Node/multiplayer_authority"), PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY);
@@ -470,17 +472,17 @@ SceneDebuggerObject::SceneDebuggerObject(ObjectID p_id) {
 			PropertyInfo pi(Variant::STRING, String("Node/path"));
 			properties.push_back(SceneDebuggerProperty(pi, "[Orphan]"));
 		}
-	} else if (Script *s = Object::cast_to<Script>(obj)) {
+	} else if (Script *s = Object::cast_to<Script>(p_obj)) {
 		// Add script constants (no instance).
 		_parse_script_properties(s, nullptr);
 	}
 
 	// Add base object properties.
 	List<PropertyInfo> pinfo;
-	obj->get_property_list(&pinfo, true);
+	p_obj->get_property_list(&pinfo, true);
 	for (const PropertyInfo &E : pinfo) {
 		if (E.usage & (PROPERTY_USAGE_EDITOR | PROPERTY_USAGE_CATEGORY)) {
-			properties.push_back(SceneDebuggerProperty(E, obj->get(E.name)));
+			properties.push_back(SceneDebuggerProperty(E, p_obj->get(E.name)));
 		}
 	}
 }

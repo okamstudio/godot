@@ -35,6 +35,25 @@
 #include "editor/editor_node.h"
 #include "scene/debugger/scene_debugger.h"
 
+EditorDebuggerRemoteObject::EditorDebuggerRemoteObject(SceneDebuggerObject &p_obj) {
+	remote_object_id = p_obj.id;
+	type_name = p_obj.class_name;
+	update_props(p_obj, nullptr, nullptr);
+	update();
+}
+
+bool EditorDebuggerRemoteObject::_is_read_only() {
+	return read_only;
+}
+
+void EditorDebuggerRemoteObject::set_read_only(bool p_read_only) {
+	read_only = p_read_only;
+}
+
+bool EditorDebuggerRemoteObject::is_read_only() {
+	return _is_read_only();
+}
+
 bool EditorDebuggerRemoteObject::_set(const StringName &p_name, const Variant &p_value) {
 	if (!prop_values.has(p_name) || String(p_name).begins_with("Constants/")) {
 		return false;
@@ -74,6 +93,63 @@ String EditorDebuggerRemoteObject::get_title() {
 	}
 }
 
+int EditorDebuggerRemoteObject::update_props(SceneDebuggerObject &p_obj, HashSet<String> *p_changed, HashSet<Ref<Resource>> *p_remote_dependencies) {
+	int new_props_added = 0;
+	for (SceneDebuggerObject::SceneDebuggerProperty &property : p_obj.properties) {
+		PropertyInfo &pinfo = property.first;
+		Variant &var = property.second;
+
+		if (pinfo.type == Variant::OBJECT) {
+			if (var.is_string()) {
+				String path = var;
+				// If a resource is followed by a ::, it is a nested resource (like a sub_resource in a .tscn file).
+				// To get a reference to it, first we load the parent resource (the .tscn, for example), then,
+				// we load the child resource. The parent resource (dependency) should not be destroyed before the child
+				// resource (var) is loaded. We must declare dependency outside of the if statement to ensure this.
+				Ref<Resource> dependency;
+				if (path.contains("::")) {
+					// Built-in resource.
+					String base_path = path.get_slice("::", 0);
+					dependency = ResourceLoader::load(base_path);
+					if (dependency.is_valid() && p_remote_dependencies) {
+						p_remote_dependencies->insert(dependency);
+					}
+				}
+				var = ResourceLoader::load(path);
+
+				if (pinfo.hint_string == "Script") {
+					if (get_script() != var) {
+						set_script(Ref<RefCounted>());
+						Ref<Script> scr(var);
+						if (scr.is_valid()) {
+							ScriptInstance *scr_instance = scr->placeholder_instance_create(this);
+							if (scr_instance) {
+								set_script_and_instance(var, scr_instance);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// Always add the property, since props may have been added or removed.
+		prop_list.push_back(pinfo);
+
+		if (!prop_values.has(pinfo.name)) {
+			new_props_added++;
+			prop_values[pinfo.name] = var;
+		} else {
+			if (bool(Variant::evaluate(Variant::OP_NOT_EQUAL, prop_values[pinfo.name], var))) {
+				prop_values[pinfo.name] = var;
+				if (p_changed) {
+					p_changed->insert(pinfo.name);
+				}
+			}
+		}
+	}
+	return new_props_added;
+}
+
 Variant EditorDebuggerRemoteObject::get_variant(const StringName &p_name) {
 	Variant var;
 	_get(p_name, var);
@@ -85,6 +161,10 @@ void EditorDebuggerRemoteObject::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_variant"), &EditorDebuggerRemoteObject::get_variant);
 	ClassDB::bind_method(D_METHOD("clear"), &EditorDebuggerRemoteObject::clear);
 	ClassDB::bind_method(D_METHOD("get_remote_object_id"), &EditorDebuggerRemoteObject::get_remote_object_id);
+
+	ClassDB::bind_method(D_METHOD("_is_read_only"), &EditorDebuggerRemoteObject::_is_read_only);
+	ClassDB::bind_method(D_METHOD("set_read_only", "p_read_only"), &EditorDebuggerRemoteObject::set_read_only);
+	ClassDB::bind_method(D_METHOD("is_read_only"), &EditorDebuggerRemoteObject::is_read_only);
 
 	ADD_SIGNAL(MethodInfo("value_edited", PropertyInfo(Variant::INT, "object_id"), PropertyInfo(Variant::STRING, "property"), PropertyInfo("value")));
 }
@@ -144,53 +224,8 @@ ObjectID EditorDebuggerInspector::add_object(const Array &p_arr) {
 	int old_prop_size = debug_obj->prop_list.size();
 
 	debug_obj->prop_list.clear();
-	int new_props_added = 0;
 	HashSet<String> changed;
-	for (SceneDebuggerObject::SceneDebuggerProperty &property : obj.properties) {
-		PropertyInfo &pinfo = property.first;
-		Variant &var = property.second;
-
-		if (pinfo.type == Variant::OBJECT) {
-			if (var.is_string()) {
-				String path = var;
-				if (path.contains("::")) {
-					// built-in resource
-					String base_path = path.get_slice("::", 0);
-					Ref<Resource> dependency = ResourceLoader::load(base_path);
-					if (dependency.is_valid()) {
-						remote_dependencies.insert(dependency);
-					}
-				}
-				var = ResourceLoader::load(path);
-
-				if (pinfo.hint_string == "Script") {
-					if (debug_obj->get_script() != var) {
-						debug_obj->set_script(Ref<RefCounted>());
-						Ref<Script> scr(var);
-						if (scr.is_valid()) {
-							ScriptInstance *scr_instance = scr->placeholder_instance_create(debug_obj);
-							if (scr_instance) {
-								debug_obj->set_script_and_instance(var, scr_instance);
-							}
-						}
-					}
-				}
-			}
-		}
-
-		//always add the property, since props may have been added or removed
-		debug_obj->prop_list.push_back(pinfo);
-
-		if (!debug_obj->prop_values.has(pinfo.name)) {
-			new_props_added++;
-			debug_obj->prop_values[pinfo.name] = var;
-		} else {
-			if (bool(Variant::evaluate(Variant::OP_NOT_EQUAL, debug_obj->prop_values[pinfo.name], var))) {
-				debug_obj->prop_values[pinfo.name] = var;
-				changed.insert(pinfo.name);
-			}
-		}
-	}
+	int new_props_added = debug_obj->update_props(obj, &changed, &remote_dependencies);
 
 	if (old_prop_size == debug_obj->prop_list.size() && new_props_added == 0) {
 		//only some may have changed, if so, then update those, if exist

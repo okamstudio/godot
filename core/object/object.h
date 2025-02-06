@@ -1039,7 +1039,7 @@ class ObjectDB {
 	static void setup();
 
 public:
-	typedef void (*DebugFunc)(Object *p_obj);
+	typedef void (*DebugFunc)(Object *p_obj, void *p_user_data);
 
 	_ALWAYS_INLINE_ static Object *get_instance(ObjectID p_instance_id) {
 		uint64_t id = p_instance_id;
@@ -1062,7 +1062,7 @@ public:
 
 		return object;
 	}
-	static void debug_objects(DebugFunc p_func);
+	static void debug_objects(DebugFunc p_func, void *p_user_data);
 	static int get_object_count();
 };
 

@@ -3303,7 +3303,7 @@ void Node::_set_tree(SceneTree *p_tree) {
 #ifdef DEBUG_ENABLED
 static HashMap<ObjectID, List<String>> _print_orphan_nodes_map;
 
-static void _print_orphan_nodes_routine(Object *p_obj) {
+static void _print_orphan_nodes_routine(Object *p_obj, void *p_user_data) {
 	Node *n = Object::cast_to<Node>(p_obj);
 	if (!n) {
 		return;
@@ -3339,7 +3339,7 @@ void Node::print_orphan_nodes() {
 	_print_orphan_nodes_map.clear();
 
 	// Collect and print information about orphan nodes.
-	ObjectDB::debug_objects(_print_orphan_nodes_routine);
+	ObjectDB::debug_objects(_print_orphan_nodes_routine, nullptr);
 
 	for (const KeyValue<ObjectID, List<String>> &E : _print_orphan_nodes_map) {
 		print_line(itos(E.key) + " - Stray Node: " + E.value.get(0) + " (Type: " + E.value.get(1) + ")");

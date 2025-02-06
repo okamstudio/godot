@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  editor_debugger_inspector.h                                           */
+/*  snapshot_view.cpp                                                     */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,81 +28,43 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_DEBUGGER_INSPECTOR_H
-#define EDITOR_DEBUGGER_INSPECTOR_H
+#include "snapshot_view.h"
 
-#include "editor/editor_inspector.h"
+#include "scene/gui/label.h"
+#include "scene/gui/rich_text_label.h"
+#include "scene/gui/tree.h"
 
-class SceneDebuggerObject;
-
-class EditorDebuggerRemoteObject : public Object {
-	GDCLASS(EditorDebuggerRemoteObject, Object);
-
-protected:
-	bool _set(const StringName &p_name, const Variant &p_value);
-	bool _get(const StringName &p_name, Variant &r_ret) const;
-	void _get_property_list(List<PropertyInfo> *p_list) const;
-	static void _bind_methods();
-
-	bool read_only = false;
-	bool _is_read_only();
-
-public:
-	ObjectID remote_object_id;
-	String type_name;
-	List<PropertyInfo> prop_list;
-	HashMap<StringName, Variant> prop_values;
-
-	ObjectID get_remote_object_id() { return remote_object_id; }
-	String get_title();
-
-	int update_props(SceneDebuggerObject &p_obj, HashSet<String> *p_changed, HashSet<Ref<Resource>> *p_remote_dependencies);
-
-	void set_read_only(bool p_read_only);
-	bool is_read_only();
-
-	Variant get_variant(const StringName &p_name);
-
-	void clear() {
-		prop_list.clear();
-		prop_values.clear();
+void SnapshotView::clear_snapshot() {
+	snapshot_data = nullptr;
+	diff_data = nullptr;
+	for (int i = 0; i < get_child_count(); i++) {
+		get_child(i)->queue_free();
 	}
+}
 
-	void update() { notify_property_list_changed(); }
+void SnapshotView::show_snapshot(GameStateSnapshot *p_data, GameStateSnapshot *p_diff_data) {
+	clear_snapshot();
+	snapshot_data = p_data;
+	diff_data = p_diff_data;
+}
 
-	EditorDebuggerRemoteObject() {}
-	EditorDebuggerRemoteObject(SceneDebuggerObject &p_obj);
-};
+bool SnapshotView::is_showing_snapshot(GameStateSnapshot *p_data, GameStateSnapshot *p_diff_data) {
+	return p_data == snapshot_data && p_diff_data == diff_data;
+}
 
-class EditorDebuggerInspector : public EditorInspector {
-	GDCLASS(EditorDebuggerInspector, EditorInspector);
-
-private:
-	ObjectID inspected_object_id;
-	HashMap<ObjectID, EditorDebuggerRemoteObject *> remote_objects;
-	HashSet<Ref<Resource>> remote_dependencies;
-	EditorDebuggerRemoteObject *variables = nullptr;
-
-	void _object_selected(ObjectID p_object);
-	void _object_edited(ObjectID p_id, const String &p_prop, const Variant &p_value);
-
-protected:
-	void _notification(int p_what);
-	static void _bind_methods();
-
-public:
-	EditorDebuggerInspector();
-	~EditorDebuggerInspector();
-
-	// Remote Object cache
-	ObjectID add_object(const Array &p_arr);
-	Object *get_object(ObjectID p_id);
-	void clear_cache();
-
-	// Stack Dump variables
-	String get_stack_variable(const String &p_var);
-	void add_stack_variable(const Array &p_arr, int p_offset = -1);
-	void clear_stack_variables();
-};
-
-#endif // EDITOR_DEBUGGER_INSPECTOR_H
+List<TreeItem *> SnapshotView::_get_children_recursive(Tree *p_tree) {
+	List<TreeItem *> found_items;
+	List<TreeItem *> items_to_check;
+	if (p_tree && p_tree->get_root()) {
+		items_to_check.push_back(p_tree->get_root());
+	}
+	while (items_to_check.size() > 0) {
+		TreeItem *to_check = items_to_check.front()->get();
+		items_to_check.pop_front();
+		found_items.push_back(to_check);
+		for (int i = 0; i < to_check->get_child_count(); i++) {
+			items_to_check.push_back(to_check->get_child(i));
+		}
+	}
+	return found_items;
+}

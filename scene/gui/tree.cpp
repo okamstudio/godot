@@ -5302,6 +5302,21 @@ String Tree::get_column_title(int p_column) const {
 	return columns[p_column].title;
 }
 
+void Tree::set_column_title_tooltip_text(int p_column, const String &p_tooltip) {
+	ERR_FAIL_INDEX(p_column, columns.size());
+
+	if (columns.write[p_column].title_tooltip == p_tooltip) {
+		return;
+	}
+
+	columns.write[p_column].title_tooltip = p_tooltip;
+}
+
+String Tree::get_column_title_tooltip_text(int p_column) const {
+	ERR_FAIL_INDEX_V(p_column, columns.size(), "");
+	return columns[p_column].title_tooltip;
+}
+
 void Tree::set_column_title_alignment(int p_column, HorizontalAlignment p_alignment) {
 	ERR_FAIL_INDEX(p_column, columns.size());
 
@@ -5795,7 +5810,33 @@ int Tree::get_button_id_at_position(const Point2 &p_pos) const {
 String Tree::get_tooltip(const Point2 &p_pos) const {
 	Point2 pos = p_pos - theme_cache.panel_style->get_offset();
 	pos.y -= _get_title_button_height();
+
+	// `pos.y` less than 0 indicates we're in the header.
 	if (pos.y < 0) {
+		// Get the x position of the cursor.
+		real_t pos_x = p_pos.x;
+		if (is_layout_rtl()) {
+			pos_x = get_size().width - pos_x;
+		}
+		pos_x -= theme_cache.panel_style->get_offset().x;
+		if (h_scroll->is_visible_in_tree()) {
+			pos_x += h_scroll->get_value();
+		}
+
+		// Walk forwards until we know which column we're in.
+		int next_edge = 0;
+		int i = 0;
+		for (; i < columns.size(); i++) {
+			if (pos_x < next_edge) {
+				break;
+			}
+			next_edge += get_column_width(i);
+		}
+		if (!columns[i - 1].title_tooltip.is_empty()) {
+			return columns[i - 1].title_tooltip;
+		}
+
+		// If the column has no tooltip, use the default.
 		return Control::get_tooltip(p_pos);
 	}
 
@@ -5945,6 +5986,9 @@ void Tree::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_column_title", "column", "title"), &Tree::set_column_title);
 	ClassDB::bind_method(D_METHOD("get_column_title", "column"), &Tree::get_column_title);
+
+	ClassDB::bind_method(D_METHOD("set_column_title_tooltip_text", "column", "tooltip_text"), &Tree::set_column_title_tooltip_text);
+	ClassDB::bind_method(D_METHOD("get_column_title_tooltip_text", "column"), &Tree::get_column_title_tooltip_text);
 
 	ClassDB::bind_method(D_METHOD("set_column_title_alignment", "column", "title_alignment"), &Tree::set_column_title_alignment);
 	ClassDB::bind_method(D_METHOD("get_column_title_alignment", "column"), &Tree::get_column_title_alignment);

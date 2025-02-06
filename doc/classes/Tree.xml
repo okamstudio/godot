@@ -124,6 +124,13 @@
 				Returns column title language code.
 			</description>
 		</method>
+		<method name="get_column_title_tooltip_text" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="column" type="int" />
+			<description>
+				Returns the column title's tooltip text.
+			</description>
+		</method>
 		<method name="get_column_width" qualifiers="const">
 			<return type="int" />
 			<param index="0" name="column" type="int" />
@@ -320,6 +327,14 @@
 			<param index="1" name="language" type="String" />
 			<description>
 				Sets language code of column title used for line-breaking and text shaping algorithms, if left empty current locale is used instead.
+			</description>
+		</method>
+		<method name="set_column_title_tooltip_text">
+			<return type="void" />
+			<param index="0" name="column" type="int" />
+			<param index="1" name="tooltip_text" type="String" />
+			<description>
+				Sets the column title's tooltip text.
 			</description>
 		</method>
 		<method name="set_selected">
