@@ -44,6 +44,10 @@ class LightmapGIData : public Resource {
 	RES_BASE_EXTENSION("lmbake")
 
 public:
+	enum {
+		DIRECTIONAL_VERSION = 1
+	};
+
 	enum ShadowmaskMode {
 		SHADOWMASK_MODE_NONE,
 		SHADOWMASK_MODE_REPLACE,
@@ -64,7 +68,7 @@ private:
 	bool uses_spherical_harmonics = false;
 	bool interior = false;
 
-	bool _uses_packed_directional = false;
+	int _directional_version = 0;
 
 	RID lightmap;
 	AABB bounds;
@@ -105,13 +109,16 @@ public:
 
 	void _set_light_textures_data(const Array &p_data);
 	Array _get_light_textures_data() const;
+
+	void _set_uses_packed_directional(bool p_enable);
+	bool _is_using_packed_directional() const;
 #endif
 
 	void set_uses_spherical_harmonics(bool p_enable);
 	bool is_using_spherical_harmonics() const;
 
-	void _set_uses_packed_directional(bool p_enable);
-	bool _is_using_packed_directional() const;
+	void _set_directional_version(int p_version);
+	int _get_directional_version() const;
 
 	void update_shadowmask_mode(ShadowmaskMode p_mode);
 	ShadowmaskMode get_shadowmask_mode() const;
