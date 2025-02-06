@@ -100,6 +100,7 @@ private:
 	// Only whole words are matched within the controller name string. The match is case-insensitive.
 	const Vector<String> banned_words = {
 		"touchpad", // Matches e.g. "SynPS/2 Synaptics TouchPad", "Sony Interactive Entertainment DualSense Wireless Controller Touchpad"
+		"synaptics", // Matches e.g. "Synaptics TM2768-001". Depending on Linux kernel version, Synaptics touchpads don't always have "touchpad" in their name.
 		"trackpad",
 		"clickpad",
 		"keyboard", // Matches e.g. "PG-90215 Keyboard", "Usb Keyboard Usb Keyboard Consumer Control"
