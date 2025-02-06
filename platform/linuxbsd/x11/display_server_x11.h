@@ -329,8 +329,8 @@ class DisplayServerX11 : public DisplayServer {
 	void set_wm_fullscreen(bool p_enabled);
 	void set_wm_above(bool p_enabled);
 
-	typedef xrr_monitor_info *(*xrr_get_monitors_t)(Display *dpy, Window window, Bool get_active, int *nmonitors);
-	typedef void (*xrr_free_monitors_t)(xrr_monitor_info *monitors);
+	using xrr_get_monitors_t = xrr_monitor_info *(*)(Display *dpy, Window window, Bool get_active, int *nmonitors);
+	using xrr_free_monitors_t = void (*)(xrr_monitor_info *monitors);
 	xrr_get_monitors_t xrr_get_monitors = nullptr;
 	xrr_free_monitors_t xrr_free_monitors = nullptr;
 	void *xrandr_handle = nullptr;

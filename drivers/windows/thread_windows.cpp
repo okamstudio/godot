@@ -38,7 +38,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-typedef HRESULT(WINAPI *SetThreadDescriptionPtr)(HANDLE p_thread, PCWSTR p_thread_description);
+using SetThreadDescriptionPtr = HRESULT(WINAPI *)(HANDLE p_thread, PCWSTR p_thread_description);
 SetThreadDescriptionPtr w10_SetThreadDescription = nullptr;
 
 static Error set_name(const String &p_name) {

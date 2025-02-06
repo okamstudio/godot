@@ -89,7 +89,7 @@ public:
 		StreamString(bool p_readahead_enabled = true) { readahead_enabled = p_readahead_enabled; }
 	};
 
-	typedef Error (*ParseResourceFunc)(void *p_self, Stream *p_stream, Ref<Resource> &r_res, int &line, String &r_err_str);
+	using ParseResourceFunc = Error (*)(void *p_self, Stream *p_stream, Ref<Resource> &r_res, int &r_line, String &r_err_str);
 
 	struct ResourceParser {
 		void *userdata = nullptr;
@@ -158,8 +158,8 @@ public:
 
 class VariantWriter {
 public:
-	typedef Error (*StoreStringFunc)(void *ud, const String &p_string);
-	typedef String (*EncodeResourceFunc)(void *ud, const Ref<Resource> &p_resource);
+	using StoreStringFunc = Error (*)(void *p_user_data, const String &p_string);
+	using EncodeResourceFunc = String (*)(void *p_user_data, const Ref<Resource> &p_resource);
 
 	static Error write(const Variant &p_variant, StoreStringFunc p_store_string_func, void *p_store_string_ud, EncodeResourceFunc p_encode_res_func, void *p_encode_res_ud, int p_recursion_count = 0, bool p_compat = true);
 	static Error write_to_string(const Variant &p_variant, String &r_string, EncodeResourceFunc p_encode_res_func = nullptr, void *p_encode_res_ud = nullptr, bool p_compat = true);

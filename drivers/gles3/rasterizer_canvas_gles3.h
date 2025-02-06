@@ -334,7 +334,7 @@ public:
 	RID default_clip_children_material;
 	RID default_clip_children_shader;
 
-	typedef void Texture;
+	using Texture = void;
 
 	void canvas_begin(RID p_to_render_target, bool p_to_backbuffer, bool p_backbuffer_has_mipmaps);
 

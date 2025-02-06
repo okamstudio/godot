@@ -37,7 +37,7 @@
 #include "core/templates/vector.h"
 
 class ScriptDebugger {
-	typedef ScriptLanguage::StackInfo StackInfo;
+	using StackInfo = ScriptLanguage::StackInfo;
 
 	bool skip_breakpoints = false;
 

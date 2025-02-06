@@ -94,21 +94,21 @@ public:
 		SIMPLIFY_PRUNE = 1 << 3, // From meshopt_SimplifyPrune
 	};
 
-	typedef void (*OptimizeVertexCacheFunc)(unsigned int *destination, const unsigned int *indices, size_t index_count, size_t vertex_count);
+	using OptimizeVertexCacheFunc = void (*)(unsigned int *destination, const unsigned int *indices, size_t index_count, size_t vertex_count);
 	static OptimizeVertexCacheFunc optimize_vertex_cache_func;
-	typedef size_t (*OptimizeVertexFetchRemapFunc)(unsigned int *destination, const unsigned int *indices, size_t index_count, size_t vertex_count);
+	using OptimizeVertexFetchRemapFunc = size_t (*)(unsigned int *destination, const unsigned int *indices, size_t index_count, size_t vertex_count);
 	static OptimizeVertexFetchRemapFunc optimize_vertex_fetch_remap_func;
-	typedef size_t (*SimplifyFunc)(unsigned int *destination, const unsigned int *indices, size_t index_count, const float *vertex_positions, size_t vertex_count, size_t vertex_positions_stride, size_t target_index_count, float target_error, unsigned int options, float *r_error);
+	using SimplifyFunc = size_t (*)(unsigned int *destination, const unsigned int *indices, size_t index_count, const float *vertex_positions, size_t vertex_count, size_t vertex_positions_stride, size_t target_index_count, float target_error, unsigned int options, float *r_error);
 	static SimplifyFunc simplify_func;
-	typedef size_t (*SimplifyWithAttribFunc)(unsigned int *destination, const unsigned int *indices, size_t index_count, const float *vertex_data, size_t vertex_count, size_t vertex_stride, const float *attributes, size_t attribute_stride, const float *attribute_weights, size_t attribute_count, const unsigned char *vertex_lock, size_t target_index_count, float target_error, unsigned int options, float *result_error);
+	using SimplifyWithAttribFunc = size_t (*)(unsigned int *destination, const unsigned int *indices, size_t index_count, const float *vertex_data, size_t vertex_count, size_t vertex_stride, const float *attributes, size_t attribute_stride, const float *attribute_weights, size_t attribute_count, const unsigned char *vertex_lock, size_t target_index_count, float target_error, unsigned int options, float *result_error);
 	static SimplifyWithAttribFunc simplify_with_attrib_func;
-	typedef float (*SimplifyScaleFunc)(const float *vertex_positions, size_t vertex_count, size_t vertex_positions_stride);
+	using SimplifyScaleFunc = float (*)(const float *vertex_positions, size_t vertex_count, size_t vertex_positions_stride);
 	static SimplifyScaleFunc simplify_scale_func;
-	typedef size_t (*GenerateRemapFunc)(unsigned int *destination, const unsigned int *indices, size_t index_count, const void *vertices, size_t vertex_count, size_t vertex_size);
+	using GenerateRemapFunc = size_t (*)(unsigned int *destination, const unsigned int *indices, size_t index_count, const void *vertices, size_t vertex_count, size_t vertex_size);
 	static GenerateRemapFunc generate_remap_func;
-	typedef void (*RemapVertexFunc)(void *destination, const void *vertices, size_t vertex_count, size_t vertex_size, const unsigned int *remap);
+	using RemapVertexFunc = void (*)(void *destination, const void *vertices, size_t vertex_count, size_t vertex_size, const unsigned int *remap);
 	static RemapVertexFunc remap_vertex_func;
-	typedef void (*RemapIndexFunc)(unsigned int *destination, const unsigned int *indices, size_t index_count, const unsigned int *remap);
+	using RemapIndexFunc = void (*)(unsigned int *destination, const unsigned int *indices, size_t index_count, const unsigned int *remap);
 	static RemapIndexFunc remap_index_func;
 	static void strip_mesh_arrays(PackedVector3Array &r_vertices, PackedInt32Array &r_indices);
 

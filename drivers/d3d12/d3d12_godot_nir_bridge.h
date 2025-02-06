@@ -34,7 +34,7 @@
 #include <stdint.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C" { // NOLINTBEGIN(modernize-use-using)
 #endif
 
 // This one leaves room for potentially extremely copious bindings in a set.
@@ -54,7 +54,7 @@ typedef struct GodotNirCallbacks {
 } GodotNirCallbacks;
 
 #ifdef __cplusplus
-}
+} // NOLINTEND(modernize-use-using)
 #endif
 
 #endif // D3D12_GODOT_NIR_BRIDGE_H

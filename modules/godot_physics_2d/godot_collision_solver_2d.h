@@ -35,7 +35,7 @@
 
 class GodotCollisionSolver2D {
 public:
-	typedef void (*CallbackResult)(const Vector2 &p_point_A, const Vector2 &p_point_B, void *p_userdata);
+	using CallbackResult = void (*)(const Vector2 &p_point_A, const Vector2 &p_point_B, void *p_user_data);
 
 private:
 	static bool solve_static_world_boundary(const GodotShape2D *p_shape_A, const Transform2D &p_transform_A, const GodotShape2D *p_shape_B, const Transform2D &p_transform_B, const Vector2 &p_motion_B, CallbackResult p_result_callback, void *p_userdata, bool p_swap_result, real_t p_margin = 0);

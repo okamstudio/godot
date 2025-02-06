@@ -67,8 +67,8 @@ class CowData {
 	friend class VMap;
 
 public:
-	typedef int64_t Size;
-	typedef uint64_t USize;
+	using Size = int64_t;
+	using USize = uint64_t;
 	static constexpr USize MAX_INT = INT64_MAX;
 
 private:

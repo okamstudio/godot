@@ -92,8 +92,8 @@ public:
 		CONTEXT_ENGINE,
 	};
 
-	typedef DisplayServer *(*CreateFunction)(const String &, WindowMode, VSyncMode, uint32_t, const Point2i *, const Size2i &, int p_screen, Context, int64_t p_parent_window, Error &r_error);
-	typedef Vector<String> (*GetRenderingDriversFunction)();
+	using CreateFunction = DisplayServer *(*)(const String &p_rendering_driver, WindowMode p_mode, VSyncMode p_vsync_mode, uint32_t p_flags, const Point2i *p_position, const Size2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error);
+	using GetRenderingDriversFunction = Vector<String> (*)();
 
 private:
 	static void _input_set_mouse_mode(Input::MouseMode p_mode);
@@ -386,8 +386,8 @@ public:
 	};
 
 public:
-	typedef int WindowID;
-	typedef int IndicatorID;
+	using WindowID = int;
+	using IndicatorID = int;
 
 	virtual Vector<DisplayServer::WindowID> get_window_list() const = 0;
 

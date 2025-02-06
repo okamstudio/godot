@@ -209,7 +209,7 @@ public:
 
 	// Return true to stop the query.
 	// p_index is the node index for AABB query, face index for Ray query.
-	typedef bool (*QueryResultCallback)(uint32_t p_index, void *p_userdata);
+	using QueryResultCallback = bool (*)(uint32_t p_index, void *p_user_data);
 
 	void query_aabb(const AABB &p_aabb, QueryResultCallback p_result_callback, void *p_userdata);
 	void query_ray(const Vector3 &p_from, const Vector3 &p_to, QueryResultCallback p_result_callback, void *p_userdata);

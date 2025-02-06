@@ -139,7 +139,7 @@ public:
 		_FORCE_INLINE_ Element() {}
 	};
 
-	typedef T ValueType;
+	using ValueType = T;
 
 	struct ConstIterator {
 		_FORCE_INLINE_ const T &operator*() const {

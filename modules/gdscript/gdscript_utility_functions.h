@@ -39,7 +39,7 @@ class TypedArray;
 
 class GDScriptUtilityFunctions {
 public:
-	typedef void (*FunctionPtr)(Variant *r_ret, const Variant **p_args, int p_arg_count, Callable::CallError &r_error);
+	using FunctionPtr = void (*)(Variant *r_ret, const Variant **p_args, int p_arg_count, Callable::CallError &r_error);
 
 	static FunctionPtr get_function(const StringName &p_function);
 	static bool has_function_return_value(const StringName &p_function);

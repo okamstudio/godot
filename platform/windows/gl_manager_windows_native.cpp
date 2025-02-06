@@ -55,11 +55,11 @@
 #define GetProcAddress (void *)GetProcAddress
 #endif
 
-typedef HGLRC(APIENTRY *PFNWGLCREATECONTEXT)(HDC);
-typedef BOOL(APIENTRY *PFNWGLDELETECONTEXT)(HGLRC);
-typedef BOOL(APIENTRY *PFNWGLMAKECURRENT)(HDC, HGLRC);
-typedef HGLRC(APIENTRY *PFNWGLCREATECONTEXTATTRIBSARBPROC)(HDC, HGLRC, const int *);
-typedef void *(APIENTRY *PFNWGLGETPROCADDRESS)(LPCSTR);
+using PFNWGLCREATECONTEXT = HGLRC(APIENTRY *)(HDC);
+using PFNWGLDELETECONTEXT = BOOL(APIENTRY *)(HGLRC);
+using PFNWGLMAKECURRENT = BOOL(APIENTRY *)(HDC, HGLRC);
+using PFNWGLCREATECONTEXTATTRIBSARBPROC = HGLRC(APIENTRY *)(HDC, HGLRC, const int *);
+using PFNWGLGETPROCADDRESS = void *(APIENTRY *)(LPCSTR);
 
 static String format_error_message(DWORD id) {
 	LPWSTR messageBuffer = nullptr;
@@ -79,19 +79,19 @@ const int OGL_THREAD_CONTROL_ENABLE = 0x00000001;
 const int VRR_MODE_ID = 0x1194F158;
 const int VRR_MODE_FULLSCREEN_ONLY = 0x1;
 
-typedef int(__cdecl *NvAPI_Initialize_t)();
-typedef int(__cdecl *NvAPI_Unload_t)();
-typedef int(__cdecl *NvAPI_GetErrorMessage_t)(unsigned int, NvAPI_ShortString);
-typedef int(__cdecl *NvAPI_DRS_CreateSession_t)(NvDRSSessionHandle *);
-typedef int(__cdecl *NvAPI_DRS_DestroySession_t)(NvDRSSessionHandle);
-typedef int(__cdecl *NvAPI_DRS_LoadSettings_t)(NvDRSSessionHandle);
-typedef int(__cdecl *NvAPI_DRS_CreateProfile_t)(NvDRSSessionHandle, NVDRS_PROFILE *, NvDRSProfileHandle *);
-typedef int(__cdecl *NvAPI_DRS_CreateApplication_t)(NvDRSSessionHandle, NvDRSProfileHandle, NVDRS_APPLICATION *);
-typedef int(__cdecl *NvAPI_DRS_SaveSettings_t)(NvDRSSessionHandle);
-typedef int(__cdecl *NvAPI_DRS_SetSetting_t)(NvDRSSessionHandle, NvDRSProfileHandle, NVDRS_SETTING *);
-typedef int(__cdecl *NvAPI_DRS_FindProfileByName_t)(NvDRSSessionHandle, NvAPI_UnicodeString, NvDRSProfileHandle *);
-typedef int(__cdecl *NvAPI_DRS_GetApplicationInfo_t)(NvDRSSessionHandle, NvDRSProfileHandle, NvAPI_UnicodeString, NVDRS_APPLICATION *);
-typedef int(__cdecl *NvAPI_DRS_DeleteProfile_t)(NvDRSSessionHandle, NvDRSProfileHandle);
+using NvAPI_Initialize_t = int(__cdecl *)();
+using NvAPI_Unload_t = int(__cdecl *)();
+using NvAPI_GetErrorMessage_t = int(__cdecl *)(unsigned int, NvAPI_ShortString);
+using NvAPI_DRS_CreateSession_t = int(__cdecl *)(NvDRSSessionHandle *);
+using NvAPI_DRS_DestroySession_t = int(__cdecl *)(NvDRSSessionHandle);
+using NvAPI_DRS_LoadSettings_t = int(__cdecl *)(NvDRSSessionHandle);
+using NvAPI_DRS_CreateProfile_t = int(__cdecl *)(NvDRSSessionHandle, NVDRS_PROFILE *, NvDRSProfileHandle *);
+using NvAPI_DRS_CreateApplication_t = int(__cdecl *)(NvDRSSessionHandle, NvDRSProfileHandle, NVDRS_APPLICATION *);
+using NvAPI_DRS_SaveSettings_t = int(__cdecl *)(NvDRSSessionHandle);
+using NvAPI_DRS_SetSetting_t = int(__cdecl *)(NvDRSSessionHandle, NvDRSProfileHandle, NVDRS_SETTING *);
+using NvAPI_DRS_FindProfileByName_t = int(__cdecl *)(NvDRSSessionHandle, NvAPI_UnicodeString, NvDRSProfileHandle *);
+using NvAPI_DRS_GetApplicationInfo_t = int(__cdecl *)(NvDRSSessionHandle, NvDRSProfileHandle, NvAPI_UnicodeString, NVDRS_APPLICATION *);
+using NvAPI_DRS_DeleteProfile_t = int(__cdecl *)(NvDRSSessionHandle, NvDRSProfileHandle);
 NvAPI_GetErrorMessage_t NvAPI_GetErrorMessage__;
 
 static bool nvapi_err_check(const char *msg, int status) {

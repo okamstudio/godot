@@ -52,7 +52,7 @@
 #endif
 
 #ifdef __cplusplus
-extern "C" {
+extern "C" { // NOLINTBEGIN(modernize-use-using)
 #endif
 
 // For ArrayPrivate and DictionaryPrivate
@@ -1511,7 +1511,7 @@ void godotsharp_object_to_string(Object *p_ptr, godot_string *r_str) {
 }
 
 #ifdef __cplusplus
-}
+} // NOLINTEND(modernize-use-using)
 #endif
 
 // The order in this array must match the declaration order of

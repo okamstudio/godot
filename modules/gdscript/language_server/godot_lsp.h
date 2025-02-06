@@ -37,7 +37,7 @@
 
 namespace lsp {
 
-typedef String DocumentUri;
+using DocumentUri = String;
 
 /** Format BBCode documentation from DocData to markdown */
 static String marked_documentation(const String &p_bbcode);

@@ -85,8 +85,8 @@ protected:
 	void _set_logger(CompositeLogger *p_logger);
 
 public:
-	typedef void (*ImeCallback)(void *p_inp, const String &p_text, Point2 p_selection);
-	typedef bool (*HasServerFeatureCallback)(const String &p_feature);
+	using ImeCallback = void (*)(void *, const String &, Point2);
+	using HasServerFeatureCallback = bool (*)(const String &);
 
 	enum RenderThreadMode {
 		RENDER_THREAD_UNSAFE,
@@ -127,7 +127,7 @@ protected:
 	virtual bool _check_internal_feature_support(const String &p_feature) = 0;
 
 public:
-	typedef int64_t ProcessID;
+	using ProcessID = int64_t;
 
 	static OS *get_singleton();
 

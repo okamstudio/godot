@@ -96,7 +96,7 @@ protected:
 	static void _bind_methods();
 
 public:
-	typedef int64_t ID;
+	using ID = int64_t;
 	enum {
 		INVALID_ID = -1
 	};

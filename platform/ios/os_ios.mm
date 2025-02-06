@@ -63,7 +63,7 @@
 // Initialization order between compilation units is not guaranteed,
 // so we use this as a hack to ensure certain code is called before
 // everything else, but after all units are initialized.
-typedef void (*init_callback)();
+using init_callback = void (*)();
 static init_callback *ios_init_callbacks = nullptr;
 static int ios_init_callbacks_count = 0;
 static int ios_init_callbacks_capacity = 0;

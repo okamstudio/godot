@@ -109,9 +109,9 @@ public:
 	PhysicsDirectBodyState2DExtension();
 };
 
-typedef PhysicsDirectSpaceState2D::RayResult PhysicsServer2DExtensionRayResult;
-typedef PhysicsDirectSpaceState2D::ShapeResult PhysicsServer2DExtensionShapeResult;
-typedef PhysicsDirectSpaceState2D::ShapeRestInfo PhysicsServer2DExtensionShapeRestInfo;
+using PhysicsServer2DExtensionRayResult = PhysicsDirectSpaceState2D::RayResult;
+using PhysicsServer2DExtensionShapeResult = PhysicsDirectSpaceState2D::ShapeResult;
+using PhysicsServer2DExtensionShapeRestInfo = PhysicsDirectSpaceState2D::ShapeRestInfo;
 
 GDVIRTUAL_NATIVE_PTR(PhysicsServer2DExtensionRayResult)
 GDVIRTUAL_NATIVE_PTR(PhysicsServer2DExtensionShapeResult)
@@ -180,7 +180,7 @@ public:
 	PhysicsDirectSpaceState2DExtension();
 };
 
-typedef PhysicsServer2D::MotionResult PhysicsServer2DExtensionMotionResult;
+using PhysicsServer2DExtensionMotionResult = PhysicsServer2D::MotionResult;
 
 GDVIRTUAL_NATIVE_PTR(PhysicsServer2DExtensionMotionResult)
 

@@ -40,7 +40,7 @@ class FileAccess;
 class ResourceUID : public Object {
 	GDCLASS(ResourceUID, Object)
 public:
-	typedef int64_t ID;
+	using ID = int64_t;
 	constexpr const static ID INVALID_ID = -1;
 
 	static String get_cache_file();

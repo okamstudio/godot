@@ -62,8 +62,8 @@ hostfxr_get_runtime_delegate_fn hostfxr_get_runtime_delegate = nullptr;
 hostfxr_close_fn hostfxr_close = nullptr;
 
 #ifndef TOOLS_ENABLED
-typedef int(CORECLR_DELEGATE_CALLTYPE *coreclr_create_delegate_fn)(void *hostHandle, unsigned int domainId, const char *entryPointAssemblyName, const char *entryPointTypeName, const char *entryPointMethodName, void **delegate);
-typedef int(CORECLR_DELEGATE_CALLTYPE *coreclr_initialize_fn)(const char *exePath, const char *appDomainFriendlyName, int propertyCount, const char **propertyKeys, const char **propertyValues, void **hostHandle, unsigned int *domainId);
+using coreclr_create_delegate_fn = int(CORECLR_DELEGATE_CALLTYPE *)(void *hostHandle, unsigned int domainId, const char *entryPointAssemblyName, const char *entryPointTypeName, const char *entryPointMethodName, void **delegate);
+using coreclr_initialize_fn = int(CORECLR_DELEGATE_CALLTYPE *)(const char *exePath, const char *appDomainFriendlyName, int propertyCount, const char **propertyKeys, const char **propertyValues, void **hostHandle, unsigned int *domainId);
 
 coreclr_create_delegate_fn coreclr_create_delegate = nullptr;
 coreclr_initialize_fn coreclr_initialize = nullptr;

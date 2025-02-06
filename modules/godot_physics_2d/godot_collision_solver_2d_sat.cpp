@@ -49,7 +49,7 @@ struct _CollectorCallback2D {
 	}
 };
 
-typedef void (*GenerateContactsFunc)(const Vector2 *, int, const Vector2 *, int, _CollectorCallback2D *);
+using GenerateContactsFunc = void (*)(const Vector2 *, int, const Vector2 *, int, _CollectorCallback2D *);
 
 _FORCE_INLINE_ static void _generate_contacts_point_point(const Vector2 *p_points_A, int p_point_count_A, const Vector2 *p_points_B, int p_point_count_B, _CollectorCallback2D *p_collector) {
 #ifdef DEBUG_ENABLED
@@ -380,7 +380,7 @@ public:
 			(castB && !separator.test_axis(((m_a) - ((m_b) + p_motion_b)).normalized())) || \
 			(castA && castB && !separator.test_axis(((m_a) + p_motion_a - ((m_b) + p_motion_b)).normalized())))
 
-typedef void (*CollisionFunc)(const GodotShape2D *, const Transform2D &, const GodotShape2D *, const Transform2D &, _CollectorCallback2D *p_collector, const Vector2 &, const Vector2 &, real_t, real_t);
+using CollisionFunc = void (*)(const GodotShape2D *, const Transform2D &, const GodotShape2D *, const Transform2D &, _CollectorCallback2D *p_collector, const Vector2 &, const Vector2 &, real_t, real_t);
 
 template <bool castA, bool castB, bool withMargin>
 static void _collision_segment_segment(const GodotShape2D *p_a, const Transform2D &p_transform_a, const GodotShape2D *p_b, const Transform2D &p_transform_b, _CollectorCallback2D *p_collector, const Vector2 &p_motion_a, const Vector2 &p_motion_b, real_t p_margin_A, real_t p_margin_B) {

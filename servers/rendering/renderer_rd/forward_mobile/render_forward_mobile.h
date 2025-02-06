@@ -594,7 +594,7 @@ public:
 	GlobalPipelineData global_pipeline_data_compiled = {};
 	GlobalPipelineData global_pipeline_data_required = {};
 
-	typedef Pair<SceneShaderForwardMobile::ShaderData *, SceneShaderForwardMobile::ShaderData::PipelineKey> ShaderPipelinePair;
+	using ShaderPipelinePair = Pair<SceneShaderForwardMobile::ShaderData *, SceneShaderForwardMobile::ShaderData::PipelineKey>;
 
 	void _update_global_pipeline_data_requirements_from_project();
 	void _update_global_pipeline_data_requirements_from_light_storage();

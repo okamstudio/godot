@@ -45,9 +45,9 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations" // OpenGL is deprecated in macOS 10.14
 
-typedef CGLError (*CGLEnablePtr)(CGLContextObj ctx, CGLContextEnable pname);
-typedef CGLError (*CGLSetParameterPtr)(CGLContextObj ctx, CGLContextParameter pname, const GLint *params);
-typedef CGLContextObj (*CGLGetCurrentContextPtr)(void);
+using CGLEnablePtr = CGLError (*)(CGLContextObj ctx, CGLContextEnable pname);
+using CGLSetParameterPtr = CGLError (*)(CGLContextObj ctx, CGLContextParameter pname, const GLint *params);
+using CGLGetCurrentContextPtr = CGLContextObj (*)(void);
 
 class GLManagerLegacy_MacOS {
 	struct GLWindow {

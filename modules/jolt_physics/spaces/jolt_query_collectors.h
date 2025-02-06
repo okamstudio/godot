@@ -44,7 +44,7 @@
 template <typename TBase, int TDefaultCapacity>
 class JoltQueryCollectorAll final : public TBase {
 public:
-	typedef typename TBase::ResultType Hit;
+	using Hit = typename TBase::ResultType;
 
 private:
 	JPH::Array<Hit> hits;
@@ -77,7 +77,7 @@ public:
 template <typename TBase>
 class JoltQueryCollectorAny final : public TBase {
 public:
-	typedef typename TBase::ResultType Hit;
+	using Hit = typename TBase::ResultType;
 
 private:
 	Hit hit;
@@ -108,7 +108,7 @@ public:
 template <typename TBase, int TDefaultCapacity>
 class JoltQueryCollectorAnyMulti final : public TBase {
 public:
-	typedef typename TBase::ResultType Hit;
+	using Hit = typename TBase::ResultType;
 
 private:
 	JPH::Array<Hit> hits;
@@ -153,7 +153,7 @@ public:
 template <typename TBase>
 class JoltQueryCollectorClosest final : public TBase {
 public:
-	typedef typename TBase::ResultType Hit;
+	using Hit = typename TBase::ResultType;
 
 private:
 	Hit hit;
@@ -188,7 +188,7 @@ public:
 template <typename TBase, int TDefaultCapacity>
 class JoltQueryCollectorClosestMulti final : public TBase {
 public:
-	typedef typename TBase::ResultType Hit;
+	using Hit = typename TBase::ResultType;
 
 private:
 	JPH::Array<Hit> hits;

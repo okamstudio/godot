@@ -35,7 +35,7 @@
 
 #include "webrtc_peer_connection.h"
 
-extern "C" {
+extern "C" { // NOLINTBEGIN(modernize-use-using)
 typedef void (*RTCOnIceConnectionStateChange)(void *p_obj, int p_state);
 typedef void (*RTCOnIceGatheringStateChange)(void *p_obj, int p_state);
 typedef void (*RTCOnSignalingStateChange)(void *p_obj, int p_state);
@@ -51,7 +51,7 @@ extern void godot_js_rtc_pc_local_description_set(int p_id, const char *p_type, 
 extern void godot_js_rtc_pc_remote_description_set(int p_id, const char *p_type, const char *p_sdp, void *p_obj, RTCOnSession p_on_session, RTCOnError p_on_error);
 extern void godot_js_rtc_pc_ice_candidate_add(int p_id, const char *p_mid_name, int p_mline_idx, const char *p_sdo);
 extern int godot_js_rtc_pc_datachannel_create(int p_id, const char *p_label, const char *p_config);
-}
+} // NOLINTEND(modernize-use-using)
 
 class WebRTCPeerConnectionJS : public WebRTCPeerConnection {
 	GDCLASS(WebRTCPeerConnectionJS, WebRTCPeerConnection);

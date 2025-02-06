@@ -66,8 +66,8 @@ private:
 class DependencyTracker {
 public:
 	void *userdata = nullptr;
-	typedef void (*ChangedCallback)(Dependency::DependencyChangedNotification, DependencyTracker *);
-	typedef void (*DeletedCallback)(const RID &, DependencyTracker *);
+	using ChangedCallback = void (*)(Dependency::DependencyChangedNotification, DependencyTracker *);
+	using DeletedCallback = void (*)(const RID &, DependencyTracker *);
 
 	ChangedCallback changed_callback = nullptr;
 	DeletedCallback deleted_callback = nullptr;

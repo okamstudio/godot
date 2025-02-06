@@ -111,9 +111,9 @@ public:
 	PhysicsDirectBodyState3DExtension();
 };
 
-typedef PhysicsDirectSpaceState3D::RayResult PhysicsServer3DExtensionRayResult;
-typedef PhysicsDirectSpaceState3D::ShapeResult PhysicsServer3DExtensionShapeResult;
-typedef PhysicsDirectSpaceState3D::ShapeRestInfo PhysicsServer3DExtensionShapeRestInfo;
+using PhysicsServer3DExtensionRayResult = PhysicsDirectSpaceState3D::RayResult;
+using PhysicsServer3DExtensionShapeResult = PhysicsDirectSpaceState3D::ShapeResult;
+using PhysicsServer3DExtensionShapeRestInfo = PhysicsDirectSpaceState3D::ShapeRestInfo;
 
 GDVIRTUAL_NATIVE_PTR(PhysicsServer3DExtensionRayResult)
 GDVIRTUAL_NATIVE_PTR(PhysicsServer3DExtensionShapeResult)
@@ -189,8 +189,8 @@ public:
 	PhysicsDirectSpaceState3DExtension();
 };
 
-typedef PhysicsServer3D::MotionCollision PhysicsServer3DExtensionMotionCollision;
-typedef PhysicsServer3D::MotionResult PhysicsServer3DExtensionMotionResult;
+using PhysicsServer3DExtensionMotionCollision = PhysicsServer3D::MotionCollision;
+using PhysicsServer3DExtensionMotionResult = PhysicsServer3D::MotionResult;
 
 GDVIRTUAL_NATIVE_PTR(PhysicsServer3DExtensionMotionCollision)
 GDVIRTUAL_NATIVE_PTR(PhysicsServer3DExtensionMotionResult)

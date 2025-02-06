@@ -482,8 +482,8 @@ Error OS_Windows::open_dynamic_library(const String &p_path, void *&p_library_ha
 		}
 	}
 
-	typedef DLL_DIRECTORY_COOKIE(WINAPI * PAddDllDirectory)(PCWSTR);
-	typedef BOOL(WINAPI * PRemoveDllDirectory)(DLL_DIRECTORY_COOKIE);
+	using PAddDllDirectory = DLL_DIRECTORY_COOKIE(WINAPI *)(PCWSTR p_dll_dir);
+	using PRemoveDllDirectory = BOOL(WINAPI *)(DLL_DIRECTORY_COOKIE p_cookie);
 
 	PAddDllDirectory add_dll_directory = (PAddDllDirectory)GetProcAddress(GetModuleHandle("kernel32.dll"), "AddDllDirectory");
 	PRemoveDllDirectory remove_dll_directory = (PRemoveDllDirectory)GetProcAddress(GetModuleHandle("kernel32.dll"), "RemoveDllDirectory");
@@ -972,7 +972,7 @@ Dictionary OS_Windows::get_memory_info() const {
 	pref_info.cb = sizeof(pref_info);
 	GetPerformanceInfo(&pref_info, sizeof(pref_info));
 
-	typedef void(WINAPI * PGetCurrentThreadStackLimits)(PULONG_PTR, PULONG_PTR);
+	using PGetCurrentThreadStackLimits = void(WINAPI *)(PULONG_PTR r_low_limit, PULONG_PTR r_high_limit);
 	PGetCurrentThreadStackLimits GetCurrentThreadStackLimits = (PGetCurrentThreadStackLimits)GetProcAddress(GetModuleHandleA("kernel32.dll"), "GetCurrentThreadStackLimits");
 
 	ULONG_PTR LowLimit = 0;

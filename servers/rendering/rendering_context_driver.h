@@ -37,7 +37,7 @@ class RenderingDeviceDriver;
 
 class RenderingContextDriver {
 public:
-	typedef uint64_t SurfaceID;
+	using SurfaceID = uint64_t;
 
 private:
 	HashMap<DisplayServer::WindowID, SurfaceID> window_surface_map;

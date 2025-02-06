@@ -40,11 +40,11 @@
 #include "platform_gl.h"
 
 #ifdef ANDROID_ENABLED
-typedef void (*PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVRPROC)(GLenum, GLenum, GLuint, GLint, GLint, GLsizei);
-typedef void (*PFNGLTEXSTORAGE3DMULTISAMPLEPROC)(GLenum, GLsizei, GLenum, GLsizei, GLsizei, GLsizei, GLboolean);
-typedef void (*PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC)(GLenum, GLenum, GLenum, GLuint, GLint, GLsizei);
-typedef void (*PFNGLFRAMEBUFFERTEXTUREMULTISAMPLEMULTIVIEWOVRPROC)(GLenum, GLenum, GLuint, GLint, GLsizei, GLint, GLsizei);
-typedef void (*PFNEGLIMAGETARGETTEXTURE2DOESPROC)(GLenum, void *);
+using PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVRPROC = void (*)(GLenum, GLenum, GLuint, GLint, GLint, GLsizei);
+using PFNGLTEXSTORAGE3DMULTISAMPLEPROC = void (*)(GLenum, GLsizei, GLenum, GLsizei, GLsizei, GLsizei, GLboolean);
+using PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC = void (*)(GLenum, GLenum, GLenum, GLuint, GLint, GLsizei);
+using PFNGLFRAMEBUFFERTEXTUREMULTISAMPLEMULTIVIEWOVRPROC = void (*)(GLenum, GLenum, GLuint, GLint, GLsizei, GLint, GLsizei);
+using PFNEGLIMAGETARGETTEXTURE2DOESPROC = void (*)(GLenum, void *);
 #endif
 
 namespace GLES3 {

@@ -36,7 +36,7 @@
 
 class EditorDebuggerServer : public RefCounted {
 public:
-	typedef EditorDebuggerServer *(*CreateServerFunc)(const String &p_uri);
+	using CreateServerFunc = EditorDebuggerServer *(*)(const String &p_uri);
 
 private:
 	static HashMap<StringName, CreateServerFunc> protocols;

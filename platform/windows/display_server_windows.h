@@ -148,11 +148,11 @@ typedef struct tagPACKET {
 	ORIENTATION pkOrientation;
 } PACKET;
 
-typedef HANDLE(WINAPI *WTOpenPtr)(HWND p_window, LOGCONTEXTW *p_ctx, BOOL p_enable);
-typedef BOOL(WINAPI *WTClosePtr)(HANDLE p_ctx);
-typedef UINT(WINAPI *WTInfoPtr)(UINT p_category, UINT p_index, LPVOID p_output);
-typedef BOOL(WINAPI *WTPacketPtr)(HANDLE p_ctx, UINT p_param, LPVOID p_packets);
-typedef BOOL(WINAPI *WTEnablePtr)(HANDLE p_ctx, BOOL p_enable);
+using WTOpenPtr = HANDLE(WINAPI *)(HWND p_window, LOGCONTEXTW *p_ctx, BOOL p_enable);
+using WTClosePtr = BOOL(WINAPI *)(HANDLE p_ctx);
+using WTInfoPtr = UINT(WINAPI *)(UINT p_category, UINT p_index, LPVOID p_output);
+using WTPacketPtr = BOOL(WINAPI *)(HANDLE p_ctx, UINT p_param, LPVOID p_packets);
+using WTEnablePtr = BOOL(WINAPI *)(HANDLE p_ctx, BOOL p_enable);
 
 enum PreferredAppMode {
 	APPMODE_DEFAULT = 0,
@@ -162,26 +162,26 @@ enum PreferredAppMode {
 	APPMODE_MAX = 4
 };
 
-typedef const char *(CDECL *WineGetVersionPtr)(void);
-typedef bool(WINAPI *ShouldAppsUseDarkModePtr)();
-typedef DWORD(WINAPI *GetImmersiveColorFromColorSetExPtr)(UINT dwImmersiveColorSet, UINT dwImmersiveColorType, bool bIgnoreHighContrast, UINT dwHighContrastCacheMode);
-typedef int(WINAPI *GetImmersiveColorTypeFromNamePtr)(const WCHAR *name);
-typedef int(WINAPI *GetImmersiveUserColorSetPreferencePtr)(bool bForceCheckRegistry, bool bSkipCheckOnFail);
-typedef HRESULT(WINAPI *RtlGetVersionPtr)(OSVERSIONINFOEXW *lpVersionInformation);
-typedef bool(WINAPI *AllowDarkModeForAppPtr)(bool darkMode);
-typedef PreferredAppMode(WINAPI *SetPreferredAppModePtr)(PreferredAppMode appMode);
-typedef void(WINAPI *RefreshImmersiveColorPolicyStatePtr)();
-typedef void(WINAPI *FlushMenuThemesPtr)();
+using WineGetVersionPtr = const char *(CDECL *)(void);
+using ShouldAppsUseDarkModePtr = bool(WINAPI *)();
+using GetImmersiveColorFromColorSetExPtr = DWORD(WINAPI *)(UINT dwImmersiveColorSet, UINT dwImmersiveColorType, bool bIgnoreHighContrast, UINT dwHighContrastCacheMode);
+using GetImmersiveColorTypeFromNamePtr = int(WINAPI *)(const WCHAR *name);
+using GetImmersiveUserColorSetPreferencePtr = int(WINAPI *)(bool bForceCheckRegistry, bool bSkipCheckOnFail);
+using RtlGetVersionPtr = HRESULT(WINAPI *)(OSVERSIONINFOEXW *lpVersionInformation);
+using AllowDarkModeForAppPtr = bool(WINAPI *)(bool darkMode);
+using SetPreferredAppModePtr = PreferredAppMode(WINAPI *)(PreferredAppMode appMode);
+using RefreshImmersiveColorPolicyStatePtr = void(WINAPI *)();
+using FlushMenuThemesPtr = void(WINAPI *)();
 
 // Windows Ink API
 #ifndef POINTER_STRUCTURES
 
 #define POINTER_STRUCTURES
 
-typedef DWORD POINTER_INPUT_TYPE;
-typedef UINT32 POINTER_FLAGS;
-typedef UINT32 PEN_FLAGS;
-typedef UINT32 PEN_MASK;
+using POINTER_INPUT_TYPE = DWORD;
+using POINTER_FLAGS = UINT32;
+using PEN_FLAGS = UINT32;
+using PEN_MASK = UINT32;
 
 #ifndef PEN_FLAG_INVERTED
 #define PEN_FLAG_INVERTED 0x00000002
@@ -326,11 +326,11 @@ typedef struct tagPOINTER_PEN_INFO {
 #define WM_POINTERUP 0x0247
 #endif
 
-typedef BOOL(WINAPI *GetPointerTypePtr)(uint32_t p_id, POINTER_INPUT_TYPE *p_type);
-typedef BOOL(WINAPI *GetPointerPenInfoPtr)(uint32_t p_id, POINTER_PEN_INFO *p_pen_info);
-typedef BOOL(WINAPI *LogicalToPhysicalPointForPerMonitorDPIPtr)(HWND hwnd, LPPOINT lpPoint);
-typedef BOOL(WINAPI *PhysicalToLogicalPointForPerMonitorDPIPtr)(HWND hwnd, LPPOINT lpPoint);
-typedef HRESULT(WINAPI *SHLoadIndirectStringPtr)(PCWSTR pszSource, PWSTR pszOutBuf, UINT cchOutBuf, void **ppvReserved);
+using GetPointerTypePtr = BOOL(WINAPI *)(uint32_t p_id, POINTER_INPUT_TYPE *p_type);
+using GetPointerPenInfoPtr = BOOL(WINAPI *)(uint32_t p_id, POINTER_PEN_INFO *p_pen_info);
+using LogicalToPhysicalPointForPerMonitorDPIPtr = BOOL(WINAPI *)(HWND hwnd, LPPOINT lpPoint);
+using PhysicalToLogicalPointForPerMonitorDPIPtr = BOOL(WINAPI *)(HWND hwnd, LPPOINT lpPoint);
+using SHLoadIndirectStringPtr = HRESULT(WINAPI *)(PCWSTR pszSource, PWSTR pszOutBuf, UINT cchOutBuf, void **ppvReserved);
 
 typedef struct {
 	BYTE bWidth; // Width, in pixels, of the image

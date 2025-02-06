@@ -729,7 +729,7 @@ public:
 	/**** CALLBACK ****/
 	/******************/
 
-	typedef void (*DriverCallback)(RenderingDeviceDriver *p_driver, CommandBufferID p_command_buffer, void *p_userdata);
+	using DriverCallback = void (*)(RenderingDeviceDriver *p_driver, CommandBufferID p_command_buffer, void *p_userdata);
 
 	/*****************/
 	/**** QUERIES ****/

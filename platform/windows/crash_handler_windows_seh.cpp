@@ -61,7 +61,7 @@ struct module_data {
 };
 
 class symbol {
-	typedef IMAGEHLP_SYMBOL64 sym_type;
+	using sym_type = IMAGEHLP_SYMBOL64;
 	sym_type *sym;
 	static const int max_name_len = 1024;
 

@@ -196,7 +196,7 @@ public:
 		}
 	};
 
-	typedef RDD::RenderPassID (*RenderPassCreationFunction)(RenderingDeviceDriver *p_driver, VectorView<RDD::AttachmentLoadOp> p_load_ops, VectorView<RDD::AttachmentStoreOp> p_store_ops, void *p_user_data);
+	using RenderPassCreationFunction = RDD::RenderPassID (*)(RenderingDeviceDriver *p_driver, VectorView<RDD::AttachmentLoadOp> p_load_ops, VectorView<RDD::AttachmentStoreOp> p_store_ops, void *p_user_data);
 
 	struct FramebufferStorage {
 		RDD::FramebufferID framebuffer;

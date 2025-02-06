@@ -47,7 +47,7 @@ enum ErrorHandlerType {
 
 // Pointer to the error handler printing function. Reassign to any function to have errors printed.
 // Parameters: userdata, function, file, line, error, explanation, type.
-typedef void (*ErrorHandlerFunc)(void *, const char *, const char *, int p_line, const char *, const char *, bool p_editor_notify, ErrorHandlerType p_type);
+using ErrorHandlerFunc = void (*)(void *p_user_data, const char *p_function, const char *p_file, int p_line, const char *p_error, const char *p_message, bool p_editor_notify, ErrorHandlerType p_type);
 
 struct ErrorHandlerList {
 	ErrorHandlerFunc errfunc = nullptr;

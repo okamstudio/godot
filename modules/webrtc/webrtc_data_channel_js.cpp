@@ -34,7 +34,7 @@
 
 #include <emscripten.h>
 
-extern "C" {
+extern "C" { // NOLINTBEGIN(modernize-use-using)
 typedef void (*RTCChOnOpen)(void *p_obj);
 typedef void (*RTCChOnMessage)(void *p_obj, const uint8_t *p_buffer, int p_size, int p_is_string);
 typedef void (*RTCChOnClose)(void *p_obj);
@@ -53,7 +53,7 @@ extern char *godot_js_rtc_datachannel_protocol_get(int p_id); // Must free the r
 extern void godot_js_rtc_datachannel_destroy(int p_id);
 extern void godot_js_rtc_datachannel_connect(int p_id, void *p_obj, RTCChOnOpen p_on_open, RTCChOnMessage p_on_message, RTCChOnError p_on_error, RTCChOnClose p_on_close);
 extern void godot_js_rtc_datachannel_close(int p_id);
-}
+} // NOLINTEND(modernize-use-using)
 
 void WebRTCDataChannelJS::_on_open(void *p_obj) {
 	WebRTCDataChannelJS *peer = static_cast<WebRTCDataChannelJS *>(p_obj);

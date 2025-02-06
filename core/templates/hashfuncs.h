@@ -626,7 +626,7 @@ static _FORCE_INLINE_ uint32_t fastmod(const uint32_t n, const uint64_t c, const
 #ifdef __SIZEOF_INT128__
 	// Prevent compiler warning, because we know what we are doing.
 	uint64_t lowbits = c * n;
-	__extension__ typedef unsigned __int128 uint128;
+	__extension__ using uint128 = unsigned __int128;
 	return static_cast<uint64_t>(((uint128)lowbits * d) >> 64);
 #else
 	// Fallback to the slower method if no 128-bit unsigned integer type is available.

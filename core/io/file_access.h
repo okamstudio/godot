@@ -84,9 +84,9 @@ public:
 		COMPRESSION_BROTLI = Compression::MODE_BROTLI,
 	};
 
-	typedef void (*FileCloseFailNotify)(const String &);
+	using FileCloseFailNotify = void (*)(const String &p_path);
 
-	typedef Ref<FileAccess> (*CreateFunc)();
+	using CreateFunc = Ref<FileAccess> (*)();
 	bool big_endian = false;
 	bool real_is_double = false;
 

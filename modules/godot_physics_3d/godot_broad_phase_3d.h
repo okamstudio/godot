@@ -38,14 +38,14 @@ class GodotCollisionObject3D;
 
 class GodotBroadPhase3D {
 public:
-	typedef GodotBroadPhase3D *(*CreateFunction)();
+	using CreateFunction = GodotBroadPhase3D *(*)();
 
 	static CreateFunction create_func;
 
-	typedef uint32_t ID;
+	using ID = uint32_t;
 
-	typedef void *(*PairCallback)(GodotCollisionObject3D *A, int p_subindex_A, GodotCollisionObject3D *B, int p_subindex_B, void *p_userdata);
-	typedef void (*UnpairCallback)(GodotCollisionObject3D *A, int p_subindex_A, GodotCollisionObject3D *B, int p_subindex_B, void *p_data, void *p_userdata);
+	using PairCallback = void *(*)(GodotCollisionObject3D *p_A, int p_subindex_A, GodotCollisionObject3D *p_B, int p_subindex_B, void *p_user_data);
+	using UnpairCallback = void (*)(GodotCollisionObject3D *p_A, int p_subindex_A, GodotCollisionObject3D *p_B, int p_subindex_B, void *p_data, void *p_user_data);
 
 	// 0 is an invalid ID
 	virtual ID create(GodotCollisionObject3D *p_object_, int p_subindex = 0, const AABB &p_aabb = AABB(), bool p_static = false) = 0;

@@ -1288,7 +1288,7 @@ static int QueryDpiForMonitor(HMONITOR hmon, _MonitorDpiType dpiType = MDT_Defau
 	int dpiX = 96, dpiY = 96;
 
 	static HMODULE Shcore = nullptr;
-	typedef HRESULT(WINAPI * GetDPIForMonitor_t)(HMONITOR hmonitor, _MonitorDpiType dpiType, UINT * dpiX, UINT * dpiY);
+	using GetDPIForMonitor_t = HRESULT(WINAPI *)(HMONITOR hmonitor, _MonitorDpiType dpiType, UINT * dpiX, UINT * dpiY);
 	static GetDPIForMonitor_t getDPIForMonitor = nullptr;
 
 	if (Shcore == nullptr) {
@@ -3118,7 +3118,7 @@ Error DisplayServerWindows::dialog_show(String p_title, String p_description, Ve
 	Error result = FAILED;
 	HMODULE comctl = LoadLibraryW(L"comctl32.dll");
 	if (comctl) {
-		typedef HRESULT(WINAPI * TaskDialogIndirectPtr)(const TASKDIALOGCONFIG *pTaskConfig, int *pnButton, int *pnRadioButton, BOOL *pfVerificationFlagChecked);
+		using TaskDialogIndirectPtr = HRESULT(WINAPI *)(const TASKDIALOGCONFIG *pTaskConfig, int *pnButton, int *pnRadioButton, BOOL *pfVerificationFlagChecked);
 
 		TaskDialogIndirectPtr task_dialog_indirect = (TaskDialogIndirectPtr)GetProcAddress(comctl, "TaskDialogIndirect");
 		int button_pressed;
@@ -6649,7 +6649,7 @@ DisplayServerWindows::DisplayServerWindows(const String &p_rendering_driver, Win
 		HMODULE Shcore = LoadLibraryW(L"Shcore.dll");
 
 		if (Shcore != nullptr) {
-			typedef HRESULT(WINAPI * SetProcessDpiAwareness_t)(SHC_PROCESS_DPI_AWARENESS);
+			using SetProcessDpiAwareness_t = HRESULT(WINAPI *)(SHC_PROCESS_DPI_AWARENESS);
 
 			SetProcessDpiAwareness_t SetProcessDpiAwareness = (SetProcessDpiAwareness_t)GetProcAddress(Shcore, "SetProcessDpiAwareness");
 
@@ -6661,7 +6661,7 @@ DisplayServerWindows::DisplayServerWindows(const String &p_rendering_driver, Win
 
 	HMODULE comctl32 = LoadLibraryW(L"comctl32.dll");
 	if (comctl32) {
-		typedef BOOL(WINAPI * InitCommonControlsExPtr)(_In_ const INITCOMMONCONTROLSEX *picce);
+		using InitCommonControlsExPtr = BOOL(WINAPI *)(_In_ const INITCOMMONCONTROLSEX *picce);
 		InitCommonControlsExPtr init_common_controls_ex = (InitCommonControlsExPtr)GetProcAddress(comctl32, "InitCommonControlsEx");
 
 		// Fails if the incorrect version was loaded. Probably not a big enough deal to print an error about.
@@ -6777,7 +6777,7 @@ DisplayServerWindows::DisplayServerWindows(const String &p_rendering_driver, Win
 		fallback = true;
 		show_warning = false;
 #else
-		typedef BOOL(WINAPI * IsWow64Process2Ptr)(HANDLE, USHORT *, USHORT *);
+		using IsWow64Process2Ptr = BOOL(WINAPI *)(HANDLE, USHORT *, USHORT *);
 
 		IsWow64Process2Ptr IsWow64Process2 = (IsWow64Process2Ptr)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "IsWow64Process2");
 		if (IsWow64Process2) {

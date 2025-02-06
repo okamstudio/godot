@@ -44,8 +44,8 @@ namespace {
 
 template <uint8_t TSize = JoltBroadPhaseLayer::COUNT>
 class JoltBroadPhaseMatrix {
-	typedef JPH::BroadPhaseLayer LayerType;
-	typedef LayerType::Type UnderlyingType;
+	using LayerType = JPH::BroadPhaseLayer;
+	using UnderlyingType = LayerType::Type;
 
 public:
 	JoltBroadPhaseMatrix() {

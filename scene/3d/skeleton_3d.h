@@ -35,7 +35,7 @@
 #include "scene/3d/node_3d.h"
 #include "scene/resources/3d/skin.h"
 
-typedef int BoneId;
+using BoneId = int;
 
 class Skeleton3D;
 

@@ -95,7 +95,7 @@ public:
 				_data(p_data) {}
 	};
 
-	typedef KeyValue<K, V> ValueType;
+	using ValueType = KeyValue<K, V>;
 
 	struct Iterator {
 		friend class RBMap<K, V, C, A>;
@@ -425,7 +425,7 @@ private:
 			}
 		}
 
-		typedef KeyValue<K, V> KV;
+		using KV = KeyValue<K, V>;
 		Element *new_node = memnew_allocator(Element(KV(p_key, p_value)), A);
 		new_node->parent = new_parent;
 		new_node->right = _data._nil;

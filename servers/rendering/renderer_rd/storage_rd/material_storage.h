@@ -223,7 +223,7 @@ private:
 		HashSet<Material *> owners;
 	};
 
-	typedef ShaderData *(*ShaderDataRequestFunction)();
+	using ShaderDataRequestFunction = ShaderData *(*)();
 	ShaderDataRequestFunction shader_data_request_func[SHADER_TYPE_MAX];
 
 	mutable RID_Owner<Shader, true> shader_owner;
@@ -231,7 +231,7 @@ private:
 
 	/* MATERIAL API */
 
-	typedef MaterialData *(*MaterialDataRequestFunction)(ShaderData *);
+	using MaterialDataRequestFunction = MaterialData *(*)(ShaderData *);
 
 	struct Material {
 		RID self;

@@ -70,8 +70,8 @@ public:
 		FILE_MODE_SAVE_FILE
 	};
 
-	typedef Ref<Texture2D> (*GetIconFunc)(const String &);
-	typedef void (*RegisterFunc)(EditorFileDialog *);
+	using GetIconFunc = Ref<Texture2D> (*)(const String &p_path);
+	using RegisterFunc = void (*)(EditorFileDialog *p_func);
 
 	static GetIconFunc get_icon_func;
 	static GetIconFunc get_thumbnail_func;

@@ -106,10 +106,10 @@ private:
 		uint64_t ff_end_timestamp = 0;
 	};
 
-	typedef DWORD(WINAPI *XInputGetState_t)(DWORD dwUserIndex, XINPUT_STATE *pState);
-	typedef DWORD(WINAPI *XInputSetState_t)(DWORD dwUserIndex, XINPUT_VIBRATION *pVibration);
+	using XInputGetState_t = DWORD(WINAPI *)(DWORD dwUserIndex, XINPUT_STATE *pState);
+	using XInputSetState_t = DWORD(WINAPI *)(DWORD dwUserIndex, XINPUT_VIBRATION *pVibration);
 
-	typedef MMRESULT(WINAPI *joyGetDevCaps_t)(UINT uJoyID, LPJOYCAPSW pjc, UINT cbjc);
+	using joyGetDevCaps_t = MMRESULT(WINAPI *)(UINT uJoyID, LPJOYCAPSW pjc, UINT cbjc);
 
 	HWND *hWnd = nullptr;
 	HANDLE xinput_dll;

@@ -39,9 +39,9 @@
 #include "Jolt/Physics/Constraints/SliderConstraint.h"
 
 class JoltSliderJoint3D final : public JoltJoint3D {
-	typedef PhysicsServer3D::SliderJointParam Parameter;
-	typedef JoltPhysicsServer3D::SliderJointParamJolt JoltParameter;
-	typedef JoltPhysicsServer3D::SliderJointFlagJolt JoltFlag;
+	using Parameter = PhysicsServer3D::SliderJointParam;
+	using JoltParameter = JoltPhysicsServer3D::SliderJointParamJolt;
+	using JoltFlag = JoltPhysicsServer3D::SliderJointFlagJolt;
 
 	double limit_upper = 0.0;
 	double limit_lower = 0.0;

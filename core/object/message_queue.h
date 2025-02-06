@@ -53,7 +53,7 @@ public:
 
 	// Needs to be public to be able to define it outside the class.
 	// Needs to lock because there can be multiple of these allocators in several threads.
-	typedef PagedAllocator<Page, true> Allocator;
+	using Allocator = PagedAllocator<Page, true>;
 
 private:
 	enum {

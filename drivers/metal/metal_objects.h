@@ -113,8 +113,8 @@ enum StageResourceUsage : uint32_t {
 	ComputeWrite = (MTLResourceUsageWrite << RDD::SHADER_STAGE_COMPUTE * 2),
 };
 
-typedef LocalVector<__unsafe_unretained id<MTLResource>> ResourceVector;
-typedef HashMap<StageResourceUsage, ResourceVector> ResourceUsageMap;
+using ResourceVector = LocalVector<__unsafe_unretained id<MTLResource>>;
+using ResourceUsageMap = HashMap<StageResourceUsage, ResourceVector>;
 
 enum class MDCommandBufferStateType {
 	None,
@@ -199,7 +199,7 @@ public:
 
 class API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) MDResourceCache {
 private:
-	typedef HashMap<ClearAttKey, id<MTLRenderPipelineState>, HashableHasher<ClearAttKey>> HashMap;
+	using HashMap = HashMap<ClearAttKey, id<MTLRenderPipelineState>, HashableHasher<ClearAttKey>>;
 	std::unique_ptr<MDResourceFactory> resource_factory;
 	HashMap clear_states;
 
@@ -607,7 +607,7 @@ struct API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) BindingInfo {
 
 using RDC = RenderingDeviceCommons;
 
-typedef API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) HashMap<RDC::ShaderStage, BindingInfo> BindingInfoMap;
+typedef API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) HashMap<RDC::ShaderStage, BindingInfo> BindingInfoMap; // NOLINT(modernize-use-using)
 
 struct API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) UniformInfo {
 	uint32_t binding;

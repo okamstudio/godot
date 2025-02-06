@@ -62,7 +62,7 @@ public:
 		RESOLVER_INVALID_ID = -1
 	};
 
-	typedef int ResolverID;
+	using ResolverID = int;
 
 private:
 	_IP_ResolverPrivate *resolver = nullptr;

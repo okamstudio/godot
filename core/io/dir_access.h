@@ -47,7 +47,7 @@ public:
 		ACCESS_MAX
 	};
 
-	typedef Ref<DirAccess> (*CreateFunc)();
+	using CreateFunc = Ref<DirAccess> (*)();
 
 private:
 	AccessType _access_type = ACCESS_FILESYSTEM;

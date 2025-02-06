@@ -34,7 +34,7 @@
 #include "core/math/math_defs.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C" { // NOLINTBEGIN(modernize-use-using)
 #endif
 
 #include <stdbool.h>
@@ -202,7 +202,7 @@ typedef struct {
 } godot_signal;
 
 #ifdef __cplusplus
-}
+} // NOLINTEND(modernize-use-using)
 #endif
 
 #endif // INTEROP_TYPES_H

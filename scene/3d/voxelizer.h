@@ -41,7 +41,7 @@ public:
 		BAKE_RESULT_CANCELLED,
 	};
 
-	typedef bool (*BakeStepFunc)(int, int);
+	using BakeStepFunc = bool (*)(int, int);
 
 private:
 	enum : uint32_t {

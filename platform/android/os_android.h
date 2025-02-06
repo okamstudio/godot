@@ -107,7 +107,7 @@ public:
 
 	virtual void finalize() override;
 
-	typedef int64_t ProcessID;
+	using ProcessID = int64_t;
 
 	static OS_Android *get_singleton();
 	GodotJavaWrapper *get_godot_java();

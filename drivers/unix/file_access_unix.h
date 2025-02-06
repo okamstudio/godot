@@ -54,7 +54,7 @@ class FileAccessUnix : public FileAccess {
 #endif
 
 public:
-	typedef void (*CloseNotificationFunc)(const String &p_file, int p_flags);
+	using CloseNotificationFunc = void (*)(const String &p_file, int p_flags);
 	static CloseNotificationFunc close_notification_func;
 
 	virtual Error open_internal(const String &p_path, int p_mode_flags) override; ///< open a file

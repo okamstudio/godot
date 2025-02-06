@@ -105,7 +105,7 @@ public:
 	virtual void get_supports(const Vector3 &p_normal, int p_max, Vector3 *r_supports, int &r_amount, FeatureType &r_type) const override { r_amount = 0; }
 
 	// Returns true to stop the query.
-	typedef bool (*QueryCallback)(void *p_userdata, GodotShape3D *p_convex);
+	using QueryCallback = bool (*)(void *p_userdata, GodotShape3D *p_convex);
 
 	virtual void cull(const AABB &p_local_aabb, QueryCallback p_callback, void *p_userdata, bool p_invert_backface_collision) const = 0;
 

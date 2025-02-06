@@ -107,9 +107,9 @@ public:
 		RESOLUTION_MAX,
 	};
 
-	typedef void (*BakeBeginFunc)(int);
-	typedef void (*BakeStepFunc)(int, const String &);
-	typedef void (*BakeEndFunc)();
+	using BakeBeginFunc = void (*)(int);
+	using BakeStepFunc = void (*)(int, const String &);
+	using BakeEndFunc = void (*)();
 
 private:
 	Vector3 size = Vector3(2, 2, 2);

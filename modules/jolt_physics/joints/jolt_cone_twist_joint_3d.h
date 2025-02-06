@@ -39,9 +39,9 @@
 #include "Jolt/Physics/Body/Body.h"
 
 class JoltConeTwistJoint3D final : public JoltJoint3D {
-	typedef PhysicsServer3D::ConeTwistJointParam Parameter;
-	typedef JoltPhysicsServer3D::ConeTwistJointParamJolt JoltParameter;
-	typedef JoltPhysicsServer3D::ConeTwistJointFlagJolt JoltFlag;
+	using Parameter = PhysicsServer3D::ConeTwistJointParam;
+	using JoltParameter = JoltPhysicsServer3D::ConeTwistJointParamJolt;
+	using JoltFlag = JoltPhysicsServer3D::ConeTwistJointFlagJolt;
 
 	double swing_limit_span = 0.0;
 	double twist_limit_span = 0.0;

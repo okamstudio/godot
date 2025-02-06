@@ -99,7 +99,7 @@ class ThemeDB : public Object {
 	// Binding of theme items to Node classes.
 
 public:
-	typedef std::function<void(Node *, const StringName &, const StringName &)> ThemeItemSetter;
+	using ThemeItemSetter = std::function<void(Node *p_instance, const StringName &p_item_name, const StringName &p_type_name)>;
 
 	struct ThemeItemBind {
 		Theme::DataType data_type;

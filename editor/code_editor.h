@@ -157,7 +157,7 @@ public:
 	FindReplaceBar();
 };
 
-typedef void (*CodeTextEditorCodeCompleteFunc)(void *p_ud, const String &p_code, List<ScriptLanguage::CodeCompletionOption> *r_options, bool &r_forced);
+using CodeTextEditorCodeCompleteFunc = void (*)(void *p_user_data, const String &p_code, List<ScriptLanguage::CodeCompletionOption> *r_options, bool &r_forced);
 
 class CodeTextEditor : public VBoxContainer {
 	GDCLASS(CodeTextEditor, VBoxContainer);

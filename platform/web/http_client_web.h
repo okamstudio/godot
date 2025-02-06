@@ -34,7 +34,7 @@
 #include "core/io/http_client.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C" { // NOLINTBEGIN(modernize-use-using)
 #endif
 
 #include <stddef.h>
@@ -55,7 +55,7 @@ extern int godot_js_fetch_http_status_get(int p_id);
 extern int godot_js_fetch_is_chunked(int p_id);
 
 #ifdef __cplusplus
-}
+} // NOLINTEND(modernize-use-using)
 #endif
 
 class HTTPClientWeb : public HTTPClient {

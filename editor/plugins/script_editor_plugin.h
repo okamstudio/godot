@@ -227,7 +227,7 @@ public:
 	ScriptEditorBase() {}
 };
 
-typedef ScriptEditorBase *(*CreateScriptEditorFunc)(const Ref<Resource> &p_resource);
+using CreateScriptEditorFunc = ScriptEditorBase *(*)(const Ref<Resource> &p_resource);
 
 class EditorScriptCodeCompletionCache;
 class FindInFilesDialog;

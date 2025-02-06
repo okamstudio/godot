@@ -40,7 +40,7 @@ class JoltSoftBody3D;
 
 class JoltArea3D final : public JoltShapedObject3D {
 public:
-	typedef PhysicsServer3D::AreaSpaceOverrideMode OverrideMode;
+	using OverrideMode = PhysicsServer3D::AreaSpaceOverrideMode;
 
 private:
 	struct BodyIDHasher {
@@ -87,7 +87,7 @@ private:
 		ObjectID instance_id;
 	};
 
-	typedef HashMap<JPH::BodyID, Overlap, BodyIDHasher> OverlapsById;
+	using OverlapsById = HashMap<JPH::BodyID, Overlap, BodyIDHasher>;
 
 	SelfList<JoltArea3D> call_queries_element;
 

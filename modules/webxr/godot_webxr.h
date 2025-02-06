@@ -32,7 +32,7 @@
 #define GODOT_WEBXR_H
 
 #ifdef __cplusplus
-extern "C" {
+extern "C" { // NOLINTBEGIN(modernize-use-using)
 #endif
 
 #include <stddef.h>
@@ -98,7 +98,7 @@ extern void godot_webxr_update_target_frame_rate(float p_frame_rate);
 extern int godot_webxr_get_supported_frame_rates(float **r_frame_rates);
 
 #ifdef __cplusplus
-}
+} // NOLINTEND(modernize-use-using)
 #endif
 
 #endif // GODOT_WEBXR_H

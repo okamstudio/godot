@@ -43,7 +43,7 @@ class DisjointSet {
 		int rank = 0;
 	};
 
-	typedef HashMap<T, Element *, H, C> MapT;
+	using MapT = HashMap<T, Element *, H, C>;
 
 	MapT elements;
 

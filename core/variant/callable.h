@@ -142,8 +142,8 @@ class CallableCustom {
 	bool referenced = false;
 
 public:
-	typedef bool (*CompareEqualFunc)(const CallableCustom *p_a, const CallableCustom *p_b);
-	typedef bool (*CompareLessFunc)(const CallableCustom *p_a, const CallableCustom *p_b);
+	using CompareEqualFunc = bool (*)(const CallableCustom *p_a, const CallableCustom *p_b);
+	using CompareLessFunc = bool (*)(const CallableCustom *p_a, const CallableCustom *p_b);
 
 	//for every type that inherits, these must always be the same for this type
 	virtual uint32_t hash() const = 0;

@@ -87,7 +87,7 @@ class SceneTree : public MainLoop {
 	GDCLASS(SceneTree, MainLoop);
 
 public:
-	typedef void (*IdleCallback)();
+	using IdleCallback = void (*)();
 
 private:
 	CallQueue::Allocator *process_group_call_queue_allocator = nullptr;

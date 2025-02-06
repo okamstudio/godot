@@ -39,12 +39,12 @@
 #include "Jolt/Physics/Constraints/SixDOFConstraint.h"
 
 class JoltGeneric6DOFJoint3D final : public JoltJoint3D {
-	typedef Vector3::Axis Axis;
-	typedef JPH::SixDOFConstraintSettings::EAxis JoltAxis;
-	typedef PhysicsServer3D::G6DOFJointAxisParam Param;
-	typedef JoltPhysicsServer3D::G6DOFJointAxisParamJolt JoltParam;
-	typedef PhysicsServer3D::G6DOFJointAxisFlag Flag;
-	typedef JoltPhysicsServer3D::G6DOFJointAxisFlagJolt JoltFlag;
+	using Axis = Vector3::Axis;
+	using JoltAxis = JPH::SixDOFConstraintSettings::EAxis;
+	using Param = PhysicsServer3D::G6DOFJointAxisParam;
+	using JoltParam = JoltPhysicsServer3D::G6DOFJointAxisParamJolt;
+	using Flag = PhysicsServer3D::G6DOFJointAxisFlag;
+	using JoltFlag = JoltPhysicsServer3D::G6DOFJointAxisFlagJolt;
 
 	enum {
 		AXIS_LINEAR_X = JoltAxis::TranslationX,

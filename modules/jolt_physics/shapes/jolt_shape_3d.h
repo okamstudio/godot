@@ -51,7 +51,7 @@ protected:
 	String _owners_to_string() const;
 
 public:
-	typedef PhysicsServer3D::ShapeType ShapeType;
+	using ShapeType = PhysicsServer3D::ShapeType;
 
 	virtual ~JoltShape3D() = 0;
 

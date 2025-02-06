@@ -132,9 +132,9 @@ enum class EulerOrder {
  * presence or absence of the REAL_T_IS_DOUBLE define.
  */
 #ifdef REAL_T_IS_DOUBLE
-typedef double real_t;
+using real_t = double;
 #else
-typedef float real_t;
+using real_t = float;
 #endif
 
 #endif // MATH_DEFS_H

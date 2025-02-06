@@ -42,13 +42,13 @@ class ScriptDebugger;
 
 class EngineDebugger {
 public:
-	typedef void (*ProfilingToggle)(void *p_user, bool p_enable, const Array &p_opts);
-	typedef void (*ProfilingTick)(void *p_user, double p_frame_time, double p_process_time, double p_physics_time, double p_physics_frame_time);
-	typedef void (*ProfilingAdd)(void *p_user, const Array &p_arr);
+	using ProfilingToggle = void (*)(void *p_user, bool p_enable, const Array &p_opts);
+	using ProfilingTick = void (*)(void *p_user, double p_frame_time, double p_process_time, double p_physics_time, double p_physics_frame_time);
+	using ProfilingAdd = void (*)(void *p_user, const Array &p_arr);
 
-	typedef Error (*CaptureFunc)(void *p_user, const String &p_msg, const Array &p_args, bool &r_captured);
+	using CaptureFunc = Error (*)(void *p_user, const String &p_msg, const Array &p_args, bool &r_captured);
 
-	typedef RemoteDebuggerPeer *(*CreatePeerFunc)(const String &p_uri);
+	using CreatePeerFunc = RemoteDebuggerPeer *(*)(const String &p_uri);
 
 	class Profiler {
 		friend class EngineDebugger;

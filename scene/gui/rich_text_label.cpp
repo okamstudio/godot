@@ -4416,7 +4416,7 @@ void RichTextLabel::append_text(const String &p_bbcode) {
 
 		// Find optional parameters.
 		String bbcode_name;
-		typedef HashMap<String, String> OptionMap;
+		using OptionMap = HashMap<String, String>;
 		OptionMap bbcode_options;
 		if (!split_tag_block.is_empty()) {
 			bbcode_name = split_tag_block[0];

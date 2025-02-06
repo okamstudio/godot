@@ -40,7 +40,7 @@
 extern void gdextension_setup_interface();
 extern GDExtensionInterfaceFunctionPtr gdextension_get_proc_address(const char *p_name);
 
-typedef GDExtensionBool (*GDExtensionLegacyInitializationFunction)(void *p_interface, GDExtensionClassLibraryPtr p_library, GDExtensionInitialization *r_initialization);
+using GDExtensionLegacyInitializationFunction = GDExtensionBool (*)(void *p_interface, GDExtensionClassLibraryPtr p_library, GDExtensionInitialization *r_initialization);
 
 String GDExtension::get_extension_list_config_file() {
 	return ProjectSettings::get_singleton()->get_project_data_path().path_join("extension_list.cfg");

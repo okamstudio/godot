@@ -32,7 +32,7 @@
 #define GODOT_AUDIO_H
 
 #ifdef __cplusplus
-extern "C" {
+extern "C" { // NOLINTBEGIN(modernize-use-using)
 #endif
 
 #include <stddef.h>
@@ -83,7 +83,7 @@ extern int godot_audio_script_create(int *p_buffer_size, int p_channels);
 extern void godot_audio_script_start(float *p_in_buf, int p_in_size, float *p_out_buf, int p_out_size, void (*p_cb)());
 
 #ifdef __cplusplus
-}
+} // NOLINTEND(modernize-use-using)
 #endif
 
 #endif // GODOT_AUDIO_H

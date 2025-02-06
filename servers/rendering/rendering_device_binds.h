@@ -412,7 +412,7 @@ public:
 		}
 	}
 
-	typedef String (*OpenIncludeFunction)(const String &, void *userdata);
+	using OpenIncludeFunction = String (*)(const String &p_text, void *p_user_data);
 	Error parse_versions_from_text(const String &p_text, const String p_defines = String(), OpenIncludeFunction p_include_func = nullptr, void *p_include_func_userdata = nullptr);
 
 protected:

@@ -38,9 +38,9 @@
 
 // uintr_t is only for pairing with real_t, and we only need it in here.
 #ifdef REAL_T_IS_DOUBLE
-typedef uint64_t uintr_t;
+using uintr_t = uint64_t;
 #else
-typedef uint32_t uintr_t;
+using uintr_t = uint32_t;
 #endif
 
 /**

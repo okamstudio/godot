@@ -106,7 +106,7 @@ class AnimationBezierTrackEdit : public Control {
 
 	Vector2 insert_at_pos;
 
-	typedef Pair<int, int> IntPair;
+	using IntPair = Pair<int, int>;
 
 	bool moving_selection_attempt = false;
 	float moving_selection_mouse_begin_x = 0.0;
@@ -179,7 +179,7 @@ class AnimationBezierTrackEdit : public Control {
 		}
 	};
 
-	typedef RBSet<IntPair, PairCompare> SelectionSet;
+	using SelectionSet = RBSet<IntPair, PairCompare>;
 
 	SelectionSet selection;
 

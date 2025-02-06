@@ -6345,7 +6345,7 @@ Error RenderingDeviceDriverD3D12::_initialize_device() {
 	HRESULT res;
 
 	if (is_in_developer_mode()) {
-		typedef HRESULT(WINAPI * PFN_D3D12_ENABLE_EXPERIMENTAL_FEATURES)(_In_ UINT, _In_count_(NumFeatures) const IID *, _In_opt_count_(NumFeatures) void *, _In_opt_count_(NumFeatures) UINT *);
+		using PFN_D3D12_ENABLE_EXPERIMENTAL_FEATURES = HRESULT(WINAPI *)(_In_ UINT, _In_count_(NumFeatures) const IID *, _In_opt_count_(NumFeatures) void *, _In_opt_count_(NumFeatures) UINT *);
 		PFN_D3D12_ENABLE_EXPERIMENTAL_FEATURES d3d_D3D12EnableExperimentalFeatures = (PFN_D3D12_ENABLE_EXPERIMENTAL_FEATURES)(void *)GetProcAddress(context_driver->lib_d3d12, "D3D12EnableExperimentalFeatures");
 		ERR_FAIL_NULL_V(d3d_D3D12EnableExperimentalFeatures, ERR_CANT_CREATE);
 

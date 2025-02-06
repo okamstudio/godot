@@ -59,7 +59,7 @@ public:
 		FEED_IMAGES = 2
 	};
 
-	typedef CameraServer *(*CreateFunc)();
+	using CreateFunc = CameraServer *(*)();
 
 private:
 protected:

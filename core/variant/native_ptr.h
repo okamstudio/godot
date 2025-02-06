@@ -142,7 +142,7 @@ struct PtrToArg<GDExtensionConstPtr<T>> {
 	_FORCE_INLINE_ static GDExtensionConstPtr<T> convert(const void *p_ptr) {
 		return GDExtensionConstPtr<T>(reinterpret_cast<const T *>(p_ptr));
 	}
-	typedef const T *EncodeT;
+	using EncodeT = const T *;
 	_FORCE_INLINE_ static void encode(GDExtensionConstPtr<T> p_val, void *p_ptr) {
 		*((const T **)p_ptr) = p_val.data;
 	}
@@ -152,7 +152,7 @@ struct PtrToArg<GDExtensionPtr<T>> {
 	_FORCE_INLINE_ static GDExtensionPtr<T> convert(const void *p_ptr) {
 		return GDExtensionPtr<T>(reinterpret_cast<const T *>(p_ptr));
 	}
-	typedef T *EncodeT;
+	using EncodeT = T *;
 	_FORCE_INLINE_ static void encode(GDExtensionPtr<T> p_val, void *p_ptr) {
 		*((T **)p_ptr) = p_val.data;
 	}

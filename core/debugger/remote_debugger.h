@@ -48,7 +48,7 @@ public:
 	};
 
 private:
-	typedef DebuggerMarshalls::OutputError ErrorMessage;
+	using ErrorMessage = DebuggerMarshalls::OutputError;
 
 	class PerformanceProfiler;
 

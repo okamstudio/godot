@@ -37,7 +37,7 @@ class RendererSceneRenderRD;
 
 namespace RendererRD {
 
-typedef int32_t ForwardID;
+using ForwardID = int32_t;
 
 enum ForwardIDType {
 	FORWARD_ID_TYPE_OMNI_LIGHT,

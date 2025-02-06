@@ -130,7 +130,7 @@ bool get_latest_fxr(const String &fxr_root, String &r_fxr_path) {
 }
 
 #ifdef WINDOWS_ENABLED
-typedef BOOL(WINAPI *LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
+using LPFN_ISWOW64PROCESS = BOOL(WINAPI *)(HANDLE, PBOOL);
 
 BOOL is_wow64() {
 	BOOL wow64 = FALSE;

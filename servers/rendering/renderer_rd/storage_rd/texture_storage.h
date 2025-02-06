@@ -90,7 +90,7 @@ public:
 		_FORCE_INLINE_ bool is_null() const { return diffuse.is_null(); }
 	};
 
-	typedef void (*InvalidationCallback)(bool p_deleted, void *p_userdata);
+	using InvalidationCallback = void (*)(bool p_deleted, void *p_userdata);
 
 private:
 	friend class LightStorage;

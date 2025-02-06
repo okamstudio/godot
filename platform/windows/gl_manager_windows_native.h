@@ -40,8 +40,8 @@
 
 #include <windows.h>
 
-typedef bool(APIENTRY *PFNWGLSWAPINTERVALEXTPROC)(int interval);
-typedef int(APIENTRY *PFNWGLGETSWAPINTERVALEXTPROC)(void);
+using PFNWGLSWAPINTERVALEXTPROC = bool(APIENTRY *)(int interval);
+using PFNWGLGETSWAPINTERVALEXTPROC = int(APIENTRY *)(void);
 
 class GLManagerNative_Windows {
 private:

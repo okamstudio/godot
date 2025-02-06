@@ -160,7 +160,7 @@ public:
 
 	virtual Image::Format texture_get_format(RID p_texture) const = 0;
 
-	typedef void (*TextureDetectCallback)(void *);
+	using TextureDetectCallback = void (*)(void *p_user_data);
 
 	virtual void texture_set_detect_3d_callback(RID p_texture, TextureDetectCallback p_callback, void *p_userdata) = 0;
 	virtual void texture_set_detect_normal_callback(RID p_texture, TextureDetectCallback p_callback, void *p_userdata) = 0;
@@ -173,7 +173,7 @@ public:
 		TEXTURE_DETECT_ROUGHNESS_GRAY,
 	};
 
-	typedef void (*TextureDetectRoughnessCallback)(void *, const String &, TextureDetectRoughnessChannel);
+	using TextureDetectRoughnessCallback = void (*)(void *p_user_data, const String &p_path, TextureDetectRoughnessChannel p_channel);
 	virtual void texture_set_detect_roughness_callback(RID p_texture, TextureDetectRoughnessCallback p_callback, void *p_userdata) = 0;
 
 	struct TextureInfo {
@@ -1859,7 +1859,7 @@ public:
 	virtual ~RenderingServer();
 
 #ifdef TOOLS_ENABLED
-	typedef void (*SurfaceUpgradeCallback)();
+	using SurfaceUpgradeCallback = void (*)();
 	void set_surface_upgrade_callback(SurfaceUpgradeCallback p_callback);
 	void set_warn_on_surface_upgrade(bool p_warn);
 #endif

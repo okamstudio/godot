@@ -324,7 +324,7 @@ _FORCE_INLINE_ Vector2 operator*(int64_t p_scalar, const Vector2 &p_vec) {
 	return p_vec * p_scalar;
 }
 
-typedef Vector2 Size2;
-typedef Vector2 Point2;
+using Size2 = Vector2;
+using Point2 = Vector2;
 
 #endif // VECTOR2_H

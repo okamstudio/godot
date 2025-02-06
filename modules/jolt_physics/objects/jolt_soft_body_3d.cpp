@@ -610,8 +610,8 @@ void JoltSoftBody3D::update_rendering_server(PhysicsServer3DRenderingServerHandl
 
 	const JPH::SoftBodyMotionProperties &motion_properties = static_cast<const JPH::SoftBodyMotionProperties &>(*body->GetMotionPropertiesUnchecked());
 
-	typedef JPH::SoftBodyMotionProperties::Vertex SoftBodyVertex;
-	typedef JPH::SoftBodyMotionProperties::Face SoftBodyFace;
+	using SoftBodyVertex = JPH::SoftBodyMotionProperties::Vertex;
+	using SoftBodyFace = JPH::SoftBodyMotionProperties::Face;
 
 	const JPH::Array<SoftBodyVertex> &physics_vertices = motion_properties.GetVertices();
 	const JPH::Array<SoftBodyFace> &physics_faces = motion_properties.GetFaces();

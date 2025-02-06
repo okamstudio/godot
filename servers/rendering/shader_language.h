@@ -922,7 +922,7 @@ public:
 	};
 	static bool has_builtin(const HashMap<StringName, ShaderLanguage::FunctionInfo> &p_functions, const StringName &p_name, bool p_check_global_funcs = false);
 
-	typedef DataType (*GlobalShaderUniformGetTypeFunc)(const StringName &p_name);
+	using GlobalShaderUniformGetTypeFunc = DataType (*)(const StringName &p_name);
 
 	struct FilePosition {
 		String file;

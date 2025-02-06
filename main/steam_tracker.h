@@ -51,11 +51,11 @@ enum SteamAPIInitResult {
 };
 
 // https://partner.steamgames.com/doc/api/steam_api#SteamAPI_Init
-typedef bool (*SteamAPI_InitFunction)();
-typedef SteamAPIInitResult (*SteamAPI_InitFlatFunction)(char *r_err_msg);
+using SteamAPI_InitFunction = bool (*)();
+using SteamAPI_InitFlatFunction = SteamAPIInitResult (*)(char *r_err_msg);
 
 // https://partner.steamgames.com/doc/api/steam_api#SteamAPI_Shutdown
-typedef void (*SteamAPI_ShutdownFunction)();
+using SteamAPI_ShutdownFunction = void (*)();
 
 class SteamTracker {
 	void *steam_library_handle = nullptr;

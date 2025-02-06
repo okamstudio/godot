@@ -192,8 +192,8 @@ bool ServersDebugger::VisualProfilerFrame::deserialize(const Array &p_arr) {
 	return true;
 }
 class ServersDebugger::ScriptsProfiler : public EngineProfiler {
-	typedef ServersDebugger::ScriptFunctionSignature FunctionSignature;
-	typedef ServersDebugger::ScriptFunctionInfo FunctionInfo;
+	using FunctionSignature = ServersDebugger::ScriptFunctionSignature;
+	using FunctionInfo = ServersDebugger::ScriptFunctionInfo;
 	struct ProfileInfoSort {
 		bool operator()(ScriptLanguage::ProfilingInfo *A, ScriptLanguage::ProfilingInfo *B) const {
 			return A->total_time > B->total_time;
@@ -280,8 +280,8 @@ public:
 
 class ServersDebugger::ServersProfiler : public EngineProfiler {
 	bool skip_profile_frame = false;
-	typedef ServersDebugger::ServerInfo ServerInfo;
-	typedef ServersDebugger::ServerFunctionInfo ServerFunctionInfo;
+	using ServerInfo = ServersDebugger::ServerInfo;
+	using ServerFunctionInfo = ServersDebugger::ServerFunctionInfo;
 
 	HashMap<StringName, ServerInfo> server_data;
 	ScriptsProfiler scripts_profiler;
@@ -362,8 +362,8 @@ public:
 };
 
 class ServersDebugger::VisualProfiler : public EngineProfiler {
-	typedef ServersDebugger::ServerInfo ServerInfo;
-	typedef ServersDebugger::ServerFunctionInfo ServerFunctionInfo;
+	using ServerInfo = ServersDebugger::ServerInfo;
+	using ServerFunctionInfo = ServersDebugger::ServerFunctionInfo;
 
 	HashMap<StringName, ServerInfo> server_data;
 

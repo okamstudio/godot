@@ -221,7 +221,7 @@ public:
 	ScriptExtension() {}
 };
 
-typedef ScriptLanguage::ProfilingInfo ScriptLanguageExtensionProfilingInfo;
+using ScriptLanguageExtensionProfilingInfo = ScriptLanguage::ProfilingInfo;
 
 GDVIRTUAL_NATIVE_PTR(ScriptLanguageExtensionProfilingInfo)
 

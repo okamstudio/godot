@@ -402,7 +402,7 @@ private:                                                                        
 	friend class ::ClassDB;                                                                                                                 \
                                                                                                                                             \
 public:                                                                                                                                     \
-	typedef m_class self_type;                                                                                                              \
+	using self_type = m_class;                                                                                                              \
 	static constexpr bool _class_is_enabled = !bool(GD_IS_DEFINED(ClassDB_Disable_##m_class)) && m_inherits::_class_is_enabled;             \
 	virtual String get_class() const override {                                                                                             \
 		if (_get_extension()) {                                                                                                             \
@@ -577,7 +577,7 @@ class ScriptInstance;
 
 class Object {
 public:
-	typedef Object self_type;
+	using self_type = Object;
 
 	enum ConnectFlags {
 		CONNECT_DEFERRED = 1,
@@ -1039,7 +1039,7 @@ class ObjectDB {
 	static void setup();
 
 public:
-	typedef void (*DebugFunc)(Object *p_obj);
+	using DebugFunc = void (*)(Object *p_obj);
 
 	_ALWAYS_INLINE_ static Object *get_instance(ObjectID p_instance_id) {
 		uint64_t id = p_instance_id;

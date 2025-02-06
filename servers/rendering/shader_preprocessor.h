@@ -218,7 +218,7 @@ private:
 	Error preprocess(State *p_state, const String &p_code, String &r_result);
 
 public:
-	typedef void (*IncludeCompletionFunction)(List<ScriptLanguage::CodeCompletionOption> *);
+	using IncludeCompletionFunction = void (*)(List<ScriptLanguage::CodeCompletionOption> *);
 
 	Error preprocess(const String &p_code, const String &p_filename, String &r_result, String *r_error_text = nullptr, List<FilePosition> *r_error_position = nullptr, List<Region> *r_regions = nullptr, HashSet<Ref<ShaderInclude>> *r_includes = nullptr, List<ScriptLanguage::CodeCompletionOption> *r_completion_options = nullptr, List<ScriptLanguage::CodeCompletionOption> *r_completion_defines = nullptr, IncludeCompletionFunction p_include_completion_func = nullptr);
 

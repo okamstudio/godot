@@ -44,20 +44,20 @@ class Image;
 
 // Function pointer prototypes.
 
-typedef Error (*SavePNGFunc)(const String &p_path, const Ref<Image> &p_img);
-typedef Vector<uint8_t> (*SavePNGBufferFunc)(const Ref<Image> &p_img);
+using SavePNGFunc = Error (*)(const String &p_path, const Ref<Image> &p_img);
+using SavePNGBufferFunc = Vector<uint8_t> (*)(const Ref<Image> &p_img);
 
-typedef Error (*SaveJPGFunc)(const String &p_path, const Ref<Image> &p_img, float p_quality);
-typedef Vector<uint8_t> (*SaveJPGBufferFunc)(const Ref<Image> &p_img, float p_quality);
+using SaveJPGFunc = Error (*)(const String &p_path, const Ref<Image> &p_img, float p_quality);
+using SaveJPGBufferFunc = Vector<uint8_t> (*)(const Ref<Image> &p_img, float p_quality);
 
-typedef Ref<Image> (*ImageMemLoadFunc)(const uint8_t *p_png, int p_size);
-typedef Ref<Image> (*ScalableImageMemLoadFunc)(const uint8_t *p_data, int p_size, float p_scale);
+using ImageMemLoadFunc = Ref<Image> (*)(const uint8_t *p_png, int p_size);
+using ScalableImageMemLoadFunc = Ref<Image> (*)(const uint8_t *p_data, int p_size, float p_scale);
 
-typedef Error (*SaveWebPFunc)(const String &p_path, const Ref<Image> &p_img, const bool p_lossy, const float p_quality);
-typedef Vector<uint8_t> (*SaveWebPBufferFunc)(const Ref<Image> &p_img, const bool p_lossy, const float p_quality);
+using SaveWebPFunc = Error (*)(const String &p_path, const Ref<Image> &p_img, const bool p_lossy, const float p_quality);
+using SaveWebPBufferFunc = Vector<uint8_t> (*)(const Ref<Image> &p_img, const bool p_lossy, const float p_quality);
 
-typedef Error (*SaveEXRFunc)(const String &p_path, const Ref<Image> &p_img, bool p_grayscale);
-typedef Vector<uint8_t> (*SaveEXRBufferFunc)(const Ref<Image> &p_img, bool p_grayscale);
+using SaveEXRFunc = Error (*)(const String &p_path, const Ref<Image> &p_img, bool p_grayscale);
+using SaveEXRBufferFunc = Vector<uint8_t> (*)(const Ref<Image> &p_img, bool p_grayscale);
 
 class Image : public Resource {
 	GDCLASS(Image, Resource);

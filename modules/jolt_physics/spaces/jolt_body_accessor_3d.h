@@ -202,13 +202,13 @@ public:
 	}
 };
 
-typedef JoltScopedBodyAccessor3D<JoltBodyReader3D> JoltScopedBodyReader3D;
-typedef JoltScopedBodyAccessor3D<JoltBodyWriter3D> JoltScopedBodyWriter3D;
+using JoltScopedBodyReader3D = JoltScopedBodyAccessor3D<JoltBodyReader3D>;
+using JoltScopedBodyWriter3D = JoltScopedBodyAccessor3D<JoltBodyWriter3D>;
 
-typedef JoltAccessibleBody3D<JoltScopedBodyReader3D, const JPH::Body> JoltReadableBody3D;
-typedef JoltAccessibleBody3D<JoltScopedBodyWriter3D, JPH::Body> JoltWritableBody3D;
+using JoltReadableBody3D = JoltAccessibleBody3D<JoltScopedBodyReader3D, const JPH::Body>;
+using JoltWritableBody3D = JoltAccessibleBody3D<JoltScopedBodyWriter3D, JPH::Body>;
 
-typedef JoltAccessibleBodies3D<JoltScopedBodyReader3D, const JPH::Body> JoltReadableBodies3D;
-typedef JoltAccessibleBodies3D<JoltScopedBodyWriter3D, JPH::Body> JoltWritableBodies3D;
+using JoltReadableBodies3D = JoltAccessibleBodies3D<JoltScopedBodyReader3D, const JPH::Body>;
+using JoltWritableBodies3D = JoltAccessibleBodies3D<JoltScopedBodyWriter3D, JPH::Body>;
 
 #endif // JOLT_BODY_ACCESSOR_3D_H

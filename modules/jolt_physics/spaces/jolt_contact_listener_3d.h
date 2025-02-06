@@ -76,7 +76,7 @@ class JoltContactListener3D final
 		Vector3 impulse;
 	};
 
-	typedef LocalVector<Contact> Contacts;
+	using Contacts = LocalVector<Contact>;
 
 	struct Manifold {
 		Contacts contacts1;

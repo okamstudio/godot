@@ -1378,7 +1378,7 @@ private:
 	bool in_lambda = false;
 	bool lambda_ended = false; // Marker for when a lambda ends, to apply an end of statement if needed.
 
-	typedef bool (GDScriptParser::*AnnotationAction)(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class);
+	using AnnotationAction = bool (GDScriptParser::*)(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class);
 	struct AnnotationInfo {
 		enum TargetKind {
 			NONE = 0,
@@ -1399,7 +1399,7 @@ private:
 	static HashMap<StringName, AnnotationInfo> valid_annotations;
 	List<AnnotationNode *> annotation_stack;
 
-	typedef ExpressionNode *(GDScriptParser::*ParseFunction)(ExpressionNode *p_previous_operand, bool p_can_assign);
+	using ParseFunction = ExpressionNode *(GDScriptParser::*)(ExpressionNode *p_previous_operand, bool p_can_assign);
 	// Higher value means higher precedence (i.e. is evaluated first).
 	enum Precedence {
 		PREC_NONE,

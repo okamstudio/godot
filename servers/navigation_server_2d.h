@@ -421,7 +421,7 @@ private:
 #endif // DEBUG_ENABLED
 };
 
-typedef NavigationServer2D *(*NavigationServer2DCallback)();
+using NavigationServer2DCallback = NavigationServer2D *(*)();
 
 /// Manager used for the server singleton registration
 class NavigationServer2DManager {

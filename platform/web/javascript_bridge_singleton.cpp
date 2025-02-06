@@ -40,7 +40,7 @@ extern void godot_js_os_download_buffer(const uint8_t *p_buf, int p_buf_size, co
 
 #ifdef JAVASCRIPT_EVAL_ENABLED
 
-extern "C" {
+extern "C" { // NOLINTBEGIN(modernize-use-using)
 typedef union {
 	int64_t i;
 	double r;
@@ -61,7 +61,7 @@ extern void godot_js_wrapper_object_set_cb_ret(int p_type, godot_js_wrapper_ex *
 extern int godot_js_wrapper_create_object(const char *p_method, void **p_args, int p_argc, GodotJSWrapperVariant2JSCallback p_variant2js_callback, godot_js_wrapper_ex *p_cb_rval, void **p_lock, GodotJSWrapperFreeLockCallback p_lock_callback);
 extern int godot_js_wrapper_object_is_buffer(int p_id);
 extern int godot_js_wrapper_object_transfer_buffer(int p_id, void *p_byte_arr, void *p_byte_arr_write, void *(*p_callback)(void *p_ptr, void *p_ptr2, int p_len));
-};
+}; // NOLINTEND(modernize-use-using)
 
 class JavaScriptObjectImpl : public JavaScriptObject {
 private:

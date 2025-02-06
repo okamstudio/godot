@@ -37,9 +37,9 @@
 #include "editor/editor_folding.h"
 #include "editor/plugins/editor_plugin.h"
 
-typedef void (*EditorNodeInitCallback)();
-typedef void (*EditorPluginInitializeCallback)();
-typedef bool (*EditorBuildCallback)();
+using EditorNodeInitCallback = void (*)();
+using EditorPluginInitializeCallback = void (*)();
+using EditorBuildCallback = bool (*)();
 
 class AcceptDialog;
 class ColorPicker;

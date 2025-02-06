@@ -395,7 +395,7 @@ RenderingContextDriverVulkan::~RenderingContextDriverVulkan() {
 Error RenderingContextDriverVulkan::_initialize_vulkan_version() {
 	// https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkApplicationInfo.html#_description
 	// For Vulkan 1.0 vkEnumerateInstanceVersion is not available, including not in the loader we compile against on Android.
-	typedef VkResult(VKAPI_PTR * _vkEnumerateInstanceVersion)(uint32_t *);
+	using _vkEnumerateInstanceVersion = VkResult(VKAPI_PTR *)(uint32_t *);
 	_vkEnumerateInstanceVersion func = (_vkEnumerateInstanceVersion)vkGetInstanceProcAddr(nullptr, "vkEnumerateInstanceVersion");
 	if (func != nullptr) {
 		uint32_t api_version;

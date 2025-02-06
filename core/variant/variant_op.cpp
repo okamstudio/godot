@@ -30,7 +30,7 @@
 
 #include "variant_op.h"
 
-typedef void (*VariantEvaluatorFunction)(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid);
+using VariantEvaluatorFunction = void (*)(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid);
 
 static Variant::Type operator_return_type_table[Variant::OP_MAX][Variant::VARIANT_MAX][Variant::VARIANT_MAX];
 static VariantEvaluatorFunction operator_evaluator_table[Variant::OP_MAX][Variant::VARIANT_MAX][Variant::VARIANT_MAX];

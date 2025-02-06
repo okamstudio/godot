@@ -61,7 +61,7 @@ public:
 		}
 	};
 
-	typedef typename List<Pair>::Element *Element;
+	using Element = typename List<Pair>::Element *;
 
 private:
 	List<Pair> _list;

@@ -97,11 +97,11 @@ public:
 
 VARIANT_ENUM_CAST(ResourceFormatLoader::CacheMode)
 
-typedef void (*ResourceLoadErrorNotify)(const String &p_text);
-typedef void (*DependencyErrorNotify)(const String &p_loading, const String &p_which, const String &p_type);
+using ResourceLoadErrorNotify = void (*)(const String &p_text);
+using DependencyErrorNotify = void (*)(const String &p_loading, const String &p_which, const String &p_type);
 
-typedef Error (*ResourceLoaderImport)(const String &p_path);
-typedef void (*ResourceLoadedCallback)(Ref<Resource> p_resource, const String &p_path);
+using ResourceLoaderImport = Error (*)(const String &p_path);
+using ResourceLoadedCallback = void (*)(Ref<Resource> p_resource, const String &p_path);
 
 class ResourceLoader {
 	friend class LoadToken;

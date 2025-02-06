@@ -70,17 +70,17 @@ class Ref;
 struct PropertyInfo;
 struct MethodInfo;
 
-typedef Vector<uint8_t> PackedByteArray;
-typedef Vector<int32_t> PackedInt32Array;
-typedef Vector<int64_t> PackedInt64Array;
-typedef Vector<float> PackedFloat32Array;
-typedef Vector<double> PackedFloat64Array;
-typedef Vector<real_t> PackedRealArray;
-typedef Vector<String> PackedStringArray;
-typedef Vector<Vector2> PackedVector2Array;
-typedef Vector<Vector3> PackedVector3Array;
-typedef Vector<Color> PackedColorArray;
-typedef Vector<Vector4> PackedVector4Array;
+using PackedByteArray = Vector<uint8_t>;
+using PackedInt32Array = Vector<int32_t>;
+using PackedInt64Array = Vector<int64_t>;
+using PackedFloat32Array = Vector<float>;
+using PackedFloat64Array = Vector<double>;
+using PackedRealArray = Vector<real_t>;
+using PackedStringArray = Vector<String>;
+using PackedVector2Array = Vector<Vector2>;
+using PackedVector3Array = Vector<Vector3>;
+using PackedColorArray = Vector<Color>;
+using PackedVector4Array = Vector<Vector4>;
 
 class Variant {
 public:
@@ -610,9 +610,9 @@ public:
 	}
 
 	static Variant::Type get_operator_return_type(Operator p_operator, Type p_type_a, Type p_type_b);
-	typedef void (*ValidatedOperatorEvaluator)(const Variant *left, const Variant *right, Variant *r_ret);
+	using ValidatedOperatorEvaluator = void (*)(const Variant *left, const Variant *right, Variant *r_ret);
 	static ValidatedOperatorEvaluator get_validated_operator_evaluator(Operator p_operator, Type p_type_a, Type p_type_b);
-	typedef void (*PTROperatorEvaluator)(const void *left, const void *right, void *r_ret);
+	using PTROperatorEvaluator = void (*)(const void *left, const void *right, void *r_ret);
 	static PTROperatorEvaluator get_ptr_operator_evaluator(Operator p_operator, Type p_type_a, Type p_type_b);
 
 	void zero();
@@ -621,8 +621,8 @@ public:
 
 	/* Built-In Methods */
 
-	typedef void (*ValidatedBuiltInMethod)(Variant *base, const Variant **p_args, int p_argcount, Variant *r_ret);
-	typedef void (*PTRBuiltInMethod)(void *p_base, const void **p_args, void *r_ret, int p_argcount);
+	using ValidatedBuiltInMethod = void (*)(Variant *base, const Variant **p_args, int p_argcount, Variant *r_ret);
+	using PTRBuiltInMethod = void (*)(void *p_base, const void **p_args, void *r_ret, int p_argcount);
 
 	static bool has_builtin_method(Variant::Type p_type, const StringName &p_method);
 
@@ -674,8 +674,8 @@ public:
 
 	/* Constructors */
 
-	typedef void (*ValidatedConstructor)(Variant *r_base, const Variant **p_args);
-	typedef void (*PTRConstructor)(void *base, const void **p_args);
+	using ValidatedConstructor = void (*)(Variant *r_base, const Variant **p_args);
+	using PTRConstructor = void (*)(void *r_base, const void **p_args);
 
 	static int get_constructor_count(Variant::Type p_type);
 	static ValidatedConstructor get_validated_constructor(Variant::Type p_type, int p_constructor);
@@ -690,7 +690,7 @@ public:
 	/* Destructors */
 
 	// Only ptrcall is available.
-	typedef void (*PTRDestructor)(void *base);
+	using PTRDestructor = void (*)(void *p_base);
 
 	static PTRDestructor get_ptr_destructor(Variant::Type p_type);
 	static bool has_destructor(Variant::Type p_type);
@@ -700,8 +700,8 @@ public:
 	void set_named(const StringName &p_member, const Variant &p_value, bool &r_valid);
 	Variant get_named(const StringName &p_member, bool &r_valid) const;
 
-	typedef void (*ValidatedSetter)(Variant *base, const Variant *value);
-	typedef void (*ValidatedGetter)(const Variant *base, Variant *value);
+	using ValidatedSetter = void (*)(Variant *r_base, const Variant *p_value);
+	using ValidatedGetter = void (*)(const Variant *p_base, Variant *r_value);
 
 	static bool has_member(Variant::Type p_type, const StringName &p_member);
 	static Variant::Type get_member_type(Variant::Type p_type, const StringName &p_member);
@@ -711,8 +711,8 @@ public:
 	static ValidatedSetter get_member_validated_setter(Variant::Type p_type, const StringName &p_member);
 	static ValidatedGetter get_member_validated_getter(Variant::Type p_type, const StringName &p_member);
 
-	typedef void (*PTRSetter)(void *base, const void *value);
-	typedef void (*PTRGetter)(const void *base, void *value);
+	using PTRSetter = void (*)(void *r_base, const void *p_value);
+	using PTRGetter = void (*)(const void *p_base, void *r_value);
 
 	static PTRSetter get_member_ptr_setter(Variant::Type p_type, const StringName &p_member);
 	static PTRGetter get_member_ptr_getter(Variant::Type p_type, const StringName &p_member);
@@ -723,14 +723,14 @@ public:
 	static Variant::Type get_indexed_element_type(Variant::Type p_type);
 	static uint32_t get_indexed_element_usage(Variant::Type p_type);
 
-	typedef void (*ValidatedIndexedSetter)(Variant *base, int64_t index, const Variant *value, bool *oob);
-	typedef void (*ValidatedIndexedGetter)(const Variant *base, int64_t index, Variant *value, bool *oob);
+	using ValidatedIndexedSetter = void (*)(Variant *r_base, int64_t p_index, const Variant *p_value, bool *r_oob);
+	using ValidatedIndexedGetter = void (*)(const Variant *p_base, int64_t p_index, Variant *r_value, bool *r_oob);
 
 	static ValidatedIndexedSetter get_member_validated_indexed_setter(Variant::Type p_type);
 	static ValidatedIndexedGetter get_member_validated_indexed_getter(Variant::Type p_type);
 
-	typedef void (*PTRIndexedSetter)(void *base, int64_t index, const void *value);
-	typedef void (*PTRIndexedGetter)(const void *base, int64_t index, void *value);
+	using PTRIndexedSetter = void (*)(void *r_base, int64_t p_index, const void *p_value);
+	using PTRIndexedGetter = void (*)(const void *p_base, int64_t p_index, void *r_value);
 
 	static PTRIndexedSetter get_member_ptr_indexed_setter(Variant::Type p_type);
 	static PTRIndexedGetter get_member_ptr_indexed_getter(Variant::Type p_type);
@@ -744,17 +744,17 @@ public:
 
 	static bool is_keyed(Variant::Type p_type);
 
-	typedef void (*ValidatedKeyedSetter)(Variant *base, const Variant *key, const Variant *value, bool *valid);
-	typedef void (*ValidatedKeyedGetter)(const Variant *base, const Variant *key, Variant *value, bool *valid);
-	typedef bool (*ValidatedKeyedChecker)(const Variant *base, const Variant *key, bool *valid);
+	using ValidatedKeyedSetter = void (*)(Variant *base, const Variant *key, const Variant *value, bool *valid);
+	using ValidatedKeyedGetter = void (*)(const Variant *base, const Variant *key, Variant *value, bool *valid);
+	using ValidatedKeyedChecker = bool (*)(const Variant *base, const Variant *key, bool *valid);
 
 	static ValidatedKeyedSetter get_member_validated_keyed_setter(Variant::Type p_type);
 	static ValidatedKeyedGetter get_member_validated_keyed_getter(Variant::Type p_type);
 	static ValidatedKeyedChecker get_member_validated_keyed_checker(Variant::Type p_type);
 
-	typedef void (*PTRKeyedSetter)(void *base, const void *key, const void *value);
-	typedef void (*PTRKeyedGetter)(const void *base, const void *key, void *value);
-	typedef uint32_t (*PTRKeyedChecker)(const void *base, const void *key);
+	using PTRKeyedSetter = void (*)(void *r_base, const void *p_key, const void *p_value);
+	using PTRKeyedGetter = void (*)(const void *p_base, const void *p_key, void *r_value);
+	using PTRKeyedChecker = uint32_t (*)(const void *p_base, const void *p_key);
 
 	static PTRKeyedSetter get_member_ptr_keyed_setter(Variant::Type p_type);
 	static PTRKeyedGetter get_member_ptr_keyed_getter(Variant::Type p_type);
@@ -790,8 +790,8 @@ public:
 	static void call_utility_function(const StringName &p_name, Variant *r_ret, const Variant **p_args, int p_argcount, Callable::CallError &r_error);
 	static bool has_utility_function(const StringName &p_name);
 
-	typedef void (*ValidatedUtilityFunction)(Variant *r_ret, const Variant **p_args, int p_argcount);
-	typedef void (*PTRUtilityFunction)(void *r_ret, const void **p_args, int p_argcount);
+	using ValidatedUtilityFunction = void (*)(Variant *r_ret, const Variant **p_args, int p_argcount);
+	using PTRUtilityFunction = void (*)(void *r_ret, const void **p_args, int p_argcount);
 
 	static ValidatedUtilityFunction get_validated_utility_function(const StringName &p_name);
 	static PTRUtilityFunction get_ptr_utility_function(const StringName &p_name);
@@ -842,8 +842,8 @@ public:
 	static bool has_enum(Variant::Type p_type, const StringName &p_enum_name);
 	static StringName get_enum_for_enumeration(Variant::Type p_type, const StringName &p_enumeration);
 
-	typedef String (*ObjectDeConstruct)(const Variant &p_object, void *ud);
-	typedef void (*ObjectConstruct)(const String &p_text, void *ud, Variant &r_value);
+	using ObjectDeConstruct = String (*)(const Variant &p_object, void *p_user_data);
+	using ObjectConstruct = void (*)(const String &p_text, void *p_user_data, Variant &r_value);
 
 	String get_construct_string() const;
 	static void construct_from_string(const String &p_string, Variant &r_value, ObjectConstruct p_obj_construct = nullptr, void *p_construct_ud = nullptr);
@@ -875,9 +875,6 @@ public:
 		}
 	}
 };
-
-//typedef Dictionary Dictionary; no
-//typedef Array Array;
 
 template <typename... VarArgs>
 Vector<Variant> varray(VarArgs... p_args) {

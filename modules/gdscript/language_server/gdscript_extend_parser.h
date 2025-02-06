@@ -51,7 +51,7 @@
 #define JOIN_SYMBOLS(p_path, name) ((p_path) + SYMBOL_SEPARATOR + (name))
 #endif
 
-typedef HashMap<String, const lsp::DocumentSymbol *> ClassMembers;
+using ClassMembers = HashMap<String, const lsp::DocumentSymbol *>;
 
 /**
  * Represents a Position as used by GDScript Parser. Used for conversion to and from `lsp::Position`.

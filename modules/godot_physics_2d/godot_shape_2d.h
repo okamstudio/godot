@@ -469,7 +469,7 @@ public:
 	virtual bool is_concave() const override { return true; }
 
 	// Returns true to stop the query.
-	typedef bool (*QueryCallback)(void *p_userdata, GodotShape2D *p_convex);
+	using QueryCallback = bool (*)(void *p_userdata, GodotShape2D *p_convex);
 
 	virtual void cull(const Rect2 &p_local_aabb, QueryCallback p_callback, void *p_userdata) const = 0;
 };

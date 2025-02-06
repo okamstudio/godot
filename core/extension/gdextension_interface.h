@@ -44,7 +44,7 @@ typedef uint16_t char16_t;
 #endif
 
 #ifdef __cplusplus
-extern "C" {
+extern "C" { // NOLINTBEGIN(modernize-use-using)
 #endif
 
 /* VARIANT TYPES */
@@ -3079,7 +3079,7 @@ typedef void (*GDExtensionsInterfaceEditorHelpLoadXmlFromUtf8Chars)(const char *
 typedef void (*GDExtensionsInterfaceEditorHelpLoadXmlFromUtf8CharsAndLen)(const char *p_data, GDExtensionInt p_size);
 
 #ifdef __cplusplus
-}
+} // NOLINTEND(modernize-use-using)
 #endif
 
 #endif // GDEXTENSION_INTERFACE_H

@@ -86,7 +86,7 @@ struct PtrToArg<TypedDictionary<K, V>> {
 	_FORCE_INLINE_ static TypedDictionary<K, V> convert(const void *p_ptr) {
 		return TypedDictionary<K, V>(*reinterpret_cast<const Dictionary *>(p_ptr));
 	}
-	typedef Dictionary EncodeT;
+	using EncodeT = Dictionary;
 	_FORCE_INLINE_ static void encode(TypedDictionary<K, V> p_val, void *p_ptr) {
 		*(Dictionary *)p_ptr = p_val;
 	}
@@ -94,7 +94,7 @@ struct PtrToArg<TypedDictionary<K, V>> {
 
 template <typename K, typename V>
 struct PtrToArg<const TypedDictionary<K, V> &> {
-	typedef Dictionary EncodeT;
+	using EncodeT = Dictionary;
 	_FORCE_INLINE_ static TypedDictionary<K, V>
 	convert(const void *p_ptr) {
 		return TypedDictionary<K, V>(*reinterpret_cast<const Dictionary *>(p_ptr));

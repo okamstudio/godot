@@ -42,7 +42,7 @@
 
 #include <emscripten.h>
 
-extern "C" {
+extern "C" { // NOLINTBEGIN(modernize-use-using)
 typedef void (*WSOnOpen)(void *p_ref, char *p_protocol);
 typedef void (*WSOnMessage)(void *p_ref, const uint8_t *p_buf, int p_buf_len, int p_is_string);
 typedef void (*WSOnClose)(void *p_ref, int p_code, const char *p_reason, int p_is_clean);
@@ -53,7 +53,7 @@ extern int godot_js_websocket_send(int p_id, const uint8_t *p_buf, int p_buf_len
 extern int godot_js_websocket_buffered_amount(int p_id);
 extern void godot_js_websocket_close(int p_id, int p_code, const char *p_reason);
 extern void godot_js_websocket_destroy(int p_id);
-}
+} // NOLINTEND(modernize-use-using)
 
 class EMWSPeer : public WebSocketPeer {
 private:

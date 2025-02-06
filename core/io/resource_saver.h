@@ -56,8 +56,8 @@ public:
 	virtual ~ResourceFormatSaver() {}
 };
 
-typedef void (*ResourceSavedCallback)(Ref<Resource> p_resource, const String &p_path);
-typedef ResourceUID::ID (*ResourceSaverGetResourceIDForPath)(const String &p_path, bool p_generate);
+using ResourceSavedCallback = void (*)(Ref<Resource> p_resource, const String &p_path);
+using ResourceSaverGetResourceIDForPath = ResourceUID::ID (*)(const String &p_path, bool p_generate);
 
 class ResourceSaver {
 	enum {

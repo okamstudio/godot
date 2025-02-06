@@ -66,8 +66,8 @@ public:
 		ITEM_MENU_SHOW_BUNDLE_CONTENT,
 	};
 
-	typedef Ref<Texture2D> (*GetIconFunc)(const String &);
-	typedef void (*RegisterFunc)(FileDialog *);
+	using GetIconFunc = Ref<Texture2D> (*)(const String &);
+	using RegisterFunc = void (*)(FileDialog *);
 
 	static GetIconFunc get_icon_func;
 	static RegisterFunc register_func;

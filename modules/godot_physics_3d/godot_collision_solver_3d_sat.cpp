@@ -87,7 +87,7 @@ struct _CollectorCallback {
 	}
 };
 
-typedef void (*GenerateContactsFunc)(const Vector3 *, int, const Vector3 *, int, _CollectorCallback *);
+using GenerateContactsFunc = void (*)(const Vector3 *, int, const Vector3 *, int, _CollectorCallback *);
 
 static void _generate_contacts_point_point(const Vector3 *p_points_A, int p_point_count_A, const Vector3 *p_points_B, int p_point_count_B, _CollectorCallback *p_callback) {
 #ifdef DEBUG_ENABLED
@@ -767,7 +767,7 @@ public:
 
 /****** SAT TESTS *******/
 
-typedef void (*CollisionFunc)(const GodotShape3D *, const Transform3D &, const GodotShape3D *, const Transform3D &, _CollectorCallback *p_callback, real_t, real_t);
+using CollisionFunc = void (*)(const GodotShape3D *, const Transform3D &, const GodotShape3D *, const Transform3D &, _CollectorCallback *p_callback, real_t, real_t);
 
 // Perform analytic sphere-sphere collision and report results to collector
 template <bool withMargin>

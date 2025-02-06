@@ -37,7 +37,7 @@
 class ResourceImporter;
 class ResourceFormatImporter;
 
-typedef Ref<Resource> (*ResourceFormatImporterLoadOnStartup)(ResourceFormatImporter *p_importer, const String &p_path, Error *r_error, bool p_use_sub_threads, float *r_progress, ResourceFormatLoader::CacheMode p_cache_mode);
+using ResourceFormatImporterLoadOnStartup = Ref<Resource> (*)(ResourceFormatImporter *p_importer, const String &p_path, Error *r_error, bool p_use_sub_threads, float *r_progress, ResourceFormatLoader::CacheMode p_cache_mode);
 
 class ResourceFormatImporter : public ResourceFormatLoader {
 	struct PathAndType {

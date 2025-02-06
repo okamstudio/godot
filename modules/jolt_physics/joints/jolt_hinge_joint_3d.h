@@ -39,10 +39,10 @@
 #include "Jolt/Physics/Constraints/SliderConstraint.h"
 
 class JoltHingeJoint3D final : public JoltJoint3D {
-	typedef PhysicsServer3D::HingeJointParam Parameter;
-	typedef JoltPhysicsServer3D::HingeJointParamJolt JoltParameter;
-	typedef PhysicsServer3D::HingeJointFlag Flag;
-	typedef JoltPhysicsServer3D::HingeJointFlagJolt JoltFlag;
+	using Parameter = PhysicsServer3D::HingeJointParam;
+	using JoltParameter = JoltPhysicsServer3D::HingeJointParamJolt;
+	using Flag = PhysicsServer3D::HingeJointFlag;
+	using JoltFlag = JoltPhysicsServer3D::HingeJointFlagJolt;
 
 	double limit_lower = 0.0;
 	double limit_upper = 0.0;

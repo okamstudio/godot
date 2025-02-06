@@ -41,7 +41,7 @@
 
 // Copied here from openxr_platform.h, in order to avoid including that whole header,
 // which can cause compilation issues on some platforms.
-typedef XrResult(XRAPI_PTR *PFN_xrCreateSwapchainAndroidSurfaceKHR)(XrSession session, const XrSwapchainCreateInfo *info, XrSwapchain *swapchain, jobject *surface);
+using PFN_xrCreateSwapchainAndroidSurfaceKHR = XrResult(XRAPI_PTR *)(XrSession session, const XrSwapchainCreateInfo *info, XrSwapchain *swapchain, jobject *surface);
 #endif
 
 class JavaObject;

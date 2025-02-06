@@ -39,8 +39,8 @@
 #include "core/templates/local_vector.h"
 #include "core/templates/oa_hash_map.h"
 
-typedef void (*VariantFunc)(Variant &r_ret, Variant &p_self, const Variant **p_args);
-typedef void (*VariantConstructFunc)(Variant &r_ret, const Variant **p_args);
+using VariantFunc = void (*)(Variant &r_ret, Variant &p_self, const Variant **p_args);
+using VariantConstructFunc = void (*)(Variant &r_ret, const Variant **p_args);
 
 template <typename R, typename... P>
 static _FORCE_INLINE_ void vc_static_method_call(R (*method)(P...), const Variant **p_args, int p_argcount, Variant &r_ret, const Vector<Variant> &p_defvals, Callable::CallError &r_error) {
@@ -1187,7 +1187,7 @@ struct VariantBuiltInMethodInfo {
 	}
 };
 
-typedef OAHashMap<StringName, VariantBuiltInMethodInfo> BuiltinMethodMap;
+using BuiltinMethodMap = OAHashMap<StringName, VariantBuiltInMethodInfo>;
 static BuiltinMethodMap *builtin_method_info;
 static List<StringName> *builtin_method_names;
 

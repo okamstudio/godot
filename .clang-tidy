@@ -5,6 +5,7 @@ Checks:
   - modernize-use-bool-literals
   - modernize-use-default-member-init
   - modernize-use-nullptr
+  - modernize-use-using
   - readability-braces-around-statements
   - readability-redundant-member-init
 HeaderFileExtensions: ["", h, hh, hpp, hxx, inc, glsl]
@@ -17,3 +18,5 @@ CheckOptions:
   modernize-use-bool-literals.IgnoreMacros: false
   modernize-use-default-member-init.IgnoreMacros: false
   modernize-use-default-member-init.UseAssignment: true
+  # modernize-use-using.IgnoreExternC: true # Clang 18 minimum
+  modernize-use-using.IgnoreMacros: false

@@ -92,7 +92,7 @@ public:
 	static_assert(EMPTY_HASH == 0, "EMPTY_HASH must always be 0 for the memcpy() optimization.");
 
 private:
-	typedef KeyValue<TKey, TValue> MapKeyValue;
+	using MapKeyValue = KeyValue<TKey, TValue>;
 	MapKeyValue *elements = nullptr;
 	HashMapData *map_data = nullptr;
 

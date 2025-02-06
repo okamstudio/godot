@@ -52,7 +52,7 @@ protected:
 	virtual bool is_hidden(const String &p_name);
 
 public:
-	typedef void (*RemoveNotificationFunc)(const String &p_file);
+	using RemoveNotificationFunc = void (*)(const String &p_file);
 	static RemoveNotificationFunc remove_notification_func;
 
 	virtual Error list_dir_begin() override; ///< This starts dir listing

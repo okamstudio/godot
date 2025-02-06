@@ -826,7 +826,7 @@ VARIANT_ENUM_CAST(Node::InternalMode);
 VARIANT_ENUM_CAST(Node::PhysicsInterpolationMode);
 VARIANT_ENUM_CAST(Node::AutoTranslateMode);
 
-typedef HashSet<Node *, Node::Comparator> NodeSet;
+using NodeSet = HashSet<Node *, Node::Comparator>;
 
 // Template definitions must be in the header so they are always fully initialized before their usage.
 // See this StackOverflow question for more information: https://stackoverflow.com/questions/495021/why-can-templates-only-be-implemented-in-the-header-file

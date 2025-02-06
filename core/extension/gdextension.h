@@ -193,7 +193,7 @@ protected:
 
 	// Since this in core, we can't directly reference EditorNode, so it will
 	// set these function pointers in its constructor.
-	typedef void (*EditorPluginRegisterFunc)(const StringName &p_class_name);
+	using EditorPluginRegisterFunc = void (*)(const StringName &p_class_name);
 	static EditorPluginRegisterFunc editor_node_add_plugin;
 	static EditorPluginRegisterFunc editor_node_remove_plugin;
 
@@ -214,10 +214,10 @@ protected:
 	// new documentation data. Note though that, differently from EditorHelp, this
 	// is initialized even _before_ it gets instantiated, as we need to rely on
 	// this method while initializing the engine.
-	typedef void (*EditorHelpLoadXmlBufferFunc)(const uint8_t *p_buffer, int p_size);
+	using EditorHelpLoadXmlBufferFunc = void (*)(const uint8_t *p_buffer, int p_size);
 	static EditorHelpLoadXmlBufferFunc editor_help_load_xml_buffer;
 
-	typedef void (*EditorHelpRemoveClassFunc)(const String &p_class);
+	using EditorHelpRemoveClassFunc = void (*)(const String &p_class);
 	static EditorHelpRemoveClassFunc editor_help_remove_class;
 
 public:

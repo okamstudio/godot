@@ -45,10 +45,10 @@ public:
 		MERGE_ALL
 	};
 
-	typedef void (*CommitNotifyCallback)(void *p_ud, const String &p_name);
+	using CommitNotifyCallback = void (*)(void *, const String &);
 
-	typedef void (*MethodNotifyCallback)(void *p_ud, Object *p_base, const StringName &p_name, const Variant **p_args, int p_argcount);
-	typedef void (*PropertyNotifyCallback)(void *p_ud, Object *p_base, const StringName &p_property, const Variant &p_value);
+	using MethodNotifyCallback = void (*)(void *, Object *, const StringName &, const Variant **, int);
+	using PropertyNotifyCallback = void (*)(void *, Object *, const StringName &, const Variant &);
 
 private:
 	struct Operation {

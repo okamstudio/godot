@@ -130,7 +130,7 @@ public:
 
 	//easier wrap to avoid mistakes
 
-	typedef uint64_t PolygonID;
+	using PolygonID = uint64_t;
 	virtual PolygonID request_polygon(const Vector<int> &p_indices, const Vector<Point2> &p_points, const Vector<Color> &p_colors, const Vector<Point2> &p_uvs = Vector<Point2>(), const Vector<int> &p_bones = Vector<int>(), const Vector<float> &p_weights = Vector<float>()) = 0;
 	virtual void free_polygon(PolygonID p_polygon) = 0;
 

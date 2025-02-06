@@ -104,7 +104,7 @@ class SceneState : public RefCounted {
 
 #ifdef TOOLS_ENABLED
 public:
-	typedef void (*InstantiationWarningNotify)(const String &p_warning);
+	using InstantiationWarningNotify = void (*)(const String &p_warning);
 
 private:
 	static InstantiationWarningNotify instantiation_warn_notify;

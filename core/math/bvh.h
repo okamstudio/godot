@@ -62,9 +62,9 @@ class BVH_Manager {
 public:
 	// note we are using uint32_t instead of BVHHandle, losing type safety, but this
 	// is for compatibility with octree
-	typedef void *(*PairCallback)(void *, uint32_t, T *, int, uint32_t, T *, int);
-	typedef void (*UnpairCallback)(void *, uint32_t, T *, int, uint32_t, T *, int, void *);
-	typedef void *(*CheckPairCallback)(void *, uint32_t, T *, int, uint32_t, T *, int, void *);
+	using PairCallback = void *(*)(void *, uint32_t, T *, int, uint32_t, T *, int);
+	using UnpairCallback = void (*)(void *, uint32_t, T *, int, uint32_t, T *, int, void *);
+	using CheckPairCallback = void *(*)(void *, uint32_t, T *, int, uint32_t, T *, int, void *);
 
 	// allow locally toggling thread safety if the template has been compiled with BVH_THREAD_SAFE
 	void params_set_thread_safe(bool p_enable) {

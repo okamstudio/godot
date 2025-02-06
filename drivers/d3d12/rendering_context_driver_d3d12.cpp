@@ -157,7 +157,7 @@ Error RenderingContextDriverD3D12::_initialize_debug_layers() {
 Error RenderingContextDriverD3D12::_initialize_devices() {
 	const UINT dxgi_factory_flags = use_validation_layers() ? DXGI_CREATE_FACTORY_DEBUG : 0;
 
-	typedef HRESULT(WINAPI * PFN_DXGI_CREATE_DXGI_FACTORY2)(UINT, REFIID, void **);
+	using PFN_DXGI_CREATE_DXGI_FACTORY2 = HRESULT(WINAPI *)(UINT, REFIID, void **);
 	PFN_DXGI_CREATE_DXGI_FACTORY2 dxgi_CreateDXGIFactory2 = (PFN_DXGI_CREATE_DXGI_FACTORY2)(void *)GetProcAddress(lib_dxgi, "CreateDXGIFactory2");
 	ERR_FAIL_NULL_V(dxgi_CreateDXGIFactory2, ERR_CANT_CREATE);
 

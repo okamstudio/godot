@@ -37,7 +37,7 @@ class VideoStreamPlayback : public Resource {
 	GDCLASS(VideoStreamPlayback, Resource);
 
 public:
-	typedef int (*AudioMixCallback)(void *p_udata, const float *p_data, int p_frames);
+	using AudioMixCallback = int (*)(void *p_udata, const float *p_data, int p_frames);
 
 protected:
 	AudioMixCallback mix_callback = nullptr;

@@ -41,7 +41,7 @@ class Animation : public Resource {
 	RES_BASE_EXTENSION("anim");
 
 public:
-	typedef uint32_t TypeHash;
+	using TypeHash = uint32_t;
 
 	static inline String PARAMETERS_BASE_PATH = "parameters/";
 

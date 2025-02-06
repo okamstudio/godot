@@ -64,9 +64,9 @@ class String;
 
 class Thread {
 public:
-	typedef void (*Callback)(void *p_userdata);
+	using Callback = void (*)(void *p_user_data);
 
-	typedef uint64_t ID;
+	using ID = uint64_t;
 
 	enum : ID {
 		UNASSIGNED_ID = 0,
@@ -152,9 +152,9 @@ class String;
 
 class Thread {
 public:
-	typedef void (*Callback)(void *p_userdata);
+	using Callback = void (*)(void *p_user_data);
 
-	typedef uint64_t ID;
+	using ID = uint64_t;
 
 	static constexpr size_t CACHE_LINE_BYTES = sizeof(void *);
 

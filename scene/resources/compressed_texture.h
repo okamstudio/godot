@@ -82,8 +82,8 @@ protected:
 public:
 	static Ref<Image> load_image_from_file(Ref<FileAccess> p_file, int p_size_limit);
 
-	typedef void (*TextureFormatRequestCallback)(const Ref<CompressedTexture2D> &);
-	typedef void (*TextureFormatRoughnessRequestCallback)(const Ref<CompressedTexture2D> &, const String &p_normal_path, RS::TextureDetectRoughnessChannel p_roughness_channel);
+	using TextureFormatRequestCallback = void (*)(const Ref<CompressedTexture2D> &);
+	using TextureFormatRoughnessRequestCallback = void (*)(const Ref<CompressedTexture2D> &, const String &p_normal_path, RS::TextureDetectRoughnessChannel p_roughness_channel);
 
 	static TextureFormatRequestCallback request_3d_callback;
 	static TextureFormatRoughnessRequestCallback request_roughness_callback;

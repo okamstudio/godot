@@ -167,7 +167,7 @@ _FORCE_INLINE_ Vector2i operator*(double p_scalar, const Vector2i &p_vector) {
 	return p_vector * p_scalar;
 }
 
-typedef Vector2i Size2i;
-typedef Vector2i Point2i;
+using Size2i = Vector2i;
+using Point2i = Vector2i;
 
 #endif // VECTOR2I_H

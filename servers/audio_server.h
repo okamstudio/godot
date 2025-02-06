@@ -206,7 +206,7 @@ public:
 		LOOKAHEAD_BUFFER_SIZE = 64,
 	};
 
-	typedef void (*AudioCallback)(void *p_userdata);
+	using AudioCallback = void (*)(void *p_user_data);
 
 private:
 	uint64_t mix_time = 0;
@@ -547,6 +547,6 @@ public:
 	AudioBusLayout();
 };
 
-typedef AudioServer AS;
+using AS = AudioServer;
 
 #endif // AUDIO_SERVER_H
