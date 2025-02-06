@@ -215,6 +215,10 @@ void Tween::kill() {
 	dead = true;
 }
 
+bool Tween::has_tweeners() const {
+	return !tweeners.is_empty();
+}
+
 bool Tween::is_running() {
 	return running;
 }
@@ -484,6 +488,7 @@ void Tween::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("kill"), &Tween::kill);
 	ClassDB::bind_method(D_METHOD("get_total_elapsed_time"), &Tween::get_total_time);
 
+	ClassDB::bind_method(D_METHOD("has_tweeners"), &Tween::has_tweeners);
 	ClassDB::bind_method(D_METHOD("is_running"), &Tween::is_running);
 	ClassDB::bind_method(D_METHOD("is_valid"), &Tween::is_valid);
 	ClassDB::bind_method(D_METHOD("bind_node", "node"), &Tween::bind_node);

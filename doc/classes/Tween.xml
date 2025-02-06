@@ -144,6 +144,12 @@
 				[b]Note:[/b] As it results from accumulating frame deltas, the time returned after the [Tween] has finished animating will be slightly greater than the actual [Tween] duration.
 			</description>
 		</method>
+		<method name="has_tweeners" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if any [Tweener] has been added to the [Tween] and the [Tween] is valid. Useful when tweeners are added dynamically and the tween can end up empty. Killing an empty tween before it starts will prevent errors.
+			</description>
+		</method>
 		<method name="interpolate_value" qualifiers="static">
 			<return type="Variant" />
 			<param index="0" name="initial_value" type="Variant" />
