@@ -322,6 +322,8 @@ bool Bone2D::_editor_get_bone_shape(Vector<Vector2> *p_shape, Vector<Vector2> *p
 	}
 
 	Vector2 rel;
+	Vector2 global_scale_abs = get_global_scale().abs();
+
 	if (p_other_bone) {
 		rel = (p_other_bone->get_global_position() - get_global_position());
 		rel = rel.rotated(-get_global_rotation()); // Undo Bone2D node's rotation so its drawn correctly regardless of the node's rotation
@@ -329,7 +331,7 @@ bool Bone2D::_editor_get_bone_shape(Vector<Vector2> *p_shape, Vector<Vector2> *p
 		rel = Vector2(Math::cos(bone_angle), Math::sin(bone_angle)) * length * get_global_scale();
 	}
 
-	Vector2 relt = rel.rotated(Math_PI * 0.5).normalized() * bone_width;
+	Vector2 relt = rel.rotated(Math_PI * 0.5).normalized() * bone_width * global_scale_abs;
 	Vector2 reln = rel.normalized();
 	Vector2 reltn = relt.normalized();
 
@@ -343,12 +345,12 @@ bool Bone2D::_editor_get_bone_shape(Vector<Vector2> *p_shape, Vector<Vector2> *p
 
 	if (p_outline_shape) {
 		p_outline_shape->clear();
-		p_outline_shape->push_back((-reln - reltn) * bone_outline_width);
-		p_outline_shape->push_back((-reln + reltn) * bone_outline_width);
-		p_outline_shape->push_back(rel * 0.2 + relt + reltn * bone_outline_width);
-		p_outline_shape->push_back(rel + (reln + reltn) * bone_outline_width);
-		p_outline_shape->push_back(rel + (reln - reltn) * bone_outline_width);
-		p_outline_shape->push_back(rel * 0.2 - relt - reltn * bone_outline_width);
+		p_outline_shape->push_back((-reln - reltn) * bone_outline_width * global_scale_abs);
+		p_outline_shape->push_back((-reln + reltn) * bone_outline_width * global_scale_abs);
+		p_outline_shape->push_back(rel * 0.2 + relt + reltn * bone_outline_width * global_scale_abs);
+		p_outline_shape->push_back(rel + (reln + reltn) * bone_outline_width * global_scale_abs);
+		p_outline_shape->push_back(rel + (reln - reltn) * bone_outline_width * global_scale_abs);
+		p_outline_shape->push_back(rel * 0.2 - relt - reltn * bone_outline_width * global_scale_abs);
 	}
 	return true;
 }
