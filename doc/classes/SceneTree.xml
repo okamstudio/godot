@@ -9,7 +9,7 @@
 		[SceneTree] is the default [MainLoop] implementation used by the engine, and is thus in charge of the game loop.
 	</description>
 	<tutorials>
-		<link title="SceneTree">$DOCS_URL/tutorials/scripting/scene_tree.html</link>
+		<link title="SceneTree">$DOCS_URL/tutorials/core/scenes/scene_tree.html</link>
 		<link title="Multiple resolutions">$DOCS_URL/tutorials/rendering/multiple_resolutions.html</link>
 	</tutorials>
 	<methods>
@@ -273,7 +273,7 @@
 			To handle 'Go Back' button when this option is disabled, use [constant DisplayServer.WINDOW_EVENT_GO_BACK_REQUEST].
 		</member>
 		<member name="root" type="Window" setter="" getter="get_root">
-			The tree's root [Window]. This is top-most [Node] of the scene tree, and is always present. An absolute [NodePath] always starts from this node. Children of the root node may include the loaded [member current_scene], as well as any [url=$DOCS_URL/tutorials/scripting/singletons_autoload.html]AutoLoad[/url] configured in the Project Settings.
+			The tree's root [Window]. This is top-most [Node] of the scene tree, and is always present. An absolute [NodePath] always starts from this node. Children of the root node may include the loaded [member current_scene], as well as any [url=$DOCS_URL/tutorials/core/singletons_autoload.html]AutoLoad[/url] configured in the Project Settings.
 			[b]Warning:[/b] Do not delete this node. This will result in unstable behavior, followed by a crash.
 		</member>
 	</members>

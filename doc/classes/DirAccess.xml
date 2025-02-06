@@ -63,7 +63,7 @@
 		Keep in mind that file names may change or be remapped after export. If you want to see the actual resource file list as it appears in the editor, use [method ResourceLoader.list_directory] instead.
 	</description>
 	<tutorials>
-		<link title="File system">$DOCS_URL/tutorials/scripting/filesystem.html</link>
+		<link title="File system">$DOCS_URL/tutorials/core/filesystem.html</link>
 	</tutorials>
 	<methods>
 		<method name="change_dir">

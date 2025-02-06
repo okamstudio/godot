@@ -38,7 +38,7 @@
 		[b]Note:[/b] Files are automatically closed only if the process exits "normally" (such as by clicking the window manager's close button or pressing [b]Alt + F4[/b]). If you stop the project execution by pressing [b]F8[/b] while the project is running, the file won't be closed as the game process will be killed. You can work around this by calling [method flush] at regular intervals.
 	</description>
 	<tutorials>
-		<link title="File system">$DOCS_URL/tutorials/scripting/filesystem.html</link>
+		<link title="File system">$DOCS_URL/tutorials/core/filesystem.html</link>
 		<link title="Runtime file loading and saving">$DOCS_URL/tutorials/io/runtime_file_loading_and_saving.html</link>
 		<link title="3D Voxel Demo">https://godotengine.org/asset-library/asset/2755</link>
 	</tutorials>

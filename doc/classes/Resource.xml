@@ -10,7 +10,7 @@
 		[b]Note:[/b] In C#, resources will not be freed instantly after they are no longer in use. Instead, garbage collection will run periodically and will free resources that are no longer in use. This means that unused resources will remain in memory for a while before being removed.
 	</description>
 	<tutorials>
-		<link title="Resources">$DOCS_URL/tutorials/scripting/resources.html</link>
+		<link title="Resources">$DOCS_URL/tutorials/core/resources.html</link>
 		<link title="When and how to avoid using nodes for everything">$DOCS_URL/tutorials/best_practices/node_alternatives.html</link>
 	</tutorials>
 	<methods>
