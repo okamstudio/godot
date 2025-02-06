@@ -1515,6 +1515,8 @@ static_assert(ENUM_MEMBERS_EQUAL(RDD::BUFFER_USAGE_VERTEX_BIT, VK_BUFFER_USAGE_V
 static_assert(ENUM_MEMBERS_EQUAL(RDD::BUFFER_USAGE_INDIRECT_BIT, VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT));
 static_assert(ENUM_MEMBERS_EQUAL(RDD::BUFFER_USAGE_DEVICE_ADDRESS_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT));
 
+// #define OLD_METHOD
+
 RDD::BufferID RenderingDeviceDriverVulkan::buffer_create(uint64_t p_size, BitField<BufferUsageBits> p_usage, MemoryAllocationType p_allocation_type) {
 	VkBufferCreateInfo create_info = {};
 	create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -1530,17 +1532,34 @@ RDD::BufferID RenderingDeviceDriverVulkan::buffer_create(uint64_t p_size, BitFie
 			if (is_src && !is_dst) {
 				// Looks like a staging buffer: CPU maps, writes sequentially, then GPU copies to VRAM.
 				alloc_create_info.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
-				alloc_create_info.preferredFlags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+#ifndef OLD_METHOD
+				// alloc_create_info.preferredFlags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+				// alloc_create_info.preferredFlags |= VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+				// alloc_create_info.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+#endif
 			}
 			if (is_dst && !is_src) {
 				// Looks like a readback buffer: GPU copies from VRAM, then CPU maps and reads.
 				alloc_create_info.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+#ifndef OLD_METHOD
 				alloc_create_info.preferredFlags |= VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+				// alloc_create_info.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+#endif
 			}
+#ifdef OLD_METHOD
+			alloc_create_info.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+#else
+			// alloc_create_info.preferredFlags |= VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+			alloc_create_info.usage = VMA_MEMORY_USAGE_CPU_COPY;
+#endif
 			alloc_create_info.requiredFlags = (VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 		} break;
 		case MEMORY_ALLOCATION_TYPE_GPU: {
+#ifdef OLD_METHOD
+			alloc_create_info.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+#else
 			alloc_create_info.preferredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+#endif
 			if (p_size <= SMALL_ALLOCATION_MAX_SIZE) {
 				uint32_t mem_type_index = 0;
 				vmaFindMemoryTypeIndexForBufferInfo(allocator, &create_info, &alloc_create_info, &mem_type_index);
@@ -1553,12 +1572,17 @@ RDD::BufferID RenderingDeviceDriverVulkan::buffer_create(uint64_t p_size, BitFie
 	VmaAllocation allocation = nullptr;
 	VmaAllocationInfo alloc_info = {};
 
+#ifdef OLD_METHOD
+	VkResult err = vmaCreateBuffer(allocator, &create_info, &alloc_create_info, &vk_buffer, &allocation, &alloc_info);
+	ERR_FAIL_COND_V_MSG(err, BufferID(), "Can't create buffer of size: " + itos(p_size) + ", error " + itos(err) + ".");
+#else
 	VkResult err = vkCreateBuffer(vk_device, &create_info, VKC::get_allocation_callbacks(VK_OBJECT_TYPE_BUFFER), &vk_buffer);
 	ERR_FAIL_COND_V_MSG(err, BufferID(), "Can't create buffer of size: " + itos(p_size) + ", error " + itos(err) + ".");
 	err = vmaAllocateMemoryForBuffer(allocator, vk_buffer, &alloc_create_info, &allocation, &alloc_info);
 	ERR_FAIL_COND_V_MSG(err, BufferID(), "Can't allocate memory for buffer of size: " + itos(p_size) + ", error " + itos(err) + ".");
 	err = vmaBindBufferMemory2(allocator, allocation, 0, vk_buffer, nullptr);
 	ERR_FAIL_COND_V_MSG(err, BufferID(), "Can't bind memory to buffer of size: " + itos(p_size) + ", error " + itos(err) + ".");
+#endif
 
 	// Bookkeep.
 	BufferInfo *buf_info = VersatileResource::allocate<BufferInfo>(resources_allocator);
@@ -1593,8 +1617,12 @@ void RenderingDeviceDriverVulkan::buffer_free(BufferID p_buffer) {
 		vkDestroyBufferView(vk_device, buf_info->vk_view, VKC::get_allocation_callbacks(VK_OBJECT_TYPE_BUFFER_VIEW));
 	}
 
+#ifdef OLD_METHOD
+	vmaDestroyBuffer(allocator, buf_info->vk_buffer, buf_info->allocation.handle);
+#else
 	vkDestroyBuffer(vk_device, buf_info->vk_buffer, VKC::get_allocation_callbacks(VK_OBJECT_TYPE_BUFFER));
 	vmaFreeMemory(allocator, buf_info->allocation.handle);
+#endif
 
 	VersatileResource::free(resources_allocator, buf_info);
 }
