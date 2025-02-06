@@ -33,6 +33,10 @@
 #include "drivers/png/image_loader_png.h"
 #include "drivers/png/resource_saver_png.h"
 
+#ifdef GLES3_ENABLED
+#include "drivers/gles3/gles3.h"
+#endif
+
 static Ref<ImageLoaderPNG> image_loader_png;
 static Ref<ResourceSaverPNG> resource_saver_png;
 
@@ -53,6 +57,9 @@ void unregister_core_driver_types() {
 }
 
 void register_driver_types() {
+#ifdef GLES3_ENABLED
+	GDREGISTER_ABSTRACT_CLASS(GLES3)
+#endif
 }
 
 void unregister_driver_types() {
