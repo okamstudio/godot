@@ -142,6 +142,7 @@ public:
 
 protected:
 	Vector<SpringBone3DSetting *> settings;
+	Vector3 external_force;
 
 	bool _get(const StringName &p_path, Variant &r_ret) const;
 	bool _set(const StringName &p_path, const Variant &p_value);
@@ -268,6 +269,9 @@ public:
 	void clear_collisions(int p_index);
 
 	LocalVector<ObjectID> get_valid_collision_instance_ids(int p_index);
+
+	void set_external_force(const Vector3 &p_force);
+	Vector3 get_external_force() const;
 
 	// Helper.
 	static Quaternion get_local_pose_rotation(Skeleton3D *p_skeleton, int p_bone, const Quaternion &p_global_pose_rotation);

@@ -1098,6 +1098,14 @@ LocalVector<ObjectID> SpringBoneSimulator3D::get_valid_collision_instance_ids(in
 	return settings[p_index]->cached_collisions;
 }
 
+void SpringBoneSimulator3D::set_external_force(const Vector3 &p_force) {
+	external_force = p_force;
+}
+
+Vector3 SpringBoneSimulator3D::get_external_force() const {
+	return external_force;
+}
+
 void SpringBoneSimulator3D::_bind_methods() {
 	// Setting.
 	ClassDB::bind_method(D_METHOD("set_root_bone_name", "index", "bone_name"), &SpringBoneSimulator3D::set_root_bone_name);
@@ -1190,9 +1198,13 @@ void SpringBoneSimulator3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_collision_count", "index"), &SpringBoneSimulator3D::get_collision_count);
 	ClassDB::bind_method(D_METHOD("clear_collisions", "index"), &SpringBoneSimulator3D::clear_collisions);
 
+	ClassDB::bind_method(D_METHOD("set_external_force", "force"), &SpringBoneSimulator3D::set_external_force);
+	ClassDB::bind_method(D_METHOD("get_external_force"), &SpringBoneSimulator3D::get_external_force);
+
 	// To process manually.
 	ClassDB::bind_method(D_METHOD("reset"), &SpringBoneSimulator3D::reset);
 
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "external_force", PROPERTY_HINT_RANGE, "-99999,99999,or_greater,or_less,hide_slider,suffix:m/s"), "set_external_force", "get_external_force");
 	ADD_ARRAY_COUNT("Settings", "setting_count", "set_setting_count", "get_setting_count", "settings/");
 
 	BIND_ENUM_CONSTANT(BONE_DIRECTION_PLUS_X);
@@ -1580,7 +1592,7 @@ void SpringBoneSimulator3D::_process_joints(double p_delta, Skeleton3D *p_skelet
 		Transform3D current_world_pose = p_center_transform * current_global_pose;
 		Quaternion current_rot = current_global_pose.basis.get_rotation_quaternion();
 		Vector3 current_origin = p_center_transform.xform(current_global_pose.origin);
-		Vector3 external = p_inverted_center_rotation.xform(p_joints[i]->gravity_direction * p_joints[i]->gravity * p_delta);
+		Vector3 external = p_inverted_center_rotation.xform((external_force + p_joints[i]->gravity_direction * p_joints[i]->gravity) * p_delta);
 
 		// Integration of velocity by verlet.
 		Vector3 next_tail = verlet->current_tail +
