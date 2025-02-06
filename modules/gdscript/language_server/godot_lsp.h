@@ -426,6 +426,7 @@ struct CompletionOptions {
 		triggerCharacters.push_back("$");
 		triggerCharacters.push_back("'");
 		triggerCharacters.push_back("\"");
+		triggerCharacters.push_back("(");
 	}
 
 	Dictionary to_json() const {

@@ -342,7 +342,7 @@ Dictionary GDScriptTextDocument::resolve(const Dictionary &p_params) {
 		}
 	}
 
-	if (item.kind == lsp::CompletionItemKind::Method) {
+	if (item.kind == lsp::CompletionItemKind::Method || item.kind == lsp::CompletionItemKind::Constant || item.kind == lsp::CompletionItemKind::File) {
 		bool is_trigger_character = params.context.triggerKind == lsp::CompletionTriggerKind::TriggerCharacter;
 		bool is_quote_character = params.context.triggerCharacter == "\"" || params.context.triggerCharacter == "'";
 
