@@ -123,7 +123,9 @@ void CanvasItemMaterial::_update_shader() {
 		code += "void vertex() {\n";
 		code += "	float h_frames = float(particles_anim_h_frames);\n";
 		code += "	float v_frames = float(particles_anim_v_frames);\n";
-		code += "	VERTEX.xy /= vec2(h_frames, v_frames);\n";
+		if (particles_anim_resize) {
+			code += "	VERTEX.xy /= vec2(h_frames, v_frames);\n";
+		}
 		code += "	float particle_total_frames = float(particles_anim_h_frames * particles_anim_v_frames);\n";
 		code += "	float particle_frame = floor(INSTANCE_CUSTOM.z * float(particle_total_frames));\n";
 		code += "	if (!particles_anim_loop) {\n";
@@ -223,6 +225,14 @@ bool CanvasItemMaterial::get_particles_anim_loop() const {
 	return particles_anim_loop;
 }
 
+void CanvasItemMaterial::set_particles_anim_resize(bool p_resize) {
+	particles_anim_resize = p_resize;
+	_queue_shader_change();
+}
+bool CanvasItemMaterial::get_particles_anim_resize() const {
+	return particles_anim_resize;
+}
+
 void CanvasItemMaterial::_validate_property(PropertyInfo &p_property) const {
 	if (p_property.name.begins_with("particles_anim_") && !particles_animation) {
 		p_property.usage = PROPERTY_USAGE_NONE;
@@ -257,6 +267,9 @@ void CanvasItemMaterial::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_particles_anim_loop", "loop"), &CanvasItemMaterial::set_particles_anim_loop);
 	ClassDB::bind_method(D_METHOD("get_particles_anim_loop"), &CanvasItemMaterial::get_particles_anim_loop);
 
+	ClassDB::bind_method(D_METHOD("set_particles_anim_resize", "resize"), &CanvasItemMaterial::set_particles_anim_resize);
+	ClassDB::bind_method(D_METHOD("get_particles_anim_resize"), &CanvasItemMaterial::get_particles_anim_resize);
+
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "blend_mode", PROPERTY_HINT_ENUM, "Mix,Add,Subtract,Multiply,Premultiplied Alpha"), "set_blend_mode", "get_blend_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "light_mode", PROPERTY_HINT_ENUM, "Normal,Unshaded,Light Only"), "set_light_mode", "get_light_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "particles_animation"), "set_particles_animation", "get_particles_animation");
@@ -264,6 +277,7 @@ void CanvasItemMaterial::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "particles_anim_h_frames", PROPERTY_HINT_RANGE, "1,128,1"), "set_particles_anim_h_frames", "get_particles_anim_h_frames");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "particles_anim_v_frames", PROPERTY_HINT_RANGE, "1,128,1"), "set_particles_anim_v_frames", "get_particles_anim_v_frames");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "particles_anim_loop"), "set_particles_anim_loop", "get_particles_anim_loop");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "particles_anim_resize"), "set_particles_anim_resize", "get_particles_anim_resize");
 
 	BIND_ENUM_CONSTANT(BLEND_MODE_MIX);
 	BIND_ENUM_CONSTANT(BLEND_MODE_ADD);

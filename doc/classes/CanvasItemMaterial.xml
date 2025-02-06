@@ -23,6 +23,10 @@
 			If [code]true[/code], the particles animation will loop.
 			[b]Note:[/b] This property is only used and visible in the editor if [member particles_animation] is [code]true[/code].
 		</member>
+		<member name="particles_anim_resize" type="bool" setter="set_particles_anim_resize" getter="get_particles_anim_resize">
+			If [code]true[/code], the canvas item will resize to match the size of a single frame of the animation.
+			Set to [code]false[/code] for proper stretching with [TextureRect].
+		</member>
 		<member name="particles_anim_v_frames" type="int" setter="set_particles_anim_v_frames" getter="get_particles_anim_v_frames">
 			The number of rows in the spritesheet assigned as [Texture2D] for a [GPUParticles2D] or [CPUParticles2D].
 			[b]Note:[/b] This property is only used and visible in the editor if [member particles_animation] is [code]true[/code].
