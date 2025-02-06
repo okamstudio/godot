@@ -335,6 +335,7 @@ class EditorInspectorSection : public Container {
 	Timer *dropping_unfold_timer = nullptr;
 	bool dropping_for_unfold = false;
 
+	EditorInspectorSection *parent_section = nullptr;
 	HashSet<StringName> revertable_properties;
 
 	void _test_unfold();
@@ -358,6 +359,9 @@ public:
 	void unfold();
 	void fold();
 	void set_bg_color(const Color &p_bg_color);
+
+	EditorInspectorSection *get_parent_section() { return parent_section; };
+	void set_parent_section(EditorInspectorSection *p_parent_section) { parent_section = p_parent_section; };
 
 	bool has_revertable_properties() const;
 	void property_can_revert_changed(const String &p_path, bool p_can_revert);
