@@ -47,7 +47,7 @@ void initialize_noise_module(ModuleInitializationLevel p_level) {
 	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
 		GDREGISTER_CLASS(NoiseTexture3D);
 		GDREGISTER_CLASS(NoiseTexture2D);
-		GDREGISTER_ABSTRACT_CLASS(Noise);
+		GDREGISTER_VIRTUAL_CLASS(Noise);
 		GDREGISTER_CLASS(FastNoiseLite);
 		ClassDB::add_compatibility_class("NoiseTexture", "NoiseTexture2D");
 	}

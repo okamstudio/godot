@@ -144,28 +144,22 @@ TypedArray<Image> NoiseTexture3D::_generate_texture() {
 
 	ERR_FAIL_COND_V_MSG((int64_t)width * height * depth > Image::MAX_PIXELS, TypedArray<Image>(), "The NoiseTexture3D is too big, consider lowering its width, height, or depth.");
 
-	Vector<Ref<Image>> images;
+	TypedArray<Image> images;
 
 	if (seamless) {
-		images = ref_noise->_get_seamless_image(width, height, depth, invert, true, seamless_blend_skirt, normalize);
+		images = ref_noise->get_seamless_image_3d(width, height, depth, invert, seamless_blend_skirt, normalize);
 	} else {
-		images = ref_noise->_get_image(width, height, depth, invert, true, normalize);
+		images = ref_noise->get_image_3d(width, height, depth, invert, normalize);
 	}
 
 	if (color_ramp.is_valid()) {
 		for (int i = 0; i < images.size(); i++) {
-			images.write[i] = _modulate_with_gradient(images[i], color_ramp);
+			Ref<Image> image = images[i];
+			images[i] = _modulate_with_gradient(images[i], color_ramp);
 		}
 	}
 
-	TypedArray<Image> new_data;
-	new_data.resize(images.size());
-
-	for (int i = 0; i < new_data.size(); i++) {
-		new_data[i] = images[i];
-	}
-
-	return new_data;
+	return images;
 }
 
 Ref<Image> NoiseTexture3D::_modulate_with_gradient(Ref<Image> p_image, Ref<Gradient> p_gradient) {

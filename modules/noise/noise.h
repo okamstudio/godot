@@ -32,6 +32,7 @@
 #define NOISE_H
 
 #include "core/io/image.h"
+#include "core/object/gdvirtual.gen.inc"
 #include "core/variant/typed_array.h"
 
 class Noise : public Resource {
@@ -275,6 +276,19 @@ class Noise : public Resource {
 		return out.l;
 	}
 
+	GDVIRTUAL1RC_REQUIRED(real_t, _get_noise_1d, real_t)
+	GDVIRTUAL1RC_REQUIRED(real_t, _get_noise_2d, Vector2)
+	GDVIRTUAL1RC_REQUIRED(real_t, _get_noise_3d, Vector3)
+	// These are not required because we can default to get_noise functions.
+	// They can be implemented when a more efficient approach is possible.
+	GDVIRTUAL5RC(Ref<Image>, _get_image, int, int, bool, bool, bool)
+	GDVIRTUAL5RC(TypedArray<Image>, _get_image_3d, int, int, int, bool, bool)
+	GDVIRTUAL6RC(Ref<Image>, _get_seamless_image, int, int, bool, bool, float, bool)
+	GDVIRTUAL6RC(TypedArray<Image>, _get_seamless_image_3d, int, int, int, bool, float, bool)
+
+	Vector<Ref<Image>> _get_image_internal(int p_width, int p_height, int p_depth, bool p_invert = false, bool p_in_3d_space = false, bool p_normalize = true) const;
+	Vector<Ref<Image>> _get_seamless_image_internal(int p_width, int p_height, int p_depth, bool p_invert = false, bool p_in_3d_space = false, real_t p_blend_skirt = 0.1, bool p_normalize = true) const;
+
 protected:
 	static void _bind_methods();
 
@@ -282,19 +296,17 @@ public:
 	// Virtual destructor so we can delete any Noise derived object when referenced as a Noise*.
 	virtual ~Noise() {}
 
-	virtual real_t get_noise_1d(real_t p_x) const = 0;
+	virtual real_t get_noise_1d(real_t p_x) const;
 
-	virtual real_t get_noise_2dv(Vector2 p_v) const = 0;
-	virtual real_t get_noise_2d(real_t p_x, real_t p_y) const = 0;
+	virtual real_t get_noise_2dv(Vector2 p_v) const;
+	virtual real_t get_noise_2d(real_t p_x, real_t p_y) const;
 
-	virtual real_t get_noise_3dv(Vector3 p_v) const = 0;
-	virtual real_t get_noise_3d(real_t p_x, real_t p_y, real_t p_z) const = 0;
+	virtual real_t get_noise_3dv(Vector3 p_v) const;
+	virtual real_t get_noise_3d(real_t p_x, real_t p_y, real_t p_z) const;
 
-	Vector<Ref<Image>> _get_image(int p_width, int p_height, int p_depth, bool p_invert = false, bool p_in_3d_space = false, bool p_normalize = true) const;
 	virtual Ref<Image> get_image(int p_width, int p_height, bool p_invert = false, bool p_in_3d_space = false, bool p_normalize = true) const;
 	virtual TypedArray<Image> get_image_3d(int p_width, int p_height, int p_depth, bool p_invert = false, bool p_normalize = true) const;
 
-	Vector<Ref<Image>> _get_seamless_image(int p_width, int p_height, int p_depth, bool p_invert = false, bool p_in_3d_space = false, real_t p_blend_skirt = 0.1, bool p_normalize = true) const;
 	virtual Ref<Image> get_seamless_image(int p_width, int p_height, bool p_invert = false, bool p_in_3d_space = false, real_t p_blend_skirt = 0.1, bool p_normalize = true) const;
 	virtual TypedArray<Image> get_seamless_image_3d(int p_width, int p_height, int p_depth, bool p_invert = false, real_t p_blend_skirt = 0.1, bool p_normalize = true) const;
 };
