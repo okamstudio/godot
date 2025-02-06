@@ -1944,6 +1944,148 @@ TEST_CASE("[SceneTree][Viewport] Embedded Windows") {
 	memdelete(w);
 }
 
+#ifndef _3D_DISABLED
+
+TEST_CASE("[SceneTree][Viewport] Camera3D override") {
+	SubViewport *viewport = memnew(SubViewport);
+
+	SUBCASE("[Viewport] Enable / disable Camera3D override") {
+		CHECK_FALSE(viewport->is_camera_3d_override_enabled());
+		viewport->enable_camera_3d_override(true);
+		CHECK(viewport->is_camera_3d_override_enabled());
+		viewport->enable_camera_3d_override(false);
+		CHECK_FALSE(viewport->is_camera_3d_override_enabled());
+	}
+
+	SUBCASE("[Viewport] Camera3D override transform") {
+		Transform3D transform, result;
+		transform.set_origin(Vector3(1, 2, 3));
+		transform.set_basis(Basis(Vector3(4, 5, 6), Vector3(7, 8, 9), Vector3(10, 11, 12)));
+
+		result = viewport->get_camera_3d_override_transform();
+		CHECK(result.is_equal_approx(Transform3D()));
+
+		viewport->set_camera_3d_override_transform(transform);
+		result = viewport->get_camera_3d_override_transform();
+		CHECK(result.is_equal_approx(Transform3D()));
+
+		viewport->enable_camera_3d_override(true);
+		viewport->set_camera_3d_override_transform(transform);
+		result = viewport->get_camera_3d_override_transform();
+		CHECK(result.is_equal_approx(transform));
+	}
+
+	SUBCASE("[Viewport] Camera3D override projection") {
+		constexpr float znear = 0.01, zfar = 20, size = 10, fovy = 45.0;
+		HashMap<StringName, real_t> result;
+
+		viewport->enable_camera_3d_override(false);
+
+		viewport->set_camera_3d_override_perspective(fovy, znear, zfar);
+		result = viewport->get_camera_3d_override_properties();
+		CHECK(result.get("fov") == 0);
+		CHECK(result.get("z_near") == 0);
+		CHECK(result.get("z_far") == 0);
+
+		viewport->set_camera_3d_override_orthogonal(size, znear, zfar);
+		result = viewport->get_camera_3d_override_properties();
+		CHECK(result.get("size") == 0);
+		CHECK(result.get("z_near") == 0);
+		CHECK(result.get("z_far") == 0);
+
+		viewport->enable_camera_3d_override(true);
+
+		viewport->set_camera_3d_override_perspective(fovy, znear, zfar);
+		result = viewport->get_camera_3d_override_properties();
+		CHECK(result.get("fov") == doctest::Approx(fovy));
+		CHECK(result.get("z_near") == doctest::Approx(znear));
+		CHECK(result.get("z_far") == doctest::Approx(zfar));
+
+		viewport->set_camera_3d_override_orthogonal(size, znear, zfar);
+		result = viewport->get_camera_3d_override_properties();
+		CHECK(result.get("size") == doctest::Approx(size));
+		CHECK(result.get("z_near") == doctest::Approx(znear));
+		CHECK(result.get("z_far") == doctest::Approx(zfar));
+	}
+
+	SUBCASE("[Viewport] Camera3D override raycast") {
+		constexpr real_t sqrt3 = 1.7320508075688773;
+
+		viewport->set_size(Vector2(400, 200));
+		viewport->enable_camera_3d_override(true);
+
+		SUBCASE("project_ray_origin") {
+			SUBCASE("Orthogonal projection") {
+				viewport->set_camera_3d_override_orthogonal(5.0f, 0.5f, 1000.0f);
+				// Center.
+				CHECK(viewport->camera_3d_override_project_ray_origin(Vector2(200, 100)).is_equal_approx(Vector3(0, 0, -0.5f)));
+				// Top left.
+				CHECK(viewport->camera_3d_override_project_ray_origin(Vector2(0, 0)).is_equal_approx(Vector3(-5.0f, 2.5f, -0.5f)));
+				// Bottom right.
+				CHECK(viewport->camera_3d_override_project_ray_origin(Vector2(400, 200)).is_equal_approx(Vector3(5.0f, -2.5f, -0.5f)));
+			}
+
+			SUBCASE("Perspective projection") {
+				viewport->set_camera_3d_override_perspective(120.0f, 0.5f, 1000.0f);
+				// Center.
+				CHECK(viewport->camera_3d_override_project_ray_origin(Vector2(200, 100)).is_equal_approx(Vector3(0, 0, 0)));
+				// Top left.
+				CHECK(viewport->camera_3d_override_project_ray_origin(Vector2(0, 0)).is_equal_approx(Vector3(0, 0, 0)));
+				// Bottom right.
+				CHECK(viewport->camera_3d_override_project_ray_origin(Vector2(400, 200)).is_equal_approx(Vector3(0, 0, 0)));
+			}
+		}
+
+		SUBCASE("project_ray_normal") {
+			SUBCASE("Orthogonal projection") {
+				viewport->set_camera_3d_override_orthogonal(5.0f, 0.5f, 1000.0f);
+				// Center.
+				CHECK(viewport->camera_3d_override_project_ray_normal(Vector2(200, 100)).is_equal_approx(Vector3(0, 0, -1)));
+				// Top left.
+				CHECK(viewport->camera_3d_override_project_ray_normal(Vector2(0, 0)).is_equal_approx(Vector3(0, 0, -1)));
+				// Bottom right.
+				CHECK(viewport->camera_3d_override_project_ray_normal(Vector2(400, 200)).is_equal_approx(Vector3(0, 0, -1)));
+			}
+
+			SUBCASE("Perspective projection") {
+				viewport->set_camera_3d_override_perspective(120.0f, 0.5f, 1000.0f);
+				// Center.
+				CHECK(viewport->camera_3d_override_project_ray_normal(Vector2(200, 100)).is_equal_approx(Vector3(0, 0, -1)));
+				// Top left.
+				CHECK(viewport->camera_3d_override_project_ray_normal(Vector2(0, 0)).is_equal_approx(Vector3(-sqrt3, sqrt3 / 2, -0.5f).normalized()));
+				// Bottom right.
+				CHECK(viewport->camera_3d_override_project_ray_normal(Vector2(400, 200)).is_equal_approx(Vector3(sqrt3, -sqrt3 / 2, -0.5f).normalized()));
+			}
+		}
+
+		SUBCASE("project_local_ray_normal") {
+			SUBCASE("Orthogonal projection") {
+				viewport->set_camera_3d_override_orthogonal(5.0f, 0.5f, 1000.0f);
+				// Center.
+				CHECK(viewport->camera_3d_override_project_local_ray_normal(Vector2(200, 100)).is_equal_approx(Vector3(0, 0, -1)));
+				// Top left.
+				CHECK(viewport->camera_3d_override_project_local_ray_normal(Vector2(0, 0)).is_equal_approx(Vector3(0, 0, -1)));
+				// Bottom right.
+				CHECK(viewport->camera_3d_override_project_local_ray_normal(Vector2(400, 200)).is_equal_approx(Vector3(0, 0, -1)));
+			}
+
+			SUBCASE("Perspective projection") {
+				viewport->set_camera_3d_override_perspective(120.0f, 0.5f, 1000.0f);
+				// Center.
+				CHECK(viewport->camera_3d_override_project_local_ray_normal(Vector2(200, 100)).is_equal_approx(Vector3(0, 0, -1)));
+				// Top left.
+				CHECK(viewport->camera_3d_override_project_local_ray_normal(Vector2(0, 0)).is_equal_approx(Vector3(-sqrt3, sqrt3 / 2, -0.5f).normalized()));
+				// Bottom right.
+				CHECK(viewport->camera_3d_override_project_local_ray_normal(Vector2(400, 200)).is_equal_approx(Vector3(sqrt3, -sqrt3 / 2, -0.5f).normalized()));
+			}
+		}
+	}
+
+	memdelete(viewport);
+}
+
+#endif // _3D_DISABLED
+
 } // namespace TestViewport
 
 #endif // TEST_VIEWPORT_H
