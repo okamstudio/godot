@@ -38,12 +38,12 @@ Patches:
 ## angle
 
 - Upstream: https://chromium.googlesource.com/angle/angle/
-- Version: git (chromium/5907, 430a4f559cbc2bcd5d026e8b36ee46ddd80e9651, 2023)
+- Version: git (chromium/6330, 69f5e9ca60cd6adfecd9eb8c969beeec30a4813d, 2024)
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
 
-- `include/*`
+- `include/EGL/*` and `include/KHR/*` with `.clang-format` excluded
 - `LICENSE`
 
 
