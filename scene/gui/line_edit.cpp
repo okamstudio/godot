@@ -2700,6 +2700,7 @@ Key LineEdit::_get_menu_action_accelerator(const String &p_action) {
 
 void LineEdit::_generate_context_menu() {
 	menu = memnew(PopupMenu);
+	menu->set_auto_translate_mode(AUTO_TRANSLATE_MODE_ALWAYS);
 	add_child(menu, false, INTERNAL_MODE_FRONT);
 
 	menu_dir = memnew(PopupMenu);
