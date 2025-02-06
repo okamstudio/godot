@@ -167,6 +167,7 @@ public:
 
 	// Common.
 	LocalVector<RegEx *> enum_regexes;
+	LocalVector<RegEx *> joypad_enum_regexes;
 	LocalVector<RegEx *> gdscript_function_regexes;
 	LocalVector<RegEx *> project_settings_regexes;
 	LocalVector<RegEx *> project_godot_regexes;
@@ -183,9 +184,14 @@ public:
 	RegExContainer() {
 		// Common.
 		{
-			// Enum.
+			// Enums.
 			for (unsigned int current_index = 0; RenamesMap3To4::enum_renames[current_index][0]; current_index++) {
 				enum_regexes.push_back(memnew(RegEx(String("\\b") + RenamesMap3To4::enum_renames[current_index][0] + "\\b")));
+			}
+			// Joypad Enum.
+			for (unsigned int current_index = 0; RenamesMap3To4::joypad_enum_renames[current_index][0]; current_index++) {
+				// The enum name (JoystickList) is removed instead of converted since its entries now map to two different enums (JoyButton and JoyAxis).
+				joypad_enum_regexes.push_back(memnew(RegEx(String("\\b(JoystickList\\.)?") + RenamesMap3To4::joypad_enum_renames[current_index][0] + "\\b")));
 			}
 			// GDScript functions.
 			for (unsigned int current_index = 0; RenamesMap3To4::gdscript_function_renames[current_index][0]; current_index++) {
@@ -271,6 +277,9 @@ public:
 			memdelete(class_regexes[i]);
 		}
 		for (RegEx *regex : enum_regexes) {
+			memdelete(regex);
+		}
+		for (RegEx *regex : joypad_enum_regexes) {
 			memdelete(regex);
 		}
 		for (RegEx *regex : gdscript_function_regexes) {
@@ -394,6 +403,7 @@ bool ProjectConverter3To4::convert() {
 				rename_classes(source_lines, reg_container); // Using only specialized function.
 
 				rename_common(RenamesMap3To4::enum_renames, reg_container.enum_regexes, source_lines);
+				rename_common(RenamesMap3To4::joypad_enum_renames, reg_container.joypad_enum_regexes, source_lines);
 				rename_colors(source_lines, reg_container); // Require to additional rename.
 
 				rename_common(RenamesMap3To4::gdscript_function_renames, reg_container.gdscript_function_regexes, source_lines);
@@ -414,7 +424,7 @@ bool ProjectConverter3To4::convert() {
 				fix_pause_mode(source_lines, reg_container);
 
 				rename_classes(source_lines, reg_container); // Using only specialized function.
-
+				rename_common(RenamesMap3To4::joypad_enum_renames, reg_container.joypad_enum_regexes, source_lines);
 				rename_common(RenamesMap3To4::enum_renames, reg_container.enum_regexes, source_lines);
 				rename_colors(source_lines, reg_container); // Require to do additional renames.
 
@@ -586,6 +596,7 @@ bool ProjectConverter3To4::validate_conversion() {
 				changed_elements.append_array(check_for_rename_classes(lines, reg_container));
 
 				changed_elements.append_array(check_for_rename_common(RenamesMap3To4::enum_renames, reg_container.enum_regexes, lines));
+				changed_elements.append_array(check_for_rename_common(RenamesMap3To4::joypad_enum_renames, reg_container.joypad_enum_regexes, lines));
 				changed_elements.append_array(check_for_rename_colors(lines, reg_container));
 
 				changed_elements.append_array(check_for_rename_common(RenamesMap3To4::gdscript_function_renames, reg_container.gdscript_function_regexes, lines));
@@ -604,6 +615,7 @@ bool ProjectConverter3To4::validate_conversion() {
 				changed_elements.append_array(check_for_rename_classes(lines, reg_container));
 
 				changed_elements.append_array(check_for_rename_common(RenamesMap3To4::enum_renames, reg_container.enum_regexes, lines));
+				changed_elements.append_array(check_for_rename_common(RenamesMap3To4::joypad_enum_renames, reg_container.joypad_enum_regexes, lines));
 				changed_elements.append_array(check_for_rename_colors(lines, reg_container));
 
 				changed_elements.append_array(check_for_rename_common(RenamesMap3To4::gdscript_function_renames, reg_container.gdscript_function_regexes, lines));
@@ -788,6 +800,8 @@ bool ProjectConverter3To4::test_conversion(RegExContainer &reg_container) {
 	valid = valid && test_conversion_with_regex("pause_mode_ext = 2", "pause_mode_ext = 2", &ProjectConverter3To4::fix_pause_mode, "pause_mode", reg_container);
 
 	valid = valid && test_conversion_basic("TYPE_REAL", "TYPE_FLOAT", RenamesMap3To4::enum_renames, reg_container.enum_regexes, "enum");
+
+	valid = valid && test_conversion_basic("JOY_XBOX_A", "JOY_BUTTON_A", RenamesMap3To4::joypad_enum_renames, reg_container.joypad_enum_regexes, "enum");
 
 	valid = valid && test_conversion_basic("can_instance", "can_instantiate", RenamesMap3To4::gdscript_function_renames, reg_container.gdscript_function_regexes, "gdscript function");
 
