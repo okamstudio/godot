@@ -37,6 +37,12 @@ function godot_rendering_driver_args
     echo -e "dummy\tDummy renderer"
 end
 
+function godot_renderer_latency_args
+    # Use a function instead of a fixed string to customize the argument descriptions.
+    echo -e "high_framerate\tPrioritize high framerate"
+    echo -e "low_latency\tPrioritize low latency"
+end
+
 # Erase existing completions for Godot.
 complete -c godot -e
 
@@ -64,6 +70,7 @@ complete -c godot -l display-driver -d "Set the display driver" -x
 complete -c godot -l rendering-method -d "Set the renderer" -x -a "(godot_rendering_method_args)"
 complete -c godot -l rendering-driver -d "Set the rendering driver" -x -a "(godot_rendering_driver_args)"
 complete -c godot -l gpu-index -d "Use a specific GPU (run with --verbose to get available device list)" -x
+complete -c godot -l renderer-latency -d "Set the renderer latency mode" -x -a "(godot_renderer_latency_args)"
 complete -c godot -l text-driver -d "Set the text driver" -x
 complete -c godot -l tablet-driver -d "Set the pen tablet input driver" -x
 complete -c godot -l headless -d "Enable headless mode (--display-driver headless --audio-driver Dummy). Useful for servers and with --script"

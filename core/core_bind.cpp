@@ -1778,6 +1778,14 @@ double Engine::get_physics_interpolation_fraction() const {
 	return ::Engine::get_singleton()->get_physics_interpolation_fraction();
 }
 
+void Engine::set_render_latency_mode(Engine::RenderLatencyMode p_latency_mode) {
+	::Engine::get_singleton()->set_render_latency_mode((::Engine::RenderLatencyMode)p_latency_mode);
+}
+
+Engine::RenderLatencyMode Engine::get_render_latency_mode() const {
+	return (RenderLatencyMode)::Engine::get_singleton()->get_render_latency_mode();
+}
+
 void Engine::set_max_fps(int p_fps) {
 	::Engine::get_singleton()->set_max_fps(p_fps);
 }
@@ -1953,6 +1961,9 @@ void Engine::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_max_fps", "max_fps"), &Engine::set_max_fps);
 	ClassDB::bind_method(D_METHOD("get_max_fps"), &Engine::get_max_fps);
 
+	ClassDB::bind_method(D_METHOD("set_render_latency_mode", "render_latency_mode"), &Engine::set_render_latency_mode);
+	ClassDB::bind_method(D_METHOD("get_render_latency_mode"), &Engine::get_render_latency_mode);
+
 	ClassDB::bind_method(D_METHOD("set_time_scale", "time_scale"), &Engine::set_time_scale);
 	ClassDB::bind_method(D_METHOD("get_time_scale"), &Engine::get_time_scale);
 
@@ -1996,6 +2007,9 @@ void Engine::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_print_error_messages", "enabled"), &Engine::set_print_error_messages);
 	ClassDB::bind_method(D_METHOD("is_printing_error_messages"), &Engine::is_printing_error_messages);
+
+	BIND_ENUM_CONSTANT(RENDER_LATENCY_PRIORITIZE_FRAMERATE);
+	BIND_ENUM_CONSTANT(RENDER_LATENCY_PRIORITIZE_LOW_LATENCY);
 
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "print_error_messages"), "set_print_error_messages", "is_printing_error_messages");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "print_to_stdout"), "set_print_to_stdout", "is_printing_to_stdout");

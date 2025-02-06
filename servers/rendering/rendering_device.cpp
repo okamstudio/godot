@@ -6221,6 +6221,10 @@ void RenderingDevice::swap_buffers(bool p_present) {
 	_end_frame();
 	_execute_frame(p_present);
 
+	if (Engine::get_singleton()->get_render_latency_mode() == Engine::RENDER_LATENCY_PRIORITIZE_LOW_LATENCY) {
+		_stall_for_previous_frames();
+	}
+
 	// Advance to the next frame and begin recording again.
 	frame = (frame + 1) % frames.size();
 

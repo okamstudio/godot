@@ -566,6 +566,7 @@ void Main::print_help(const char *p_binary) {
 	print_help_option("--rendering-method <renderer>", "Renderer name. Requires driver support.\n");
 	print_help_option("--rendering-driver <driver>", "Rendering driver (depends on display driver).\n");
 	print_help_option("--gpu-index <device_index>", "Use a specific GPU (run with --verbose to get a list of available devices).\n");
+	print_help_option("--renderer-latency <mode>", "Override the renderer low latency mode [\"high_framerate\", \"low_latency\"].\n");
 	print_help_option("--text-driver <driver>", "Text driver (used for font rendering, bidirectional support and shaping).\n");
 	print_help_option("--tablet-driver <driver>", "Pen tablet input driver.\n");
 	print_help_option("--headless", "Enable headless mode (--display-driver headless --audio-driver Dummy). Useful for servers and with --script.\n");
@@ -988,6 +989,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	String default_renderer = "";
 	String default_renderer_mobile = "";
 	String renderer_hints = "";
+	int renderer_latency_mode = -1;
 
 	packed_data = PackedData::get_singleton();
 	if (!packed_data) {
@@ -1183,6 +1185,22 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 				N = N->next();
 			} else {
 				OS::get_singleton()->print("Missing rendering driver argument, aborting.\n");
+				goto error;
+			}
+		} else if (arg == "--renderer-latency") {
+			if (N) {
+				if (N->get() == "high_framerate") {
+					renderer_latency_mode = Engine::RenderLatencyMode::RENDER_LATENCY_PRIORITIZE_FRAMERATE;
+				} else if (N->get() == "low_latency") {
+					renderer_latency_mode = Engine::RenderLatencyMode::RENDER_LATENCY_PRIORITIZE_LOW_LATENCY;
+				} else {
+					OS::get_singleton()->print("Unknown renderer latency mode, aborting.\nValid options are 'high_framerate' and 'low_latency'.\n");
+					goto error;
+				}
+
+				N = N->next();
+			} else {
+				OS::get_singleton()->print("Missing renderer latency mode argument, aborting.\n");
 				goto error;
 			}
 		} else if (arg == "-f" || arg == "--fullscreen") { // force fullscreen
@@ -2593,6 +2611,14 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		if (disable_vsync) {
 			window_vsync_mode = DisplayServer::VSyncMode::VSYNC_DISABLED;
 		}
+	}
+
+	GLOBAL_DEF_BASIC(PropertyInfo(Variant::INT, "rendering/latency/low_latency_mode", PROPERTY_HINT_ENUM, "Prioritize Framerate,Prioritize Low Latency"), 0);
+
+	if (renderer_latency_mode >= 0) {
+		Engine::get_singleton()->set_render_latency_mode(Engine::RenderLatencyMode(renderer_latency_mode));
+	} else {
+		Engine::get_singleton()->set_render_latency_mode(Engine::RenderLatencyMode((int)GLOBAL_GET("rendering/latency/low_latency_mode")));
 	}
 
 	GLOBAL_DEF_RST(PropertyInfo(Variant::INT, "audio/driver/output_latency", PROPERTY_HINT_RANGE, "1,100,1"), 15);

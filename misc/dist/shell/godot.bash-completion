@@ -51,6 +51,7 @@ _complete_godot_options() {
 --rendering-method
 --rendering-driver
 --gpu-index
+--renderer-latency
 --text-driver
 --tablet-driver
 --headless
@@ -129,6 +130,10 @@ _complete_godot_bash() {
     local IFS=$' \n\t'
     # shellcheck disable=SC2207
     COMPREPLY=($(compgen -W "vulkan opengl3 dummy" -- "$cur"))
+  elif [[ $prev == "--renderer-latency" ]]; then
+    local IFS=$' \n\t'
+    # shellcheck disable=SC2207
+    COMPREPLY=($(compgen -W "high_framerate low_latency" -- "$cur"))
 	elif [[ $prev == "--xr-mode" ]]; then
     local IFS=$' \n\t'
     # shellcheck disable=SC2207

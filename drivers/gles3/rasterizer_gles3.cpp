@@ -119,6 +119,10 @@ void RasterizerGLES3::end_frame(bool p_swap_buffers) {
 void RasterizerGLES3::gl_end_frame(bool p_swap_buffers) {
 	if (p_swap_buffers) {
 		DisplayServer::get_singleton()->swap_buffers();
+
+		if (Engine::get_singleton()->get_render_latency_mode() == Engine::RENDER_LATENCY_PRIORITIZE_LOW_LATENCY) {
+			glFinish();
+		}
 	} else {
 		glFinish();
 	}

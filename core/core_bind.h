@@ -534,6 +534,11 @@ protected:
 	static Engine *singleton;
 
 public:
+	enum RenderLatencyMode {
+		RENDER_LATENCY_PRIORITIZE_FRAMERATE,
+		RENDER_LATENCY_PRIORITIZE_LOW_LATENCY,
+	};
+
 	static Engine *get_singleton() { return singleton; }
 	void set_physics_ticks_per_second(int p_ips);
 	int get_physics_ticks_per_second() const;
@@ -544,6 +549,9 @@ public:
 	void set_physics_jitter_fix(double p_threshold);
 	double get_physics_jitter_fix() const;
 	double get_physics_interpolation_fraction() const;
+
+	void set_render_latency_mode(RenderLatencyMode p_latency_mode);
+	RenderLatencyMode get_render_latency_mode() const;
 
 	void set_max_fps(int p_fps);
 	int get_max_fps() const;
@@ -653,6 +661,8 @@ public:
 };
 
 } // namespace core_bind
+
+VARIANT_ENUM_CAST(core_bind::Engine::RenderLatencyMode);
 
 VARIANT_ENUM_CAST(core_bind::ResourceLoader::ThreadLoadStatus);
 VARIANT_ENUM_CAST(core_bind::ResourceLoader::CacheMode);

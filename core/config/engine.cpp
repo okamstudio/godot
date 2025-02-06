@@ -88,6 +88,14 @@ int Engine::get_audio_output_latency() const {
 	return _audio_output_latency;
 }
 
+void Engine::set_render_latency_mode(Engine::RenderLatencyMode p_latency_mode) {
+	_renderer_latency_mode = p_latency_mode;
+}
+
+Engine::RenderLatencyMode Engine::get_render_latency_mode() const {
+	return _renderer_latency_mode;
+}
+
 void Engine::increment_frames_drawn() {
 	if (frame_server_synced) {
 		server_syncs++;

@@ -2735,6 +2735,15 @@
 			The VoxelGI quality to use. High quality leads to more precise lighting and better reflections, but is slower to render. This setting does not affect the baked data and doesn't require baking the [VoxelGI] again to apply.
 			[b]Note:[/b] This property is only read when the project starts. To control VoxelGI quality at runtime, call [method RenderingServer.voxel_gi_set_quality] instead.
 		</member>
+		<member name="rendering/latency/low_latency_mode" type="int" setter="" getter="" default="0">
+			Sets the low latency mode used by the renderer:
+			- [b]Prioritize Framerate[/b] tells the renderer to prioritize higher framerate by allowing the CPU to queue up additional frames before they're rendered by the GPU. This allows the CPU and GPU to work in tandem, improving the framerate and framepacing in complex scenes at the expense of input latency. Use this setting for slower-paced games, or intensive 3D applications including benchmarks and open-world games.
+			- [b]Prioritize Low Latency[/b] tells the renderer to prioritize lower display latency by limiting how far the CPU is allowed to go ahead of the GPU when queueing frames. This can greatly help with input lag, at the cost of significantly reduced framerate in complex scenes. Use this setting for games with simple graphics where responsive control is important. Your results may vary based on platform, drivers, and scene contents.
+			[b]Note:[/b] This setting should be used with care, as low latency mode prevents the CPU and GPU from running in parallel, which may adversely affect performance by as much as 30-50% under load. It is recommended that this option is exposed in your game's settings menu, so that users can select the best mode based on their preferences and hardware.
+			[b]Note:[/b] This property may be overridden with the [code]--renderer-latency[/code] command-line argument. When this argument is used, this project setting is ignored.
+			[b]Note:[/b] This property is only read when the project starts. To change the latency mode at runtime, call [method Engine.set_render_latency_mode] instead.
+			See also [member rendering/rendering_device/vsync/frame_queue_size] and [member rendering/rendering_device/vsync/swapchain_image_count].
+		</member>
 		<member name="rendering/lightmapping/bake_performance/max_rays_per_pass" type="int" setter="" getter="" default="32">
 			The maximum number of rays that can be thrown per pass when baking lightmaps with [LightmapGI]. Depending on the scene, adjusting this value may result in higher GPU utilization when baking lightmaps, leading to faster bake times.
 		</member>

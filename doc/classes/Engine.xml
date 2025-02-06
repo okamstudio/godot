@@ -128,6 +128,13 @@
 				[/codeblocks]
 			</description>
 		</method>
+		<method name="get_render_latency_mode" qualifiers="const">
+			<return type="int" enum="Engine.RenderLatencyMode" />
+			<description>
+				Gets the low latency mode for the renderer. See [enum RenderLatencyMode] for options.
+				[b]Note:[/b] This setting should be used with care, as low latency mode prevents the CPU and GPU from running in parallel, which may adversely affect performance by as much as 30-50% under load. It is recommended that this option is exposed in your game's settings menu, so that users can select the best mode based on their preferences and hardware.
+			</description>
+		</method>
 		<method name="get_script_language" qualifiers="const">
 			<return type="ScriptLanguage" />
 			<param index="0" name="index" type="int" />
@@ -283,6 +290,14 @@
 				Registers the given [Object] [param instance] as a singleton, available globally under [param name]. Useful for plugins.
 			</description>
 		</method>
+		<method name="set_render_latency_mode">
+			<return type="void" />
+			<param index="0" name="render_latency_mode" type="int" enum="Engine.RenderLatencyMode" />
+			<description>
+				Sets the low latency mode for the renderer. See [enum RenderLatencyMode] for options. Equivalent to [member ProjectSettings.rendering/latency/low_latency_mode].
+				[b]Note:[/b] This setting should be used with care, as low latency mode prevents the CPU and GPU from running in parallel, which may adversely affect performance by as much as 30-50% under load. It is recommended that this option is exposed in your game's settings menu, so that users can select the best mode based on their preferences and hardware.
+			</description>
+		</method>
 		<method name="unregister_script_language">
 			<return type="int" enum="Error" />
 			<param index="0" name="language" type="ScriptLanguage" />
@@ -341,4 +356,12 @@
 			[b]Note:[/b] This does not automatically adjust [member physics_ticks_per_second]. With values above [code]1.0[/code] physics simulation may become less precise, as each physics tick will stretch over a larger period of engine time. If you're modifying [member Engine.time_scale] to speed up simulation by a large factor, consider also increasing [member physics_ticks_per_second] to make the simulation more reliable.
 		</member>
 	</members>
+	<constants>
+		<constant name="RENDER_LATENCY_PRIORITIZE_FRAMERATE" value="0" enum="RenderLatencyMode">
+			Tells the renderer to prioritize higher framerate by allowing the CPU to queue up additional frames before they're rendered by the GPU. This allows the CPU and GPU to work in tandem, improving the framerate and framepacing in complex scenes at the expense of input latency. Use this setting for slower-paced games, or intensive 3D applications including benchmarks and open-world games.
+		</constant>
+		<constant name="RENDER_LATENCY_PRIORITIZE_LOW_LATENCY" value="1" enum="RenderLatencyMode">
+			Tells the renderer to prioritize lower display latency by limiting how far the CPU is allowed to go ahead of the GPU when queueing frames. This can greatly help with input lag, at the cost of significantly reduced framerate in complex scenes. Use this setting for games with simple graphics where responsive control is important. Your results may vary based on platform, drivers, and scene contents.
+		</constant>
+	</constants>
 </class>

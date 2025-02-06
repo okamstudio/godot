@@ -48,6 +48,7 @@ _arguments \
   "--rendering-method[set the renderer]:renderer name:((forward_plus\:'Desktop renderer' mobile\:'Desktop and mobile renderer' gl_compatibility\:'Desktop, mobile and web renderer'))" \
   "--rendering-driver[set the rendering driver]:rendering driver name:((vulkan\:'Vulkan renderer' opengl3\:'OpenGL ES 3.0 renderer' dummy\:'Dummy renderer'))" \
   "--gpu-index[use a specific GPU (run with --verbose to get available device list)]:device index" \
+  "--renderer-latency[set the renderer latency mode]:latency mode:((high_framerate\:'Prioritize high framerate' low_latency\:'Prioritize low latency'))" \
   '--text-driver[set the text driver]:text driver name' \
   '--tablet-driver[set the pen tablet input driver]:tablet driver name' \
   '--headless[enable headless mode (--display-driver headless --audio-driver Dummy), useful for servers and with --script]' \
