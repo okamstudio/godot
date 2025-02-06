@@ -156,6 +156,9 @@ bool JavaClass::_call_method(JavaObject *p_instance, const StringName &p_method,
 	}
 
 	if (!method) {
+		if (r_error.error == Callable::CallError::CALL_ERROR_INSTANCE_IS_NULL) {
+			ERR_PRINT(vformat(R"(Cannot call static function "%s" on Java class "%s" directly. Make an instance instead.)", p_method, java_class_name));
+		}
 		return true; //no version convinces
 	}
 
