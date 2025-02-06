@@ -153,7 +153,31 @@ public:
 		return ret;
 	}
 
-	static RWLock lock;
+	// We need a recursive r/w lock because there are various code paths
+	// that may in turn invoke other entry points with require locking.
+	class Locker {
+	public:
+		enum State {
+			STATE_UNLOCKED,
+			STATE_READ,
+			STATE_WRITE,
+		};
+
+	private:
+		inline static RWLock lock;
+		inline thread_local static State thread_state = STATE_UNLOCKED;
+
+	public:
+		class Lock {
+			State state = STATE_UNLOCKED;
+
+		public:
+			explicit Lock(State p_state);
+			~Lock();
+		};
+	};
+	inline static Locker locker;
+
 	static HashMap<StringName, ClassInfo> classes;
 	static HashMap<StringName, StringName> resource_base_extensions;
 	static HashMap<StringName, StringName> compat_classes;
@@ -207,7 +231,7 @@ public:
 
 	template <typename T>
 	static void register_class(bool p_virtual = false) {
-		GLOBAL_LOCK_FUNCTION;
+		Locker::Lock lock(Locker::STATE_WRITE);
 		static_assert(std::is_same_v<typename T::self_type, T>, "Class not declared properly, please use GDCLASS.");
 		T::initialize_class();
 		ClassInfo *t = classes.getptr(T::get_class_static());
@@ -222,7 +246,7 @@ public:
 
 	template <typename T>
 	static void register_abstract_class() {
-		GLOBAL_LOCK_FUNCTION;
+		Locker::Lock lock(Locker::STATE_WRITE);
 		static_assert(std::is_same_v<typename T::self_type, T>, "Class not declared properly, please use GDCLASS.");
 		T::initialize_class();
 		ClassInfo *t = classes.getptr(T::get_class_static());
@@ -235,7 +259,7 @@ public:
 
 	template <typename T>
 	static void register_internal_class() {
-		GLOBAL_LOCK_FUNCTION;
+		Locker::Lock lock(Locker::STATE_WRITE);
 		static_assert(std::is_same_v<typename T::self_type, T>, "Class not declared properly, please use GDCLASS.");
 		T::initialize_class();
 		ClassInfo *t = classes.getptr(T::get_class_static());
@@ -250,7 +274,7 @@ public:
 
 	template <typename T>
 	static void register_runtime_class() {
-		GLOBAL_LOCK_FUNCTION;
+		Locker::Lock lock(Locker::STATE_WRITE);
 		static_assert(std::is_same_v<typename T::self_type, T>, "Class not declared properly, please use GDCLASS.");
 		T::initialize_class();
 		ClassInfo *t = classes.getptr(T::get_class_static());
@@ -275,7 +299,7 @@ public:
 
 	template <typename T>
 	static void register_custom_instance_class() {
-		GLOBAL_LOCK_FUNCTION;
+		Locker::Lock lock(Locker::STATE_WRITE);
 		static_assert(std::is_same_v<typename T::self_type, T>, "Class not declared properly, please use GDCLASS.");
 		T::initialize_class();
 		ClassInfo *t = classes.getptr(T::get_class_static());
@@ -391,7 +415,7 @@ public:
 
 	template <typename M>
 	static MethodBind *bind_vararg_method(uint32_t p_flags, const StringName &p_name, M p_method, const MethodInfo &p_info = MethodInfo(), const Vector<Variant> &p_default_args = Vector<Variant>(), bool p_return_nil_is_variant = true) {
-		GLOBAL_LOCK_FUNCTION;
+		Locker::Lock lock(Locker::STATE_WRITE);
 
 		MethodBind *bind = create_vararg_method_bind(p_method, p_info, p_return_nil_is_variant);
 		ERR_FAIL_NULL_V(bind, nullptr);
@@ -404,7 +428,7 @@ public:
 
 	template <typename M>
 	static MethodBind *bind_compatibility_vararg_method(uint32_t p_flags, const StringName &p_name, M p_method, const MethodInfo &p_info = MethodInfo(), const Vector<Variant> &p_default_args = Vector<Variant>(), bool p_return_nil_is_variant = true) {
-		GLOBAL_LOCK_FUNCTION;
+		Locker::Lock lock(Locker::STATE_WRITE);
 
 		MethodBind *bind = create_vararg_method_bind(p_method, p_info, p_return_nil_is_variant);
 		ERR_FAIL_NULL_V(bind, nullptr);
