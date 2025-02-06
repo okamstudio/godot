@@ -203,6 +203,16 @@ GDScriptInstance *GDScript::_create_instance(const Variant **p_args, int p_argco
 			ERR_FAIL_V_MSG(nullptr, "Error constructing a GDScriptInstance: " + error_text);
 		}
 	}
+
+#ifdef TOOLS_ENABLED
+	// Update exports to have the correct default values for tool scripts on editor startup.
+	// Should be called in the editor only, otherwise it crashes macOS unit tests
+	// with a 'Segmentation violation signal' because of missing instance state support.
+	if (Engine::get_singleton()->is_editor_hint()) {
+		_update_exports(nullptr, false, nullptr);
+	}
+#endif
+
 	//@TODO make thread safe
 	return instance;
 }
