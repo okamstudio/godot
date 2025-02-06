@@ -206,7 +206,14 @@ public:
 	_FORCE_INLINE_ void set(Size p_index, const T &p_elem) {
 		ERR_FAIL_INDEX(p_index, size());
 		_copy_on_write();
+#if defined(__GNUC__) && !defined(__clang__) // False positive raised when using constexpr.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 		_ptr[p_index] = p_elem;
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 	}
 
 	_FORCE_INLINE_ T &get_m(Size p_index) {

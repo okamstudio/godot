@@ -722,7 +722,7 @@ private:
 	// Collider to frame
 	HashMap<ObjectID, uint64_t> physics_2d_mouseover;
 	// Collider & shape to frame
-	HashMap<Pair<ObjectID, int>, uint64_t, PairHash<ObjectID, int>> physics_2d_shape_mouseover;
+	HashMap<Pair<ObjectID, int>, uint64_t> physics_2d_shape_mouseover;
 	// Cleans up colliders corresponding to old frames or all of them.
 	void _cleanup_mouseover_colliders(bool p_clean_all_frames, bool p_paused_only, uint64_t p_frame_reference = 0);
 

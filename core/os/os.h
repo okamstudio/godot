@@ -78,8 +78,8 @@ class OS {
 	// For tracking benchmark data
 	bool use_benchmark = false;
 	String benchmark_file;
-	HashMap<Pair<String, String>, uint64_t, PairHash<String, String>> benchmark_marks_from;
-	HashMap<Pair<String, String>, double, PairHash<String, String>> benchmark_marks_final;
+	HashMap<Pair<String, String>, uint64_t> benchmark_marks_from;
+	HashMap<Pair<String, String>, double> benchmark_marks_final;
 
 protected:
 	void _set_logger(CompositeLogger *p_logger);

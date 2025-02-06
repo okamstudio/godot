@@ -130,17 +130,8 @@ class AnimationBezierTrackEdit : public Control {
 	Vector2 moving_handle_right;
 	int moving_handle_mode = 0; // value from Animation::HandleMode
 
-	struct PairHasher {
-		static _FORCE_INLINE_ uint32_t hash(const Pair<int, int> &p_value) {
-			int32_t hash = 23;
-			hash = hash * 31 * hash_one_uint64(p_value.first);
-			hash = hash * 31 * hash_one_uint64(p_value.second);
-			return hash;
-		}
-	};
-
-	HashMap<Pair<int, int>, Vector2, PairHasher> additional_moving_handle_lefts;
-	HashMap<Pair<int, int>, Vector2, PairHasher> additional_moving_handle_rights;
+	HashMap<Pair<int, int>, Vector2> additional_moving_handle_lefts;
+	HashMap<Pair<int, int>, Vector2> additional_moving_handle_rights;
 
 	void _clear_selection();
 	void _clear_selection_for_anim(const Ref<Animation> &p_anim);
