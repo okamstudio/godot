@@ -72,7 +72,7 @@ public:
 				return false;
 			}
 
-			float min_depth = (closest_point - p_cam_position).length();
+			float min_depth = -closest_point_view.z;
 
 			Vector2 rect_min = Vector2(FLT_MAX, FLT_MAX);
 			Vector2 rect_max = Vector2(FLT_MIN, FLT_MIN);
