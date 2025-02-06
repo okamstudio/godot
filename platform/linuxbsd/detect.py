@@ -469,7 +469,7 @@ def configure(env: "SConsEnvironment"):
             env.ParseConfig("pkg-config vulkan --cflags --libs")
         if not env["builtin_glslang"]:
             # No pkgconfig file so far, hardcode expected lib name.
-            env.Append(LIBS=["glslang", "SPIRV"])
+            env.Append(LIBS=["glslang", "SPIRV", "glslang-default-resource-limits"])
 
     if env["opengl3"]:
         env.Append(CPPDEFINES=["GLES3_ENABLED"])
