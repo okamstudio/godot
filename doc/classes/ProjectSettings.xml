@@ -70,6 +70,7 @@
 				- [code]language[/code] is a name of a programming language in which the global class is written;
 				- [code]path[/code] is a path to a file containing the global class.
 				[b]Note:[/b] Both the script and the icon paths are local to the project filesystem, i.e. they start with [code]res://[/code].
+				See also [method ClassDB.get_class_list].
 			</description>
 		</method>
 		<method name="get_order" qualifiers="const">

@@ -200,7 +200,8 @@
 		<method name="get_class_list" qualifiers="const">
 			<return type="PackedStringArray" />
 			<description>
-				Returns the names of all the classes available.
+				Returns the names of all available built-in classes.
+				[b]Note:[/b] To get all registered global classes, use [method ProjectSettings.get_global_class_list] instead.
 			</description>
 		</method>
 		<method name="get_inheriters_from_class" qualifiers="const">
