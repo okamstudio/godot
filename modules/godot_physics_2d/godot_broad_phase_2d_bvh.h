@@ -57,15 +57,20 @@ class GodotBroadPhase2DBVH : public GodotBroadPhase2D {
 
 	enum Tree {
 		TREE_STATIC = 0,
-		TREE_DYNAMIC = 1,
+		TREE_AREA = 1,
+		TREE_DYNAMIC = 2,
+		TREE_MAX = 3,
 	};
 
 	enum TreeFlag {
 		TREE_FLAG_STATIC = 1 << TREE_STATIC,
+		TREE_FLAG_AREA = 1 << TREE_AREA,
 		TREE_FLAG_DYNAMIC = 1 << TREE_DYNAMIC,
 	};
 
-	BVH_Manager<GodotCollisionObject2D, 2, true, 128, UserPairTestFunction<GodotCollisionObject2D>, UserCullTestFunction<GodotCollisionObject2D>, Rect2, Vector2> bvh;
+	BVH_Manager<GodotCollisionObject2D, TREE_MAX, true, 128, UserPairTestFunction<GodotCollisionObject2D>, UserCullTestFunction<GodotCollisionObject2D>, Rect2, Vector2> bvh;
+
+	void get_tree_and_collition_mask(bool p_static, bool p_area, bool p_dynamic, uint32_t &r_tree_id, uint32_t &p_tree_collision_mask);
 
 	static void *_pair_callback(void *, uint32_t, GodotCollisionObject2D *, int, uint32_t, GodotCollisionObject2D *, int);
 	static void _unpair_callback(void *, uint32_t, GodotCollisionObject2D *, int, uint32_t, GodotCollisionObject2D *, int, void *);
@@ -77,13 +82,16 @@ class GodotBroadPhase2DBVH : public GodotBroadPhase2D {
 
 public:
 	// 0 is an invalid ID
-	virtual ID create(GodotCollisionObject2D *p_object, int p_subindex = 0, const Rect2 &p_aabb = Rect2(), bool p_static = false) override;
+	virtual ID create(GodotCollisionObject2D *p_object, int p_subindex = 0, const Rect2 &p_aabb = Rect2(), bool p_static = false, bool p_area = false, bool p_dynamic = true) override;
 	virtual void move(ID p_id, const Rect2 &p_aabb) override;
 	virtual void set_static(ID p_id, bool p_static) override;
+	virtual void set_type(ID p_id, bool p_static, bool p_area, bool p_dynamic) override;
 	virtual void remove(ID p_id) override;
 
 	virtual GodotCollisionObject2D *get_object(ID p_id) const override;
 	virtual bool is_static(ID p_id) const override;
+	virtual bool is_area(ID p_id) const override;
+	virtual bool is_dynamic(ID p_id) const override;
 	virtual int get_subindex(ID p_id) const override;
 
 	virtual int cull_segment(const Vector2 &p_from, const Vector2 &p_to, GodotCollisionObject2D **p_results, int p_max_results, int *p_result_indices = nullptr) override;

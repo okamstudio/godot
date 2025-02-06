@@ -72,6 +72,8 @@ private:
 	uint32_t collision_layer = 1;
 	real_t collision_priority = 1.0;
 	bool _static = true;
+	bool _area = false;
+	bool _dynamic = false;
 
 	SelfList<GodotCollisionObject2D> pending_shape_update_list;
 
@@ -89,6 +91,7 @@ protected:
 	}
 	_FORCE_INLINE_ void _set_inv_transform(const Transform2D &p_transform) { inv_transform = p_transform; }
 	void _set_static(bool p_static);
+	void _set_type(bool p_static, bool p_area, bool p_dynamic);
 
 	virtual void _shapes_changed() = 0;
 	void _set_space(GodotSpace2D *p_space);

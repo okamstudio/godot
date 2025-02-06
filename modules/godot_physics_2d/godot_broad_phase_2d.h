@@ -48,13 +48,16 @@ public:
 	typedef void (*UnpairCallback)(GodotCollisionObject2D *A, int p_subindex_A, GodotCollisionObject2D *B, int p_subindex_B, void *p_data, void *p_userdata);
 
 	// 0 is an invalid ID
-	virtual ID create(GodotCollisionObject2D *p_object_, int p_subindex = 0, const Rect2 &p_aabb = Rect2(), bool p_static = false) = 0;
+	virtual ID create(GodotCollisionObject2D *p_object_, int p_subindex = 0, const Rect2 &p_aabb = Rect2(), bool p_static = false, bool p_area = false, bool p_dynamic = true) = 0;
 	virtual void move(ID p_id, const Rect2 &p_aabb) = 0;
 	virtual void set_static(ID p_id, bool p_static) = 0;
+	virtual void set_type(ID p_id, bool p_static, bool p_area, bool p_dynamic) = 0;
 	virtual void remove(ID p_id) = 0;
 
 	virtual GodotCollisionObject2D *get_object(ID p_id) const = 0;
 	virtual bool is_static(ID p_id) const = 0;
+	virtual bool is_area(ID p_id) const = 0;
+	virtual bool is_dynamic(ID p_id) const = 0;
 	virtual int get_subindex(ID p_id) const = 0;
 
 	virtual int cull_segment(const Vector2 &p_from, const Vector2 &p_to, GodotCollisionObject2D **p_results, int p_max_results, int *p_result_indices = nullptr) = 0;

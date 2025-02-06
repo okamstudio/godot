@@ -165,6 +165,8 @@ public:
 	void set_monitorable(bool p_monitorable);
 	_FORCE_INLINE_ bool is_monitorable() const { return monitorable; }
 
+	_FORCE_INLINE_ bool is_monitoring() const { return monitor_callback.is_valid() || area_monitor_callback.is_valid(); }
+
 	void set_transform(const Transform3D &p_transform);
 
 	void set_space(GodotSpace3D *p_space) override;

@@ -32,9 +32,33 @@
 
 #include "godot_collision_object_3d.h"
 
-GodotBroadPhase3DBVH::ID GodotBroadPhase3DBVH::create(GodotCollisionObject3D *p_object, int p_subindex, const AABB &p_aabb, bool p_static) {
-	uint32_t tree_id = p_static ? TREE_STATIC : TREE_DYNAMIC;
-	uint32_t tree_collision_mask = p_static ? TREE_FLAG_DYNAMIC : (TREE_FLAG_STATIC | TREE_FLAG_DYNAMIC);
+void GodotBroadPhase3DBVH::get_tree_and_collition_mask(bool p_static, bool p_area, bool p_dynamic, uint32_t &r_tree_id, uint32_t &p_tree_collision_mask) {
+	if (p_static) {
+		if (p_area) {
+			// Active but inmonitorable area (monitorable = false, monitoring = true).
+			r_tree_id = TREE_AREA;
+			p_tree_collision_mask = TREE_FLAG_STATIC | TREE_FLAG_DYNAMIC;
+		} else {
+			// Static body.
+			r_tree_id = TREE_STATIC;
+			p_tree_collision_mask = TREE_FLAG_AREA | TREE_FLAG_DYNAMIC;
+		}
+	} else if (p_dynamic || p_area) {
+		// Rigid body or active and monitorable area (monitorable = true, monitoring = true).
+		r_tree_id = TREE_DYNAMIC;
+		p_tree_collision_mask = TREE_FLAG_STATIC | TREE_FLAG_AREA | TREE_FLAG_DYNAMIC;
+	} else {
+		// Inactiave area (monitorable = false, monitoring = false), set it's mask to 0, and add additional check in BVH_Manager<>::_check_for_collisions().
+		r_tree_id = TREE_STATIC;
+		p_tree_collision_mask = 0;
+	}
+}
+
+GodotBroadPhase3DBVH::ID GodotBroadPhase3DBVH::create(GodotCollisionObject3D *p_object, int p_subindex, const AABB &p_aabb, bool p_static, bool p_area, bool p_dynamic) {
+	uint32_t tree_id = 0;
+	uint32_t tree_collision_mask = 0;
+	get_tree_and_collition_mask(p_static, p_area, p_dynamic, tree_id, tree_collision_mask);
+
 	ID oid = bvh.create(p_object, true, tree_id, tree_collision_mask, p_aabb, p_subindex); // Pair everything, don't care?
 	return oid + 1;
 }
@@ -46,11 +70,20 @@ void GodotBroadPhase3DBVH::move(ID p_id, const AABB &p_aabb) {
 
 void GodotBroadPhase3DBVH::set_static(ID p_id, bool p_static) {
 	ERR_FAIL_COND(!p_id);
-	uint32_t tree_id = p_static ? TREE_STATIC : TREE_DYNAMIC;
-	uint32_t tree_collision_mask = p_static ? TREE_FLAG_DYNAMIC : (TREE_FLAG_STATIC | TREE_FLAG_DYNAMIC);
+	uint32_t tree_id = 0;
+	uint32_t tree_collision_mask = 0;
+	get_tree_and_collition_mask(p_static, false, !p_static, tree_id, tree_collision_mask);
 	bvh.set_tree(p_id - 1, tree_id, tree_collision_mask, false);
 }
 
+void GodotBroadPhase3DBVH::set_type(ID p_id, bool p_static, bool p_area, bool p_dynamic) {
+	ERR_FAIL_COND(!p_id);
+	uint32_t tree_id = 0;
+	uint32_t tree_collision_mask = 0;
+	get_tree_and_collition_mask(p_static, p_area, p_dynamic, tree_id, tree_collision_mask);
+
+	bvh.set_tree(p_id - 1, tree_id, tree_collision_mask, false);
+}
 void GodotBroadPhase3DBVH::remove(ID p_id) {
 	ERR_FAIL_COND(!p_id);
 	bvh.erase(p_id - 1);
@@ -65,8 +98,17 @@ GodotCollisionObject3D *GodotBroadPhase3DBVH::get_object(ID p_id) const {
 
 bool GodotBroadPhase3DBVH::is_static(ID p_id) const {
 	ERR_FAIL_COND_V(!p_id, false);
-	uint32_t tree_id = bvh.get_tree_id(p_id - 1);
-	return tree_id == 0;
+	return bvh.get_tree_collision_mask(p_id - 1) & TREE_FLAG_STATIC;
+}
+
+bool GodotBroadPhase3DBVH::is_area(ID p_id) const {
+	ERR_FAIL_COND_V(!p_id, false);
+	return bvh.get_tree_collision_mask(p_id - 1) & TREE_FLAG_AREA;
+}
+
+bool GodotBroadPhase3DBVH::is_dynamic(ID p_id) const {
+	ERR_FAIL_COND_V(!p_id, false);
+	return bvh.get_tree_collision_mask(p_id - 1) & TREE_FLAG_DYNAMIC;
 }
 
 int GodotBroadPhase3DBVH::get_subindex(ID p_id) const {

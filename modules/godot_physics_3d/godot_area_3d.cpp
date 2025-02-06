@@ -89,6 +89,8 @@ void GodotArea3D::set_space(GodotSpace3D *p_space) {
 void GodotArea3D::set_monitor_callback(const Callable &p_callback) {
 	_unregister_shapes();
 
+	bool prev_monitoring = is_monitoring();
+
 	monitor_callback = p_callback;
 
 	monitored_bodies.clear();
@@ -99,10 +101,17 @@ void GodotArea3D::set_monitor_callback(const Callable &p_callback) {
 	if (!moved_list.in_list() && get_space()) {
 		get_space()->area_add_to_moved_list(&moved_list);
 	}
+
+	if (prev_monitoring != is_monitoring()) {
+		_set_type(!monitorable, is_monitoring(), false);
+		_shapes_changed();
+	}
 }
 
 void GodotArea3D::set_area_monitor_callback(const Callable &p_callback) {
 	_unregister_shapes();
+
+	bool prev_monitoring = is_monitoring();
 
 	area_monitor_callback = p_callback;
 
@@ -113,6 +122,11 @@ void GodotArea3D::set_area_monitor_callback(const Callable &p_callback) {
 
 	if (!moved_list.in_list() && get_space()) {
 		get_space()->area_add_to_moved_list(&moved_list);
+	}
+
+	if (prev_monitoring != is_monitoring()) {
+		_set_type(!monitorable, is_monitoring(), false);
+		_shapes_changed();
 	}
 }
 
@@ -224,7 +238,7 @@ void GodotArea3D::set_monitorable(bool p_monitorable) {
 	}
 
 	monitorable = p_monitorable;
-	_set_static(!monitorable);
+	_set_type(!p_monitorable, is_monitoring(), false);
 	_shapes_changed();
 }
 
@@ -338,7 +352,7 @@ GodotArea3D::GodotArea3D() :
 		GodotCollisionObject3D(TYPE_AREA),
 		monitor_query_list(this),
 		moved_list(this) {
-	_set_static(true); //areas are never active
+	_set_type(false, false, false); //areas are never active
 	set_ray_pickable(false);
 }
 

@@ -55,15 +55,20 @@ class GodotBroadPhase3DBVH : public GodotBroadPhase3D {
 
 	enum Tree {
 		TREE_STATIC = 0,
-		TREE_DYNAMIC = 1,
+		TREE_AREA = 1,
+		TREE_DYNAMIC = 2,
+		TREE_MAX = 3,
 	};
 
 	enum TreeFlag {
 		TREE_FLAG_STATIC = 1 << TREE_STATIC,
+		TREE_FLAG_AREA = 1 << TREE_AREA,
 		TREE_FLAG_DYNAMIC = 1 << TREE_DYNAMIC,
 	};
 
-	BVH_Manager<GodotCollisionObject3D, 2, true, 128, UserPairTestFunction<GodotCollisionObject3D>, UserCullTestFunction<GodotCollisionObject3D>> bvh;
+	BVH_Manager<GodotCollisionObject3D, TREE_MAX, true, 128, UserPairTestFunction<GodotCollisionObject3D>, UserCullTestFunction<GodotCollisionObject3D>> bvh;
+
+	void get_tree_and_collition_mask(bool p_static, bool p_area, bool p_dynamic, uint32_t &r_tree_id, uint32_t &p_tree_collision_mask);
 
 	static void *_pair_callback(void *, uint32_t, GodotCollisionObject3D *, int, uint32_t, GodotCollisionObject3D *, int);
 	static void _unpair_callback(void *, uint32_t, GodotCollisionObject3D *, int, uint32_t, GodotCollisionObject3D *, int, void *);
@@ -75,13 +80,16 @@ class GodotBroadPhase3DBVH : public GodotBroadPhase3D {
 
 public:
 	// 0 is an invalid ID
-	virtual ID create(GodotCollisionObject3D *p_object, int p_subindex = 0, const AABB &p_aabb = AABB(), bool p_static = false) override;
+	virtual ID create(GodotCollisionObject3D *p_object, int p_subindex = 0, const AABB &p_aabb = AABB(), bool p_static = false, bool p_area = false, bool p_dynamic = true) override;
 	virtual void move(ID p_id, const AABB &p_aabb) override;
 	virtual void set_static(ID p_id, bool p_static) override;
+	virtual void set_type(ID p_id, bool p_static, bool p_area, bool p_dynamic) override;
 	virtual void remove(ID p_id) override;
 
 	virtual GodotCollisionObject3D *get_object(ID p_id) const override;
 	virtual bool is_static(ID p_id) const override;
+	virtual bool is_area(ID p_id) const override;
+	virtual bool is_dynamic(ID p_id) const override;
 	virtual int get_subindex(ID p_id) const override;
 
 	virtual int cull_point(const Vector3 &p_point, GodotCollisionObject3D **p_results, int p_max_results, int *p_result_indices = nullptr) override;

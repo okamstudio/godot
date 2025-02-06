@@ -76,6 +76,8 @@ private:
 	Transform3D transform;
 	Transform3D inv_transform;
 	bool _static = true;
+	bool _area = false;
+	bool _dynamic = false;
 
 	SelfList<GodotCollisionObject3D> pending_shape_update_list;
 
@@ -98,6 +100,7 @@ protected:
 	}
 	_FORCE_INLINE_ void _set_inv_transform(const Transform3D &p_transform) { inv_transform = p_transform; }
 	void _set_static(bool p_static);
+	void _set_type(bool p_static, bool p_area, bool p_dynamic);
 
 	virtual void _shapes_changed() = 0;
 	void _set_space(GodotSpace3D *p_space);

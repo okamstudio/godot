@@ -80,6 +80,8 @@ void GodotArea2D::set_space(GodotSpace2D *p_space) {
 void GodotArea2D::set_monitor_callback(const Callable &p_callback) {
 	_unregister_shapes();
 
+	bool prev_monitoring = is_monitoring();
+
 	monitor_callback = p_callback;
 
 	monitored_bodies.clear();
@@ -90,10 +92,17 @@ void GodotArea2D::set_monitor_callback(const Callable &p_callback) {
 	if (!moved_list.in_list() && get_space()) {
 		get_space()->area_add_to_moved_list(&moved_list);
 	}
+
+	if (prev_monitoring != is_monitoring()) {
+		_set_type(!monitorable, is_monitoring(), false);
+		_shapes_changed();
+	}
 }
 
 void GodotArea2D::set_area_monitor_callback(const Callable &p_callback) {
 	_unregister_shapes();
+
+	bool prev_monitoring = is_monitoring();
 
 	area_monitor_callback = p_callback;
 
@@ -104,6 +113,11 @@ void GodotArea2D::set_area_monitor_callback(const Callable &p_callback) {
 
 	if (!moved_list.in_list() && get_space()) {
 		get_space()->area_add_to_moved_list(&moved_list);
+	}
+
+	if (prev_monitoring != is_monitoring()) {
+		_set_type(!monitorable, is_monitoring(), false);
+		_shapes_changed();
 	}
 }
 
@@ -193,7 +207,7 @@ void GodotArea2D::set_monitorable(bool p_monitorable) {
 	}
 
 	monitorable = p_monitorable;
-	_set_static(!monitorable);
+	_set_type(!p_monitorable, is_monitoring(), false);
 	_shapes_changed();
 }
 
@@ -307,7 +321,7 @@ GodotArea2D::GodotArea2D() :
 		GodotCollisionObject2D(TYPE_AREA),
 		monitor_query_list(this),
 		moved_list(this) {
-	_set_static(true); //areas are not active by default
+	_set_type(false, false, false); //areas are not active by default
 }
 
 GodotArea2D::~GodotArea2D() {

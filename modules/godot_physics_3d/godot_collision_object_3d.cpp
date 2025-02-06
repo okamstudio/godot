@@ -126,10 +126,12 @@ void GodotCollisionObject3D::remove_shape(int p_index) {
 }
 
 void GodotCollisionObject3D::_set_static(bool p_static) {
-	if (_static == p_static) {
+	if (_static == p_static && _area == false && _dynamic == !_static) {
 		return;
 	}
 	_static = p_static;
+	_area = false;
+	_dynamic = !_static;
 
 	if (!space) {
 		return;
@@ -137,7 +139,29 @@ void GodotCollisionObject3D::_set_static(bool p_static) {
 	for (int i = 0; i < get_shape_count(); i++) {
 		const Shape &s = shapes[i];
 		if (s.bpid > 0) {
-			space->get_broadphase()->set_static(s.bpid, _static);
+			space->get_broadphase()->set_type(s.bpid, _static, _area, _dynamic);
+		}
+	}
+}
+
+void GodotCollisionObject3D::_set_type(bool p_static, bool p_area, bool p_dynamic) {
+	if (_static == p_static && _area == p_area && _dynamic == p_dynamic) {
+		return;
+	}
+#ifdef DEV_ENABLED
+	ERR_FAIL_COND(p_static && p_dynamic);
+#endif // DEV_ENABLED
+	_static = p_static;
+	_area = p_area;
+	_dynamic = p_dynamic;
+
+	if (!space) {
+		return;
+	}
+	for (int i = 0; i < get_shape_count(); i++) {
+		const Shape &s = shapes[i];
+		if (s.bpid > 0) {
+			space->get_broadphase()->set_type(s.bpid, _static, _area, _dynamic);
 		}
 	}
 }
@@ -174,8 +198,8 @@ void GodotCollisionObject3D::_update_shapes() {
 		s.area_cache = s.shape->get_volume() * scale.x * scale.y * scale.z;
 
 		if (s.bpid == 0) {
-			s.bpid = space->get_broadphase()->create(this, i, shape_aabb, _static);
-			space->get_broadphase()->set_static(s.bpid, _static);
+			s.bpid = space->get_broadphase()->create(this, i, shape_aabb, _static, _dynamic);
+			space->get_broadphase()->set_type(s.bpid, _static, _area, _dynamic);
 		}
 
 		space->get_broadphase()->move(s.bpid, shape_aabb);
@@ -201,8 +225,8 @@ void GodotCollisionObject3D::_update_shapes_with_motion(const Vector3 &p_motion)
 		s.aabb_cache = shape_aabb;
 
 		if (s.bpid == 0) {
-			s.bpid = space->get_broadphase()->create(this, i, shape_aabb, _static);
-			space->get_broadphase()->set_static(s.bpid, _static);
+			s.bpid = space->get_broadphase()->create(this, i, shape_aabb, _static, _dynamic);
+			space->get_broadphase()->set_type(s.bpid, _static, _area, _dynamic);
 		}
 
 		space->get_broadphase()->move(s.bpid, shape_aabb);
