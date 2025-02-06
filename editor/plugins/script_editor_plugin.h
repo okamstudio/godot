@@ -419,8 +419,6 @@ class ScriptEditor : public PanelContainer {
 
 	void _update_selected_editor_menu();
 
-	EditorScriptCodeCompletionCache *completion_cache = nullptr;
-
 	void _editor_stop();
 
 	int edit_pass;
@@ -602,7 +600,6 @@ public:
 	static void register_create_script_editor_function(CreateScriptEditorFunc p_func);
 
 	ScriptEditor(WindowWrapper *p_wrapper);
-	~ScriptEditor();
 };
 
 class ScriptEditorPlugin : public EditorPlugin {

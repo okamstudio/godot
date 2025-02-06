@@ -330,69 +330,6 @@ void ScriptEditorBase::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("go_to_method", PropertyInfo(Variant::OBJECT, "script"), PropertyInfo(Variant::STRING, "method")));
 }
 
-class EditorScriptCodeCompletionCache : public ScriptCodeCompletionCache {
-	struct Cache {
-		uint64_t time_loaded = 0;
-		Ref<Resource> cache;
-	};
-
-	HashMap<String, Cache> cached;
-
-public:
-	uint64_t max_time_cache = 5 * 60 * 1000; //minutes, five
-	uint32_t max_cache_size = 128;
-
-	void cleanup() {
-		List<String> to_clean;
-
-		HashMap<String, Cache>::Iterator I = cached.begin();
-		while (I) {
-			if ((OS::get_singleton()->get_ticks_msec() - I->value.time_loaded) > max_time_cache) {
-				to_clean.push_back(I->key);
-			}
-			++I;
-		}
-
-		while (to_clean.front()) {
-			cached.erase(to_clean.front()->get());
-			to_clean.pop_front();
-		}
-	}
-
-	virtual Ref<Resource> get_cached_resource(const String &p_path) {
-		HashMap<String, Cache>::Iterator E = cached.find(p_path);
-		if (!E) {
-			Cache c;
-			c.cache = ResourceLoader::load(p_path);
-			E = cached.insert(p_path, c);
-		}
-
-		E->value.time_loaded = OS::get_singleton()->get_ticks_msec();
-
-		if (cached.size() > max_cache_size) {
-			uint64_t older;
-			HashMap<String, Cache>::Iterator O = cached.begin();
-			older = O->value.time_loaded;
-			HashMap<String, Cache>::Iterator I = O;
-			while (I) {
-				if (I->value.time_loaded < older) {
-					older = I->value.time_loaded;
-					O = I;
-				}
-				++I;
-			}
-
-			if (O != E) { //should never happen..
-				cached.remove(O);
-			}
-		}
-
-		return E->value.cache;
-	}
-
-	virtual ~EditorScriptCodeCompletionCache() {}
-};
-
 void ScriptEditorQuickOpen::popup_dialog(const Vector<String> &p_functions, bool p_dontclear) {
 	popup_centered_ratio(0.6);
 	if (p_dontclear) {
@@ -4122,7 +4059,6 @@ ScriptEditor::ScriptEditor(WindowWrapper *p_wrapper) {
 	script_editor_cache.instantiate();
 	script_editor_cache->load(EditorPaths::get_singleton()->get_project_settings_dir().path_join("script_editor_cache.cfg"));
 
-	completion_cache = memnew(EditorScriptCodeCompletionCache);
 	restoring_layout = false;
 	waiting_update_names = false;
 	pending_auto_reload = false;
@@ -4480,10 +4416,6 @@ ScriptEditor::ScriptEditor(WindowWrapper *p_wrapper) {
 	register_syntax_highlighter(markdown_syntax_highlighter);
 
 	_update_online_doc();
-}
-
-ScriptEditor::~ScriptEditor() {
-	memdelete(completion_cache);
 }
 
 void ScriptEditorPlugin::_focus_another_editor() {
