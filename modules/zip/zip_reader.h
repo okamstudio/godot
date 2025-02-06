@@ -42,6 +42,8 @@ class ZIPReader : public RefCounted {
 	Ref<FileAccess> fa;
 	unzFile uzf = nullptr;
 
+	PackedByteArray _read_file_base();
+
 protected:
 	static void _bind_methods();
 
@@ -50,7 +52,9 @@ public:
 	Error close();
 
 	PackedStringArray get_files();
+	Array get_files_raw();
 	PackedByteArray read_file(const String &p_path, bool p_case_sensitive);
+	PackedByteArray read_file_at(int64_t p_index);
 	bool file_exists(const String &p_path, bool p_case_sensitive);
 
 	ZIPReader();

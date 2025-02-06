@@ -64,7 +64,15 @@
 		<method name="get_files">
 			<return type="PackedStringArray" />
 			<description>
-				Returns the list of names of all files in the loaded archive.
+				Returns the list of names of all files in the loaded archive as array of [String]s.
+				Must be called after [method open].
+				[b]Note:[/b] This method support ZIP archives with UTF-8 or ASCII encoded filenames only, use [method get_files_raw] to read filenames in other encodings.
+			</description>
+		</method>
+		<method name="get_files_raw">
+			<return type="Array" />
+			<description>
+				Returns the list of names of all files in the loaded archive as array of unprocessed [PackedByteArray]s, use this method to read filenames in unsupported encoding.
 				Must be called after [method open].
 			</description>
 		</method>
@@ -80,7 +88,15 @@
 			<param index="0" name="path" type="String" />
 			<param index="1" name="case_sensitive" type="bool" default="true" />
 			<description>
-				Loads the whole content of a file in the loaded zip archive into memory and returns it.
+				Loads the whole content of a file with filename equal to [param path] in the loaded zip archive into memory and returns it.
+				Must be called after [method open].
+			</description>
+		</method>
+		<method name="read_file_at">
+			<return type="PackedByteArray" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Loads the whole content of a file at position [param index] in the loaded zip archive into memory and returns it.
 				Must be called after [method open].
 			</description>
 		</method>

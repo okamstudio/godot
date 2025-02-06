@@ -88,15 +88,61 @@ PackedStringArray ZIPReader::get_files() {
 	return arr;
 }
 
+Array ZIPReader::get_files_raw() {
+	ERR_FAIL_COND_V_MSG(fa.is_null(), Array(), "ZIPReader must be opened before use.");
+
+	unz_global_info gi;
+	int err = unzGetGlobalInfo(uzf, &gi);
+	ERR_FAIL_COND_V(err != UNZ_OK, Array());
+	if (gi.number_entry == 0) {
+		return Array();
+	}
+
+	err = unzGoToFirstFile(uzf);
+	ERR_FAIL_COND_V(err != UNZ_OK, Array());
+
+	List<PackedByteArray> s;
+	do {
+		unz_file_info64 file_info;
+		PackedByteArray filepath;
+
+		err = godot_unzip_get_current_file_info_raw(uzf, file_info, filepath);
+		if (err == UNZ_OK) {
+			s.push_back(filepath);
+		}
+	} while (unzGoToNextFile(uzf) == UNZ_OK);
+
+	Array arr;
+	arr.resize(s.size());
+	int idx = 0;
+	for (const List<PackedByteArray>::Element *E = s.front(); E; E = E->next()) {
+		arr.set(idx++, E->get());
+	}
+	return arr;
+}
+
 PackedByteArray ZIPReader::read_file(const String &p_path, bool p_case_sensitive) {
 	ERR_FAIL_COND_V_MSG(fa.is_null(), PackedByteArray(), "ZIPReader must be opened before use.");
 
-	int err = UNZ_OK;
+	// Locate and open the file.
+	int err = godot_unzip_locate_file(uzf, p_path, p_case_sensitive);
+	ERR_FAIL_COND_V_MSG(err != UNZ_OK, PackedByteArray(), vformat("File does not exist in zip archive: %s", p_path));
+
+	return _read_file_base();
+}
+
+PackedByteArray ZIPReader::read_file_at(int64_t p_index) {
+	ERR_FAIL_COND_V_MSG(fa.is_null(), PackedByteArray(), "ZIPReader must be opened before use.");
 
 	// Locate and open the file.
-	err = godot_unzip_locate_file(uzf, p_path, p_case_sensitive);
-	ERR_FAIL_COND_V_MSG(err != UNZ_OK, PackedByteArray(), "File does not exist in zip archive: " + p_path);
-	err = unzOpenCurrentFile(uzf);
+	int err = godot_unzip_open_file(uzf, p_index);
+	ERR_FAIL_COND_V_MSG(err != UNZ_OK, PackedByteArray(), vformat("File does not exist in zip archive: %s", p_index));
+
+	return _read_file_base();
+}
+
+PackedByteArray ZIPReader::_read_file_base() {
+	int err = unzOpenCurrentFile(uzf);
 	ERR_FAIL_COND_V_MSG(err != UNZ_OK, PackedByteArray(), "Could not open file within zip archive.");
 
 	// Read the file info.
@@ -152,6 +198,8 @@ void ZIPReader::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("open", "path"), &ZIPReader::open);
 	ClassDB::bind_method(D_METHOD("close"), &ZIPReader::close);
 	ClassDB::bind_method(D_METHOD("get_files"), &ZIPReader::get_files);
+	ClassDB::bind_method(D_METHOD("get_files_raw"), &ZIPReader::get_files_raw);
 	ClassDB::bind_method(D_METHOD("read_file", "path", "case_sensitive"), &ZIPReader::read_file, DEFVAL(Variant(true)));
+	ClassDB::bind_method(D_METHOD("read_file_at", "index"), &ZIPReader::read_file_at);
 	ClassDB::bind_method(D_METHOD("file_exists", "path", "case_sensitive"), &ZIPReader::file_exists, DEFVAL(Variant(true)));
 }

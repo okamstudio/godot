@@ -53,6 +53,28 @@ int godot_unzip_get_current_file_info(unzFile p_zip_file, unz_file_info64 &r_fil
 	return err;
 }
 
+int godot_unzip_get_current_file_info_raw(unzFile p_zip_file, unz_file_info64 &r_file_info, PackedByteArray &r_filepath) {
+	const uLong short_file_path_buffer_size = 16384ul;
+	char short_file_path_buffer[short_file_path_buffer_size];
+
+	int err = unzGetCurrentFileInfo64(p_zip_file, &r_file_info, short_file_path_buffer, short_file_path_buffer_size, nullptr, 0, nullptr, 0);
+	if (unlikely((err != UNZ_OK) || (r_file_info.size_filename > short_file_path_buffer_size))) {
+		PackedByteArray long_file_path_buffer;
+		long_file_path_buffer.resize(r_file_info.size_filename);
+
+		err = unzGetCurrentFileInfo64(p_zip_file, &r_file_info, (char *)long_file_path_buffer.ptr(), long_file_path_buffer.size(), nullptr, 0, nullptr, 0);
+		if (err != UNZ_OK) {
+			return err;
+		}
+		r_filepath = long_file_path_buffer;
+	} else {
+		r_filepath.resize(r_file_info.size_filename);
+		memcpy(r_filepath.ptrw(), short_file_path_buffer, r_file_info.size_filename);
+	}
+
+	return err;
+}
+
 int godot_unzip_locate_file(unzFile p_zip_file, const String &p_filepath, bool p_case_sensitive) {
 	int err = unzGoToFirstFile(p_zip_file);
 	while (err == UNZ_OK) {
@@ -66,6 +88,16 @@ int godot_unzip_locate_file(unzFile p_zip_file, const String &p_filepath, bool p
 			}
 			err = unzGoToNextFile(p_zip_file);
 		}
+	}
+	return err;
+}
+
+int godot_unzip_open_file(unzFile p_zip_file, int64_t p_index) {
+	int64_t idx = 0;
+	int err = unzGoToFirstFile(p_zip_file);
+	while (err == UNZ_OK && idx < p_index) {
+		err = unzGoToNextFile(p_zip_file);
+		idx++;
 	}
 	return err;
 }
