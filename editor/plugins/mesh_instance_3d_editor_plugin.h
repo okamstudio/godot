@@ -64,6 +64,7 @@ class MeshInstance3DEditor : public Control {
 		SHAPE_TYPE_SINGLE_CONVEX,
 		SHAPE_TYPE_SIMPLIFIED_CONVEX,
 		SHAPE_TYPE_MULTIPLE_CONVEX,
+		SHAPE_TYPE_PRIMITIVE
 	};
 
 	MeshInstance3D *node = nullptr;

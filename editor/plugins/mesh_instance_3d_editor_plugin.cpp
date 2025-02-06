@@ -44,9 +44,13 @@
 #include "scene/gui/dialogs.h"
 #include "scene/gui/menu_button.h"
 #include "scene/gui/spin_box.h"
+#include "scene/resources/3d/box_shape_3d.h"
+#include "scene/resources/3d/capsule_shape_3d.h"
 #include "scene/resources/3d/concave_polygon_shape_3d.h"
 #include "scene/resources/3d/convex_polygon_shape_3d.h"
+#include "scene/resources/3d/cylinder_shape_3d.h"
 #include "scene/resources/3d/primitive_meshes.h"
+#include "scene/resources/3d/sphere_shape_3d.h"
 
 void MeshInstance3DEditor::_node_removed(Node *p_node) {
 	if (p_node == node) {
@@ -103,6 +107,37 @@ Vector<Ref<Shape3D>> MeshInstance3DEditor::create_shape_from_mesh(Ref<Mesh> p_me
 			}
 		} break;
 
+		case SHAPE_TYPE_PRIMITIVE: {
+			if (p_mesh->is_class("SphereMesh")) {
+				Ref<SphereMesh> sphereMesh = p_mesh;
+				SphereShape3D *shape = memnew(SphereShape3D);
+				shape->set_radius(fminf(sphereMesh->get_radius(), sphereMesh->get_height() / 2));
+				shapes.push_back(shape);
+			} else if (p_mesh->is_class("BoxMesh")) {
+				Ref<BoxMesh> boxMesh = p_mesh;
+				BoxShape3D *shape = memnew(BoxShape3D);
+				shape->set_size(boxMesh->get_size());
+				shapes.push_back(shape);
+			} else if (p_mesh->is_class("CapsuleMesh")) {
+				Ref<CapsuleMesh> capsuleMesh = p_mesh;
+				CapsuleShape3D *shape = memnew(CapsuleShape3D);
+				shape->set_radius(capsuleMesh->get_radius());
+				shape->set_height(capsuleMesh->get_height());
+				shapes.push_back(shape);
+			} else if (p_mesh->is_class("CylinderMesh")) {
+				Ref<CylinderMesh> cylinderMesh = p_mesh;
+				CylinderShape3D *shape = memnew(CylinderShape3D);
+				shape->set_radius(fminf(cylinderMesh->get_top_radius(), cylinderMesh->get_bottom_radius()));
+				shape->set_height(cylinderMesh->get_height());
+				shapes.push_back(shape);
+			}
+
+			if (p_verbose && shapes.is_empty()) {
+				err_dialog->set_text(TTR("Couldn't create a primitive collision shape."));
+				err_dialog->popup_centered();
+			}
+		} break;
+
 		default:
 			break;
 	}
@@ -128,6 +163,9 @@ void MeshInstance3DEditor::_create_collision_shape() {
 		} break;
 		case SHAPE_TYPE_MULTIPLE_CONVEX: {
 			ur->create_action(TTR(placement_option == SHAPE_PLACEMENT_SIBLING ? "Create Multiple Convex Collision Shape Siblings" : "Create Multiple Convex Static Body"));
+		} break;
+		case SHAPE_TYPE_PRIMITIVE: {
+			ur->create_action(TTR(placement_option == SHAPE_PLACEMENT_SIBLING ? "Create Primitive Collision Shape Siblings" : "Create Primitive Static Body"));
 		} break;
 		default:
 			break;
@@ -635,6 +673,8 @@ MeshInstance3DEditor::MeshInstance3DEditor() {
 	shape_type->set_item_tooltip(-1, TTR("Creates a simplified convex collision shape.\nThis is similar to single collision shape, but can result in a simpler geometry in some cases, at the cost of accuracy."));
 	shape_type->add_item(TTR("Multiple Convex"), SHAPE_TYPE_MULTIPLE_CONVEX);
 	shape_type->set_item_tooltip(-1, TTR("Creates a polygon-based collision shape.\nThis is a performance middle-ground between a single convex collision and a polygon-based collision."));
+	shape_type->add_item(TTR("Primitive"), SHAPE_TYPE_PRIMITIVE);
+	shape_type->set_item_tooltip(-1, TTR("Creates a primitive collision shape.\nThis only works if the source visual mesh is a BoxMesh, CapsuleMesh, CylinderMesh, or SphereMesh."));
 	shape_dialog_vbc->add_child(shape_type);
 
 	add_child(shape_dialog);
