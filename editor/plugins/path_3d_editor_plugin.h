@@ -146,9 +146,12 @@ class Path3DEditorPlugin : public EditorPlugin {
 	void _mode_changed(int p_mode);
 	void _toggle_closed_curve();
 	void _handle_option_pressed(int p_option);
+	void _execute_snap_to_collider();
 	bool handle_clicked = false;
 	bool mirror_handle_angle = true;
 	bool mirror_handle_length = true;
+	bool snap_to_collider = true;
+	bool do_snap_to_collider = false;
 
 	void _create_curve();
 	void _confirm_clear_points();
@@ -158,10 +161,12 @@ class Path3DEditorPlugin : public EditorPlugin {
 
 	enum HandleOption {
 		HANDLE_OPTION_ANGLE,
-		HANDLE_OPTION_LENGTH
+		HANDLE_OPTION_LENGTH,
+		HANDLE_OPTION_SNAP_COLLIDER
 	};
 
 protected:
+	void _notification(int p_what);
 	static void _bind_methods();
 
 public:
