@@ -2230,6 +2230,14 @@ void DisplayServerX11::window_set_transient(WindowID p_window, WindowID p_parent
 			}
 		}
 	} else {
+		if (!wd_window.is_popup || !wd_window.no_focus) {
+			Atom type_atom = XInternAtom(x11_display, "_NET_WM_WINDOW_TYPE_DIALOG", False);
+			Atom wt_atom = XInternAtom(x11_display, "_NET_WM_WINDOW_TYPE", False);
+
+			if (type_atom != None && wt_atom != None) {
+				XChangeProperty(x11_display, wd_window.x11_window, wt_atom, XA_ATOM, 32, PropModeReplace, (unsigned char *)&type_atom, 1);
+			}
+		}
 		ERR_FAIL_COND(!windows.has(p_parent));
 		ERR_FAIL_COND_MSG(prev_parent != INVALID_WINDOW_ID, "Window already has a transient parent");
 		WindowData &wd_parent = windows[p_parent];
