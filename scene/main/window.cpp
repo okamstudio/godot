@@ -836,6 +836,9 @@ void Window::_event_callback(DisplayServer::WindowEvent p_event) {
 		case DisplayServer::WINDOW_EVENT_TITLEBAR_CHANGE: {
 			emit_signal(SNAME("titlebar_changed"));
 		} break;
+		case DisplayServer::WINDOW_EVENT_FORCE_CLOSE: {
+			hide();
+		} break;
 	}
 }
 
@@ -1860,12 +1863,19 @@ void Window::popup(const Rect2i &p_screen_rect) {
 	// Update window size to calculate the actual window size based on contents minimum size and minimum size.
 	_update_window_size();
 
+	bool should_fit = !DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_SELF_FITTING_WINDOWS);
+
 	if (p_screen_rect != Rect2i()) {
 		set_position(p_screen_rect.position);
-		int screen_id = DisplayServer::get_singleton()->get_screen_from_rect(p_screen_rect);
-		Size2i screen_size = DisplayServer::get_singleton()->screen_get_usable_rect(screen_id).size;
-		Size2i new_size = p_screen_rect.size.min(screen_size);
-		set_size(new_size);
+
+		if (should_fit) {
+			int screen_id = DisplayServer::get_singleton()->get_screen_from_rect(p_screen_rect);
+			Size2i screen_size = DisplayServer::get_singleton()->screen_get_usable_rect(screen_id).size;
+			Size2i new_size = p_screen_rect.size.min(screen_size);
+			set_size(new_size);
+		} else {
+			set_size(p_screen_rect.size);
+		}
 	}
 
 	Rect2i adjust = _popup_adjust_rect();
@@ -1893,7 +1903,7 @@ void Window::popup(const Rect2i &p_screen_rect) {
 		int screen_id = DisplayServer::get_singleton()->window_get_current_screen(get_window_id());
 		parent_rect = DisplayServer::get_singleton()->screen_get_usable_rect(screen_id);
 	}
-	if (parent_rect != Rect2i() && !parent_rect.intersects(Rect2i(position, size))) {
+	if (should_fit && parent_rect != Rect2i() && !parent_rect.intersects(Rect2i(position, size))) {
 		ERR_PRINT(vformat("Window %d spawned at invalid position: %s.", get_window_id(), position));
 		set_position((parent_rect.size - size) / 2);
 	}
