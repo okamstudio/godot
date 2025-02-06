@@ -3073,6 +3073,19 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			}
 
 			if (!p_confirmed) {
+				if (project_run_bar->is_playing()) {
+					if (p_option == PROJECT_RELOAD_CURRENT_PROJECT) {
+						confirmation->set_text(TTR("Stop running project before reloading the current project?"));
+						confirmation->set_ok_button_text(TTR("Stop & Reload"));
+					} else {
+						confirmation->set_text(TTR("Stop running project before exiting the editor?"));
+						confirmation->set_ok_button_text(TTR("Stop & Quit"));
+					}
+					confirmation->reset_size();
+					confirmation->popup_centered();
+					break;
+				}
+
 				bool save_each = EDITOR_GET("interface/editor/save_each_scene_on_quit");
 				if (_next_unsaved_scene(!save_each) == -1) {
 					if (EditorUndoRedoManager::get_singleton()->is_history_unsaved(EditorUndoRedoManager::GLOBAL_HISTORY)) {
