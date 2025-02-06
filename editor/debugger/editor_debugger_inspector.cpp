@@ -33,6 +33,7 @@
 #include "core/debugger/debugger_marshalls.h"
 #include "core/io/marshalls.h"
 #include "editor/editor_node.h"
+#include "editor/inspector_dock.h"
 #include "scene/debugger/scene_debugger.h"
 
 bool EditorDebuggerRemoteObject::_set(const StringName &p_name, const Variant &p_value) {
@@ -89,8 +90,28 @@ void EditorDebuggerRemoteObject::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("value_edited", PropertyInfo(Variant::INT, "object_id"), PropertyInfo(Variant::STRING, "property"), PropertyInfo("value")));
 }
 
+void EditorDebuggerInspector::_inspector_property_edited(const String &p_name) {
+	// A bit hacky, but this allows editing exported script properties.
+	// This works around the fact that any direct use of the 'set' command
+	// will simply be consumed by the PlaceholderScriptInstance.
+	EditorDebuggerRemoteObject *debug_obj = Object::cast_to<EditorDebuggerRemoteObject>(InspectorDock::get_inspector_singleton()->get_edited_object());
+	if (debug_obj) {
+		Ref<Script> scr = debug_obj->get_script();
+		if (scr.is_valid()) {
+			List<PropertyInfo> prop_list;
+			scr->get_script_property_list(&prop_list);
+			for (const PropertyInfo &E : prop_list) {
+				if (E.name == p_name) {
+					debug_obj->set("Members/" + p_name, debug_obj->get(p_name));
+				}
+			}
+		}
+	}
+}
+
 EditorDebuggerInspector::EditorDebuggerInspector() {
 	variables = memnew(EditorDebuggerRemoteObject);
+	InspectorDock::get_inspector_singleton()->connect(SNAME("property_edited"), callable_mp(this, &EditorDebuggerInspector::_inspector_property_edited));
 }
 
 EditorDebuggerInspector::~EditorDebuggerInspector() {
@@ -180,6 +201,15 @@ ObjectID EditorDebuggerInspector::add_object(const Array &p_arr) {
 
 		//always add the property, since props may have been added or removed
 		debug_obj->prop_list.push_back(pinfo);
+
+		// If we have a script, attempt to update the script instance variables too
+		// so we can see it properly displayed in the inspector.
+		if (debug_obj->get_script()) {
+			ScriptInstance *debug_obj_script_instance = debug_obj->get_script_instance();
+			if (debug_obj_script_instance) {
+				debug_obj_script_instance->set(pinfo.name, var);
+			}
+		}
 
 		if (!debug_obj->prop_values.has(pinfo.name)) {
 			new_props_added++;

@@ -74,6 +74,7 @@ private:
 
 	void _object_selected(ObjectID p_object);
 	void _object_edited(ObjectID p_id, const String &p_prop, const Variant &p_value);
+	void _inspector_property_edited(const String &p_name);
 
 protected:
 	void _notification(int p_what);
