@@ -75,6 +75,13 @@ private:
 		Ref<Texture2D> warning_icon;
 
 		Color message_color;
+
+		Color red_color;
+		Color green_color;
+		Color yellow_color;
+		Color blue_color;
+		Color magenta_color;
+		Color cyan_color;
 	} theme_cache;
 
 	// Encapsulates all data and functionality regarding filters.
@@ -158,6 +165,8 @@ private:
 	void _rebuild_log();
 	void _add_log_line(LogMessage &p_message, bool p_replace_previous = false);
 	bool _check_display_message(LogMessage &p_message);
+	String _replace_color(const String &p_color) const;
+	String _replace_bbcode_colors(const String &p_string) const;
 
 	void _set_filter_active(bool p_active, MessageType p_message_type);
 	void _set_search_visible(bool p_visible);
