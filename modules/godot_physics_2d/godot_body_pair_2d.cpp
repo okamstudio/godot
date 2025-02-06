@@ -239,12 +239,40 @@ bool GodotBodyPair2D::_test_ccd(real_t p_step, GodotBody2D *p_A, int p_shape_A, 
 	return true;
 }
 
-real_t combine_bounce(GodotBody2D *A, GodotBody2D *B) {
-	return CLAMP(A->get_bounce() + B->get_bounce(), 0, 1);
+real_t combine_bounce(GodotBody2D *A, GodotBody2D *B, int p_shapeA, int p_shapeB) {
+	real_t bounceA, bounceB;
+
+	const GodotShape2D *shapeA = A->get_shape(p_shapeA);
+	bounceA = shapeA->get_bounce();
+	if (isnan(bounceA)) {
+		bounceA = A->get_bounce();
+	}
+
+	const GodotShape2D *shapeB = B->get_shape(p_shapeB);
+	bounceB = shapeB->get_bounce();
+	if (isnan(bounceB)) {
+		bounceB = B->get_bounce();
+	}
+
+	return CLAMP(bounceA + bounceB, 0, 1);
 }
 
-real_t combine_friction(GodotBody2D *A, GodotBody2D *B) {
-	return ABS(MIN(A->get_friction(), B->get_friction()));
+real_t combine_friction(GodotBody2D *A, GodotBody2D *B, int p_shapeA, int p_shapeB) {
+	real_t frictionA, frictionB;
+
+	const GodotShape2D *shapeA = A->get_shape(p_shapeA);
+	frictionA = shapeA->get_friction();
+	if (isnan(frictionA)) {
+		frictionA = A->get_friction();
+	}
+
+	const GodotShape2D *shapeB = B->get_shape(p_shapeB);
+	frictionB = shapeB->get_friction();
+	if (isnan(frictionB)) {
+		frictionB = B->get_friction();
+	}
+
+	return ABS(MIN(frictionA, frictionB));
 }
 
 bool GodotBodyPair2D::setup(real_t p_step) {
@@ -488,7 +516,7 @@ bool GodotBodyPair2D::pre_solve(real_t p_step) {
 		}
 #endif
 
-		c.bounce = combine_bounce(A, B);
+		c.bounce = combine_bounce(A, B, shape_A, shape_B);
 		if (c.bounce) {
 			Vector2 crA(-A->get_prev_angular_velocity() * c.rA.y, A->get_prev_angular_velocity() * c.rA.x);
 			Vector2 crB(-B->get_prev_angular_velocity() * c.rB.y, B->get_prev_angular_velocity() * c.rB.x);
@@ -574,7 +602,7 @@ void GodotBodyPair2D::solve(real_t p_step) {
 		real_t jnOld = c.acc_normal_impulse;
 		c.acc_normal_impulse = MAX(jnOld + jn, 0.0f);
 
-		real_t friction = combine_friction(A, B);
+		real_t friction = combine_friction(A, B, shape_A, shape_B);
 
 		real_t jtMax = friction * c.acc_normal_impulse;
 		real_t jt = -vt * c.mass_tangent;

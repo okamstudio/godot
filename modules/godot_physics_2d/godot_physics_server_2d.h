@@ -96,10 +96,14 @@ public:
 
 	virtual void shape_set_data(RID p_shape, const Variant &p_data) override;
 	virtual void shape_set_custom_solver_bias(RID p_shape, real_t p_bias) override;
+	virtual void shape_set_friction(RID p_shape, real_t p_friction) override;
+	virtual void shape_set_bounce(RID p_shape, real_t p_bounce) override;
 
 	virtual ShapeType shape_get_type(RID p_shape) const override;
 	virtual Variant shape_get_data(RID p_shape) const override;
 	virtual real_t shape_get_custom_solver_bias(RID p_shape) const override;
+	virtual real_t shape_get_friction(RID p_shape) const override;
+	virtual real_t shape_get_bounce(RID p_shape) const override;
 
 	virtual bool shape_collide(RID p_shape_A, const Transform2D &p_xform_A, const Vector2 &p_motion_A, RID p_shape_B, const Transform2D &p_xform_B, const Vector2 &p_motion_B, Vector2 *r_results, int p_result_max, int &r_result_count) override;
 

@@ -31,6 +31,7 @@
 #ifndef JOLT_SHAPE_3D_H
 #define JOLT_SHAPE_3D_H
 
+#include "jolt_physics_material.h"
 #include "servers/physics_server_3d.h"
 
 #include "Jolt/Jolt.h"
@@ -44,9 +45,14 @@ protected:
 	HashMap<JoltShapedObject3D *, int> ref_counts_by_owner;
 	Mutex jolt_ref_mutex;
 	RID rid;
-	JPH::ShapeRefC jolt_ref;
+	JPH::Ref<JPH::Shape> jolt_ref;
+	real_t friction = NAN;
+	real_t bounce = NAN;
+	bool _uses_shape_material = false;
 
-	virtual JPH::ShapeRefC _build() const = 0;
+	JPH::RefConst<JoltPhysicsMaterial> _get_material() const;
+	virtual void _update_material(JPH::RefConst<JoltPhysicsMaterial> &p_material) = 0;
+	virtual JPH::Ref<JPH::Shape> _build() const = 0;
 
 	String _owners_to_string() const;
 
@@ -76,6 +82,14 @@ public:
 	float get_solver_bias() const;
 	void set_solver_bias(float p_bias);
 
+	real_t get_friction() const;
+	void set_friction(real_t p_friction);
+
+	real_t get_bounce() const;
+	void set_bounce(real_t p_bounce);
+
+	bool uses_shape_material() const;
+
 	JPH::ShapeRefC try_build();
 
 	void destroy();
@@ -87,7 +101,7 @@ public:
 	static JPH::ShapeRefC with_center_of_mass_offset(const JPH::Shape *p_shape, const Vector3 &p_offset);
 	static JPH::ShapeRefC with_center_of_mass(const JPH::Shape *p_shape, const Vector3 &p_center_of_mass);
 	static JPH::ShapeRefC with_user_data(const JPH::Shape *p_shape, uint64_t p_user_data);
-	static JPH::ShapeRefC with_double_sided(const JPH::Shape *p_shape, bool p_back_face_collision);
+	static JPH::Ref<JPH::Shape> with_double_sided(const JPH::Shape *p_shape, bool p_back_face_collision);
 	static JPH::ShapeRefC without_custom_shapes(const JPH::Shape *p_shape);
 
 	static Vector3 make_scale_valid(const JPH::Shape *p_shape, const Vector3 &p_scale);

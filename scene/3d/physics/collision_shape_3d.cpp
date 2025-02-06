@@ -173,6 +173,10 @@ void CollisionShape3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "shape", PROPERTY_HINT_RESOURCE_TYPE, "Shape3D"), "set_shape", "get_shape");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "disabled"), "set_disabled", "is_disabled");
 
+	ClassDB::bind_method(D_METHOD("set_physics_material", "material"), &CollisionShape3D::set_physics_material);
+	ClassDB::bind_method(D_METHOD("get_physics_material"), &CollisionShape3D::get_physics_material);
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "physics_material", PROPERTY_HINT_RESOURCE_TYPE, "PhysicsMaterial"), "set_physics_material", "get_physics_material");
+
 	ClassDB::bind_method(D_METHOD("set_debug_color", "color"), &CollisionShape3D::set_debug_color);
 	ClassDB::bind_method(D_METHOD("get_debug_color"), &CollisionShape3D::get_debug_color);
 
@@ -213,6 +217,20 @@ void CollisionShape3D::set_shape(const Ref<Shape3D> &p_shape) {
 		shape->connect_changed(callable_mp(this, &CollisionShape3D::_shape_changed));
 #endif // DEBUG_ENABLED
 	}
+
+	if (shape.is_valid()) {
+		RID shape_rid = shape->get_rid();
+
+		if (physics_material.is_null()) {
+			// Unset friction and bounce to make the physics engine use the body's material.
+			PhysicsServer3D::get_singleton()->shape_set_friction(shape_rid, NAN);
+			PhysicsServer3D::get_singleton()->shape_set_bounce(shape_rid, NAN);
+		} else {
+			PhysicsServer3D::get_singleton()->shape_set_friction(shape_rid, physics_material->computed_friction());
+			PhysicsServer3D::get_singleton()->shape_set_bounce(shape_rid, physics_material->computed_bounce());
+		}
+	}
+
 	update_gizmos();
 	if (collision_object) {
 		collision_object->shape_owner_clear_shapes(owner_id);
@@ -230,6 +248,24 @@ void CollisionShape3D::set_shape(const Ref<Shape3D> &p_shape) {
 
 Ref<Shape3D> CollisionShape3D::get_shape() const {
 	return shape;
+}
+
+void CollisionShape3D::set_physics_material(const Ref<PhysicsMaterial> &p_material) {
+	physics_material = p_material;
+	RID shape_rid = shape->get_rid();
+
+	if (p_material.is_null()) {
+		// Unset friction and bounce to make the physics engine use the body's material.
+		PhysicsServer3D::get_singleton()->shape_set_friction(shape_rid, NAN);
+		PhysicsServer3D::get_singleton()->shape_set_bounce(shape_rid, NAN);
+	} else {
+		PhysicsServer3D::get_singleton()->shape_set_friction(shape_rid, p_material->computed_friction());
+		PhysicsServer3D::get_singleton()->shape_set_bounce(shape_rid, p_material->computed_bounce());
+	}
+}
+
+Ref<PhysicsMaterial> CollisionShape3D::get_physics_material() const {
+	return physics_material;
 }
 
 void CollisionShape3D::set_disabled(bool p_disabled) {

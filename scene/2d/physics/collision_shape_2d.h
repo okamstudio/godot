@@ -33,6 +33,7 @@
 
 #include "scene/2d/node_2d.h"
 #include "scene/resources/2d/shape_2d.h"
+#include "scene/resources/physics_material.h"
 
 class CollisionObject2D;
 
@@ -45,6 +46,7 @@ class CollisionShape2D : public Node2D {
 	bool disabled = false;
 	bool one_way_collision = false;
 	real_t one_way_collision_margin = 1.0;
+	Ref<PhysicsMaterial> physics_material;
 
 	void _shape_changed();
 	void _update_in_shape_owner(bool p_xform_only = false);
@@ -86,6 +88,9 @@ public:
 
 	void set_debug_color(const Color &p_color);
 	Color get_debug_color() const;
+
+	void set_physics_material(const Ref<PhysicsMaterial> &p_material);
+	Ref<PhysicsMaterial> get_physics_material() const;
 
 	PackedStringArray get_configuration_warnings() const override;
 

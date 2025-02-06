@@ -913,6 +913,13 @@
 				Activates or deactivates the 2D physics server. If [param active] is [code]false[/code], then the physics server will not do anything in its physics step.
 			</description>
 		</method>
+		<method name="shape_get_bounce" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="shape" type="RID" />
+			<description>
+				Returns the bounciness for the shape.
+			</description>
+		</method>
 		<method name="shape_get_data" qualifiers="const">
 			<return type="Variant" />
 			<param index="0" name="shape" type="RID" />
@@ -920,11 +927,26 @@
 				Returns the shape data that defines the configuration of the shape, such as the half-extents of a rectangle or the segments of a concave shape. See [method shape_set_data] for the precise format of this data in each case.
 			</description>
 		</method>
+		<method name="shape_get_friction" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="shape" type="RID" />
+			<description>
+				Returns the friction for the shape.
+			</description>
+		</method>
 		<method name="shape_get_type" qualifiers="const">
 			<return type="int" enum="PhysicsServer2D.ShapeType" />
 			<param index="0" name="shape" type="RID" />
 			<description>
 				Returns the shape's type (see [enum ShapeType]).
+			</description>
+		</method>
+		<method name="shape_set_bounce">
+			<return type="void" />
+			<param index="0" name="shape" type="RID" />
+			<param index="1" name="bounce" type="float" />
+			<description>
+				Sets the bounciness for the shape. Passing [constant @GDScript.NAN] as the parameter will use the body's bounciness. A negative value is equivalent to turning on [member PhysicsMaterial.absorbent].
 			</description>
 		</method>
 		<method name="shape_set_data">
@@ -942,6 +964,14 @@
 				- [constant SHAPE_CONVEX_POLYGON]: either a [PackedVector2Array] of points defining a convex polygon in counterclockwise order (the clockwise outward normal of each segment formed by consecutive points is calculated internally), or a [PackedFloat32Array] of length divisible by four so that every 4-tuple of [float]s contains the coordinates of a point followed by the coordinates of the clockwise outward normal vector to the segment between the current point and the next point,
 				- [constant SHAPE_CONCAVE_POLYGON]: a [PackedVector2Array] of length divisible by two (each pair of points forms one segment).
 				[b]Warning:[/b] In the case of [constant SHAPE_CONVEX_POLYGON], this method does not check if the points supplied actually form a convex polygon (unlike the [member CollisionPolygon2D.polygon] property).
+			</description>
+		</method>
+		<method name="shape_set_friction">
+			<return type="void" />
+			<param index="0" name="shape" type="RID" />
+			<param index="1" name="friction" type="float" />
+			<description>
+				Sets the friction for the shape. Passing [constant @GDScript.NAN] as the parameter will use the body's friction. A negative value is equivalent to turning on [member PhysicsMaterial.rough].
 			</description>
 		</method>
 		<method name="space_create">

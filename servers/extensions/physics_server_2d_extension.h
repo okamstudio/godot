@@ -210,10 +210,14 @@ public:
 
 	EXBIND2(shape_set_data, RID, const Variant &)
 	EXBIND2(shape_set_custom_solver_bias, RID, real_t)
+	EXBIND2(shape_set_friction, RID, real_t)
+	EXBIND2(shape_set_bounce, RID, real_t)
 
 	EXBIND1RC(ShapeType, shape_get_type, RID)
 	EXBIND1RC(Variant, shape_get_data, RID)
 	EXBIND1RC(real_t, shape_get_custom_solver_bias, RID)
+	EXBIND1RC(real_t, shape_get_friction, RID)
+	EXBIND1RC(real_t, shape_get_bounce, RID)
 
 	virtual bool shape_collide(RID p_shape_A, const Transform2D &p_xform_A, const Vector2 &p_motion_A, RID p_shape_B, const Transform2D &p_xform_B, const Vector2 &p_motion_B, Vector2 *r_results, int p_result_max, int &r_result_count) override {
 		bool ret = false;

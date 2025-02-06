@@ -979,6 +979,13 @@
 				Overridable version of [PhysicsServer2D]'s internal [code]shape_collide[/code] method. Corresponds to [method PhysicsDirectSpaceState2D.collide_shape].
 			</description>
 		</method>
+		<method name="_shape_get_bounce" qualifiers="virtual const">
+			<return type="float" />
+			<param index="0" name="shape" type="RID" />
+			<description>
+				Overridable version of [method PhysicsServer2D.shape_get_bounce].
+			</description>
+		</method>
 		<method name="_shape_get_custom_solver_bias" qualifiers="virtual const">
 			<return type="float" />
 			<param index="0" name="shape" type="RID" />
@@ -994,11 +1001,26 @@
 				Overridable version of [method PhysicsServer2D.shape_get_data].
 			</description>
 		</method>
+		<method name="_shape_get_friction" qualifiers="virtual const">
+			<return type="float" />
+			<param index="0" name="shape" type="RID" />
+			<description>
+				Overridable version of [method PhysicsServer2D.shape_get_friction].
+			</description>
+		</method>
 		<method name="_shape_get_type" qualifiers="virtual const">
 			<return type="int" enum="PhysicsServer2D.ShapeType" />
 			<param index="0" name="shape" type="RID" />
 			<description>
 				Overridable version of [method PhysicsServer2D.shape_get_type].
+			</description>
+		</method>
+		<method name="_shape_set_bounce" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="shape" type="RID" />
+			<param index="1" name="bounce" type="float" />
+			<description>
+				Overridable version of [method PhysicsServer2D.shape_set_bounce].
 			</description>
 		</method>
 		<method name="_shape_set_custom_solver_bias" qualifiers="virtual">
@@ -1016,6 +1038,14 @@
 			<param index="1" name="data" type="Variant" />
 			<description>
 				Overridable version of [method PhysicsServer2D.shape_set_data].
+			</description>
+		</method>
+		<method name="_shape_set_friction" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="shape" type="RID" />
+			<param index="1" name="friction" type="float" />
+			<description>
+				Overridable version of [method PhysicsServer2D.shape_set_friction].
 			</description>
 		</method>
 		<method name="_space_create" qualifiers="virtual">

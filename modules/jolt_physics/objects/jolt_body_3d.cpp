@@ -127,8 +127,9 @@ void JoltBody3D::_add_to_space() {
 	jolt_settings->mAllowedDOFs = _calculate_allowed_dofs();
 	jolt_settings->mAllowDynamicOrKinematic = true;
 	jolt_settings->mCollideKinematicVsNonDynamic = reports_all_kinematic_contacts();
-	jolt_settings->mUseManifoldReduction = !reports_contacts();
 	jolt_settings->mAllowSleeping = is_sleep_actually_allowed();
+	// This body uses per-shape physics materials, manifold reduction is not safe (can merge shapes with different materials).
+	jolt_settings->mUseManifoldReduction = !reports_contacts() && !uses_shape_materials();
 	jolt_settings->mLinearDamping = 0.0f;
 	jolt_settings->mAngularDamping = 0.0f;
 	jolt_settings->mMaxLinearVelocity = JoltProjectSettings::get_max_linear_velocity();
@@ -890,7 +891,8 @@ void JoltBody3D::set_max_contacts_reported(int p_count) {
 	contacts.resize(p_count);
 	contact_count = MIN(contact_count, p_count);
 
-	const bool use_manifold_reduction = !reports_contacts();
+	// This body uses per-shape physics materials, manifold reduction is not safe (can merge shapes with different materials).
+	const bool use_manifold_reduction = !reports_contacts() && !uses_shape_materials();
 
 	if (!in_space()) {
 		jolt_settings->mUseManifoldReduction = use_manifold_reduction;

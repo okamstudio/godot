@@ -704,10 +704,14 @@ void PhysicsServer3D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("shape_set_data", "shape", "data"), &PhysicsServer3D::shape_set_data);
 	ClassDB::bind_method(D_METHOD("shape_set_margin", "shape", "margin"), &PhysicsServer3D::shape_set_margin);
+	ClassDB::bind_method(D_METHOD("shape_set_friction", "shape", "friction"), &PhysicsServer3D::shape_set_friction);
+	ClassDB::bind_method(D_METHOD("shape_set_bounce", "shape", "bounce"), &PhysicsServer3D::shape_set_bounce);
 
 	ClassDB::bind_method(D_METHOD("shape_get_type", "shape"), &PhysicsServer3D::shape_get_type);
 	ClassDB::bind_method(D_METHOD("shape_get_data", "shape"), &PhysicsServer3D::shape_get_data);
 	ClassDB::bind_method(D_METHOD("shape_get_margin", "shape"), &PhysicsServer3D::shape_get_margin);
+	ClassDB::bind_method(D_METHOD("shape_get_friction", "shape"), &PhysicsServer3D::shape_get_friction);
+	ClassDB::bind_method(D_METHOD("shape_get_bounce", "shape"), &PhysicsServer3D::shape_get_bounce);
 
 	ClassDB::bind_method(D_METHOD("space_create"), &PhysicsServer3D::space_create);
 	ClassDB::bind_method(D_METHOD("space_set_active", "space", "active"), &PhysicsServer3D::space_set_active);

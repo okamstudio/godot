@@ -45,7 +45,8 @@ class JoltHeightMapShape3D final : public JoltShape3D {
 	int width = 0;
 	int depth = 0;
 
-	virtual JPH::ShapeRefC _build() const override;
+	virtual void _update_material(JPH::RefConst<JoltPhysicsMaterial> &p_material) override;
+	virtual JPH::Ref<JPH::Shape> _build() const override;
 	JPH::ShapeRefC _build_height_field() const;
 	JPH::ShapeRefC _build_mesh() const;
 

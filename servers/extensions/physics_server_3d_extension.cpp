@@ -145,12 +145,18 @@ void PhysicsServer3DExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_shape_set_data, "shape", "data");
 	GDVIRTUAL_BIND(_shape_set_custom_solver_bias, "shape", "bias");
 
+	GDVIRTUAL_BIND(_shape_set_bounce, "shape", "bounce");
+	GDVIRTUAL_BIND(_shape_set_friction, "shape", "friction");
+
 	GDVIRTUAL_BIND(_shape_set_margin, "shape", "margin");
 	GDVIRTUAL_BIND(_shape_get_margin, "shape");
 
 	GDVIRTUAL_BIND(_shape_get_type, "shape");
 	GDVIRTUAL_BIND(_shape_get_data, "shape");
 	GDVIRTUAL_BIND(_shape_get_custom_solver_bias, "shape");
+
+	GDVIRTUAL_BIND(_shape_get_bounce, "shape");
+	GDVIRTUAL_BIND(_shape_get_friction, "shape");
 
 	/* SPACE API */
 

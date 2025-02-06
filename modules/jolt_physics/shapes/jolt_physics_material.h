@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  jolt_separation_ray_shape_3d.h                                        */
+/*  jolt_physics_material.h                                               */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,31 +28,21 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef JOLT_SEPARATION_RAY_SHAPE_3D_H
-#define JOLT_SEPARATION_RAY_SHAPE_3D_H
+#ifndef JOLT_PHYSICS_MATERIAL_H
+#define JOLT_PHYSICS_MATERIAL_H
 
-#include "jolt_shape_3d.h"
+#include "Jolt/Jolt.h"
 
-class JoltSeparationRayShape3D final : public JoltShape3D {
-	float length = 0.0f;
-	bool slide_on_slope = false;
+#include "Jolt/Physics/Collision/PhysicsMaterialSimple.h"
+#include "core/math/math_defs.h"
 
-	virtual void _update_material(JPH::RefConst<JoltPhysicsMaterial> &p_material) override;
-	virtual JPH::Ref<JPH::Shape> _build() const override;
-
+class JoltPhysicsMaterial : public JPH::PhysicsMaterialSimple {
 public:
-	virtual ShapeType get_type() const override { return ShapeType::SHAPE_SEPARATION_RAY; }
-	virtual bool is_convex() const override { return true; }
+	real_t friction;
+	real_t bounce;
 
-	virtual Variant get_data() const override;
-	virtual void set_data(const Variant &p_data) override;
-
-	virtual float get_margin() const override { return 0.0f; }
-	virtual void set_margin(float p_margin) override {}
-
-	virtual AABB get_aabb() const override;
-
-	String to_string() const;
+	JoltPhysicsMaterial(real_t p_friction, real_t p_bounce) :
+			friction(p_friction), bounce(p_bounce) {}
 };
 
-#endif // JOLT_SEPARATION_RAY_SHAPE_3D_H
+#endif // JOLT_PHYSICS_MATERIAL_H

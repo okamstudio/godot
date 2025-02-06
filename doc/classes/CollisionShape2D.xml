@@ -27,6 +27,10 @@
 		<member name="one_way_collision_margin" type="float" setter="set_one_way_collision_margin" getter="get_one_way_collision_margin" default="1.0">
 			The margin used for one-way collision (in pixels). Higher values will make the shape thicker, and work better for colliders that enter the shape at a high velocity.
 		</member>
+		<member name="physics_material" type="PhysicsMaterial" setter="set_physics_material" getter="get_physics_material">
+			The shape's physics material.
+			Setting a physics material lets the body have different parts with different properties, like the head and handle on a hammer. This can make collisions with the body more expensive.
+		</member>
 		<member name="shape" type="Shape2D" setter="set_shape" getter="get_shape">
 			The actual shape owned by this collision shape.
 		</member>

@@ -39,6 +39,10 @@
 		<member name="disabled" type="bool" setter="set_disabled" getter="is_disabled" default="false" keywords="enabled">
 			A disabled collision shape has no effect in the world.
 		</member>
+		<member name="physics_material" type="PhysicsMaterial" setter="set_physics_material" getter="get_physics_material">
+			The shape's physics material.
+			Setting a physics material lets the body have different parts with different properties, like the head and handle on a hammer. This can make collisions with the body more expensive.
+		</member>
 		<member name="shape" type="Shape3D" setter="set_shape" getter="get_shape">
 			The actual shape owned by this collision shape.
 		</member>

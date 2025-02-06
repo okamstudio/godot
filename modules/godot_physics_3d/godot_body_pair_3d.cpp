@@ -250,12 +250,40 @@ bool GodotBodyPair3D::_test_ccd(real_t p_step, GodotBody3D *p_A, int p_shape_A, 
 	return true;
 }
 
-real_t combine_bounce(GodotBody3D *A, GodotBody3D *B) {
-	return CLAMP(A->get_bounce() + B->get_bounce(), 0, 1);
+real_t combine_bounce(GodotBody3D *A, GodotBody3D *B, int p_shapeA, int p_shapeB) {
+	real_t bounceA, bounceB;
+
+	const GodotShape3D *shapeA = A->get_shape(p_shapeA);
+	bounceA = shapeA->get_bounce();
+	if (isnan(bounceA)) {
+		bounceA = A->get_bounce();
+	}
+
+	const GodotShape3D *shapeB = B->get_shape(p_shapeB);
+	bounceB = shapeB->get_bounce();
+	if (isnan(bounceB)) {
+		bounceB = B->get_bounce();
+	}
+
+	return CLAMP(bounceA + bounceB, 0, 1);
 }
 
-real_t combine_friction(GodotBody3D *A, GodotBody3D *B) {
-	return ABS(MIN(A->get_friction(), B->get_friction()));
+real_t combine_friction(GodotBody3D *A, GodotBody3D *B, int p_shapeA, int p_shapeB) {
+	real_t frictionA, frictionB;
+
+	const GodotShape3D *shapeA = A->get_shape(p_shapeA);
+	frictionA = shapeA->get_friction();
+	if (isnan(frictionA)) {
+		frictionA = A->get_friction();
+	}
+
+	const GodotShape3D *shapeB = B->get_shape(p_shapeB);
+	frictionB = shapeB->get_friction();
+	if (isnan(frictionB)) {
+		frictionB = B->get_friction();
+	}
+
+	return ABS(MIN(frictionA, frictionB));
 }
 
 bool GodotBodyPair3D::setup(real_t p_step) {
@@ -439,7 +467,7 @@ bool GodotBodyPair3D::pre_solve(real_t p_step) {
 			B->apply_impulse(j_vec, c.rB + B->get_center_of_mass());
 		}
 
-		c.bounce = combine_bounce(A, B);
+		c.bounce = combine_bounce(A, B, shape_A, shape_B);
 		if (c.bounce) {
 			Vector3 crA = A->get_prev_angular_velocity().cross(c.rA);
 			Vector3 crB = B->get_prev_angular_velocity().cross(c.rB);
@@ -548,7 +576,7 @@ void GodotBodyPair3D::solve(real_t p_step) {
 
 		//friction impulse
 
-		real_t friction = combine_friction(A, B);
+		real_t friction = combine_friction(A, B, shape_A, shape_B);
 
 		Vector3 lvA = A->get_linear_velocity() + A->get_angular_velocity().cross(c.rA);
 		Vector3 lvB = B->get_linear_velocity() + B->get_angular_velocity().cross(c.rB);

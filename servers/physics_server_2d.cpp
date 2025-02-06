@@ -627,9 +627,13 @@ void PhysicsServer2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("concave_polygon_shape_create"), &PhysicsServer2D::concave_polygon_shape_create);
 
 	ClassDB::bind_method(D_METHOD("shape_set_data", "shape", "data"), &PhysicsServer2D::shape_set_data);
+	ClassDB::bind_method(D_METHOD("shape_set_bounce", "shape", "bounce"), &PhysicsServer2D::shape_set_bounce);
+	ClassDB::bind_method(D_METHOD("shape_set_friction", "shape", "friction"), &PhysicsServer2D::shape_set_friction);
 
 	ClassDB::bind_method(D_METHOD("shape_get_type", "shape"), &PhysicsServer2D::shape_get_type);
 	ClassDB::bind_method(D_METHOD("shape_get_data", "shape"), &PhysicsServer2D::shape_get_data);
+	ClassDB::bind_method(D_METHOD("shape_get_bounce", "shape"), &PhysicsServer2D::shape_get_bounce);
+	ClassDB::bind_method(D_METHOD("shape_get_friction", "shape"), &PhysicsServer2D::shape_get_friction);
 
 	ClassDB::bind_method(D_METHOD("space_create"), &PhysicsServer2D::space_create);
 	ClassDB::bind_method(D_METHOD("space_set_active", "space", "active"), &PhysicsServer2D::space_set_active);

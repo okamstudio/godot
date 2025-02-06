@@ -35,11 +35,22 @@
 
 #include "Jolt/Physics/Collision/Shape/BoxShape.h"
 
-JPH::ShapeRefC JoltBoxShape3D::_build() const {
+void JoltBoxShape3D::_update_material(JPH::RefConst<JoltPhysicsMaterial> &material) {
+	if (!jolt_ref) {
+		return;
+	}
+	jolt_ref_mutex.lock();
+	JPH::BoxShape *ref = static_cast<JPH::BoxShape *>(jolt_ref.GetPtr());
+	JPH::PhysicsMaterialRefC mat = static_cast<JPH::PhysicsMaterialRefC>(material);
+	ref->SetMaterial(mat);
+	jolt_ref_mutex.unlock();
+}
+
+JPH::Ref<JPH::Shape> JoltBoxShape3D::_build() const {
 	const float min_half_extent = (float)half_extents[half_extents.min_axis_index()];
 	const float actual_margin = MIN(margin, min_half_extent * JoltProjectSettings::get_collision_margin_fraction());
 
-	const JPH::BoxShapeSettings shape_settings(to_jolt(half_extents), actual_margin);
+	const JPH::BoxShapeSettings shape_settings(to_jolt(half_extents), actual_margin, _get_material());
 	const JPH::ShapeSettings::ShapeResult shape_result = shape_settings.Create();
 
 	ERR_FAIL_COND_V_MSG(shape_result.HasError(), nullptr, vformat("Failed to build Jolt Physics box shape with %s. It returned the following error: '%s'. This shape belongs to %s.", to_string(), to_godot(shape_result.GetError()), _owners_to_string()));

@@ -124,6 +124,18 @@ void GodotPhysicsServer2D::shape_set_custom_solver_bias(RID p_shape, real_t p_bi
 	shape->set_custom_bias(p_bias);
 }
 
+void GodotPhysicsServer2D::shape_set_friction(RID p_shape, real_t p_friction) {
+	GodotShape2D *shape = shape_owner.get_or_null(p_shape);
+	ERR_FAIL_NULL(shape);
+	shape->set_friction(p_friction);
+}
+
+void GodotPhysicsServer2D::shape_set_bounce(RID p_shape, real_t p_bounce) {
+	GodotShape2D *shape = shape_owner.get_or_null(p_shape);
+	ERR_FAIL_NULL(shape);
+	shape->set_bounce(p_bounce);
+}
+
 PhysicsServer2D::ShapeType GodotPhysicsServer2D::shape_get_type(RID p_shape) const {
 	const GodotShape2D *shape = shape_owner.get_or_null(p_shape);
 	ERR_FAIL_NULL_V(shape, SHAPE_CUSTOM);
@@ -141,6 +153,18 @@ real_t GodotPhysicsServer2D::shape_get_custom_solver_bias(RID p_shape) const {
 	const GodotShape2D *shape = shape_owner.get_or_null(p_shape);
 	ERR_FAIL_NULL_V(shape, 0);
 	return shape->get_custom_bias();
+}
+
+real_t GodotPhysicsServer2D::shape_get_friction(RID p_shape) const {
+	const GodotShape2D *shape = shape_owner.get_or_null(p_shape);
+	ERR_FAIL_NULL_V(shape, 0);
+	return shape->get_friction();
+}
+
+real_t GodotPhysicsServer2D::shape_get_bounce(RID p_shape) const {
+	const GodotShape2D *shape = shape_owner.get_or_null(p_shape);
+	ERR_FAIL_NULL_V(shape, 0);
+	return shape->get_bounce();
 }
 
 void GodotPhysicsServer2D::_shape_col_cbk(const Vector2 &p_point_A, const Vector2 &p_point_B, void *p_userdata) {

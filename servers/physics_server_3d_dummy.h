@@ -150,6 +150,12 @@ public:
 	virtual void shape_set_margin(RID p_shape, real_t p_margin) override {}
 	virtual real_t shape_get_margin(RID p_shape) const override { return 0; }
 
+	virtual real_t shape_get_friction(RID p_shape) const override { return 0.0; }
+	virtual void shape_set_friction(RID p_shape, real_t p_friction) override {}
+
+	virtual real_t shape_get_bounce(RID p_shape) const override { return 0.0; }
+	virtual void shape_set_bounce(RID p_shape, real_t p_bounce) override {}
+
 	virtual real_t shape_get_custom_solver_bias(RID p_shape) const override { return 0; }
 
 	/* SPACE API */

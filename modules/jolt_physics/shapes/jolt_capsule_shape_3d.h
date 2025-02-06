@@ -37,7 +37,8 @@ class JoltCapsuleShape3D final : public JoltShape3D {
 	float height = 0.0f;
 	float radius = 0.0f;
 
-	virtual JPH::ShapeRefC _build() const override;
+	virtual void _update_material(JPH::RefConst<JoltPhysicsMaterial> &p_material) override;
+	virtual JPH::Ref<JPH::Shape> _build() const override;
 
 public:
 	virtual ShapeType get_type() const override { return ShapeType::SHAPE_CAPSULE; }

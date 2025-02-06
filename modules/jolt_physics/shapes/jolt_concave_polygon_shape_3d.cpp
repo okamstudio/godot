@@ -35,7 +35,17 @@
 
 #include "Jolt/Physics/Collision/Shape/MeshShape.h"
 
-JPH::ShapeRefC JoltConcavePolygonShape3D::_build() const {
+void JoltConcavePolygonShape3D::_update_material(JPH::RefConst<JoltPhysicsMaterial> &p_material) {
+	if (!jolt_ref) {
+		return;
+	}
+	jolt_ref_mutex.lock();
+	JPH::PhysicsMaterialRefC array[] = { static_cast<JPH::PhysicsMaterialRefC>(p_material) };
+	jolt_ref->RestoreMaterialState(array, 1);
+	jolt_ref_mutex.unlock();
+}
+
+JPH::Ref<JPH::Shape> JoltConcavePolygonShape3D::_build() const {
 	const int vertex_count = (int)faces.size();
 	const int face_count = vertex_count / 3;
 	const int excess_vertex_count = vertex_count % 3;
@@ -71,6 +81,7 @@ JPH::ShapeRefC JoltConcavePolygonShape3D::_build() const {
 	JPH::MeshShapeSettings shape_settings(jolt_faces);
 	shape_settings.mActiveEdgeCosThresholdAngle = JoltProjectSettings::get_active_edge_threshold();
 	shape_settings.mPerTriangleUserData = JoltProjectSettings::enable_ray_cast_face_index();
+	shape_settings.mMaterials = JPH::PhysicsMaterialList{ static_cast<JPH::PhysicsMaterialRefC>(_get_material()) };
 
 	const JPH::ShapeSettings::ShapeResult shape_result = shape_settings.Create();
 	ERR_FAIL_COND_V_MSG(shape_result.HasError(), nullptr, vformat("Failed to build Jolt Physics concave polygon shape with %s. It returned the following error: '%s'. This shape belongs to %s.", to_string(), to_godot(shape_result.GetError()), _owners_to_string()));

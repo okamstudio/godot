@@ -173,6 +173,32 @@ real_t JoltPhysicsServer3D::shape_get_margin(RID p_shape) const {
 	return (real_t)shape->get_margin();
 }
 
+real_t JoltPhysicsServer3D::shape_get_friction(RID p_shape) const {
+	const JoltShape3D *shape = shape_owner.get_or_null(p_shape);
+	ERR_FAIL_NULL_V(shape, 0.0);
+
+	return shape->get_friction();
+}
+void JoltPhysicsServer3D::shape_set_friction(RID p_shape, real_t p_friction) {
+	JoltShape3D *shape = shape_owner.get_or_null(p_shape);
+	ERR_FAIL_NULL(shape);
+
+	shape->set_friction(p_friction);
+}
+
+real_t JoltPhysicsServer3D::shape_get_bounce(RID p_shape) const {
+	const JoltShape3D *shape = shape_owner.get_or_null(p_shape);
+	ERR_FAIL_NULL_V(shape, 0.0);
+
+	return shape->get_bounce();
+}
+void JoltPhysicsServer3D::shape_set_bounce(RID p_shape, real_t p_bounce) {
+	JoltShape3D *shape = shape_owner.get_or_null(p_shape);
+	ERR_FAIL_NULL(shape);
+
+	shape->set_bounce(p_bounce);
+}
+
 real_t JoltPhysicsServer3D::shape_get_custom_solver_bias(RID p_shape) const {
 	const JoltShape3D *shape = shape_owner.get_or_null(p_shape);
 	ERR_FAIL_NULL_V(shape, 0.0);

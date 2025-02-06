@@ -994,11 +994,25 @@
 				Activates or deactivates the 3D physics engine.
 			</description>
 		</method>
+		<method name="shape_get_bounce" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="shape" type="RID" />
+			<description>
+				Returns the bounciness for the shape.
+			</description>
+		</method>
 		<method name="shape_get_data" qualifiers="const">
 			<return type="Variant" />
 			<param index="0" name="shape" type="RID" />
 			<description>
 				Returns the shape data.
+			</description>
+		</method>
+		<method name="shape_get_friction" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="shape" type="RID" />
+			<description>
+				Returns the friction for the shape.
 			</description>
 		</method>
 		<method name="shape_get_margin" qualifiers="const">
@@ -1016,12 +1030,28 @@
 				Returns the type of shape (see [enum ShapeType] constants).
 			</description>
 		</method>
+		<method name="shape_set_bounce">
+			<return type="void" />
+			<param index="0" name="shape" type="RID" />
+			<param index="1" name="bounce" type="float" />
+			<description>
+				Sets the bounciness for the shape. Passing [constant @GDScript.NAN] as the parameter will use the body's bounciness. A negative value is equivalent to turning on [member PhysicsMaterial.absorbent].
+			</description>
+		</method>
 		<method name="shape_set_data">
 			<return type="void" />
 			<param index="0" name="shape" type="RID" />
 			<param index="1" name="data" type="Variant" />
 			<description>
 				Sets the shape data that defines its shape and size. The data to be passed depends on the kind of shape created [method shape_get_type].
+			</description>
+		</method>
+		<method name="shape_set_friction">
+			<return type="void" />
+			<param index="0" name="shape" type="RID" />
+			<param index="1" name="friction" type="float" />
+			<description>
+				Sets the friction for the shape. Passing [constant @GDScript.NAN] as the parameter will use the body's friction. A negative value is equivalent to turning on [member PhysicsMaterial.rough].
 			</description>
 		</method>
 		<method name="shape_set_margin">

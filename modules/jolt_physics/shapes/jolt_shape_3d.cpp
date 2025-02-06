@@ -48,6 +48,10 @@ constexpr float DEFAULT_SOLVER_BIAS = 0.0;
 
 } // namespace
 
+JPH::RefConst<JoltPhysicsMaterial> JoltShape3D::_get_material() const {
+	return JPH::RefConst(new JoltPhysicsMaterial(friction, bounce));
+}
+
 String JoltShape3D::_owners_to_string() const {
 	const int owner_count = ref_counts_by_owner.size();
 
@@ -90,6 +94,62 @@ void JoltShape3D::set_solver_bias(float p_bias) {
 	if (!Math::is_equal_approx(p_bias, DEFAULT_SOLVER_BIAS)) {
 		WARN_PRINT(vformat("Custom solver bias for shapes is not supported when using Jolt Physics. Any such value will be ignored. This shape belongs to %s.", _owners_to_string()));
 	}
+}
+
+real_t JoltShape3D::get_friction() const {
+	return friction;
+}
+
+void JoltShape3D::set_friction(real_t p_friction) {
+	if (Math::is_nan(p_friction) && !Math::is_nan(friction) && Math::is_nan(bounce)) {
+		// Friction and bounce are both unset, we should decrease per-shape material count for all owners.
+		_uses_shape_material = false;
+		for (const KeyValue<JoltShapedObject3D *, int> &E : ref_counts_by_owner) {
+			E.key->remove_shape_material();
+		}
+	} else if (!Math::is_nan(p_friction) && Math::is_nan(friction) && Math::is_nan(bounce)) {
+		// One of friction or bounce is now set, we should increase per-shape material count for all owners.
+		_uses_shape_material = true;
+		for (const KeyValue<JoltShapedObject3D *, int> &E : ref_counts_by_owner) {
+			E.key->add_shape_material();
+		}
+	}
+
+	friction = p_friction;
+
+	// Update the Jolt shape's physics material.
+	JPH::RefConst<JoltPhysicsMaterial> mat = _get_material();
+	_update_material(mat);
+}
+
+real_t JoltShape3D::get_bounce() const {
+	return bounce;
+}
+
+void JoltShape3D::set_bounce(real_t p_bounce) {
+	if (Math::is_nan(p_bounce) && !Math::is_nan(bounce) && Math::is_nan(friction)) {
+		// Friction and bounce are both unset, we should decrease per-shape material count for all owners.
+		_uses_shape_material = false;
+		for (const KeyValue<JoltShapedObject3D *, int> &E : ref_counts_by_owner) {
+			E.key->remove_shape_material();
+		}
+	} else if (!Math::is_nan(p_bounce) && Math::is_nan(bounce) && Math::is_nan(friction)) {
+		// One of friction or bounce is now set, we should increase per-shape material count for all owners.
+		_uses_shape_material = true;
+		for (const KeyValue<JoltShapedObject3D *, int> &E : ref_counts_by_owner) {
+			E.key->add_shape_material();
+		}
+	}
+
+	bounce = p_bounce;
+
+	// Update the Jolt shape's physics material.
+	JPH::RefConst<JoltPhysicsMaterial> mat = _get_material();
+	_update_material(mat);
+}
+
+bool JoltShape3D::uses_shape_material() const {
+	return _uses_shape_material;
 }
 
 JPH::ShapeRefC JoltShape3D::try_build() {
@@ -168,7 +228,7 @@ JPH::ShapeRefC JoltShape3D::with_user_data(const JPH::Shape *p_shape, uint64_t p
 	return shape_result.Get();
 }
 
-JPH::ShapeRefC JoltShape3D::with_double_sided(const JPH::Shape *p_shape, bool p_back_face_collision) {
+JPH::Ref<JPH::Shape> JoltShape3D::with_double_sided(const JPH::Shape *p_shape, bool p_back_face_collision) {
 	ERR_FAIL_NULL_V(p_shape, nullptr);
 
 	const JoltCustomDoubleSidedShapeSettings shape_settings(p_shape, p_back_face_collision);

@@ -134,6 +134,30 @@ real_t GodotPhysicsServer3D::shape_get_margin(RID p_shape) const {
 	return 0.0;
 }
 
+real_t GodotPhysicsServer3D::shape_get_friction(RID p_shape) const {
+	const GodotShape3D *shape = shape_owner.get_or_null(p_shape);
+	ERR_FAIL_NULL_V(shape, 0.0);
+	return shape->get_friction();
+}
+
+void GodotPhysicsServer3D::shape_set_friction(RID p_shape, real_t p_friction) {
+	GodotShape3D *shape = shape_owner.get_or_null(p_shape);
+	ERR_FAIL_NULL(shape);
+	shape->set_friction(p_friction);
+}
+
+real_t GodotPhysicsServer3D::shape_get_bounce(RID p_shape) const {
+	const GodotShape3D *shape = shape_owner.get_or_null(p_shape);
+	ERR_FAIL_NULL_V(shape, 0.0);
+	return shape->get_bounce();
+}
+
+void GodotPhysicsServer3D::shape_set_bounce(RID p_shape, real_t p_bounce) {
+	GodotShape3D *shape = shape_owner.get_or_null(p_shape);
+	ERR_FAIL_NULL(shape);
+	shape->set_bounce(p_bounce);
+}
+
 real_t GodotPhysicsServer3D::shape_get_custom_solver_bias(RID p_shape) const {
 	const GodotShape3D *shape = shape_owner.get_or_null(p_shape);
 	ERR_FAIL_NULL_V(shape, 0);

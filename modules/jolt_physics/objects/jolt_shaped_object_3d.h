@@ -54,6 +54,8 @@ protected:
 
 	JPH::BodyCreationSettings *jolt_settings = new JPH::BodyCreationSettings();
 
+	int shape_materials_count = 0;
+
 	virtual JPH::EMotionType _get_motion_type() const = 0;
 
 	bool _is_big() const;
@@ -128,6 +130,13 @@ public:
 
 	bool is_shape_disabled(int p_index) const;
 	void set_shape_disabled(int p_index, bool p_disabled);
+
+	// Increase the per-shape materials count by 1.
+	void add_shape_material();
+	// Decrease the per-shape materials count by 1.
+	void remove_shape_material();
+
+	bool uses_shape_materials() const;
 };
 
 #endif // JOLT_SHAPED_OBJECT_3D_H

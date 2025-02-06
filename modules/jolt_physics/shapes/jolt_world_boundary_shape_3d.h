@@ -36,7 +36,8 @@
 class JoltWorldBoundaryShape3D final : public JoltShape3D {
 	Plane plane;
 
-	virtual JPH::ShapeRefC _build() const override;
+	virtual void _update_material(JPH::RefConst<JoltPhysicsMaterial> &p_material) override;
+	virtual JPH::Ref<JPH::Shape> _build() const override;
 
 public:
 	virtual ShapeType get_type() const override { return ShapeType::SHAPE_WORLD_BOUNDARY; }

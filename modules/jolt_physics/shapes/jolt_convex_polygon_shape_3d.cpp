@@ -35,7 +35,18 @@
 
 #include "Jolt/Physics/Collision/Shape/ConvexHullShape.h"
 
-JPH::ShapeRefC JoltConvexPolygonShape3D::_build() const {
+void JoltConvexPolygonShape3D::_update_material(JPH::RefConst<JoltPhysicsMaterial> &p_material) {
+	if (!jolt_ref) {
+		return;
+	}
+	jolt_ref_mutex.lock();
+	JPH::ConvexHullShape *ref = static_cast<JPH::ConvexHullShape *>(jolt_ref.GetPtr());
+	JPH::PhysicsMaterialRefC mat = static_cast<JPH::PhysicsMaterialRefC>(p_material);
+	ref->SetMaterial(mat);
+	jolt_ref_mutex.unlock();
+}
+
+JPH::Ref<JPH::Shape> JoltConvexPolygonShape3D::_build() const {
 	const int vertex_count = (int)vertices.size();
 
 	if (unlikely(vertex_count == 0)) {
@@ -57,7 +68,7 @@ JPH::ShapeRefC JoltConvexPolygonShape3D::_build() const {
 	const float min_half_extent = _calculate_aabb().get_shortest_axis_size() * 0.5f;
 	const float actual_margin = MIN(margin, min_half_extent * JoltProjectSettings::get_collision_margin_fraction());
 
-	const JPH::ConvexHullShapeSettings shape_settings(jolt_vertices, actual_margin);
+	const JPH::ConvexHullShapeSettings shape_settings(jolt_vertices, actual_margin, _get_material());
 	const JPH::ShapeSettings::ShapeResult shape_result = shape_settings.Create();
 	ERR_FAIL_COND_V_MSG(shape_result.HasError(), nullptr, vformat("Failed to build Jolt Physics convex polygon shape with %s. It returned the following error: '%s'. This shape belongs to %s.", to_string(), to_godot(shape_result.GetError()), _owners_to_string()));
 

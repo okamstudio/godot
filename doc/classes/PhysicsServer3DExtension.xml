@@ -922,6 +922,12 @@
 			<description>
 			</description>
 		</method>
+		<method name="_shape_get_bounce" qualifiers="virtual const">
+			<return type="float" />
+			<param index="0" name="shape" type="RID" />
+			<description>
+			</description>
+		</method>
 		<method name="_shape_get_custom_solver_bias" qualifiers="virtual const">
 			<return type="float" />
 			<param index="0" name="shape" type="RID" />
@@ -930,6 +936,12 @@
 		</method>
 		<method name="_shape_get_data" qualifiers="virtual const">
 			<return type="Variant" />
+			<param index="0" name="shape" type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="_shape_get_friction" qualifiers="virtual const">
+			<return type="float" />
 			<param index="0" name="shape" type="RID" />
 			<description>
 			</description>
@@ -946,6 +958,13 @@
 			<description>
 			</description>
 		</method>
+		<method name="_shape_set_bounce" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="shape" type="RID" />
+			<param index="1" name="bounce" type="float" />
+			<description>
+			</description>
+		</method>
 		<method name="_shape_set_custom_solver_bias" qualifiers="virtual">
 			<return type="void" />
 			<param index="0" name="shape" type="RID" />
@@ -957,6 +976,13 @@
 			<return type="void" />
 			<param index="0" name="shape" type="RID" />
 			<param index="1" name="data" type="Variant" />
+			<description>
+			</description>
+		</method>
+		<method name="_shape_set_friction" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="shape" type="RID" />
+			<param index="1" name="friction" type="float" />
 			<description>
 			</description>
 		</method>

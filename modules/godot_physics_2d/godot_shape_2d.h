@@ -48,6 +48,8 @@ class GodotShape2D {
 	Rect2 aabb;
 	bool configured = false;
 	real_t custom_bias = 0.0;
+	real_t friction = NAN;
+	real_t bounce = NAN;
 
 	HashMap<GodotShapeOwner2D *, int> owners;
 
@@ -82,6 +84,12 @@ public:
 	virtual real_t get_moment_of_inertia(real_t p_mass, const Size2 &p_scale) const = 0;
 	virtual void set_data(const Variant &p_data) = 0;
 	virtual Variant get_data() const = 0;
+
+	_FORCE_INLINE_ void set_friction(real_t p_friction) { friction = p_friction; }
+	_FORCE_INLINE_ real_t get_friction() const { return friction; }
+
+	_FORCE_INLINE_ void set_bounce(real_t p_bounce) { bounce = p_bounce; }
+	_FORCE_INLINE_ real_t get_bounce() const { return bounce; }
 
 	_FORCE_INLINE_ void set_custom_bias(real_t p_bias) { custom_bias = p_bias; }
 	_FORCE_INLINE_ real_t get_custom_bias() const { return custom_bias; }
