@@ -4278,6 +4278,8 @@ void EditorInspector::_edit_set(const String &p_name, const Variant &p_value, bo
 					undo_redo->add_undo_method(r, "setup_local_to_scene");
 				}
 			}
+			undo_redo->add_do_method(r, "emit_changed");
+			undo_redo->add_undo_method(r, "emit_changed");
 		}
 		undo_redo->add_do_method(this, "emit_signal", _prop_edited, p_name);
 		undo_redo->add_undo_method(this, "emit_signal", _prop_edited, p_name);
