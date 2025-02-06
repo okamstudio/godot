@@ -1218,6 +1218,9 @@ Variant Marshalls::base64_to_variant(const String &p_str, bool p_allow_objects) 
 }
 
 String Marshalls::raw_to_base64(const Vector<uint8_t> &p_arr) {
+	if (p_arr.is_empty()) {
+		return "";
+	}
 	String ret = CryptoCore::b64_encode_str(p_arr.ptr(), p_arr.size());
 	ERR_FAIL_COND_V(ret.is_empty(), ret);
 	return ret;
@@ -1241,6 +1244,9 @@ Vector<uint8_t> Marshalls::base64_to_raw(const String &p_str) {
 }
 
 String Marshalls::utf8_to_base64(const String &p_str) {
+	if (p_str.is_empty()) {
+		return "";
+	}
 	CharString cstr = p_str.utf8();
 	String ret = CryptoCore::b64_encode_str((unsigned char *)cstr.get_data(), cstr.length());
 	ERR_FAIL_COND_V(ret.is_empty(), ret);
