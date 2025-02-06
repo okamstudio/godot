@@ -290,6 +290,16 @@
 				[b]Note:[/b] On macOS, if you want to launch another instance of Godot, always use [method create_instance] instead of relying on the executable path.
 			</description>
 		</method>
+		<method name="get_file_icon" qualifiers="const">
+			<return type="Image" />
+			<param index="0" name="path" type="String" />
+			<param index="1" name="size" type="Vector2i" />
+			<param index="2" name="interpolation" type="int" enum="Image.Interpolation" default="4" />
+			<description>
+				Returns an image containing the icon for the file/folder specified by [param path]. If multiple icon sizes are available, the closest to the [param size] is selected, and the image is resized to the requested size using [param interpolation].
+				[b]Note:[/b] This method is implemented on macOS and Windows.
+			</description>
+		</method>
 		<method name="get_granted_permissions" qualifiers="const">
 			<return type="PackedStringArray" />
 			<description>

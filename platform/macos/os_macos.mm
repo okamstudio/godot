@@ -38,6 +38,7 @@
 
 #include "core/crypto/crypto_core.h"
 #include "core/version_generated.gen.h"
+#include "drivers/png/png_driver_common.h"
 #include "main/main.h"
 
 #include <dlfcn.h>
@@ -382,6 +383,31 @@ String OS_MacOS::get_system_dir(SystemDir p_dir, bool p_shared_storage) const {
 	}
 
 	return ret;
+}
+
+Ref<Image> OS_MacOS::get_file_icon(const String &p_path, const Size2i &p_size, Image::Interpolation p_interpolation) const {
+	NSImage *ns_img = [[NSWorkspace sharedWorkspace] iconForFile:[NSString stringWithUTF8String:p_path.utf8().get_data()]];
+	if (ns_img == nil) {
+		return Ref<Image>();
+	}
+	NSImageRep *best_size_rep = [ns_img bestRepresentationForRect:NSMakeRect(0, 0, p_size.x, p_size.y) context:nil hints:nil];
+	NSBitmapImageRep *bitmap_rep;
+	if ([best_size_rep isKindOfClass:[NSBitmapImageRep class]]) {
+		bitmap_rep = (NSBitmapImageRep *)best_size_rep;
+	} else {
+		NSImage *new_image = [[NSImage alloc] initWithSize:[best_size_rep size]];
+		[new_image addRepresentation:best_size_rep];
+		bitmap_rep = [NSBitmapImageRep imageRepWithData:[new_image TIFFRepresentation]];
+	}
+	if (bitmap_rep == nil) {
+		return Ref<Image>();
+	}
+	NSData *png_data = [bitmap_rep representationUsingType:NSBitmapImageFileTypePNG properties:@{}];
+	Ref<Image> image;
+	image.instantiate();
+	PNGDriverCommon::png_to_image((const uint8_t *)png_data.bytes, png_data.length, false, image);
+	image->resize(p_size.x, p_size.y, p_interpolation);
+	return image;
 }
 
 Error OS_MacOS::shell_show_in_file_manager(String p_path, bool p_open_folder) {
