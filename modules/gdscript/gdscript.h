@@ -280,6 +280,9 @@ public:
 	bool is_tool() const override { return tool; }
 	Ref<GDScript> get_base() const;
 
+	static String get_raw_source_code(const String &p_path, bool *r_error);
+	static String insert_uid_into_source(const String &p_source, const ResourceUID::ID p_uid);
+
 	const HashMap<StringName, MemberInfo> &debug_get_member_indices() const { return member_indices; }
 	const HashMap<StringName, GDScriptFunction *> &debug_get_member_functions() const; //this is debug only
 	StringName debug_get_member_by_index(int p_idx) const;
@@ -654,6 +657,8 @@ public:
 	virtual void get_recognized_extensions(List<String> *p_extensions) const override;
 	virtual bool handles_type(const String &p_type) const override;
 	virtual String get_resource_type(const String &p_path) const override;
+	virtual bool has_custom_uid_support() const override;
+	virtual ResourceUID::ID get_resource_uid(const String &p_path) const override;
 	virtual void get_dependencies(const String &p_path, List<String> *p_dependencies, bool p_add_types = false) override;
 };
 
@@ -662,6 +667,7 @@ public:
 	virtual Error save(const Ref<Resource> &p_resource, const String &p_path, uint32_t p_flags = 0) override;
 	virtual void get_recognized_extensions(const Ref<Resource> &p_resource, List<String> *p_extensions) const override;
 	virtual bool recognize(const Ref<Resource> &p_resource) const override;
+	virtual Error set_uid(const String &p_path, ResourceUID::ID p_uid) override;
 };
 
 #endif // GDSCRIPT_H

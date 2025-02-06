@@ -1028,6 +1028,10 @@
 		</member>
 		<member name="editor/version_control/plugin_name" type="String" setter="" getter="" default="&quot;&quot;">
 		</member>
+		<member name="filesystem/gdscript/inline_script_uids" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], the UIDs of [GDScript] resources will be stored inside the scripts themselves, inside a comment on their first line. UID comments will be automatically created when the scripts are saved. If [code]false[/code], the UIDs are stored in dedicated files. See also [ResourceUID].
+			Note that if some scripts already have associated UID files, you will need to manually delete them after enabling this setting. The files take priority in determining the script's UID.
+		</member>
 		<member name="filesystem/import/blender/enabled" type="bool" setter="" getter="" default="true">
 			If [code]true[/code], Blender 3D scene files with the [code].blend[/code] extension will be imported by converting them to glTF 2.0.
 			This requires configuring a path to a Blender executable in the editor settings at [code]filesystem/import/blender/blender_path[/code]. Blender 3.0 or later is required.

@@ -49,6 +49,7 @@
 #include "core/config/engine.h"
 #include "core/config/project_settings.h"
 #include "core/core_constants.h"
+#include "core/io/dir_access.h"
 #include "core/io/file_access.h"
 
 #include "scene/resources/packed_scene.h"
@@ -1177,6 +1178,43 @@ StringName GDScript::debug_get_static_var_by_index(int p_idx) const {
 
 Ref<GDScript> GDScript::get_base() const {
 	return base;
+}
+
+String GDScript::get_raw_source_code(const String &p_path, bool *r_error) {
+	Ref<FileAccess> f = FileAccess::open(p_path, FileAccess::READ);
+	if (f.is_null()) {
+		*r_error = true;
+		return String();
+	}
+	return f->get_as_utf8_string();
+}
+
+String GDScript::insert_uid_into_source(const String &p_source, const ResourceUID::ID p_uid) {
+	int existing_line = -1;
+	PackedStringArray lines = p_source.split("\n");
+	{
+		int i = 0;
+		for (const String &line : lines) {
+			if (line.begins_with("# uid://")) {
+				existing_line = i;
+				break;
+			}
+			i++;
+		}
+	}
+
+	const String uid_text = vformat("# %s # Auto-generated, do not modify or remove.", ResourceUID::get_singleton()->id_to_text(p_uid));
+	if (existing_line > -1) {
+		if (lines[existing_line] == uid_text) {
+			// No need to modify.
+			return p_source;
+		} else {
+			lines.write[existing_line] = uid_text;
+		}
+	} else {
+		lines.insert(0, uid_text);
+	}
+	return String("\n").join(lines);
 }
 
 bool GDScript::inherits_script(const Ref<Script> &p_script) const {
@@ -2955,6 +2993,8 @@ GDScriptLanguage::GDScriptLanguage() {
 		_debug_max_call_stack = 0;
 	}
 
+	GLOBAL_DEF("filesystem/gdscript/inline_script_uids", false);
+
 #ifdef DEBUG_ENABLED
 	GLOBAL_DEF("debug/gdscript/warnings/enable", true);
 	GLOBAL_DEF("debug/gdscript/warnings/exclude_addons", true);
@@ -3047,6 +3087,35 @@ String ResourceFormatLoaderGDScript::get_resource_type(const String &p_path) con
 	return "";
 }
 
+bool ResourceFormatLoaderGDScript::has_custom_uid_support() const {
+	return GLOBAL_GET("filesystem/gdscript/inline_script_uids");
+}
+
+ResourceUID::ID ResourceFormatLoaderGDScript::get_resource_uid(const String &p_path) const {
+	{
+		// For compatibility with scripts created without inline UIDs.
+		Ref<FileAccess> uid_file = FileAccess::open(p_path + ".uid", FileAccess::READ);
+		if (uid_file.is_valid()) {
+			return ResourceUID::get_singleton()->text_to_id(uid_file->get_line());
+		}
+	}
+
+	bool error = false;
+	const String source = GDScript::get_raw_source_code(p_path, &error);
+	if (error) {
+		return ResourceUID::INVALID_ID;
+	}
+
+	const PackedStringArray lines = source.split("\n");
+	for (const String &line : lines) {
+		if (line.begins_with("# uid://")) {
+			int end = line.find(" ", 2);
+			return ResourceUID::get_singleton()->text_to_id(line.substr(2, end - 2));
+		}
+	}
+	return ResourceUID::INVALID_ID;
+}
+
 void ResourceFormatLoaderGDScript::get_dependencies(const String &p_path, List<String> *p_dependencies, bool p_add_types) {
 	Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::READ);
 	ERR_FAIL_COND_MSG(file.is_null(), "Cannot open file '" + p_path + "'.");
@@ -3071,6 +3140,13 @@ Error ResourceFormatSaverGDScript::save(const Ref<Resource> &p_resource, const S
 	ERR_FAIL_COND_V(sqscr.is_null(), ERR_INVALID_PARAMETER);
 
 	String source = sqscr->get_source_code();
+	ResourceUID::ID uid = ResourceSaver::get_resource_id_for_path(p_path, !p_resource->is_built_in());
+
+	bool source_changed = false;
+	if (uid != ResourceUID::INVALID_ID) {
+		source = GDScript::insert_uid_into_source(source, uid);
+		source_changed = true;
+	}
 
 	{
 		Error err;
@@ -3081,6 +3157,12 @@ Error ResourceFormatSaverGDScript::save(const Ref<Resource> &p_resource, const S
 		file->store_string(source);
 		if (file->get_error() != OK && file->get_error() != ERR_FILE_EOF) {
 			return ERR_CANT_CREATE;
+		}
+
+		if (source_changed) {
+			sqscr->set_source_code(source);
+			sqscr->reload();
+			sqscr->emit_changed();
 		}
 	}
 
@@ -3099,4 +3181,22 @@ void ResourceFormatSaverGDScript::get_recognized_extensions(const Ref<Resource> 
 
 bool ResourceFormatSaverGDScript::recognize(const Ref<Resource> &p_resource) const {
 	return Object::cast_to<GDScript>(*p_resource) != nullptr;
+}
+
+Error ResourceFormatSaverGDScript::set_uid(const String &p_path, ResourceUID::ID p_uid) {
+	// Remove UID file if storing inline comment.
+	DirAccess::remove_absolute(p_path + ".uid");
+
+	bool error = false;
+	String source = GDScript::get_raw_source_code(p_path, &error);
+	if (error) {
+		return ERR_FILE_CANT_OPEN;
+	}
+
+	source = GDScript::insert_uid_into_source(source, p_uid);
+
+	Ref<FileAccess> output = FileAccess::open(p_path, FileAccess::WRITE);
+	ERR_FAIL_NULL_V(output, ERR_FILE_CANT_WRITE);
+	output->store_string(source);
+	return OK;
 }
