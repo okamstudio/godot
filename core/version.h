@@ -62,18 +62,26 @@
 // Example: 3.1.4 will be 0x030104, making comparison easy from script.
 #define VERSION_HEX 0x10000 * VERSION_MAJOR + 0x100 * VERSION_MINOR + VERSION_PATCH
 
+#ifdef REAL_T_IS_DOUBLE
+#define VERSION_DOUBLE ".double"
+#else
+// Single precision is the default, so there is no added suffix.
+#define VERSION_DOUBLE
+#endif // REAL_T_IS_DOUBLE
+
 // Describes the full configuration of that Godot version, including the version number,
-// the status (beta, stable, etc.) and potential module-specific features (e.g. mono).
-// Example: "3.1.4.stable.mono"
-#define VERSION_FULL_CONFIG VERSION_NUMBER "." VERSION_STATUS VERSION_MODULE_CONFIG
+// the status (beta, stable, etc.), potential module-specific features (e.g. mono)
+// and double-precision status.
+// Example: "3.1.4.stable.mono.double"
+#define VERSION_FULL_CONFIG VERSION_NUMBER "." VERSION_STATUS VERSION_MODULE_CONFIG VERSION_DOUBLE
 
 // Similar to VERSION_FULL_CONFIG, but also includes the (potentially custom) VERSION_BUILD
 // description (e.g. official, custom_build, etc.).
-// Example: "3.1.4.stable.mono.official"
+// Example: "3.1.4.stable.mono.double.official"
 #define VERSION_FULL_BUILD VERSION_FULL_CONFIG "." VERSION_BUILD
 
 // Same as above, but prepended with Godot's name and a cosmetic "v" for "version".
-// Example: "Godot v3.1.4.stable.official.mono"
+// Example: "Godot v3.1.4.stable.official.mono.double"
 #define VERSION_FULL_NAME VERSION_NAME " v" VERSION_FULL_BUILD
 
 // Git commit hash, generated at build time in `core/version_hash.gen.cpp`.
