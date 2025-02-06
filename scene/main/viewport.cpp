@@ -3147,7 +3147,7 @@ void Viewport::_update_mouse_over(Vector2 p_pos) {
 		}
 		Vector2 pos = c->get_global_transform_with_canvas().affine_inverse().xform(p_pos);
 		if (c->is_stretch_enabled()) {
-			pos /= c->get_stretch_shrink();
+			pos *= c->get_stretch_factor();
 		}
 
 		for (int i = 0; i < c->get_child_count(); i++) {
@@ -5274,7 +5274,7 @@ Transform2D SubViewport::get_screen_transform_internal(bool p_absolute_position)
 	SubViewportContainer *c = Object::cast_to<SubViewportContainer>(get_parent());
 	if (c) {
 		if (c->is_stretch_enabled()) {
-			container_transform.scale(Vector2(c->get_stretch_shrink(), c->get_stretch_shrink()));
+			container_transform.scale(Vector2(1.0 / c->get_stretch_factor(), 1.0 / c->get_stretch_factor()));
 		}
 		container_transform = c->get_viewport()->get_screen_transform_internal(p_absolute_position) * c->get_global_transform_with_canvas() * container_transform;
 	} else {
@@ -5294,7 +5294,7 @@ Transform2D SubViewport::get_popup_base_transform() const {
 	}
 	Transform2D container_transform;
 	if (c->is_stretch_enabled()) {
-		container_transform.scale(Vector2(c->get_stretch_shrink(), c->get_stretch_shrink()));
+		container_transform.scale(Vector2(1.0 / c->get_stretch_factor(), 1.0 / c->get_stretch_factor()));
 	}
 	return c->get_screen_transform() * container_transform * get_final_transform();
 }

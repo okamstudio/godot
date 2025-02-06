@@ -37,7 +37,8 @@ class SubViewportContainer : public Container {
 	GDCLASS(SubViewportContainer, Container);
 
 	bool stretch = false;
-	int shrink = 1;
+	bool apply_viewport_stretch_transform = false;
+	float stretch_factor = 1.0f;
 	bool mouse_target = false;
 
 	void _notify_viewports(int p_notification);
@@ -61,8 +62,15 @@ public:
 	virtual void input(const Ref<InputEvent> &p_event) override;
 	virtual void unhandled_input(const Ref<InputEvent> &p_event) override;
 	virtual void gui_input(const Ref<InputEvent> &p_event) override;
+
+	void set_apply_viewport_stretch_transform(bool p_apply_viewport_stretch_transform);
+	bool is_applying_viewport_stretch_transform() const;
+#ifndef DISABLE_DEPRECATED
 	void set_stretch_shrink(int p_shrink);
 	int get_stretch_shrink() const;
+#endif
+	void set_stretch_factor(float p_stretch_factor);
+	float get_stretch_factor() const;
 	void recalc_force_viewport_sizes();
 
 	void set_mouse_target(bool p_enable);

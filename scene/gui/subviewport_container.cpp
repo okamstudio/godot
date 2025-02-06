@@ -67,18 +67,6 @@ bool SubViewportContainer::is_stretch_enabled() const {
 	return stretch;
 }
 
-void SubViewportContainer::set_stretch_shrink(int p_shrink) {
-	ERR_FAIL_COND(p_shrink < 1);
-	if (shrink == p_shrink) {
-		return;
-	}
-
-	shrink = p_shrink;
-
-	recalc_force_viewport_sizes();
-	queue_redraw();
-}
-
 void SubViewportContainer::recalc_force_viewport_sizes() {
 	if (!stretch) {
 		return;
@@ -91,12 +79,54 @@ void SubViewportContainer::recalc_force_viewport_sizes() {
 			continue;
 		}
 
-		c->set_size_force(get_size() / shrink);
+		Vector2 new_size = get_size();
+		if (apply_viewport_stretch_transform) {
+			new_size *= get_viewport()->get_stretch_transform().get_scale().x;
+		}
+		new_size *= stretch_factor;
+		c->set_size_force(new_size);
 	}
 }
 
+void SubViewportContainer::set_apply_viewport_stretch_transform(bool p_apply_viewport_stretch_transform) {
+	if (p_apply_viewport_stretch_transform == apply_viewport_stretch_transform) {
+		return;
+	}
+
+	apply_viewport_stretch_transform = p_apply_viewport_stretch_transform;
+
+	recalc_force_viewport_sizes();
+	queue_redraw();
+}
+
+bool SubViewportContainer::is_applying_viewport_stretch_transform() const {
+	return apply_viewport_stretch_transform;
+}
+
+#ifndef DISABLE_DEPRECATED
+void SubViewportContainer::set_stretch_shrink(int p_shrink) {
+	ERR_FAIL_COND(p_shrink < 1);
+	set_stretch_factor(1.0 / p_shrink);
+}
+
 int SubViewportContainer::get_stretch_shrink() const {
-	return shrink;
+	return Math::round(1.0 / get_stretch_factor());
+}
+#endif
+
+void SubViewportContainer::set_stretch_factor(float p_stretch_factor) {
+	if (p_stretch_factor == stretch_factor) {
+		return;
+	}
+
+	stretch_factor = p_stretch_factor;
+
+	recalc_force_viewport_sizes();
+	queue_redraw();
+}
+
+float SubViewportContainer::get_stretch_factor() const {
+	return stretch_factor;
 }
 
 Vector<int> SubViewportContainer::get_allowed_size_flags_horizontal() const {
@@ -217,9 +247,9 @@ void SubViewportContainer::gui_input(const Ref<InputEvent> &p_event) {
 		}
 	}
 
-	if (stretch && shrink > 1) {
+	if (stretch && stretch_factor < 1) {
 		Transform2D xform;
-		xform.scale(Vector2(1, 1) / shrink);
+		xform.scale(Vector2(1, 1) * stretch_factor);
 		_send_event_to_viewports(p_event->xformed_by(xform));
 	} else {
 		_send_event_to_viewports(p_event);
@@ -291,14 +321,25 @@ void SubViewportContainer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_stretch", "enable"), &SubViewportContainer::set_stretch);
 	ClassDB::bind_method(D_METHOD("is_stretch_enabled"), &SubViewportContainer::is_stretch_enabled);
 
+	ClassDB::bind_method(D_METHOD("set_apply_viewport_stretch_transform", "apply_viewport_stretch_transform"), &SubViewportContainer::set_apply_viewport_stretch_transform);
+	ClassDB::bind_method(D_METHOD("is_applying_viewport_stretch_transform"), &SubViewportContainer::is_applying_viewport_stretch_transform);
+#ifndef DISABLE_DEPRECATED
 	ClassDB::bind_method(D_METHOD("set_stretch_shrink", "amount"), &SubViewportContainer::set_stretch_shrink);
 	ClassDB::bind_method(D_METHOD("get_stretch_shrink"), &SubViewportContainer::get_stretch_shrink);
+#endif
+	ClassDB::bind_method(D_METHOD("set_stretch_factor", "stretch_factor"), &SubViewportContainer::set_stretch_factor);
+	ClassDB::bind_method(D_METHOD("get_stretch_factor"), &SubViewportContainer::get_stretch_factor);
 
 	ClassDB::bind_method(D_METHOD("set_mouse_target", "amount"), &SubViewportContainer::set_mouse_target);
 	ClassDB::bind_method(D_METHOD("is_mouse_target_enabled"), &SubViewportContainer::is_mouse_target_enabled);
 
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "stretch"), "set_stretch", "is_stretch_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "apply_viewport_stretch_transform"), "set_apply_viewport_stretch_transform", "is_applying_viewport_stretch_transform");
+#ifndef DISABLE_DEPRECTED
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "stretch_shrink", PROPERTY_HINT_RANGE, "1,32,1,or_greater"), "set_stretch_shrink", "get_stretch_shrink");
+#endif
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "stretch_factor", PROPERTY_HINT_RANGE, "0.0,2.0,0.01,or_greater"), "set_stretch_factor", "get_stretch_factor");
+
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "mouse_target"), "set_mouse_target", "is_mouse_target_enabled");
 
 	GDVIRTUAL_BIND(_propagate_input_event, "event");

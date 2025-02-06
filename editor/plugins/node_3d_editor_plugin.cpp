@@ -697,7 +697,7 @@ void Node3DEditorViewport::cancel_transform() {
 
 void Node3DEditorViewport::_update_shrink() {
 	bool shrink = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_HALF_RESOLUTION));
-	subviewport_container->set_stretch_shrink(shrink ? 2 : 1);
+	subviewport_container->set_stretch_factor(shrink ? 0.5 : 1.0);
 	subviewport_container->set_texture_filter(shrink ? TEXTURE_FILTER_NEAREST : TEXTURE_FILTER_PARENT_NODE);
 }
 
@@ -722,11 +722,11 @@ Vector3 Node3DEditorViewport::_get_camera_position() const {
 }
 
 Point2 Node3DEditorViewport::point_to_screen(const Vector3 &p_point) {
-	return camera->unproject_position(p_point) * subviewport_container->get_stretch_shrink();
+	return camera->unproject_position(p_point) / subviewport_container->get_stretch_factor();
 }
 
 Vector3 Node3DEditorViewport::get_ray_pos(const Vector2 &p_pos) const {
-	return camera->project_ray_origin(p_pos / subviewport_container->get_stretch_shrink());
+	return camera->project_ray_origin(p_pos * subviewport_container->get_stretch_factor());
 }
 
 Vector3 Node3DEditorViewport::_get_camera_normal() const {
@@ -734,7 +734,7 @@ Vector3 Node3DEditorViewport::_get_camera_normal() const {
 }
 
 Vector3 Node3DEditorViewport::get_ray(const Vector2 &p_pos) const {
-	return camera->project_ray_normal(p_pos / subviewport_container->get_stretch_shrink());
+	return camera->project_ray_normal(p_pos * subviewport_container->get_stretch_factor());
 }
 
 void Node3DEditorViewport::_clear_selected() {
@@ -813,7 +813,7 @@ void Node3DEditorViewport::_select_clicked(bool p_allow_locked) {
 ObjectID Node3DEditorViewport::_select_ray(const Point2 &p_pos) const {
 	Vector3 ray = get_ray(p_pos);
 	Vector3 pos = get_ray_pos(p_pos);
-	Vector2 shrinked_pos = p_pos / subviewport_container->get_stretch_shrink();
+	Vector2 shrinked_pos = p_pos * subviewport_container->get_stretch_factor();
 
 	if (viewport->get_debug_draw() == Viewport::DEBUG_DRAW_SDFGI_PROBES) {
 		RS::get_singleton()->sdfgi_set_debug_probe_select(pos, ray);
@@ -4085,8 +4085,8 @@ void Node3DEditorViewport::update_transform_gizmo_view() {
 	const int viewport_base_height = 400 * MAX(1, EDSCALE);
 	gizmo_scale =
 			(gizmo_size / Math::abs(dd)) * MAX(1, EDSCALE) *
-			MIN(viewport_base_height, subviewport_container->get_size().height) / viewport_base_height /
-			subviewport_container->get_stretch_shrink();
+			MIN(viewport_base_height, subviewport_container->get_size().height) / viewport_base_height *
+			subviewport_container->get_stretch_ratio();
 	Vector3 scale = Vector3(1, 1, 1) * gizmo_scale;
 
 	// if the determinant is zero, we should disable the gizmo from being rendered
@@ -4310,7 +4310,7 @@ Dictionary Node3DEditorViewport::get_state() const {
 	d["grid"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_GRID));
 	d["information"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_INFORMATION));
 	d["frame_time"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_FRAME_TIME));
-	d["half_res"] = subviewport_container->get_stretch_shrink() > 1;
+	d["half_res"] = subviewport_container->get_stretch_factor() < 1.0;
 	d["cinematic_preview"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_CINEMATIC_PREVIEW));
 	if (previewing) {
 		d["previewing"] = EditorNode::get_singleton()->get_edited_scene()->get_path_to(previewing);

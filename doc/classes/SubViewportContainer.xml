@@ -20,6 +20,9 @@
 		</method>
 	</methods>
 	<members>
+		<member name="apply_viewport_stretch_transform" type="bool" setter="set_apply_viewport_stretch_transform" getter="is_applying_viewport_stretch_transform" default="false">
+			If [code]true[/code], the sub-viewport will be automatically resized according to the viewport stretch transform. It is especially useful for DPI-aware projects.  See [method Viewport.get_stretch_transform] for more details about stretch transform.
+		</member>
 		<member name="focus_mode" type="int" setter="set_focus_mode" getter="get_focus_mode" overrides="Control" enum="Control.FocusMode" default="1" />
 		<member name="mouse_target" type="bool" setter="set_mouse_target" getter="is_mouse_target_enabled" default="false">
 			Configure, if either the [SubViewportContainer] or alternatively the [Control] nodes of its [SubViewport] children should be available as targets of mouse-related functionalities, like identifying the drop target in drag-and-drop operations or cursor shape of hovered [Control] node.
@@ -30,7 +33,12 @@
 			If [code]true[/code], the sub-viewport will be automatically resized to the control's size.
 			[b]Note:[/b] If [code]true[/code], this will prohibit changing [member SubViewport.size] of its children manually.
 		</member>
-		<member name="stretch_shrink" type="int" setter="set_stretch_shrink" getter="get_stretch_shrink" default="1">
+		<member name="stretch_factor" type="float" setter="set_stretch_factor" getter="get_stretch_factor" default="1.0">
+			Multiplies the sub-viewport's effective resolution by this value while preserving its scale. This can be used either to speed up rendering or to render at an higher resolution.
+			For example, a 1280×720 sub-viewport with [member stretch_shrink] set to [code]0.5[/code] will be rendered at 640×360 while occupying the same size in the container.
+			[b]Note:[/b] [member stretch] must be [code]true[/code] for this property to work.
+		</member>
+		<member name="stretch_shrink" type="int" setter="set_stretch_shrink" getter="get_stretch_shrink" default="1" deprecated="Use [member stretch_factor] instead.">
 			Divides the sub-viewport's effective resolution by this value while preserving its scale. This can be used to speed up rendering.
 			For example, a 1280×720 sub-viewport with [member stretch_shrink] set to [code]2[/code] will be rendered at 640×360 while occupying the same size in the container.
 			[b]Note:[/b] [member stretch] must be [code]true[/code] for this property to work.
