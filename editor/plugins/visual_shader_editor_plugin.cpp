@@ -2215,10 +2215,12 @@ String VisualShaderEditor::_get_description(int p_idx) {
 void VisualShaderEditor::_update_options_menu() {
 	node_desc->set_text("");
 	highend_label->set_visible(false);
-	members_dialog->get_ok_button()->set_disabled(true);
 
 	members->clear();
 	TreeItem *root = members->create_item();
+	if (members_dialog != nullptr) {
+		members_dialog->get_ok_button()->set_disabled(true);
+	}
 
 	String filter = node_filter->get_text().strip_edges();
 	bool use_filter = !filter.is_empty();
@@ -2380,7 +2382,9 @@ void VisualShaderEditor::_update_options_menu() {
 			node_desc->set_text(options[i].description);
 			is_first_item = false;
 
-			members_dialog->get_ok_button()->set_disabled(false);
+			if (members_dialog != nullptr) {
+				members_dialog->get_ok_button()->set_disabled(false);
+			}
 		}
 		switch (options[i].return_type) {
 			case VisualShaderNode::PORT_TYPE_SCALAR:
@@ -4211,7 +4215,7 @@ void VisualShaderEditor::_connection_to_empty(const String &p_from, int p_from_s
 	if (node.is_valid()) {
 		output_port_type = node->get_output_port_type(from_slot);
 	}
-	_show_members_dialog(true, input_port_type, output_port_type);
+	_show_members_box(true, input_port_type, output_port_type);
 }
 
 void VisualShaderEditor::_connection_from_empty(const String &p_to, int p_to_slot, const Vector2 &p_release_position) {
@@ -4223,7 +4227,7 @@ void VisualShaderEditor::_connection_from_empty(const String &p_to, int p_to_slo
 	if (node.is_valid()) {
 		input_port_type = node->get_input_port_type(to_slot);
 	}
-	_show_members_dialog(true, input_port_type, output_port_type);
+	_show_members_box(true, input_port_type, output_port_type);
 }
 
 bool VisualShaderEditor::_check_node_drop_on_connection(const Vector2 &p_position, Ref<GraphEdit::Connection> *r_closest_connection, int *r_from_port, int *r_to_port) {
@@ -4879,7 +4883,7 @@ void VisualShaderEditor::_graph_gui_input(const Ref<InputEvent> &p_event) {
 			connection_popup_menu->reset_size();
 			connection_popup_menu->popup();
 		} else if (selected_graph_elements.is_empty() && copy_buffer_empty) {
-			_show_members_dialog(true);
+			_show_members_box(true);
 		} else {
 			popup_menu->set_item_disabled(NodeMenuOptions::CUT, selected_deletable_graph_elements.is_empty());
 			popup_menu->set_item_disabled(NodeMenuOptions::COPY, selected_deletable_graph_elements.is_empty());
@@ -4992,39 +4996,95 @@ void VisualShaderEditor::_graph_gui_input(const Ref<InputEvent> &p_event) {
 	}
 }
 
-void VisualShaderEditor::_show_members_dialog(bool at_mouse_pos, VisualShaderNode::PortType p_input_port_type, VisualShaderNode::PortType p_output_port_type) {
+void VisualShaderEditor::_show_members_box(bool p_as_popup, VisualShaderNode::PortType p_input_port_type, VisualShaderNode::PortType p_output_port_type) {
+	if ((p_as_popup && members_dialog != nullptr) || (!p_as_popup && members_popup != nullptr)) {
+		_hide_members_box();
+	}
+
+	Window *created_window = nullptr;
+
+	if (p_as_popup) {
+		if (members_popup == nullptr) {
+			members_popup = memnew(PopupPanel);
+			members_box->reparent(members_popup, false);
+			members_popup->set_title(TTR("Create Shader Node"));
+			if (members_size.x < 1) {
+				members_size = Size2i(300, 360);
+			}
+			members_popup->set_min_size(members_size * EDSCALE);
+			add_child(members_popup);
+		}
+
+		saved_node_pos_dirty = true;
+		saved_node_pos = graph->get_local_mouse_position();
+
+		Point2 gpos = get_screen_position() + get_local_mouse_position();
+		members_popup->set_position(gpos);
+
+		created_window = members_popup;
+	} else {
+		if (members_dialog != nullptr) {
+			members_size = members_box->get_size() / EDSCALE;
+			members_dialog->grab_focus();
+			members_dialog->popup();
+		} else {
+			saved_node_pos_dirty = false;
+
+			members_dialog = memnew(ConfirmationDialog);
+			members_box->reparent(members_dialog, false);
+			members_dialog->set_title(TTR("Create Shader Node"));
+			members_dialog->set_ok_button_text(TTR("Create"));
+			members_dialog->connect(SceneStringName(confirmed), callable_mp(this, &VisualShaderEditor::_member_create));
+			members_dialog->get_ok_button()->set_disabled(true);
+			members_dialog->connect("canceled", callable_mp(this, &VisualShaderEditor::_member_cancel));
+			members_dialog->register_text_enter(node_filter);
+			if (members_size.x > 0) {
+				members_dialog->set_size(members_size * EDSCALE);
+			}
+			add_child(members_dialog);
+
+			members_dialog->set_position(graph->get_screen_position() + Point2(5 * EDSCALE, 65 * EDSCALE));
+
+			created_window = members_dialog;
+		}
+	}
+
 	if (members_input_port_type != p_input_port_type || members_output_port_type != p_output_port_type) {
 		members_input_port_type = p_input_port_type;
 		members_output_port_type = p_output_port_type;
 		_update_options_menu();
 	}
 
-	if (at_mouse_pos) {
-		saved_node_pos_dirty = true;
-		saved_node_pos = graph->get_local_mouse_position();
+	members_box->show();
 
-		Point2 gpos = get_screen_position() + get_local_mouse_position();
-		members_dialog->set_position(gpos);
-	} else {
-		saved_node_pos_dirty = false;
-		members_dialog->set_position(graph->get_screen_position() + Point2(5 * EDSCALE, 65 * EDSCALE));
+	if (created_window != nullptr) {
+		created_window->popup();
+
+		// Keep dialog within window bounds.
+		Rect2 window_rect = Rect2(get_window()->get_position(), get_window()->get_size());
+		Rect2 dialog_rect = Rect2(created_window->get_position(), created_window->get_size());
+		Vector2 difference = (dialog_rect.get_end() - window_rect.get_end()).maxf(0);
+		created_window->set_position(created_window->get_position() - difference);
 	}
-
-	if (members_dialog->is_visible()) {
-		members_dialog->grab_focus();
-		return;
-	}
-
-	members_dialog->popup();
-
-	// Keep dialog within window bounds.
-	Rect2 window_rect = Rect2(get_window()->get_position(), get_window()->get_size());
-	Rect2 dialog_rect = Rect2(members_dialog->get_position(), members_dialog->get_size());
-	Vector2 difference = (dialog_rect.get_end() - window_rect.get_end()).maxf(0);
-	members_dialog->set_position(members_dialog->get_position() - difference);
 
 	node_filter->grab_focus();
 	node_filter->select_all();
+}
+
+void VisualShaderEditor::_hide_members_box() {
+	if (members_box->get_parent() != this) {
+		members_box->hide();
+		members_box->reparent(this);
+		if (members_popup != nullptr) {
+			members_popup->queue_free();
+			members_popup = nullptr;
+		}
+		if (members_dialog != nullptr) {
+			members_size = members_box->get_size() / EDSCALE;
+			members_dialog->queue_free();
+			members_dialog = nullptr;
+		}
+	}
 }
 
 void VisualShaderEditor::_varying_menu_id_pressed(int p_idx) {
@@ -5072,7 +5132,7 @@ void VisualShaderEditor::_sbox_input(const Ref<InputEvent> &p_event) {
 	// Redirect navigational key events to the tree.
 	Ref<InputEventKey> key = p_event;
 	if (key.is_valid()) {
-		if (key->is_action("ui_up", true) || key->is_action("ui_down", true) || key->is_action("ui_page_up") || key->is_action("ui_page_down")) {
+		if (key->is_action("ui_up", true) || key->is_action("ui_down", true) || key->is_action("ui_page_up") || key->is_action("ui_page_down") || key->is_action("ui_accept")) {
 			members->gui_input(key);
 			node_filter->accept_event();
 		}
@@ -5800,12 +5860,16 @@ void VisualShaderEditor::_member_selected() {
 	TreeItem *item = members->get_selected();
 
 	if (item != nullptr && item->has_meta("id")) {
-		members_dialog->get_ok_button()->set_disabled(false);
+		if (members_dialog != nullptr) {
+			members_dialog->get_ok_button()->set_disabled(false);
+		}
 		highend_label->set_visible(add_options[item->get_meta("id")].highend);
 		node_desc->set_text(_get_description(item->get_meta("id")));
 	} else {
 		highend_label->set_visible(false);
-		members_dialog->get_ok_button()->set_disabled(true);
+		if (members_dialog != nullptr) {
+			members_dialog->get_ok_button()->set_disabled(true);
+		}
 		node_desc->set_text("");
 	}
 }
@@ -5836,7 +5900,7 @@ void VisualShaderEditor::_member_create() {
 			saved_node_pos = 0.5 * (from_graph_element->get_position() + zoom * from_graph_element->get_output_port_position(from_slot) + to_graph_element->get_position() + zoom * to_graph_element->get_input_port_position(to_slot));
 		}
 		_add_node(idx, add_options[idx].ops);
-		members_dialog->hide();
+		_hide_members_box();
 	}
 }
 
@@ -6005,7 +6069,7 @@ void VisualShaderEditor::_tools_menu_option(int p_idx) {
 void VisualShaderEditor::_node_menu_id_pressed(int p_idx) {
 	switch (p_idx) {
 		case NodeMenuOptions::ADD:
-			_show_members_dialog(true);
+			_show_members_box(false);
 			break;
 		case NodeMenuOptions::CUT:
 			_copy_nodes(true);
@@ -6075,7 +6139,7 @@ void VisualShaderEditor::_connection_menu_id_pressed(int p_idx) {
 			}
 
 			connection_node_insert_requested = true;
-			_show_members_dialog(true, input_port_type, output_port_type);
+			_show_members_box(false, input_port_type, output_port_type);
 		} break;
 		case ConnectionMenuOptions::INSERT_NEW_REROUTE: {
 			from_node = String(clicked_connection->from_node).to_int();
@@ -6562,7 +6626,7 @@ VisualShaderEditor::VisualShaderEditor() {
 	add_node->set_text(TTR("Add Node..."));
 	toolbar->add_child(add_node);
 	toolbar->move_child(add_node, 0);
-	add_node->connect(SceneStringName(pressed), callable_mp(this, &VisualShaderEditor::_show_members_dialog).bind(false, VisualShaderNode::PORT_TYPE_MAX, VisualShaderNode::PORT_TYPE_MAX));
+	add_node->connect(SceneStringName(pressed), callable_mp(this, &VisualShaderEditor::_show_members_box).bind(false, VisualShaderNode::PORT_TYPE_MAX, VisualShaderNode::PORT_TYPE_MAX));
 
 	graph->connect("graph_elements_linked_to_frame_request", callable_mp(this, &VisualShaderEditor::_nodes_linked_to_frame_request));
 	graph->connect("frame_rect_changed", callable_mp(this, &VisualShaderEditor::_frame_rect_changed));
@@ -6729,6 +6793,7 @@ VisualShaderEditor::VisualShaderEditor() {
 	///////////////////////////////////////
 
 	VBoxContainer *members_vb = memnew(VBoxContainer);
+	members_vb->set_h_size_flags(SIZE_EXPAND_FILL);
 	members_vb->set_v_size_flags(SIZE_EXPAND_FILL);
 
 	HBoxContainer *filter_hb = memnew(HBoxContainer);
@@ -6783,15 +6848,12 @@ VisualShaderEditor::VisualShaderEditor() {
 	node_desc->set_v_size_flags(SIZE_FILL);
 	node_desc->set_custom_minimum_size(Size2(0, 70 * EDSCALE));
 
-	members_dialog = memnew(ConfirmationDialog);
-	members_dialog->set_title(TTR("Create Shader Node"));
-	members_dialog->add_child(members_vb);
-	members_dialog->set_ok_button_text(TTR("Create"));
-	members_dialog->connect(SceneStringName(confirmed), callable_mp(this, &VisualShaderEditor::_member_create));
-	members_dialog->get_ok_button()->set_disabled(true);
-	members_dialog->connect("canceled", callable_mp(this, &VisualShaderEditor::_member_cancel));
-	members_dialog->register_text_enter(node_filter);
-	add_child(members_dialog);
+	members_box = memnew(VBoxContainer);
+	members_box->hide();
+	members_box->set_h_size_flags(SIZE_EXPAND_FILL);
+	members_box->set_v_size_flags(SIZE_EXPAND_FILL);
+	members_box->add_child(members_vb);
+	add_child(members_box);
 
 	// add varyings dialog
 	{
