@@ -129,100 +129,34 @@ public:
 	static _ALWAYS_INLINE_ double exp(double p_x) { return ::exp(p_x); }
 	static _ALWAYS_INLINE_ float exp(float p_x) { return ::expf(p_x); }
 
-	static _ALWAYS_INLINE_ bool is_nan(double p_val) {
-#ifdef _MSC_VER
-		return _isnan(p_val);
-#elif defined(__GNUC__) && __GNUC__ < 6
-		union {
-			uint64_t u;
-			double f;
-		} ieee754;
-		ieee754.f = p_val;
-		// (unsigned)(0x7ff0000000000001 >> 32) : 0x7ff00000
-		return ((((unsigned)(ieee754.u >> 32) & 0x7fffffff) + ((unsigned)ieee754.u != 0)) > 0x7ff00000);
-#else
-		return isnan(p_val);
-#endif
-	}
+	static constexpr bool is_nan(double p_val) { return p_val != p_val; }
+	static constexpr bool is_nan(float p_val) { return p_val != p_val; }
 
-	static _ALWAYS_INLINE_ bool is_nan(float p_val) {
-#ifdef _MSC_VER
-		return _isnan(p_val);
-#elif defined(__GNUC__) && __GNUC__ < 6
-		union {
-			uint32_t u;
-			float f;
-		} ieee754;
-		ieee754.f = p_val;
-		// -----------------------------------
-		// (single-precision floating-point)
-		// NaN : s111 1111 1xxx xxxx xxxx xxxx xxxx xxxx
-		//     : (> 0x7f800000)
-		// where,
-		//   s : sign
-		//   x : non-zero number
-		// -----------------------------------
-		return ((ieee754.u & 0x7fffffff) > 0x7f800000);
-#else
-		return isnan(p_val);
-#endif
-	}
+	static constexpr bool is_inf(double p_val) { return p_val == Math_INF || p_val == -Math_INF; }
+	static constexpr bool is_inf(float p_val) { return p_val == float(Math_INF) || p_val == float(-Math_INF); }
 
-	static _ALWAYS_INLINE_ bool is_inf(double p_val) {
-#ifdef _MSC_VER
-		return !_finite(p_val);
-// use an inline implementation of isinf as a workaround for problematic libstdc++ versions from gcc 5.x era
-#elif defined(__GNUC__) && __GNUC__ < 6
-		union {
-			uint64_t u;
-			double f;
-		} ieee754;
-		ieee754.f = p_val;
-		return ((unsigned)(ieee754.u >> 32) & 0x7fffffff) == 0x7ff00000 &&
-				((unsigned)ieee754.u == 0);
-#else
-		return isinf(p_val);
-#endif
-	}
-
-	static _ALWAYS_INLINE_ bool is_inf(float p_val) {
-#ifdef _MSC_VER
-		return !_finite(p_val);
-// use an inline implementation of isinf as a workaround for problematic libstdc++ versions from gcc 5.x era
-#elif defined(__GNUC__) && __GNUC__ < 6
-		union {
-			uint32_t u;
-			float f;
-		} ieee754;
-		ieee754.f = p_val;
-		return (ieee754.u & 0x7fffffff) == 0x7f800000;
-#else
-		return isinf(p_val);
-#endif
-	}
+	static constexpr bool is_finite(double p_val) { return !is_nan(p_val) && !is_inf(p_val); }
+	static constexpr bool is_finite(float p_val) { return !is_nan(p_val) && !is_inf(p_val); }
 
 	// These methods assume (p_num + p_den) doesn't overflow.
-	static _ALWAYS_INLINE_ int32_t division_round_up(int32_t p_num, int32_t p_den) {
+	static constexpr int32_t division_round_up(int32_t p_num, int32_t p_den) {
 		int32_t offset = (p_num < 0 && p_den < 0) ? 1 : -1;
 		return (p_num + p_den + offset) / p_den;
 	}
-	static _ALWAYS_INLINE_ uint32_t division_round_up(uint32_t p_num, uint32_t p_den) {
+	static constexpr uint32_t division_round_up(uint32_t p_num, uint32_t p_den) {
 		return (p_num + p_den - 1) / p_den;
 	}
-	static _ALWAYS_INLINE_ int64_t division_round_up(int64_t p_num, int64_t p_den) {
+	static constexpr int64_t division_round_up(int64_t p_num, int64_t p_den) {
 		int32_t offset = (p_num < 0 && p_den < 0) ? 1 : -1;
 		return (p_num + p_den + offset) / p_den;
 	}
-	static _ALWAYS_INLINE_ uint64_t division_round_up(uint64_t p_num, uint64_t p_den) {
+	static constexpr uint64_t division_round_up(uint64_t p_num, uint64_t p_den) {
 		return (p_num + p_den - 1) / p_den;
 	}
 
-	static _ALWAYS_INLINE_ bool is_finite(double p_val) { return isfinite(p_val); }
-	static _ALWAYS_INLINE_ bool is_finite(float p_val) { return isfinite(p_val); }
-
-	static _ALWAYS_INLINE_ double abs(double g) { return absd(g); }
-	static _ALWAYS_INLINE_ float abs(float g) { return absf(g); }
-	static _ALWAYS_INLINE_ int abs(int g) { return g > 0 ? g : -g; }
+	static constexpr double abs(double g) { return g == 0 ? 0.0 : (g < 0 ? -g : g); }
+	static constexpr float abs(float g) { return g == 0 ? 0.0f : (g < 0 ? -g : g); }
+	static constexpr int abs(int g) { return g < 0 ? -g : g; }
 
 	static _ALWAYS_INLINE_ double fposmod(double p_x, double p_y) {
 		double value = Math::fmod(p_x, p_y);
@@ -266,23 +200,23 @@ public:
 		return value;
 	}
 
-	static _ALWAYS_INLINE_ double deg_to_rad(double p_y) { return p_y * (Math_PI / 180.0); }
-	static _ALWAYS_INLINE_ float deg_to_rad(float p_y) { return p_y * (float)(Math_PI / 180.0); }
+	static constexpr double deg_to_rad(double p_y) { return p_y * (Math_PI / 180.0); }
+	static constexpr float deg_to_rad(float p_y) { return p_y * float(Math_PI / 180.0); }
 
-	static _ALWAYS_INLINE_ double rad_to_deg(double p_y) { return p_y * (180.0 / Math_PI); }
-	static _ALWAYS_INLINE_ float rad_to_deg(float p_y) { return p_y * (float)(180.0 / Math_PI); }
+	static constexpr double rad_to_deg(double p_y) { return p_y * (180.0 / Math_PI); }
+	static constexpr float rad_to_deg(float p_y) { return p_y * float(180.0 / Math_PI); }
 
-	static _ALWAYS_INLINE_ double lerp(double p_from, double p_to, double p_weight) { return p_from + (p_to - p_from) * p_weight; }
-	static _ALWAYS_INLINE_ float lerp(float p_from, float p_to, float p_weight) { return p_from + (p_to - p_from) * p_weight; }
+	static constexpr double lerp(double p_from, double p_to, double p_weight) { return p_from + (p_to - p_from) * p_weight; }
+	static constexpr float lerp(float p_from, float p_to, float p_weight) { return p_from + (p_to - p_from) * p_weight; }
 
-	static _ALWAYS_INLINE_ double cubic_interpolate(double p_from, double p_to, double p_pre, double p_post, double p_weight) {
+	static constexpr double cubic_interpolate(double p_from, double p_to, double p_pre, double p_post, double p_weight) {
 		return 0.5 *
 				((p_from * 2.0) +
 						(-p_pre + p_to) * p_weight +
 						(2.0 * p_pre - 5.0 * p_from + 4.0 * p_to - p_post) * (p_weight * p_weight) +
 						(-p_pre + 3.0 * p_from - 3.0 * p_to + p_post) * (p_weight * p_weight * p_weight));
 	}
-	static _ALWAYS_INLINE_ float cubic_interpolate(float p_from, float p_to, float p_pre, float p_post, float p_weight) {
+	static constexpr float cubic_interpolate(float p_from, float p_to, float p_pre, float p_post, float p_weight) {
 		return 0.5f *
 				((p_from * 2.0f) +
 						(-p_pre + p_to) * p_weight +
@@ -320,7 +254,7 @@ public:
 		return cubic_interpolate(from_rot, to_rot, pre_rot, post_rot, p_weight);
 	}
 
-	static _ALWAYS_INLINE_ double cubic_interpolate_in_time(double p_from, double p_to, double p_pre, double p_post, double p_weight,
+	static constexpr double cubic_interpolate_in_time(double p_from, double p_to, double p_pre, double p_post, double p_weight,
 			double p_to_t, double p_pre_t, double p_post_t) {
 		/* Barry-Goldman method */
 		double t = Math::lerp(0.0, p_to_t, p_weight);
@@ -332,7 +266,7 @@ public:
 		return Math::lerp(b1, b2, p_to_t == 0 ? 0.5 : t / p_to_t);
 	}
 
-	static _ALWAYS_INLINE_ float cubic_interpolate_in_time(float p_from, float p_to, float p_pre, float p_post, float p_weight,
+	static constexpr float cubic_interpolate_in_time(float p_from, float p_to, float p_pre, float p_post, float p_weight,
 			float p_to_t, float p_pre_t, float p_post_t) {
 		/* Barry-Goldman method */
 		float t = Math::lerp(0.0f, p_to_t, p_weight);
@@ -376,7 +310,7 @@ public:
 		return cubic_interpolate_in_time(from_rot, to_rot, pre_rot, post_rot, p_weight, p_to_t, p_pre_t, p_post_t);
 	}
 
-	static _ALWAYS_INLINE_ double bezier_interpolate(double p_start, double p_control_1, double p_control_2, double p_end, double p_t) {
+	static constexpr double bezier_interpolate(double p_start, double p_control_1, double p_control_2, double p_end, double p_t) {
 		/* Formula from Wikipedia article on Bezier curves. */
 		double omt = (1.0 - p_t);
 		double omt2 = omt * omt;
@@ -387,7 +321,7 @@ public:
 		return p_start * omt3 + p_control_1 * omt2 * p_t * 3.0 + p_control_2 * omt * t2 * 3.0 + p_end * t3;
 	}
 
-	static _ALWAYS_INLINE_ float bezier_interpolate(float p_start, float p_control_1, float p_control_2, float p_end, float p_t) {
+	static constexpr float bezier_interpolate(float p_start, float p_control_1, float p_control_2, float p_end, float p_t) {
 		/* Formula from Wikipedia article on Bezier curves. */
 		float omt = (1.0f - p_t);
 		float omt2 = omt * omt;
@@ -398,7 +332,7 @@ public:
 		return p_start * omt3 + p_control_1 * omt2 * p_t * 3.0f + p_control_2 * omt * t2 * 3.0f + p_end * t3;
 	}
 
-	static _ALWAYS_INLINE_ double bezier_derivative(double p_start, double p_control_1, double p_control_2, double p_end, double p_t) {
+	static constexpr double bezier_derivative(double p_start, double p_control_1, double p_control_2, double p_end, double p_t) {
 		/* Formula from Wikipedia article on Bezier curves. */
 		double omt = (1.0 - p_t);
 		double omt2 = omt * omt;
@@ -408,7 +342,7 @@ public:
 		return d;
 	}
 
-	static _ALWAYS_INLINE_ float bezier_derivative(float p_start, float p_control_1, float p_control_2, float p_end, float p_t) {
+	static constexpr float bezier_derivative(float p_start, float p_control_1, float p_control_2, float p_end, float p_t) {
 		/* Formula from Wikipedia article on Bezier curves. */
 		float omt = (1.0f - p_t);
 		float omt2 = omt * omt;
@@ -434,21 +368,21 @@ public:
 		return p_from + Math::angle_difference(p_from, p_to) * p_weight;
 	}
 
-	static _ALWAYS_INLINE_ double inverse_lerp(double p_from, double p_to, double p_value) {
+	static constexpr double inverse_lerp(double p_from, double p_to, double p_value) {
 		return (p_value - p_from) / (p_to - p_from);
 	}
-	static _ALWAYS_INLINE_ float inverse_lerp(float p_from, float p_to, float p_value) {
+	static constexpr float inverse_lerp(float p_from, float p_to, float p_value) {
 		return (p_value - p_from) / (p_to - p_from);
 	}
 
-	static _ALWAYS_INLINE_ double remap(double p_value, double p_istart, double p_istop, double p_ostart, double p_ostop) {
+	static constexpr double remap(double p_value, double p_istart, double p_istop, double p_ostart, double p_ostop) {
 		return Math::lerp(p_ostart, p_ostop, Math::inverse_lerp(p_istart, p_istop, p_value));
 	}
-	static _ALWAYS_INLINE_ float remap(float p_value, float p_istart, float p_istop, float p_ostart, float p_ostop) {
+	static constexpr float remap(float p_value, float p_istart, float p_istop, float p_ostart, float p_ostop) {
 		return Math::lerp(p_ostart, p_ostop, Math::inverse_lerp(p_istart, p_istop, p_value));
 	}
 
-	static _ALWAYS_INLINE_ double smoothstep(double p_from, double p_to, double p_s) {
+	static constexpr double smoothstep(double p_from, double p_to, double p_s) {
 		if (is_equal_approx(p_from, p_to)) {
 			if (likely(p_from <= p_to)) {
 				return p_s <= p_from ? 0.0 : 1.0;
@@ -459,7 +393,7 @@ public:
 		double s = CLAMP((p_s - p_from) / (p_to - p_from), 0.0, 1.0);
 		return s * s * (3.0 - 2.0 * s);
 	}
-	static _ALWAYS_INLINE_ float smoothstep(float p_from, float p_to, float p_s) {
+	static constexpr float smoothstep(float p_from, float p_to, float p_s) {
 		if (is_equal_approx(p_from, p_to)) {
 			if (likely(p_from <= p_to)) {
 				return p_s <= p_from ? 0.0f : 1.0f;
@@ -471,10 +405,10 @@ public:
 		return s * s * (3.0f - 2.0f * s);
 	}
 
-	static _ALWAYS_INLINE_ double move_toward(double p_from, double p_to, double p_delta) {
+	static constexpr double move_toward(double p_from, double p_to, double p_delta) {
 		return abs(p_to - p_from) <= p_delta ? p_to : p_from + SIGN(p_to - p_from) * p_delta;
 	}
-	static _ALWAYS_INLINE_ float move_toward(float p_from, float p_to, float p_delta) {
+	static constexpr float move_toward(float p_from, float p_to, float p_delta) {
 		return abs(p_to - p_from) <= p_delta ? p_to : p_from + SIGN(p_to - p_from) * p_delta;
 	}
 
@@ -508,11 +442,11 @@ public:
 	static _ALWAYS_INLINE_ double round(double p_val) { return ::round(p_val); }
 	static _ALWAYS_INLINE_ float round(float p_val) { return ::roundf(p_val); }
 
-	static _ALWAYS_INLINE_ int64_t wrapi(int64_t value, int64_t min, int64_t max) {
+	static constexpr int64_t wrapi(int64_t value, int64_t min, int64_t max) {
 		int64_t range = max - min;
 		return range == 0 ? min : min + ((((value - min) % range) + range) % range);
 	}
-	static _ALWAYS_INLINE_ double wrapf(double value, double min, double max) {
+	static constexpr double wrapf(double value, double min, double max) {
 		double range = max - min;
 		if (is_zero_approx(range)) {
 			return min;
@@ -523,7 +457,7 @@ public:
 		}
 		return result;
 	}
-	static _ALWAYS_INLINE_ float wrapf(float value, float min, float max) {
+	static constexpr float wrapf(float value, float min, float max) {
 		float range = max - min;
 		if (is_zero_approx(range)) {
 			return min;
@@ -568,7 +502,7 @@ public:
 	static float random(float from, float to);
 	static int random(int from, int to);
 
-	static _ALWAYS_INLINE_ bool is_equal_approx(float a, float b) {
+	static constexpr bool is_equal_approx(float a, float b) {
 		// Check for exact equality first, required to handle "infinity" values.
 		if (a == b) {
 			return true;
@@ -581,7 +515,7 @@ public:
 		return abs(a - b) < tolerance;
 	}
 
-	static _ALWAYS_INLINE_ bool is_equal_approx(float a, float b, float tolerance) {
+	static constexpr bool is_equal_approx(float a, float b, float tolerance) {
 		// Check for exact equality first, required to handle "infinity" values.
 		if (a == b) {
 			return true;
@@ -590,11 +524,11 @@ public:
 		return abs(a - b) < tolerance;
 	}
 
-	static _ALWAYS_INLINE_ bool is_zero_approx(float s) {
+	static constexpr bool is_zero_approx(float s) {
 		return abs(s) < (float)CMP_EPSILON;
 	}
 
-	static _ALWAYS_INLINE_ bool is_equal_approx(double a, double b) {
+	static constexpr bool is_equal_approx(double a, double b) {
 		// Check for exact equality first, required to handle "infinity" values.
 		if (a == b) {
 			return true;
@@ -607,7 +541,7 @@ public:
 		return abs(a - b) < tolerance;
 	}
 
-	static _ALWAYS_INLINE_ bool is_equal_approx(double a, double b, double tolerance) {
+	static constexpr bool is_equal_approx(double a, double b, double tolerance) {
 		// Check for exact equality first, required to handle "infinity" values.
 		if (a == b) {
 			return true;
@@ -616,7 +550,7 @@ public:
 		return abs(a - b) < tolerance;
 	}
 
-	static _ALWAYS_INLINE_ bool is_zero_approx(double s) {
+	static constexpr bool is_zero_approx(double s) {
 		return abs(s) < CMP_EPSILON;
 	}
 
