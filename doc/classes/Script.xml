@@ -124,6 +124,7 @@
 		<method name="reload">
 			<return type="int" enum="Error" />
 			<param index="0" name="keep_state" type="bool" default="false" />
+			<param index="1" name="show_error" type="bool" default="true" />
 			<description>
 				Reloads the script's class implementation. Returns an error code.
 			</description>

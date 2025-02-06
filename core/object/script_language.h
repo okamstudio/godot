@@ -150,7 +150,7 @@ public:
 	virtual bool has_source_code() const = 0;
 	virtual String get_source_code() const = 0;
 	virtual void set_source_code(const String &p_code) = 0;
-	virtual Error reload(bool p_keep_state = false) = 0;
+	virtual Error reload(bool p_keep_state = false, bool p_show_error = true) = 0;
 
 #ifdef TOOLS_ENABLED
 	virtual StringName get_doc_class_name() const = 0;

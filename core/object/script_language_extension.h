@@ -74,7 +74,7 @@ public:
 	EXBIND0RC(bool, has_source_code)
 	EXBIND0RC(String, get_source_code)
 	EXBIND1(set_source_code, const String &)
-	EXBIND1R(Error, reload, bool)
+	EXBIND2R(Error, reload, bool, bool)
 
 	GDVIRTUAL0RC_REQUIRED(StringName, _get_doc_class_name)
 	GDVIRTUAL0RC_REQUIRED(TypedArray<Dictionary>, _get_documentation)

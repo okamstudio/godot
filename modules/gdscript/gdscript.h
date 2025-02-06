@@ -307,7 +307,7 @@ public:
 	virtual String get_class_icon_path() const override;
 #endif // TOOLS_ENABLED
 
-	virtual Error reload(bool p_keep_state = false) override;
+	virtual Error reload(bool p_keep_state = false, bool p_show_error = true) override;
 
 	virtual void set_path(const String &p_path, bool p_take_over = false) override;
 	String get_script_path() const;

@@ -49,7 +49,7 @@ void ScriptExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_get_source_code);
 
 	GDVIRTUAL_BIND(_set_source_code, "code");
-	GDVIRTUAL_BIND(_reload, "keep_state");
+	GDVIRTUAL_BIND(_reload, "keep_state", "show_error");
 
 	GDVIRTUAL_BIND(_get_doc_class_name);
 	GDVIRTUAL_BIND(_get_documentation);

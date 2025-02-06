@@ -2578,7 +2578,7 @@ Variant CSharpScript::callp(const StringName &p_method, const Variant **p_args, 
 	return Script::callp(p_method, p_args, p_argcount, r_error);
 }
 
-Error CSharpScript::reload(bool p_keep_state) {
+Error CSharpScript::reload(bool p_keep_state, bool p_show_error) {
 	if (!reload_invalidated) {
 		return OK;
 	}

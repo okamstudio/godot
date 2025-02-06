@@ -195,6 +195,7 @@
 		<method name="_reload" qualifiers="virtual">
 			<return type="int" enum="Error" />
 			<param index="0" name="keep_state" type="bool" />
+			<param index="1" name="show_error" type="bool" />
 			<description>
 			</description>
 		</method>

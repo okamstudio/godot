@@ -254,7 +254,7 @@ public:
 	}
 #endif // TOOLS_ENABLED
 
-	Error reload(bool p_keep_state = false) override;
+	Error reload(bool p_keep_state = false, bool p_show_error = true) override;
 
 	bool has_script_signal(const StringName &p_signal) const override;
 	void get_script_signal_list(List<MethodInfo> *r_signals) const override;
