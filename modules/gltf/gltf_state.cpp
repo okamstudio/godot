@@ -133,7 +133,7 @@ void GLTFState::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "import_as_skeleton_bones"), "set_import_as_skeleton_bones", "get_import_as_skeleton_bones"); // bool
 	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "animations", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE | PROPERTY_USAGE_INTERNAL | PROPERTY_USAGE_EDITOR), "set_animations", "get_animations"); // Vector<Ref<GLTFAnimation>>
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "handle_binary_image", PROPERTY_HINT_ENUM, "Discard All Textures,Extract Textures,Embed as Basis Universal,Embed as Uncompressed", PROPERTY_USAGE_STORAGE | PROPERTY_USAGE_INTERNAL | PROPERTY_USAGE_EDITOR), "set_handle_binary_image", "get_handle_binary_image"); // enum
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "bake_fps"), "set_bake_fps", "get_bake_fps");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "bake_fps", PROPERTY_HINT_RANGE, "0.001,120,0.0001,or_greater"), "set_bake_fps", "get_bake_fps");
 
 	BIND_CONSTANT(HANDLE_BINARY_DISCARD_TEXTURES);
 	BIND_CONSTANT(HANDLE_BINARY_EXTRACT_TEXTURES);
