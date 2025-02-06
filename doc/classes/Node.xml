@@ -368,6 +368,12 @@
 				If [param include_internal] is [code]false[/code], returns the index ignoring internal children. The first, non-internal child will have an index of [code]0[/code] (see [method add_child]'s [code]internal[/code] parameter).
 			</description>
 		</method>
+		<method name="get_internal_mode" qualifiers="const">
+			<return type="int" enum="Node.InternalMode" />
+			<description>
+				Returns the node's internal mode. See [enum InternalMode].
+			</description>
+		</method>
 		<method name="get_last_exclusive_window" qualifiers="const">
 			<return type="Window" />
 			<description>
@@ -1328,13 +1334,13 @@
 			Duplicate using [method PackedScene.instantiate]. If the node comes from a scene saved on disk, reuses [method PackedScene.instantiate] as the base for the duplicated node and its children.
 		</constant>
 		<constant name="INTERNAL_MODE_DISABLED" value="0" enum="InternalMode">
-			The node will not be internal.
+			The node is not internal.
 		</constant>
 		<constant name="INTERNAL_MODE_FRONT" value="1" enum="InternalMode">
-			The node will be placed at the beginning of the parent's children, before any non-internal sibling.
+			The node is placed at the beginning of the parent's children, before any non-internal sibling.
 		</constant>
 		<constant name="INTERNAL_MODE_BACK" value="2" enum="InternalMode">
-			The node will be placed at the end of the parent's children, after any non-internal sibling.
+			The node is placed at the end of the parent's children, after any non-internal sibling.
 		</constant>
 		<constant name="AUTO_TRANSLATE_MODE_INHERIT" value="0" enum="AutoTranslateMode">
 			Inherits [member auto_translate_mode] from the node's parent. This is the default for any newly created node.

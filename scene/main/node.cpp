@@ -3629,6 +3629,7 @@ void Node::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("find_parent", "pattern"), &Node::find_parent);
 	ClassDB::bind_method(D_METHOD("has_node_and_resource", "path"), &Node::has_node_and_resource);
 	ClassDB::bind_method(D_METHOD("get_node_and_resource", "path"), &Node::_get_node_and_resource);
+	ClassDB::bind_method(D_METHOD("get_internal_mode"), &Node::get_internal_mode);
 
 	ClassDB::bind_method(D_METHOD("is_inside_tree"), &Node::is_inside_tree);
 	ClassDB::bind_method(D_METHOD("is_part_of_edited_scene"), &Node::is_part_of_edited_scene);
