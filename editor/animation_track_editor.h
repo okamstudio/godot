@@ -431,6 +431,8 @@ class AnimationTrackEdit : public Control {
 		MENU_KEY_DELETE,
 		MENU_USE_BLEND_ENABLED,
 		MENU_USE_BLEND_DISABLED,
+		MENU_CHANGE_TARGET_NODE,
+		MENU_CHANGE_TARGET_PROPERTY,
 	};
 
 	AnimationTimelineEdit *timeline = nullptr;
@@ -645,17 +647,27 @@ class AnimationTrackEditor : public VBoxContainer {
 	void _update_length(double p_new_len);
 	void _dropped_track(int p_from_track, int p_to_track);
 
+	Vector<StringName> _get_valid_types_for_track(int p_type); // Start
 	void _add_track(int p_type);
+	void _pick_track_node_selected(NodePath p_path);
 	void _new_track_node_selected(NodePath p_path);
+	void _move_track_to_node(NodePath p_path);
+	void _prop_selector_property_selected(const String &p_name);
 	void _new_track_property_selected(const String &p_name);
+	void _change_track_property_selected(const String &p_name);
+	void _change_track_target_node_pressed(int p_track);
+	void _change_track_target_property_pressed(int p_track); // end
 
 	void _update_step_spinbox();
 
 	PropertySelector *prop_selector = nullptr;
 	PropertySelector *method_selector = nullptr;
+	PropertySelector *change_prop_selector = nullptr; // Change Property
 	SceneTreeDialog *pick_track = nullptr;
+	int dialog_state;
 	int adding_track_type = 0;
 	NodePath adding_track_path;
+	int affected_track_idx;
 
 	bool keying = false;
 
@@ -901,7 +913,11 @@ public:
 		EDIT_OPTIMIZE_ANIMATION,
 		EDIT_OPTIMIZE_ANIMATION_CONFIRM,
 		EDIT_CLEAN_UP_ANIMATION,
-		EDIT_CLEAN_UP_ANIMATION_CONFIRM
+		EDIT_CLEAN_UP_ANIMATION_CONFIRM,
+		DIALOG_ADD_TRACK_NODE,
+		DIALOG_ADD_TRACK_PROPERTY,
+		DIALOG_CHANGE_NODE_PATH,
+		DIALOG_CHANGE_PROPERTY_PATH,
 	};
 
 	void add_track_edit_plugin(const Ref<AnimationTrackEditPlugin> &p_plugin);
@@ -911,6 +927,7 @@ public:
 	Ref<Animation> get_current_animation() const;
 	void set_root(Node *p_root);
 	Node *get_root() const;
+	Node *get_track_node_or_null(int p_track);
 	void update_keying();
 	bool has_keying() const;
 
