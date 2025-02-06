@@ -1202,6 +1202,8 @@ void Window::_update_viewport_size() {
 		screen_size = screen_size.floor();
 		viewport_size = viewport_size.floor();
 
+		Size2 attach_to_screen_offset;
+
 		if (content_scale_stretch == Window::CONTENT_SCALE_STRETCH_INTEGER) {
 			Size2i screen_scale = (screen_size / viewport_size).floor();
 			int scale_factor = MIN(screen_scale.x, screen_scale.y);
@@ -1211,19 +1213,20 @@ void Window::_update_viewport_size() {
 			}
 
 			screen_size = viewport_size * scale_factor;
+
+			if (screen_size.y > video_mode.y) {
+				attach_to_screen_offset.y = video_mode.y - screen_size.y;
+			}
 		}
 
 		Size2 margin;
-		Size2 offset;
 
 		if (screen_size.x < video_mode.x) {
 			margin.x = Math::round((video_mode.x - screen_size.x) / 2.0);
-			offset.x = Math::round(margin.x * viewport_size.y / screen_size.y);
 		}
 
 		if (screen_size.y < video_mode.y) {
 			margin.y = Math::round((video_mode.y - screen_size.y) / 2.0);
-			offset.y = Math::round(margin.y * viewport_size.x / screen_size.x);
 		}
 
 		switch (content_scale_mode) {
@@ -1234,14 +1237,14 @@ void Window::_update_viewport_size() {
 			case CONTENT_SCALE_MODE_CANVAS_ITEMS: {
 				final_size = screen_size;
 				final_size_override = viewport_size / content_scale_factor;
-				attach_to_screen_rect = Rect2(margin, screen_size);
+				attach_to_screen_rect = Rect2(margin + attach_to_screen_offset, screen_size);
 				font_oversampling = (screen_size.x / viewport_size.x) * content_scale_factor;
 
 				window_transform.translate_local(margin);
 			} break;
 			case CONTENT_SCALE_MODE_VIEWPORT: {
 				final_size = (viewport_size / content_scale_factor).floor();
-				attach_to_screen_rect = Rect2(margin, screen_size);
+				attach_to_screen_rect = Rect2(margin + attach_to_screen_offset, screen_size);
 
 				window_transform.translate_local(margin);
 				if (final_size.x != 0 && final_size.y != 0) {
