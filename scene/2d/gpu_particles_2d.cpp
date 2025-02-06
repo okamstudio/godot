@@ -141,7 +141,18 @@ void GPUParticles2D::_update_particle_emission_transform() {
 }
 
 void GPUParticles2D::set_process_material(const Ref<Material> &p_material) {
+	if (process_material.is_valid() && process_material->is_class("ParticleProcessMaterial")) {
+		process_material->disconnect("emission_shape_changed", callable_mp((CanvasItem *)this, &GPUParticles2D::queue_redraw));
+	}
+
 	process_material = p_material;
+
+	if (process_material.is_valid() && process_material->is_class("ParticleProcessMaterial")) {
+		process_material->connect("emission_shape_changed", callable_mp((CanvasItem *)this, &GPUParticles2D::queue_redraw));
+	}
+
+	queue_redraw();
+
 	Ref<ParticleProcessMaterial> pm = p_material;
 	if (pm.is_valid() && !pm->get_particle_flag(ParticleProcessMaterial::PARTICLE_FLAG_DISABLE_Z) && pm->get_gravity() == Vector3(0, -9.8, 0)) {
 		// Likely a new (3D) material, modify it to match 2D space
@@ -195,8 +206,8 @@ void GPUParticles2D::set_interp_to_end(float p_interp) {
 }
 
 #ifdef TOOLS_ENABLED
-void GPUParticles2D::set_show_visibility_rect(bool p_show_visibility_rect) {
-	show_visibility_rect = p_show_visibility_rect;
+void GPUParticles2D::set_show_gizmos(bool p_show_gizmos) {
+	show_gizmos = p_show_gizmos;
 	queue_redraw();
 }
 #endif
@@ -704,8 +715,9 @@ void GPUParticles2D::_notification(int p_what) {
 			RS::get_singleton()->canvas_item_add_particles(get_canvas_item(), particles, texture_rid);
 
 #ifdef TOOLS_ENABLED
-			if (show_visibility_rect) {
+			if (show_gizmos) {
 				draw_rect(visibility_rect, Color(0, 0.7, 0.9, 0.4), false);
+				_draw_emission_gizmo();
 			}
 #endif
 		} break;
@@ -780,6 +792,61 @@ void GPUParticles2D::_notification(int p_what) {
 		} break;
 	}
 }
+
+#ifdef TOOLS_ENABLED
+void GPUParticles2D::_draw_emission_gizmo() {
+	Ref<ParticleProcessMaterial> pm = process_material;
+	if (!pm.is_valid()) {
+		return;
+	}
+	draw_set_transform(
+			Vector2(pm->get_emission_shape_offset().x, pm->get_emission_shape_offset().y),
+			0.0,
+			Vector2(pm->get_emission_shape_scale().x, pm->get_emission_shape_scale().y));
+
+	switch (pm->get_emission_shape()) {
+		case ParticleProcessMaterial::EmissionShape::EMISSION_SHAPE_BOX: {
+			Vector2 extends2d = Vector2(pm->get_emission_box_extents().x, pm->get_emission_box_extents().y);
+			draw_rect(Rect2(Vector2() - extends2d, extends2d * 2.0), Color(0.8, 0.7, 0.4, 0.4), false);
+			break;
+		}
+		case ParticleProcessMaterial::EmissionShape::EMISSION_SHAPE_SPHERE: {
+			[[fallthrough]];
+		}
+		case ParticleProcessMaterial::EmissionShape::EMISSION_SHAPE_SPHERE_SURFACE: {
+			draw_circle(Vector2(), pm->get_emission_sphere_radius(), Color(0.8, 0.7, 0.4, 0.4), false);
+			break;
+		}
+		case ParticleProcessMaterial::EmissionShape::EMISSION_SHAPE_RING: {
+			Vector3 ring_axis = pm->get_emission_ring_axis();
+			if (ring_axis.is_equal_approx(Vector3(0.0, 0.0, 1.0))) {
+				draw_circle(Vector2(), pm->get_emission_ring_inner_radius(), Color(0.8, 0.7, 0.4, 0.4), false);
+				draw_circle(Vector2(), pm->get_emission_ring_radius(), Color(0.8, 0.7, 0.4, 0.4), false);
+			} else {
+				Vector2 a = Vector2(pm->get_emission_ring_height() / -2.0, pm->get_emission_ring_radius() / -1.0);
+				Vector2 b = Vector2(a.x * -1.0, MIN(a.y + tan((90.0 - pm->get_emission_ring_cone_angle()) * 0.01745329) * pm->get_emission_ring_height(), 0.0));
+				Vector2 c = Vector2(b.x, -b.y);
+				Vector2 d = Vector2(a.x, -a.y);
+				if (ring_axis.is_equal_approx(Vector3(1.0, 0.0, 0.0))) {
+					Vector<Vector2> pos = { a, b, b, c, c, d, d, a };
+					draw_multiline(pos, Color(0.8, 0.7, 0.4, 0.4));
+				} else if (ring_axis.is_equal_approx(Vector3(0.0, 1.0, 0.0))) {
+					a = Vector2(a.y, a.x);
+					b = Vector2(b.y, b.x);
+					c = Vector2(c.y, c.x);
+					d = Vector2(d.y, d.x);
+					Vector<Vector2> pos = { a, b, b, c, c, d, d, a };
+					draw_multiline(pos, Color(0.8, 0.7, 0.4, 0.4));
+				}
+			}
+			break;
+		}
+		default: {
+			break;
+		}
+	}
+}
+#endif
 
 void GPUParticles2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_emitting", "emitting"), &GPUParticles2D::set_emitting);

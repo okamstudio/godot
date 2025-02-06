@@ -148,6 +148,10 @@ private:
 
 	Transform2D inv_emission_transform;
 
+#ifdef TOOLS_ENABLED
+	bool show_gizmos = false;
+#endif
+
 	DrawOrder draw_order = DRAW_ORDER_INDEX;
 
 	Ref<Texture2D> texture;
@@ -211,6 +215,9 @@ private:
 protected:
 	static void _bind_methods();
 	void _notification(int p_what);
+#ifdef TOOLS_ENABLED
+	void _draw_emission_gizmo();
+#endif
 	void _validate_property(PropertyInfo &p_property) const;
 
 #ifndef DISABLE_DEPRECATED
@@ -257,6 +264,7 @@ public:
 	bool get_use_fixed_seed() const;
 
 	void set_seed(uint32_t p_seed);
+	void set_show_gizmos(bool p_show_gizmos);
 	uint32_t get_seed() const;
 
 	void request_particles_process(real_t p_requested_process_time);

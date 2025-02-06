@@ -69,7 +69,7 @@ private:
 	uint32_t seed = 0;
 	bool use_fixed_seed = false;
 #ifdef TOOLS_ENABLED
-	bool show_visibility_rect = false;
+	bool show_gizmos = false;
 #endif
 	Ref<Material> process_material;
 
@@ -101,6 +101,9 @@ protected:
 	static void _bind_methods();
 	void _validate_property(PropertyInfo &p_property) const;
 	void _notification(int p_what);
+#ifdef TOOLS_ENABLED
+	void _draw_emission_gizmo();
+#endif
 	void _update_collision_size();
 
 #ifndef DISABLE_DEPRECATED
@@ -129,7 +132,7 @@ public:
 	void request_particles_process(real_t p_requested_process_time);
 
 #ifdef TOOLS_ENABLED
-	void set_show_visibility_rect(bool p_show_visibility_rect);
+	void set_show_gizmos(bool p_show_gizmos);
 #endif
 
 	bool is_emitting() const;
