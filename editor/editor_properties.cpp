@@ -167,11 +167,6 @@ void EditorPropertyMultilineText::_text_changed() {
 void EditorPropertyMultilineText::_open_big_text() {
 	if (!big_text_dialog) {
 		big_text = memnew(TextEdit);
-		if (expression) {
-			big_text->set_syntax_highlighter(text->get_syntax_highlighter());
-			big_text->add_theme_font_override(SceneStringName(font), get_theme_font(SNAME("expression"), EditorStringName(EditorFonts)));
-			big_text->add_theme_font_size_override(SceneStringName(font_size), get_theme_font_size(SNAME("expression_size"), EditorStringName(EditorFonts)));
-		}
 		big_text->connect(SceneStringName(text_changed), callable_mp(this, &EditorPropertyMultilineText::_big_text_changed));
 		big_text->set_line_wrapping_mode(TextEdit::LineWrappingMode::LINE_WRAPPING_BOUNDARY);
 		big_text_dialog = memnew(AcceptDialog);
@@ -203,28 +198,15 @@ void EditorPropertyMultilineText::_notification(int p_what) {
 			Ref<Texture2D> df = get_editor_theme_icon(SNAME("DistractionFree"));
 			open_big_text->set_button_icon(df);
 
-			Ref<Font> font;
-			int font_size;
-			if (expression) {
-				font = get_theme_font(SNAME("expression"), EditorStringName(EditorFonts));
-				font_size = get_theme_font_size(SNAME("expression_size"), EditorStringName(EditorFonts));
+			Ref<Font> font = get_theme_font(SceneStringName(font), SNAME("TextEdit"));
+			int font_size = get_theme_font_size(SceneStringName(font_size), SNAME("TextEdit"));
 
-				text->add_theme_font_override(SceneStringName(font), font);
-				text->add_theme_font_size_override(SceneStringName(font_size), font_size);
-				if (big_text) {
-					big_text->add_theme_font_override(SceneStringName(font), font);
-					big_text->add_theme_font_size_override(SceneStringName(font_size), font_size);
-				}
-			} else {
-				font = get_theme_font(SceneStringName(font), SNAME("TextEdit"));
-				font_size = get_theme_font_size(SceneStringName(font_size), SNAME("TextEdit"));
-			}
 			text->set_custom_minimum_size(Vector2(0, font->get_height(font_size) * 6));
 		} break;
 	}
 }
 
-EditorPropertyMultilineText::EditorPropertyMultilineText(bool p_expression) {
+EditorPropertyMultilineText::EditorPropertyMultilineText() {
 	HBoxContainer *hb = memnew(HBoxContainer);
 	hb->add_theme_constant_override("separation", 0);
 	add_child(hb);
@@ -241,12 +223,46 @@ EditorPropertyMultilineText::EditorPropertyMultilineText(bool p_expression) {
 	hb->add_child(open_big_text);
 	big_text_dialog = nullptr;
 	big_text = nullptr;
-	if (p_expression) {
-		expression = true;
-		Ref<EditorStandardSyntaxHighlighter> highlighter;
-		highlighter.instantiate();
-		text->set_syntax_highlighter(highlighter);
+}
+
+/////////////////////////////////////////////////////////
+
+void EditorPropertyMultilineExpressionText::_open_big_text() {
+	if (big_text) {
+		big_text->set_syntax_highlighter(text->get_syntax_highlighter());
+		big_text->add_theme_font_override(SceneStringName(font), get_theme_font(SNAME("expression"), EditorStringName(EditorFonts)));
+		big_text->add_theme_font_size_override(SceneStringName(font_size), get_theme_font_size(SNAME("expression_size"), EditorStringName(EditorFonts)));
 	}
+}
+
+void EditorPropertyMultilineExpressionText::_notification(int p_what) {
+	switch (p_what) {
+		case NOTIFICATION_THEME_CHANGED:
+		case NOTIFICATION_ENTER_TREE: {
+			Ref<Texture2D> df = get_editor_theme_icon(SNAME("DistractionFree"));
+			open_big_text->set_icon(df);
+
+			Ref<Font> font = get_theme_font(SNAME("expression"), EditorStringName(EditorFonts));
+			int font_size = get_theme_font_size(SNAME("expression_size"), EditorStringName(EditorFonts));
+
+			text->add_theme_font_override(SceneStringName(font), font);
+			text->add_theme_font_size_override(SceneStringName(font_size), font_size);
+			if (big_text) {
+				big_text->add_theme_font_override(SceneStringName(font), font);
+				big_text->add_theme_font_size_override(SceneStringName(font_size), font_size);
+			}
+
+			text->set_custom_minimum_size(Vector2(0, font->get_height(font_size) * 6));
+		} break;
+	}
+}
+
+EditorPropertyMultilineExpressionText::EditorPropertyMultilineExpressionText() {
+	Ref<EditorExpressionSyntaxHighlighter> highlighter;
+	highlighter.instantiate();
+	text->set_syntax_highlighter(highlighter);
+
+	open_big_text->connect(SceneStringName(pressed), callable_mp(this, &EditorPropertyMultilineExpressionText::_open_big_text));
 }
 
 ///////////////////// TEXT ENUM /////////////////////////
@@ -3617,7 +3633,7 @@ EditorProperty *EditorInspectorDefaultPlugin::get_editor_for_property(Object *p_
 				EditorPropertyMultilineText *editor = memnew(EditorPropertyMultilineText);
 				return editor;
 			} else if (p_hint == PROPERTY_HINT_EXPRESSION) {
-				EditorPropertyMultilineText *editor = memnew(EditorPropertyMultilineText(true));
+				EditorPropertyMultilineText *editor = memnew(EditorPropertyMultilineExpressionText());
 				return editor;
 			} else if (p_hint == PROPERTY_HINT_TYPE_STRING) {
 				EditorPropertyClassName *editor = memnew(EditorPropertyClassName);

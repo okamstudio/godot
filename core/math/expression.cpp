@@ -1522,6 +1522,31 @@ void Expression::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_error_text"), &Expression::get_error_text);
 }
 
+void Expression::get_reserved_words(List<String> *p_words) {
+	static const char *_reserved_words[] = {
+		"in",
+		"null",
+		"true",
+		"false",
+		"PI",
+		"TAU",
+		"INF",
+		"NAN",
+		"not",
+		"or",
+		"and",
+		"self",
+		nullptr,
+	};
+
+	const char **w = _reserved_words;
+
+	while (*w) {
+		p_words->push_back(*w);
+		w++;
+	}
+}
+
 Expression::~Expression() {
 	if (nodes) {
 		memdelete(nodes);

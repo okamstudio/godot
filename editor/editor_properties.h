@@ -77,6 +77,8 @@ public:
 
 class EditorPropertyMultilineText : public EditorProperty {
 	GDCLASS(EditorPropertyMultilineText, EditorProperty);
+
+protected:
 	TextEdit *text = nullptr;
 
 	AcceptDialog *big_text_dialog = nullptr;
@@ -86,15 +88,24 @@ class EditorPropertyMultilineText : public EditorProperty {
 	void _big_text_changed();
 	void _text_changed();
 	void _open_big_text();
-	bool expression = false;
 
-protected:
 	virtual void _set_read_only(bool p_read_only) override;
 	void _notification(int p_what);
 
 public:
 	virtual void update_property() override;
-	EditorPropertyMultilineText(bool p_expression = false);
+	EditorPropertyMultilineText();
+};
+
+class EditorPropertyMultilineExpressionText : public EditorPropertyMultilineText {
+	GDCLASS(EditorPropertyMultilineExpressionText, EditorPropertyMultilineText);
+
+protected:
+	void _open_big_text();
+	void _notification(int p_what);
+
+public:
+	EditorPropertyMultilineExpressionText();
 };
 
 class EditorPropertyTextEnum : public EditorProperty {

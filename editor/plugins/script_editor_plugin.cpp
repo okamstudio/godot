@@ -35,6 +35,7 @@
 #include "core/io/file_access.h"
 #include "core/io/json.h"
 #include "core/io/resource_loader.h"
+#include "core/math/expression.h"
 #include "core/os/keyboard.h"
 #include "core/os/os.h"
 #include "core/version.h"
@@ -101,6 +102,34 @@ void EditorSyntaxHighlighter::_bind_methods() {
 
 	GDVIRTUAL_BIND(_get_name)
 	GDVIRTUAL_BIND(_get_supported_languages)
+}
+
+////
+
+void EditorExpressionSyntaxHighlighter::_update_cache() {
+	highlighter->set_text_edit(text_edit);
+	highlighter->clear_keyword_colors();
+	highlighter->clear_member_keyword_colors();
+	highlighter->clear_color_regions();
+
+	highlighter->set_symbol_color(EDITOR_GET("text_editor/theme/highlighting/symbol_color"));
+	highlighter->set_function_color(EDITOR_GET("text_editor/theme/highlighting/function_color"));
+	highlighter->set_number_color(EDITOR_GET("text_editor/theme/highlighting/number_color"));
+	highlighter->set_member_variable_color(EDITOR_GET("text_editor/theme/highlighting/member_variable_color"));
+
+	/* Reserved words. */
+	const Color keyword_color = EDITOR_GET("text_editor/theme/highlighting/keyword_color");
+	List<String> keywords;
+	Expression::get_reserved_words(&keywords);
+	for (const String &E : keywords) {
+		highlighter->add_keyword_color(E, keyword_color);
+	}
+}
+
+Ref<EditorSyntaxHighlighter> EditorExpressionSyntaxHighlighter::_create() const {
+	Ref<EditorExpressionSyntaxHighlighter> syntax_highlighter;
+	syntax_highlighter.instantiate();
+	return syntax_highlighter;
 }
 
 ////

@@ -73,6 +73,23 @@ public:
 	virtual Ref<EditorSyntaxHighlighter> _create() const;
 };
 
+class EditorExpressionSyntaxHighlighter : public EditorSyntaxHighlighter {
+	GDCLASS(EditorExpressionSyntaxHighlighter, EditorSyntaxHighlighter)
+
+private:
+	Ref<CodeHighlighter> highlighter;
+
+public:
+	virtual void _update_cache() override;
+	virtual Dictionary _get_line_syntax_highlighting_impl(int p_line) override { return highlighter->get_line_syntax_highlighting(p_line); }
+
+	virtual String _get_name() const override { return TTR("Expression"); }
+
+	virtual Ref<EditorSyntaxHighlighter> _create() const override;
+
+	EditorExpressionSyntaxHighlighter() { highlighter.instantiate(); }
+};
+
 class EditorStandardSyntaxHighlighter : public EditorSyntaxHighlighter {
 	GDCLASS(EditorStandardSyntaxHighlighter, EditorSyntaxHighlighter)
 
