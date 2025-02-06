@@ -116,6 +116,7 @@ void CSharpLanguage::init() {
 #endif
 
 	GLOBAL_DEF("dotnet/project/assembly_name", "");
+	GLOBAL_DEF("dotnet/project/data_directory", "data_{app_name}_{platform}_{arch}");
 #ifdef TOOLS_ENABLED
 	GLOBAL_DEF("dotnet/project/solution_directory", "");
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "dotnet/project/assembly_reload_attempts", PROPERTY_HINT_RANGE, "1,16,1,or_greater"), 3);

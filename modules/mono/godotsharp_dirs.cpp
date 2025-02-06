@@ -169,9 +169,17 @@ private:
 		String arch = Engine::get_singleton()->get_architecture_name();
 		String appname_safe = path::get_csharp_project_name();
 		String packed_path = "res://.godot/mono/publish/" + arch;
+
+		Dictionary dic;
+		dic["app_name"] = appname_safe;
+		dic["platform"] = platform;
+		dic["arch"] = arch;
+
+		String data_dir_name = String(GLOBAL_GET("dotnet/project/data_directory")).format(dic);
+
 		if (DirAccess::exists(packed_path)) {
 			// The dotnet publish data is packed in the pck/zip.
-			String data_dir_root = OS::get_singleton()->get_cache_path().path_join("data_" + appname_safe + "_" + platform + "_" + arch);
+			String data_dir_root = OS::get_singleton()->get_cache_path().path_join(data_dir_name);
 			bool has_data = false;
 			if (!has_data) {
 				// 1. Try to access the data directly.
@@ -206,10 +214,10 @@ private:
 			api_assemblies_dir = data_dir_root;
 		} else {
 			// The dotnet publish data is in a directory next to the executable.
-			String data_dir_root = exe_dir.path_join("data_" + appname_safe + "_" + platform + "_" + arch);
+			String data_dir_root = exe_dir.path_join(data_dir_name);
 #ifdef MACOS_ENABLED
 			if (!DirAccess::exists(data_dir_root)) {
-				data_dir_root = res_dir.path_join("data_" + appname_safe + "_" + platform + "_" + arch);
+				data_dir_root = res_dir.path_join(data_dir_name);
 			}
 #endif
 			api_assemblies_dir = data_dir_root;
