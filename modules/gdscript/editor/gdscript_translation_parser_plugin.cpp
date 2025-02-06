@@ -56,10 +56,16 @@ Error GDScriptEditorTranslationParserPlugin::parse_file(const String &p_path, Ve
 	ids_ctx_plural_comment.clear();
 
 	Ref<GDScript> gdscript = loaded_res;
+	ERR_FAIL_COND_V_MSG(!gdscript->is_valid(), ERR_FILE_CANT_OPEN, "Failed to load GDScript.");
 	String source_code = gdscript->get_source_code();
 
+	String path_res = p_path;
+	if (!path_res.begins_with("res://")) {
+		path_res = "res://" + path_res;
+	}
+
 	GDScriptParser parser;
-	err = parser.parse(source_code, p_path, false);
+	err = parser.parse(source_code, path_res, false);
 	ERR_FAIL_COND_V_MSG(err, err, "Failed to parse GDScript with GDScriptParser.");
 
 	GDScriptAnalyzer analyzer(&parser);
