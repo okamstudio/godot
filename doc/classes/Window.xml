@@ -356,13 +356,14 @@
 		<method name="move_to_center">
 			<return type="void" />
 			<description>
-				Centers a native window on the current screen and an embedded window on its embedder [Viewport].
+				Centers a native window on the current screen and an embedded window on its embedder [Viewport]. See also [member position].
 			</description>
 		</method>
 		<method name="move_to_foreground" deprecated="Use [method Window.grab_focus] instead.">
 			<return type="void" />
 			<description>
-				Causes the window to grab focus, allowing it to receive user input.
+				Causes the window to be moved in front of other windows and grab focus, allowing it to receive user input.
+				[b]Note:[/b] On Windows, several restrictions apply to moving windows to the foreground as described in the [url=https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setforegroundwindow#remarks]SetForegroundWindow documentation[/url]. If moving the window to the foreground is prevented due to these restrictions, the window will only act as if it's requesting attention (see [method request_attention]). This can be worked around by setting [member always_on_top] to [code]true[/code] then to [code]false[/code] immediately afterwards, but it won't receive focus when doing so.
 			</description>
 		</method>
 		<method name="popup">
@@ -498,7 +499,7 @@
 		<method name="request_attention">
 			<return type="void" />
 			<description>
-				Tells the OS that the [Window] needs an attention. This makes the window stand out in some way depending on the system, e.g. it might blink on the task bar.
+				Tells the OS that the [Window] needs an attention. This makes the window stand out in some way depending on the system, e.g. it might blink on the task bar. See also [method move_to_foreground].
 			</description>
 		</method>
 		<method name="reset_size">
@@ -573,7 +574,7 @@
 	</methods>
 	<members>
 		<member name="always_on_top" type="bool" setter="set_flag" getter="get_flag" default="false">
-			If [code]true[/code], the window will be on top of all other windows. Does not work if [member transient] is enabled.
+			If [code]true[/code], the window will be on top of all other windows. Does not work if [member transient] is enabled. See also [method move_to_foreground].
 		</member>
 		<member name="auto_translate" type="bool" setter="set_auto_translate" getter="is_auto_translating" default="true" deprecated="Use [member Node.auto_translate_mode] instead.">
 			Toggles if any text should automatically change to its translated version depending on the current locale.
@@ -671,7 +672,7 @@
 			If [code]true[/code], the [Window] will be considered a popup. Popups are sub-windows that don't show as separate windows in system's window manager's window list and will send close request when anything is clicked outside of them (unless [member exclusive] is enabled).
 		</member>
 		<member name="position" type="Vector2i" setter="set_position" getter="get_position" default="Vector2i(0, 0)">
-			The window's position in pixels.
+			The window's position in pixels. See also [method move_to_center].
 			If [member ProjectSettings.display/window/subwindows/embed_subwindows] is [code]false[/code], the position is in absolute screen coordinates. This typically applies to editor plugins. If the setting is [code]true[/code], the window's position is in the coordinates of its parent [Viewport].
 			[b]Note:[/b] This property only works if [member initial_position] is set to [constant WINDOW_INITIAL_POSITION_ABSOLUTE].
 		</member>
