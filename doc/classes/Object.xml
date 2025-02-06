@@ -696,6 +696,7 @@
 				var a = node.Get(Node2D.PropertyName.Rotation); // a is 1.5
 				[/csharp]
 				[/codeblocks]
+				[b]Note:[/b] In GDScript, you can use index or attribute access instead. For example, [code]object["property"][/code] or [code]object.property[/code]. Unlike [method get], these options produce an error if the property does not exist.
 				[b]Note:[/b] In C#, [param property] must be in snake_case when referring to built-in Godot properties. Prefer using the names exposed in the [code]PropertyName[/code] class to avoid allocating a new [StringName] on each call.
 			</description>
 		</method>
@@ -719,7 +720,7 @@
 			<return type="Variant" />
 			<param index="0" name="property_path" type="NodePath" />
 			<description>
-				Gets the object's property indexed by the given [param property_path]. The path should be a [NodePath] relative to the current object and can use the colon character ([code]:[/code]) to access nested properties.
+				Gets the object's property indexed by the given [param property_path]. The path should be a [NodePath] relative to the current object and can use the colon character ([code]:[/code]) to access nested properties. If the property or any of the path components do not exist this method returns [code]null[/code].
 				[b]Examples:[/b] [code]"position:x"[/code] or [code]"material:next_pass:blend_mode"[/code].
 				[codeblocks]
 				[gdscript]
@@ -995,6 +996,7 @@
 				GD.Print(node.GlobalScale); // Prints (8, 2.5)
 				[/csharp]
 				[/codeblocks]
+				[b]Note:[/b] In GDScript, you can use index or attribute access instead. For example, [code]object["property"] = "value"[/code] or [code]object.property = "value"[/code]. Unlike [method set], these options produce an error if the property does not exist or the value is of an incompatible type.
 				[b]Note:[/b] In C#, [param property] must be in snake_case when referring to built-in Godot properties. Prefer using the names exposed in the [code]PropertyName[/code] class to avoid allocating a new [StringName] on each call.
 			</description>
 		</method>
@@ -1041,7 +1043,7 @@
 			<param index="0" name="property_path" type="NodePath" />
 			<param index="1" name="value" type="Variant" />
 			<description>
-				Assigns a new [param value] to the property identified by the [param property_path]. The path should be a [NodePath] relative to this object, and can use the colon character ([code]:[/code]) to access nested properties.
+				Assigns a new [param value] to the property identified by the [param property_path]. The path should be a [NodePath] relative to this object, and can use the colon character ([code]:[/code]) to access nested properties. If the property or any of the path components do not exist or the given [param value]'s type doesn't match, nothing happens.
 				[codeblocks]
 				[gdscript]
 				var node = Node2D.new()
