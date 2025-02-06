@@ -4669,7 +4669,14 @@ Error GLTFDocument::_parse_materials(Ref<GLTFState> p_state) {
 		Ref<StandardMaterial3D> material;
 		material.instantiate();
 		if (material_dict.has("name") && !String(material_dict["name"]).is_empty()) {
-			material->set_name(material_dict["name"]);
+            if(ResourceLoader::exists("res://" + (String)material_dict["name"] + ".tres")){
+                Ref<Material> cached_material = ResourceLoader::load("res://" + (String)material_dict["name"] + ".tres", "Material");
+                cached_material->set_name(material_dict["name"]);
+                p_state->materials.push_back(cached_material);
+                continue;
+            }
+
+            material->set_name(material_dict["name"]);
 		} else {
 			material->set_name(vformat("material_%s", itos(i)));
 		}
