@@ -208,6 +208,7 @@ void EditorFileSystemDirectory::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_file_type", "idx"), &EditorFileSystemDirectory::get_file_type);
 	ClassDB::bind_method(D_METHOD("get_file_script_class_name", "idx"), &EditorFileSystemDirectory::get_file_script_class_name);
 	ClassDB::bind_method(D_METHOD("get_file_script_class_extends", "idx"), &EditorFileSystemDirectory::get_file_script_class_extends);
+	ClassDB::bind_method(D_METHOD("get_file_script_class_icon_path", "idx"), &EditorFileSystemDirectory::get_file_script_class_icon_path);
 	ClassDB::bind_method(D_METHOD("get_file_import_is_valid", "idx"), &EditorFileSystemDirectory::get_file_import_is_valid);
 	ClassDB::bind_method(D_METHOD("get_name"), &EditorFileSystemDirectory::get_name);
 	ClassDB::bind_method(D_METHOD("get_path"), &EditorFileSystemDirectory::get_path);

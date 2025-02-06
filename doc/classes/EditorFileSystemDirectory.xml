@@ -57,6 +57,13 @@
 				Returns the base class of the script class defined in the file at index [param idx]. If the file doesn't define a script class using the [code]class_name[/code] syntax, this will return an empty string.
 			</description>
 		</method>
+		<method name="get_file_script_class_icon_path" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="idx" type="int" />
+			<description>
+				Returns the icon path of the script class defined in the file at index [param idx]. If the file doesn't define an icon class using the [code]@icon("...")[/code] syntax, this will return an empty string.
+			</description>
+		</method>
 		<method name="get_file_script_class_name" qualifiers="const">
 			<return type="String" />
 			<param index="0" name="idx" type="int" />
