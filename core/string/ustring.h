@@ -264,7 +264,6 @@ protected:
 class String {
 	CowData<char32_t> _cowdata;
 	static const char32_t _null;
-	static const char32_t _replacement_char;
 
 	// Known-length copy.
 	void parse_latin1(const StrRange<char> &p_cstr);
@@ -321,6 +320,8 @@ class String {
 	String _camelcase_to_underscore() const;
 
 public:
+	static const char32_t _replacement_char;
+
 	enum {
 		npos = -1 ///<for "some" compatibility with std::string (npos is a huge value in std::string)
 	};
@@ -396,7 +397,7 @@ public:
 	bool is_valid_string() const;
 
 	/* debug, error messages */
-	void print_unicode_error(const String &p_message, bool p_critical = false) const;
+	static void print_unicode_error(const String &p_message, bool p_critical = false);
 
 	/* complex helpers */
 	String substr(int p_from, int p_chars = -1) const;

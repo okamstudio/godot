@@ -327,6 +327,25 @@ void String::parse_utf32(const StrRange<char32_t> &p_cstr) {
 	copy_from_unchecked(p_cstr.c_str, p_cstr.len);
 }
 
+constexpr char32_t _verified_utf32_char(char32_t p_char, bool *failure = nullptr) {
+	if ((p_char & 0xfffff800) == 0xd800) {
+		String::print_unicode_error(vformat("Unpaired surrogate (%x)", (uint32_t)p_char), true);
+		if (failure) {
+			*failure = true;
+		}
+		return String::_replacement_char;
+	}
+	if (p_char > 0x10ffff) {
+		String::print_unicode_error(vformat("Invalid unicode codepoint (%x)", (uint32_t)p_char), true);
+		if (failure) {
+			*failure = true;
+		}
+		return String::_replacement_char;
+	}
+
+	return p_char;
+}
+
 void String::parse_utf32(const char32_t &p_char) {
 	if (p_char == 0) {
 		print_unicode_error("NUL character", true);
@@ -336,17 +355,7 @@ void String::parse_utf32(const char32_t &p_char) {
 	resize(2);
 
 	char32_t *dst = ptrw();
-
-	if ((p_char & 0xfffff800) == 0xd800) {
-		print_unicode_error(vformat("Unpaired surrogate (%x)", (uint32_t)p_char));
-		dst[0] = _replacement_char;
-	} else if (p_char > 0x10ffff) {
-		print_unicode_error(vformat("Invalid unicode codepoint (%x)", (uint32_t)p_char));
-		dst[0] = _replacement_char;
-	} else {
-		dst[0] = p_char;
-	}
-
+	dst[0] = _verified_utf32_char(p_char);
 	dst[1] = 0;
 }
 
@@ -361,18 +370,7 @@ void String::copy_from_unchecked(const char32_t *p_char, const int p_length) {
 	char32_t *dst = ptrw();
 
 	for (; p_char < end; ++p_char, ++dst) {
-		const char32_t chr = *p_char;
-		if ((chr & 0xfffff800) == 0xd800) {
-			print_unicode_error(vformat("Unpaired surrogate (%x)", (uint32_t)chr));
-			*dst = _replacement_char;
-			continue;
-		}
-		if (chr > 0x10ffff) {
-			print_unicode_error(vformat("Invalid unicode codepoint (%x)", (uint32_t)chr));
-			*dst = _replacement_char;
-			continue;
-		}
-		*dst = chr;
+		*dst = _verified_utf32_char(*p_char);
 	}
 	*dst = 0;
 }
@@ -490,16 +488,7 @@ String &String::operator+=(char32_t p_char) {
 	resize(lhs_len + 2);
 	char32_t *dst = ptrw();
 
-	if ((p_char & 0xfffff800) == 0xd800) {
-		print_unicode_error(vformat("Unpaired surrogate (%x)", (uint32_t)p_char));
-		dst[lhs_len] = _replacement_char;
-	} else if (p_char > 0x10ffff) {
-		print_unicode_error(vformat("Invalid unicode codepoint (%x)", (uint32_t)p_char));
-		dst[lhs_len] = _replacement_char;
-	} else {
-		dst[lhs_len] = p_char;
-	}
-
+	dst[lhs_len] = _verified_utf32_char(p_char);
 	dst[lhs_len + 1] = 0;
 
 	return *this;
@@ -1890,7 +1879,7 @@ Vector<uint8_t> String::hex_decode() const {
 #undef HEX_TO_BYTE
 }
 
-void String::print_unicode_error(const String &p_message, bool p_critical) const {
+void String::print_unicode_error(const String &p_message, bool p_critical) {
 	if (p_critical) {
 		print_error(vformat(U"Unicode parsing error, some characters were replaced with � (U+FFFD): %s", p_message));
 	} else {
@@ -2078,16 +2067,8 @@ Error String::parse_utf8(const char *p_utf8, int p_len, bool p_skip_cr) {
 						print_unicode_error("NUL character", true);
 						decode_failed = true;
 						unichar = _replacement_char;
-					} else if ((unichar & 0xfffff800) == 0xd800) {
-						print_unicode_error(vformat("Unpaired surrogate (%x)", unichar), true);
-						decode_failed = true;
-						unichar = _replacement_char;
-					} else if (unichar > 0x10ffff) {
-						print_unicode_error(vformat("Invalid unicode codepoint (%x)", unichar), true);
-						decode_failed = true;
-						unichar = _replacement_char;
 					}
-					*(dst++) = unichar;
+					*(dst++) = _verified_utf32_char(unichar, &decode_failed);
 				}
 			}
 		}
