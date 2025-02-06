@@ -5,6 +5,7 @@
 	</brief_description>
 	<description>
 		Abstract base class of all types of input events. See [method Node._input].
+		[b]Note:[/b] Custom classes inheriting [InputEvent] will [i]not[/i] propagate automatically. To pass additional data attached to an [InputEvent], use [method Object.set_meta] on the built-in [InputEvent] classes instead.
 	</description>
 	<tutorials>
 		<link title="Using InputEvent">$DOCS_URL/tutorials/inputs/inputevent.html</link>
