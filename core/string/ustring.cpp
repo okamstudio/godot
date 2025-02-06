@@ -3852,7 +3852,7 @@ String String::format(const Variant &values, const String &placeholder) const {
 
 					new_string = new_string.replace(placeholder.replace("_", key), val);
 				} else {
-					ERR_PRINT(String("STRING.format Inner Array size != 2 ").ascii().get_data());
+					ERR_PRINT(vformat("Invalid format: the inner Array at index %d needs to contain only 2 elements, as a key-value pair.", i).ascii().get_data());
 				}
 			} else { //Array structure ["RobotGuy","Logis","rookie"]
 				Variant v_val = values_arr[i];
