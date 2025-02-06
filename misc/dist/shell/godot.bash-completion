@@ -66,6 +66,7 @@ _complete_godot_options() {
 --xr-mode
 --debug
 --breakpoints
+--fail-on-error
 --profiling
 --gpu-profile
 --gpu-validation

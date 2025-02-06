@@ -63,6 +63,7 @@ _arguments \
   '--xr-mode[select Extended Reality (XR) mode]:Extended Reality (XR) mode:(default off on)' \
   '(-d --debug)'{-d,--debug}'[debug (local stdout debugger)]' \
   '(-b --breakpoints)'{-b,--breakpoints}'[specify the breakpoint list as source::line comma-separated pairs, no spaces (use %20 instead)]:breakpoint list' \
+  '--fail-on-error[set the exit code to 1 if any errors are encountered]' \
   '--profiling[enable profiling in the script debugger]' \
   '--gpu-profile[show a GPU profile of the tasks that took the most time during frame rendering]' \
   '--gpu-validation[enable graphics API validation layers for debugging]' \

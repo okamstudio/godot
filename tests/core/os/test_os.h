@@ -201,6 +201,75 @@ TEST_CASE("[OS] Execute") {
 #endif
 }
 
+TEST_CASE("[OS] Fail on error") {
+	bool orig_stderr_enabled = OS::get_singleton()->is_stderr_enabled();
+	bool orig_error_occurred = OS::get_singleton()->is_error_occurred();
+	bool orig_fail_on_error = OS::get_singleton()->is_fail_on_error();
+	int orig_exit_code = OS::get_singleton()->get_exit_code();
+
+	// Reset the settings to their defaults.
+	OS::get_singleton()->set_error_occurred(false);
+	OS::get_singleton()->set_fail_on_error(false);
+	OS::get_singleton()->set_exit_code(EXIT_SUCCESS);
+
+	// Disable stderr so the ERR/WARN_PRINT messages aren't output. We only
+	// want the error handler to be exercised. This does not suppress CHECK
+	// errors.
+	OS::get_singleton()->set_stderr_enabled(false);
+
+	// Test with fail on error disabled.
+	WARN_PRINT("test warning");
+	CHECK_MESSAGE(
+			!OS::get_singleton()->is_error_occurred(),
+			"An error should not occur for a warning message.");
+	CHECK_MESSAGE(
+			OS::get_singleton()->get_exit_code() == EXIT_SUCCESS,
+			"The exit code should be 0 for a warning message.");
+
+	ERR_PRINT("test error");
+	CHECK_MESSAGE(
+			OS::get_singleton()->is_error_occurred(),
+			"An error should occur for an error message.");
+	CHECK_MESSAGE(
+			OS::get_singleton()->get_exit_code() == EXIT_SUCCESS,
+			"The exit code should be 0 when fail on error is disabled.");
+
+	// Clear the error and enable fail on error.
+	OS::get_singleton()->set_error_occurred(false);
+	OS::get_singleton()->set_fail_on_error(true);
+
+	WARN_PRINT("test warning");
+	CHECK_MESSAGE(
+			!OS::get_singleton()->is_error_occurred(),
+			"An error should not occur for a warning message.");
+	CHECK_MESSAGE(
+			OS::get_singleton()->get_exit_code() == EXIT_SUCCESS,
+			"The exit code should be 0 for a warning message.");
+
+	ERR_PRINT("test error");
+	CHECK_MESSAGE(
+			OS::get_singleton()->is_error_occurred(),
+			"An error should occur for an error message.");
+	CHECK_MESSAGE(
+			OS::get_singleton()->get_exit_code() != EXIT_SUCCESS,
+			"The exit code should not be 0 when fail on error is enabled.");
+
+	// Once an error has occurred, you can't change the exit code back to
+	// EXIT_SUCCESS.
+	OS::get_singleton()->set_exit_code(EXIT_SUCCESS);
+	CHECK_MESSAGE(
+			OS::get_singleton()->get_exit_code() != EXIT_SUCCESS,
+			"The exit code cannot be set to 0 after an error has occurred.");
+
+	// Restore the previous settings. The error needs to be cleared first
+	// to set the exit code freely.
+	OS::get_singleton()->set_error_occurred(false);
+	OS::get_singleton()->set_stderr_enabled(orig_stderr_enabled);
+	OS::get_singleton()->set_exit_code(orig_exit_code);
+	OS::get_singleton()->set_error_occurred(orig_error_occurred);
+	OS::get_singleton()->set_fail_on_error(orig_fail_on_error);
+}
+
 } // namespace TestOS
 
 #endif // TEST_OS_H

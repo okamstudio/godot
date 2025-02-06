@@ -81,6 +81,12 @@ class OS {
 	HashMap<Pair<String, String>, uint64_t, PairHash<String, String>> benchmark_marks_from;
 	HashMap<Pair<String, String>, double, PairHash<String, String>> benchmark_marks_final;
 
+	// Error handling.
+	bool _error_occurred = false;
+	bool _fail_on_error = false;
+
+	ErrorHandlerList eh;
+
 protected:
 	void _set_logger(CompositeLogger *p_logger);
 
@@ -312,6 +318,11 @@ public:
 	// level, e.g. from the `Main::start` if leaving without creating a `SceneTree`).
 	// For other components, `SceneTree.quit()` should be used instead.
 	virtual void set_exit_code(int p_code);
+
+	bool is_error_occurred() const;
+	void set_error_occurred(bool p_occurred);
+	bool is_fail_on_error() const;
+	void set_fail_on_error(bool p_enabled);
 
 	virtual int get_processor_count() const;
 	virtual String get_processor_name() const;

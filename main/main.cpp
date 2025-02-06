@@ -593,6 +593,7 @@ void Main::print_help(const char *p_binary) {
 	print_help_title("Debug options");
 	print_help_option("-d, --debug", "Debug (local stdout debugger).\n");
 	print_help_option("-b, --breakpoints", "Breakpoint list as source::line comma-separated pairs, no spaces (use %%20 instead).\n");
+	print_help_option("--fail-on-error", "Set the exit code to 1 if any errors are encountered.\n");
 	print_help_option("--profiling", "Enable profiling in the script debugger.\n");
 	print_help_option("--gpu-profile", "Show a GPU profile of the tasks that took the most time during frame rendering.\n");
 	print_help_option("--gpu-validation", "Enable graphics API validation layers for debugging.\n");
@@ -973,6 +974,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	String audio_driver = "";
 	String project_path = ".";
 	bool upwards = false;
+	bool fail_on_error = false;
 	String debug_uri = "";
 	bool skip_breakpoints = false;
 	String main_pack;
@@ -1480,6 +1482,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			editor = true;
 			cmdline_tool = true;
 			wait_for_import = true;
+			fail_on_error = true;
 			main_args.push_back(arg);
 		} else if (arg == "--patches") {
 			if (N) {
@@ -1606,6 +1609,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 				goto error;
 			}
 
+		} else if (arg == "--fail-on-error") {
+			fail_on_error = true;
 		} else if (arg == "--max-fps") { // set maximum rendered FPS
 
 			if (N) {
@@ -1814,6 +1819,10 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		goto error;
 	}
 #endif
+
+	// Enable failing on errors as early as possible so that errors that
+	// aren't returned fail the process.
+	OS::get_singleton()->set_fail_on_error(fail_on_error);
 
 	// Network file system needs to be configured before globals, since globals are based on the
 	// 'project.godot' file which will only be available through the network if this is enabled

@@ -83,6 +83,7 @@ complete -c godot -l xr-mode -d "Select Extended Reality (XR) mode" -a "default 
 # Debug options:
 complete -c godot -s d -l debug -d "Debug (local stdout debugger)"
 complete -c godot -s b -l breakpoints -d "Specify the breakpoint list as source::line comma-separated pairs, no spaces (use %20 instead)" -x
+complete -c godot -l fail-on-error -d "Set the exit code to 1 if any errors are encountered"
 complete -c godot -l profiling -d "Enable profiling in the script debugger"
 complete -c godot -l gpu-profile -d "Show a GPU profile of the tasks that took the most time during frame rendering"
 complete -c godot -l gpu-validation -d "Enable graphics API validation layers for debugging"
