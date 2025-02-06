@@ -80,7 +80,7 @@ void PluginConfigDialog::_create_script_for_plugin(const String &p_plugin_path, 
 	ScriptLanguage *language = ScriptServer::get_language(p_script_lang_index);
 	ERR_FAIL_COND(language == nullptr);
 	String ext = language->get_extension();
-	String script_name = script_edit->get_text().is_empty() ? _get_subfolder() : script_edit->get_text();
+	String script_name = script_edit->get_text().is_empty() ? "plugin" : script_edit->get_text();
 	if (script_name.get_extension() != ext) {
 		script_name += "." + ext;
 	}
@@ -144,7 +144,7 @@ void PluginConfigDialog::_on_required_text_changed() {
 }
 
 String PluginConfigDialog::_get_subfolder() {
-	return subfolder_edit->get_text().is_empty() ? name_edit->get_text().replace(" ", "_").to_lower() : subfolder_edit->get_text();
+	return subfolder_edit->get_text().is_empty() ? name_edit->get_text().to_snake_case() : subfolder_edit->get_text();
 }
 
 String PluginConfigDialog::_to_absolute_plugin_path(const String &p_plugin_name) {
