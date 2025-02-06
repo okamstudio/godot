@@ -1459,6 +1459,30 @@ void DisplayServerMacOS::warp_mouse(const Point2i &p_position) {
 		if (mouse_mode != MOUSE_MODE_CONFINED && mouse_mode != MOUSE_MODE_CONFINED_HIDDEN) {
 			CGAssociateMouseAndMouseCursorPosition(true);
 		}
+
+		NSPoint delta = NSMakePoint(pointInWindowRect.origin.x - wd.mouse_pos.x, pointInWindowRect.origin.y - wd.mouse_pos.y);
+		NSPoint mpos = pointInWindowRect.origin;
+
+		if (update_mouse_wrap(wd, delta, mpos, [[NSProcessInfo processInfo] systemUptime])) {
+			return;
+		}
+
+		Ref<InputEventMouseMotion> mm;
+		mm.instantiate();
+
+		mm->set_window_id(window_id);
+		mm->set_button_mask(mouse_get_button_state());
+		update_mouse_pos(wd, mpos);
+		mm->set_position(wd.mouse_pos);
+		mm->set_pressure(0);
+		mm->set_global_position(wd.mouse_pos);
+		mm->set_velocity(Input::get_singleton()->get_last_mouse_velocity());
+		mm->set_screen_velocity(mm->get_velocity());
+		const Vector2i relativeMotion = Vector2i(delta.x, delta.y) * screen_get_max_scale();
+		mm->set_relative(relativeMotion);
+		mm->set_relative_screen_position(relativeMotion);
+
+		Input::get_singleton()->parse_input_event(mm);
 	}
 }
 
