@@ -325,6 +325,19 @@ String OS_IOS::get_user_data_dir(const String &p_user_dir) const {
 	return ret;
 }
 
+Error OS_IOS::move_to_trash(const String &p_path) {
+	NSFileManager *fm = [NSFileManager defaultManager];
+	NSURL *url = [NSURL fileURLWithPath:@(p_path.utf8().get_data())];
+	NSError *err;
+
+	if (![fm trashItemAtURL:url resultingItemURL:nil error:&err]) {
+		ERR_PRINT("trashItemAtURL error: " + String::utf8(err.localizedDescription.UTF8String));
+		return FAILED;
+	}
+
+	return OK;
+}
+
 String OS_IOS::get_cache_path() const {
 	static String ret;
 	if (ret.is_empty()) {

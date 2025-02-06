@@ -71,6 +71,7 @@ private:
 	virtual MainLoop *get_main_loop() const override;
 
 	virtual void delete_main_loop() override;
+	virtual Error move_to_trash(const String &p_path) override;
 
 	virtual void finalize() override;
 
