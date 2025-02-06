@@ -106,7 +106,6 @@ class Sprite2DEditor : public Control {
 	void _add_as_sibling_or_child(Node *p_own_node, Node *p_new_node);
 
 protected:
-	void _node_removed(Node *p_node);
 	void _notification(int p_what);
 	static void _bind_methods();
 
@@ -128,7 +127,6 @@ public:
 	virtual void make_visible(bool p_visible) override;
 
 	Sprite2DEditorPlugin();
-	~Sprite2DEditorPlugin();
 };
 
 #endif // SPRITE_2D_EDITOR_PLUGIN_H
