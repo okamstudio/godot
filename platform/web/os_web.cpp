@@ -155,6 +155,13 @@ bool OS_Web::_check_internal_feature_support(const String &p_feature) {
 	if (godot_js_os_has_feature(p_feature.utf8().get_data())) {
 		return true;
 	}
+
+#ifdef WEB_DLINK_ENABLED
+	if (p_feature == "web_extensions") {
+		return true;
+	}
+#endif
+
 	return false;
 }
 

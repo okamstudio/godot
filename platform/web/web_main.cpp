@@ -104,6 +104,20 @@ void main_loop_callback() {
 	}
 }
 
+void print_web_header() {
+	String thread_support = OS::get_singleton()->has_feature("threads")
+			? "thread support"
+			: "single-threaded";
+	String dlink_support = OS::get_singleton()->has_feature("web_extensions")
+			? "extension support"
+			: "no extension support";
+
+	print_line(vformat(
+			"Web build features: %s, %s",
+			thread_support,
+			dlink_support));
+}
+
 /// When calling main, it is assumed FS is setup and synced.
 extern EMSCRIPTEN_KEEPALIVE int godot_web_main(int argc, char *argv[]) {
 	os = new OS_Web();
@@ -127,6 +141,8 @@ extern EMSCRIPTEN_KEEPALIVE int godot_web_main(int argc, char *argv[]) {
 		}
 		return EXIT_FAILURE;
 	}
+
+	print_web_header();
 
 	main_started = true;
 
