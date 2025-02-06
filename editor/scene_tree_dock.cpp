@@ -652,54 +652,24 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 				break;
 			}
 
-			bool was_empty = false;
-			if (!node_clipboard.is_empty()) {
-				_clear_clipboard();
-			} else {
-				was_empty = true;
-			}
-			clipboard_source_scene = EditorNode::get_singleton()->get_edited_scene()->get_scene_file_path();
+			bool cut = p_tool == TOOL_CUT;
+			if (cut) {
+				bool allow_ask_delete_tracks = EDITOR_GET("docks/scene_tree/ask_before_deleting_related_animation_tracks").operator bool();
+				bool has_tracks_to_delete = allow_ask_delete_tracks && _has_tracks_to_delete(edited_scene, selection);
 
-			selection.sort_custom<Node::Comparator>();
-
-			for (Node *node : selection) {
-				HashMap<const Node *, Node *> duplimap;
-				Node *dup = node->duplicate_from_editor(duplimap);
-
-				ERR_CONTINUE(!dup);
-
-				// Preserve ownership relations ready for pasting.
-				List<Node *> owned;
-				Node *owner = node;
-				while (owner) {
-					List<Node *> cur_owned;
-					node->get_owned_by(owner, &cur_owned);
-					owner = owner->get_owner();
-					for (Node *F : cur_owned) {
-						owned.push_back(F);
-					}
+				if (has_tracks_to_delete) {
+					delete_dialog_label->set_text(TTR("Some nodes are referenced by animation tracks."));
+					delete_tracks_checkbox->show();
+					delete_dialog->set_meta("copy_after_confirm", true);
+					delete_dialog->reset_size();
+					delete_dialog->popup_centered();
+					break;
 				}
-
-				for (Node *F : owned) {
-					if (!duplimap.has(F) || F == node) {
-						continue;
-					}
-					Node *d = duplimap[F];
-					// Only use nullptr as a marker that ownership may need to be assigned when pasting.
-					// The ownership is subsequently tracked in the node_clipboard_edited_scene_owned list.
-					d->set_owner(nullptr);
-					node_clipboard_edited_scene_owned.insert(d);
-				}
-
-				node_clipboard.push_back(dup);
 			}
 
-			if (p_tool == TOOL_CUT) {
+			_copy_nodes(selection);
+			if (cut) {
 				_delete_confirm(true);
-			}
-
-			if (was_empty) {
-				_update_create_root_dialog();
 			}
 		} break;
 		case TOOL_PASTE: {
@@ -1114,6 +1084,7 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 
 				delete_dialog_label->set_text(msg);
 
+				delete_dialog->set_meta("copy_after_confirm", false);
 				// Resize the dialog to its minimum size.
 				// This prevents the dialog from being too wide after displaying
 				// a deletion confirmation for a node with a long name.
@@ -2727,9 +2698,12 @@ void SceneTreeDock::_toggle_editable_children(Node *p_node) {
 
 void SceneTreeDock::_delete_confirm(bool p_cut) {
 	List<Node *> remove_list = editor_selection->get_selected_node_list();
-
 	if (remove_list.is_empty()) {
 		return;
+	}
+
+	if (bool(delete_dialog->get_meta("copy_after_confirm", false))) {
+		_copy_nodes(remove_list);
 	}
 
 	bool entire_scene = false;
@@ -2818,6 +2792,53 @@ void SceneTreeDock::_delete_confirm(bool p_cut) {
 	InspectorDock::get_singleton()->call("_prepare_history");
 	InspectorDock::get_singleton()->update(nullptr);
 	NodeDock::get_singleton()->set_node(nullptr);
+}
+
+void SceneTreeDock::_copy_nodes(List<Node *> &p_nodes) {
+	bool was_empty = false;
+	if (!node_clipboard.is_empty()) {
+		_clear_clipboard();
+	} else {
+		was_empty = true;
+	}
+	clipboard_source_scene = EditorNode::get_singleton()->get_edited_scene()->get_scene_file_path();
+
+	p_nodes.sort_custom<Node::Comparator>();
+	for (Node *node : p_nodes) {
+		HashMap<const Node *, Node *> duplimap;
+		Node *dup = node->duplicate_from_editor(duplimap);
+
+		ERR_CONTINUE(!dup);
+
+		// Preserve ownership relations ready for pasting.
+		List<Node *> owned;
+		Node *owner = node;
+		while (owner) {
+			List<Node *> cur_owned;
+			node->get_owned_by(owner, &cur_owned);
+			owner = owner->get_owner();
+			for (Node *F : cur_owned) {
+				owned.push_back(F);
+			}
+		}
+
+		for (Node *F : owned) {
+			if (!duplimap.has(F) || F == node) {
+				continue;
+			}
+			Node *d = duplimap[F];
+			// Only use nullptr as a marker that ownership may need to be assigned when pasting.
+			// The ownership is subsequently tracked in the node_clipboard_edited_scene_owned list.
+			d->set_owner(nullptr);
+			node_clipboard_edited_scene_owned.insert(d);
+		}
+
+		node_clipboard.push_back(dup);
+	}
+
+	if (was_empty) {
+		_update_create_root_dialog();
+	}
 }
 
 void SceneTreeDock::_update_script_button() {

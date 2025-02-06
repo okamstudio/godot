@@ -213,7 +213,7 @@ class SceneTreeDock : public VBoxContainer {
 	void _shader_creation_closed();
 
 	void _delete_confirm(bool p_cut = false);
-	void _delete_dialog_closed();
+	void _copy_nodes(List<Node *> &p_nodes);
 
 	void _toggle_editable_children_from_selection();
 
