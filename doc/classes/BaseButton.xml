@@ -74,7 +74,7 @@
 			If [code]true[/code], the button will highlight for a short amount of time when its shortcut is activated. If [code]false[/code] and [member toggle_mode] is [code]false[/code], the shortcut will activate without any visual feedback.
 		</member>
 		<member name="shortcut_in_tooltip" type="bool" setter="set_shortcut_in_tooltip" getter="is_shortcut_in_tooltip_enabled" default="true">
-			If [code]true[/code], the button will add information about its shortcut in the tooltip.
+			If [code]true[/code], the button will add information about its shortcut in the tooltip. This includes the shortcut's events and its [member Resource.resource_name]. If both events and name are empty, the shortcut will not be included.
 			[b]Note:[/b] This property does nothing when the tooltip control is customized using [method Control._make_custom_tooltip].
 		</member>
 		<member name="toggle_mode" type="bool" setter="set_toggle_mode" getter="is_toggle_mode" default="false">

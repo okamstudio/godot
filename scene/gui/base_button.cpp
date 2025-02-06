@@ -407,11 +407,21 @@ Control *BaseButton::make_custom_tooltip(const String &p_text) const {
 	if (control) {
 		return control;
 	}
-	if (!shortcut_in_tooltip || shortcut.is_null() || !shortcut->has_valid_event()) {
+
+	if (!shortcut_in_tooltip || shortcut.is_null()) {
 		return nullptr; // Use the default tooltip label.
 	}
 
-	String text = atr(shortcut->get_name()) + " (" + shortcut->get_as_text() + ")";
+	bool shortcut_has_events = shortcut->has_valid_event();
+	if (!shortcut_has_events && shortcut->get_name().is_empty()) {
+		return nullptr;
+	}
+
+	String text = atr(shortcut->get_name());
+	if (shortcut->has_valid_event()) {
+		text += " (" + shortcut->get_as_text() + ")";
+	}
+
 	if (!p_text.is_empty() && shortcut->get_name().nocasecmp_to(p_text) != 0) {
 		text += "\n" + atr(p_text);
 	}
