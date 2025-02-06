@@ -857,6 +857,13 @@ static _FORCE_INLINE_ signed char naturalnocasecmp_to_base(const char32_t *p_thi
 		while (*p_this_str) {
 			if (!*p_that_str) {
 				return 1;
+			} else if (*p_this_str == '.' || *p_that_str == '.') {
+				if (*p_this_str++ != '.') {
+					return 1;
+				}
+				if (*p_that_str++ != '.') {
+					return -1;
+				}
 			} else if (is_digit(*p_this_str)) {
 				if (!is_digit(*p_that_str)) {
 					return -1;
