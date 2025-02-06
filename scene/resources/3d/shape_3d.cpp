@@ -153,6 +153,12 @@ Ref<Material> Shape3D::get_debug_collision_material() {
 	material->set_albedo(Color(1.0, 1.0, 1.0));
 	material->set_shading_mode(StandardMaterial3D::SHADING_MODE_UNSHADED);
 	material->set_transparency(StandardMaterial3D::TRANSPARENCY_ALPHA);
+
+	// Prevent collision shape triangles that overlap with geometry from Z-fighting.
+	// by pushing the pixels towards the camera slightly.
+	material->set_depth_offset_enabled(true);
+	material->set_depth_offset(-0.005);
+
 	material->set_render_priority(StandardMaterial3D::RENDER_PRIORITY_MIN + 1);
 	material->set_cull_mode(StandardMaterial3D::CULL_BACK);
 	material->set_flag(StandardMaterial3D::FLAG_DISABLE_FOG, true);

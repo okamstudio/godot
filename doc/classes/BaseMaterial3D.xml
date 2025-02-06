@@ -150,6 +150,13 @@
 		<member name="depth_draw_mode" type="int" setter="set_depth_draw_mode" getter="get_depth_draw_mode" enum="BaseMaterial3D.DepthDrawMode" default="0">
 			Determines when depth rendering takes place. See [enum DepthDrawMode]. See also [member transparency].
 		</member>
+		<member name="depth_offset" type="bool" setter="set_depth_offset_enabled" getter="is_depth_offset_enabled" default="false">
+			If [code]true[/code], offsets the per-pixel depth by the amount specified in [member depth_offset_amount]. This can be used to force the material to render in front of (or behind) other meshes that are at the exact same position, which can prevent Z-fighting artifacts. This can be useful for mesh-based decals, or when rendering meshes as overlays to other meshes.
+			[b]Note:[/b] Enabling depth offset forces the material to go through the transparent pipeline, which has a performance cost and can result in transparency sorting issues.
+		</member>
+		<member name="depth_offset_amount" type="float" setter="set_depth_offset" getter="get_depth_offset" default="0.0">
+			The depth offset to apply when [member depth_offset] is [code]true[/code]. Negative values will push the pixels towards the camera, while positive values will push the pixels away from the camera. Typical values are between [code]-0.01[/code] and [code]0.01[/code]. If you still notice Z-fighting after adjusting the depth offset, try using a lower value (if negative) or a higher value (if positive).
+		</member>
 		<member name="detail_albedo" type="Texture2D" setter="set_texture" getter="get_texture">
 			Texture that specifies the color of the detail overlay. [member detail_albedo]'s alpha channel is used as a mask, even when the material is opaque. To use a dedicated texture as a mask, see [member detail_mask].
 			[b]Note:[/b] [member detail_albedo] is [i]not[/i] modulated by [member albedo_color].

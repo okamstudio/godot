@@ -620,6 +620,7 @@ void BaseMaterial3D::init_shaders() {
 	shader_names->heightmap_flip = "heightmap_flip";
 
 	shader_names->grow = "grow";
+	shader_names->depth_offset = "depth_offset";
 
 	shader_names->ao_light_affect = "ao_light_affect";
 
@@ -892,6 +893,10 @@ uniform sampler2D texture_albedo : source_color, %s;
 
 	if (grow_enabled) {
 		code += "uniform float grow : hint_range(-16.0, 16.0, 0.001);\n";
+	}
+
+	if (depth_offset_enabled) {
+		code += "uniform float depth_offset : hint_range(-10.0, 10.0, 0.001);\n";
 	}
 
 	if (proximity_fade_enabled) {
@@ -1399,6 +1404,21 @@ void fragment() {)";
 			code += "\n";
 		}
 		code += R"(	vec2 base_uv2 = UV2;
+)";
+	}
+
+	if (depth_offset_enabled) {
+		code += R"(
+	// Depth Offset: Enabled
+	// Force transparency on the material (required for depth offset).
+	ALPHA = 1.0;
+	vec4 view_position = INV_PROJECTION_MATRIX * vec4(SCREEN_UV * 2. - 1.0, FRAGCOORD.z, 1.0);
+	vec3 view_direction = normalize(VIEW);
+	view_position.xyz /= view_position.w;
+	view_position.xyz -= depth_offset * view_direction;
+	vec4 ndc_position = PROJECTION_MATRIX * vec4(view_position.xyz, 1.0);
+	ndc_position.xyz /= ndc_position.w;
+	DEPTH = ndc_position.z;
 )";
 	}
 
@@ -2416,6 +2436,10 @@ void BaseMaterial3D::_validate_property(PropertyInfo &p_property) const {
 	_validate_feature("refraction", FEATURE_REFRACTION, p_property);
 	_validate_feature("detail", FEATURE_DETAIL, p_property);
 
+	if (p_property.name == "depth_offset_amount" && !depth_offset_enabled) {
+		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
+	}
+
 	if (p_property.name == "emission_intensity" && !GLOBAL_GET("rendering/lights_and_shadows/use_physical_light_units")) {
 		p_property.usage = PROPERTY_USAGE_NONE;
 	}
@@ -2745,6 +2769,25 @@ float BaseMaterial3D::get_alpha_antialiasing_edge() const {
 	return alpha_antialiasing_edge;
 }
 
+void BaseMaterial3D::set_depth_offset_enabled(bool p_enabled) {
+	depth_offset_enabled = p_enabled;
+	_queue_shader_change();
+	notify_property_list_changed();
+}
+
+bool BaseMaterial3D::is_depth_offset_enabled() const {
+	return depth_offset_enabled;
+}
+
+void BaseMaterial3D::set_depth_offset(float p_offset) {
+	depth_offset = p_offset;
+	_material_set_param(shader_names->depth_offset, p_offset);
+}
+
+float BaseMaterial3D::get_depth_offset() const {
+	return depth_offset;
+}
+
 void BaseMaterial3D::set_grow(float p_grow) {
 	grow = p_grow;
 	_material_set_param(shader_names->grow, p_grow);
@@ -2966,6 +3009,12 @@ void BaseMaterial3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_alpha_antialiasing_edge", "edge"), &BaseMaterial3D::set_alpha_antialiasing_edge);
 	ClassDB::bind_method(D_METHOD("get_alpha_antialiasing_edge"), &BaseMaterial3D::get_alpha_antialiasing_edge);
 
+	ClassDB::bind_method(D_METHOD("set_depth_offset_enabled", "enabled"), &BaseMaterial3D::set_depth_offset_enabled);
+	ClassDB::bind_method(D_METHOD("is_depth_offset_enabled"), &BaseMaterial3D::is_depth_offset_enabled);
+
+	ClassDB::bind_method(D_METHOD("set_depth_offset", "offset"), &BaseMaterial3D::set_depth_offset);
+	ClassDB::bind_method(D_METHOD("get_depth_offset"), &BaseMaterial3D::get_depth_offset);
+
 	ClassDB::bind_method(D_METHOD("set_shading_mode", "shading_mode"), &BaseMaterial3D::set_shading_mode);
 	ClassDB::bind_method(D_METHOD("get_shading_mode"), &BaseMaterial3D::get_shading_mode);
 
@@ -3168,6 +3217,8 @@ void BaseMaterial3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "cull_mode", PROPERTY_HINT_ENUM, "Back,Front,Disabled"), "set_cull_mode", "get_cull_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "depth_draw_mode", PROPERTY_HINT_ENUM, "Opaque Only,Always,Never"), "set_depth_draw_mode", "get_depth_draw_mode");
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "no_depth_test"), "set_flag", "get_flag", FLAG_DISABLE_DEPTH_TEST);
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "depth_offset"), "set_depth_offset_enabled", "is_depth_offset_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "depth_offset_amount", PROPERTY_HINT_RANGE, "-10,10,0.001,or_less,or_greater"), "set_depth_offset", "get_depth_offset");
 
 	ADD_GROUP("Shading", "");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "shading_mode", PROPERTY_HINT_ENUM, "Unshaded,Per-Pixel,Per-Vertex"), "set_shading_mode", "get_shading_mode");

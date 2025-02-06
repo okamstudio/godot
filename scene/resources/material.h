@@ -339,6 +339,7 @@ private:
 		uint64_t invalid_key : 1;
 		uint64_t deep_parallax : 1;
 		uint64_t grow : 1;
+		uint64_t depth_offset : 1;
 		uint64_t proximity_fade : 1;
 		uint64_t orm : 1;
 
@@ -389,6 +390,7 @@ private:
 		mk.billboard_mode = billboard_mode;
 		mk.deep_parallax = deep_parallax;
 		mk.grow = grow_enabled;
+		mk.depth_offset = depth_offset_enabled;
 		mk.proximity_fade = proximity_fade_enabled;
 		mk.distance_fade = distance_fade;
 		mk.emission_op = emission_op;
@@ -444,6 +446,7 @@ private:
 		StringName uv1_blend_sharpness;
 		StringName uv2_blend_sharpness;
 		StringName grow;
+		StringName depth_offset;
 		StringName proximity_fade_distance;
 		StringName msdf_pixel_range;
 		StringName msdf_outline_size;
@@ -508,6 +511,8 @@ private:
 	float alpha_scissor_threshold = 0.0f;
 	float alpha_hash_scale = 0.0f;
 	float alpha_antialiasing_edge = 0.0f;
+	bool depth_offset_enabled = false;
+	float depth_offset = 0.0f;
 	bool grow_enabled = false;
 	float ao_light_affect = 0.0f;
 	float grow = 0.0f;
@@ -666,6 +671,12 @@ public:
 
 	void set_alpha_antialiasing_edge(float p_edge);
 	float get_alpha_antialiasing_edge() const;
+
+	void set_depth_offset_enabled(bool p_enabled);
+	bool is_depth_offset_enabled() const;
+
+	void set_depth_offset(float p_offset);
+	float get_depth_offset() const;
 
 	void set_shading_mode(ShadingMode p_shading_mode);
 	ShadingMode get_shading_mode() const;
