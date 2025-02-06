@@ -340,4 +340,12 @@ ZERO_INITIALIZER_NUMBER(char32_t)
 ZERO_INITIALIZER_NUMBER(float)
 ZERO_INITIALIZER_NUMBER(double)
 
+// Mimics std::is_trivially_relocatable https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p1144r7.html.
+// For more information, see GH-100509.
+// A class can be marked not trivially relocatable by declaring:
+// struct is_trivially_relocatable<MyStruct> : std::false_type {};
+template <class T>
+struct is_trivially_relocatable : std::true_type {
+};
+
 #endif // TYPE_INFO_H
