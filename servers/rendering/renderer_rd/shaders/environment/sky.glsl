@@ -290,6 +290,9 @@ void main() {
 	}
 
 #ifdef USE_DEBANDING
-	frag_color.rgb += interleaved_gradient_noise(gl_FragCoord.xy) * params.luminance_multiplier;
+	// The dithering amount is multiplied by frag_color to approximate adding it in gamma-compressed sRGB.
+	// This is done because the banding quantization happens in sRGB, not in linear light.
+	// Near black, sRGB is linear with a slope of 12.92. Adding 1.0/12.92 ensures that the dithering has the right strength at black.
+	frag_color.rgb += interleaved_gradient_noise(gl_FragCoord.xy) * (frag_color.rgb + vec3(1.0 / 12.92)) * params.luminance_multiplier;
 #endif
 }
