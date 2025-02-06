@@ -46,6 +46,7 @@
 #include "scene/gui/texture_rect.h"
 
 class FileSystemDock;
+class ProjectSettingsGDExtension;
 
 class ProjectSettingsEditor : public AcceptDialog {
 	GDCLASS(ProjectSettingsEditor, AcceptDialog);
@@ -63,6 +64,7 @@ class ProjectSettingsEditor : public AcceptDialog {
 	ShaderGlobalsEditor *shaders_global_shader_uniforms_editor = nullptr;
 	GroupSettingsEditor *group_settings = nullptr;
 	EditorPluginSettings *plugin_settings = nullptr;
+	ProjectSettingsGDExtension *gdextension_settings = nullptr;
 
 	LineEdit *search_box = nullptr;
 	CheckButton *advanced = nullptr;

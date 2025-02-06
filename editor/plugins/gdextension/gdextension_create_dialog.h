@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  editor_validation_panel.h                                             */
+/*  gdextension_create_dialog.h                                           */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,62 +28,52 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_VALIDATION_PANEL_H
-#define EDITOR_VALIDATION_PANEL_H
+#ifndef GDEXTENSION_CREATE_DIALOG_H
+#define GDEXTENSION_CREATE_DIALOG_H
 
-#include "scene/gui/panel_container.h"
+#include "scene/gui/dialogs.h"
 
-class Button;
-class Label;
-class VBoxContainer;
+class CheckBox;
+class EditorValidationPanel;
+class GDExtensionCreatorPlugin;
+class OptionButton;
 
-class EditorValidationPanel : public PanelContainer {
-	GDCLASS(EditorValidationPanel, PanelContainer);
+class GDExtensionCreateDialog : public ConfirmationDialog {
+	GDCLASS(GDExtensionCreateDialog, ConfirmationDialog);
 
-public:
-	enum MessageType {
-		MSG_OK,
-		MSG_WARNING,
-		MSG_ERROR,
-		MSG_INFO,
+	enum {
+		MSG_ID_BASE_NAME,
+		MSG_ID_LIBRARY_NAME,
+		MSG_ID_PATH,
+		MSG_ID_MAX, // Individual GDExtension creators may add more messages.
 	};
 
-	static const int MSG_ID_DEFAULT = 0; // Avoids hard-coding ID in dialogs with single-line validation.
+	LineEdit *base_name_edit = nullptr;
+	LineEdit *library_name_edit = nullptr;
+	LineEdit *path_edit = nullptr;
+	OptionButton *language_option = nullptr;
+	CheckBox *compile_checkbox = nullptr;
 
-private:
-	VBoxContainer *message_container = nullptr;
+	EditorValidationPanel *validation_panel = nullptr;
+	Vector<Ref<GDExtensionCreatorPlugin>> plugin_creators;
+	Vector<Vector2i> language_option_index_map;
 
-	HashMap<int, String> valid_messages;
-	HashMap<int, Label *> labels;
+	void _clear_fields();
+	void _on_canceled();
+	void _on_confirmed();
+	void _on_required_text_changed();
 
-	bool valid = false;
-	bool pending_update = false;
-
-	struct ThemeCache {
-		Color valid_color;
-		Color warning_color;
-		Color error_color;
-	} theme_cache;
-
-	void _update();
-
-	Callable update_callback;
-	Button *accept_button = nullptr;
+	String _get_valid_base_name();
+	String _get_valid_library_name(const String &p_valid_base_name);
+	String _get_valid_path(const String &p_valid_base_name);
 
 protected:
+	static void _bind_methods();
 	void _notification(int p_what);
 
 public:
-	void add_line(int p_id, const String &p_valid_message = "");
-	void set_accept_button(Button *p_button);
-	void set_update_callback(const Callable &p_callback);
-
-	void update();
-	void set_message(int p_id, const String &p_text, MessageType p_type, bool p_auto_prefix = true);
-	int get_message_count() const;
-	bool is_valid() const;
-
-	EditorValidationPanel();
+	void load_plugin_creators(const Vector<Ref<GDExtensionCreatorPlugin>> &p_plugin_creators);
+	GDExtensionCreateDialog();
 };
 
-#endif // EDITOR_VALIDATION_PANEL_H
+#endif // GDEXTENSION_CREATE_DIALOG_H

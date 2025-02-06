@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+
+# This file is for building as a Godot engine module.
+
+Import("env")
+Import("env_modules")
+
+env_modules.Append(CPPDEFINES=["GODOT_MODULE"])
+
+env___BASE_NAME__ = env_modules.Clone()
+
+env___BASE_NAME__.add_source_files(env.modules_sources, "*.cpp")
+
+if env.editor_build:
+    # If your module has editor-specific code, you can add it here.
+    # env___BASE_NAME__.add_source_files(env.modules_sources, "editor/*.cpp")
+    pass

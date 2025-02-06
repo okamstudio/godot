@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  editor_validation_panel.h                                             */
+/*  gdextension_edit_dialog.h                                             */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,62 +28,43 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_VALIDATION_PANEL_H
-#define EDITOR_VALIDATION_PANEL_H
+#ifndef GDEXTENSION_EDIT_DIALOG_H
+#define GDEXTENSION_EDIT_DIALOG_H
 
-#include "scene/gui/panel_container.h"
+#include "scene/gui/dialogs.h"
 
-class Button;
-class Label;
-class VBoxContainer;
+class CheckBox;
+class EditorPropertyDictionary;
+class EditorValidationPanel;
+class LineEdit;
 
-class EditorValidationPanel : public PanelContainer {
-	GDCLASS(EditorValidationPanel, PanelContainer);
+class GDExtensionEditDialog : public ConfirmationDialog {
+	GDCLASS(GDExtensionEditDialog, ConfirmationDialog);
 
-public:
-	enum MessageType {
-		MSG_OK,
-		MSG_WARNING,
-		MSG_ERROR,
-		MSG_INFO,
+	enum {
+		MSG_ID_ENTRY_SYMBOL_NAME,
+		MSG_ID_COMPAT_MIN_VERSION,
+		MSG_ID_COMPAT_MAX_VERSION,
 	};
 
-	static const int MSG_ID_DEFAULT = 0; // Avoids hard-coding ID in dialogs with single-line validation.
+	Label *gdextension_path = nullptr;
+	LineEdit *entry_symbol_edit = nullptr;
+	LineEdit *compat_max_version_edit = nullptr;
+	LineEdit *compat_min_version_edit = nullptr;
+	CheckBox *reloadable_checkbox = nullptr;
+	EditorValidationPanel *validation_panel = nullptr;
 
-private:
-	VBoxContainer *message_container = nullptr;
-
-	HashMap<int, String> valid_messages;
-	HashMap<int, Label *> labels;
-
-	bool valid = false;
-	bool pending_update = false;
-
-	struct ThemeCache {
-		Color valid_color;
-		Color warning_color;
-		Color error_color;
-	} theme_cache;
-
-	void _update();
-
-	Callable update_callback;
-	Button *accept_button = nullptr;
+	void _clear_fields();
+	void _on_canceled();
+	void _on_confirmed();
+	void _on_required_text_changed();
 
 protected:
 	void _notification(int p_what);
 
 public:
-	void add_line(int p_id, const String &p_valid_message = "");
-	void set_accept_button(Button *p_button);
-	void set_update_callback(const Callable &p_callback);
-
-	void update();
-	void set_message(int p_id, const String &p_text, MessageType p_type, bool p_auto_prefix = true);
-	int get_message_count() const;
-	bool is_valid() const;
-
-	EditorValidationPanel();
+	void load_gdextension_config(const String &p_path);
+	GDExtensionEditDialog();
 };
 
-#endif // EDITOR_VALIDATION_PANEL_H
+#endif // GDEXTENSION_EDIT_DIALOG_H

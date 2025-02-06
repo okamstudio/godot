@@ -12,6 +12,8 @@ changed = []
 invalid = []
 
 for file in sys.argv[1:]:
+    if file.startswith("editor/plugins/gdextension/cpp_scons/template/"):
+        continue
     header_start = -1
     HEADER_CHECK_OFFSET = -1
 

@@ -1,0 +1,49 @@
+#!/usr/bin/env python
+
+import os
+
+Import("env")
+
+env.add_source_files(env.editor_sources, "*.cpp")
+
+
+def parse_template(source):
+    with open(source) as file:
+        lines = file.readlines()
+        script_template = ""
+        for line in lines:
+            script_template += line
+        if env["precision"] != "double":
+            script_template = script_template.replace('ARGUMENTS["precision"] = "double"', "")
+        name = os.path.basename(source).upper().replace(".", "_")
+        return "\nconst String " + name + ' = R"(' + script_template.rstrip() + ')";\n'
+
+
+def make_templates(target, source, env):
+    dst = str(target[0])
+    with StringIO() as s:
+        s.write("/* THIS FILE IS GENERATED DO NOT EDIT */\n\n")
+        s.write("#ifndef GDEXTENSION_TEMPLATE_FILES_GEN_H\n")
+        s.write("#define GDEXTENSION_TEMPLATE_FILES_GEN_H\n\n")
+        s.write('#include "core/string/ustring.h"\n')
+        parsed_template_string = ""
+        for file in source:
+            filepath = str(file)
+            if os.path.isfile(filepath):
+                parsed_template_string += parse_template(filepath)
+        s.write(parsed_template_string)
+        s.write("\n#endif // GDEXTENSION_TEMPLATE_FILES_GEN_H\n")
+        with open(dst, "w", encoding="utf-8", newline="\n") as f:
+            f.write(s.getvalue())
+
+
+env["BUILDERS"]["MakeGDExtTemplateBuilder"] = Builder(
+    action=env.Run(make_templates),
+    suffix=".h",
+)
+
+# Template files
+templates_sources = Glob("template/*") + Glob("template/*/*") + Glob("template/*/*/*")
+
+dest_file = "gdextension_template_files.gen.h"
+env.Alias("editor_template_gdext", [env.MakeGDExtTemplateBuilder(dest_file, templates_sources)])

@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  editor_validation_panel.h                                             */
+/*  project_settings_gdextension.h                                        */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,62 +28,40 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_VALIDATION_PANEL_H
-#define EDITOR_VALIDATION_PANEL_H
+#ifndef PROJECT_SETTINGS_GDEXTENSION_H
+#define PROJECT_SETTINGS_GDEXTENSION_H
 
-#include "scene/gui/panel_container.h"
+#include "scene/gui/box_container.h"
 
-class Button;
-class Label;
-class VBoxContainer;
+class GDExtensionCreateDialog;
+class GDExtensionEditDialog;
+class Tree;
 
-class EditorValidationPanel : public PanelContainer {
-	GDCLASS(EditorValidationPanel, PanelContainer);
+class ProjectSettingsGDExtension : public VBoxContainer {
+	GDCLASS(ProjectSettingsGDExtension, VBoxContainer);
 
-public:
-	enum MessageType {
-		MSG_OK,
-		MSG_WARNING,
-		MSG_ERROR,
-		MSG_INFO,
+	enum {
+		COLUMN_PADDING_LEFT,
+		COLUMN_PATH,
+		COLUMN_EDIT,
+		COLUMN_PADDING_RIGHT,
+		COLUMN_MAX,
 	};
 
-	static const int MSG_ID_DEFAULT = 0; // Avoids hard-coding ID in dialogs with single-line validation.
+	GDExtensionCreateDialog *create_dialog = nullptr;
+	GDExtensionEditDialog *config_dialog = nullptr;
+	Tree *extension_list = nullptr;
 
-private:
-	VBoxContainer *message_container = nullptr;
-
-	HashMap<int, String> valid_messages;
-	HashMap<int, Label *> labels;
-
-	bool valid = false;
-	bool pending_update = false;
-
-	struct ThemeCache {
-		Color valid_color;
-		Color warning_color;
-		Color error_color;
-	} theme_cache;
-
-	void _update();
-
-	Callable update_callback;
-	Button *accept_button = nullptr;
+	void _on_create_gdextension_pressed();
+	void _on_gdextension_created();
+	void _cell_button_pressed(Object *p_item, int p_column, int p_id, MouseButton p_button);
+	void _update_extension_tree();
 
 protected:
 	void _notification(int p_what);
 
 public:
-	void add_line(int p_id, const String &p_valid_message = "");
-	void set_accept_button(Button *p_button);
-	void set_update_callback(const Callable &p_callback);
-
-	void update();
-	void set_message(int p_id, const String &p_text, MessageType p_type, bool p_auto_prefix = true);
-	int get_message_count() const;
-	bool is_valid() const;
-
-	EditorValidationPanel();
+	ProjectSettingsGDExtension();
 };
 
-#endif // EDITOR_VALIDATION_PANEL_H
+#endif // PROJECT_SETTINGS_GDEXTENSION_H
