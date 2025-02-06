@@ -629,7 +629,7 @@ void GodotGeneric6DOFJoint3D::set_flag(Vector3::Axis p_axis, PhysicsServer3D::G6
 		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_ANGULAR_LIMIT: {
 			m_angularLimits[p_axis].m_enableLimit = p_value;
 		} break;
-		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR: {
+		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_ANGULAR_MOTOR: {
 			m_angularLimits[p_axis].m_enableMotor = p_value;
 		} break;
 		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_LINEAR_MOTOR: {
@@ -655,7 +655,7 @@ bool GodotGeneric6DOFJoint3D::get_flag(Vector3::Axis p_axis, PhysicsServer3D::G6
 		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_ANGULAR_LIMIT: {
 			return m_angularLimits[p_axis].m_enableLimit;
 		} break;
-		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR: {
+		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_ANGULAR_MOTOR: {
 			return m_angularLimits[p_axis].m_enableMotor;
 		} break;
 		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_LINEAR_MOTOR: {

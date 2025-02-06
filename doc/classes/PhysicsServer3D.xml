@@ -1585,8 +1585,11 @@
 		</constant>
 		<constant name="G6DOF_JOINT_FLAG_ENABLE_LINEAR_SPRING" value="3" enum="G6DOFJointAxisFlag">
 		</constant>
-		<constant name="G6DOF_JOINT_FLAG_ENABLE_MOTOR" value="4" enum="G6DOFJointAxisFlag">
-			If set, there is a rotational motor across these axes.
+		<constant name="G6DOF_JOINT_FLAG_ENABLE_ANGULAR_MOTOR" value="4" enum="G6DOFJointAxisFlag">
+			If set, there is a rotational or angular motor across these axes.
+		</constant>
+		<constant name="G6DOF_JOINT_FLAG_ENABLE_MOTOR" value="4" enum="G6DOFJointAxisFlag" deprecated="Use [constant G6DOF_JOINT_FLAG_ENABLE_ANGULAR_MOTOR] instead.">
+			If set, there is a rotational or angular motor across these axes.
 		</constant>
 		<constant name="G6DOF_JOINT_FLAG_ENABLE_LINEAR_MOTOR" value="5" enum="G6DOFJointAxisFlag">
 			If set, there is a linear motor on this axis that targets a specific velocity.

@@ -134,15 +134,15 @@ void Generic6DOFJoint3D::_bind_methods() {
 
 	ADD_GROUP("Angular Motor", "angular_motor_");
 
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "angular_motor_x/enabled"), "set_flag_x", "get_flag_x", FLAG_ENABLE_MOTOR);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "angular_motor_x/enabled"), "set_flag_x", "get_flag_x", FLAG_ENABLE_ANGULAR_MOTOR);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_motor_x/target_velocity", PROPERTY_HINT_NONE, U"radians_as_degrees,suffix:\u00B0/s"), "set_param_x", "get_param_x", PARAM_ANGULAR_MOTOR_TARGET_VELOCITY);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_motor_x/force_limit", PROPERTY_HINT_NONE, U"suffix:kg\u22C5m\u00B2/s\u00B2 (Nm)"), "set_param_x", "get_param_x", PARAM_ANGULAR_MOTOR_FORCE_LIMIT);
 
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "angular_motor_y/enabled"), "set_flag_y", "get_flag_y", FLAG_ENABLE_MOTOR);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "angular_motor_y/enabled"), "set_flag_y", "get_flag_y", FLAG_ENABLE_ANGULAR_MOTOR);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_motor_y/target_velocity", PROPERTY_HINT_NONE, U"radians_as_degrees,suffix:\u00B0/s"), "set_param_y", "get_param_y", PARAM_ANGULAR_MOTOR_TARGET_VELOCITY);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_motor_y/force_limit", PROPERTY_HINT_NONE, U"suffix:kg\u22C5m\u00B2/s\u00B2 (Nm)"), "set_param_y", "get_param_y", PARAM_ANGULAR_MOTOR_FORCE_LIMIT);
 
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "angular_motor_z/enabled"), "set_flag_z", "get_flag_z", FLAG_ENABLE_MOTOR);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "angular_motor_z/enabled"), "set_flag_z", "get_flag_z", FLAG_ENABLE_ANGULAR_MOTOR);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_motor_z/target_velocity", PROPERTY_HINT_NONE, U"radians_as_degrees,suffix:\u00B0/s"), "set_param_z", "get_param_z", PARAM_ANGULAR_MOTOR_TARGET_VELOCITY);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_motor_z/force_limit", PROPERTY_HINT_NONE, U"suffix:kg\u22C5m\u00B2/s\u00B2 (Nm)"), "set_param_z", "get_param_z", PARAM_ANGULAR_MOTOR_FORCE_LIMIT);
 
@@ -191,6 +191,7 @@ void Generic6DOFJoint3D::_bind_methods() {
 	BIND_ENUM_CONSTANT(FLAG_ENABLE_ANGULAR_LIMIT);
 	BIND_ENUM_CONSTANT(FLAG_ENABLE_LINEAR_SPRING);
 	BIND_ENUM_CONSTANT(FLAG_ENABLE_ANGULAR_SPRING);
+	BIND_ENUM_CONSTANT(FLAG_ENABLE_ANGULAR_MOTOR);
 	BIND_ENUM_CONSTANT(FLAG_ENABLE_MOTOR);
 	BIND_ENUM_CONSTANT(FLAG_ENABLE_LINEAR_MOTOR);
 	BIND_ENUM_CONSTANT(FLAG_MAX);
@@ -340,7 +341,7 @@ Generic6DOFJoint3D::Generic6DOFJoint3D() {
 	set_flag_x(FLAG_ENABLE_LINEAR_LIMIT, true);
 	set_flag_x(FLAG_ENABLE_ANGULAR_SPRING, false);
 	set_flag_x(FLAG_ENABLE_LINEAR_SPRING, false);
-	set_flag_x(FLAG_ENABLE_MOTOR, false);
+	set_flag_x(FLAG_ENABLE_ANGULAR_MOTOR, false);
 	set_flag_x(FLAG_ENABLE_LINEAR_MOTOR, false);
 
 	set_param_y(PARAM_LINEAR_LOWER_LIMIT, 0);
@@ -370,7 +371,7 @@ Generic6DOFJoint3D::Generic6DOFJoint3D() {
 	set_flag_y(FLAG_ENABLE_LINEAR_LIMIT, true);
 	set_flag_y(FLAG_ENABLE_ANGULAR_SPRING, false);
 	set_flag_y(FLAG_ENABLE_LINEAR_SPRING, false);
-	set_flag_y(FLAG_ENABLE_MOTOR, false);
+	set_flag_y(FLAG_ENABLE_ANGULAR_MOTOR, false);
 	set_flag_y(FLAG_ENABLE_LINEAR_MOTOR, false);
 
 	set_param_z(PARAM_LINEAR_LOWER_LIMIT, 0);
@@ -400,6 +401,6 @@ Generic6DOFJoint3D::Generic6DOFJoint3D() {
 	set_flag_z(FLAG_ENABLE_LINEAR_LIMIT, true);
 	set_flag_z(FLAG_ENABLE_ANGULAR_SPRING, false);
 	set_flag_z(FLAG_ENABLE_LINEAR_SPRING, false);
-	set_flag_z(FLAG_ENABLE_MOTOR, false);
+	set_flag_z(FLAG_ENABLE_ANGULAR_MOTOR, false);
 	set_flag_z(FLAG_ENABLE_LINEAR_MOTOR, false);
 }
