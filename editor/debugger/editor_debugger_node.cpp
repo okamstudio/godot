@@ -809,6 +809,17 @@ void EditorDebuggerNode::live_debug_reparent_node(const NodePath &p_at, const No
 	});
 }
 
+void EditorDebuggerNode::set_debug_mute_audio(bool p_mute) {
+	_for_all(tabs, [&](ScriptEditorDebugger *dbg) {
+		dbg->set_debug_mute_audio(p_mute);
+	});
+	debug_mute_audio = p_mute;
+}
+
+bool EditorDebuggerNode::get_debug_mute_audio() const {
+	return debug_mute_audio;
+}
+
 void EditorDebuggerNode::set_camera_override(CameraOverride p_override) {
 	_for_all(tabs, [&](ScriptEditorDebugger *dbg) {
 		dbg->set_camera_override(p_override);

@@ -73,6 +73,7 @@ Error EditorRun::run(const String &p_scene, const String &p_write_movie, const V
 	bool debug_navigation = EditorSettings::get_singleton()->get_project_metadata("debug_options", "run_debug_navigation", false);
 	bool debug_avoidance = EditorSettings::get_singleton()->get_project_metadata("debug_options", "run_debug_avoidance", false);
 	bool debug_canvas_redraw = EditorSettings::get_singleton()->get_project_metadata("debug_options", "run_debug_canvas_redraw", false);
+	bool debug_mute_audio = EditorDebuggerNode::get_singleton()->get_debug_mute_audio();
 
 	if (debug_collisions) {
 		args.push_back("--debug-collisions");
@@ -92,6 +93,10 @@ Error EditorRun::run(const String &p_scene, const String &p_write_movie, const V
 
 	if (debug_canvas_redraw) {
 		args.push_back("--debug-canvas-item-redraw");
+	}
+
+	if (debug_mute_audio) {
+		args.push_back("--debug-mute-audio");
 	}
 
 	if (p_write_movie != "") {

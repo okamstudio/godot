@@ -76,6 +76,9 @@ void GameViewDebugger::_session_started(Ref<EditorDebuggerSession> p_session) {
 	Array mode;
 	mode.append(select_mode);
 	p_session->send_message("scene:runtime_node_select_set_mode", mode);
+	Array mute_audio_data;
+	mute_audio_data.append(mute_audio);
+	p_session->send_message("scene:debug_mute_audio", mute_audio_data);
 
 	emit_signal(SNAME("session_started"));
 }
@@ -148,6 +151,11 @@ void GameViewDebugger::set_select_mode(int p_mode) {
 			I->send_message("scene:runtime_node_select_set_mode", message);
 		}
 	}
+}
+
+void GameViewDebugger::set_debug_mute_audio(bool p_enabled) {
+	mute_audio = p_enabled;
+	EditorDebuggerNode::get_singleton()->set_debug_mute_audio(p_enabled);
 }
 
 void GameViewDebugger::set_camera_override(bool p_enabled) {
@@ -548,6 +556,13 @@ void GameView::_hide_selection_toggled(bool p_pressed) {
 	debugger->set_selection_visible(!p_pressed);
 }
 
+void GameView::_debug_mute_audio_button_pressed() {
+	debug_mute_audio = !debug_mute_audio;
+	debug_mute_audio_button->set_button_icon(get_editor_theme_icon(debug_mute_audio ? SNAME("AudioMute") : SNAME("AudioStreamPlayer")));
+	debug_mute_audio_button->set_tooltip_text(debug_mute_audio ? TTR("Unmute game audio.") : TTR("Mute game audio."));
+	debugger->set_debug_mute_audio(debug_mute_audio);
+}
+
 void GameView::_camera_override_button_toggled(bool p_pressed) {
 	_update_debugger_buttons();
 
@@ -604,6 +619,8 @@ void GameView::_notification(int p_what) {
 			keep_aspect_button->set_button_icon(get_editor_theme_icon(SNAME("KeepAspect")));
 			stretch_button->set_button_icon(get_editor_theme_icon(SNAME("Stretch")));
 			embed_options_menu->set_button_icon(get_editor_theme_icon(SNAME("GuiTabMenuHl")));
+
+			debug_mute_audio_button->set_button_icon(get_editor_theme_icon(debug_mute_audio ? SNAME("AudioMute") : SNAME("AudioStreamPlayer")));
 
 			camera_override_button->set_button_icon(get_editor_theme_icon(SNAME("Camera")));
 			camera_override_menu->set_button_icon(get_editor_theme_icon(SNAME("GuiTabMenuHl")));
@@ -912,6 +929,14 @@ GameView::GameView(Ref<GameViewDebugger> p_debugger, WindowWrapper *p_wrapper) {
 	select_mode_button[RuntimeNodeSelect::SELECT_MODE_LIST]->set_theme_type_variation(SceneStringName(FlatButton));
 	select_mode_button[RuntimeNodeSelect::SELECT_MODE_LIST]->connect(SceneStringName(pressed), callable_mp(this, &GameView::_select_mode_pressed).bind(RuntimeNodeSelect::SELECT_MODE_LIST));
 	select_mode_button[RuntimeNodeSelect::SELECT_MODE_LIST]->set_tooltip_text(TTR("Show list of selectable nodes at position clicked."));
+
+	main_menu_hbox->add_child(memnew(VSeparator));
+
+	debug_mute_audio_button = memnew(Button);
+	main_menu_hbox->add_child(debug_mute_audio_button);
+	debug_mute_audio_button->set_theme_type_variation("FlatButton");
+	debug_mute_audio_button->connect(SceneStringName(pressed), callable_mp(this, &GameView::_debug_mute_audio_button_pressed));
+	debug_mute_audio_button->set_tooltip_text(debug_mute_audio ? TTR("Unmute game audio.") : TTR("Mute game audio."));
 
 	main_menu_hbox->add_child(memnew(VSeparator));
 

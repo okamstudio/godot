@@ -50,6 +50,7 @@
 #include "scene/main/window.h"
 #include "scene/resources/packed_scene.h"
 #include "scene/theme/theme_db.h"
+#include "servers/audio_server.h"
 
 SceneDebugger::SceneDebugger() {
 	singleton = this;
@@ -141,6 +142,11 @@ Error SceneDebugger::parse_message(void *p_user, const String &p_msg, const Arra
 
 	} else if (p_msg == "next_frame") {
 		_next_frame();
+
+	} else if (p_msg == "debug_mute_audio") { // Enable/disable audio
+		ERR_FAIL_COND_V(p_args.is_empty(), ERR_INVALID_DATA);
+		bool do_mute = p_args[0];
+		AudioServer::get_singleton()->set_debug_mute(do_mute);
 
 	} else if (p_msg == "override_cameras") { // Camera
 		ERR_FAIL_COND_V(p_args.is_empty(), ERR_INVALID_DATA);

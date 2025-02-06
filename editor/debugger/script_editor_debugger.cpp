@@ -1487,6 +1487,17 @@ void ScriptEditorDebugger::live_debug_reparent_node(const NodePath &p_at, const 
 	}
 }
 
+bool ScriptEditorDebugger::get_debug_mute_audio() const {
+	return debug_mute_audio;
+}
+
+void ScriptEditorDebugger::set_debug_mute_audio(bool p_mute) {
+	Array msg;
+	msg.push_back(p_mute);
+	_put_msg("scene:debug_mute_audio", msg);
+	debug_mute_audio = p_mute;
+}
+
 CameraOverride ScriptEditorDebugger::get_camera_override() const {
 	return camera_override;
 }
