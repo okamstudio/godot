@@ -894,6 +894,11 @@ void PhysicsServer3D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("soft_body_is_point_pinned", "body", "point_index"), &PhysicsServer3D::soft_body_is_point_pinned);
 
+	ClassDB::bind_method(D_METHOD("soft_body_apply_point_impulse", "body", "impulse", "point_index"), &PhysicsServer3D::soft_body_apply_point_impulse);
+	ClassDB::bind_method(D_METHOD("soft_body_apply_point_force", "body", "force", "point_index"), &PhysicsServer3D::soft_body_apply_point_force);
+	ClassDB::bind_method(D_METHOD("soft_body_apply_central_impulse", "body", "impulse"), &PhysicsServer3D::soft_body_apply_central_impulse);
+	ClassDB::bind_method(D_METHOD("soft_body_apply_central_force", "body", "force"), &PhysicsServer3D::soft_body_apply_central_force);
+
 	/* JOINT API */
 
 	ClassDB::bind_method(D_METHOD("joint_create"), &PhysicsServer3D::joint_create);

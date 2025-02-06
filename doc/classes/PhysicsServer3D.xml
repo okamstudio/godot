@@ -1058,6 +1058,42 @@
 				Adds the given body to the list of bodies exempt from collisions.
 			</description>
 		</method>
+		<method name="soft_body_apply_central_force">
+			<return type="void" />
+			<param index="0" name="body" type="RID" />
+			<param index="1" name="force" type="Vector3" />
+			<description>
+				Distributes and applies a force to all vertices. A force is time dependent and meant to be applied every physics update.
+			</description>
+		</method>
+		<method name="soft_body_apply_central_impulse">
+			<return type="void" />
+			<param index="0" name="body" type="RID" />
+			<param index="1" name="impulse" type="Vector3" />
+			<description>
+				Distributes and applies an impulse to all vertices.
+				An impulse is time-independent! Applying an impulse every frame would result in a framerate-dependent force. For this reason, it should only be used when simulating one-time impacts (use the "_force" functions otherwise).
+			</description>
+		</method>
+		<method name="soft_body_apply_point_force">
+			<return type="void" />
+			<param index="0" name="body" type="RID" />
+			<param index="1" name="force" type="Vector3" />
+			<param index="2" name="point_index" type="int" />
+			<description>
+				Applies a force to a vertex. A force is time dependent and meant to be applied every physics update.
+			</description>
+		</method>
+		<method name="soft_body_apply_point_impulse">
+			<return type="void" />
+			<param index="0" name="body" type="RID" />
+			<param index="1" name="impulse" type="Vector3" />
+			<param index="2" name="point_index" type="int" />
+			<description>
+				Applies an impulse to a vertex.
+				An impulse is time-independent! Applying an impulse every frame would result in a framerate-dependent force. For this reason, it should only be used when simulating one-time impacts (use the "_force" functions otherwise).
+			</description>
+		</method>
 		<method name="soft_body_create">
 			<return type="RID" />
 			<description>

@@ -363,6 +363,11 @@ void SoftBody3D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_point_transform", "point_index"), &SoftBody3D::get_point_transform);
 
+	ClassDB::bind_method(D_METHOD("apply_impulse", "impulse", "point_index"), &SoftBody3D::apply_impulse);
+	ClassDB::bind_method(D_METHOD("apply_force", "force", "point_index"), &SoftBody3D::apply_force);
+	ClassDB::bind_method(D_METHOD("apply_central_impulse", "impulse"), &SoftBody3D::apply_central_impulse);
+	ClassDB::bind_method(D_METHOD("apply_central_force", "force"), &SoftBody3D::apply_central_force);
+
 	ClassDB::bind_method(D_METHOD("set_point_pinned", "point_index", "pinned", "attachment_path", "insert_at"), &SoftBody3D::pin_point, DEFVAL(NodePath()), DEFVAL(-1));
 	ClassDB::bind_method(D_METHOD("is_point_pinned", "point_index"), &SoftBody3D::is_point_pinned);
 
@@ -669,6 +674,22 @@ void SoftBody3D::set_drag_coefficient(real_t p_drag_coefficient) {
 
 Vector3 SoftBody3D::get_point_transform(int p_point_index) {
 	return PhysicsServer3D::get_singleton()->soft_body_get_point_global_position(physics_rid, p_point_index);
+}
+
+void SoftBody3D::apply_impulse(Vector3 p_impulse, int p_point_index) {
+	PhysicsServer3D::get_singleton()->soft_body_apply_point_impulse(physics_rid, p_impulse, p_point_index);
+}
+
+void SoftBody3D::apply_force(Vector3 p_force, int p_point_index) {
+	PhysicsServer3D::get_singleton()->soft_body_apply_point_force(physics_rid, p_force, p_point_index);
+}
+
+void SoftBody3D::apply_central_impulse(Vector3 p_impulse) {
+	PhysicsServer3D::get_singleton()->soft_body_apply_central_impulse(physics_rid, p_impulse);
+}
+
+void SoftBody3D::apply_central_force(Vector3 p_force) {
+	PhysicsServer3D::get_singleton()->soft_body_apply_central_force(physics_rid, p_force);
 }
 
 void SoftBody3D::pin_point_toggle(int p_point_index) {

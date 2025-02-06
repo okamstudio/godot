@@ -989,6 +989,36 @@
 			<description>
 			</description>
 		</method>
+		<method name="_soft_body_apply_central_force" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="body" type="RID" />
+			<param index="1" name="force" type="Vector3" />
+			<description>
+			</description>
+		</method>
+		<method name="_soft_body_apply_central_impulse" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="body" type="RID" />
+			<param index="1" name="impulse" type="Vector3" />
+			<description>
+			</description>
+		</method>
+		<method name="_soft_body_apply_point_force" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="body" type="RID" />
+			<param index="1" name="force" type="Vector3" />
+			<param index="2" name="point_index" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="_soft_body_apply_point_impulse" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="body" type="RID" />
+			<param index="1" name="impulse" type="Vector3" />
+			<param index="2" name="point_index" type="int" />
+			<description>
+			</description>
+		</method>
 		<method name="_soft_body_create" qualifiers="virtual">
 			<return type="RID" />
 			<description>
