@@ -5347,6 +5347,14 @@ void TextEdit::add_selection_for_next_occurrence() {
 	const String &highlighted_text = get_selected_text(caret);
 	int column = get_selection_from_column(caret) + 1;
 	int line = get_selection_from_line(caret);
+	if (column >= text[line].size()) {
+		// Start search from the next line.
+		line++;
+		column = 0;
+		if (line >= get_line_count()) {
+			line = 0;
+		}
+	}
 
 	const Point2i next_occurrence = search(highlighted_text, SEARCH_MATCH_CASE, line, column);
 
@@ -5388,6 +5396,14 @@ void TextEdit::skip_selection_for_next_occurrence() {
 
 	int column = get_selection_from_column(caret) + 1;
 	int line = get_selection_from_line(caret);
+	if (column >= text[line].size()) {
+		// Start search from the next line.
+		line++;
+		column = 0;
+		if (line >= get_line_count()) {
+			line = 0;
+		}
+	}
 
 	const Point2i next_occurrence = search(searched_text, SEARCH_MATCH_CASE, line, column);
 
