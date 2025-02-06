@@ -156,6 +156,8 @@ GDScriptDataType GDScriptCompiler::_gdtype_from_datatype(const GDScriptParser::D
 			Ref<GDScript> script;
 			if (is_local_class) {
 				script = Ref<GDScript>(main_script);
+			} else if (p_datatype.script_type.is_valid()) {
+				script = p_datatype.script_type;
 			} else {
 				Error err = OK;
 				script = GDScriptCache::get_shallow_script(p_datatype.script_path, err, p_owner->path);
