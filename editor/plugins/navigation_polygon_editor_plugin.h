@@ -80,6 +80,7 @@ protected:
 	virtual void _action_set_polygon(int p_idx, const Variant &p_previous, const Variant &p_polygon) override;
 
 	virtual bool _has_resource() const override;
+	virtual bool _resource_is_foreign() const override;
 	virtual void _create_resource() override;
 
 public:

@@ -91,6 +91,7 @@ class AbstractPolygon2DEditor : public HBoxContainer {
 	CanvasItemEditor *canvas_item_editor = nullptr;
 	Panel *panel = nullptr;
 	ConfirmationDialog *create_resource = nullptr;
+	AcceptDialog *foreign_resource_warning = nullptr;
 
 protected:
 	enum {
@@ -134,6 +135,7 @@ protected:
 	virtual void _commit_action();
 
 	virtual bool _has_resource() const;
+	virtual bool _resource_is_foreign() const;
 	virtual void _create_resource();
 
 public:

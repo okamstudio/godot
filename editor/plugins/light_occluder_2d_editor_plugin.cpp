@@ -92,6 +92,35 @@ bool LightOccluder2DEditor::_has_resource() const {
 	return node && node->get_occluder_polygon().is_valid();
 }
 
+bool LightOccluder2DEditor::_resource_is_foreign() const {
+	if (node) {
+		Ref<OccluderPolygon2D> occuluder_polygon = node->get_occluder_polygon();
+		if (occuluder_polygon.is_valid()) {
+			String path = occuluder_polygon->get_path();
+			if (!path.is_resource_file()) {
+				int srpos = path.find("::");
+				if (srpos != -1) {
+					String base = path.substr(0, srpos);
+					if (ResourceLoader::get_resource_type(base) == "PackedScene") {
+						if (!get_tree()->get_edited_scene_root() || get_tree()->get_edited_scene_root()->get_scene_file_path() != base) {
+							return true;
+						}
+					} else {
+						if (FileAccess::exists(base + ".import")) {
+							return true;
+						}
+					}
+				}
+			} else {
+				if (FileAccess::exists(occuluder_polygon->get_path() + ".import")) {
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
 void LightOccluder2DEditor::_create_resource() {
 	if (!node) {
 		return;

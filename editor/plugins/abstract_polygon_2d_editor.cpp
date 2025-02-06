@@ -125,6 +125,10 @@ bool AbstractPolygon2DEditor::_has_resource() const {
 	return true;
 }
 
+bool AbstractPolygon2DEditor::_resource_is_foreign() const {
+	return false;
+}
+
 void AbstractPolygon2DEditor::_create_resource() {
 }
 
@@ -273,6 +277,14 @@ bool AbstractPolygon2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) 
 			create_resource->popup_centered();
 		}
 		return (mb.is_valid() && mb->get_button_index() == MouseButton::LEFT);
+	} else {
+		if (_resource_is_foreign()) {
+			if (mb.is_valid() && mb->get_button_index() == MouseButton::LEFT && mb->is_pressed()) {
+				foreign_resource_warning->set_text(String("Polygon resource cannot be edited because does not belong to the edited scene. Make it unique first."));
+				foreign_resource_warning->popup_centered();
+			}
+			return (mb.is_valid() && mb->get_button_index() == MouseButton::LEFT);
+		}
 	}
 
 	CanvasItemEditor::Tool tool = CanvasItemEditor::get_singleton()->get_current_tool();
@@ -756,6 +768,10 @@ AbstractPolygon2DEditor::AbstractPolygon2DEditor(bool p_wip_destructive) {
 	create_resource = memnew(ConfirmationDialog);
 	add_child(create_resource);
 	create_resource->set_ok_button_text(TTR("Create"));
+
+	foreign_resource_warning = memnew(AcceptDialog);
+	add_child(foreign_resource_warning);
+	foreign_resource_warning->get_ok_button()->set_text(TTR("Warning"));
 }
 
 void AbstractPolygon2DEditorPlugin::edit(Object *p_object) {
