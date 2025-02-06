@@ -44,7 +44,7 @@
 		<member name="alpha_antialiasing_mode" type="int" setter="set_alpha_antialiasing" getter="get_alpha_antialiasing" enum="BaseMaterial3D.AlphaAntiAliasing" default="0">
 			The type of alpha antialiasing to apply. See [enum BaseMaterial3D.AlphaAntiAliasing].
 		</member>
-		<member name="alpha_cut" type="int" setter="set_alpha_cut_mode" getter="get_alpha_cut_mode" enum="SpriteBase3D.AlphaCutMode" default="0">
+		<member name="alpha_cut" type="int" setter="set_alpha_cut_mode" getter="get_alpha_cut_mode" enum="SpriteBase3D.AlphaCutMode" default="2">
 			The alpha cutting mode to use for the sprite. See [enum AlphaCutMode] for possible values.
 		</member>
 		<member name="alpha_hash_scale" type="float" setter="set_alpha_hash_scale" getter="get_alpha_hash_scale" default="1.0">

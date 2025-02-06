@@ -86,7 +86,7 @@ private:
 	RID last_texture;
 
 	bool flags[FLAG_MAX] = {};
-	AlphaCutMode alpha_cut = ALPHA_CUT_DISABLED;
+	AlphaCutMode alpha_cut = ALPHA_CUT_OPAQUE_PREPASS;
 	float alpha_scissor_threshold = 0.5;
 	float alpha_hash_scale = 1.0;
 	StandardMaterial3D::AlphaAntiAliasing alpha_antialiasing_mode = StandardMaterial3D::ALPHA_ANTIALIASING_OFF;
