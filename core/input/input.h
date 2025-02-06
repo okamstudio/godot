@@ -31,6 +31,7 @@
 #ifndef INPUT_H
 #define INPUT_H
 
+#include "core/input/input_enums.h"
 #include "core/input/input_event.h"
 #include "core/object/object.h"
 #include "core/os/keyboard.h"
@@ -76,7 +77,14 @@ public:
 		CURSOR_VSPLIT,
 		CURSOR_HSPLIT,
 		CURSOR_HELP,
-		CURSOR_MAX
+		CURSOR_MAX,
+	};
+
+	enum JoyScheme {
+		JOY_SCHEME_UNKNOWN,
+		JOY_SCHEME_NINTENDO_GENERIC,
+		JOY_SCHEME_PLAYSTATION_GENERIC,
+		JOY_SCHEME_XBOX_GENERIC,
 	};
 
 	enum {
@@ -316,12 +324,15 @@ public:
 	Vector2 get_vector(const StringName &p_negative_x, const StringName &p_positive_x, const StringName &p_negative_y, const StringName &p_positive_y, float p_deadzone = -1.0f) const;
 
 	float get_joy_axis(int p_device, JoyAxis p_axis) const;
-	String get_joy_name(int p_idx);
+	String get_joy_name(int p_device);
+	JoyScheme get_joy_scheme(int p_device);
 	TypedArray<int> get_connected_joypads();
 	Vector2 get_joy_vibration_strength(int p_device);
 	float get_joy_vibration_duration(int p_device);
 	uint64_t get_joy_vibration_timestamp(int p_device);
-	void joy_connection_changed(int p_idx, bool p_connected, const String &p_name, const String &p_guid = "", const Dictionary &p_joypad_info = Dictionary());
+	String get_joy_button_string(JoyButton p_button, JoyScheme p_scheme = JoyScheme::JOY_SCHEME_UNKNOWN);
+	String get_joy_axis_string(JoyAxis p_axis, float p_value = 0, JoyScheme p_scheme = JoyScheme::JOY_SCHEME_UNKNOWN);
+	void joy_connection_changed(int p_device, bool p_connected, const String &p_name, const String &p_guid = "", const Dictionary &p_joypad_info = Dictionary());
 
 	Vector3 get_gravity() const;
 	Vector3 get_accelerometer() const;
@@ -403,5 +414,6 @@ public:
 
 VARIANT_ENUM_CAST(Input::MouseMode);
 VARIANT_ENUM_CAST(Input::CursorShape);
+VARIANT_ENUM_CAST(Input::JoyScheme);
 
 #endif // INPUT_H

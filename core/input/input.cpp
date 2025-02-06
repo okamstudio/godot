@@ -73,6 +73,138 @@ static const char *_joy_axes[(size_t)JoyAxis::SDL_MAX] = {
 	"righttrigger",
 };
 
+static const char *_joy_button_names_unknown[(size_t)JoyButton::SDL_MAX] = {
+	"Bottom Action",
+	"Right Action",
+	"Left Action",
+	"Top Action",
+	"Select",
+	"Guide",
+	"Start",
+	"Left Stick",
+	"Right Stick",
+	"Left Shoulder",
+	"Right Shoulder",
+	"D-pad Up",
+	"D-pad Down",
+	"D-pad Left",
+	"D-pad Right",
+	"Misc",
+	"Paddle 1",
+	"Paddle 2",
+	"Paddle 3",
+	"Paddle 4",
+	"Touchpad",
+};
+
+static const char *_joy_button_names_nintendo_generic[(size_t)JoyButton::SDL_MAX] = {
+	"B",
+	"A",
+	"Y",
+	"X",
+	"-",
+	"",
+	"+",
+	"",
+	"",
+	"L",
+	"R",
+	"",
+	"",
+	"",
+	"",
+	"Capture",
+	"",
+	"",
+	"",
+	"",
+	"",
+};
+
+static const char *_joy_button_names_playstation_generic[(size_t)JoyButton::SDL_MAX] = {
+	"Cross",
+	"Circle",
+	"Square",
+	"Triangle",
+	"Select",
+	"PS",
+	"",
+	"L3",
+	"R3",
+	"L1",
+	"R1",
+	"",
+	"",
+	"",
+	"",
+	"Microphone",
+	"",
+	"",
+	"",
+	"",
+	"",
+};
+
+static const char *_joy_button_names_xbox_generic[(size_t)JoyButton::SDL_MAX] = {
+	"A",
+	"B",
+	"X",
+	"Y",
+	"Back",
+	"Home",
+	"Menu",
+	"L/LS",
+	"R/RS",
+	"LB",
+	"RB",
+	"",
+	"",
+	"",
+	"",
+	"Share",
+	"",
+	"",
+	"",
+	"",
+	"",
+};
+
+static const char *_joy_axis_names_unknown[(size_t)JoyAxis::SDL_MAX] = {
+	"Left Stick X-Axis",
+	"Left Stick Y-Axis",
+	"Right Stick X-Axis",
+	"Right Stick Y-Axis",
+	"Left Trigger",
+	"Right Trigger",
+};
+
+static const char *_joy_axis_names_nintendo_generic[(size_t)JoyAxis::SDL_MAX] = {
+	"",
+	"",
+	"",
+	"",
+	"ZL",
+	"ZR",
+};
+
+static const char *_joy_axis_names_playstation_generic[(size_t)JoyAxis::SDL_MAX] = {
+	"",
+	"",
+	"",
+	"",
+	"L2",
+	"R2",
+};
+
+static const char *_joy_axis_names_xbox_generic[(size_t)JoyAxis::SDL_MAX] = {
+	"",
+	"",
+	"",
+	"",
+	"LT",
+	"RT",
+};
+
 Input *Input::singleton = nullptr;
 
 void (*Input::set_mouse_mode_func)(Input::MouseMode) = nullptr;
@@ -134,12 +266,15 @@ void Input::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_joy_known", "device"), &Input::is_joy_known);
 	ClassDB::bind_method(D_METHOD("get_joy_axis", "device", "axis"), &Input::get_joy_axis);
 	ClassDB::bind_method(D_METHOD("get_joy_name", "device"), &Input::get_joy_name);
+	ClassDB::bind_method(D_METHOD("get_joy_scheme", "device"), &Input::get_joy_scheme);
 	ClassDB::bind_method(D_METHOD("get_joy_guid", "device"), &Input::get_joy_guid);
 	ClassDB::bind_method(D_METHOD("get_joy_info", "device"), &Input::get_joy_info);
 	ClassDB::bind_method(D_METHOD("should_ignore_device", "vendor_id", "product_id"), &Input::should_ignore_device);
 	ClassDB::bind_method(D_METHOD("get_connected_joypads"), &Input::get_connected_joypads);
 	ClassDB::bind_method(D_METHOD("get_joy_vibration_strength", "device"), &Input::get_joy_vibration_strength);
 	ClassDB::bind_method(D_METHOD("get_joy_vibration_duration", "device"), &Input::get_joy_vibration_duration);
+	ClassDB::bind_method(D_METHOD("get_joy_button_string", "button", "scheme"), &Input::get_joy_button_string, DEFVAL(JoyScheme::JOY_SCHEME_UNKNOWN));
+	ClassDB::bind_method(D_METHOD("get_joy_axis_string", "axis", "value", "scheme"), &Input::get_joy_axis_string, DEFVAL(0), DEFVAL(JoyScheme::JOY_SCHEME_UNKNOWN));
 	ClassDB::bind_method(D_METHOD("start_joy_vibration", "device", "weak_magnitude", "strong_magnitude", "duration"), &Input::start_joy_vibration, DEFVAL(0));
 	ClassDB::bind_method(D_METHOD("stop_joy_vibration", "device"), &Input::stop_joy_vibration);
 	ClassDB::bind_method(D_METHOD("vibrate_handheld", "duration_ms", "amplitude"), &Input::vibrate_handheld, DEFVAL(500), DEFVAL(-1.0));
@@ -200,6 +335,11 @@ void Input::_bind_methods() {
 	BIND_ENUM_CONSTANT(CURSOR_VSPLIT);
 	BIND_ENUM_CONSTANT(CURSOR_HSPLIT);
 	BIND_ENUM_CONSTANT(CURSOR_HELP);
+
+	BIND_ENUM_CONSTANT(JOY_SCHEME_UNKNOWN);
+	BIND_ENUM_CONSTANT(JOY_SCHEME_NINTENDO_GENERIC);
+	BIND_ENUM_CONSTANT(JOY_SCHEME_PLAYSTATION_GENERIC);
+	BIND_ENUM_CONSTANT(JOY_SCHEME_XBOX_GENERIC);
 
 	ADD_SIGNAL(MethodInfo("joy_connection_changed", PropertyInfo(Variant::INT, "device"), PropertyInfo(Variant::BOOL, "connected")));
 }
@@ -519,9 +659,26 @@ float Input::get_joy_axis(int p_device, JoyAxis p_axis) const {
 	}
 }
 
-String Input::get_joy_name(int p_idx) {
+String Input::get_joy_name(int p_device) {
 	_THREAD_SAFE_METHOD_
-	return joy_names[p_idx].name;
+	return joy_names[p_device].name;
+}
+
+Input::JoyScheme Input::get_joy_scheme(int p_device) {
+	String joy_name = get_joy_name(p_device).to_lower();
+
+	if (joy_name.contains("nintendo") || joy_name.contains("joy-con") || joy_name.contains("gamecube")) {
+		return JOY_SCHEME_NINTENDO_GENERIC;
+	}
+	if (joy_name.contains("sony") || joy_name.contains("playstation") || joy_name.contains("dualshock") ||
+			joy_name.contains("ps1") || joy_name.contains("ps2") || joy_name.contains("ps3") || joy_name.contains("ps4") || joy_name.contains("ps5")) {
+		return JOY_SCHEME_PLAYSTATION_GENERIC;
+	}
+	if (joy_name.contains("microsoft") || joy_name.contains("xbox")) {
+		return JOY_SCHEME_XBOX_GENERIC;
+	}
+
+	return JOY_SCHEME_UNKNOWN;
 }
 
 Vector2 Input::get_joy_vibration_strength(int p_device) {
@@ -548,6 +705,73 @@ float Input::get_joy_vibration_duration(int p_device) {
 	}
 }
 
+String Input::get_joy_button_string(JoyButton p_button, JoyScheme p_scheme) {
+	String button_name;
+	switch (p_scheme) {
+		case JOY_SCHEME_NINTENDO_GENERIC: {
+			button_name = _joy_button_names_nintendo_generic[(int)p_button];
+		} break;
+		case JOY_SCHEME_PLAYSTATION_GENERIC: {
+			button_name = _joy_button_names_playstation_generic[(int)p_button];
+		} break;
+		case JOY_SCHEME_XBOX_GENERIC: {
+			button_name = _joy_button_names_xbox_generic[(int)p_button];
+		} break;
+		default: {
+		}
+	}
+
+	if (button_name.is_empty()) {
+		button_name = _joy_button_names_unknown[(int)p_button];
+	}
+
+	return button_name;
+}
+
+String Input::get_joy_axis_string(JoyAxis p_axis, float p_value, JoyScheme p_scheme) {
+	if (p_axis == JoyAxis::TRIGGER_LEFT || p_axis == JoyAxis::TRIGGER_RIGHT) {
+		String axis_name;
+		switch (p_scheme) {
+			case JOY_SCHEME_NINTENDO_GENERIC: {
+				axis_name = _joy_axis_names_nintendo_generic[(int)p_axis];
+			} break;
+			case JOY_SCHEME_PLAYSTATION_GENERIC: {
+				axis_name = _joy_axis_names_playstation_generic[(int)p_axis];
+			} break;
+			case JOY_SCHEME_XBOX_GENERIC: {
+				axis_name = _joy_axis_names_xbox_generic[(int)p_axis];
+			} break;
+			default: {
+			}
+		}
+
+		if (axis_name.is_empty()) {
+			axis_name = _joy_axis_names_unknown[(int)p_axis];
+		}
+
+		return axis_name;
+	}
+
+	if (p_value != 0.0) {
+		String stick;
+		if (p_axis == JoyAxis::LEFT_X || p_axis == JoyAxis::LEFT_Y) {
+			stick = "Left Stick ";
+		} else if (p_axis == JoyAxis::RIGHT_X || p_axis == JoyAxis::RIGHT_Y) {
+			stick = "Right Stick ";
+		}
+
+		if (p_axis == JoyAxis::LEFT_X || p_axis == JoyAxis::RIGHT_X) {
+			stick += p_value < 0 ? "Left" : "Right";
+		} else if (p_axis == JoyAxis::LEFT_Y || p_axis == JoyAxis::RIGHT_Y) {
+			stick += p_value < 0 ? "Up" : "Down";
+		}
+
+		return stick;
+	}
+
+	return _joy_axis_names_unknown[(int)p_axis];
+}
+
 static String _hex_str(uint8_t p_byte) {
 	static const char *dict = "0123456789abcdef";
 	char ret[3];
@@ -559,13 +783,13 @@ static String _hex_str(uint8_t p_byte) {
 	return ret;
 }
 
-void Input::joy_connection_changed(int p_idx, bool p_connected, const String &p_name, const String &p_guid, const Dictionary &p_joypad_info) {
+void Input::joy_connection_changed(int p_device, bool p_connected, const String &p_name, const String &p_guid, const Dictionary &p_joypad_info) {
 	_THREAD_SAFE_METHOD_
 
 	// Clear the pressed status if a Joypad gets disconnected.
 	if (!p_connected) {
 		for (KeyValue<StringName, ActionState> &E : action_states) {
-			HashMap<int, ActionState::DeviceState>::Iterator it = E.value.device_states.find(p_idx);
+			HashMap<int, ActionState::DeviceState>::Iterator it = E.value.device_states.find(p_device);
 			if (it) {
 				E.value.device_states.remove(it);
 				_update_action_cache(E.key, E.value);
@@ -598,17 +822,17 @@ void Input::joy_connection_changed(int p_idx, bool p_connected, const String &p_
 	} else {
 		js.connected = false;
 		for (int i = 0; i < (int)JoyButton::MAX; i++) {
-			JoyButton c = _combine_device((JoyButton)i, p_idx);
+			JoyButton c = _combine_device((JoyButton)i, p_device);
 			joy_buttons_pressed.erase(c);
 		}
 		for (int i = 0; i < (int)JoyAxis::MAX; i++) {
-			set_joy_axis(p_idx, (JoyAxis)i, 0.0f);
+			set_joy_axis(p_device, (JoyAxis)i, 0.0f);
 		}
 	}
-	joy_names[p_idx] = js;
+	joy_names[p_device] = js;
 
 	// Ensure this signal is emitted on the main thread, as some platforms (e.g. Linux) call this from a different thread.
-	call_deferred("emit_signal", SNAME("joy_connection_changed"), p_idx, p_connected);
+	call_deferred("emit_signal", SNAME("joy_connection_changed"), p_device, p_connected);
 }
 
 Vector3 Input::get_gravity() const {

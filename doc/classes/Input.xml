@@ -114,6 +114,38 @@
 				Returns the current value of the joypad axis at given index (see [enum JoyAxis]).
 			</description>
 		</method>
+		<method name="get_joy_axis_string">
+			<return type="String" />
+			<param index="0" name="axis" type="int" enum="JoyAxis" />
+			<param index="1" name="value" type="float" default="0" />
+			<param index="2" name="scheme" type="int" enum="Input.JoyScheme" default="0" />
+			<description>
+				Returns the string equivalent of the given [param axis]. If [param value] is set to anything besides [code]0[/code], the axis orientation will be replaced with the direction. If [param scheme] is set, it will adapt the result to the given control scheme (see [method get_joy_scheme]).
+				[b]Examples:[/b]
+				[codeblocks]
+				[gdscript]
+				get_joy_axis_string(JoyAxis.LEFT_X) # Returns "Left Stick X-Axis".
+				get_joy_axis_string(JoyAxis.LEFT_X, -0.5) # Returns "Left Stick Left".
+				get_joy_axis_string(JoyAxis.TRIGGER_RIGHT, 0.5, Input.JoyScheme.XBOX) # Returns "RT".
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</method>
+		<method name="get_joy_button_string">
+			<return type="String" />
+			<param index="0" name="button" type="int" enum="JoyButton" />
+			<param index="1" name="scheme" type="int" enum="Input.JoyScheme" default="0" />
+			<description>
+				Returns the string equivalent of the given gamepad [param button]. If [param scheme] is set, it will adapt the result to the given control scheme (see [method get_joy_scheme]).
+				[b]Examples:[/b]
+				[codeblocks]
+				[gdscript]
+				get_joy_button_string(JoyButton.A) # Returns "Bottom Action".
+				get_joy_button_string(JoyButton.A, Input.JoyScheme.JOY_SCHEME_PLAYSTATION_GENERIC) # Returns "Cross".
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</method>
 		<method name="get_joy_guid" qualifiers="const">
 			<return type="String" />
 			<param index="0" name="device" type="int" />
@@ -144,6 +176,14 @@
 			<param index="0" name="device" type="int" />
 			<description>
 				Returns the name of the joypad at the specified device index, e.g. [code]PS4 Controller[/code]. Godot uses the [url=https://github.com/gabomdq/SDL_GameControllerDB]SDL2 game controller database[/url] to determine gamepad names.
+			</description>
+		</method>
+		<method name="get_joy_scheme">
+			<return type="int" enum="Input.JoyScheme" />
+			<param index="0" name="device" type="int" />
+			<description>
+				Returns the device's control scheme.
+				[b]Note:[/b] On non-official gamepads, the most likely result will be [constant JOY_SCHEME_UNKNOWN].
 			</description>
 		</method>
 		<method name="get_joy_vibration_duration">
@@ -518,6 +558,18 @@
 		</constant>
 		<constant name="CURSOR_HELP" value="16" enum="CursorShape">
 			Help cursor. Usually a question mark.
+		</constant>
+		<constant name="JOY_SCHEME_UNKNOWN" value="0" enum="JoyScheme">
+			Unspecified gamepad button layout.
+		</constant>
+		<constant name="JOY_SCHEME_NINTENDO_GENERIC" value="1" enum="JoyScheme">
+			Generic button layout used by Nintendo gamepads.
+		</constant>
+		<constant name="JOY_SCHEME_PLAYSTATION_GENERIC" value="2" enum="JoyScheme">
+			Generic button layout used by PlayStation gamepads.
+		</constant>
+		<constant name="JOY_SCHEME_XBOX_GENERIC" value="3" enum="JoyScheme">
+			Generic button layout used by Xbox gamepads.
 		</constant>
 	</constants>
 </class>
