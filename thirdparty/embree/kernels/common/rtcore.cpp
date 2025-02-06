@@ -46,19 +46,23 @@ RTC_NAMESPACE_BEGIN;
 
   RTC_API bool rtcIsSYCLDeviceSupported(const sycl::device device)
   {
-    RTC_CATCH_BEGIN;
-    RTC_TRACE(rtcIsSYCLDeviceSupported);
-    return rthwifIsSYCLDeviceSupported(device) > 0;
-    RTC_CATCH_END(nullptr);
+    try {
+      RTC_TRACE(rtcIsSYCLDeviceSupported);
+      return rthwifIsSYCLDeviceSupported(device) > 0;
+    } catch (...) {
+      return false;
+    }
     return false;
   }
 
   RTC_API int rtcSYCLDeviceSelector(const sycl::device device)
   {
-    RTC_CATCH_BEGIN;
-    RTC_TRACE(rtcSYCLDeviceSelector);
-    return rthwifIsSYCLDeviceSupported(device);
-    RTC_CATCH_END(nullptr);
+    try {
+      RTC_TRACE(rtcSYCLDeviceSelector);
+      return rthwifIsSYCLDeviceSupported(device);
+    } catch (...) {
+      return -1;
+    }
     return -1;
   }
 
@@ -136,6 +140,17 @@ RTC_NAMESPACE_BEGIN;
     else                   return device->getDeviceErrorCode();
     RTC_CATCH_END(device);
     return RTC_ERROR_UNKNOWN;
+  }
+
+  RTC_API const char* rtcGetDeviceLastErrorMessage(RTCDevice hdevice)
+  {
+    Device* device = (Device*) hdevice;
+    RTC_CATCH_BEGIN;
+    RTC_TRACE(rtcGetDeviceLastErrorMessage);
+    if (device == nullptr) return Device::getThreadLastErrorMessage();
+    else                   return device->getDeviceLastErrorMessage();
+    RTC_CATCH_END(device);
+    return "";
   }
 
   RTC_API void rtcSetDeviceErrorFunction(RTCDevice hdevice, RTCErrorFunction error, void* userPtr)
@@ -289,13 +304,15 @@ RTC_NAMESPACE_BEGIN;
     RTC_CATCH_BEGIN;
     RTC_TRACE(rtcGetSceneFlags);
     RTC_VERIFY_HANDLE(hscene);
-    RTC_ENTER_DEVICE(hscene);
+    //RTC_ENTER_DEVICE(hscene);
     return scene->getSceneFlags();
     RTC_CATCH_END2(scene);
     return RTC_SCENE_FLAG_NONE;
   }
-  
-  RTC_API void rtcCommitScene (RTCScene hscene) 
+
+  RTC_API_EXTERN_C bool prefetchUSMSharedOnGPU(RTCScene scene);
+
+  RTC_API void rtcCommitScene (RTCScene hscene)
   {
     Scene* scene = (Scene*) hscene;
     RTC_CATCH_BEGIN;
@@ -303,6 +320,11 @@ RTC_NAMESPACE_BEGIN;
     RTC_VERIFY_HANDLE(hscene);
     RTC_ENTER_DEVICE(hscene);
     scene->commit(false);
+
+#if defined(EMBREE_SYCL_SUPPORT)
+    prefetchUSMSharedOnGPU(hscene);
+#endif
+
     RTC_CATCH_END2(scene);
   }
 
@@ -2063,5 +2085,15 @@ RTC_API void rtcSetGeometryTransform(RTCGeometry hgeometry, unsigned int timeSte
     RTC_CATCH_END2(scene);
     return nullptr;
   }
+
+  RTC_API const char* rtcGetErrorString(RTCError error)
+  {
+    RTC_CATCH_BEGIN;
+    RTC_TRACE(rtcGetErrorString);
+    return Device::getErrorString(error);
+    RTC_CATCH_END(nullptr);
+    return nullptr;
+  }
+
 
 RTC_NAMESPACE_END

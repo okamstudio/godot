@@ -92,7 +92,7 @@ namespace embree
   __forceinline Vec3fa sign ( const Vec3fa& a ) { return Vec3fa(sycl::sign(a.x),sycl::sign(a.y),sycl::sign(a.z)); }
 
   //__forceinline Vec3fa rcp  ( const Vec3fa& a ) { return Vec3fa(sycl::recip(a.x),sycl::recip(a.y),sycl::recip(a.z)); }
-  __forceinline Vec3fa rcp  ( const Vec3fa& a ) { return Vec3fa(__sycl_std::__invoke_native_recip<float>(a.x),__sycl_std::__invoke_native_recip<float>(a.y),__sycl_std::__invoke_native_recip<float>(a.z)); }
+  __forceinline Vec3fa rcp  ( const Vec3fa& a ) { return Vec3fa(sycl::native::recip(a.x),sycl::native::recip(a.y),sycl::native::recip(a.z)); }
   __forceinline Vec3fa sqrt ( const Vec3fa& a ) { return Vec3fa(sycl::sqrt(a.x),sycl::sqrt(a.y),sycl::sqrt(a.z)); }
   __forceinline Vec3fa sqr  ( const Vec3fa& a ) { return Vec3fa(a.x*a.x,a.y*a.y,a.z*a.z); }
 
@@ -393,7 +393,7 @@ namespace embree
   __forceinline Vec3fx sign ( const Vec3fx& a ) { return Vec3fx(sycl::sign(a.x),sycl::sign(a.y),sycl::sign(a.z),sycl::sign(a.z)); }
 
   //__forceinline Vec3fx rcp  ( const Vec3fx& a ) { return Vec3fx(sycl::recip(a.x),sycl::recip(a.y),sycl::recip(a.z)); }
-  __forceinline Vec3fx rcp  ( const Vec3fx& a ) { return Vec3fx(__sycl_std::__invoke_native_recip<float>(a.x),__sycl_std::__invoke_native_recip<float>(a.y),__sycl_std::__invoke_native_recip<float>(a.z),__sycl_std::__invoke_native_recip<float>(a.w)); }
+  __forceinline Vec3fx rcp  ( const Vec3fx& a ) { return Vec3fx(sycl::native::recip(a.x),sycl::native::recip(a.y),sycl::native::recip(a.z),sycl::native::recip(a.w)); }
   __forceinline Vec3fx sqrt ( const Vec3fx& a ) { return Vec3fx(sycl::sqrt(a.x),sycl::sqrt(a.y),sycl::sqrt(a.z),sycl::sqrt(a.w)); }
   __forceinline Vec3fx sqr  ( const Vec3fx& a ) { return Vec3fx(a.x*a.x,a.y*a.y,a.z*a.z,a.w*a.w); }
 

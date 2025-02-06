@@ -1,37 +1,20 @@
 diff --git a/thirdparty/embree/common/simd/arm/sse2neon.h b/thirdparty/embree/common/simd/arm/sse2neon.h
-index b18d41e783..c54d0b7951 100644
+index b18d41e783..6b989646bf 100644
 --- a/thirdparty/embree/common/simd/arm/sse2neon.h
 +++ b/thirdparty/embree/common/simd/arm/sse2neon.h
-@@ -102,7 +102,9 @@
+@@ -102,7 +102,10 @@
  #include <stdint.h>
  #include <stdlib.h>
  
 -#if defined(_WIN32)
++
 +// -- GODOT start --
 +#if defined(_WIN32) && !defined(__MINGW32__)
 +// -- GODOT end --
  /* Definitions for _mm_{malloc,free} are provided by <malloc.h>
   * from both MinGW-w64 and MSVC.
   */
-@@ -2080,8 +2082,16 @@ FORCE_INLINE void *_mm_malloc(size_t size, size_t align)
-         return malloc(size);
-     if (align == 2 || (sizeof(void *) == 8 && align == 4))
-         align = sizeof(void *);
--    if (!posix_memalign(&ptr, align, size))
-+// -- GODOT start --
-+#if defined(_WIN32)
-+    ptr = _aligned_malloc(size, align);
-+    if (ptr)
-         return ptr;
-+#else
-+    if (!posix_memalign(&ptr, align, size))
-+        return ptr;
-+#endif
-+// -- GODOT end --
-     return NULL;
- }
- #endif
-@@ -1890,7 +1890,13 @@ FORCE_INLINE __m128 _mm_div_ss(__m128 a, __m128 b)
+@@ -1888,7 +1891,13 @@ FORCE_INLINE __m128 _mm_div_ss(__m128 a, __m128 b)
  #if !defined(SSE2NEON_ALLOC_DEFINED)
  FORCE_INLINE void _mm_free(void *addr)
  {
@@ -42,5 +25,23 @@ index b18d41e783..c54d0b7951 100644
      free(addr);
 +#endif
 +// -- GODOT end --
+ }
+ #endif
+ 
+@@ -2080,8 +2089,16 @@ FORCE_INLINE void *_mm_malloc(size_t size, size_t align)
+         return malloc(size);
+     if (align == 2 || (sizeof(void *) == 8 && align == 4))
+         align = sizeof(void *);
++// -- GODOT start --
++#if defined(_WIN32)
++    ptr = _aligned_malloc(size, align);
++    if (ptr)
++        return ptr;
++#else
+     if (!posix_memalign(&ptr, align, size))
+         return ptr;
++#endif
++// -- GODOT end --
+     return NULL;
  }
  #endif

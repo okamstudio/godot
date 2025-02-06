@@ -1,8 +1,8 @@
 diff --git a/thirdparty/embree/common/sys/sysinfo.cpp b/thirdparty/embree/common/sys/sysinfo.cpp
-index c98f61fa53..7f7a009a1e 100644
+index 5f375cd95c..91ef484131 100644
 --- a/thirdparty/embree/common/sys/sysinfo.cpp
 +++ b/thirdparty/embree/common/sys/sysinfo.cpp
-@@ -640,6 +640,12 @@ namespace embree
+@@ -659,6 +659,12 @@ namespace embree
  
  #if defined(__EMSCRIPTEN__)
  #include <emscripten.h>
@@ -15,7 +15,7 @@ index c98f61fa53..7f7a009a1e 100644
  #endif
  
  namespace embree
-@@ -653,21 +659,9 @@ namespace embree
+@@ -672,21 +678,9 @@ namespace embree
      nThreads = sysconf(_SC_NPROCESSORS_ONLN); // does not work in Linux LXC container
      assert(nThreads);
  #elif defined(__EMSCRIPTEN__)

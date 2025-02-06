@@ -1,3 +1,129 @@
+diff --git a/thirdparty/embree/common/algorithms/parallel_for.h b/thirdparty/embree/common/algorithms/parallel_for.h
+index fd5213e70a..7af183e062 100644
+--- a/thirdparty/embree/common/algorithms/parallel_for.h
++++ b/thirdparty/embree/common/algorithms/parallel_for.h
+@@ -22,9 +22,11 @@ namespace embree
+           func(r.begin());
+         },&context);
+       TaskScheduler::wait();
+-      if (context.cancellingException != nullptr) {
+-        std::rethrow_exception(context.cancellingException);
+-      }
++      // -- GODOT start --
++      //if (context.cancellingException != nullptr) {
++      //  std::rethrow_exception(context.cancellingException);
++      //}
++      // -- GODOT end --
+     }
+ #elif defined(TASKING_TBB)
+   #if TBB_INTERFACE_VERSION >= 12002
+@@ -32,14 +34,18 @@ namespace embree
+     tbb::parallel_for(Index(0),N,Index(1),[&](Index i) {
+         func(i);
+       },context);
+-    if (context.is_group_execution_cancelled())
+-      throw std::runtime_error("task cancelled");
++    // -- GODOT start --
++    //if (context.is_group_execution_cancelled())
++    //  throw std::runtime_error("task cancelled");
++    // -- GODOT end --
+   #else
+     tbb::parallel_for(Index(0),N,Index(1),[&](Index i) {
+         func(i);
+       });
+-    if (tbb::task::self().is_cancelled())
+-      throw std::runtime_error("task cancelled");
++    // -- GODOT start --
++    //if (tbb::task::self().is_cancelled())
++    //  throw std::runtime_error("task cancelled");
++    // -- GODOT end --
+   #endif
+ 
+ #elif defined(TASKING_PPL)
+@@ -60,9 +66,11 @@ namespace embree
+     TaskScheduler::TaskGroupContext context;
+     TaskScheduler::spawn(first,last,minStepSize,func,&context);
+     TaskScheduler::wait();
+-    if (context.cancellingException != nullptr) {
+-      std::rethrow_exception(context.cancellingException);
+-    }
++    // -- GODOT start --
++    //if (context.cancellingException != nullptr) {
++    //  std::rethrow_exception(context.cancellingException);
++    //}
++    // -- GODOT end --
+ 
+ #elif defined(TASKING_TBB)
+   #if TBB_INTERFACE_VERSION >= 12002
+@@ -70,14 +78,18 @@ namespace embree
+     tbb::parallel_for(tbb::blocked_range<Index>(first,last,minStepSize),[&](const tbb::blocked_range<Index>& r) {
+         func(range<Index>(r.begin(),r.end()));
+       },context);
+-    if (context.is_group_execution_cancelled())
+-      throw std::runtime_error("task cancelled");
++    // -- GODOT start --
++    //if (context.is_group_execution_cancelled())
++    //  throw std::runtime_error("task cancelled");
++    // -- GODOT end --
+   #else
+     tbb::parallel_for(tbb::blocked_range<Index>(first,last,minStepSize),[&](const tbb::blocked_range<Index>& r) {
+         func(range<Index>(r.begin(),r.end()));
+       });
+-    if (tbb::task::self().is_cancelled())
+-      throw std::runtime_error("task cancelled");
++    // -- GODOT start --
++    //if (tbb::task::self().is_cancelled())
++    //  throw std::runtime_error("task cancelled");
++    // -- GODOT end --
+   #endif
+ 
+ #elif defined(TASKING_PPL)
+@@ -108,14 +120,18 @@ namespace embree
+       tbb::parallel_for(Index(0),N,Index(1),[&](Index i) {
+           func(i);
+         },tbb::simple_partitioner(),context);
+-      if (context.is_group_execution_cancelled())
+-        throw std::runtime_error("task cancelled");
++      // -- GODOT start --
++      //if (context.is_group_execution_cancelled())
++      //  throw std::runtime_error("task cancelled");
++      // -- GODOT end --
+     #else
+       tbb::parallel_for(Index(0),N,Index(1),[&](Index i) {
+           func(i);
+         },tbb::simple_partitioner());
+-      if (tbb::task::self().is_cancelled())
+-        throw std::runtime_error("task cancelled");
++      // -- GODOT start --
++      //if (tbb::task::self().is_cancelled())
++      //  throw std::runtime_error("task cancelled");
++      // -- GODOT end --
+     #endif
+   }
+ 
+@@ -129,14 +145,18 @@ namespace embree
+       tbb::parallel_for(Index(0),N,Index(1),[&](Index i) {
+           func(i);
+         },ap,context);
+-      if (context.is_group_execution_cancelled())
+-        throw std::runtime_error("task cancelled");
++      // -- GODOT start --
++      //if (context.is_group_execution_cancelled())
++      //  throw std::runtime_error("task cancelled");
++      // -- GODOT end --
+     #else
+       tbb::parallel_for(Index(0),N,Index(1),[&](Index i) {
+           func(i);
+         },ap);
+-      if (tbb::task::self().is_cancelled())
+-        throw std::runtime_error("task cancelled");
++      // -- GODOT start --
++      //if (tbb::task::self().is_cancelled())
++      //  throw std::runtime_error("task cancelled");
++      // -- GODOT end --
+     #endif
+   }
+ 
 diff --git a/thirdparty/embree/common/algorithms/parallel_reduce.h b/thirdparty/embree/common/algorithms/parallel_reduce.h
 index b52b1e2e13..51ec0a6405 100644
 --- a/thirdparty/embree/common/algorithms/parallel_reduce.h
@@ -45,7 +171,7 @@ index 42ffb10176..c93da0b420 100644
      }
      str.push_back(0);
 diff --git a/thirdparty/embree/common/sys/alloc.cpp b/thirdparty/embree/common/sys/alloc.cpp
-index de225fafc6..71616a3982 100644
+index bed5ce5d4d..ed6276e762 100644
 --- a/thirdparty/embree/common/sys/alloc.cpp
 +++ b/thirdparty/embree/common/sys/alloc.cpp
 @@ -24,16 +24,32 @@ namespace embree
@@ -85,26 +211,7 @@ index de225fafc6..71616a3982 100644
      tls_context_embree = nullptr;
      tls_device_embree = nullptr;
    }
-@@ -48,8 +64,16 @@ namespace embree
- 
-   void disableUSMAllocTutorial()
-   {
--    if (tls_context_tutorial  == nullptr) throw std::runtime_error("USM allocation not enabled");
--    if (tls_device_tutorial  == nullptr) throw std::runtime_error("USM allocation not enabled");
-+    // -- GODOT start --
-+    // if (tls_context_tutorial  == nullptr) throw std::runtime_error("USM allocation not enabled");
-+    // if (tls_device_tutorial  == nullptr) throw std::runtime_error("USM allocation not enabled");
-+    if (tls_context_tutorial  == nullptr) {
-+      abort();
-+    }
-+    if (tls_device_tutorial  == nullptr) {
-+      abort();
-+    }
-+    // -- GODOT end --
-     
-     tls_context_tutorial = nullptr;
-     tls_device_tutorial = nullptr;
-@@ -64,8 +88,13 @@ namespace embree
+@@ -63,8 +79,13 @@ namespace embree
  
      assert((align & (align-1)) == 0);
      void* ptr = _mm_malloc(size,align);
@@ -120,7 +227,7 @@ index de225fafc6..71616a3982 100644
      return ptr;
    }
  
-@@ -94,8 +123,13 @@ namespace embree
+@@ -93,8 +114,13 @@ namespace embree
      else
        ptr = sycl::aligned_alloc_shared(align,size,*device,*context);
        
@@ -136,7 +243,7 @@ index de225fafc6..71616a3982 100644
  
      return ptr;
    }
-@@ -241,7 +275,12 @@ namespace embree
+@@ -240,7 +266,12 @@ namespace embree
      /* fall back to 4k pages */
      int flags = MEM_COMMIT | MEM_RESERVE;
      char* ptr = (char*) VirtualAlloc(nullptr,bytes,flags,PAGE_READWRITE);
@@ -150,7 +257,7 @@ index de225fafc6..71616a3982 100644
      hugepages = false;
      return ptr;
    }
-@@ -257,8 +296,13 @@ namespace embree
+@@ -256,8 +287,13 @@ namespace embree
      if (bytesNew >= bytesOld)
        return bytesOld;
  
@@ -166,7 +273,7 @@ index de225fafc6..71616a3982 100644
  
      return bytesNew;
    }
-@@ -268,8 +312,13 @@ namespace embree
+@@ -267,8 +303,13 @@ namespace embree
      if (bytes == 0) 
        return;
  
@@ -182,7 +289,7 @@ index de225fafc6..71616a3982 100644
    }
  
    void os_advise(void *ptr, size_t bytes)
-@@ -373,7 +422,12 @@ namespace embree
+@@ -372,7 +413,12 @@ namespace embree
  
      /* fallback to 4k pages */
      void* ptr = (char*) mmap(0, bytes, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
@@ -196,7 +303,7 @@ index de225fafc6..71616a3982 100644
      hugepages = false;
  
      /* advise huge page hint for THP */
-@@ -389,8 +443,13 @@ namespace embree
+@@ -388,8 +434,13 @@ namespace embree
      if (bytesNew >= bytesOld)
        return bytesOld;
  
@@ -212,7 +319,7 @@ index de225fafc6..71616a3982 100644
  
      return bytesNew;
    }
-@@ -403,8 +462,13 @@ namespace embree
+@@ -402,8 +453,13 @@ namespace embree
      /* for hugepages we need to also align the size */
      const size_t pageSize = hugepages ? PAGE_SIZE_2M : PAGE_SIZE_4K;
      bytes = (bytes+pageSize-1) & ~(pageSize-1);
@@ -297,7 +404,7 @@ index 83ead95122..88b88a30ec 100644
        add_dependencies(-1);
      }
 diff --git a/thirdparty/embree/common/tasking/taskschedulerinternal.h b/thirdparty/embree/common/tasking/taskschedulerinternal.h
-index 355648b3f8..e72d3b72ba 100644
+index b01bebf7c3..fc28bebf30 100644
 --- a/thirdparty/embree/common/tasking/taskschedulerinternal.h
 +++ b/thirdparty/embree/common/tasking/taskschedulerinternal.h
 @@ -130,8 +130,13 @@ namespace embree
@@ -332,6 +439,18 @@ index 355648b3f8..e72d3b72ba 100644
  
  	/* allocate new task on right side of stack */
          size_t oldStackPtr = stackPtr;
+@@ -294,7 +304,10 @@ namespace embree
+ 
+       /* re-throw proper exception */
+       if (except != nullptr) {
+-        std::rethrow_exception(except);
++        // -- GODOT start --
++        //std::rethrow_exception(except);
++        abort();
++        // -- GODOT end --
+       }
+     }
+ 
 diff --git a/thirdparty/embree/kernels/bvh/bvh_statistics.cpp b/thirdparty/embree/kernels/bvh/bvh_statistics.cpp
 index 40f9043736..57f75bfd7e 100644
 --- a/thirdparty/embree/kernels/bvh/bvh_statistics.cpp
@@ -385,10 +504,10 @@ index 2bd292de4d..840d48c327 100644
          }
  
 diff --git a/thirdparty/embree/kernels/common/rtcore.cpp b/thirdparty/embree/kernels/common/rtcore.cpp
-index 8dc5d7045b..eb8d2c0a58 100644
+index 2478b6ff99..0dacc36dae 100644
 --- a/thirdparty/embree/kernels/common/rtcore.cpp
 +++ b/thirdparty/embree/kernels/common/rtcore.cpp
-@@ -257,10 +257,17 @@ RTC_NAMESPACE_BEGIN;
+@@ -272,10 +272,17 @@ RTC_NAMESPACE_BEGIN;
      RTC_TRACE(rtcSetSceneBuildQuality);
      RTC_VERIFY_HANDLE(hscene);
      RTC_ENTER_DEVICE(hscene);
@@ -408,7 +527,7 @@ index 8dc5d7045b..eb8d2c0a58 100644
      scene->setBuildQuality(quality);
      RTC_CATCH_END2(scene);
    }
-@@ -1563,11 +1570,19 @@ RTC_API void rtcSetGeometryTransform(RTCGeometry hgeometry, unsigned int timeSte
+@@ -1585,11 +1592,19 @@ RTC_API void rtcSetGeometryTransform(RTCGeometry hgeometry, unsigned int timeSte
      RTC_TRACE(rtcSetGeometryBuildQuality);
      RTC_VERIFY_HANDLE(hgeometry);
      RTC_ENTER_DEVICE(hgeometry);
@@ -485,10 +604,10 @@ index 73a061de11..47526482c1 100644
  #define RTC_BUILD_ARGUMENTS_HAS(settings,member) \
    (settings.byteSize > (offsetof(RTCBuildArguments,member)+sizeof(settings.member)))
 diff --git a/thirdparty/embree/kernels/common/scene.cpp b/thirdparty/embree/kernels/common/scene.cpp
-index fda8dd938a..10cb3c4bec 100644
+index d40c701b83..6e9c8717fb 100644
 --- a/thirdparty/embree/kernels/common/scene.cpp
 +++ b/thirdparty/embree/kernels/common/scene.cpp
-@@ -894,16 +894,18 @@ namespace embree
+@@ -907,16 +907,18 @@ namespace embree
      }
  
      /* initiate build */
@@ -516,10 +635,10 @@ index fda8dd938a..10cb3c4bec 100644
  
  #endif
 diff --git a/thirdparty/embree/kernels/common/state.cpp b/thirdparty/embree/kernels/common/state.cpp
-index 4e3ab6ddfb..1d73ae9629 100644
+index cce5eafce1..4e6b9d96ba 100644
 --- a/thirdparty/embree/kernels/common/state.cpp
 +++ b/thirdparty/embree/kernels/common/state.cpp
-@@ -194,13 +194,15 @@ namespace embree
+@@ -199,13 +199,15 @@ namespace embree
    bool State::parseFile(const FileName& fileName)
    { 
      Ref<Stream<int> > file;

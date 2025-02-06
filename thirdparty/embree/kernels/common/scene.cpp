@@ -46,6 +46,7 @@ namespace embree
       scene_flags(RTC_SCENE_FLAG_NONE),
       quality_flags(RTC_BUILD_QUALITY_MEDIUM),
       modified(true),
+      maxTimeSegments(0),
       taskGroup(new TaskGroup()),
       progressInterface(this), progress_monitor_function(nullptr), progress_monitor_ptr(nullptr), progress_monitor_counter(0)
   {
@@ -788,7 +789,8 @@ namespace embree
   void Scene::build_gpu_accels()
   {
 #if defined(EMBREE_SYCL_SUPPORT)
-    const BBox3f aabb = rthwifBuild(this,hwaccel);
+    auto [aabb, stride] = rthwifBuild(this,hwaccel);
+    hwaccel_stride = stride;
     bounds = LBBox<embree::Vec3fa>(aabb);
     hwaccel_bounds = aabb;
 #endif
@@ -799,6 +801,7 @@ namespace embree
     checkIfModifiedAndSet();
     if (!isModified()) return;
     
+
     /* print scene statistics */
     if (device->verbosity(2))
       printStatistics();
@@ -825,8 +828,18 @@ namespace embree
       std::plus<GeometryCounts>()
     );
 
+    /* calculate maximal number of motion blur time segments in scene */
+    maxTimeSegments = 1;
+    for (size_t geomID=0; geomID<size(); geomID++)
+    {
+      Geometry* geom = get(geomID);
+      if (geom == nullptr) continue;
+      maxTimeSegments = std::max(maxTimeSegments, geom->numTimeSegments());
+    }
+
 #if defined(EMBREE_SYCL_SUPPORT)
-    if (DeviceGPU* gpu_device = dynamic_cast<DeviceGPU*>(device))
+    DeviceGPU* gpu_device = dynamic_cast<DeviceGPU*>(device);
+    if (gpu_device)
       build_gpu_accels();
     else
 #endif

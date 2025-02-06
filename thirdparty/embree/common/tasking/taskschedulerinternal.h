@@ -304,7 +304,10 @@ namespace embree
 
       /* re-throw proper exception */
       if (except != nullptr) {
-        std::rethrow_exception(except);
+        // -- GODOT start --
+        //std::rethrow_exception(except);
+        abort();
+        // -- GODOT end --
       }
     }
 

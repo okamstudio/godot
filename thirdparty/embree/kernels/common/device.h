@@ -75,16 +75,26 @@ namespace embree
     void print();
 
     /*! sets the error code */
-    void setDeviceErrorCode(RTCError error);
+    void setDeviceErrorCode(RTCError error, std::string const& msg = "");
 
     /*! returns and clears the error code */
     RTCError getDeviceErrorCode();
 
+    /*! Returns the string representation for the error code. For example, for RTC_ERROR_UNKNOWN the string "RTC_ERROR_UNKNOWN" will be returned. */
+    static char* getDeviceErrorString();
+
+    /*! returns the last error message */
+    const char* getDeviceLastErrorMessage();
+
     /*! sets the error code */
-    static void setThreadErrorCode(RTCError error);
+    static void setThreadErrorCode(RTCError error, std::string const& msg = "");
 
     /*! returns and clears the error code */
     static RTCError getThreadErrorCode();
+
+
+    /*! returns the last error message */
+    static const char* getThreadLastErrorMessage();
 
     /*! processes error codes, do not call directly */
     static void process_error(Device* device, RTCError error, const char* str);
@@ -140,6 +150,13 @@ namespace embree
 #if defined(EMBREE_TARGET_SIMD8)
     std::unique_ptr<BVH8Factory> bvh8_factory;
 #endif
+
+  private:
+    static const std::vector<std::string> error_strings;
+
+  public:
+    static const char* getErrorString(RTCError error);
+
   };
 
 #if defined(EMBREE_SYCL_SUPPORT)

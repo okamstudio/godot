@@ -35,18 +35,6 @@ namespace embree
       filename.resize(filename.size()-1);
   }
   
-  /*! returns path to home folder */
-  FileName FileName::homeFolder() 
-  {
-#ifdef __WIN32__
-    const char* home = getenv("UserProfile");
-#else
-    const char* home = getenv("HOME");
-#endif
-    if (home) return home;
-    return "";
-  }
-
   /*! returns path to executable */
   FileName FileName::executableFolder() {
     return FileName(getExecutableFileName()).path();

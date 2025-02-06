@@ -1,5 +1,5 @@
 diff --git a/thirdparty/embree/include/embree4/rtcore_config.h b/thirdparty/embree/include/embree4/rtcore_config.h
-index 8abd6954c3..cb3a8678a7 100644
+index 4d0c528239..cb2badc217 100644
 --- a/thirdparty/embree/include/embree4/rtcore_config.h
 +++ b/thirdparty/embree/include/embree4/rtcore_config.h
 @@ -4,7 +4,7 @@
@@ -12,8 +12,8 @@ index 8abd6954c3..cb3a8678a7 100644
  
  #define RTC_VERSION_MAJOR 4
 @@ -13,28 +13,28 @@
- #define RTC_VERSION 40301
- #define RTC_VERSION_STRING "4.3.1"
+ #define RTC_VERSION 40303
+ #define RTC_VERSION_STRING "4.3.3"
  
 -#define RTC_MAX_INSTANCE_LEVEL_COUNT @EMBREE_MAX_INSTANCE_LEVEL_COUNT@
 +#define RTC_MAX_INSTANCE_LEVEL_COUNT 1

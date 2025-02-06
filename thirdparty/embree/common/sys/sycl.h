@@ -181,8 +181,15 @@ namespace embree
     return sycl::select(b,a,mask);
   }
   
+#define XSTR(x) STR(x)
+#define STR(x) #x
+
   __forceinline const sycl::sub_group this_sub_group() {
-    return sycl::ext::oneapi::experimental::this_sub_group(); 
+#if __LIBSYCL_MAJOR_VERSION >= 8
+    return sycl::ext::oneapi::this_work_item::get_sub_group();
+#else
+    return sycl::ext::oneapi::experimental::this_sub_group();
+#endif
   }
   
   __forceinline const uint32_t get_sub_group_local_id() {
