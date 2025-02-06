@@ -392,19 +392,19 @@ void finalize_theme_db() {
 #define MAIN_PRINT(m_txt)
 #endif
 
-void Main::print_header(bool p_rich) {
+void Main::print_header(bool p_help) {
 	if (VERSION_TIMESTAMP > 0) {
 		// Version timestamp available.
-		if (p_rich) {
+		if (p_help) {
 			Engine::get_singleton()->print_header_rich("\u001b[38;5;39m" + String(VERSION_NAME) + "\u001b[0m v" + get_full_version_string() + " (" + Time::get_singleton()->get_datetime_string_from_unix_time(VERSION_TIMESTAMP, true) + " UTC) - \u001b[4m" + String(VERSION_WEBSITE));
 		} else {
-			Engine::get_singleton()->print_header(String(VERSION_NAME) + " v" + get_full_version_string() + " (" + Time::get_singleton()->get_datetime_string_from_unix_time(VERSION_TIMESTAMP, true) + " UTC) - " + String(VERSION_WEBSITE));
+			Engine::get_singleton()->print_header_rich("\u001b[2m" + String(VERSION_NAME) + " v" + get_full_version_string() + " (" + Time::get_singleton()->get_datetime_string_from_unix_time(VERSION_TIMESTAMP, true) + " UTC) - \u001b[4m" + String(VERSION_WEBSITE));
 		}
 	} else {
-		if (p_rich) {
+		if (p_help) {
 			Engine::get_singleton()->print_header_rich("\u001b[38;5;39m" + String(VERSION_NAME) + "\u001b[0m v" + get_full_version_string() + " - \u001b[4m" + String(VERSION_WEBSITE));
 		} else {
-			Engine::get_singleton()->print_header(String(VERSION_NAME) + " v" + get_full_version_string() + " - " + String(VERSION_WEBSITE));
+			Engine::get_singleton()->print_header_rich("\u001b[2m" + String(VERSION_NAME) + " v" + get_full_version_string() + " - \u001b[4m" + String(VERSION_WEBSITE));
 		}
 	}
 }
@@ -414,7 +414,7 @@ void Main::print_header(bool p_rich) {
  * automatically added at the end.
  */
 void Main::print_help_copyright(const char *p_notice) {
-	OS::get_singleton()->print("\u001b[90m%s\u001b[0m\n", p_notice);
+	OS::get_singleton()->print("\u001b[2m%s\u001b[0m\n", p_notice);
 }
 
 /**
@@ -472,7 +472,7 @@ void Main::print_help_option(const char *p_option, const char *p_description, CL
 	} else {
 		// Make continuation lines for descriptions faint if the option name is empty.
 		OS::get_singleton()->print(
-				"  \u001b[92m%s   \u001b[0m  \u001b[90m%s",
+				"  \u001b[92m%s   \u001b[0m  \u001b[2m%s\u001b[0m",
 				format_help_option(p_option).utf8().ptr(),
 				p_description);
 	}

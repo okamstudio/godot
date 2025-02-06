@@ -128,6 +128,10 @@ private:
 	// Maps MessageTypes to LogFilters for convenient access and storage (don't need 1 member per filter).
 	HashMap<MessageType, LogFilter *> type_filter_map;
 
+#ifdef MODULE_REGEX_ENABLED
+	Ref<RegEx> strip_ansi_regex;
+#endif // MODULE_REGEX_ENABLED
+
 	RichTextLabel *log = nullptr;
 
 	Button *clear_button = nullptr;

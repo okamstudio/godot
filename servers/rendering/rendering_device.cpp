@@ -6658,13 +6658,13 @@ Error RenderingDevice::initialize(RenderingContextDriver *p_context, DisplayServ
 		// Only the singleton instance with a display should print this information.
 		String rendering_method;
 		if (OS::get_singleton()->get_current_rendering_method() == "mobile") {
-			rendering_method = "Forward Mobile";
+			rendering_method = "\u001b[95mMobile";
 		} else {
-			rendering_method = "Forward+";
+			rendering_method = "\u001b[92mForward+";
 		}
 
 		// Output our device version.
-		Engine::get_singleton()->print_header(vformat("%s %s - %s - Using Device #%d: %s - %s", get_device_api_name(), get_device_api_version(), rendering_method, device_index, _get_device_vendor_name(device), device.name));
+		Engine::get_singleton()->print_header_rich(vformat("\u001b[2m%s %s - %s\u001b[39;2m - Using Device #%d: %s - %s", get_device_api_name(), get_device_api_version(), rendering_method, device_index, _get_device_vendor_name(device), device.name));
 	}
 
 	// Pick the main queue family. It is worth noting we explicitly do not request the transfer bit, as apparently the specification defines
