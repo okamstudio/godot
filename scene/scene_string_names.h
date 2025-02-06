@@ -154,6 +154,8 @@ public:
 
 	const StringName Start = StaticCString::create("Start");
 	const StringName End = StaticCString::create("End");
+	const StringName node_started = StaticCString::create("node_started");
+	const StringName node_finished = StaticCString::create("node_finished");
 
 	const StringName FlatButton = StaticCString::create("FlatButton");
 };

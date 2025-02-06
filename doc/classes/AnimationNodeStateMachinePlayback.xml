@@ -93,4 +93,18 @@
 	<members>
 		<member name="resource_local_to_scene" type="bool" setter="set_local_to_scene" getter="is_local_to_scene" overrides="Resource" default="true" />
 	</members>
+	<signals>
+		<signal name="node_finished">
+			<param index="0" name="node" type="StringName" />
+			<description>
+				Emitted when the [param node] finishes playback. If [param node] is a state machine set to grouped mode, its signals are passed through with its name prefixed.
+			</description>
+		</signal>
+		<signal name="node_started">
+			<param index="0" name="node" type="StringName" />
+			<description>
+				Emitted when the [param node] starts playback. If [param node] is a state machine set to grouped mode, its signals are passed through with its name prefixed.
+			</description>
+		</signal>
+	</signals>
 </class>
