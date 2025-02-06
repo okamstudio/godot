@@ -909,10 +909,6 @@ def configure(env: "SConsEnvironment"):
     # At this point the env has been set up with basic tools/compilers.
     env.Prepend(CPPPATH=["#platform/windows"])
 
-    if os.name == "nt":
-        env["ENV"] = os.environ  # this makes build less repeatable, but simplifies some things
-        env["ENV"]["TMP"] = os.environ["TMP"]
-
     # First figure out which compiler, version, and target arch we're using
     if os.getenv("VCINSTALLDIR") and detect_build_env_arch() and not env["use_mingw"]:
         setup_msvc_manual(env)

@@ -1,4 +1,3 @@
-import os
 import sys
 from typing import TYPE_CHECKING
 
@@ -116,9 +115,6 @@ def configure(env: "SConsEnvironment"):
         env["initial_memory"] = 64
 
     env.Append(LINKFLAGS=["-sINITIAL_MEMORY=%sMB" % env["initial_memory"]])
-
-    ## Copy env variables.
-    env["ENV"] = os.environ
 
     # LTO
 
