@@ -584,11 +584,14 @@ Error ResourceLoaderText::load() {
 
 		Dictionary missing_resource_properties;
 
+		List<PropertyInfo> property_list;
+		res->get_property_list(&property_list);
+
 		while (true) {
 			String assign;
 			Variant value;
 
-			error = VariantParser::parse_tag_assign_eof(&stream, lines, error_text, next_tag, assign, value, &rp);
+			error = VariantParser::parse_tag_assign_eof(&stream, lines, error_text, next_tag, assign, value, &rp, false, &property_list);
 
 			if (error) {
 				_printerr();
@@ -713,11 +716,14 @@ Error ResourceLoaderText::load() {
 
 		Dictionary missing_resource_properties;
 
+		List<PropertyInfo> property_list;
+		resource->get_property_list(&property_list);
+
 		while (true) {
 			String assign;
 			Variant value;
 
-			error = VariantParser::parse_tag_assign_eof(&stream, lines, error_text, next_tag, assign, value, &rp);
+			error = VariantParser::parse_tag_assign_eof(&stream, lines, error_text, next_tag, assign, value, &rp, false, &property_list);
 
 			if (error) {
 				if (error != ERR_FILE_EOF) {
@@ -1909,17 +1915,18 @@ Error ResourceFormatSaverTextInstance::save(const String &p_path, const Ref<Reso
 		List<PropertyInfo> property_list;
 		res->get_property_list(&property_list);
 		for (List<PropertyInfo>::Element *PE = property_list.front(); PE; PE = PE->next()) {
-			if (skip_editor && PE->get().name.begins_with("__editor")) {
+			const PropertyInfo &pi = PE->get();
+			if (skip_editor && pi.name.begins_with("__editor")) {
 				continue;
 			}
-			if (PE->get().name == META_PROPERTY_MISSING_RESOURCES) {
+			if (pi.name == META_PROPERTY_MISSING_RESOURCES) {
 				continue;
 			}
 
-			if (PE->get().usage & PROPERTY_USAGE_STORAGE || missing_resource_properties.has(PE->get().name)) {
-				String name = PE->get().name;
+			if (pi.usage & PROPERTY_USAGE_STORAGE || missing_resource_properties.has(pi.name)) {
+				String name = pi.name;
 				Variant value;
-				if (PE->get().usage & PROPERTY_USAGE_RESOURCE_NOT_PERSISTENT) {
+				if (pi.usage & PROPERTY_USAGE_RESOURCE_NOT_PERSISTENT) {
 					NonPersistentKey npk;
 					npk.base = res;
 					npk.property = name;
@@ -1930,11 +1937,11 @@ Error ResourceFormatSaverTextInstance::save(const String &p_path, const Ref<Reso
 					value = res->get(name);
 				}
 
-				if (PE->get().type == Variant::OBJECT && missing_resource_properties.has(PE->get().name)) {
+				if (pi.type == Variant::OBJECT && missing_resource_properties.has(pi.name)) {
 					// Was this missing resource overridden? If so do not save the old value.
 					Ref<Resource> ures = value;
 					if (ures.is_null()) {
-						value = missing_resource_properties[PE->get().name];
+						value = missing_resource_properties[pi.name];
 					}
 				}
 
@@ -1944,12 +1951,12 @@ Error ResourceFormatSaverTextInstance::save(const String &p_path, const Ref<Reso
 					continue;
 				}
 
-				if (PE->get().type == Variant::OBJECT && value.is_zero() && !(PE->get().usage & PROPERTY_USAGE_STORE_IF_NULL)) {
+				if (pi.type == Variant::OBJECT && value.is_zero() && !(pi.usage & PROPERTY_USAGE_STORE_IF_NULL)) {
 					continue;
 				}
 
 				String vars;
-				VariantWriter::write_to_string(value, vars, _write_resources, this, use_compat);
+				VariantWriter::write_to_string(value, vars, _write_resources, this, use_compat, &pi);
 				f->store_string(name.property_name_encode() + " = " + vars + "\n");
 			}
 		}

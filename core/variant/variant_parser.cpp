@@ -672,7 +672,7 @@ Error VariantParser::_parse_byte_array(Stream *p_stream, Vector<uint8_t> &r_cons
 	return OK;
 }
 
-Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream, int &line, String &r_err_str, ResourceParser *p_res_parser) {
+Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream, int &line, String &r_err_str, ResourceParser *p_res_parser, const PropertyInfo *const p_property_info) {
 	if (token.type == TK_CURLY_BRACKET_OPEN) {
 		Dictionary d;
 		Error err = _parse_dictionary(d, p_stream, line, r_err_str, p_res_parser);
@@ -703,6 +703,60 @@ Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream,
 			value = -INFINITY;
 		} else if (id == "nan") {
 			value = NAN;
+		} else if (id == "Enum") {
+			get_token(p_stream, token, line, r_err_str);
+			if (token.type != TK_PARENTHESIS_OPEN) {
+				r_err_str = "Expected '('";
+				return ERR_PARSE_ERROR;
+			}
+
+			get_token(p_stream, token, line, r_err_str);
+			if (token.type != TK_STRING) {
+				r_err_str = "Expected string as the first argument for Enum()";
+				return ERR_PARSE_ERROR;
+			}
+
+			String enum_name = String(token.value);
+			get_token(p_stream, token, line, r_err_str);
+			if (token.type != TK_COMMA) {
+				r_err_str = "Expected ',' after first argument for Enum()";
+				return ERR_PARSE_ERROR;
+			}
+
+			get_token(p_stream, token, line, r_err_str);
+			if (token.type != TK_NUMBER) {
+				r_err_str = "Expected int as the second argument for Enum()";
+				return ERR_PARSE_ERROR;
+			}
+
+			int64_t fallback_value = token.value.operator int64_t();
+
+			if (p_property_info != nullptr && p_property_info->type == Variant::INT && p_property_info->hint == PROPERTY_HINT_ENUM && !p_property_info->hint_string.is_empty()) {
+				Vector<String> split = p_property_info->hint_string.split(",");
+				HashMap<String, int64_t> enumeration;
+				for (const String &kv_text : split) {
+					Vector<String> kv = kv_text.split(":", false, 1);
+					ERR_CONTINUE(kv.size() != 2);
+					ERR_CONTINUE(!kv[1].is_valid_int());
+					ERR_CONTINUE(enumeration.has(kv[0]));
+
+					enumeration[kv[0]] = kv[1].to_int();
+				}
+
+				if (enumeration.has(enum_name)) {
+					value = enumeration[enum_name];
+				} else {
+					value = fallback_value;
+				}
+			} else {
+				value = fallback_value;
+			}
+
+			get_token(p_stream, token, line, r_err_str);
+			if (token.type != TK_PARENTHESIS_CLOSE) {
+				r_err_str = "Expected ')'";
+				return ERR_PARSE_ERROR;
+			}
 		} else if (id == "Vector2") {
 			Vector<real_t> args;
 			Error err = _parse_construct<real_t>(p_stream, args, line, r_err_str);
@@ -1842,7 +1896,7 @@ Error VariantParser::parse_tag(Stream *p_stream, int &line, String &r_err_str, T
 	return _parse_tag(token, p_stream, line, r_err_str, r_tag, p_res_parser, p_simple_tag);
 }
 
-Error VariantParser::parse_tag_assign_eof(Stream *p_stream, int &line, String &r_err_str, Tag &r_tag, String &r_assign, Variant &r_value, ResourceParser *p_res_parser, bool p_simple_tag) {
+Error VariantParser::parse_tag_assign_eof(Stream *p_stream, int &line, String &r_err_str, Tag &r_tag, String &r_assign, Variant &r_value, ResourceParser *p_res_parser, bool p_simple_tag, const List<PropertyInfo> *const p_property_info_list) {
 	//assign..
 	r_assign = "";
 	String what;
@@ -1905,7 +1959,17 @@ Error VariantParser::parse_tag_assign_eof(Stream *p_stream, int &line, String &r
 				r_assign = what;
 				Token token;
 				get_token(p_stream, token, line, r_err_str);
-				Error err = parse_value(token, r_value, p_stream, line, r_err_str, p_res_parser);
+
+				const PropertyInfo *property_info = nullptr;
+				if (p_property_info_list != nullptr) {
+					for (const PropertyInfo &pi : *p_property_info_list) {
+						if (pi.name == r_assign) {
+							property_info = &pi;
+							break;
+						}
+					}
+				}
+				Error err = parse_value(token, r_value, p_stream, line, r_err_str, p_res_parser, property_info);
 				return err;
 			}
 		} else if (c == '\n') {
@@ -1948,7 +2012,7 @@ static String rtos_fix(double p_value) {
 	}
 }
 
-Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_string_func, void *p_store_string_ud, EncodeResourceFunc p_encode_res_func, void *p_encode_res_ud, int p_recursion_count, bool p_compat) {
+Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_string_func, void *p_store_string_ud, EncodeResourceFunc p_encode_res_func, void *p_encode_res_ud, int p_recursion_count, bool p_compat, const PropertyInfo *const p_property_info) {
 	switch (p_variant.get_type()) {
 		case Variant::NIL: {
 			p_store_string_func(p_store_string_ud, "null");
@@ -1957,6 +2021,23 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 			p_store_string_func(p_store_string_ud, p_variant.operator bool() ? "true" : "false");
 		} break;
 		case Variant::INT: {
+			if (p_property_info != nullptr && p_property_info->type == Variant::INT && p_property_info->hint == PROPERTY_HINT_ENUM && !p_property_info->hint_string.is_empty()) {
+				Vector<String> split = p_property_info->hint_string.split(",");
+				HashMap<int64_t, String> enumeration;
+				for (const String &kv_text : split) {
+					Vector<String> kv = kv_text.split(":", false, 1);
+					ERR_CONTINUE(kv.size() != 2);
+					ERR_CONTINUE(!kv[1].is_valid_int());
+					ERR_CONTINUE(enumeration.has(kv[1].to_int()));
+					enumeration[kv[1].to_int()] = kv[0];
+				}
+
+				int64_t int_var = p_variant.operator int64_t();
+				if (enumeration.has(int_var)) {
+					p_store_string_func(p_store_string_ud, vformat("Enum(\"%s\",%d)", enumeration[int_var], int_var));
+					return OK;
+				}
+			}
 			p_store_string_func(p_store_string_ud, itos(p_variant.operator int64_t()));
 		} break;
 		case Variant::FLOAT: {
@@ -2508,8 +2589,8 @@ static Error _write_to_str(void *ud, const String &p_string) {
 	return OK;
 }
 
-Error VariantWriter::write_to_string(const Variant &p_variant, String &r_string, EncodeResourceFunc p_encode_res_func, void *p_encode_res_ud, bool p_compat) {
+Error VariantWriter::write_to_string(const Variant &p_variant, String &r_string, EncodeResourceFunc p_encode_res_func, void *p_encode_res_ud, bool p_compat, const PropertyInfo *const p_property_info) {
 	r_string = String();
 
-	return write(p_variant, _write_to_str, &r_string, p_encode_res_func, p_encode_res_ud, 0, p_compat);
+	return write(p_variant, _write_to_str, &r_string, p_encode_res_func, p_encode_res_ud, 0, p_compat, p_property_info);
 }
