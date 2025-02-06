@@ -720,6 +720,12 @@ void SceneReplicationInterface::_send_delta(int p_peer, const HashSet<ObjectID> 
 		if (!_verify_synchronizer(p_peer, sync, net_id)) {
 			continue;
 		}
+
+		// skip if its disabled
+		if (!sync->can_process()) {
+			continue;
+		}
+
 		uint64_t last_usec = p_last_watch_usecs.has(oid) ? p_last_watch_usecs[oid] : 0;
 		uint64_t indexes;
 		List<Variant> delta = sync->get_delta_state(p_usec, last_usec, indexes);
@@ -811,6 +817,11 @@ void SceneReplicationInterface::_send_sync(int p_peer, const HashSet<ObjectID> &
 	for (const ObjectID &oid : p_synchronizers) {
 		MultiplayerSynchronizer *sync = get_id_as<MultiplayerSynchronizer>(oid);
 		ERR_CONTINUE(!sync || !sync->get_replication_config_ptr() || !_has_authority(sync));
+		// skip if its disabled
+		if (!sync->can_process()) {
+			continue;
+		}
+
 		if (!sync->update_outbound_sync_time(p_usec)) {
 			continue; // nothing to sync.
 		}
