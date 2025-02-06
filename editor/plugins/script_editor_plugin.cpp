@@ -995,6 +995,24 @@ void ScriptEditor::_copy_script_uid() {
 	}
 }
 
+bool ScriptEditor::_script_has_doc(const Ref<Script> &p_script, String *r_name) const {
+	ERR_FAIL_COND_V(p_script.is_null(), false);
+
+	if (p_script->get_documentation().is_empty()) {
+		return false;
+	}
+
+	const String doc_name = p_script->get_documentation()[0].name;
+	if (doc_name.is_empty()) {
+		return false;
+	}
+
+	if (r_name) {
+		*r_name = doc_name;
+	}
+	return EditorHelp::get_doc_data()->class_list.find(doc_name) != nullptr;
+}
+
 void ScriptEditor::_close_other_tabs() {
 	int current_idx = tab_container->get_current_tab();
 	for (int i = tab_container->get_tab_count() - 1; i >= 0; i--) {
@@ -1583,6 +1601,13 @@ void ScriptEditor::_menu_option(int p_option) {
 					FileSystemDock::get_singleton()->navigate_to_path(path);
 				}
 			} break;
+			case OPEN_GENERATED_DOCUMENTATION: {
+				String doc_name;
+				const Ref<Script> scr = current->get_edited_resource();
+				if (scr.is_valid() && _script_has_doc(scr, &doc_name)) {
+					_help_class_open(doc_name);
+				}
+			} break;
 			case CLOSE_DOCS: {
 				_close_docs_tab();
 			} break;
@@ -1719,6 +1744,12 @@ void ScriptEditor::_prepare_file_menu() {
 	PopupMenu *menu = file_menu->get_popup();
 	ScriptEditorBase *editor = _get_current_editor();
 	const Ref<Resource> res = editor ? editor->get_edited_resource() : Ref<Resource>();
+	bool has_doc = false;
+
+	if (!res.is_valid()) {
+		Ref<Script> scr = _get_current_editor()->get_edited_resource();
+		has_doc = scr.is_valid() && _script_has_doc(scr);
+	}
 
 	menu->set_item_disabled(menu->get_item_index(FILE_REOPEN_CLOSED), previous_scripts.is_empty());
 
@@ -1730,6 +1761,7 @@ void ScriptEditor::_prepare_file_menu() {
 	menu->set_item_disabled(menu->get_item_index(FILE_COPY_PATH), res.is_null() || res->get_path().is_empty());
 	menu->set_item_disabled(menu->get_item_index(FILE_COPY_UID), res.is_null() || ResourceLoader::get_resource_uid(res->get_path()) == ResourceUID::INVALID_ID);
 	menu->set_item_disabled(menu->get_item_index(SHOW_IN_FILE_SYSTEM), res.is_null());
+	menu->set_item_disabled(menu->get_item_index(OPEN_GENERATED_DOCUMENTATION), !has_doc);
 
 	menu->set_item_disabled(menu->get_item_index(WINDOW_PREV), history_pos <= 0);
 	menu->set_item_disabled(menu->get_item_index(WINDOW_NEXT), history_pos >= history.size() - 1);
@@ -3414,17 +3446,24 @@ void ScriptEditor::_make_script_list_context_menu() {
 	context_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/close_docs"), CLOSE_DOCS);
 	context_menu->add_separator();
 	if (se) {
+		bool has_doc = false;
 		Ref<Script> scr = se->get_edited_resource();
-		if (scr.is_valid() && scr->is_tool()) {
-			context_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/reload_script_soft"), FILE_TOOL_RELOAD_SOFT);
-			context_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/run_file"), FILE_RUN);
-			context_menu->add_separator();
+		if (scr.is_valid()) {
+			if (scr->is_tool()) {
+				context_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/reload_script_soft"), FILE_TOOL_RELOAD_SOFT);
+				context_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/run_file"), FILE_RUN);
+				context_menu->add_separator();
+			}
+			has_doc = _script_has_doc(scr);
 		}
 		context_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/copy_path"), FILE_COPY_PATH);
 		context_menu->set_item_disabled(-1, se->get_edited_resource()->get_path().is_empty());
 		context_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/copy_uid"), FILE_COPY_UID);
 		context_menu->set_item_disabled(-1, ResourceLoader::get_resource_uid(se->get_edited_resource()->get_path()) == ResourceUID::INVALID_ID);
 		context_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/show_in_file_system"), SHOW_IN_FILE_SYSTEM);
+		if (has_doc) {
+			context_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/open_generated_documentation"), OPEN_GENERATED_DOCUMENTATION);
+		}
 		context_menu->add_separator();
 	}
 
@@ -4270,6 +4309,7 @@ ScriptEditor::ScriptEditor(WindowWrapper *p_wrapper) {
 	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/copy_path", TTRC("Copy Script Path")), FILE_COPY_PATH);
 	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/copy_uid", TTRC("Copy Script UID")), FILE_COPY_UID);
 	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/show_in_file_system", TTRC("Show in FileSystem")), SHOW_IN_FILE_SYSTEM);
+	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/open_generated_documentation", TTR("Open Generated Documentation")), OPEN_GENERATED_DOCUMENTATION);
 	file_menu->get_popup()->add_separator();
 
 	file_menu->get_popup()->add_shortcut(
