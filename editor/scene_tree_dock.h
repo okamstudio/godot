@@ -77,6 +77,7 @@ class SceneTreeDock : public VBoxContainer {
 		TOOL_AUTO_EXPAND,
 		TOOL_SCENE_EDITABLE_CHILDREN,
 		TOOL_SCENE_USE_PLACEHOLDER,
+		TOOL_SCENE_APPLY_TO_BASE,
 		TOOL_SCENE_MAKE_LOCAL,
 		TOOL_SCENE_OPEN,
 		TOOL_SCENE_CLEAR_INHERITANCE,
@@ -213,13 +214,13 @@ class SceneTreeDock : public VBoxContainer {
 	void _shader_creation_closed();
 
 	void _delete_confirm(bool p_cut = false);
-	void _delete_dialog_closed();
 
 	void _toggle_editable_children_from_selection();
 
 	void _reparent_nodes_to_root(Node *p_root, const Array &p_nodes, Node *p_owner);
 	void _reparent_nodes_to_paths_with_transform_and_name(Node *p_root, const Array &p_nodes, const Array &p_paths, const Array &p_transforms, const Array &p_names, Node *p_owner);
 	void _toggle_editable_children(Node *p_node);
+	void _apply_editable_children();
 
 	void _toggle_placeholder_from_selection();
 
@@ -241,7 +242,7 @@ class SceneTreeDock : public VBoxContainer {
 	virtual void shortcut_input(const Ref<InputEvent> &p_event) override;
 	void _scene_tree_gui_input(Ref<InputEvent> p_event);
 
-	void _new_scene_from(const String &p_file);
+	void _new_scene_from(const String &p_file, bool p_apply_changes = false);
 	void _set_node_owner_recursive(Node *p_node, Node *p_owner, const HashMap<const Node *, Node *> &p_inverse_duplimap);
 
 	bool _validate_no_foreign();
