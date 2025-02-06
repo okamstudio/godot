@@ -119,6 +119,30 @@
 				The order of each consecutive rotation can be changed with [param order] (see [enum EulerOrder] constants). By default, the YXZ convention is used ([constant EULER_ORDER_YXZ]): Z (roll) is calculated first, then X (pitch), and lastly Y (yaw). When using the opposite method [method from_euler], this order is reversed.
 			</description>
 		</method>
+		<method name="get_rotation_around" qualifiers="const">
+			<return type="Quaternion" />
+			<param index="0" name="axis" type="Vector3" />
+			<description>
+				Returns the quaternion's rotation [b]around[/b] the normalized axis vector. The quaternion and the axis vector must be normalized, otherwise it returns the identity quaternion.
+				This method is related to the swing-twist decomposition, but provide some safe-check and a proper name.
+			</description>
+		</method>
+		<method name="get_swing" qualifiers="const">
+			<return type="Quaternion" />
+			<param index="0" name="axis" type="Vector3" />
+			<description>
+				Returns the quaternion's rotation [b]about[/b] the normalized axis vector. Part of the swing-twist decomposition of the quaternion. Multiplying the result of [code]get_twist(axis)[/code] and [code]get_swing(axis)[/code] returns the original quaternion.
+				[b]Note:[/b] If [code]get_twist(axis)[/code] return the rotation around an axis, the [code]get_swing(axis)[/code] return the rest of the rotation.
+			</description>
+		</method>
+		<method name="get_twist" qualifiers="const">
+			<return type="Quaternion" />
+			<param index="0" name="axis" type="Vector3" />
+			<description>
+				Returns the quaternion's rotation [b]around[/b] the normalized axis vector. Part of the swing-twist decomposition of the quaternion. Multiplying the result of [code]get_twist(axis)[/code] and [code]get_swing(axis)[/code] returns the original quaternion.
+				[b]Note:[/b] This is probably the one you want to use if you want to get the rotation around an axis.
+			</description>
+		</method>
 		<method name="inverse" qualifiers="const">
 			<return type="Quaternion" />
 			<description>

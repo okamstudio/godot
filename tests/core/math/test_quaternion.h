@@ -285,6 +285,33 @@ TEST_CASE("[Quaternion] Get Euler Orders") {
 	}
 }
 
+TEST_CASE("[Quaternion] Swing-Twist Decomposition") {
+	{
+		Quaternion id = Quaternion();
+		Vector3 not_normalized = Vector3(0.0, 0.0, 0.0);
+		Quaternion q = id.get_rotation_around(not_normalized);
+
+		CHECK(q.is_equal_approx(Quaternion()));
+		CHECK_EQ(q.get_angle(), 0.0);
+	}
+	{
+		Vector3 axis = Vector3(1, 0, 0);
+		real_t angle = Math::deg_to_rad(27.0);
+		Quaternion q = Quaternion(axis, angle);
+		Quaternion t = q.get_rotation_around(axis).normalized();
+		CHECK(Math::is_equal_approx(t.get_angle(), angle));
+	}
+	{
+		Vector3 axis = Vector3(1, 2, 3).normalized();
+		real_t angle = Math::deg_to_rad(27.0);
+		Quaternion original = Quaternion(axis, angle);
+		Quaternion t = original.get_twist(Vector3(1, 0, 0));
+		Quaternion s = original.get_swing(Vector3(1, 0, 0));
+		Quaternion result = s * t;
+		CHECK(result.is_equal_approx(original));
+	}
+}
+
 TEST_CASE("[Quaternion] Product (book)") {
 	// Example from "Quaternions and Rotation Sequences" by Jack Kuipers, p. 108.
 	Quaternion p(1.0, -2.0, 1.0, 3.0);

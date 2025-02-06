@@ -75,6 +75,9 @@ struct [[nodiscard]] Quaternion {
 
 	Vector3 get_axis() const;
 	real_t get_angle() const;
+	Quaternion get_twist(const Vector3 &p_axis) const;
+	Quaternion get_swing(const Vector3 &p_axis) const;
+	Quaternion get_rotation_around(const Vector3 &p_axis) const;
 
 	_FORCE_INLINE_ void get_axis_angle(Vector3 &r_axis, real_t &r_angle) const {
 		r_angle = 2 * Math::acos(w);
