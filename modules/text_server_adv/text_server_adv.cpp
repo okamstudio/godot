@@ -1135,8 +1135,14 @@ _FORCE_INLINE_ TextServerAdvanced::FontGlyph TextServerAdvanced::rasterize_bitma
 	{
 		uint8_t *wr = tex.image->ptrw();
 
-		for (int i = 0; i < h; i++) {
-			for (int j = 0; j < w; j++) {
+		// Blend color into margins.
+		int i_start = (p_bitmap.pixel_mode == FT_PIXEL_MODE_BGRA) ? -p_rect_margin : 0;
+		int i_end = (p_bitmap.pixel_mode == FT_PIXEL_MODE_BGRA) ? h + p_rect_margin : h;
+		int j_start = (p_bitmap.pixel_mode == FT_PIXEL_MODE_BGRA) ? -p_rect_margin : 0;
+		int j_end = (p_bitmap.pixel_mode == FT_PIXEL_MODE_BGRA) ? w + p_rect_margin : w;
+
+		for (int i = i_start; i < i_end; i++) {
+			for (int j = j_start; j < j_end; j++) {
 				int ofs = ((i + tex_pos.y + p_rect_margin * 2) * tex.texture_w + j + tex_pos.x + p_rect_margin * 2) * color_size;
 				ERR_FAIL_COND_V(ofs >= tex.image->get_data_size(), FontGlyph());
 				switch (p_bitmap.pixel_mode) {
@@ -1151,11 +1157,43 @@ _FORCE_INLINE_ TextServerAdvanced::FontGlyph TextServerAdvanced::rasterize_bitma
 						wr[ofs + 1] = p_bitmap.buffer[i * p_bitmap.pitch + j];
 						break;
 					case FT_PIXEL_MODE_BGRA: {
-						int ofs_color = i * p_bitmap.pitch + (j << 2);
-						wr[ofs + 2] = p_bitmap.buffer[ofs_color + 0];
-						wr[ofs + 1] = p_bitmap.buffer[ofs_color + 1];
-						wr[ofs + 0] = p_bitmap.buffer[ofs_color + 2];
-						wr[ofs + 3] = p_bitmap.buffer[ofs_color + 3];
+						int ii = CLAMP(i, 0, h - 1);
+						int jj = CLAMP(j, 0, w - 1);
+						int ofs_color = ii * p_bitmap.pitch + (jj << 2);
+						if (p_bitmap.buffer[ofs_color + 3] == 0) {
+							// Color data lost, interpolate from nearest neighbor.
+							double count = 0.0;
+							double r_ac = 0.0;
+							double g_ac = 0.0;
+							double b_ac = 0.0;
+							for (int ai = -1; ai <= 1; ai++) {
+								for (int aj = -1; aj <= 1; aj++) {
+									int sub_ofs_color = (ii + ai) * p_bitmap.pitch + ((jj + aj) << 2);
+									if (p_bitmap.buffer[sub_ofs_color + 3] != 0) {
+										double alpha_inv = 255.0f / double(p_bitmap.buffer[sub_ofs_color + 3]);
+										b_ac += double(p_bitmap.buffer[sub_ofs_color + 0]) * alpha_inv;
+										g_ac += double(p_bitmap.buffer[sub_ofs_color + 1]) * alpha_inv;
+										r_ac += double(p_bitmap.buffer[sub_ofs_color + 2]) * alpha_inv;
+										count += 1.0;
+									}
+								}
+							}
+							wr[ofs + 0] = (count != 0.0) ? (r_ac / count) : 0;
+							wr[ofs + 1] = (count != 0.0) ? (g_ac / count) : 0;
+							wr[ofs + 2] = (count != 0.0) ? (b_ac / count) : 0;
+							wr[ofs + 3] = (ii != i || jj != j) ? 0 : p_bitmap.buffer[ofs_color + 3];
+						} else if (p_bitmap.buffer[ofs_color + 3] == 255) {
+							wr[ofs + 2] = p_bitmap.buffer[ofs_color + 0];
+							wr[ofs + 1] = p_bitmap.buffer[ofs_color + 1];
+							wr[ofs + 0] = p_bitmap.buffer[ofs_color + 2];
+							wr[ofs + 3] = (ii != i || jj != j) ? 0 : p_bitmap.buffer[ofs_color + 3];
+						} else {
+							double alpha_inv = 255.0f / double(p_bitmap.buffer[ofs_color + 3]);
+							wr[ofs + 2] = double(p_bitmap.buffer[ofs_color + 0]) * alpha_inv;
+							wr[ofs + 1] = double(p_bitmap.buffer[ofs_color + 1]) * alpha_inv;
+							wr[ofs + 0] = double(p_bitmap.buffer[ofs_color + 2]) * alpha_inv;
+							wr[ofs + 3] = (ii != i || jj != j) ? 0 : p_bitmap.buffer[ofs_color + 3];
+						}
 					} break;
 					case FT_PIXEL_MODE_LCD: {
 						int ofs_color = i * p_bitmap.pitch + (j * 3);
