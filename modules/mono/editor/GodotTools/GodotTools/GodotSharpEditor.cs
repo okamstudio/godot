@@ -639,6 +639,9 @@ namespace GodotTools
             AddInspectorPlugin(inspectorPlugin);
             _inspectorPluginWeak = WeakRef(inspectorPlugin);
 
+            // TranslationParser Plugin
+            AddTranslationParserPlugin(new CsTranslationParserPlugin());
+
             BuildManager.Initialize();
             RiderPathManager.Initialize();
 
