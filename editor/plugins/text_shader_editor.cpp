@@ -42,6 +42,10 @@
 #include "servers/rendering/shader_preprocessor.h"
 #include "servers/rendering/shader_types.h"
 
+#ifndef DISABLE_DEPRECATED
+#include "servers/rendering/shader_converter.h"
+#endif
+
 /*** SHADER SYNTAX HIGHLIGHTER ****/
 
 Dictionary GDShaderSyntaxHighlighter::_get_line_syntax_highlighting_impl(int p_line) {
@@ -699,6 +703,28 @@ void TextShaderEditor::_menu_option(int p_option) {
 		case EDIT_COMPLETE: {
 			code_editor->get_text_editor()->request_code_completion();
 		} break;
+#ifndef DISABLE_DEPRECATED
+		case EDIT_CONVERT: {
+			if (shader.is_null()) {
+				return;
+			}
+			String code = code_editor->get_text_editor()->get_text();
+			if (code.is_empty()) {
+				return;
+			}
+			ShaderDeprecatedConverter converter;
+			if (!converter.is_code_deprecated(code)) {
+				if (converter.get_error_text() != String()) {
+					shader_convert_error_dialog->set_text(vformat(RTR("Line %d: %s"), converter.get_error_line(), converter.get_error_text()));
+					shader_convert_error_dialog->popup_centered();
+					ERR_PRINT("Shader conversion failed: " + converter.get_error_text());
+				}
+				confirm_convert_shader->popup_centered();
+				return;
+			}
+			_convert_shader();
+		} break;
+#endif
 		case SEARCH_FIND: {
 			code_editor->get_find_replace_bar()->popup_search();
 		} break;
@@ -758,6 +784,43 @@ void TextShaderEditor::_notification(int p_what) {
 		} break;
 	}
 }
+#ifndef DISABLE_DEPRECATED
+void TextShaderEditor::_convert_shader() {
+	if (shader.is_null()) {
+		return;
+	}
+	String code = code_editor->get_text_editor()->get_text();
+	if (code.is_empty()) {
+		return;
+	}
+	ShaderDeprecatedConverter converter;
+	if (!converter.convert_code(code)) {
+		String err_text = converter.get_error_text();
+		if (err_text.is_empty()) {
+			err_text = TTR("Unknown error occurred while converting the shader.");
+		} else if (converter.get_error_line() > 0) {
+			err_text = vformat("%s (line %d)", err_text, converter.get_error_line());
+		}
+
+		shader_convert_error_dialog->set_text(err_text);
+		shader_convert_error_dialog->popup_centered();
+		ERR_PRINT("Shader conversion failed: " + err_text);
+		return;
+	}
+	String new_code = converter.emit_code();
+
+#ifdef DEBUG_ENABLED
+	print_line(converter.get_report());
+#endif
+	if (new_code == code) {
+		return;
+	}
+	// Ensure undoable.
+	code_editor->get_text_editor()->set_text(new_code);
+	code_editor->get_text_editor()->tag_saved_version();
+	code_editor->_validate_script();
+}
+#endif
 
 void TextShaderEditor::_editor_settings_changed() {
 	if (!EditorThemeManager::is_generated_theme_outdated() &&
@@ -1177,8 +1240,12 @@ TextShaderEditor::TextShaderEditor() {
 	edit_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/toggle_word_wrap"), EDIT_TOGGLE_WORD_WRAP);
 	edit_menu->get_popup()->add_separator();
 	edit_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("ui_text_completion_query"), EDIT_COMPLETE);
-	edit_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp(this, &TextShaderEditor::_menu_option));
 
+#ifndef DISABLE_DEPRECATED
+	edit_menu->get_popup()->add_separator();
+	edit_menu->get_popup()->add_item(TTR("Convert 3.x Shader"), EDIT_CONVERT);
+#endif
+	edit_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp(this, &TextShaderEditor::_menu_option));
 	search_menu = memnew(MenuButton);
 	search_menu->set_shortcut_context(this);
 	search_menu->set_text(TTR("Search"));
@@ -1261,7 +1328,20 @@ TextShaderEditor::TextShaderEditor() {
 	disk_changed->connect("custom_action", callable_mp(this, &TextShaderEditor::save_external_data));
 
 	add_child(disk_changed);
+#ifndef DISABLE_DEPRECATED
+	shader_convert_error_dialog = memnew(AcceptDialog);
+	shader_convert_error_dialog->set_title(TTR("Error converting shader"));
+	shader_convert_error_dialog->set_hide_on_ok(true);
+	add_child(shader_convert_error_dialog);
 
+	confirm_convert_shader = memnew(ConfirmationDialog);
+	confirm_convert_shader->set_title(TTR("Confirm Convert 3.x Shader"));
+	confirm_convert_shader->set_text(TTR("This shader does not appear to be a 3.x shader.\nAre you sure you want to convert it?"));
+	confirm_convert_shader->get_ok_button()->set_text(TTR("Convert"));
+	confirm_convert_shader->get_cancel_button()->set_text(TTR("Cancel"));
+	confirm_convert_shader->connect("confirmed", callable_mp(this, &TextShaderEditor::_convert_shader));
+	add_child(confirm_convert_shader);
+#endif
 	_editor_settings_changed();
 	code_editor->show_toggle_scripts_button(); // TODO: Disabled for now, because it doesn't work properly.
 }

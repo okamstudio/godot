@@ -809,6 +809,8 @@ Error ResourceLoaderBinary::load() {
 			internal_index_cache[path] = res;
 		}
 
+		res->_start_load("binary", ver_format);
+
 		int pc = f->get_32();
 
 		//set properties
@@ -884,6 +886,8 @@ Error ResourceLoaderBinary::load() {
 #ifdef TOOLS_ENABLED
 		res->set_edited(false);
 #endif
+
+		res->_finish_load("binary", ver_format);
 
 		if (progress) {
 			*progress = (i + 1) / float(internal_resources.size());

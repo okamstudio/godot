@@ -124,6 +124,7 @@ class TextShaderEditor : public ShaderEditor {
 		EDIT_TOGGLE_WORD_WRAP,
 		EDIT_TOGGLE_COMMENT,
 		EDIT_COMPLETE,
+		EDIT_CONVERT,
 		SEARCH_FIND,
 		SEARCH_FIND_NEXT,
 		SEARCH_FIND_PREV,
@@ -150,6 +151,11 @@ class TextShaderEditor : public ShaderEditor {
 	ConfirmationDialog *disk_changed = nullptr;
 
 	ShaderTextEditor *code_editor = nullptr;
+#ifndef DISABLE_DEPRECATED
+	AcceptDialog *shader_convert_error_dialog = nullptr;
+	ConfirmationDialog *confirm_convert_shader = nullptr;
+#endif
+
 	bool compilation_success = true;
 
 	void _menu_option(int p_option);
@@ -157,6 +163,9 @@ class TextShaderEditor : public ShaderEditor {
 	mutable Ref<Shader> shader;
 	mutable Ref<ShaderInclude> shader_inc;
 
+#ifndef DISABLE_DEPRECATED
+	void _convert_shader();
+#endif
 	void _editor_settings_changed();
 	void _apply_editor_settings();
 	void _project_settings_changed();

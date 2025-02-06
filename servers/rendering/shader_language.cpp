@@ -230,6 +230,13 @@ const char *ShaderLanguage::token_names[TK_MAX] = {
 	"CURSOR",
 	"ERROR",
 	"EOF",
+	"TAB",
+	"CR",
+	"SPACE",
+	"NEWLINE",
+	"BLOCK_COMMENT",
+	"LINE_COMMENT",
+	"PREPROC_DIRECTIVE",
 };
 
 String ShaderLanguage::get_token_text(Token p_token) {
@@ -250,6 +257,8 @@ ShaderLanguage::Token ShaderLanguage::_make_token(TokenType p_type, const String
 	tk.type = p_type;
 	tk.text = p_text;
 	tk.line = tk_line;
+	tk.pos = tk_start_pos;
+	tk.length = char_idx - tk_start_pos;
 	if (tk.type == TK_ERROR) {
 		_set_error(p_text);
 	}
@@ -402,8 +411,11 @@ const ShaderLanguage::KeyWord ShaderLanguage::keyword_list[] = {
 
 ShaderLanguage::Token ShaderLanguage::_get_token() {
 #define GETCHAR(m_idx) (((char_idx + m_idx) < code.length()) ? code[char_idx + m_idx] : char32_t(0))
-
+#define IF_DBG_MK_TK(m_type)   \
+	if (unlikely(debug_parse)) \
+		return _make_token(m_type);
 	while (true) {
+		tk_start_pos = char_idx;
 		char_idx++;
 		switch (GETCHAR(-1)) {
 			case 0:
@@ -411,11 +423,17 @@ ShaderLanguage::Token ShaderLanguage::_get_token() {
 			case 0xFFFF:
 				return _make_token(TK_CURSOR); //for completion
 			case '\t':
+				IF_DBG_MK_TK(TK_TAB);
+				continue;
 			case '\r':
+				IF_DBG_MK_TK(TK_CR);
+				continue;
 			case ' ':
+				IF_DBG_MK_TK(TK_SPACE);
 				continue;
 			case '\n':
 				tk_line++;
+				IF_DBG_MK_TK(TK_NEWLINE);
 				continue;
 			case '/': {
 				switch (GETCHAR(0)) {
@@ -424,10 +442,12 @@ ShaderLanguage::Token ShaderLanguage::_get_token() {
 						char_idx++;
 						while (true) {
 							if (GETCHAR(0) == 0) {
+								IF_DBG_MK_TK(TK_BLOCK_COMMENT);
 								return _make_token(TK_EOF);
 							}
 							if (GETCHAR(0) == '*' && GETCHAR(1) == '/') {
 								char_idx += 2;
+								IF_DBG_MK_TK(TK_BLOCK_COMMENT);
 								break;
 							} else if (GETCHAR(0) == '\n') {
 								tk_line++;
@@ -441,11 +461,13 @@ ShaderLanguage::Token ShaderLanguage::_get_token() {
 
 						while (true) {
 							if (GETCHAR(0) == '\n') {
+								IF_DBG_MK_TK(TK_LINE_COMMENT);
 								tk_line++;
 								char_idx++;
 								break;
 							}
 							if (GETCHAR(0) == 0) {
+								IF_DBG_MK_TK(TK_LINE_COMMENT);
 								return _make_token(TK_EOF);
 							}
 							char_idx++;
@@ -702,6 +724,23 @@ ShaderLanguage::Token ShaderLanguage::_get_token() {
 					return _make_token(TK_ERROR, "Invalid include enter/exit hint token (@@> and @@<)");
 				}
 			} break;
+			case '#': {
+				if (!debug_parse) { // We shouldn't get here if the preprocessor is enabled and doing a non-debug parse.
+					return _make_token(TK_ERROR, "Unexpected pre-processor directive (Is the pre-processor enabled?)");
+				}
+				while (true) {
+					char32_t c = GETCHAR(0);
+					if (c == '\\' && GETCHAR(1) == '\n') {
+						char_idx += 2;
+						tk_line++;
+						continue;
+					}
+					if (c == '\n' || c == 0) {
+						return _make_token(TK_PREPROC_DIRECTIVE);
+					}
+					char_idx++;
+				}
+			} break;
 			default: {
 				char_idx--; //go back one, since we have no idea what this is
 
@@ -767,7 +806,7 @@ ShaderLanguage::Token ShaderLanguage::_get_token() {
 									lut_case = CASE_EXPONENT;
 								} else if (symbol == 'f' && !hexa_found) {
 									if (!period_found && !exponent_found) {
-										error = true;
+										error = !debug_parse;
 									}
 									float_suffix_found = true;
 									end_suffix_found = true;
@@ -886,6 +925,8 @@ ShaderLanguage::Token ShaderLanguage::_get_token() {
 						tk.constant = str.to_float();
 					}
 					tk.line = tk_line;
+					tk.pos = tk_start_pos;
+					tk.length = char_idx - tk_start_pos;
 
 					return tk;
 				}
@@ -934,6 +975,7 @@ ShaderLanguage::Token ShaderLanguage::_get_token() {
 	return Token();
 
 #undef GETCHAR
+#undef IF_DBG_MK_TK
 }
 
 bool ShaderLanguage::_lookup_next(Token &r_tk) {
@@ -956,20 +998,44 @@ ShaderLanguage::Token ShaderLanguage::_peek() {
 	return tk;
 }
 
-String ShaderLanguage::token_debug(const String &p_code) {
+String ShaderLanguage::token_debug(const String &p_code, bool p_debug_parse) {
 	clear();
 
 	code = p_code;
+	debug_parse = p_debug_parse;
 
 	String output;
-
 	Token tk = _get_token();
+
 	while (tk.type != TK_EOF && tk.type != TK_ERROR) {
-		output += itos(tk_line) + ": " + get_token_text(tk) + "\n";
+		String literal_text = p_code.substr(tk.pos, tk.length);
+		output += itos(tk_line) + " (" + itos(tk.pos) + ":" + itos(tk.pos + tk.length) + "): " + get_token_text(tk) + "  [" + literal_text;
+		String suffix = "]\n";
+		// add error string if invalid float constant
+		if (debug_parse && tk.type == TK_FLOAT_CONSTANT && literal_text.ends_with("f") && !literal_text.contains(".") && !literal_text.contains("e")) {
+			output += " (Invalid float constant)]\n";
+		} else {
+			output += "]\n";
+		}
 		tk = _get_token();
 	}
+	debug_parse = false;
 
 	return output;
+}
+
+void ShaderLanguage::token_debug_stream(const String &p_code, List<Token> &r_output, bool p_debug_parse) {
+	clear();
+
+	code = p_code;
+	debug_parse = p_debug_parse;
+	Token tk = _get_token();
+
+	while (tk.type != TK_EOF && tk.type != TK_ERROR) {
+		r_output.push_back(tk);
+		tk = _get_token();
+	}
+	debug_parse = false;
 }
 
 bool ShaderLanguage::is_token_variable_datatype(TokenType p_type) {
@@ -1062,6 +1128,12 @@ bool ShaderLanguage::is_token_arg_qual(TokenType p_type) {
 			p_type == TK_ARG_IN ||
 			p_type == TK_ARG_OUT ||
 			p_type == TK_ARG_INOUT);
+}
+
+bool ShaderLanguage::is_token_uniform_qual(TokenType p_type) {
+	return (
+			p_type == TK_INSTANCE ||
+			p_type == TK_GLOBAL);
 }
 
 ShaderLanguage::DataPrecision ShaderLanguage::get_token_precision(TokenType p_type) {
@@ -4124,6 +4196,17 @@ bool ShaderLanguage::is_token_operator_assign(TokenType p_type) {
 
 bool ShaderLanguage::is_token_hint(TokenType p_type) {
 	return int(p_type) > int(TK_RENDER_MODE) && int(p_type) < int(TK_SHADER_TYPE);
+}
+
+bool ShaderLanguage::is_token_keyword(TokenType p_type) {
+	int idx = 0;
+	while (keyword_list[idx].text) {
+		if (keyword_list[idx].token == p_type) {
+			return true;
+		}
+		idx++;
+	}
+	return false;
 }
 
 bool ShaderLanguage::convert_constant(ConstantNode *p_constant, DataType p_to_type, Scalar *p_value) {

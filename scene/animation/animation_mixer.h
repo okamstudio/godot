@@ -323,6 +323,10 @@ protected:
 	bool _update_caches();
 	void _create_track_num_to_track_cache_for_animation(Ref<Animation> &p_animation);
 
+#if !defined(_3D_DISABLED) || !defined(DISABLE_DEPRECATED)
+	bool _recalc_animation(Ref<Animation> &p_anim);
+#endif
+
 	/* ---- Audio ---- */
 	AudioServer::PlaybackType playback_type;
 

@@ -3274,11 +3274,43 @@ void EditorSceneFormatImporterESCN::get_extensions(List<String> *r_extensions) c
 	r_extensions->push_back("escn");
 }
 
+int get_text_format_version(String p_path) {
+	Error error;
+	Ref<FileAccess> f = FileAccess::open(p_path, FileAccess::READ, &error);
+	ERR_FAIL_COND_V_MSG(error != OK || f.is_null(), -1, "Cannot open file '" + p_path + "'.");
+	String line = f->get_line().strip_edges();
+	// skip empty lines and comments
+	while (line.is_empty() || line.begins_with(";")) {
+		line = f->get_line().strip_edges();
+		if (f->eof_reached()) {
+			break;
+		}
+	}
+	int format_index = line.find("format");
+	ERR_FAIL_COND_V_MSG(format_index == -1, -1, "No format specifier in file '" + p_path + "'.");
+	String format_str = line.substr(format_index).get_slicec('=', 1).strip_edges();
+	ERR_FAIL_COND_V_MSG(!format_str.substr(0, 1).is_numeric(), -1, "Invalid format in file '" + p_path + "'.");
+	int format = format_str.to_int();
+	return format;
+}
+
 Node *EditorSceneFormatImporterESCN::import_scene(const String &p_path, uint32_t p_flags, const HashMap<StringName, Variant> &p_options, List<String> *r_missing_deps, Error *r_err) {
 	Error error;
+	int format = get_text_format_version(p_path);
+	ERR_FAIL_COND_V(format == -1, nullptr);
 	Ref<PackedScene> ps = ResourceFormatLoaderText::singleton->load(p_path, p_path, &error);
 	ERR_FAIL_COND_V_MSG(ps.is_null(), nullptr, "Cannot load scene as text resource from path '" + p_path + "'.");
 	Node *scene = ps->instantiate();
+	ERR_FAIL_COND_V(!scene, nullptr);
+	if (format == 2) {
+		TypedArray<Node> skel_nodes = scene->find_children("*", "AnimationPlayer");
+		for (int32_t node_i = 0; node_i < skel_nodes.size(); node_i++) {
+			// Force re-compute animation tracks.
+			AnimationPlayer *player = cast_to<AnimationPlayer>(skel_nodes[node_i]);
+			ERR_CONTINUE(!player);
+			player->advance(0);
+		}
+	}
 	TypedArray<Node> nodes = scene->find_children("*", "MeshInstance3D");
 	for (int32_t node_i = 0; node_i < nodes.size(); node_i++) {
 		MeshInstance3D *mesh_3d = cast_to<MeshInstance3D>(nodes[node_i]);
@@ -3287,9 +3319,22 @@ Node *EditorSceneFormatImporterESCN::import_scene(const String &p_path, uint32_t
 		// Ignore the aabb, it will be recomputed.
 		ImporterMeshInstance3D *importer_mesh_3d = memnew(ImporterMeshInstance3D);
 		importer_mesh_3d->set_name(mesh_3d->get_name());
-		importer_mesh_3d->set_transform(mesh_3d->get_relative_transform(mesh_3d->get_parent()));
-		importer_mesh_3d->set_skin(mesh_3d->get_skin());
+		Node *parent = mesh_3d->get_parent();
+		Transform3D rel_transform = mesh_3d->get_relative_transform(parent);
+		if (rel_transform == Transform3D() && parent && parent != mesh_3d) {
+			// If we're here, we probably got a "data.parent is null" error
+			// Node3D.data.parent hasn't been set yet but Node.data.parent has, so we need to get the transform manually
+			Node3D *parent_3d = mesh_3d->get_parent_node_3d();
+			if (parent == parent_3d) {
+				rel_transform = mesh_3d->get_transform();
+			} else if (parent_3d) {
+				rel_transform = parent_3d->get_relative_transform(parent) * mesh_3d->get_transform();
+			} // Otherwise, parent isn't a Node3D.
+		}
+		importer_mesh_3d->set_transform(rel_transform);
+		Ref<Skin> skin = mesh_3d->get_skin();
 		importer_mesh_3d->set_skeleton_path(mesh_3d->get_skeleton_path());
+		importer_mesh_3d->set_skin(skin);
 		Ref<ArrayMesh> array_mesh_3d_mesh = mesh_3d->get_mesh();
 		if (array_mesh_3d_mesh.is_valid()) {
 			// For the MeshInstance3D nodes, we need to convert the ArrayMesh to an ImporterMesh specially.
@@ -3329,8 +3374,6 @@ Node *EditorSceneFormatImporterESCN::import_scene(const String &p_path, uint32_t
 			continue;
 		}
 	}
-
-	ERR_FAIL_NULL_V(scene, nullptr);
 
 	return scene;
 }
