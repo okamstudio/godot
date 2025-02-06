@@ -114,6 +114,8 @@ protected:
 	void add_logger(Logger *p_logger);
 
 	virtual void initialize() = 0;
+	virtual void initialize_filesystem() = 0;
+	virtual void initialize_filesystem_additional() {}
 	virtual void initialize_joypads() = 0;
 
 	virtual void set_main_loop(MainLoop *p_main_loop) = 0;

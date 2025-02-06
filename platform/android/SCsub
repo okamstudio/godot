@@ -13,6 +13,8 @@ android_files = [
     "android_input_handler.cpp",
     "file_access_android.cpp",
     "file_access_filesystem_jandroid.cpp",
+    "filesystem_protocol_os_android.cpp",
+    "filesystem_protocol_os_jandroid.cpp",
     "audio_driver_opensl.cpp",
     "dir_access_jandroid.cpp",
     "tts_android.cpp",

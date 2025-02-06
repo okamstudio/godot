@@ -35,11 +35,14 @@
 #include "core/config/project_settings.h"
 #include "core/debugger/engine_debugger.h"
 #include "core/debugger/script_debugger.h"
+#include "core/io/filesystem.h"
 #include "drivers/unix/dir_access_unix.h"
 #include "drivers/unix/file_access_unix.h"
 #include "drivers/unix/file_access_unix_pipe.h"
 #include "drivers/unix/net_socket_unix.h"
 #include "drivers/unix/thread_posix.h"
+#include "filesystem_protocol_os_unix.h"
+#include "filesystem_protocol_pipe_unix.h"
 #include "servers/rendering_server.h"
 
 #if defined(__APPLE__)
@@ -159,14 +162,6 @@ void OS_Unix::initialize_core() {
 	init_thread_posix();
 #endif
 
-	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_RESOURCES);
-	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_USERDATA);
-	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_FILESYSTEM);
-	FileAccess::make_default<FileAccessUnixPipe>(FileAccess::ACCESS_PIPE);
-	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_RESOURCES);
-	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_USERDATA);
-	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_FILESYSTEM);
-
 #ifndef UNIX_SOCKET_UNAVAILABLE
 	NetSocketUnix::make_default();
 	IPUnix::make_default();
@@ -181,6 +176,22 @@ void OS_Unix::finalize_core() {
 #ifndef UNIX_SOCKET_UNAVAILABLE
 	NetSocketUnix::cleanup();
 #endif
+}
+
+void OS_Unix::initialize_filesystem() {
+	FileSystem *fs = FileSystem::get_singleton();
+
+	Ref<FileSystemProtocolOSUnix> protocol_os = Ref<FileSystemProtocolOSUnix>();
+	protocol_os.instantiate();
+	fs->add_protocol(FileSystem::protocol_name_os, protocol_os);
+
+	Ref<FileSystemProtocolPipeUnix> protocol_pipe = Ref<FileSystemProtocolPipeUnix>();
+	protocol_pipe.instantiate();
+	fs->add_protocol(FileSystem::protocol_name_pipe, protocol_pipe);
+
+	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_RESOURCES);
+	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_USERDATA);
+	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_FILESYSTEM);
 }
 
 Vector<String> OS_Unix::get_video_adapter_driver_info() const {

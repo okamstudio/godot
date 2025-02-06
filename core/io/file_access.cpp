@@ -36,53 +36,18 @@
 #include "core/io/file_access_compressed.h"
 #include "core/io/file_access_encrypted.h"
 #include "core/io/file_access_pack.h"
+#include "core/io/filesystem.h"
 #include "core/io/marshalls.h"
 #include "core/os/os.h"
 #include "core/os/time.h"
-
-FileAccess::CreateFunc FileAccess::create_func[ACCESS_MAX] = {};
 
 FileAccess::FileCloseFailNotify FileAccess::close_fail_notify = nullptr;
 
 bool FileAccess::backup_save = false;
 thread_local Error FileAccess::last_file_open_error = OK;
 
-Ref<FileAccess> FileAccess::create(AccessType p_access) {
-	ERR_FAIL_INDEX_V(p_access, ACCESS_MAX, nullptr);
-	ERR_FAIL_NULL_V(create_func[p_access], nullptr);
-
-	Ref<FileAccess> ret = create_func[p_access]();
-	ret->_set_access_type(p_access);
-	return ret;
-}
-
 bool FileAccess::exists(const String &p_name) {
-	if (PackedData::get_singleton() && !PackedData::get_singleton()->is_disabled() && PackedData::get_singleton()->has_path(p_name)) {
-		return true;
-	}
-
-	// Using file_exists because it's faster than trying to open the file.
-	Ref<FileAccess> ret = create_for_path(p_name);
-	return ret->file_exists(p_name);
-}
-
-void FileAccess::_set_access_type(AccessType p_access) {
-	_access_type = p_access;
-}
-
-Ref<FileAccess> FileAccess::create_for_path(const String &p_path) {
-	Ref<FileAccess> ret;
-	if (p_path.begins_with("res://") || p_path.begins_with("uid://")) {
-		ret = create(ACCESS_RESOURCES);
-	} else if (p_path.begins_with("user://")) {
-		ret = create(ACCESS_USERDATA);
-	} else if (p_path.begins_with("pipe://")) {
-		ret = create(ACCESS_PIPE);
-	} else {
-		ret = create(ACCESS_FILESYSTEM);
-	}
-
-	return ret;
+	return FileSystem::get_singleton()->file_exists(p_name);
 }
 
 Ref<FileAccess> FileAccess::create_temp(int p_mode_flags, const String &p_prefix, const String &p_extension, bool p_keep, Error *r_error) {
@@ -158,35 +123,8 @@ void FileAccess::_delete_temp() {
 	DirAccess::remove_absolute(_temp_path);
 }
 
-Error FileAccess::reopen(const String &p_path, int p_mode_flags) {
-	return open_internal(p_path, p_mode_flags);
-}
-
 Ref<FileAccess> FileAccess::open(const String &p_path, int p_mode_flags, Error *r_error) {
-	//try packed data first
-
-	Ref<FileAccess> ret;
-	if (!(p_mode_flags & WRITE) && PackedData::get_singleton() && !PackedData::get_singleton()->is_disabled()) {
-		ret = PackedData::get_singleton()->try_open_path(p_path);
-		if (ret.is_valid()) {
-			if (r_error) {
-				*r_error = OK;
-			}
-			return ret;
-		}
-	}
-
-	ret = create_for_path(p_path);
-	Error err = ret->open_internal(p_path, p_mode_flags);
-
-	if (r_error) {
-		*r_error = err;
-	}
-	if (err != OK) {
-		ret.unref();
-	}
-
-	return ret;
+	return FileSystem::get_singleton()->open_file(p_path, p_mode_flags, r_error);
 }
 
 Ref<FileAccess> FileAccess::_open(const String &p_path, ModeFlags p_mode_flags) {
@@ -248,59 +186,21 @@ Error FileAccess::get_open_error() {
 	return last_file_open_error;
 }
 
-FileAccess::CreateFunc FileAccess::get_create_func(AccessType p_access) {
-	return create_func[p_access];
+void FileAccess::set_path_disguise(const String &p_path) {
+	has_path_disguise = true;
+	path_disguise = p_path;
+}
+void FileAccess::clear_path_disguise() {
+	has_path_disguise = false;
+	path_disguise = String();
 }
 
-FileAccess::AccessType FileAccess::get_access_type() const {
-	return _access_type;
-}
-
-String FileAccess::fix_path(const String &p_path) const {
-	// Helper used by file accesses that use a single filesystem.
-
-	String r_path = p_path.replace("\\", "/");
-
-	switch (_access_type) {
-		case ACCESS_RESOURCES: {
-			if (ProjectSettings::get_singleton()) {
-				if (r_path.begins_with("uid://")) {
-					r_path = ResourceUID::uid_to_path(r_path);
-				}
-
-				if (r_path.begins_with("res://")) {
-					String resource_path = ProjectSettings::get_singleton()->get_resource_path();
-					if (!resource_path.is_empty()) {
-						return r_path.replace("res:/", resource_path);
-					}
-					return r_path.replace("res://", "");
-				}
-			}
-
-		} break;
-		case ACCESS_USERDATA: {
-			if (r_path.begins_with("user://")) {
-				String data_dir = OS::get_singleton()->get_user_data_dir();
-				if (!data_dir.is_empty()) {
-					return r_path.replace("user:/", data_dir);
-				}
-				return r_path.replace("user://", "");
-			}
-
-		} break;
-		case ACCESS_PIPE: {
-			return r_path;
-		} break;
-		case ACCESS_FILESYSTEM: {
-			return r_path;
-		} break;
-		case ACCESS_MAX:
-			break; // Can't happen, but silences warning
+String FileAccess::get_path() const {
+	if (has_path_disguise) {
+		return path_disguise;
 	}
-
-	return r_path;
+	return _get_path();
 }
-
 /* these are all implemented for ease of porting, then can later be optimized */
 uint8_t FileAccess::get_8() const {
 	uint8_t data = 0;
@@ -622,84 +522,31 @@ bool FileAccess::store_double(double p_dest) {
 }
 
 uint64_t FileAccess::get_modified_time(const String &p_file) {
-	if (PackedData::get_singleton() && !PackedData::get_singleton()->is_disabled() && (PackedData::get_singleton()->has_path(p_file) || PackedData::get_singleton()->has_directory(p_file))) {
-		return 0;
-	}
-
-	Ref<FileAccess> fa = create_for_path(p_file);
-	ERR_FAIL_COND_V_MSG(fa.is_null(), 0, vformat("Cannot create FileAccess for path '%s'.", p_file));
-
-	uint64_t mt = fa->_get_modified_time(p_file);
-	return mt;
+	return FileSystem::get_singleton()->get_modified_time(p_file);
 }
 
 BitField<FileAccess::UnixPermissionFlags> FileAccess::get_unix_permissions(const String &p_file) {
-	if (PackedData::get_singleton() && !PackedData::get_singleton()->is_disabled() && (PackedData::get_singleton()->has_path(p_file) || PackedData::get_singleton()->has_directory(p_file))) {
-		return 0;
-	}
-
-	Ref<FileAccess> fa = create_for_path(p_file);
-	ERR_FAIL_COND_V_MSG(fa.is_null(), 0, vformat("Cannot create FileAccess for path '%s'.", p_file));
-
-	return fa->_get_unix_permissions(p_file);
+	return FileSystem::get_singleton()->get_unix_permissions(p_file);
 }
 
 Error FileAccess::set_unix_permissions(const String &p_file, BitField<FileAccess::UnixPermissionFlags> p_permissions) {
-	if (PackedData::get_singleton() && !PackedData::get_singleton()->is_disabled() && (PackedData::get_singleton()->has_path(p_file) || PackedData::get_singleton()->has_directory(p_file))) {
-		return ERR_UNAVAILABLE;
-	}
-
-	Ref<FileAccess> fa = create_for_path(p_file);
-	ERR_FAIL_COND_V_MSG(fa.is_null(), ERR_CANT_CREATE, vformat("Cannot create FileAccess for path '%s'.", p_file));
-
-	Error err = fa->_set_unix_permissions(p_file, p_permissions);
-	return err;
+	return FileSystem::get_singleton()->set_unix_permissions(p_file, p_permissions);
 }
 
 bool FileAccess::get_hidden_attribute(const String &p_file) {
-	if (PackedData::get_singleton() && !PackedData::get_singleton()->is_disabled() && (PackedData::get_singleton()->has_path(p_file) || PackedData::get_singleton()->has_directory(p_file))) {
-		return false;
-	}
-
-	Ref<FileAccess> fa = create_for_path(p_file);
-	ERR_FAIL_COND_V_MSG(fa.is_null(), false, vformat("Cannot create FileAccess for path '%s'.", p_file));
-
-	return fa->_get_hidden_attribute(p_file);
+	return FileSystem::get_singleton()->get_hidden_attribute(p_file);
 }
 
 Error FileAccess::set_hidden_attribute(const String &p_file, bool p_hidden) {
-	if (PackedData::get_singleton() && !PackedData::get_singleton()->is_disabled() && (PackedData::get_singleton()->has_path(p_file) || PackedData::get_singleton()->has_directory(p_file))) {
-		return ERR_UNAVAILABLE;
-	}
-
-	Ref<FileAccess> fa = create_for_path(p_file);
-	ERR_FAIL_COND_V_MSG(fa.is_null(), ERR_CANT_CREATE, vformat("Cannot create FileAccess for path '%s'.", p_file));
-
-	Error err = fa->_set_hidden_attribute(p_file, p_hidden);
-	return err;
+	return FileSystem::get_singleton()->set_hidden_attribute(p_file, p_hidden);
 }
 
 bool FileAccess::get_read_only_attribute(const String &p_file) {
-	if (PackedData::get_singleton() && !PackedData::get_singleton()->is_disabled() && (PackedData::get_singleton()->has_path(p_file) || PackedData::get_singleton()->has_directory(p_file))) {
-		return false;
-	}
-
-	Ref<FileAccess> fa = create_for_path(p_file);
-	ERR_FAIL_COND_V_MSG(fa.is_null(), false, vformat("Cannot create FileAccess for path '%s'.", p_file));
-
-	return fa->_get_read_only_attribute(p_file);
+	return FileSystem::get_singleton()->get_read_only_attribute(p_file);
 }
 
 Error FileAccess::set_read_only_attribute(const String &p_file, bool p_ro) {
-	if (PackedData::get_singleton() && !PackedData::get_singleton()->is_disabled() && (PackedData::get_singleton()->has_path(p_file) || PackedData::get_singleton()->has_directory(p_file))) {
-		return ERR_UNAVAILABLE;
-	}
-
-	Ref<FileAccess> fa = create_for_path(p_file);
-	ERR_FAIL_COND_V_MSG(fa.is_null(), ERR_CANT_CREATE, vformat("Cannot create FileAccess for path '%s'.", p_file));
-
-	Error err = fa->_set_read_only_attribute(p_file, p_ro);
-	return err;
+	return FileSystem::get_singleton()->set_read_only_attribute(p_file, p_ro);
 }
 
 bool FileAccess::store_string(const String &p_string) {

@@ -104,6 +104,10 @@ constexpr bool is_ascii_alphanumeric_char(char32_t p_char) {
 	return (p_char >= 'a' && p_char <= 'z') || (p_char >= 'A' && p_char <= 'Z') || (p_char >= '0' && p_char <= '9');
 }
 
+constexpr bool is_ascii_protocol_name_char(char32_t p_char) {
+	return (p_char >= 'a' && p_char <= 'z') || (p_char >= 'A' && p_char <= 'Z') || (p_char >= '0' && p_char <= '9') || p_char == '_' || p_char == '-';
+}
+
 constexpr bool is_ascii_identifier_char(char32_t p_char) {
 	return (p_char >= 'a' && p_char <= 'z') || (p_char >= 'A' && p_char <= 'Z') || (p_char >= '0' && p_char <= '9') || p_char == '_';
 }

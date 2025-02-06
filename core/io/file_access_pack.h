@@ -164,14 +164,6 @@ class FileAccessPack : public FileAccess {
 
 	Ref<FileAccess> f;
 	virtual Error open_internal(const String &p_path, int p_mode_flags) override;
-	virtual uint64_t _get_modified_time(const String &p_file) override { return 0; }
-	virtual BitField<FileAccess::UnixPermissionFlags> _get_unix_permissions(const String &p_file) override { return 0; }
-	virtual Error _set_unix_permissions(const String &p_file, BitField<FileAccess::UnixPermissionFlags> p_permissions) override { return FAILED; }
-
-	virtual bool _get_hidden_attribute(const String &p_file) override { return false; }
-	virtual Error _set_hidden_attribute(const String &p_file, bool p_hidden) override { return ERR_UNAVAILABLE; }
-	virtual bool _get_read_only_attribute(const String &p_file) override { return false; }
-	virtual Error _set_read_only_attribute(const String &p_file, bool p_ro) override { return ERR_UNAVAILABLE; }
 
 public:
 	virtual bool is_open() const override;
@@ -192,8 +184,6 @@ public:
 	virtual Error resize(int64_t p_length) override { return ERR_UNAVAILABLE; }
 	virtual void flush() override;
 	virtual bool store_buffer(const uint8_t *p_src, uint64_t p_length) override;
-
-	virtual bool file_exists(const String &p_name) override;
 
 	virtual void close() override;
 

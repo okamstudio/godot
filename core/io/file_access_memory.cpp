@@ -31,6 +31,7 @@
 #include "file_access_memory.h"
 
 #include "core/config/project_settings.h"
+#include "core/io/filesystem.h"
 
 static HashMap<String, Vector<uint8_t>> *files = nullptr;
 
@@ -63,7 +64,7 @@ Ref<FileAccess> FileAccessMemory::create() {
 }
 
 bool FileAccessMemory::file_exists(const String &p_name) {
-	String name = fix_path(p_name);
+	String name = FileSystem::fix_path(p_name);
 	//name = DirAccess::normalize_path(name);
 
 	return files && (files->find(name) != nullptr);
@@ -79,7 +80,7 @@ Error FileAccessMemory::open_custom(const uint8_t *p_data, uint64_t p_len) {
 Error FileAccessMemory::open_internal(const String &p_path, int p_mode_flags) {
 	ERR_FAIL_NULL_V(files, ERR_FILE_NOT_FOUND);
 
-	String name = fix_path(p_path);
+	String name = FileSystem::fix_path(p_path);
 	//name = DirAccess::normalize_path(name);
 
 	HashMap<String, Vector<uint8_t>>::Iterator E = files->find(name);

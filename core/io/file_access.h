@@ -46,14 +46,6 @@ class FileAccess : public RefCounted {
 	GDCLASS(FileAccess, RefCounted);
 
 public:
-	enum AccessType : int32_t {
-		ACCESS_RESOURCES,
-		ACCESS_USERDATA,
-		ACCESS_FILESYSTEM,
-		ACCESS_PIPE,
-		ACCESS_MAX
-	};
-
 	enum ModeFlags : int32_t {
 		READ = 1,
 		WRITE = 2,
@@ -86,26 +78,13 @@ public:
 
 	typedef void (*FileCloseFailNotify)(const String &);
 
-	typedef Ref<FileAccess> (*CreateFunc)();
 	bool big_endian = false;
 	bool real_is_double = false;
-
-	virtual BitField<UnixPermissionFlags> _get_unix_permissions(const String &p_file) = 0;
-	virtual Error _set_unix_permissions(const String &p_file, BitField<UnixPermissionFlags> p_permissions) = 0;
-
-	virtual bool _get_hidden_attribute(const String &p_file) = 0;
-	virtual Error _set_hidden_attribute(const String &p_file, bool p_hidden) = 0;
-	virtual bool _get_read_only_attribute(const String &p_file) = 0;
-	virtual Error _set_read_only_attribute(const String &p_file, bool p_ro) = 0;
 
 protected:
 	static void _bind_methods();
 
-	AccessType get_access_type() const;
-	virtual String fix_path(const String &p_path) const;
 	virtual Error open_internal(const String &p_path, int p_mode_flags) = 0; ///< open a file
-	virtual uint64_t _get_modified_time(const String &p_file) = 0;
-	virtual void _set_access_type(AccessType p_access);
 
 	static FileCloseFailNotify close_fail_notify;
 
@@ -134,14 +113,13 @@ private:
 	static bool backup_save;
 	thread_local static Error last_file_open_error;
 
-	AccessType _access_type = ACCESS_FILESYSTEM;
-	static CreateFunc create_func[ACCESS_MAX]; /** default file access creation function for a platform */
-	template <typename T>
-	static Ref<FileAccess> _create_builtin() {
-		return memnew(T);
-	}
-
 	static Ref<FileAccess> _open(const String &p_path, ModeFlags p_mode_flags);
+
+	bool has_path_disguise = false;
+	String path_disguise;
+
+protected:
+	virtual String _get_path() const { return ""; }
 
 	bool _is_temp_file = false;
 	bool _temp_keep_after_use = false;
@@ -151,17 +129,22 @@ private:
 	static Ref<FileAccess> _create_temp(int p_mode_flags, const String &p_prefix = "", const String &p_extension = "", bool p_keep = false);
 
 public:
+	// path override is essentially `path_src` variable in platform FileAccess implementations.
+	// protocols like res:// and user:// can make the FileAccess show their own protocol-prefixed paths.
+	void set_path_disguise(const String &p_path);
+	void clear_path_disguise();
+
 	static void set_file_close_fail_notify_callback(FileCloseFailNotify p_cbk) { close_fail_notify = p_cbk; }
 
 	virtual bool is_open() const = 0; ///< true when file is open
 
-	virtual String get_path() const { return ""; } /// returns the path for the current open file
-	virtual String get_path_absolute() const { return ""; } /// returns the absolute path for the current open file
+	String get_path() const;
+	virtual String get_path_absolute() const { return ""; }
 
-	virtual void seek(uint64_t p_position) = 0; ///< seek to a given position
+	virtual void seek(uint64_t p_position) = 0;
 	virtual void seek_end(int64_t p_position = 0) = 0; ///< seek from the end of file with negative offset
-	virtual uint64_t get_position() const = 0; ///< get position in the file
-	virtual uint64_t get_length() const = 0; ///< get size of the file
+	virtual uint64_t get_position() const = 0;
+	virtual uint64_t get_length() const = 0;
 
 	virtual bool eof_reached() const = 0; ///< reading passed EOF
 
@@ -222,12 +205,6 @@ public:
 
 	virtual void close() = 0;
 
-	virtual bool file_exists(const String &p_name) = 0; ///< return true if a file exists
-
-	virtual Error reopen(const String &p_path, int p_mode_flags); ///< does not change the AccessType
-
-	static Ref<FileAccess> create(AccessType p_access); /// Create a file access (for the current platform) this is the only portable way of accessing files.
-	static Ref<FileAccess> create_for_path(const String &p_path);
 	static Ref<FileAccess> open(const String &p_path, int p_mode_flags, Error *r_error = nullptr); /// Create a file access (for the current platform) this is the only portable way of accessing files.
 	static Ref<FileAccess> create_temp(int p_mode_flags, const String &p_prefix = "", const String &p_extension = "", bool p_keep = false, Error *r_error = nullptr);
 
@@ -236,7 +213,6 @@ public:
 	static Ref<FileAccess> open_compressed(const String &p_path, ModeFlags p_mode_flags, CompressionMode p_compress_mode = COMPRESSION_FASTLZ);
 	static Error get_open_error();
 
-	static CreateFunc get_create_func(AccessType p_access);
 	static bool exists(const String &p_name); ///< return true if a file exists
 	static uint64_t get_modified_time(const String &p_file);
 	static BitField<FileAccess::UnixPermissionFlags> get_unix_permissions(const String &p_file);
@@ -260,12 +236,6 @@ public:
 	static PackedByteArray _get_file_as_bytes(const String &p_path) { return get_file_as_bytes(p_path, &last_file_open_error); }
 	static String _get_file_as_string(const String &p_path) { return get_file_as_string(p_path, &last_file_open_error); }
 
-	template <typename T>
-	static void make_default(AccessType p_access) {
-		create_func[p_access] = _create_builtin<T>;
-	}
-
-public:
 	FileAccess() {}
 	virtual ~FileAccess();
 };

@@ -164,7 +164,7 @@ bool FileAccessCompressed::is_open() const {
 	return f.is_valid();
 }
 
-String FileAccessCompressed::get_path() const {
+String FileAccessCompressed::_get_path() const {
 	if (f.is_valid()) {
 		return f->get_path();
 	} else {
@@ -314,64 +314,6 @@ bool FileAccessCompressed::store_buffer(const uint8_t *p_src, uint64_t p_length)
 
 	write_pos += p_length;
 	return true;
-}
-
-bool FileAccessCompressed::file_exists(const String &p_name) {
-	Ref<FileAccess> fa = FileAccess::open(p_name, FileAccess::READ);
-	if (fa.is_null()) {
-		return false;
-	}
-	return true;
-}
-
-uint64_t FileAccessCompressed::_get_modified_time(const String &p_file) {
-	if (f.is_valid()) {
-		return f->get_modified_time(p_file);
-	} else {
-		return 0;
-	}
-}
-
-BitField<FileAccess::UnixPermissionFlags> FileAccessCompressed::_get_unix_permissions(const String &p_file) {
-	if (f.is_valid()) {
-		return f->_get_unix_permissions(p_file);
-	}
-	return 0;
-}
-
-Error FileAccessCompressed::_set_unix_permissions(const String &p_file, BitField<FileAccess::UnixPermissionFlags> p_permissions) {
-	if (f.is_valid()) {
-		return f->_set_unix_permissions(p_file, p_permissions);
-	}
-	return FAILED;
-}
-
-bool FileAccessCompressed::_get_hidden_attribute(const String &p_file) {
-	if (f.is_valid()) {
-		return f->_get_hidden_attribute(p_file);
-	}
-	return false;
-}
-
-Error FileAccessCompressed::_set_hidden_attribute(const String &p_file, bool p_hidden) {
-	if (f.is_valid()) {
-		return f->_set_hidden_attribute(p_file, p_hidden);
-	}
-	return FAILED;
-}
-
-bool FileAccessCompressed::_get_read_only_attribute(const String &p_file) {
-	if (f.is_valid()) {
-		return f->_get_read_only_attribute(p_file);
-	}
-	return false;
-}
-
-Error FileAccessCompressed::_set_read_only_attribute(const String &p_file, bool p_ro) {
-	if (f.is_valid()) {
-		return f->_set_read_only_attribute(p_file, p_ro);
-	}
-	return FAILED;
 }
 
 void FileAccessCompressed::close() {

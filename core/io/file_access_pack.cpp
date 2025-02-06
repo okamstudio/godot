@@ -31,6 +31,7 @@
 #include "file_access_pack.h"
 
 #include "core/io/file_access_encrypted.h"
+#include "core/io/filesystem.h"
 #include "core/object/script_language.h"
 #include "core/os/os.h"
 #include "core/version.h"
@@ -343,9 +344,7 @@ bool PackedSourceDirectory::try_open_pack(const String &p_path, bool p_replace_f
 }
 
 Ref<FileAccess> PackedSourceDirectory::get_file(const String &p_path, PackedData::PackedFile *p_file) {
-	Ref<FileAccess> ret = FileAccess::create_for_path(p_path);
-	ret->reopen(p_path, FileAccess::READ);
-	return ret;
+	return FileSystem::get_singleton()->open_file(p_path, FileAccess::READ);
 }
 
 void PackedSourceDirectory::add_directory(const String &p_path, bool p_replace_files) {
@@ -455,10 +454,6 @@ void FileAccessPack::flush() {
 
 bool FileAccessPack::store_buffer(const uint8_t *p_src, uint64_t p_length) {
 	ERR_FAIL_V(false);
-}
-
-bool FileAccessPack::file_exists(const String &p_name) {
-	return false;
 }
 
 void FileAccessPack::close() {

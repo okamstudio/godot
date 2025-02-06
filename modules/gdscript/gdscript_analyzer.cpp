@@ -38,6 +38,7 @@
 #include "core/config/project_settings.h"
 #include "core/core_constants.h"
 #include "core/io/file_access.h"
+#include "core/io/filesystem.h"
 #include "core/io/resource_loader.h"
 #include "core/object/class_db.h"
 #include "core/object/script_language.h"
@@ -4661,9 +4662,7 @@ void GDScriptAnalyzer::reduce_preload(GDScriptParser::PreloadNode *p_preload) {
 		}
 		p_preload->resolved_path = p_preload->resolved_path.simplify_path();
 		if (!ResourceLoader::exists(p_preload->resolved_path)) {
-			Ref<FileAccess> file_check = FileAccess::create(FileAccess::ACCESS_RESOURCES);
-
-			if (file_check->file_exists(p_preload->resolved_path)) {
+			if (FileSystem::get_singleton()->file_exists(p_preload->resolved_path)) {
 				push_error(vformat(R"(Preload file "%s" has no resource loaders (unrecognized file extension).)", p_preload->resolved_path), p_preload->path);
 			} else {
 				push_error(vformat(R"(Preload file "%s" does not exist.)", p_preload->resolved_path), p_preload->path);

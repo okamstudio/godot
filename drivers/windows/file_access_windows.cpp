@@ -31,6 +31,7 @@
 #ifdef WINDOWS_ENABLED
 
 #include "file_access_windows.h"
+#include "filesystem_protocol_os_windows.h"
 
 #include "core/config/project_settings.h"
 #include "core/os/os.h"
@@ -68,37 +69,8 @@ void FileAccessWindows::check_errors(bool p_write) const {
 	}
 }
 
-bool FileAccessWindows::is_path_invalid(const String &p_path) {
-	// Check for invalid operating system file.
-	String fname = p_path.get_file().to_lower();
-
-	int dot = fname.find_char('.');
-	if (dot != -1) {
-		fname = fname.substr(0, dot);
-	}
-	return invalid_files.has(fname);
-}
-
-String FileAccessWindows::fix_path(const String &p_path) const {
-	String r_path = FileAccess::fix_path(p_path);
-
-	if (r_path.is_relative_path()) {
-		Char16String current_dir_name;
-		size_t str_len = GetCurrentDirectoryW(0, nullptr);
-		current_dir_name.resize(str_len + 1);
-		GetCurrentDirectoryW(current_dir_name.size(), (LPWSTR)current_dir_name.ptrw());
-		r_path = String::utf16((const char16_t *)current_dir_name.get_data()).trim_prefix(R"(\\?\)").replace("\\", "/").path_join(r_path);
-	}
-	r_path = r_path.simplify_path();
-	r_path = r_path.replace("/", "\\");
-	if (!r_path.is_network_share_path() && !r_path.begins_with(R"(\\?\)")) {
-		r_path = R"(\\?\)" + r_path;
-	}
-	return r_path;
-}
-
 Error FileAccessWindows::open_internal(const String &p_path, int p_mode_flags) {
-	if (is_path_invalid(p_path)) {
+	if (FileSystemProtocolOSWindows::is_path_invalid(p_path)) {
 #ifdef DEBUG_ENABLED
 		if (p_mode_flags != READ) {
 			WARN_PRINT("The path :" + p_path + " is a reserved Windows system pipe, so it can't be used for creating files.");
@@ -110,7 +82,7 @@ Error FileAccessWindows::open_internal(const String &p_path, int p_mode_flags) {
 	_close();
 
 	path_src = p_path;
-	path = fix_path(p_path);
+	path = FileSystemProtocolOSWindows::fix_path(p_path);
 
 	const WCHAR *mode_string;
 
@@ -134,7 +106,8 @@ Error FileAccessWindows::open_internal(const String &p_path, int p_mode_flags) {
 		return ERR_FILE_CANT_OPEN;
 	}
 
-#ifdef TOOLS_ENABLED
+// TODO: reimplement this in protocol level
+#if 0 //TOOLS_ENABLED
 	// Windows is case insensitive in the default configuration, but other platforms can be sensitive to it
 	// To ease cross-platform development, we issue a warning if users try to access
 	// a file using the wrong case (which *works* on Windows, but won't on other
@@ -160,7 +133,7 @@ Error FileAccessWindows::open_internal(const String &p_path, int p_mode_flags) {
 			}
 			proper_path = "user://";
 		}
-		working_path = fix_path(working_path);
+		working_path = FileSystemProtocolOSWindows::fix_path(working_path);
 
 		WIN32_FIND_DATAW d;
 		Vector<String> parts = base_path.simplify_path().split("/");
@@ -277,7 +250,7 @@ void FileAccessWindows::_close() {
 	}
 }
 
-String FileAccessWindows::get_path() const {
+String FileAccessWindows::_get_path() const {
 	return path_src;
 }
 
@@ -396,145 +369,12 @@ bool FileAccessWindows::store_buffer(const uint8_t *p_src, uint64_t p_length) {
 	return res;
 }
 
-bool FileAccessWindows::file_exists(const String &p_name) {
-	if (is_path_invalid(p_name)) {
-		return false;
-	}
-
-	String filename = fix_path(p_name);
-	DWORD file_attr = GetFileAttributesW((LPCWSTR)(filename.utf16().get_data()));
-	return (file_attr != INVALID_FILE_ATTRIBUTES) && !(file_attr & FILE_ATTRIBUTE_DIRECTORY);
-}
-
-uint64_t FileAccessWindows::_get_modified_time(const String &p_file) {
-	if (is_path_invalid(p_file)) {
-		return 0;
-	}
-
-	String file = fix_path(p_file);
-	if (file.ends_with("\\") && file != "\\") {
-		file = file.substr(0, file.length() - 1);
-	}
-
-	HANDLE handle = CreateFileW((LPCWSTR)(file.utf16().get_data()), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
-
-	if (handle != INVALID_HANDLE_VALUE) {
-		FILETIME ft_create, ft_write;
-
-		bool status = GetFileTime(handle, &ft_create, nullptr, &ft_write);
-
-		CloseHandle(handle);
-
-		if (status) {
-			uint64_t ret = 0;
-
-			// If write time is invalid, fallback to creation time.
-			if (ft_write.dwHighDateTime == 0 && ft_write.dwLowDateTime == 0) {
-				ret = ft_create.dwHighDateTime;
-				ret <<= 32;
-				ret |= ft_create.dwLowDateTime;
-			} else {
-				ret = ft_write.dwHighDateTime;
-				ret <<= 32;
-				ret |= ft_write.dwLowDateTime;
-			}
-
-			const uint64_t WINDOWS_TICKS_PER_SECOND = 10000000;
-			const uint64_t TICKS_TO_UNIX_EPOCH = 116444736000000000LL;
-
-			if (ret >= TICKS_TO_UNIX_EPOCH) {
-				return (ret - TICKS_TO_UNIX_EPOCH) / WINDOWS_TICKS_PER_SECOND;
-			}
-		}
-	}
-
-	return 0;
-}
-
-BitField<FileAccess::UnixPermissionFlags> FileAccessWindows::_get_unix_permissions(const String &p_file) {
-	return 0;
-}
-
-Error FileAccessWindows::_set_unix_permissions(const String &p_file, BitField<FileAccess::UnixPermissionFlags> p_permissions) {
-	return ERR_UNAVAILABLE;
-}
-
-bool FileAccessWindows::_get_hidden_attribute(const String &p_file) {
-	String file = fix_path(p_file);
-
-	DWORD attrib = GetFileAttributesW((LPCWSTR)file.utf16().get_data());
-	ERR_FAIL_COND_V_MSG(attrib == INVALID_FILE_ATTRIBUTES, false, "Failed to get attributes for: " + p_file);
-	return (attrib & FILE_ATTRIBUTE_HIDDEN);
-}
-
-Error FileAccessWindows::_set_hidden_attribute(const String &p_file, bool p_hidden) {
-	String file = fix_path(p_file);
-	const Char16String &file_utf16 = file.utf16();
-
-	DWORD attrib = GetFileAttributesW((LPCWSTR)file_utf16.get_data());
-	ERR_FAIL_COND_V_MSG(attrib == INVALID_FILE_ATTRIBUTES, FAILED, "Failed to get attributes for: " + p_file);
-	BOOL ok;
-	if (p_hidden) {
-		ok = SetFileAttributesW((LPCWSTR)file_utf16.get_data(), attrib | FILE_ATTRIBUTE_HIDDEN);
-	} else {
-		ok = SetFileAttributesW((LPCWSTR)file_utf16.get_data(), attrib & ~FILE_ATTRIBUTE_HIDDEN);
-	}
-	ERR_FAIL_COND_V_MSG(!ok, FAILED, "Failed to set attributes for: " + p_file);
-
-	return OK;
-}
-
-bool FileAccessWindows::_get_read_only_attribute(const String &p_file) {
-	String file = fix_path(p_file);
-
-	DWORD attrib = GetFileAttributesW((LPCWSTR)file.utf16().get_data());
-	ERR_FAIL_COND_V_MSG(attrib == INVALID_FILE_ATTRIBUTES, false, "Failed to get attributes for: " + p_file);
-	return (attrib & FILE_ATTRIBUTE_READONLY);
-}
-
-Error FileAccessWindows::_set_read_only_attribute(const String &p_file, bool p_ro) {
-	String file = fix_path(p_file);
-	const Char16String &file_utf16 = file.utf16();
-
-	DWORD attrib = GetFileAttributesW((LPCWSTR)file_utf16.get_data());
-	ERR_FAIL_COND_V_MSG(attrib == INVALID_FILE_ATTRIBUTES, FAILED, "Failed to get attributes for: " + p_file);
-	BOOL ok;
-	if (p_ro) {
-		ok = SetFileAttributesW((LPCWSTR)file_utf16.get_data(), attrib | FILE_ATTRIBUTE_READONLY);
-	} else {
-		ok = SetFileAttributesW((LPCWSTR)file_utf16.get_data(), attrib & ~FILE_ATTRIBUTE_READONLY);
-	}
-	ERR_FAIL_COND_V_MSG(!ok, FAILED, "Failed to set attributes for: " + p_file);
-
-	return OK;
-}
-
 void FileAccessWindows::close() {
 	_close();
 }
 
 FileAccessWindows::~FileAccessWindows() {
 	_close();
-}
-
-HashSet<String> FileAccessWindows::invalid_files;
-
-void FileAccessWindows::initialize() {
-	static const char *reserved_files[]{
-		"con", "prn", "aux", "nul", "com0", "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9", "lpt0", "lpt1", "lpt2", "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9", nullptr
-	};
-	int reserved_file_index = 0;
-	while (reserved_files[reserved_file_index] != nullptr) {
-		invalid_files.insert(reserved_files[reserved_file_index]);
-		reserved_file_index++;
-	}
-
-	_setmaxstdio(8192);
-	print_verbose(vformat("Maximum number of file handles: %d", _getmaxstdio()));
-}
-
-void FileAccessWindows::finalize() {
-	invalid_files.clear();
 }
 
 #endif // WINDOWS_ENABLED

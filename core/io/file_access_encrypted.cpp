@@ -165,7 +165,7 @@ bool FileAccessEncrypted::is_open() const {
 	return file.is_valid();
 }
 
-String FileAccessEncrypted::get_path() const {
+String FileAccessEncrypted::_get_path() const {
 	if (file.is_valid()) {
 		return file->get_path();
 	} else {
@@ -254,60 +254,6 @@ void FileAccessEncrypted::flush() {
 	ERR_FAIL_COND_MSG(!writing, "File has not been opened in write mode.");
 
 	// encrypted files keep data in memory till close()
-}
-
-bool FileAccessEncrypted::file_exists(const String &p_name) {
-	Ref<FileAccess> fa = FileAccess::open(p_name, FileAccess::READ);
-	if (fa.is_null()) {
-		return false;
-	}
-	return true;
-}
-
-uint64_t FileAccessEncrypted::_get_modified_time(const String &p_file) {
-	return 0;
-}
-
-BitField<FileAccess::UnixPermissionFlags> FileAccessEncrypted::_get_unix_permissions(const String &p_file) {
-	if (file.is_valid()) {
-		return file->_get_unix_permissions(p_file);
-	}
-	return 0;
-}
-
-Error FileAccessEncrypted::_set_unix_permissions(const String &p_file, BitField<FileAccess::UnixPermissionFlags> p_permissions) {
-	if (file.is_valid()) {
-		return file->_set_unix_permissions(p_file, p_permissions);
-	}
-	return FAILED;
-}
-
-bool FileAccessEncrypted::_get_hidden_attribute(const String &p_file) {
-	if (file.is_valid()) {
-		return file->_get_hidden_attribute(p_file);
-	}
-	return false;
-}
-
-Error FileAccessEncrypted::_set_hidden_attribute(const String &p_file, bool p_hidden) {
-	if (file.is_valid()) {
-		return file->_set_hidden_attribute(p_file, p_hidden);
-	}
-	return FAILED;
-}
-
-bool FileAccessEncrypted::_get_read_only_attribute(const String &p_file) {
-	if (file.is_valid()) {
-		return file->_get_read_only_attribute(p_file);
-	}
-	return false;
-}
-
-Error FileAccessEncrypted::_set_read_only_attribute(const String &p_file, bool p_ro) {
-	if (file.is_valid()) {
-		return file->_set_read_only_attribute(p_file, p_ro);
-	}
-	return FAILED;
 }
 
 void FileAccessEncrypted::close() {

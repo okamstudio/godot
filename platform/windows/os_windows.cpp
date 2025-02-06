@@ -38,11 +38,14 @@
 
 #include "core/debugger/engine_debugger.h"
 #include "core/debugger/script_debugger.h"
+#include "core/io/filesystem.h"
 #include "core/io/marshalls.h"
 #include "core/version_generated.gen.h"
 #include "drivers/windows/dir_access_windows.h"
 #include "drivers/windows/file_access_windows.h"
 #include "drivers/windows/file_access_windows_pipe.h"
+#include "drivers/windows/filesystem_protocol_os_windows.h"
+#include "drivers/windows/filesystem_protocol_pipe_windows.h"
 #include "drivers/windows/ip_windows.h"
 #include "drivers/windows/net_socket_winsock.h"
 #include "drivers/windows/thread_windows.h"
@@ -92,23 +95,6 @@ __declspec(dllexport) void NoHotPatch() {} // Disable Nahimic code injection.
 // Workaround GCC warning from -Wcast-function-type.
 #define GetProcAddress (void *)GetProcAddress
 #endif
-
-static String fix_path(const String &p_path) {
-	String path = p_path;
-	if (p_path.is_relative_path()) {
-		Char16String current_dir_name;
-		size_t str_len = GetCurrentDirectoryW(0, nullptr);
-		current_dir_name.resize(str_len + 1);
-		GetCurrentDirectoryW(current_dir_name.size(), (LPWSTR)current_dir_name.ptrw());
-		path = String::utf16((const char16_t *)current_dir_name.get_data()).trim_prefix(R"(\\?\)").replace("\\", "/").path_join(path);
-	}
-	path = path.simplify_path();
-	path = path.replace("/", "\\");
-	if (path.size() >= MAX_PATH && !path.is_network_share_path() && !path.begins_with(R"(\\?\)")) {
-		path = R"(\\?\)" + path;
-	}
-	return path;
-}
 
 static String format_error_message(DWORD id) {
 	LPWSTR messageBuffer = nullptr;
@@ -254,14 +240,6 @@ void OS_Windows::initialize() {
 	init_thread_win();
 #endif
 
-	FileAccess::make_default<FileAccessWindows>(FileAccess::ACCESS_RESOURCES);
-	FileAccess::make_default<FileAccessWindows>(FileAccess::ACCESS_USERDATA);
-	FileAccess::make_default<FileAccessWindows>(FileAccess::ACCESS_FILESYSTEM);
-	FileAccess::make_default<FileAccessWindowsPipe>(FileAccess::ACCESS_PIPE);
-	DirAccess::make_default<DirAccessWindows>(DirAccess::ACCESS_RESOURCES);
-	DirAccess::make_default<DirAccessWindows>(DirAccess::ACCESS_USERDATA);
-	DirAccess::make_default<DirAccessWindows>(DirAccess::ACCESS_FILESYSTEM);
-
 	NetSocketWinSock::make_default();
 
 	// We need to know how often the clock is updated
@@ -311,8 +289,22 @@ void OS_Windows::initialize() {
 	} else if (!dwrite2_init) {
 		print_verbose("Unable to load IDWriteFactory2, automatic system font fallback is disabled.");
 	}
+}
+void OS_Windows::initialize_filesystem() {
+	FileSystem *fs = FileSystem::get_singleton();
+	FileSystemProtocolOSWindows::initialize();
 
-	FileAccessWindows::initialize();
+	Ref<FileSystemProtocolOSWindows> protocol_os = Ref<FileSystemProtocolOSWindows>();
+	protocol_os.instantiate();
+	fs->add_protocol(FileSystem::protocol_name_os, protocol_os);
+
+	Ref<FileSystemProtocolPipeWindows> protocol_pipe = Ref<FileSystemProtocolPipeWindows>();
+	protocol_pipe.instantiate();
+	fs->add_protocol(FileSystem::protocol_name_pipe, protocol_pipe);
+
+	DirAccess::make_default<DirAccessWindows>(DirAccess::ACCESS_RESOURCES);
+	DirAccess::make_default<DirAccessWindows>(DirAccess::ACCESS_USERDATA);
+	DirAccess::make_default<DirAccessWindows>(DirAccess::ACCESS_FILESYSTEM);
 }
 
 void OS_Windows::delete_main_loop() {
@@ -359,7 +351,7 @@ void OS_Windows::finalize_core() {
 		_remove_temp_library(temp_libraries.last()->key);
 	}
 
-	FileAccessWindows::finalize();
+	FileSystemProtocolOSWindows::finalize();
 
 	timeEndPeriod(1);
 
@@ -491,8 +483,8 @@ Error OS_Windows::open_dynamic_library(const String &p_path, void *&p_library_ha
 	bool has_dll_directory_api = ((add_dll_directory != nullptr) && (remove_dll_directory != nullptr));
 	DLL_DIRECTORY_COOKIE cookie = nullptr;
 
-	String dll_path = fix_path(load_path);
-	String dll_dir = fix_path(ProjectSettings::get_singleton()->globalize_path(load_path.get_base_dir()));
+	String dll_path = FileSystemProtocolOSWindows::fix_path(load_path);
+	String dll_dir = FileSystemProtocolOSWindows::fix_path(ProjectSettings::get_singleton()->globalize_path(load_path.get_base_dir()));
 	if (p_data != nullptr && p_data->also_set_library_path && has_dll_directory_api) {
 		cookie = add_dll_directory((LPCWSTR)(dll_dir.utf16().get_data()));
 	}
@@ -1020,7 +1012,7 @@ Dictionary OS_Windows::execute_with_pipe(const String &p_path, const List<String
 
 	Dictionary ret;
 
-	String path = p_path.is_absolute_path() ? fix_path(p_path) : p_path;
+	String path = p_path.is_absolute_path() ? FileSystemProtocolOSWindows::fix_path(p_path) : p_path;
 	String command = _quote_command_line_argument(path);
 	for (const String &E : p_arguments) {
 		command += " " + _quote_command_line_argument(E);
@@ -1126,7 +1118,7 @@ Dictionary OS_Windows::execute_with_pipe(const String &p_path, const List<String
 }
 
 Error OS_Windows::execute(const String &p_path, const List<String> &p_arguments, String *r_pipe, int *r_exitcode, bool read_stderr, Mutex *p_pipe_mutex, bool p_open_console) {
-	String path = p_path.is_absolute_path() ? fix_path(p_path) : p_path;
+	String path = p_path.is_absolute_path() ? FileSystemProtocolOSWindows::fix_path(p_path) : p_path;
 	String command = _quote_command_line_argument(path);
 	for (const String &E : p_arguments) {
 		command += " " + _quote_command_line_argument(E);
@@ -1268,7 +1260,7 @@ Error OS_Windows::execute(const String &p_path, const List<String> &p_arguments,
 }
 
 Error OS_Windows::create_process(const String &p_path, const List<String> &p_arguments, ProcessID *r_child_id, bool p_open_console) {
-	String path = p_path.is_absolute_path() ? fix_path(p_path) : p_path;
+	String path = p_path.is_absolute_path() ? FileSystemProtocolOSWindows::fix_path(p_path) : p_path;
 	String command = _quote_command_line_argument(path);
 	for (const String &E : p_arguments) {
 		command += " " + _quote_command_line_argument(E);
@@ -1944,7 +1936,7 @@ Error OS_Windows::shell_show_in_file_manager(String p_path, bool p_open_folder) 
 	if (!p_path.is_quoted()) {
 		p_path = p_path.quote();
 	}
-	p_path = fix_path(p_path);
+	p_path = FileSystemProtocolOSWindows::fix_path(p_path);
 
 	INT_PTR ret = OK;
 	if (open_folder) {

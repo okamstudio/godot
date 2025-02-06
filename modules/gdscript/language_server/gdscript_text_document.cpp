@@ -38,6 +38,8 @@
 #include "editor/plugins/script_text_editor.h"
 #include "servers/display_server.h"
 
+#include "core/io/filesystem.h"
+
 void GDScriptTextDocument::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("didOpen"), &GDScriptTextDocument::didOpen);
 	ClassDB::bind_method(D_METHOD("didClose"), &GDScriptTextDocument::didClose);
@@ -473,10 +475,6 @@ Variant GDScriptTextDocument::signatureHelp(const Dictionary &p_params) {
 	return ret;
 }
 
-GDScriptTextDocument::GDScriptTextDocument() {
-	file_checker = FileAccess::create(FileAccess::ACCESS_RESOURCES);
-}
-
 void GDScriptTextDocument::sync_script_content(const String &p_path, const String &p_content) {
 	String path = GDScriptLanguageProtocol::get_singleton()->get_workspace()->get_file_path(p_path);
 	GDScriptLanguageProtocol::get_singleton()->get_workspace()->parse_script(path, p_content);
@@ -496,7 +494,7 @@ Array GDScriptTextDocument::find_symbols(const lsp::TextDocumentPositionParams &
 		location.uri = symbol->uri;
 		location.range = symbol->selectionRange;
 		const String &path = GDScriptLanguageProtocol::get_singleton()->get_workspace()->get_file_path(symbol->uri);
-		if (file_checker->file_exists(path)) {
+		if (FileSystem::get_singleton()->file_exists(path)) {
 			arr.push_back(location.to_json());
 		}
 		r_list.push_back(symbol);

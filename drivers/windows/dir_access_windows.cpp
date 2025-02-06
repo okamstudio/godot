@@ -32,6 +32,7 @@
 
 #include "dir_access_windows.h"
 #include "file_access_windows.h"
+#include "filesystem_protocol_os_windows.h"
 
 #include "core/config/project_settings.h"
 #include "core/os/memory.h"
@@ -188,7 +189,7 @@ Error DirAccessWindows::change_dir(String p_dir) {
 Error DirAccessWindows::make_dir(String p_dir) {
 	GLOBAL_LOCK_FUNCTION
 
-	if (FileAccessWindows::is_path_invalid(p_dir)) {
+	if (FileSystemProtocolOSWindows::is_path_invalid(p_dir)) {
 #ifdef DEBUG_ENABLED
 		WARN_PRINT("The path :" + p_dir + " is a reserved Windows system pipe, so it can't be used for creating directories.");
 #endif

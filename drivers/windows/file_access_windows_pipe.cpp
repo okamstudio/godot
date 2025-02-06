@@ -39,7 +39,6 @@ Error FileAccessWindowsPipe::open_existing(HANDLE p_rfd, HANDLE p_wfd, bool p_bl
 	// Open pipe using handles created by CreatePipe(rfd, wfd, NULL, 4096) call in the OS.execute_with_pipe.
 	_close();
 
-	path_src = String();
 	ERR_FAIL_COND_V_MSG(fd[0] != nullptr || fd[1] != nullptr, ERR_ALREADY_IN_USE, "Pipe is already in use.");
 	fd[0] = p_rfd;
 	fd[1] = p_wfd;
@@ -57,10 +56,9 @@ Error FileAccessWindowsPipe::open_existing(HANDLE p_rfd, HANDLE p_wfd, bool p_bl
 Error FileAccessWindowsPipe::open_internal(const String &p_path, int p_mode_flags) {
 	_close();
 
-	path_src = p_path;
 	ERR_FAIL_COND_V_MSG(fd[0] != nullptr || fd[1] != nullptr, ERR_ALREADY_IN_USE, "Pipe is already in use.");
 
-	path = String("\\\\.\\pipe\\LOCAL\\") + p_path.replace("pipe://", "").replace("/", "_");
+	path = String("\\\\.\\pipe\\LOCAL\\") + p_path.replace("/", "_");
 
 	HANDLE h = CreateFileW((LPCWSTR)path.utf16().get_data(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (h == INVALID_HANDLE_VALUE) {
@@ -94,12 +92,12 @@ bool FileAccessWindowsPipe::is_open() const {
 	return (fd[0] != nullptr || fd[1] != nullptr);
 }
 
-String FileAccessWindowsPipe::get_path() const {
-	return path_src;
+String FileAccessWindowsPipe::_get_path() const {
+	return path;
 }
 
 String FileAccessWindowsPipe::get_path_absolute() const {
-	return path_src;
+	return path;
 }
 
 uint64_t FileAccessWindowsPipe::get_length() const {

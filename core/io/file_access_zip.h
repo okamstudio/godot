@@ -100,16 +100,9 @@ public:
 	virtual void flush() override;
 	virtual bool store_buffer(const uint8_t *p_src, uint64_t p_length) override;
 
-	virtual bool file_exists(const String &p_name) override; ///< return true if a file exists
+	bool file_exists(const String &p_name); ///< return true if a file exists
 
-	virtual uint64_t _get_modified_time(const String &p_file) override { return 0; } // todo
-	virtual BitField<FileAccess::UnixPermissionFlags> _get_unix_permissions(const String &p_file) override { return 0; }
-	virtual Error _set_unix_permissions(const String &p_file, BitField<FileAccess::UnixPermissionFlags> p_permissions) override { return FAILED; }
-
-	virtual bool _get_hidden_attribute(const String &p_file) override { return false; }
-	virtual Error _set_hidden_attribute(const String &p_file, bool p_hidden) override { return ERR_UNAVAILABLE; }
-	virtual bool _get_read_only_attribute(const String &p_file) override { return false; }
-	virtual Error _set_read_only_attribute(const String &p_file, bool p_ro) override { return ERR_UNAVAILABLE; }
+	uint64_t get_modified_time(const String &p_file) { return 0; } // todo
 
 	virtual void close() override;
 

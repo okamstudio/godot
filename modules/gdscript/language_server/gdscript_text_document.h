@@ -43,8 +43,6 @@ class GDScriptTextDocument : public RefCounted {
 protected:
 	static void _bind_methods();
 
-	Ref<FileAccess> file_checker;
-
 	void didOpen(const Variant &p_param);
 	void didClose(const Variant &p_param);
 	void didChange(const Variant &p_param);
@@ -80,8 +78,6 @@ public:
 	Variant signatureHelp(const Dictionary &p_params);
 
 	void initialize();
-
-	GDScriptTextDocument();
 };
 
 #endif // GDSCRIPT_TEXT_DOCUMENT_H
