@@ -370,6 +370,7 @@ public:
 	void joy_axis(int p_device, JoyAxis p_axis, float p_value);
 	void joy_hat(int p_device, BitField<HatMask> p_val);
 
+	Dictionary get_mapped_joy_events(int p_device);
 	void add_joy_mapping(const String &p_mapping, bool p_update_existing = false);
 	void remove_joy_mapping(const String &p_guid);
 

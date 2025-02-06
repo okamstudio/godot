@@ -179,6 +179,17 @@
 				[b]Note:[/b] This method only works on Android and iOS. On other platforms, it always returns [constant Vector3.ZERO].
 			</description>
 		</method>
+		<method name="get_mapped_joy_events">
+			<return type="Dictionary" />
+			<param index="0" name="device" type="int" />
+			<description>
+				Returns a dictionary which contains all buttons and axes that are mapped to the given joypad.
+				The dictionary contains the following fields:
+				[code]buttons[/code]: for all mapped [enum JoyButton].
+				[code]axes[/code]: for all mapped [enum JoyAxis].
+				If the joypad is not mapped, an empty dictionary is returned.
+			</description>
+		</method>
 		<method name="get_mouse_button_mask" qualifiers="const">
 			<return type="int" enum="MouseButtonMask" is_bitfield="true" />
 			<description>

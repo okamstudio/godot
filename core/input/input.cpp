@@ -129,6 +129,7 @@ void Input::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_action_raw_strength", "action", "exact_match"), &Input::get_action_raw_strength, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("get_axis", "negative_action", "positive_action"), &Input::get_axis);
 	ClassDB::bind_method(D_METHOD("get_vector", "negative_x", "positive_x", "negative_y", "positive_y", "deadzone"), &Input::get_vector, DEFVAL(-1.0f));
+	ClassDB::bind_method(D_METHOD("get_mapped_joy_events", "device"), &Input::get_mapped_joy_events);
 	ClassDB::bind_method(D_METHOD("add_joy_mapping", "mapping", "update_existing"), &Input::add_joy_mapping, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("remove_joy_mapping", "guid"), &Input::remove_joy_mapping);
 	ClassDB::bind_method(D_METHOD("is_joy_known", "device"), &Input::is_joy_known);
@@ -1675,6 +1676,40 @@ void Input::parse_mapping(const String &p_mapping) {
 	}
 
 	map_db.push_back(mapping);
+}
+
+Dictionary Input::get_mapped_joy_events(int p_device) {
+	ERR_FAIL_COND_V(!joy_names.has(p_device), Dictionary());
+	int index = joy_names[p_device].mapping;
+	if (index == -1) {
+		return Dictionary();
+	}
+
+	const JoyDeviceMapping &mapping = map_db[index];
+	Array buttons;
+	Array axes;
+
+	for (int i = 0; i < mapping.bindings.size(); i++) {
+		const JoyBinding binding = mapping.bindings[i];
+		switch (binding.outputType) {
+			case TYPE_BUTTON:
+				buttons.push_back(binding.output.button);
+				break;
+			case TYPE_AXIS:
+				axes.push_back(binding.input.axis.axis);
+				break;
+			default:
+				break; // Ignoring TYPE_HAT.
+		}
+	}
+	buttons.sort();
+	axes.sort();
+
+	Dictionary ret;
+	ret["buttons"] = buttons;
+	ret["axes"] = axes;
+
+	return ret;
 }
 
 void Input::add_joy_mapping(const String &p_mapping, bool p_update_existing) {
