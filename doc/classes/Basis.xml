@@ -276,7 +276,8 @@
 			<param index="0" name="scale" type="Vector3" />
 			<description>
 				Returns this basis with each axis's components scaled by the given [param scale]'s components.
-				The basis matrix's rows are multiplied by [param scale]'s components. This operation is a global scale (relative to the parent).
+				The basis matrix's rows are multiplied by [param scale]'s components.
+				This operation is a global scale (relative to the parent).
 				[codeblocks]
 				[gdscript]
 				var my_basis = Basis(
@@ -301,6 +302,41 @@
 				GD.Print(myBasis.X); // Prints (0, 2, -2)
 				GD.Print(myBasis.Y); // Prints (0, 4, -4)
 				GD.Print(myBasis.Z); // Prints (0, 6, -6)
+				[/csharp]
+				[/codeblocks]
+			</description>
+		</method>
+		<method name="scaled_local" qualifiers="const">
+			<return type="Basis" />
+			<param index="0" name="scale" type="Vector3" />
+			<description>
+				Returns this basis with each axis scaled by the corresponding component in the given [param scale].
+				The basis matrix's columns are multiplied by [param scale]'s components.
+				This operation is a local scale (relative to self).
+				[codeblocks]
+				[gdscript]
+				var my_basis = Basis(
+				    Vector3(1, 1, 1),
+				    Vector3(2, 2, 2),
+				    Vector3(3, 3, 3)
+				)
+				my_basis = my_basis.scaled_local(Vector3(0, 2, -2))
+
+				print(my_basis.x) # Prints (0.0, 0.0, 0.0)
+				print(my_basis.y) # Prints (4.0, 4.0, 4.0)
+				print(my_basis.z) # Prints (-6.0, -6.0, -6.0)
+				[/gdscript]
+				[csharp]
+				var myBasis = new Basis(
+				    new Vector3(1.0f, 1.0f, 1.0f),
+				    new Vector3(2.0f, 2.0f, 2.0f),
+				    new Vector3(3.0f, 3.0f, 3.0f)
+				);
+				myBasis = myBasis.ScaledLocal(new Vector3(0.0f, 2.0f, -2.0f));
+
+				GD.Print(myBasis.X); // Prints (0, 0, 0)
+				GD.Print(myBasis.Y); // Prints (4, 4, 4)
+				GD.Print(myBasis.Z); // Prints (-6, -6, -6)
 				[/csharp]
 				[/codeblocks]
 			</description>

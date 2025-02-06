@@ -232,15 +232,9 @@ Basis Basis::from_scale(const Vector3 &p_scale) {
 // Multiplies the matrix from left by the scaling matrix: M -> S.M
 // See the comment for Basis::rotated for further explanation.
 void Basis::scale(const Vector3 &p_scale) {
-	rows[0][0] *= p_scale.x;
-	rows[0][1] *= p_scale.x;
-	rows[0][2] *= p_scale.x;
-	rows[1][0] *= p_scale.y;
-	rows[1][1] *= p_scale.y;
-	rows[1][2] *= p_scale.y;
-	rows[2][0] *= p_scale.z;
-	rows[2][1] *= p_scale.z;
-	rows[2][2] *= p_scale.z;
+	rows[0] *= p_scale.x;
+	rows[1] *= p_scale.y;
+	rows[2] *= p_scale.z;
 }
 
 Basis Basis::scaled(const Vector3 &p_scale) const {
@@ -252,7 +246,9 @@ Basis Basis::scaled(const Vector3 &p_scale) const {
 void Basis::scale_local(const Vector3 &p_scale) {
 	// performs a scaling in object-local coordinate system:
 	// M -> (M.S.Minv).M = M.S.
-	*this = scaled_local(p_scale);
+	rows[0] *= p_scale;
+	rows[1] *= p_scale;
+	rows[2] *= p_scale;
 }
 
 void Basis::scale_orthogonal(const Vector3 &p_scale) {
@@ -283,7 +279,9 @@ real_t Basis::get_uniform_scale() const {
 }
 
 Basis Basis::scaled_local(const Vector3 &p_scale) const {
-	return (*this) * Basis::from_scale(p_scale);
+	Basis m = *this;
+	m.scale_local(p_scale);
+	return m;
 }
 
 Vector3 Basis::get_scale_abs() const {
