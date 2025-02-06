@@ -1741,7 +1741,7 @@ def make_rst_index(grouped_classes: Dict[str, List[str]], dry_run: bool, output_
 
         for group_name in CLASS_GROUPS:
             if group_name in grouped_classes:
-                f.write(make_heading(CLASS_GROUPS[group_name], "="))
+                f.write(make_heading(CLASS_GROUPS[group_name], "-"))
 
                 f.write(".. toctree::\n")
                 f.write("    :maxdepth: 1\n")
