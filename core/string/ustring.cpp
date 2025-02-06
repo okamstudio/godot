@@ -983,19 +983,68 @@ String String::_camelcase_to_underscore() const {
 
 String String::capitalize() const {
 	String aux = _camelcase_to_underscore().replace("_", " ").strip_edges();
-	String cap;
-	for (int i = 0; i < aux.get_slice_count(" "); i++) {
-		String slice = aux.get_slicec(' ', i);
-		if (slice.length() > 0) {
-			slice[0] = _find_upper(slice[0]);
-			if (i > 0) {
-				cap += " ";
-			}
-			cap += slice;
-		}
+	if (aux.is_empty()) {
+		return aux;
 	}
 
-	return cap;
+	int next_space_idx = aux.find_char(' ');
+	if (next_space_idx == -1) {
+		// Not a single space; we can do an accelerated version.
+		// aux is guaranteed to be a copy from `_camelcase_to_underscore`,
+		// so the assignment won't cause an unneeded fork even if _find_upper is the same as aux[0].
+		aux[0] = _find_upper(aux[0]);
+		return aux;
+	}
+
+	// Run the algorithm. It can be run in-place; no further copy needed.
+	const int length = aux.length();
+	char32_t *dst = aux.ptrw();
+	const char32_t *src = dst;
+	int next_word_start_idx = 0;
+	bool has_skipped_chars = false;
+
+	do {
+		const size_t slice_size = next_space_idx - next_word_start_idx;
+
+		// Let's find the next space already, since both branches need to do this.
+		next_space_idx = aux.find_char(' ', next_space_idx + 1);
+		if (next_space_idx == -1) {
+			// No further occurrence; take the rest of the string.
+			next_space_idx = aux.length();
+		}
+
+		if (slice_size == 0) {
+			// Just two consecutive spaces; we should skip one.
+			has_skipped_chars = true;
+			continue;
+		}
+
+		if (dst > aux.ptr()) {
+			// Need to add a space here.
+			// Could skip the assign if !has_skipped_chars, but it wouldn't be worth the if.
+			*dst++ = ' ';
+		}
+
+		// Capitalize the current word. The rest can be kept as-is.
+		*dst++ = _find_upper(src[next_word_start_idx]);
+
+		if (has_skipped_chars) {
+			// Need to move the current word backwards in memory.
+			memmove(dst, src + next_word_start_idx + 1, (slice_size - 1) * sizeof(char32_t));
+		}
+		dst += slice_size - 1;
+
+		// Skip over the word and the space.
+		next_word_start_idx += slice_size + 1;
+	} while (next_word_start_idx < length);
+
+	// Add the terminating NULL.
+	*dst++ = '\0';
+
+	// Trim to actual size.
+	aux.resize(dst - aux.ptr());
+
+	return aux;
 }
 
 String String::to_camel_case() const {
