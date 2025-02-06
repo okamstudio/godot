@@ -4414,8 +4414,10 @@ Error GLTFDocument::_serialize_materials(Ref<GLTFState> p_state) {
 			}
 		}
 
-		mr["metallicFactor"] = base_material->get_metallic();
-		mr["roughnessFactor"] = base_material->get_roughness();
+		// Godot allows setting BaseMaterial3D roughness/metallic above 1.0 (which has an effect on how
+		// the roughness/metallic texture is interpreted), but the glTF specification doesn't allow this.
+		mr["metallicFactor"] = MIN(base_material->get_metallic(), 1.0);
+		mr["roughnessFactor"] = MIN(base_material->get_roughness(), 1.0);
 		if (_image_format != "None") {
 			bool has_roughness = base_material->get_texture(BaseMaterial3D::TEXTURE_ROUGHNESS).is_valid() && base_material->get_texture(BaseMaterial3D::TEXTURE_ROUGHNESS)->get_image().is_valid();
 			bool has_ao = base_material->get_feature(BaseMaterial3D::FEATURE_AMBIENT_OCCLUSION) && base_material->get_texture(BaseMaterial3D::TEXTURE_AMBIENT_OCCLUSION).is_valid();

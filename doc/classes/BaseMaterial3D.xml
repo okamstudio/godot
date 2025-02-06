@@ -258,8 +258,9 @@
 			For best results, the texture should be normalized (with [member heightmap_scale] reduced to compensate). In [url=https://gimp.org]GIMP[/url], this can be done using [b]Colors &gt; Auto &gt; Equalize[/b]. If the texture only uses a small part of its available range, the parallax effect may look strange, especially when the camera moves.
 			[b]Note:[/b] To reduce memory usage and improve loading times, you may be able to use a lower-resolution heightmap texture as most heightmaps are only comprised of low-frequency data.
 		</member>
-		<member name="metallic" type="float" setter="set_metallic" getter="get_metallic" default="0.0">
-			A high value makes the material appear more like a metal. Non-metals use their albedo as the diffuse color and add diffuse to the specular reflection. With non-metals, the reflection appears on top of the albedo color. Metals use their albedo as a multiplier to the specular reflection and set the diffuse color to black resulting in a tinted reflection. Materials work better when fully metal or fully non-metal, values between [code]0[/code] and [code]1[/code] should only be used for blending between metal and non-metal sections. To alter the amount of reflection use [member roughness].
+		<member name="metallic" type="float" setter="set_metallic" getter="get_metallic" default="0.0" keywords="metalness">
+			A high value makes the material appear more like a metal. Non-metals use their albedo as the diffuse color and add diffuse to the specular reflection. With non-metals, the reflection appears on top of the albedo color. Metals use their albedo as a multiplier to the specular reflection and set the diffuse color to black resulting in a tinted reflection. Materials work better when fully metal or fully non-metal, values between [code]0[/code] and [code]1[/code] should only be used for blending between metal and non-metal sections. To alter the amount of reflection, use [member roughness].
+			Values above [code]1.0[/code] can be used to further increase metalness when using a [member metallic_texture] by treating its dark spots as more metallic than they would otherwise be, but the final metalness is clamped to [code]1.0[/code].
 		</member>
 		<member name="metallic_specular" type="float" setter="set_specular" getter="get_specular" default="0.5">
 			Adjusts the strength of specular reflections. Specular reflections are composed of scene reflections and the specular lobe which is the bright spot that is reflected from light sources. When set to [code]0.0[/code], no specular reflections will be visible. This differs from the [constant SPECULAR_DISABLED] [enum SpecularMode] as [constant SPECULAR_DISABLED] only applies to the specular lobe from the light source.
@@ -339,8 +340,8 @@
 		<member name="rim_tint" type="float" setter="set_rim_tint" getter="get_rim_tint" default="0.5">
 			The amount of to blend light and albedo color when rendering rim effect. If [code]0[/code] the light color is used, while [code]1[/code] means albedo color is used. An intermediate value generally works best.
 		</member>
-		<member name="roughness" type="float" setter="set_roughness" getter="get_roughness" default="1.0">
-			Surface reflection. A value of [code]0[/code] represents a perfect mirror while a value of [code]1[/code] completely blurs the reflection. See also [member metallic].
+		<member name="roughness" type="float" setter="set_roughness" getter="get_roughness" default="1.0" keywords="smoothness">
+			Surface reflection. A value of [code]0[/code] represents a perfect mirror while a value of [code]1[/code] completely blurs the reflection. Values above [code]1.0[/code] can be used to further increase roughness when using a [member roughness_texture] by treating its dark spots as rougher than they would otherwise be, but the final roughness is clamped to [code]1.0[/code]. See also [member metallic].
 		</member>
 		<member name="roughness_texture" type="Texture2D" setter="set_texture" getter="get_texture">
 			Texture used to control the roughness per-pixel. Multiplied by [member roughness].
