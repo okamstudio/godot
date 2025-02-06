@@ -652,6 +652,7 @@
 			If [code]true[/code], this and child [CanvasItem] nodes with a higher Y position are rendered in front of nodes with a lower Y position. If [code]false[/code], this and child [CanvasItem] nodes are rendered normally in scene tree order.
 			With Y-sorting enabled on a parent node ('A') but disabled on a child node ('B'), the child node ('B') is sorted but its children ('C1', 'C2', etc.) render together on the same Y position as the child node ('B'). This allows you to organize the render order of a scene without changing the scene tree.
 			Nodes sort relative to each other only if they are on the same [member z_index].
+			Sibling nodes with Y-sorting enabled must also have Y-sorting enabled on the parent node in order for Y-sorting to function.
 		</member>
 		<member name="z_as_relative" type="bool" setter="set_z_as_relative" getter="is_z_relative" default="true">
 			If [code]true[/code], the node's Z index is relative to its parent's Z index. If this node's Z index is 2 and its parent's effective Z index is 3, then this node's effective Z index will be 2 + 3 = 5.
