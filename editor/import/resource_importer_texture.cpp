@@ -246,6 +246,7 @@ void ResourceImporterTexture::get_import_options(const String &p_path, List<Impo
 	r_options->push_back(ImportOption(PropertyInfo(Variant::STRING, "roughness/src_normal", PROPERTY_HINT_FILE, "*.bmp,*.dds,*.exr,*.jpeg,*.jpg,*.hdr,*.png,*.svg,*.tga,*.webp"), ""));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "process/fix_alpha_border"), p_preset != PRESET_3D));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "process/premult_alpha"), false));
+	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "process/invert_color"), false));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "process/normal_map_invert_y"), false));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "process/hdr_as_srgb"), false));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "process/hdr_clamp_exposure"), false));
@@ -509,6 +510,7 @@ Error ResourceImporterTexture::import(ResourceUID::ID p_source_id, const String 
 	// Processing.
 	const bool fix_alpha_border = p_options["process/fix_alpha_border"];
 	const bool premult_alpha = p_options["process/premult_alpha"];
+	const bool invert_color = p_options["process/invert_color"];
 	const bool normal_map_invert_y = p_options["process/normal_map_invert_y"];
 
 	const bool hdr_as_srgb = p_options["process/hdr_as_srgb"];
@@ -630,6 +632,20 @@ Error ResourceImporterTexture::import(ResourceUID::ID p_source_id, const String 
 		// Premultiply the alpha.
 		if (premult_alpha) {
 			target_image->premultiply_alpha();
+		}
+
+		// Invert RGB channels.
+		if (invert_color) {
+			const int height = target_image->get_height();
+			const int width = target_image->get_width();
+
+			for (int i = 0; i < width; i++) {
+				for (int j = 0; j < height; j++) {
+					const Color color = target_image->get_pixel(i, j);
+					const Color inverted = Color(1 - color.r, 1 - color.g, 1 - color.b, color.a);
+					target_image->set_pixel(i, j, inverted);
+				}
+			}
 		}
 
 		// Invert the green channel of the image to flip the normal map it contains.
