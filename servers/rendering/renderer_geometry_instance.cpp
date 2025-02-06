@@ -75,7 +75,7 @@ void RenderGeometryInstanceBase::set_transform(const Transform3D &p_transform, c
 
 	float max_scale = MAX(model_scale_vec.x, MAX(model_scale_vec.y, model_scale_vec.z));
 	float min_scale = MIN(model_scale_vec.x, MIN(model_scale_vec.y, model_scale_vec.z));
-	non_uniform_scale = max_scale >= 0.0 && (min_scale / max_scale) < 0.9;
+	non_uniform_scale = max_scale > 0.0 && (min_scale / max_scale) < 0.9;
 
 	lod_model_scale = max_scale;
 }

@@ -572,9 +572,10 @@ void Node3DEditorViewport::_update_camera(real_t p_interp_delta) {
 			const real_t orbit_inertia = EDITOR_GET("editors/3d/navigation_feel/orbit_inertia");
 			const real_t translation_inertia = EDITOR_GET("editors/3d/navigation_feel/translation_inertia");
 			const real_t zoom_inertia = EDITOR_GET("editors/3d/navigation_feel/zoom_inertia");
+			const real_t epsilon = 0.0000001f;
 
-			camera_cursor.x_rot = Math::lerp(old_camera_cursor.x_rot, cursor.x_rot, MIN(1.f, p_interp_delta * (1 / orbit_inertia)));
-			camera_cursor.y_rot = Math::lerp(old_camera_cursor.y_rot, cursor.y_rot, MIN(1.f, p_interp_delta * (1 / orbit_inertia)));
+			camera_cursor.x_rot = Math::lerp(old_camera_cursor.x_rot, cursor.x_rot, MIN(1.f, p_interp_delta * (1 / (orbit_inertia + epsilon))));
+			camera_cursor.y_rot = Math::lerp(old_camera_cursor.y_rot, cursor.y_rot, MIN(1.f, p_interp_delta * (1 / (orbit_inertia + epsilon))));
 
 			if (Math::abs(camera_cursor.x_rot - cursor.x_rot) < 0.1) {
 				camera_cursor.x_rot = cursor.x_rot;
