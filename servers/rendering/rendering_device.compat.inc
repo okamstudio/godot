@@ -143,16 +143,20 @@ RenderingDevice::FramebufferFormatID RenderingDevice::_screen_get_framebuffer_fo
 	return screen_get_framebuffer_format(DisplayServer::MAIN_WINDOW_ID);
 }
 
-RID RenderingDevice::_uniform_buffer_create_bind_compat_100062(uint32_t p_size_bytes, const Vector<uint8_t> &p_data) {
-	return uniform_buffer_create(p_size_bytes, p_data, false);
+RID RenderingDevice::_uniform_buffer_create_bind_compat_101561(uint32_t p_size_bytes, const Vector<uint8_t> &p_data) {
+	return uniform_buffer_create(p_size_bytes, p_data, 0);
 }
 
-RID RenderingDevice::_vertex_buffer_create_bind_compat_100062(uint32_t p_size_bytes, const Vector<uint8_t> &p_data, bool p_use_as_storage) {
-	return vertex_buffer_create(p_size_bytes, p_data, p_use_as_storage, false);
+RID RenderingDevice::_storage_buffer_create_bind_compat_101561(uint32_t p_size, const Vector<uint8_t> &p_data, BitField<StorageBufferUsage> p_usage) {
+	return storage_buffer_create(p_size, p_data, p_usage, 0);
 }
 
-RID RenderingDevice::_index_buffer_create_bind_compat_100062(uint32_t p_size_indices, IndexBufferFormat p_format, const Vector<uint8_t> &p_data, bool p_use_restart_indices) {
-	return index_buffer_create(p_size_indices, p_format, p_data, p_use_restart_indices, false);
+RID RenderingDevice::_vertex_buffer_create_bind_compat_101561(uint32_t p_size_bytes, const Vector<uint8_t> &p_data, bool p_use_as_storage) {
+	return vertex_buffer_create(p_size_bytes, p_data, p_use_as_storage ? RD::BUFFER_CREATION_AS_STORAGE : 0);
+}
+
+RID RenderingDevice::_index_buffer_create_bind_compat_101561(uint32_t p_size_indices, IndexBufferFormat p_format, const Vector<uint8_t> &p_data, bool p_use_restart_indices) {
+	return index_buffer_create(p_size_indices, p_format, p_data, p_use_restart_indices, 0);
 }
 
 void RenderingDevice::_bind_compatibility_methods() {
@@ -179,9 +183,10 @@ void RenderingDevice::_bind_compatibility_methods() {
 
 	ClassDB::bind_compatibility_method(D_METHOD("draw_list_begin", "framebuffer", "initial_color_action", "final_color_action", "initial_depth_action", "final_depth_action", "clear_color_values", "clear_depth", "clear_stencil", "region", "breadcrumb"), &RenderingDevice::_draw_list_begin_bind_compat_98670, DEFVAL(Vector<Color>()), DEFVAL(1.0), DEFVAL(0), DEFVAL(Rect2()), DEFVAL(0));
 
-	ClassDB::bind_compatibility_method(D_METHOD("uniform_buffer_create"), &RenderingDevice::_uniform_buffer_create_bind_compat_100062, DEFVAL(Vector<uint8_t>()));
-	ClassDB::bind_compatibility_method(D_METHOD("vertex_buffer_create"), &RenderingDevice::_vertex_buffer_create_bind_compat_100062, DEFVAL(Vector<uint8_t>()), DEFVAL(false));
-	ClassDB::bind_compatibility_method(D_METHOD("index_buffer_create"), &RenderingDevice::_index_buffer_create_bind_compat_100062, DEFVAL(Vector<uint8_t>()), DEFVAL(false));
+	ClassDB::bind_compatibility_method(D_METHOD("uniform_buffer_create", "size_bytes", "data"), &RenderingDevice::_uniform_buffer_create_bind_compat_101561, DEFVAL(Vector<uint8_t>()));
+	ClassDB::bind_compatibility_method(D_METHOD("storage_buffer_create", "size_bytes", "data", "usage"), &RenderingDevice::_storage_buffer_create_bind_compat_101561, DEFVAL(Vector<uint8_t>()), DEFVAL(0));
+	ClassDB::bind_compatibility_method(D_METHOD("vertex_buffer_create", "size_bytes", "data", "use_as_storage"), &RenderingDevice::_vertex_buffer_create_bind_compat_101561, DEFVAL(Vector<uint8_t>()), DEFVAL(false));
+	ClassDB::bind_compatibility_method(D_METHOD("index_buffer_create", "size_indices", "format", "data", "use_restart_indices"), &RenderingDevice::_index_buffer_create_bind_compat_101561, DEFVAL(Vector<uint8_t>()), DEFVAL(false));
 }
 
 #endif

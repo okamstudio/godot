@@ -294,13 +294,16 @@ Validate extension JSON: Error: Field 'classes/RichTextLabel/methods/set_table_c
 Added optional "shrink" argument. Compatibility method registered.
 
 
-GH-100062
+GH-101561
 --------
 Validate extension JSON: Error: Field 'classes/RenderingDevice/methods/index_buffer_create/arguments': size changed value in new API, from 4 to 5.
 Validate extension JSON: Error: Field 'classes/RenderingDevice/methods/uniform_buffer_create/arguments': size changed value in new API, from 2 to 3.
+Validate extension JSON: Error: Field 'classes/RenderingDevice/methods/storage_buffer_create/arguments': size changed value in new API, from 3 to 4.
 Validate extension JSON: Error: Field 'classes/RenderingDevice/methods/vertex_buffer_create/arguments': size changed value in new API, from 3 to 4.
+Validate extension JSON: Error: Field 'classes/RenderingDevice/methods/vertex_buffer_create/arguments/2': default_value changed value in new API, from "false" to "0".
+Validate extension JSON: Error: Field 'classes/RenderingDevice/methods/vertex_buffer_create/arguments/2': type changed value in new API, from "bool" to "bitfield::RenderingDevice.BufferCreationBits".
 
-Optional argument added. Compatibility methods registered.
+Optional argument (creation flags) added. Compatibility methods registered.
 
 
 GH-101531

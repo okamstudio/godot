@@ -703,11 +703,10 @@
 			<param index="1" name="format" type="int" enum="RenderingDevice.IndexBufferFormat" />
 			<param index="2" name="data" type="PackedByteArray" default="PackedByteArray()" />
 			<param index="3" name="use_restart_indices" type="bool" default="false" />
-			<param index="4" name="enable_device_address" type="bool" default="false" />
+			<param index="4" name="creation_bits" type="int" enum="RenderingDevice.BufferCreationBits" is_bitfield="true" default="0" />
 			<description>
 				Creates a new index buffer. It can be accessed with the RID that is returned.
 				Once finished with your RID, you will want to free the RID using the RenderingDevice's [method free_rid] method.
-				Optionally, set [param enable_device_address] if you wish to use [method buffer_get_device_address] functionality and the GPU supports it.
 			</description>
 		</method>
 		<method name="limit_get" qualifiers="const">
@@ -847,6 +846,7 @@
 			<param index="0" name="size_bytes" type="int" />
 			<param index="1" name="data" type="PackedByteArray" default="PackedByteArray()" />
 			<param index="2" name="usage" type="int" enum="RenderingDevice.StorageBufferUsage" is_bitfield="true" default="0" />
+			<param index="3" name="creation_bits" type="int" enum="RenderingDevice.BufferCreationBits" is_bitfield="true" default="0" />
 			<description>
 				Creates a [url=https://vkguide.dev/docs/chapter-4/storage_buffers/]storage buffer[/url] with the specified [param data] and [param usage]. It can be accessed with the RID that is returned.
 				Once finished with your RID, you will want to free the RID using the RenderingDevice's [method free_rid] method.
@@ -1073,11 +1073,10 @@
 			<return type="RID" />
 			<param index="0" name="size_bytes" type="int" />
 			<param index="1" name="data" type="PackedByteArray" default="PackedByteArray()" />
-			<param index="2" name="enable_device_address" type="bool" default="false" />
+			<param index="2" name="creation_bits" type="int" enum="RenderingDevice.BufferCreationBits" is_bitfield="true" default="0" />
 			<description>
 				Creates a new uniform buffer. It can be accessed with the RID that is returned.
 				Once finished with your RID, you will want to free the RID using the RenderingDevice's [method free_rid] method.
-				Optionally, set [param enable_device_address] if you wish to use [method buffer_get_device_address] functionality and the GPU supports it.
 			</description>
 		</method>
 		<method name="uniform_set_create">
@@ -1111,12 +1110,10 @@
 			<return type="RID" />
 			<param index="0" name="size_bytes" type="int" />
 			<param index="1" name="data" type="PackedByteArray" default="PackedByteArray()" />
-			<param index="2" name="use_as_storage" type="bool" default="false" />
-			<param index="3" name="enable_device_address" type="bool" default="false" />
+			<param index="2" name="creation_bits" type="int" enum="RenderingDevice.BufferCreationBits" is_bitfield="true" default="0" />
 			<description>
 				It can be accessed with the RID that is returned.
 				Once finished with your RID, you will want to free the RID using the RenderingDevice's [method free_rid] method.
-				Optionally, set [param enable_device_address] if you wish to use [method buffer_get_device_address] functionality and the GPU supports it.
 			</description>
 		</method>
 		<method name="vertex_format_create">
@@ -2068,8 +2065,20 @@
 		</constant>
 		<constant name="STORAGE_BUFFER_USAGE_DISPATCH_INDIRECT" value="1" enum="StorageBufferUsage" is_bitfield="true">
 		</constant>
-		<constant name="STORAGE_BUFFER_USAGE_DEVICE_ADDRESS" value="2" enum="StorageBufferUsage" is_bitfield="true">
-			Allows usage of [method buffer_get_device_address] on supported GPUs.
+		<constant name="BUFFER_CREATION_DEVICE_ADDRESS_BIT" value="1" enum="BufferCreationBits" is_bitfield="true">
+			Optionally, set this flag if you wish to use [method buffer_get_device_address] functionality. You must first check the GPU supports it:
+			[codeblocks]
+			[gdscript]
+			rd = RenderingServer.get_rendering_device()
+
+			if rd.has_feature(RenderingDevice.SUPPORTS_BUFFER_DEVICE_ADDRESS):
+			      storage_buffer = rd.storage_buffer_create(bytes.size(), bytes, RenderingDevice.STORAGE_BUFFER_USAGE_SHADER_DEVICE_ADDRESS):
+			      storage_buffer_address = rd.buffer_get_device_address(storage_buffer)
+			[/gdscript]
+			[/codeblocks]
+		</constant>
+		<constant name="BUFFER_CREATION_AS_STORAGE" value="2" enum="BufferCreationBits" is_bitfield="true">
+			Set this flag so that it is created as storage. This is useful if Compute Shaders need access (for reading or writing) to the buffer, e.g. skeletal animations are processed in Compute Shaders which need access to vertex buffers, to be later consumed by vertex shaders as part of the regular rasterization pipeline.
 		</constant>
 		<constant name="UNIFORM_TYPE_SAMPLER" value="0" enum="UniformType">
 			Sampler uniform.

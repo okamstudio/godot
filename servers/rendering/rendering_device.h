@@ -754,13 +754,22 @@ private:
 	RID_Owner<IndexArray, true> index_array_owner;
 
 public:
-	RID vertex_buffer_create(uint32_t p_size_bytes, const Vector<uint8_t> &p_data = Vector<uint8_t>(), bool p_use_as_storage = false, bool p_enable_device_address = false);
+	enum BufferCreationBits {
+		BUFFER_CREATION_DEVICE_ADDRESS_BIT = (1 << 0),
+		BUFFER_CREATION_AS_STORAGE = (1 << 1),
+	};
+
+	enum StorageBufferUsage {
+		STORAGE_BUFFER_USAGE_DISPATCH_INDIRECT = (1 << 0),
+	};
+
+	RID vertex_buffer_create(uint32_t p_size_bytes, const Vector<uint8_t> &p_data = Vector<uint8_t>(), BitField<BufferCreationBits> p_creation_bits = 0);
 
 	// This ID is warranted to be unique for the same formats, does not need to be freed
 	VertexFormatID vertex_format_create(const Vector<VertexAttribute> &p_vertex_descriptions);
 	RID vertex_array_create(uint32_t p_vertex_count, VertexFormatID p_vertex_format, const Vector<RID> &p_src_buffers, const Vector<uint64_t> &p_offsets = Vector<uint64_t>());
 
-	RID index_buffer_create(uint32_t p_size_indices, IndexBufferFormat p_format, const Vector<uint8_t> &p_data = Vector<uint8_t>(), bool p_use_restart_indices = false, bool p_enable_device_address = false);
+	RID index_buffer_create(uint32_t p_size_indices, IndexBufferFormat p_format, const Vector<uint8_t> &p_data = Vector<uint8_t>(), bool p_use_restart_indices = false, BitField<BufferCreationBits> p_creation_bits = 0);
 	RID index_array_create(RID p_index_buffer, uint32_t p_index_offset, uint32_t p_index_count);
 
 	/****************/
@@ -895,9 +904,10 @@ private:
 
 	DrawListID _draw_list_begin_bind_compat_98670(RID p_framebuffer, InitialAction p_initial_color_action, FinalAction p_final_color_action, InitialAction p_initial_depth_action, FinalAction p_final_depth_action, const Vector<Color> &p_clear_color_values, float p_clear_depth, uint32_t p_clear_stencil, const Rect2 &p_region, uint32_t p_breadcrumb);
 
-	RID _uniform_buffer_create_bind_compat_100062(uint32_t p_size_bytes, const Vector<uint8_t> &p_data);
-	RID _vertex_buffer_create_bind_compat_100062(uint32_t p_size_bytes, const Vector<uint8_t> &p_data, bool p_use_as_storage);
-	RID _index_buffer_create_bind_compat_100062(uint32_t p_size_indices, IndexBufferFormat p_format, const Vector<uint8_t> &p_data, bool p_use_restart_indices);
+	RID _uniform_buffer_create_bind_compat_101561(uint32_t p_size_bytes, const Vector<uint8_t> &p_data);
+	RID _vertex_buffer_create_bind_compat_101561(uint32_t p_size_bytes, const Vector<uint8_t> &p_data, bool p_use_as_storage);
+	RID _index_buffer_create_bind_compat_101561(uint32_t p_size_indices, IndexBufferFormat p_format, const Vector<uint8_t> &p_data, bool p_use_restart_indices);
+	RID _storage_buffer_create_bind_compat_101561(uint32_t p_size, const Vector<uint8_t> &p_data, BitField<StorageBufferUsage> p_usage);
 #endif
 
 public:
@@ -930,17 +940,12 @@ public:
 	/******************/
 	String get_perf_report() const;
 
-	enum StorageBufferUsage {
-		STORAGE_BUFFER_USAGE_DISPATCH_INDIRECT = (1 << 0),
-		STORAGE_BUFFER_USAGE_DEVICE_ADDRESS = (1 << 1),
-	};
-
 	/*****************/
 	/**** BUFFERS ****/
 	/*****************/
 
-	RID uniform_buffer_create(uint32_t p_size_bytes, const Vector<uint8_t> &p_data = Vector<uint8_t>(), bool p_enable_device_address = false);
-	RID storage_buffer_create(uint32_t p_size, const Vector<uint8_t> &p_data = Vector<uint8_t>(), BitField<StorageBufferUsage> p_usage = 0);
+	RID uniform_buffer_create(uint32_t p_size_bytes, const Vector<uint8_t> &p_data = Vector<uint8_t>(), BitField<BufferCreationBits> p_creation_bits = 0);
+	RID storage_buffer_create(uint32_t p_size, const Vector<uint8_t> &p_data = Vector<uint8_t>(), BitField<StorageBufferUsage> p_usage = 0, BitField<BufferCreationBits> p_creation_bits = 0);
 
 	RID texture_buffer_create(uint32_t p_size_elements, DataFormat p_format, const Vector<uint8_t> &p_data = Vector<uint8_t>());
 
@@ -1684,6 +1689,7 @@ VARIANT_ENUM_CAST(RenderingDevice::SamplerBorderColor)
 VARIANT_ENUM_CAST(RenderingDevice::VertexFrequency)
 VARIANT_ENUM_CAST(RenderingDevice::IndexBufferFormat)
 VARIANT_BITFIELD_CAST(RenderingDevice::StorageBufferUsage)
+VARIANT_BITFIELD_CAST(RenderingDevice::BufferCreationBits)
 VARIANT_ENUM_CAST(RenderingDevice::UniformType)
 VARIANT_ENUM_CAST(RenderingDevice::RenderPrimitive)
 VARIANT_ENUM_CAST(RenderingDevice::PolygonCullMode)
