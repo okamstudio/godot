@@ -66,11 +66,24 @@
 				Forces this [Camera2D] to become the current active one. [member enabled] must be [code]true[/code].
 			</description>
 		</method>
-		<method name="reset_smoothing">
+		<method name="reset_position_smoothing">
 			<return type="void" />
 			<description>
 				Sets the camera's position immediately to its current smoothing destination.
 				This method has no effect if [member position_smoothing_enabled] is [code]false[/code].
+			</description>
+		</method>
+		<method name="reset_rotation_smoothing">
+			<return type="void" />
+			<description>
+				Sets the camera's rotation immediately to its current smoothing destination.
+				This method has no effect if [member rotation_smoothing_enabled] is [code]false[/code].
+			</description>
+		</method>
+		<method name="reset_smoothing" deprecated="Use [method reset_position_smoothing] instead.">
+			<return type="void" />
+			<description>
+				Has the same functionality as [method reset_position_smoothing].
 			</description>
 		</method>
 		<method name="set_drag_margin">
@@ -151,7 +164,7 @@
 		<member name="limit_smoothed" type="bool" setter="set_limit_smoothing_enabled" getter="is_limit_smoothing_enabled" default="false">
 			If [code]true[/code], the camera smoothly stops when reaches its limits.
 			This property has no effect if [member position_smoothing_enabled] is [code]false[/code].
-			[b]Note:[/b] To immediately update the camera's position to be within limits without smoothing, even with this setting enabled, invoke [method reset_smoothing].
+			[b]Note:[/b] To immediately update the camera's position to be within limits without smoothing, even with this setting enabled, invoke [method reset_position_smoothing].
 		</member>
 		<member name="limit_top" type="int" setter="set_limit" getter="get_limit" default="-10000000">
 			Top scroll limit in pixels. The camera stops moving when reaching this value, but [member offset] can push the view past the limit.
