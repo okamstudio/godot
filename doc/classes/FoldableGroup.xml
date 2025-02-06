@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="FoldableGroup" inherits="Resource" keywords="expandable, collapsible, collapse" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		A group of foldable containers that doesn't allow more than one container to be expanded at a time.
+	</brief_description>
+	<description>
+		A group of [FoldableContainer]-derived nodes. No more than one container can be expanded at a time.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_containers">
+			<return type="FoldableContainer[]" />
+			<description>
+				Returns an [Array] of [FoldableContainer]s who have this as their [FoldableGroup] (see [member FoldableContainer.foldable_group]).
+			</description>
+		</method>
+		<method name="get_expanded_container">
+			<return type="FoldableContainer" />
+			<description>
+				Returns the current expanded container.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="allow_folding_all" type="bool" setter="set_allow_folding_all" getter="is_allow_folding_all" default="false">
+			If [code]true[/code], it is possible to fold all containers in this [FoldableGroup].
+		</member>
+		<member name="resource_local_to_scene" type="bool" setter="set_local_to_scene" getter="is_local_to_scene" overrides="Resource" default="true" />
+	</members>
+	<signals>
+		<signal name="expanded">
+			<param index="0" name="container" type="FoldableContainer" />
+			<description>
+				Emitted when one of the containers of the group is expanded.
+			</description>
+		</signal>
+	</signals>
+</class>

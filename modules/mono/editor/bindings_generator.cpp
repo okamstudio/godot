@@ -141,6 +141,7 @@ const Vector<String> prop_allowed_inherited_member_hiding = {
 	"MenuBar.TextDirection",
 	"RichTextLabel.TextDirection",
 	"TextEdit.TextDirection",
+	"FoldableContainer.TextDirection",
 	"VisualShaderNodeReroute.PortType",
 	// The following instances are uniquely egregious violations, hiding `GetType()` from `object`.
 	// Included for the sake of CI, with the understanding that they *deserve* warnings.

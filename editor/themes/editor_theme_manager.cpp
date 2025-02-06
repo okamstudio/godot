@@ -1286,6 +1286,40 @@ void EditorThemeManager::_populate_standard_styles(const Ref<EditorTheme> &p_the
 
 		// GridContainer.
 		p_theme->set_constant("v_separation", "GridContainer", Math::round(p_config.widget_margin.y - 2 * EDSCALE));
+
+		// FoldableContainer
+
+		Ref<StyleBoxFlat> foldable_container_title = make_flat_stylebox(p_config.dark_color_1.darkened(0.125), p_config.base_margin, p_config.base_margin, p_config.base_margin, p_config.base_margin);
+		foldable_container_title->set_corner_radius(CORNER_BOTTOM_LEFT, 0);
+		foldable_container_title->set_corner_radius(CORNER_BOTTOM_RIGHT, 0);
+		p_theme->set_stylebox("title_panel", "FoldableContainer", foldable_container_title);
+		Ref<StyleBoxFlat> foldable_container_hover = make_flat_stylebox(p_config.dark_color_1.lerp(p_config.base_color, 0.4), p_config.base_margin, p_config.base_margin, p_config.base_margin, p_config.base_margin);
+		foldable_container_hover->set_corner_radius(CORNER_BOTTOM_LEFT, 0);
+		foldable_container_hover->set_corner_radius(CORNER_BOTTOM_RIGHT, 0);
+		p_theme->set_stylebox("title_hover_panel", "FoldableContainer", foldable_container_hover);
+		p_theme->set_stylebox("title_collapsed_panel", "FoldableContainer", make_flat_stylebox(p_config.dark_color_1.darkened(0.125), p_config.base_margin, p_config.base_margin, p_config.base_margin, p_config.base_margin));
+		p_theme->set_stylebox("title_collapsed_hover_panel", "FoldableContainer", make_flat_stylebox(p_config.dark_color_1.lerp(p_config.base_color, 0.4), p_config.base_margin, p_config.base_margin, p_config.base_margin, p_config.base_margin));
+		Ref<StyleBoxFlat> foldable_container_panel = make_flat_stylebox(p_config.dark_color_1, p_config.base_margin, p_config.base_margin, p_config.base_margin, p_config.base_margin);
+		foldable_container_panel->set_corner_radius(CORNER_TOP_LEFT, 0);
+		foldable_container_panel->set_corner_radius(CORNER_TOP_RIGHT, 0);
+		p_theme->set_stylebox(SceneStringName(panel), "FoldableContainer", foldable_container_panel);
+		p_theme->set_stylebox("focus", "FoldableContainer", p_config.button_style_focus);
+
+		p_theme->set_font(SceneStringName(font), "FoldableContainer", p_theme->get_font(SceneStringName(font), SNAME("HeaderSmall")));
+		p_theme->set_font_size(SceneStringName(font_size), "FoldableContainer", p_theme->get_font_size(SceneStringName(font_size), SNAME("HeaderSmall")));
+
+		p_theme->set_color(SceneStringName(font_color), "FoldableContainer", p_config.font_color);
+		p_theme->set_color("hover_font_color", "FoldableContainer", p_config.font_hover_color);
+		p_theme->set_color("collapsed_font_color", "FoldableContainer", p_config.font_pressed_color);
+		p_theme->set_color("font_outline_color", "FoldableContainer", p_config.font_outline_color);
+
+		p_theme->set_icon("expanded_arrow", "FoldableContainer", p_theme->get_icon(SNAME("GuiTreeArrowDown"), EditorStringName(EditorIcons)));
+		p_theme->set_icon("expanded_arrow_mirrored", "FoldableContainer", p_theme->get_icon(SNAME("GuiArrowUp"), EditorStringName(EditorIcons)));
+		p_theme->set_icon("folded_arrow", "FoldableContainer", p_theme->get_icon(SNAME("GuiTreeArrowRight"), EditorStringName(EditorIcons)));
+		p_theme->set_icon("folded_arrow_mirrored", "FoldableContainer", p_theme->get_icon(SNAME("GuiTreeArrowLeft"), EditorStringName(EditorIcons)));
+
+		p_theme->set_constant("outline_size", "FoldableContainer", 0);
+		p_theme->set_constant("h_separation", "FoldableContainer", p_config.separation_margin);
 	}
 
 	// Window and dialogs.
