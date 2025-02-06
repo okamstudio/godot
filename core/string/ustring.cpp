@@ -5271,47 +5271,49 @@ String String::get_invalid_node_name_characters(bool p_allow_internal) {
 	return r;
 }
 
-String String::validate_node_name() const {
-	// This is a critical validation in node addition, so it must be optimized.
-	const char32_t *cn = ptr();
-	if (cn == nullptr) {
-		return String();
+int32_t String::invalid_node_name_index() const {
+	const char32_t *string_chars_ptr = ptr();
+	if (string_chars_ptr == nullptr) {
+		return -1;
 	}
-	bool valid = true;
-	uint32_t idx = 0;
-	while (cn[idx]) {
-		const char32_t *c = invalid_node_name_characters;
-		while (*c) {
-			if (cn[idx] == *c) {
-				valid = false;
-				break;
+	uint32_t index = 0;
+	while (string_chars_ptr[index]) {
+		const char32_t *invalid_chars_ptr = invalid_node_name_characters;
+		while (*invalid_chars_ptr) {
+			if (string_chars_ptr[index] == *invalid_chars_ptr) {
+				return index;
 			}
-			c++;
+			invalid_chars_ptr++;
 		}
-		if (!valid) {
-			break;
-		}
-		idx++;
+		index++;
 	}
+	return -1;
+}
 
-	if (valid) {
+String String::validate_node_name() const {
+	ERR_FAIL_COND_V_MSG(is_empty(), *this, "An empty String is not a valid node name and cannot be validated.");
+	int32_t invalid_index = invalid_node_name_index();
+	if (invalid_index == -1) {
 		return *this;
 	}
+	return validate_node_name_internal(invalid_index);
+}
 
+String String::validate_node_name_internal(int32_t p_index) const {
+	// This is a critical validation in node addition, so it must be optimized.
 	String validated = *this;
 	char32_t *nn = validated.ptrw();
-	while (nn[idx]) {
+	while (nn[p_index]) {
 		const char32_t *c = invalid_node_name_characters;
 		while (*c) {
-			if (nn[idx] == *c) {
-				nn[idx] = '_';
+			if (nn[p_index] == *c) {
+				nn[p_index] = '_';
 				break;
 			}
 			c++;
 		}
-		idx++;
+		p_index++;
 	}
-
 	return validated;
 }
 

@@ -577,7 +577,9 @@ public:
 
 	// node functions
 	static String get_invalid_node_name_characters(bool p_allow_internal = false);
+	int32_t invalid_node_name_index() const;
 	String validate_node_name() const;
+	String validate_node_name_internal(int32_t p_index) const;
 	String validate_ascii_identifier() const;
 	String validate_unicode_identifier() const;
 	String validate_filename() const;
