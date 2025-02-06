@@ -804,9 +804,7 @@ void ProjectManager::_on_project_created(const String &dir, bool edit) {
 	search_box->clear();
 
 	int i = project_list->refresh_project(dir);
-	project_list->select_project(i);
 	project_list->ensure_project_visible(i);
-	_update_project_buttons();
 	_update_list_placeholder();
 
 	if (edit) {
@@ -1059,42 +1057,13 @@ void ProjectManager::shortcut_input(const Ref<InputEvent> &p_ev) {
 			} break;
 			case Key::HOME: {
 				if (project_list->get_project_count() > 0) {
-					project_list->select_project(0);
-					_update_project_buttons();
+					project_list->ensure_project_visible(0);
 				}
 
 			} break;
 			case Key::END: {
 				if (project_list->get_project_count() > 0) {
-					project_list->select_project(project_list->get_project_count() - 1);
-					_update_project_buttons();
-				}
-
-			} break;
-			case Key::UP: {
-				if (k->is_shift_pressed()) {
-					break;
-				}
-
-				int index = project_list->get_single_selected_index();
-				if (index > 0) {
-					project_list->select_project(index - 1);
-					project_list->ensure_project_visible(index - 1);
-					_update_project_buttons();
-				}
-
-				break;
-			}
-			case Key::DOWN: {
-				if (k->is_shift_pressed()) {
-					break;
-				}
-
-				int index = project_list->get_single_selected_index();
-				if (index + 1 < project_list->get_project_count()) {
-					project_list->select_project(index + 1);
-					project_list->ensure_project_visible(index + 1);
-					_update_project_buttons();
+					project_list->ensure_project_visible(project_list->get_project_count() - 1);
 				}
 
 			} break;
