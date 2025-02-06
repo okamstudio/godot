@@ -212,6 +212,7 @@ const char *ShaderLanguage::token_names[TK_MAX] = {
 	"HINT_ROUGHNESS_GRAY",
 	"HINT_ANISOTROPY_TEXTURE",
 	"HINT_SOURCE_COLOR",
+	"HINT_SRGB_COLOR",
 	"HINT_RANGE",
 	"HINT_ENUM",
 	"HINT_INSTANCE_INDEX",
@@ -367,6 +368,7 @@ const ShaderLanguage::KeyWord ShaderLanguage::keyword_list[] = {
 	// hints
 
 	{ TK_HINT_SOURCE_COLOR, "source_color", CF_UNSPECIFIED, {}, {} },
+	{ TK_HINT_SRGB_COLOR, "srgb_color", CF_UNSPECIFIED, {}, {} },
 	{ TK_HINT_RANGE, "hint_range", CF_UNSPECIFIED, {}, {} },
 	{ TK_HINT_ENUM, "hint_enum", CF_UNSPECIFIED, {}, {} },
 	{ TK_HINT_INSTANCE_INDEX, "instance_index", CF_UNSPECIFIED, {}, {} },
@@ -1186,6 +1188,9 @@ String ShaderLanguage::get_uniform_hint_name(ShaderNode::Uniform::Hint p_hint) {
 		} break;
 		case ShaderNode::Uniform::HINT_SOURCE_COLOR: {
 			result = "source_color";
+		} break;
+		case ShaderNode::Uniform::HINT_SRGB_COLOR: {
+			result = "srgb_color";
 		} break;
 		case ShaderNode::Uniform::HINT_NORMAL: {
 			result = "hint_normal";
@@ -4194,6 +4199,10 @@ bool ShaderLanguage::is_sampler_type(DataType p_type) {
 	return p_type > TYPE_MAT4 && p_type < TYPE_STRUCT;
 }
 
+bool ShaderLanguage::ShaderLanguage::is_hint_color(const ShaderLanguage::ShaderNode::Uniform::Hint p_hint) {
+	return p_hint == ShaderLanguage::ShaderNode::Uniform::HINT_SOURCE_COLOR || p_hint == ShaderLanguage::ShaderNode::Uniform::HINT_SRGB_COLOR;
+}
+
 Variant ShaderLanguage::constant_value_to_variant(const Vector<Scalar> &p_value, DataType p_type, int p_array_size, ShaderLanguage::ShaderNode::Uniform::Hint p_hint) {
 	int array_size = p_array_size;
 
@@ -4378,7 +4387,7 @@ Variant ShaderLanguage::constant_value_to_variant(const Vector<Scalar> &p_value,
 				if (array_size > 0) {
 					array_size *= 3;
 
-					if (p_hint == ShaderLanguage::ShaderNode::Uniform::HINT_SOURCE_COLOR) {
+					if (ShaderLanguage::is_hint_color(p_hint)) {
 						PackedColorArray array;
 						for (int i = 0; i < array_size; i += 3) {
 							array.push_back(Color(p_value[i].real, p_value[i + 1].real, p_value[i + 2].real));
@@ -4392,7 +4401,7 @@ Variant ShaderLanguage::constant_value_to_variant(const Vector<Scalar> &p_value,
 						value = Variant(array);
 					}
 				} else {
-					if (p_hint == ShaderLanguage::ShaderNode::Uniform::HINT_SOURCE_COLOR) {
+					if (ShaderLanguage::is_hint_color(p_hint)) {
 						value = Variant(Color(p_value[0].real, p_value[1].real, p_value[2].real));
 					} else {
 						value = Variant(Vector3(p_value[0].real, p_value[1].real, p_value[2].real));
@@ -4403,7 +4412,7 @@ Variant ShaderLanguage::constant_value_to_variant(const Vector<Scalar> &p_value,
 				if (array_size > 0) {
 					array_size *= 4;
 
-					if (p_hint == ShaderLanguage::ShaderNode::Uniform::HINT_SOURCE_COLOR) {
+					if (ShaderLanguage::is_hint_color(p_hint)) {
 						PackedColorArray array;
 						for (int i = 0; i < array_size; i += 4) {
 							array.push_back(Color(p_value[i].real, p_value[i + 1].real, p_value[i + 2].real, p_value[i + 3].real));
@@ -4417,7 +4426,7 @@ Variant ShaderLanguage::constant_value_to_variant(const Vector<Scalar> &p_value,
 						value = Variant(array);
 					}
 				} else {
-					if (p_hint == ShaderLanguage::ShaderNode::Uniform::HINT_SOURCE_COLOR) {
+					if (ShaderLanguage::is_hint_color(p_hint)) {
 						value = Variant(Color(p_value[0].real, p_value[1].real, p_value[2].real, p_value[3].real));
 					} else {
 						value = Variant(Vector4(p_value[0].real, p_value[1].real, p_value[2].real, p_value[3].real));
@@ -4921,14 +4930,14 @@ PropertyInfo ShaderLanguage::uniform_to_property_info(const ShaderNode::Uniform 
 			break;
 		case ShaderLanguage::TYPE_VEC3:
 			if (p_uniform.array_size > 0) {
-				if (p_uniform.hint == ShaderLanguage::ShaderNode::Uniform::HINT_SOURCE_COLOR) {
+				if (ShaderLanguage::is_hint_color(p_uniform.hint)) {
 					pi.hint = PROPERTY_HINT_COLOR_NO_ALPHA;
 					pi.type = Variant::PACKED_COLOR_ARRAY;
 				} else {
 					pi.type = Variant::PACKED_VECTOR3_ARRAY;
 				}
 			} else {
-				if (p_uniform.hint == ShaderLanguage::ShaderNode::Uniform::HINT_SOURCE_COLOR) {
+				if (ShaderLanguage::is_hint_color(p_uniform.hint)) {
 					pi.hint = PROPERTY_HINT_COLOR_NO_ALPHA;
 					pi.type = Variant::COLOR;
 				} else {
@@ -4938,13 +4947,13 @@ PropertyInfo ShaderLanguage::uniform_to_property_info(const ShaderNode::Uniform 
 			break;
 		case ShaderLanguage::TYPE_VEC4: {
 			if (p_uniform.array_size > 0) {
-				if (p_uniform.hint == ShaderLanguage::ShaderNode::Uniform::HINT_SOURCE_COLOR) {
+				if (ShaderLanguage::is_hint_color(p_uniform.hint)) {
 					pi.type = Variant::PACKED_COLOR_ARRAY;
 				} else {
 					pi.type = Variant::PACKED_VECTOR4_ARRAY;
 				}
 			} else {
-				if (p_uniform.hint == ShaderLanguage::ShaderNode::Uniform::HINT_SOURCE_COLOR) {
+				if (ShaderLanguage::is_hint_color(p_uniform.hint)) {
 					pi.type = Variant::COLOR;
 				} else {
 					pi.type = Variant::VECTOR4;
@@ -9722,7 +9731,7 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 
 							if (uniform.array_size > 0) {
 								static Vector<int> supported_hints = {
-									TK_HINT_SOURCE_COLOR, TK_REPEAT_DISABLE, TK_REPEAT_ENABLE,
+									TK_HINT_SOURCE_COLOR, TK_HINT_SRGB_COLOR, TK_REPEAT_DISABLE, TK_REPEAT_ENABLE,
 									TK_FILTER_LINEAR, TK_FILTER_LINEAR_MIPMAP, TK_FILTER_LINEAR_MIPMAP_ANISOTROPIC,
 									TK_FILTER_NEAREST, TK_FILTER_NEAREST_MIPMAP, TK_FILTER_NEAREST_MIPMAP_ANISOTROPIC
 								};
@@ -9752,6 +9761,13 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 									} else {
 										new_hint = ShaderNode::Uniform::HINT_SOURCE_COLOR;
 									}
+								} break;
+								case TK_HINT_SRGB_COLOR: {
+									if (type != TYPE_VEC3 && type != TYPE_VEC4) {
+										_set_error(vformat(RTR("Source color hint is for '%s', '%s'."), "vec3", "vec4"));
+										return ERR_PARSE_ERROR;
+									}
+									new_hint = ShaderNode::Uniform::HINT_SRGB_COLOR;
 								} break;
 								case TK_HINT_DEFAULT_BLACK_TEXTURE: {
 									new_hint = ShaderNode::Uniform::HINT_DEFAULT_BLACK;
@@ -9995,7 +10011,7 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 									break;
 							}
 
-							bool is_sampler_hint = new_hint != ShaderNode::Uniform::HINT_NONE && new_hint != ShaderNode::Uniform::HINT_SOURCE_COLOR && new_hint != ShaderNode::Uniform::HINT_RANGE && new_hint != ShaderNode::Uniform::HINT_ENUM;
+							bool is_sampler_hint = new_hint != ShaderNode::Uniform::HINT_NONE && new_hint != ShaderNode::Uniform::HINT_SOURCE_COLOR && new_hint != ShaderNode::Uniform::HINT_SRGB_COLOR && new_hint != ShaderNode::Uniform::HINT_RANGE && new_hint != ShaderNode::Uniform::HINT_ENUM;
 							if (((new_filter != FILTER_DEFAULT || new_repeat != REPEAT_DEFAULT) || is_sampler_hint) && !is_sampler_type(type)) {
 								_set_error(RTR("This hint is only for sampler types."));
 								return ERR_PARSE_ERROR;
@@ -11811,6 +11827,7 @@ Error ShaderLanguage::complete(const String &p_code, const ShaderCompileInfo &p_
 				if (completion_base_array) {
 					if (current_uniform_hint == ShaderNode::Uniform::HINT_NONE) {
 						options.push_back("source_color");
+						options.push_back("srgb_color");
 					}
 				} else {
 					if (current_uniform_hint == ShaderNode::Uniform::HINT_NONE) {

@@ -776,6 +776,9 @@ void MaterialData::update_uniform_buffer(const HashMap<StringName, ShaderLanguag
 			if ((E.value.type == ShaderLanguage::TYPE_VEC3 || E.value.type == ShaderLanguage::TYPE_VEC4) && E.value.hint == ShaderLanguage::ShaderNode::Uniform::HINT_SOURCE_COLOR) {
 				//colors must be set as black, with alpha as 1.0
 				_fill_std140_variant_ubo_value(E.value.type, E.value.array_size, Color(0, 0, 0, 1), data);
+			} else if ((E.value.type == ShaderLanguage::TYPE_VEC3 || E.value.type == ShaderLanguage::TYPE_VEC4) && E.value.hint == ShaderLanguage::ShaderNode::Uniform::HINT_SRGB_COLOR) {
+				//colors must be set as black, with alpha as 1.0
+				_fill_std140_variant_ubo_value(E.value.type, E.value.array_size, Color(0, 0, 0, 1), data);
 			} else {
 				//else just zero it out
 				_fill_std140_ubo_empty(E.value.type, E.value.array_size, data);

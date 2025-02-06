@@ -795,7 +795,11 @@ void MaterialStorage::MaterialData::update_uniform_buffer(const HashMap<StringNa
 
 		if (V) {
 			//user provided
-			_fill_std140_variant_ubo_value(E.value.type, E.value.array_size, V->value, data, p_use_linear_color);
+			if (E.value.hint == ShaderLanguage::ShaderNode::Uniform::HINT_SRGB_COLOR) {
+				_fill_std140_variant_ubo_value(E.value.type, E.value.array_size, V->value, data, false);
+			} else {
+				_fill_std140_variant_ubo_value(E.value.type, E.value.array_size, V->value, data, p_use_linear_color);
+			}
 
 		} else if (E.value.default_value.size()) {
 			//default value
@@ -806,6 +810,8 @@ void MaterialStorage::MaterialData::update_uniform_buffer(const HashMap<StringNa
 			if ((E.value.type == ShaderLanguage::TYPE_VEC3 || E.value.type == ShaderLanguage::TYPE_VEC4) && E.value.hint == ShaderLanguage::ShaderNode::Uniform::HINT_SOURCE_COLOR) {
 				//colors must be set as black, with alpha as 1.0
 				_fill_std140_variant_ubo_value(E.value.type, E.value.array_size, Color(0, 0, 0, 1), data, p_use_linear_color);
+			} else if ((E.value.type == ShaderLanguage::TYPE_VEC3 || E.value.type == ShaderLanguage::TYPE_VEC4) && E.value.hint == ShaderLanguage::ShaderNode::Uniform::HINT_SRGB_COLOR) {
+				_fill_std140_variant_ubo_value(E.value.type, E.value.array_size, Color(0, 0, 0, 1), data, false);
 			} else {
 				//else just zero it out
 				_fill_std140_ubo_empty(E.value.type, E.value.array_size, data);
