@@ -51,9 +51,12 @@
 			The minimum rotation. Only active if [member angular_limit/enable] is [code]true[/code].
 		</member>
 		<member name="angular_limit/relaxation" type="float" setter="set_param" getter="get_param" default="1.0">
-			The lower this value, the more the rotation gets slowed down.
+			The amount of relaxation, or inverse damping, applied to angular velocity when the hinge is rotated beyond the angular limit around the Z axis. It is measured in rad/N/m/s, or rad·s/kg/m² in SI base units. Unlike most joints in Godot which use damping, HingeJoint3D uses inverse damping (relaxation), so higher values result in less damping and lower values result in more damping.
+			Higher relaxation values make the joint more elastic or bouncy. Lower values result in a smoother, more gradual reduction in angular velocity, preventing oscillations or rapid rotation as the joint returns to its angular limit.
 		</member>
 		<member name="angular_limit/softness" type="float" setter="set_param" getter="get_param" default="0.9" deprecated="This property is never set by the engine and is kept for compatibility purposes.">
+			The stiffness factor applied to rotation beyond the hinge's angular limit around the Z axis. It is measured in N·m/rad, or kg·m²/s²/rad in SI base units.
+			Higher angular stiffness results in a harder limit, which more strongly resists rotation beyond the limit. Lower values make the limit softer and more flexible.
 		</member>
 		<member name="angular_limit/upper" type="float" setter="set_param" getter="get_param" default="1.5708">
 			The maximum rotation. Only active if [member angular_limit/enable] is [code]true[/code].

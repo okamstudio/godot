@@ -30,10 +30,11 @@
 			The force with which the pinned objects stay in positional relation to each other. The higher, the stronger.
 		</member>
 		<member name="params/damping" type="float" setter="set_param" getter="get_param" default="1.0">
-			The force with which the pinned objects stay in velocity relation to each other. The higher, the stronger.
+			The amount of damping applied to linear velocity. It is measured in N·s/m, or kg/s in SI base units.
+			Higher linear damping results in a more gradual reduction in linear velocity, creating smoother, gentler behavior as the joint returns to its limit, preventing oscillations or rapid movement. Lower values make the joint more elastic or bouncy.
 		</member>
 		<member name="params/impulse_clamp" type="float" setter="set_param" getter="get_param" default="0.0">
-			If above 0, this value is the maximum value for an impulse that this Joint3D produces.
+			If above 0, this value is the maximum value for an impulse that this Joint3D produces. It is measured in N·s, or kg·m/s in SI base units.
 		</member>
 	</members>
 	<constants>
@@ -41,10 +42,11 @@
 			The force with which the pinned objects stay in positional relation to each other. The higher, the stronger.
 		</constant>
 		<constant name="PARAM_DAMPING" value="1" enum="Param">
-			The force with which the pinned objects stay in velocity relation to each other. The higher, the stronger.
+			The amount of damping applied to linear velocity. It is measured in N·s/m, or kg/s in SI base units.
+			Higher linear damping results in a more gradual reduction in linear velocity, creating smoother, gentler behavior as the joint returns to its limit, preventing oscillations or rapid movement. Lower values make the joint more elastic or bouncy.
 		</constant>
 		<constant name="PARAM_IMPULSE_CLAMP" value="2" enum="Param">
-			If above 0, this value is the maximum value for an impulse that this Joint3D produces.
+			If above 0, this value is the maximum value for an impulse that this Joint3D produces. It is measured in N·s, or kg·m/s in SI base units.
 		</constant>
 	</constants>
 </class>

@@ -35,8 +35,8 @@ void PinJoint3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_param", "param"), &PinJoint3D::get_param);
 
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "params/bias", PROPERTY_HINT_RANGE, "0.01,0.99,0.01"), "set_param", "get_param", PARAM_BIAS);
-	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "params/damping", PROPERTY_HINT_RANGE, "0.01,8.0,0.01"), "set_param", "get_param", PARAM_DAMPING);
-	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "params/impulse_clamp", PROPERTY_HINT_RANGE, "0.0,64.0,0.01"), "set_param", "get_param", PARAM_IMPULSE_CLAMP);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "params/damping", PROPERTY_HINT_RANGE, U"0.01,8.0,0.01,suffix:kg\u22C5m\u00B2/s/rad (N\u22C5s/m)"), "set_param", "get_param", PARAM_DAMPING);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "params/impulse_clamp", PROPERTY_HINT_RANGE, U"0.0,64.0,0.01,suffix:kg\u22C5m\u00B2/s/rad (N\u22C5s)"), "set_param", "get_param", PARAM_IMPULSE_CLAMP);
 
 	BIND_ENUM_CONSTANT(PARAM_BIAS);
 	BIND_ENUM_CONSTANT(PARAM_DAMPING);

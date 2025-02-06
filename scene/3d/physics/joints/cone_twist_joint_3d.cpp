@@ -38,8 +38,8 @@ void ConeTwistJoint3D::_bind_methods() {
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "twist_span", PROPERTY_HINT_RANGE, "-40000,40000,0.1,radians_as_degrees"), "set_param", "get_param", PARAM_TWIST_SPAN);
 
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "bias", PROPERTY_HINT_RANGE, "0.01,16.0,0.01"), "set_param", "get_param", PARAM_BIAS);
-	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "softness", PROPERTY_HINT_RANGE, "0.01,16.0,0.01"), "set_param", "get_param", PARAM_SOFTNESS);
-	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "relaxation", PROPERTY_HINT_RANGE, "0.01,16.0,0.01"), "set_param", "get_param", PARAM_RELAXATION);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "softness", PROPERTY_HINT_RANGE, U"0.01,16.0,0.01,suffix:kg\u22C5m\u00B2/s\u00B2/rad (N\u22C5m/rad)"), "set_param", "get_param", PARAM_SOFTNESS);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "relaxation", PROPERTY_HINT_RANGE, U"0.01,16.0,0.01,suffix:rad\u22C5s/kg/m\u00B2 (rad/N/m/s) (inverse damping)"), "set_param", "get_param", PARAM_RELAXATION);
 
 	BIND_ENUM_CONSTANT(PARAM_SWING_SPAN);
 	BIND_ENUM_CONSTANT(PARAM_TWIST_SPAN);

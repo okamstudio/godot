@@ -10,16 +10,18 @@
 	</tutorials>
 	<members>
 		<member name="damping" type="float" setter="set_damping" getter="get_damping" default="1.0">
-			The spring joint's damping ratio. A value between [code]0[/code] and [code]1[/code]. When the two bodies move into different directions the system tries to align them to the spring axis again. A high [member damping] value forces the attached bodies to align faster.
+			The amount of damping applied to by the spring joint. It is measured in kg/s.
+			Higher linear damping results in a more gradual reduction in linear velocity, creating smoother, gentler behavior as the spring returns to its equilibrium rest length, preventing oscillations or rapid movement. Lower values make the spring more elastic or bouncy.
 		</member>
 		<member name="length" type="float" setter="set_length" getter="get_length" default="50.0">
 			The spring joint's maximum length. The two attached bodies cannot stretch it past this value.
 		</member>
 		<member name="rest_length" type="float" setter="set_rest_length" getter="get_rest_length" default="0.0">
-			When the bodies attached to the spring joint move they stretch or squash it. The joint always tries to resize towards this length.
+			When the bodies attached to the spring joint move they stretch or squash it. The joint always tries to resize towards this length, known as the equilibrium length or rest length.
 		</member>
 		<member name="stiffness" type="float" setter="set_stiffness" getter="get_stiffness" default="20.0">
-			The higher the value, the less the bodies attached to the joint will deform it. The joint applies an opposing force to the bodies, the product of the stiffness multiplied by the size difference from its resting length.
+			The stiffness of the spring joint. It is measured in kg/s². The joint applies an opposing force to the bodies, the product of the stiffness multiplied by the size difference from its resting length.
+			Higher linear stiffness results in a more rigid spring, which more strongly resists being compressed or stretched away from its equilibrium rest length. Lower values make the spring more elastic or bouncy.
 		</member>
 	</members>
 </class>
