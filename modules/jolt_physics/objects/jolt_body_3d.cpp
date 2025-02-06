@@ -881,7 +881,7 @@ void JoltBody3D::set_center_of_mass_custom(const Vector3 &p_center_of_mass) {
 }
 
 void JoltBody3D::set_max_contacts_reported(int p_count) {
-	ERR_FAIL_COND(p_count < 0);
+	ERR_FAIL_INDEX(p_count, MAX_CONTACTS_REPORTED_3D_MAX);
 
 	if (unlikely((int)contacts.size() == p_count)) {
 		return;

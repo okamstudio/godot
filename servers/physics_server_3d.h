@@ -36,6 +36,8 @@
 #include "core/io/resource.h"
 #include "core/object/gdvirtual.gen.inc"
 
+constexpr int MAX_CONTACTS_REPORTED_3D_MAX = 100'000'000;
+
 class PhysicsDirectSpaceState3D;
 template <typename T>
 class TypedArray;
