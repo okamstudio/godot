@@ -45,14 +45,13 @@ TEST_CASE("[HTTPClient] Instantiation") {
 }
 
 TEST_CASE("[HTTPClient] query_string_from_dict") {
-	Ref<HTTPClient> client = HTTPClient::create();
 	Dictionary empty_dict;
-	String empty_query = client->query_string_from_dict(empty_dict);
+	String empty_query = HTTPClient::query_string_from(empty_dict);
 	CHECK_MESSAGE(empty_query.is_empty(), "A empty dictionary should return a empty string");
 
 	Dictionary dict1;
 	dict1["key"] = "value";
-	String single_key = client->query_string_from_dict(dict1);
+	String single_key = HTTPClient::query_string_from(dict1);
 	CHECK_MESSAGE(single_key == "key=value", "The query should return key=value for every string in the dictionary");
 
 	// Check Dictionary with multiple values of different types.
@@ -65,7 +64,7 @@ TEST_CASE("[HTTPClient] query_string_from_dict") {
 	values.push_back(3);
 	dict2["key3"] = values;
 	dict2["key4"] = Variant();
-	String multiple_keys = client->query_string_from_dict(dict2);
+	String multiple_keys = HTTPClient::query_string_from(dict2);
 	CHECK_MESSAGE(multiple_keys == "key1=value&key2=123&key3=1&key3=2&key3=3&key4",
 			"The query should return key=value for every string in the dictionary. Pairs should be separated by &, arrays should be have a query for every element, and variants should have empty values");
 }

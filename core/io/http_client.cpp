@@ -68,7 +68,7 @@ Error HTTPClient::_request(Method p_method, const String &p_url, const Vector<St
 	return request(p_method, p_url, p_headers, size > 0 ? (const uint8_t *)body_utf8.get_data() : nullptr, size);
 }
 
-String HTTPClient::query_string_from_dict(const Dictionary &p_dict) {
+String HTTPClient::query_string_from(const Dictionary &p_dict) {
 	String query = "";
 	Array keys = p_dict.keys();
 	for (int i = 0; i < keys.size(); ++i) {
@@ -95,6 +95,10 @@ String HTTPClient::query_string_from_dict(const Dictionary &p_dict) {
 		}
 	}
 	return query.substr(1);
+}
+
+String HTTPClient::query_string_from_dict(const Dictionary &p_dict) {
+	return HTTPClient::query_string_from(p_dict);
 }
 
 Error HTTPClient::verify_headers(const Vector<String> &p_headers) {
@@ -166,6 +170,7 @@ void HTTPClient::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_https_proxy", "host", "port"), &HTTPClient::set_https_proxy);
 
 	ClassDB::bind_method(D_METHOD("query_string_from_dict", "fields"), &HTTPClient::query_string_from_dict);
+	ClassDB::bind_static_method("HTTPClient", D_METHOD("query_string_from", "fields"), &HTTPClient::query_string_from);
 
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "blocking_mode_enabled"), "set_blocking_mode", "is_blocking_mode_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "connection", PROPERTY_HINT_RESOURCE_TYPE, "StreamPeer", PROPERTY_USAGE_NONE), "set_connection", "get_connection");

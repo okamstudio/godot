@@ -92,7 +92,7 @@
 				This needs to be called in order to have any request processed. Check results with [method get_status].
 			</description>
 		</method>
-		<method name="query_string_from_dict">
+		<method name="query_string_from" qualifiers="static">
 			<return type="String" />
 			<param index="0" name="fields" type="Dictionary" />
 			<description>
@@ -100,12 +100,12 @@
 				[codeblocks]
 				[gdscript]
 				var fields = {"username": "user", "password": "pass"}
-				var query_string = http_client.query_string_from_dict(fields)
+				var query_string = HTTPClient.query_string_from_dict(fields)
 				# Returns "username=user&amp;password=pass"
 				[/gdscript]
 				[csharp]
 				var fields = new Godot.Collections.Dictionary { { "username", "user" }, { "password", "pass" } };
-				string queryString = httpClient.QueryStringFromDict(fields);
+				string queryString = HTTPClient.QueryStringFromDict(fields);
 				// Returns "username=user&amp;password=pass"
 				[/csharp]
 				[/codeblocks]
@@ -113,7 +113,7 @@
 				[codeblocks]
 				[gdscript]
 				var fields = {"single": 123, "not_valued": null, "multiple": [22, 33, 44]}
-				var query_string = http_client.query_string_from_dict(fields)
+				var query_string = HTTPClient.query_string_from_dict(fields)
 				# Returns "single=123&amp;not_valued&amp;multiple=22&amp;multiple=33&amp;multiple=44"
 				[/gdscript]
 				[csharp]
@@ -123,10 +123,17 @@
 				    { "notValued", default },
 				    { "multiple", new Godot.Collections.Array { 22, 33, 44 } },
 				};
-				string queryString = httpClient.QueryStringFromDict(fields);
+				string queryString = HTTPClient.QueryStringFromDict(fields);
 				// Returns "single=123&amp;not_valued&amp;multiple=22&amp;multiple=33&amp;multiple=44"
 				[/csharp]
 				[/codeblocks]
+			</description>
+		</method>
+		<method name="query_string_from_dict" deprecated="Use the static method [method query_string_from] instead">
+			<return type="String" />
+			<param index="0" name="fields" type="Dictionary" />
+			<description>
+				Generates a GET/POST application/x-www-form-urlencoded style query string from a provided dictionary.
 			</description>
 		</method>
 		<method name="read_response_body_chunk">
