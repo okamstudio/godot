@@ -480,6 +480,18 @@ void Control::_validate_property(PropertyInfo &p_property) const {
 		p_property.hint = PROPERTY_HINT_LINK;
 	}
 
+	if (p_property.name == "render_offset") {
+		p_property.hint_string = data.render_offset_relative_to_size
+				? ""
+				: "suffix:px";
+	}
+
+	if (p_property.name == "render_transform_pivot") {
+		p_property.hint_string = data.render_transform_pivot_relative_to_size
+				? ""
+				: "suffix:px";
+	}
+
 	// Validate which positioning properties should be displayed depending on the parent and the layout mode.
 	Node *parent_node = get_parent_control();
 	if (!parent_node) {
@@ -693,6 +705,24 @@ void Control::_update_canvas_item_transform() {
 	if (is_inside_tree() && Math::abs(Math::sin(data.rotation * 4.0f)) < 0.00001f && get_viewport()->is_snap_controls_to_pixels_enabled()) {
 		xform[2] = (xform[2] + Vector2(0.5, 0.5)).floor();
 	}
+
+	Vector2 absolute_render_offset = data.render_offset;
+	Vector2 absolute_render_transform_pivot = data.render_transform_pivot;
+
+	if (data.render_offset_relative_to_size) {
+		absolute_render_offset *= get_size();
+	}
+
+	if (data.render_transform_pivot_relative_to_size) {
+		absolute_render_transform_pivot *= get_size();
+	}
+
+	xform *= Transform2D()
+					 .translated(-absolute_render_transform_pivot)
+					 .rotated(data.render_rotation)
+					 .scaled(data.render_scale)
+					 .translated(absolute_render_transform_pivot)
+					 .translated(absolute_render_offset);
 
 	RenderingServer::get_singleton()->canvas_item_set_transform(get_canvas_item(), xform);
 }
@@ -1670,6 +1700,76 @@ void Control::set_custom_minimum_size(const Size2 &p_custom) {
 Size2 Control::get_custom_minimum_size() const {
 	ERR_READ_THREAD_GUARD_V(Size2());
 	return data.custom_minimum_size;
+}
+
+void Control::set_render_offset(const Vector2 &p_offset) {
+	data.render_offset = p_offset;
+	queue_redraw();
+	_notify_transform();
+}
+
+Vector2 Control::get_render_offset() const {
+	return data.render_offset;
+}
+
+void Control::set_render_offset_relative_to_size(bool p_relative) {
+	if (data.render_offset_relative_to_size == p_relative) {
+		return;
+	}
+
+	data.render_offset_relative_to_size = p_relative;
+	queue_redraw();
+	_notify_transform();
+	notify_property_list_changed();
+}
+
+bool Control::get_render_offset_relative_to_size() const {
+	return data.render_offset_relative_to_size;
+}
+
+void Control::set_render_scale(const Vector2 &p_scale) {
+	data.render_scale = p_scale;
+	queue_redraw();
+	_notify_transform();
+}
+
+Vector2 Control::get_render_scale() const {
+	return data.render_scale;
+}
+
+void Control::set_render_rotation(real_t p_rotation) {
+	data.render_rotation = p_rotation;
+	queue_redraw();
+	_notify_transform();
+}
+
+real_t Control::get_render_rotation() const {
+	return data.render_rotation;
+}
+
+void Control::set_render_transform_pivot(const Vector2 &p_pivot) {
+	data.render_transform_pivot = p_pivot;
+	queue_redraw();
+	_notify_transform();
+}
+
+Vector2 Control::get_render_transform_pivot() const {
+	return data.render_transform_pivot;
+}
+
+void Control::set_render_transform_pivot_relative_to_size(bool p_relative) {
+	if (data.render_transform_pivot_relative_to_size == p_relative) {
+		return;
+	}
+
+	data.render_transform_pivot_relative_to_size = p_relative;
+	queue_redraw();
+	_notify_transform();
+	notify_property_list_changed();
+}
+
+bool Control::get_render_transform_pivot_relative_to_size() const {
+	return data.render_transform_pivot_relative_to_size;
 }
 
 void Control::_update_minimum_size_cache() const {
@@ -3525,6 +3625,19 @@ void Control::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("find_next_valid_focus"), &Control::find_next_valid_focus);
 	ClassDB::bind_method(D_METHOD("find_valid_focus_neighbor", "side"), &Control::find_valid_focus_neighbor);
 
+	ClassDB::bind_method(D_METHOD("set_render_offset", "offset"), &Control::set_render_offset);
+	ClassDB::bind_method(D_METHOD("get_render_offset"), &Control::get_render_offset);
+	ClassDB::bind_method(D_METHOD("set_render_offset_relative_to_size", "relative"), &Control::set_render_offset_relative_to_size);
+	ClassDB::bind_method(D_METHOD("get_render_offset_relative_to_size"), &Control::get_render_offset_relative_to_size);
+	ClassDB::bind_method(D_METHOD("set_render_scale", "scale"), &Control::set_render_scale);
+	ClassDB::bind_method(D_METHOD("get_render_scale"), &Control::get_render_scale);
+	ClassDB::bind_method(D_METHOD("set_render_rotation", "rotation"), &Control::set_render_rotation);
+	ClassDB::bind_method(D_METHOD("get_render_rotation"), &Control::get_render_rotation);
+	ClassDB::bind_method(D_METHOD("set_render_transform_pivot", "pivot"), &Control::set_render_transform_pivot);
+	ClassDB::bind_method(D_METHOD("get_render_transform_pivot"), &Control::get_render_transform_pivot);
+	ClassDB::bind_method(D_METHOD("set_render_transform_pivot_relative_to_size", "relative"), &Control::set_render_transform_pivot_relative_to_size);
+	ClassDB::bind_method(D_METHOD("get_render_transform_pivot_relative_to_size"), &Control::get_render_transform_pivot_relative_to_size);
+
 	ClassDB::bind_method(D_METHOD("set_h_size_flags", "flags"), &Control::set_h_size_flags);
 	ClassDB::bind_method(D_METHOD("get_h_size_flags"), &Control::get_h_size_flags);
 
@@ -3689,6 +3802,14 @@ void Control::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "size_flags_horizontal", PROPERTY_HINT_FLAGS, "Fill:1,Expand:2,Shrink Center:4,Shrink End:8"), "set_h_size_flags", "get_h_size_flags");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "size_flags_vertical", PROPERTY_HINT_FLAGS, "Fill:1,Expand:2,Shrink Center:4,Shrink End:8"), "set_v_size_flags", "get_v_size_flags");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "size_flags_stretch_ratio", PROPERTY_HINT_RANGE, "0,20,0.01,or_greater"), "set_stretch_ratio", "get_stretch_ratio");
+
+	ADD_GROUP("Render Transform", "render_");
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "render_offset", PROPERTY_HINT_NONE), "set_render_offset", "get_render_offset");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "render_offset_relative_to_size"), "set_render_offset_relative_to_size", "get_render_offset_relative_to_size");
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "render_scale"), "set_render_scale", "get_render_scale");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "render_rotation", PROPERTY_HINT_NONE, "-360,360,0.1,or_less,or_greater,radians_as_degrees"), "set_render_rotation", "get_render_rotation");
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "render_transform_pivot", PROPERTY_HINT_NONE), "set_render_transform_pivot", "get_render_transform_pivot");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "render_transform_pivot_relative_to_size"), "set_render_transform_pivot_relative_to_size", "get_render_transform_pivot_relative_to_size");
 
 	ADD_GROUP("Localization", "");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "localize_numeral_system"), "set_localize_numeral_system", "is_localizing_numeral_system");

@@ -1024,6 +1024,24 @@
 		<member name="position" type="Vector2" setter="_set_position" getter="get_position" default="Vector2(0, 0)">
 			The node's position, relative to its containing node. It corresponds to the rectangle's top-left corner. The property is not affected by [member pivot_offset].
 		</member>
+		<member name="render_offset" type="Vector2" setter="set_render_offset" getter="get_render_offset" default="Vector2(0, 0)">
+			Position offset applied after layouting. If [member render_offset_relative_to_size] is [code]true[/code], the offset is relative to the node's [member size].
+		</member>
+		<member name="render_offset_relative_to_size" type="bool" setter="set_render_offset_relative_to_size" getter="get_render_offset_relative_to_size" default="true">
+			If [code]true[/code], [member render_offset] is relative to the node's [member size], otherwise it is absolute pixel values.
+		</member>
+		<member name="render_rotation" type="float" setter="set_render_rotation" getter="get_render_rotation" default="0.0">
+			Rotation applied after layouting. The rotation pivot is defined by [member render_transform_pivot].
+		</member>
+		<member name="render_scale" type="Vector2" setter="set_render_scale" getter="get_render_scale" default="Vector2(1, 1)">
+			Scale applied after layouting. The scale pivot is defined by [member render_transform_pivot].
+		</member>
+		<member name="render_transform_pivot" type="Vector2" setter="set_render_transform_pivot" getter="get_render_transform_pivot" default="Vector2(0, 0)">
+			Pivot used for [member render_rotation] and [member render_scale]. If [member render_transform_pivot_relative_to_size] is [code]true[/code], the pivot is relative to the node's size, otherwise it represents absolute pixel values.
+		</member>
+		<member name="render_transform_pivot_relative_to_size" type="bool" setter="set_render_transform_pivot_relative_to_size" getter="get_render_transform_pivot_relative_to_size" default="true">
+			If [code]true[/code], [member render_transform_pivot] is relative to the node's [member size], otherwise it is absolute pixel values.
+		</member>
 		<member name="rotation" type="float" setter="set_rotation" getter="get_rotation" default="0.0">
 			The node's rotation around its pivot, in radians. See [member pivot_offset] to change the pivot's position.
 			[b]Note:[/b] This property is edited in the inspector in degrees. If you want to use degrees in a script, use [member rotation_degrees].
