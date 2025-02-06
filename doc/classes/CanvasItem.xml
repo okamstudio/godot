@@ -641,7 +641,7 @@
 		<member name="use_parent_material" type="bool" setter="set_use_parent_material" getter="get_use_parent_material" default="false">
 			If [code]true[/code], the parent [CanvasItem]'s [member material] property is used as this one's material.
 		</member>
-		<member name="visibility_layer" type="int" setter="set_visibility_layer" getter="get_visibility_layer" default="1">
+		<member name="visibility_layer" type="int" setter="set_visibility_layer" getter="get_visibility_layer" default="4294967295">
 			The rendering layer in which this [CanvasItem] is rendered by [Viewport] nodes. A [Viewport] will render a [CanvasItem] if it and all its parents share a layer with the [Viewport]'s canvas cull mask.
 		</member>
 		<member name="visible" type="bool" setter="set_visible" getter="is_visible" default="true">
