@@ -907,15 +907,15 @@ void TextEdit::_notification(int p_what) {
 
 						if (highlight_current_line && highlighted_lines.has(Pair<int, int>(minimap_line, line_wrap_index))) {
 							if (rtl) {
-								RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(size.width - (xmargin_end + 2) - minimap_width, i * 3, minimap_width, 2), theme_cache.current_line_color);
+								RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(size.width - (xmargin_end + 2) - minimap_width, (i * minimap_line_height), minimap_width, minimap_line_height / 2), theme_cache.current_line_color);
 							} else {
-								RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2((xmargin_end + 2), i * 3, minimap_width, 2), theme_cache.current_line_color);
+								RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2((xmargin_end + 2), (i * minimap_line_height), minimap_width, minimap_line_height / 2), theme_cache.current_line_color);
 							}
 						} else if (line_background_color.a > 0) {
 							if (rtl) {
-								RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(size.width - (xmargin_end + 2) - minimap_width, i * 3, minimap_width, 2), line_background_color);
+								RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(size.width - (xmargin_end + 2) - minimap_width, (i * minimap_line_height), minimap_width, minimap_line_height / 2), line_background_color);
 							} else {
-								RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2((xmargin_end + 2), i * 3, minimap_width, 2), line_background_color);
+								RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2((xmargin_end + 2), (i * minimap_line_height), minimap_width, minimap_line_height / 2), line_background_color);
 							}
 						}
 
@@ -6079,6 +6079,37 @@ int TextEdit::get_minimap_width() const {
 	return minimap_width;
 }
 
+void TextEdit::set_minimap_line_scale(float p_minimap_line_scale) {
+	if (minimap_line_scale == p_minimap_line_scale) {
+		return;
+	}
+
+	minimap_line_scale = p_minimap_line_scale;
+	// Essentially override the minimap_char_size with the new scale values.
+	minimap_char_size.y = minimap_line_scale;
+	minimap_char_size.x = minimap_line_scale / 2.0;
+	_update_wrap_at_column();
+	queue_redraw();
+}
+
+float TextEdit::get_minimap_line_scale() const {
+	return minimap_line_scale;
+}
+
+void TextEdit::set_minimap_line_spacing(float p_minimap_line_spacing) {
+	if (minimap_line_spacing == p_minimap_line_spacing) {
+		return;
+	}
+
+	minimap_line_spacing = p_minimap_line_spacing;
+	_update_wrap_at_column();
+	queue_redraw();
+}
+
+float TextEdit::get_minimap_line_spacing() const {
+	return minimap_line_spacing;
+}
+
 int TextEdit::get_minimap_visible_lines() const {
 	return _get_control_height() / (minimap_char_size.y + minimap_line_spacing);
 }
@@ -6827,6 +6858,12 @@ void TextEdit::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_minimap_width", "width"), &TextEdit::set_minimap_width);
 	ClassDB::bind_method(D_METHOD("get_minimap_width"), &TextEdit::get_minimap_width);
 
+	ClassDB::bind_method(D_METHOD("set_minimap_line_scale", "line_scale"), &TextEdit::set_minimap_line_scale);
+	ClassDB::bind_method(D_METHOD("get_minimap_line_scale"), &TextEdit::get_minimap_line_scale);
+
+	ClassDB::bind_method(D_METHOD("set_minimap_line_spacing", "line_spacing"), &TextEdit::set_minimap_line_spacing);
+	ClassDB::bind_method(D_METHOD("get_minimap_line_spacing"), &TextEdit::get_minimap_line_spacing);
+
 	ClassDB::bind_method(D_METHOD("get_minimap_visible_lines"), &TextEdit::get_minimap_visible_lines);
 
 	/* Gutters. */
@@ -6931,6 +6968,8 @@ void TextEdit::_bind_methods() {
 	ADD_GROUP("Minimap", "minimap_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "minimap_draw"), "set_draw_minimap", "is_drawing_minimap");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "minimap_width", PROPERTY_HINT_NONE, "suffix:px"), "set_minimap_width", "get_minimap_width");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "minimap_line_scale", PROPERTY_HINT_NONE, "suffix:px"), "set_minimap_line_scale", "get_minimap_line_scale");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "minimap_line_spacing", PROPERTY_HINT_NONE, "suffix:px"), "set_minimap_line_spacing", "get_minimap_line_spacing");
 
 	ADD_GROUP("Caret", "caret_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "caret_type", PROPERTY_HINT_ENUM, "Line,Block"), "set_caret_type", "get_caret_type");

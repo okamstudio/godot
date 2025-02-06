@@ -1325,6 +1325,12 @@
 		<member name="minimap_draw" type="bool" setter="set_draw_minimap" getter="is_drawing_minimap" default="false">
 			If [code]true[/code], a minimap is shown, providing an outline of your source code. The minimap uses a fixed-width text size.
 		</member>
+		<member name="minimap_line_scale" type="float" setter="set_minimap_line_scale" getter="get_minimap_line_scale" default="2.0">
+			The line scale, in pixels, of the minimap.
+		</member>
+		<member name="minimap_line_spacing" type="float" setter="set_minimap_line_spacing" getter="get_minimap_line_spacing" default="2.0">
+			The line spacing, in pixels, of the minimap.
+		</member>
 		<member name="minimap_width" type="int" setter="set_minimap_width" getter="get_minimap_width" default="80">
 			The width, in pixels, of the minimap.
 		</member>

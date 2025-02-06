@@ -7984,6 +7984,20 @@ TEST_CASE("[SceneTree][TextEdit] setter getters") {
 		CHECK(text_edit->get_minimap_width() == 1000);
 	}
 
+	SUBCASE("[TextEdit] minimap line_spacing") {
+		text_edit->set_minimap_line_spacing(2.0);
+		CHECK(text_edit->get_minimap_line_spacing() == 2.0);
+		text_edit->set_minimap_line_spacing(4.0);
+		CHECK(text_edit->get_minimap_line_spacing() == 4.0);
+	}
+
+	SUBCASE("[TextEdit] minimap line_scale") {
+		text_edit->set_minimap_line_scale(2.0);
+		CHECK(text_edit->get_minimap_line_scale() == 2.0);
+		text_edit->set_minimap_line_scale(4.0);
+		CHECK(text_edit->get_minimap_line_scale() == 4.0);
+	}
+
 	SUBCASE("[TextEdit] line color background") {
 		ERR_PRINT_OFF;
 		text_edit->set_line_background_color(-1, Color("#ff0000"));

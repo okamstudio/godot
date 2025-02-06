@@ -1202,6 +1202,12 @@
 		<member name="text_editor/appearance/lines/word_wrap" type="int" setter="" getter="">
 			If [code]true[/code], wraps long lines over multiple lines to avoid horizontal scrolling. This is a display-only feature; it does not actually insert line breaks in your scripts.
 		</member>
+		<member name="text_editor/appearance/minimap/minimap_line_scale" type="float" setter="" getter="">
+			The line scale of the minimap in the script editor (in pixels).
+		</member>
+		<member name="text_editor/appearance/minimap/minimap_line_spacing" type="float" setter="" getter="">
+			The line spacing of the minimap in the script editor (in pixels).
+		</member>
 		<member name="text_editor/appearance/minimap/minimap_width" type="int" setter="" getter="">
 			The width of the minimap in the script editor (in pixels).
 		</member>

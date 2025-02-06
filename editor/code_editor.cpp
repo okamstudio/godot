@@ -1116,6 +1116,8 @@ void CodeTextEditor::update_editor_settings() {
 	// Appearance: Minimap
 	text_editor->set_draw_minimap(EDITOR_GET("text_editor/appearance/minimap/show_minimap"));
 	text_editor->set_minimap_width((int)EDITOR_GET("text_editor/appearance/minimap/minimap_width") * EDSCALE);
+	text_editor->set_minimap_line_scale((float)EDITOR_GET("text_editor/appearance/minimap/minimap_line_scale") * EDSCALE);
+	text_editor->set_minimap_line_spacing((float)EDITOR_GET("text_editor/appearance/minimap/minimap_line_spacing") * EDSCALE);
 
 	// Appearance: Lines
 	text_editor->set_line_folding_enabled(EDITOR_GET("text_editor/appearance/lines/code_folding"));
