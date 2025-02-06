@@ -216,12 +216,14 @@ private:
 		Ref<AudioStream> stream;
 		Ref<AudioStreamPlayback> playback;
 		bool active = false;
+		bool queue_active = false; // Whether the state has just been queued to become active
 		double fade_wait = 0; // Time to wait until fade kicks-in
 		double fade_volume = 1.0;
 		double fade_speed = 0; // Fade speed, negative or positive
 		int auto_advance = -1;
 		bool first_mix = true;
-		double previous_position = 0;
+		double previous_position = 0; // Position used for "Hold Previous"
+		double before_mix_position = 0; // Position of playback before the current/latest mix began
 
 		void reset_fade() {
 			fade_wait = 0;

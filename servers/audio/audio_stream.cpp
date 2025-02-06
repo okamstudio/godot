@@ -231,8 +231,13 @@ int AudioStreamPlaybackResampled::mix(AudioFrame *p_buffer, float p_rate_scale, 
 			internal_buffer[3] = internal_buffer[INTERNAL_BUFFER_LEN + 3];
 			int mixed_frames = _mix_internal(internal_buffer + 4, INTERNAL_BUFFER_LEN);
 			if (mixed_frames != INTERNAL_BUFFER_LEN) {
-				// internal_buffer[mixed_frames] is the first frame of silence.
-				internal_buffer_end = mixed_frames;
+				// internal_buffer[mixed_frames + 4] is the first frame of silence.
+				internal_buffer_end = mixed_frames + 4;
+
+				// Fill old (garbage) data with silence.
+				for (int j = mixed_frames + 4; j < INTERNAL_BUFFER_LEN + 4; j++) {
+					internal_buffer[j] = AudioFrame(0, 0);
+				}
 			} else {
 				// The internal buffer does not contain the first frame of silence.
 				internal_buffer_end = -1;
