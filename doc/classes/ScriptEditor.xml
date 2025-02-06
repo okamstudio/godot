@@ -91,6 +91,14 @@
 				[b]Note:[/b] Does not apply to scripts that are already opened.
 			</description>
 		</method>
+		<method name="reload_open_files">
+			<return type="void" />
+			<param index="0" name="refresh_only" type="bool" default="false" />
+			<description>
+				Reload all currently opened files if [param refresh_only] is [code]false[/code]. When [param refresh_only] is [code]true[/code], only modified files are reloaded.
+				[b]Note:[/b] This method has no effect if an external editor is currently active.
+			</description>
+		</method>
 		<method name="unregister_syntax_highlighter">
 			<return type="void" />
 			<param index="0" name="syntax_highlighter" type="EditorSyntaxHighlighter" />

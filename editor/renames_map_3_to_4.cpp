@@ -478,6 +478,7 @@ const char *RenamesMap3To4::gdscript_function_renames[][2] = {
 	{ "region_bake_navmesh", "region_bake_navigation_mesh" }, // Navigation3DServer
 	{ "region_set_navmesh", "region_set_navigation_mesh" }, // Navigation3DServer
 	{ "region_set_navpoly", "region_set_navigation_polygon" }, // Navigation2DServer
+	{ "reload_scripts", "reload_open_files" }, // ScriptEditor
 	{ "remove_animation", "remove_animation_library" }, // AnimationPlayer
 	{ "remove_color_override", "remove_theme_color_override" }, // Control
 	{ "remove_constant_override", "remove_theme_constant_override" }, // Control
