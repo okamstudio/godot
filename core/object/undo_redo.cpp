@@ -63,6 +63,23 @@ void UndoRedo::discard_redo() {
 	actions.resize(current_action + 1);
 }
 
+void UndoRedo::cancel_action() {
+	ERR_FAIL_COND(action_level <= 0);
+	action_level--;
+
+	Action &head_action = actions.write[actions.size() - 1];
+
+	for (Operation &E : head_action.do_ops) {
+		E.delete_reference();
+	}
+
+	for (Operation &E : head_action.undo_ops) {
+		E.delete_reference();
+	}
+
+	actions.resize(actions.size() - 1);
+}
+
 bool UndoRedo::_redo(bool p_execute) {
 	ERR_FAIL_COND_V(action_level > 0, false);
 
@@ -525,6 +542,7 @@ UndoRedo::~UndoRedo() {
 void UndoRedo::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("create_action", "name", "merge_mode", "backward_undo_ops"), &UndoRedo::create_action, DEFVAL(MERGE_DISABLE), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("commit_action", "execute"), &UndoRedo::commit_action, DEFVAL(true));
+	ClassDB::bind_method(D_METHOD("cancel_action"), &UndoRedo::cancel_action);
 	ClassDB::bind_method(D_METHOD("is_committing_action"), &UndoRedo::is_committing_action);
 
 	ClassDB::bind_method(D_METHOD("add_do_method", "callable"), &UndoRedo::add_do_method);

@@ -119,6 +119,7 @@ public:
 
 	bool is_committing_action() const;
 	void commit_action(bool p_execute = true);
+	void cancel_action();
 
 	bool redo();
 	bool undo();

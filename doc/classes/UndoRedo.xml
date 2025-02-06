@@ -156,6 +156,12 @@
 				[/codeblock]
 			</description>
 		</method>
+		<method name="cancel_action">
+			<return type="void" />
+			<description>
+				Cancel the action. The action, along with its added "do" and "undo" methods/properties will be discarded when this function is called. This won't do anything if the action has been committed.
+			</description>
+		</method>
 		<method name="clear_history">
 			<return type="void" />
 			<param index="0" name="increase_version" type="bool" default="true" />
