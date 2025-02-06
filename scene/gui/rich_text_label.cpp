@@ -909,8 +909,9 @@ int RichTextLabel::_draw_line(ItemFrame *p_frame, int p_line, const Vector2 &p_o
 		RID rid = l.text_buf->get_line_rid(line);
 		double l_ascent = TS->shaped_text_get_ascent(rid);
 		Size2 l_size = TS->shaped_text_get_size(rid);
-		double upos = TS->shaped_text_get_underline_position(rid);
-		double uth = TS->shaped_text_get_underline_thickness(rid);
+		double upos = TS->shaped_text_get_underline_position(rid) + theme_cache.underline_offset;
+		double uth = theme_cache.underline_thickness ? theme_cache.underline_thickness : TS->shaped_text_get_underline_thickness(rid);
+		double sth = theme_cache.strikethrough_thickness ? theme_cache.strikethrough_thickness : TS->shaped_text_get_underline_thickness(rid);
 
 		off.y += l_ascent;
 
@@ -1125,9 +1126,9 @@ int RichTextLabel::_draw_line(ItemFrame *p_frame, int p_line, const Vector2 &p_o
 					}
 					if (_find_strikethrough(it)) {
 						if (st_started && font_color != st_color_prev) {
-							float y_off = -l_ascent + l_size.y / 2;
-							float underline_width = MAX(1.0, uth * theme_cache.base_scale);
-							draw_line(st_start + Vector2(0, y_off), p_ofs + Vector2(off_step.x, off_step.y + y_off), st_color, underline_width);
+							float y_off = (-l_ascent + l_size.y / 2) + theme_cache.strikethrough_offset;
+							float strikethrough_width = MAX(1.0, sth * theme_cache.base_scale);
+							draw_line(st_start + Vector2(0, y_off), p_ofs + Vector2(off_step.x, off_step.y + y_off), st_color, strikethrough_width);
 							st_start = p_ofs + Vector2(off_step.x, off_step.y);
 							st_color_prev = font_color;
 							st_color = font_color;
@@ -1141,9 +1142,9 @@ int RichTextLabel::_draw_line(ItemFrame *p_frame, int p_line, const Vector2 &p_o
 						}
 					} else if (st_started) {
 						st_started = false;
-						float y_off = -l_ascent + l_size.y / 2;
-						float underline_width = MAX(1.0, uth * theme_cache.base_scale);
-						draw_line(st_start + Vector2(0, y_off), p_ofs + Vector2(off_step.x, off_step.y + y_off), st_color, underline_width);
+						float y_off = (-l_ascent + l_size.y / 2) + theme_cache.strikethrough_offset;
+						float strikethrough_width = MAX(1.0, sth * theme_cache.base_scale);
+						draw_line(st_start + Vector2(0, y_off), p_ofs + Vector2(off_step.x, off_step.y + y_off), st_color, strikethrough_width);
 					}
 				}
 				if (step == DRAW_STEP_SHADOW || step == DRAW_STEP_OUTLINE || step == DRAW_STEP_TEXT) {
@@ -1338,9 +1339,9 @@ int RichTextLabel::_draw_line(ItemFrame *p_frame, int p_line, const Vector2 &p_o
 							}
 							if (st_started) {
 								st_started = false;
-								float y_off = -l_ascent + l_size.y / 2;
-								float underline_width = MAX(1.0, uth * theme_cache.base_scale);
-								draw_line(st_start + Vector2(0, y_off), p_ofs + Vector2(off_step.x, off_step.y + y_off), st_color, underline_width);
+								float y_off = upos + theme_cache.strikethrough_offset;
+								float strikethrough_width = MAX(1.0, sth * theme_cache.base_scale);
+								draw_line(st_start + Vector2(0, y_off), p_ofs + Vector2(off_step.x, off_step.y + y_off), st_color, strikethrough_width);
 							}
 						}
 						off_step.x += glyphs[i].advance;
@@ -1416,9 +1417,9 @@ int RichTextLabel::_draw_line(ItemFrame *p_frame, int p_line, const Vector2 &p_o
 				}
 				if (st_started) {
 					st_started = false;
-					float y_off = -l_ascent + l_size.y / 2;
-					float underline_width = MAX(1.0, uth * theme_cache.base_scale);
-					draw_line(st_start + Vector2(0, y_off), p_ofs + Vector2(off_step.x, off_step.y + y_off), st_color, underline_width);
+					float y_off = (-l_ascent + l_size.y / 2) + theme_cache.strikethrough_offset;
+					float strikethrough_width = MAX(1.0, sth * theme_cache.base_scale);
+					draw_line(st_start + Vector2(0, y_off), p_ofs + Vector2(off_step.x, off_step.y + y_off), st_color, strikethrough_width);
 				}
 			}
 		}
@@ -6687,6 +6688,11 @@ void RichTextLabel::_bind_methods() {
 
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, RichTextLabel, text_highlight_h_padding);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, RichTextLabel, text_highlight_v_padding);
+
+	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, RichTextLabel, underline_offset);
+	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, RichTextLabel, underline_thickness);
+	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, RichTextLabel, strikethrough_offset);
+	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, RichTextLabel, strikethrough_thickness);
 
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, RichTextLabel, table_h_separation);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, RichTextLabel, table_v_separation);

@@ -848,6 +848,12 @@
 		<theme_item name="shadow_outline_size" data_type="constant" type="int" default="1">
 			The size of the shadow outline.
 		</theme_item>
+		<theme_item name="strikethrough_offset" data_type="constant" type="int" default="0">
+			The offset for the strikethrough position in pixels. Positive values move the strikethrough downwards, while negative values move it upwards.
+		</theme_item>
+		<theme_item name="strikethrough_thickness" data_type="constant" type="int" default="0">
+			The strikethrough's thickness in pixels. If set to [code]0[/code], the value from the font metadata is used instead (and is automatically scaled according to the base font size).
+		</theme_item>
 		<theme_item name="table_h_separation" data_type="constant" type="int" default="3">
 			The horizontal separation of elements in a table.
 		</theme_item>
@@ -859,6 +865,12 @@
 		</theme_item>
 		<theme_item name="text_highlight_v_padding" data_type="constant" type="int" default="3">
 			The vertical padding around boxes drawn by the [code][fgcolor][/code] and [code][bgcolor][/code] tags. This does not affect the appearance of text selection.
+		</theme_item>
+		<theme_item name="underline_offset" data_type="constant" type="int" default="0">
+			The offset for the underline position in pixels. This value is added to the underline position defined in the font metadata. Positive values move the underline downwards, while negative values move it upwards.
+		</theme_item>
+		<theme_item name="underline_thickness" data_type="constant" type="int" default="0">
+			The underline's thickness in pixels. If set to [code]0[/code], the value from the font metadata is used instead (and is automatically scaled according to the base font size).
 		</theme_item>
 		<theme_item name="bold_font" data_type="font" type="Font">
 			The font used for bold text.
