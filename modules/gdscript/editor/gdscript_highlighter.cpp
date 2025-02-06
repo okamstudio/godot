@@ -808,7 +808,7 @@ void GDScriptSyntaxHighlighter::_update_cache() {
 	add_color_region(ColorRegion::TYPE_MULTILINE_STRING, "\"\"\"", "\"\"\"", string_color, false, true);
 	add_color_region(ColorRegion::TYPE_MULTILINE_STRING, "'''", "'''", string_color, false, true);
 
-	const Ref<Script> scr = _get_edited_resource();
+	const Ref<GDScript> scr = _get_edited_resource();
 	if (scr.is_valid()) {
 		/* Member types. */
 		const Color member_variable_color = EDITOR_GET("text_editor/theme/highlighting/member_variable_color");
@@ -832,6 +832,9 @@ void GDScriptSyntaxHighlighter::_update_cache() {
 			for (const String &E : clist) {
 				member_keywords[E] = member_variable_color;
 			}
+		}
+		for (const KeyValue<StringName, Ref<GDScript>> &E : scr->get_subclasses()) {
+			class_names[E.key] = usertype_color;
 		}
 	}
 
