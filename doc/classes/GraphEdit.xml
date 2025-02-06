@@ -208,6 +208,23 @@
 				Returns the points which would make up a connection between [param from_node] and [param to_node].
 			</description>
 		</method>
+		<method name="get_connection_list_from_node" qualifiers="const">
+			<return type="Dictionary[]" />
+			<param index="0" name="node" type="StringName" />
+			<description>
+				Returns an [Array] containing a list of all connections for [param node].
+				A connection is represented as a [Dictionary] in the form of:
+				[codeblock]
+				{
+				    from_node: StringName,
+				    from_port: int,
+				    to_node: StringName,
+				    to_port: int,
+				    keep_alive: bool
+				}
+				[/codeblock]
+			</description>
+		</method>
 		<method name="get_connections_intersecting_with_rect" qualifiers="const">
 			<return type="Dictionary[]" />
 			<param index="0" name="rect" type="Rect2" />

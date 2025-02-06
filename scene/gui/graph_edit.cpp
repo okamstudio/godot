@@ -2329,6 +2329,22 @@ TypedArray<Dictionary> GraphEdit::_get_connections_intersecting_with_rect(const 
 	return arr;
 }
 
+TypedArray<Dictionary> GraphEdit::_get_connection_list_from_node(const StringName &p_node) const {
+	List<Ref<GraphEdit::Connection>> connections_from_node = connection_map.get(p_node);
+	TypedArray<Dictionary> connections_from_node_dict;
+
+	for (const Ref<Connection> &conn : connections_from_node) {
+		Dictionary d;
+		d["from_node"] = conn->from_node;
+		d["from_port"] = conn->from_port;
+		d["to_node"] = conn->to_node;
+		d["to_port"] = conn->to_port;
+		d["keep_alive"] = conn->keep_alive;
+		connections_from_node_dict.push_back(d);
+	}
+	return connections_from_node_dict;
+}
+
 void GraphEdit::_zoom_minus() {
 	set_zoom(zoom / zoom_step);
 }
@@ -2689,6 +2705,7 @@ void GraphEdit::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_connection_list"), &GraphEdit::_get_connection_list);
 	ClassDB::bind_method(D_METHOD("get_connection_count", "from_node", "from_port"), &GraphEdit::get_connection_count);
 	ClassDB::bind_method(D_METHOD("get_closest_connection_at_point", "point", "max_distance"), &GraphEdit::_get_closest_connection_at_point, DEFVAL(4.0));
+	ClassDB::bind_method(D_METHOD("get_connection_list_from_node", "node"), &GraphEdit::_get_connection_list_from_node);
 	ClassDB::bind_method(D_METHOD("get_connections_intersecting_with_rect", "rect"), &GraphEdit::_get_connections_intersecting_with_rect);
 	ClassDB::bind_method(D_METHOD("clear_connections"), &GraphEdit::clear_connections);
 	ClassDB::bind_method(D_METHOD("force_connection_drag_end"), &GraphEdit::force_connection_drag_end);
