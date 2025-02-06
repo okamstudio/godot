@@ -68,7 +68,7 @@ partial class AnimationTree
 
 partial class CodeEdit
 {
-    /// <inheritdoc cref="AddCodeCompletionOption(CodeCompletionKind, string, string, Nullable{Color}, Resource, Variant, int)"/>
+    /// <inheritdoc cref="AddCodeCompletionOption(CodeCompletionKind, string, string, Nullable{Color}, Resource, Variant, int, bool)"/>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public void AddCodeCompletionOption(CodeCompletionKind type, string displayText, string insertText, Nullable<Color> textColor, Resource icon, Nullable<Variant> value)
     {

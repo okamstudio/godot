@@ -316,6 +316,7 @@ public:
 		String display;
 		String insert_text;
 		Color font_color;
+		bool deprecated = false;
 		Ref<Resource> icon;
 		Variant default_value;
 		Vector<Pair<int, int>> matches;
