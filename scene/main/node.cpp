@@ -1770,13 +1770,21 @@ Node *Node::get_child(int p_index, bool p_include_internal) const {
 		if (p_index < 0) {
 			p_index += data.children_cache.size();
 		}
-		ERR_FAIL_INDEX_V(p_index, (int)data.children_cache.size(), nullptr);
+		ERR_FAIL_INDEX_V_MSG(p_index, (int)data.children_cache.size(), nullptr,
+				vformat("%s: Can't get child node at index %d, since the node only has %d children (including internal children).",
+						is_inside_tree() ? String(get_path()) : String(get_name()) + " (out-of-tree)",
+						p_index,
+						(int)data.children_cache.size()));
 		return data.children_cache[p_index];
 	} else {
 		if (p_index < 0) {
 			p_index += (int)data.children_cache.size() - data.internal_children_front_count_cache - data.internal_children_back_count_cache;
 		}
-		ERR_FAIL_INDEX_V(p_index, (int)data.children_cache.size() - data.internal_children_front_count_cache - data.internal_children_back_count_cache, nullptr);
+		ERR_FAIL_INDEX_V_MSG(p_index, (int)data.children_cache.size() - data.internal_children_front_count_cache - data.internal_children_back_count_cache, nullptr,
+				vformat("%s: Can't get child node at index %d, since the node only has %d children.",
+						is_inside_tree() ? String(get_path()) : String(get_name()) + " (out-of-tree)",
+						p_index,
+						(int)data.children_cache.size()));
 		p_index += data.internal_children_front_count_cache;
 		return data.children_cache[p_index];
 	}
@@ -1809,7 +1817,7 @@ Node *Node::get_node_or_null(const NodePath &p_path) const {
 		return nullptr;
 	}
 
-	ERR_FAIL_COND_V_MSG(!data.inside_tree && p_path.is_absolute(), nullptr, "Can't use get_node() with absolute paths from outside the active scene tree.");
+	ERR_FAIL_COND_V_MSG(!data.inside_tree && p_path.is_absolute(), nullptr, vformat("Can't use get_node() with absolute path \"%s\" from outside the active scene tree.", p_path));
 
 	Node *current = nullptr;
 	Node *root = nullptr;
