@@ -392,6 +392,7 @@ public:
 	virtual FenceID fence_create() override;
 	virtual Error fence_wait(FenceID p_fence) override;
 	virtual void fence_free(FenceID p_fence) override;
+	virtual Error fence_status(FenceID p_fence, bool &p_status) override;
 
 private:
 	/********************/

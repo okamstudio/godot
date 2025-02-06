@@ -6246,6 +6246,21 @@ void RenderingDevice::sync() {
 	local_device_processing = false;
 }
 
+bool RenderingDevice::try_sync() {
+	_THREAD_SAFE_METHOD_
+	ERR_FAIL_COND_V_MSG(is_main_instance, false, "Only local devices can submit and sync.");
+	ERR_FAIL_COND_V_MSG(!local_device_processing, false, "sync can only be called after a submit");
+	bool status;
+	Error err = driver->fence_status(frames[frame].draw_fence, status);
+	ERR_FAIL_COND_V_MSG(err != OK, false, "Failed to get fence status");
+	if (status) {
+		frames[frame].draw_fence_signaled = false;
+		_begin_frame();
+	}
+
+	return status;
+}
+
 void RenderingDevice::_free_pending_resources(int p_frame) {
 	// Free in dependency usage order, so nothing weird happens.
 	// Pipelines.
@@ -7388,6 +7403,7 @@ void RenderingDevice::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_frame_delay"), &RenderingDevice::get_frame_delay);
 	ClassDB::bind_method(D_METHOD("submit"), &RenderingDevice::submit);
 	ClassDB::bind_method(D_METHOD("sync"), &RenderingDevice::sync);
+	ClassDB::bind_method(D_METHOD("try_sync"), &RenderingDevice::try_sync);
 
 #ifndef DISABLE_DEPRECATED
 	ClassDB::bind_method(D_METHOD("barrier", "from", "to"), &RenderingDevice::barrier, DEFVAL(BARRIER_MASK_ALL_BARRIERS), DEFVAL(BARRIER_MASK_ALL_BARRIERS));

@@ -2174,6 +2174,24 @@ Error RenderingDeviceDriverD3D12::fence_wait(FenceID p_fence) {
 	return (res == WAIT_FAILED) ? FAILED : OK;
 }
 
+Error RenderingDeviceDriverD3D12::fence_status(FenceID p_fence, bool &p_status) {
+	FenceInfo *fence = (FenceInfo *)(p_fence.id);
+	UINT64 currentFenceValue = fence->d3d_fence->GetCompletedValue();
+
+	if (currentFenceValue == fence->fence_value) {
+		p_status = true;
+		// Signaled
+#ifdef PIX_ENABLED
+		PIXNotifyWakeFromFenceSignal(fence->event_handle);
+#endif
+	} else {
+		p_status = false;
+		// Not signaled
+	}
+
+	return OK;
+}
+
 void RenderingDeviceDriverD3D12::fence_free(FenceID p_fence) {
 	FenceInfo *fence = (FenceInfo *)(p_fence.id);
 	CloseHandle(fence->event_handle);

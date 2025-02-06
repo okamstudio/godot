@@ -2406,6 +2406,45 @@ Error RenderingDeviceDriverVulkan::fence_wait(FenceID p_fence) {
 	return OK;
 }
 
+Error RenderingDeviceDriverVulkan::fence_status(FenceID p_fence, bool &p_status) {
+	Fence *fence = (Fence *)(p_fence.id);
+	VkResult result = vkGetFenceStatus(vk_device, fence->vk_fence);
+	if (result == VK_SUCCESS) {
+		// Fence was signaled.
+		result = vkResetFences(vk_device, 1, &fence->vk_fence);
+		ERR_FAIL_COND_V(result != VK_SUCCESS, FAILED);
+
+		if (fence->queue_signaled_from != nullptr) {
+			// Release all semaphores that the command queue associated to the fence waited on the last time it was submitted.
+			LocalVector<Pair<Fence *, uint32_t>> &pairs = fence->queue_signaled_from->image_semaphores_for_fences;
+			uint32_t i = 0;
+			while (i < pairs.size()) {
+				if (pairs[i].first == fence) {
+					_release_image_semaphore(fence->queue_signaled_from, pairs[i].second, true);
+					fence->queue_signaled_from->free_image_semaphores.push_back(pairs[i].second);
+					pairs.remove_at(i);
+				} else {
+					i++;
+				}
+			}
+
+			fence->queue_signaled_from = nullptr;
+		}
+
+		p_status = true;
+
+		return OK;
+	} else if (result == VK_NOT_READY) {
+		// Fence was not signaled. We try again another time.
+		p_status = false;
+		return OK;
+	} else {
+		// Error.
+		p_status = false;
+		ERR_FAIL_V(FAILED);
+	}
+}
+
 void RenderingDeviceDriverVulkan::fence_free(FenceID p_fence) {
 	Fence *fence = (Fence *)(p_fence.id);
 	vkDestroyFence(vk_device, fence->vk_fence, VKC::get_allocation_callbacks(VK_OBJECT_TYPE_FENCE));

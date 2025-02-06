@@ -1069,6 +1069,15 @@
 				[b]Note:[/b] The existing [param texture] requires the [constant TEXTURE_USAGE_CAN_UPDATE_BIT] to be updatable.
 			</description>
 		</method>
+		<method name="try_sync">
+			<return type="bool" />
+			<description>
+				Similar to [method sync] but does not wait.
+				Returns [code]true[/code] if the sync was successful. Returns [code]false[/code] if more tries are needed.
+				[b]Note:[/b] Returns [code]false[/code] in case of failure.
+				[b]Note:[/b] Do not attempt to call this again if it returns [code]true[/code].
+			</description>
+		</method>
 		<method name="uniform_buffer_create">
 			<return type="RID" />
 			<param index="0" name="size_bytes" type="int" />

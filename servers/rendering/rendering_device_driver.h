@@ -398,6 +398,7 @@ public:
 	virtual FenceID fence_create() = 0;
 	virtual Error fence_wait(FenceID p_fence) = 0;
 	virtual void fence_free(FenceID p_fence) = 0;
+	virtual Error fence_status(FenceID p_fence, bool &p_signaled) = 0;
 
 	/********************/
 	/**** SEMAPHORES ****/
