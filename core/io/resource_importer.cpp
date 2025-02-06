@@ -250,7 +250,7 @@ Error ResourceFormatImporter::get_import_order_threads_and_importer(const String
 			importer = get_importer_by_name(pat.importer);
 		}
 	} else {
-		importer = get_importer_by_extension(p_path.get_extension().to_lower());
+		importer = get_importer_by_file(p_path);
 	}
 
 	if (importer.is_valid()) {
@@ -274,7 +274,7 @@ int ResourceFormatImporter::get_import_order(const String &p_path) const {
 			importer = get_importer_by_name(pat.importer);
 		}
 	} else {
-		importer = get_importer_by_extension(p_path.get_extension().to_lower());
+		importer = get_importer_by_file(p_path);
 	}
 
 	if (importer.is_valid()) {
@@ -459,12 +459,12 @@ void ResourceFormatImporter::add_importer(const Ref<ResourceImporter> &p_importe
 	}
 }
 
-void ResourceFormatImporter::get_importers_for_extension(const String &p_extension, List<Ref<ResourceImporter>> *r_importers) {
+void ResourceFormatImporter::get_importers_for_file(const String &p_file, List<Ref<ResourceImporter>> *r_importers) {
 	for (int i = 0; i < importers.size(); i++) {
 		List<String> local_exts;
 		importers[i]->get_recognized_extensions(&local_exts);
 		for (const String &F : local_exts) {
-			if (p_extension.to_lower() == F) {
+			if (p_file.right(F.length()).nocasecmp_to(F) == 0) {
 				r_importers->push_back(importers[i]);
 				break;
 			}
@@ -478,7 +478,7 @@ void ResourceFormatImporter::get_importers(List<Ref<ResourceImporter>> *r_import
 	}
 }
 
-Ref<ResourceImporter> ResourceFormatImporter::get_importer_by_extension(const String &p_extension) const {
+Ref<ResourceImporter> ResourceFormatImporter::get_importer_by_file(const String &p_file) const {
 	Ref<ResourceImporter> importer;
 	float priority = 0;
 
@@ -486,9 +486,10 @@ Ref<ResourceImporter> ResourceFormatImporter::get_importer_by_extension(const St
 		List<String> local_exts;
 		importers[i]->get_recognized_extensions(&local_exts);
 		for (const String &F : local_exts) {
-			if (p_extension.to_lower() == F && importers[i]->get_priority() > priority) {
+			if (p_file.right(F.length()).nocasecmp_to(F) == 0 && importers[i]->get_priority() > priority) {
 				importer = importers[i];
 				priority = importers[i]->get_priority();
+				break;
 			}
 		}
 	}

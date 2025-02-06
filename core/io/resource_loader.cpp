@@ -61,8 +61,6 @@ bool ResourceFormatLoader::recognize_path(const String &p_path, const String &p_
 		return ret;
 	}
 
-	String extension = p_path.get_extension();
-
 	List<String> extensions;
 	if (p_for_type.is_empty()) {
 		get_recognized_extensions(&extensions);
@@ -71,7 +69,8 @@ bool ResourceFormatLoader::recognize_path(const String &p_path, const String &p_
 	}
 
 	for (const String &E : extensions) {
-		if (E.nocasecmp_to(extension) == 0) {
+		const String ext = !E.begins_with(".") ? "." + E : E;
+		if (p_path.right(ext.length()).nocasecmp_to(ext) == 0) {
 			return true;
 		}
 	}

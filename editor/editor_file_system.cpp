@@ -898,7 +898,7 @@ bool EditorFileSystem::_update_scan_actions() {
 					Vector<String> dependencies = _get_dependencies(full_path);
 					for (const String &dep : dependencies) {
 						const String &dependency_path = dep.contains("::") ? dep.get_slice("::", 0) : dep;
-						if (import_extensions.has(dep.get_extension())) {
+						if (_can_import_file(dep)) {
 							reimports.push_back(dependency_path);
 						}
 					}
@@ -1139,7 +1139,7 @@ void EditorFileSystem::_process_file_system(const ScannedDirectory *p_scan_dir, 
 		FileCache *fc = file_cache.getptr(path);
 		uint64_t mt = FileAccess::get_modified_time(path);
 
-		if (import_extensions.has(ext)) {
+		if (_can_import_file(scan_file)) {
 			//is imported
 			uint64_t import_mt = FileAccess::get_modified_time(path + ".import");
 
@@ -1429,7 +1429,7 @@ void EditorFileSystem::_scan_fs_changes(EditorFileSystemDirectory *p_dir, ScanPr
 						scan_actions.push_back(ia);
 					}
 
-					if (import_extensions.has(ext)) {
+					if (_can_import_file(f)) {
 						//if it can be imported, and it was added, it needs to be reimported
 						ItemAction ia;
 						ia.action = ItemAction::ACTION_FILE_TEST_REIMPORT;
@@ -1461,7 +1461,7 @@ void EditorFileSystem::_scan_fs_changes(EditorFileSystemDirectory *p_dir, ScanPr
 
 		String path = cd.path_join(p_dir->files[i]->file);
 
-		if (import_extensions.has(p_dir->files[i]->file.get_extension().to_lower())) {
+		if (_can_import_file(p_dir->files[i]->file)) {
 			// Check here if file must be imported or not.
 			// Same logic as in _process_file_system, the last modifications dates
 			// needs to be trusted to prevent reading all the .import files and the md5
@@ -2726,7 +2726,7 @@ Error EditorFileSystem::_reimport_file(const String &p_file, const HashMap<Strin
 
 	if (importer.is_null()) {
 		//not found by name, find by extension
-		importer = ResourceFormatImporter::get_singleton()->get_importer_by_extension(p_file.get_extension());
+		importer = ResourceFormatImporter::get_singleton()->get_importer_by_file(p_file);
 		load_default = true;
 		if (importer.is_null()) {
 			ERR_FAIL_V_MSG(ERR_FILE_CANT_OPEN, "BUG: File queued for import, but can't be imported, importer for type '" + importer_name + "' not found.");
@@ -3531,8 +3531,18 @@ void EditorFileSystem::_update_extensions() {
 	extensionsl.clear();
 	ResourceFormatImporter::get_singleton()->get_recognized_extensions(&extensionsl);
 	for (const String &E : extensionsl) {
-		import_extensions.insert(E);
+		import_extensions.insert(!E.begins_with(".") ? "." + E : E);
 	}
+}
+
+bool EditorFileSystem::_can_import_file(const String &p_file) {
+	for (const String &F : import_extensions) {
+		if (p_file.right(F.length()).nocasecmp_to(F) == 0) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void EditorFileSystem::add_import_format_support_query(Ref<EditorFileSystemImportFormatSupportQuery> p_query) {
