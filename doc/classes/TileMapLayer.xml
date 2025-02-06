@@ -229,6 +229,19 @@
 				[b]Note:[/b] This does not trigger a direct update of the [TileMapLayer], the update will be done at the end of the frame as usual (unless you call [method update_internals]).
 			</description>
 		</method>
+		<method name="place_random_tiles">
+			<return type="void" />
+			<param index="0" name="atlas_coords_array" type="Array" />
+			<param index="1" name="region" type="Rect2i" />
+			<param index="2" name="scattering_probability" type="float" />
+			<param index="3" name="replace_tile" type="bool" />
+			<description>
+				Places random tiles within a specified region.
+				The [param atlas_coords_array] is an array of [Vector4i] elements, where the first element is the source ID of the atlas, the second element is the X-index, and the third element is the Y-index for the desired atlas tile, the fourth element is the optional alternative tile to use. If the atlas source ID is a scene collection, the first element is the scene collection source ID, the next element is the scene ID within that collection, and the last two values are ignored.
+				The [param scattering_probability] is a [float] from 0 to 1 that defines the probability of placing a tile in a cell. If set to [code]0[/code], all cells in the region will be filled with a random tile from the [param atlas_coords_array].
+				The [param replace_tile] parameter defines whether to replace existing tiles in the region. If set to [code]true[/code], existing tiles will be replaced with random tiles from the [param atlas_coords_array], otherwise, no existing tiles will be replaced.
+			</description>
+		</method>
 		<method name="set_cell">
 			<return type="void" />
 			<param index="0" name="coords" type="Vector2i" />

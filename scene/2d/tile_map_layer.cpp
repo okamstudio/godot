@@ -1807,6 +1807,7 @@ void TileMapLayer::_bind_methods() {
 	// --- Cells manipulation ---
 	// Generic cells manipulations and access.
 	ClassDB::bind_method(D_METHOD("set_cell", "coords", "source_id", "atlas_coords", "alternative_tile"), &TileMapLayer::set_cell, DEFVAL(TileSet::INVALID_SOURCE), DEFVAL(TileSetSource::INVALID_ATLAS_COORDS), DEFVAL(0));
+	ClassDB::bind_method(D_METHOD("place_random_tiles", "atlas_coords_array", "region", "scattering_probability", "replace_tile"), &TileMapLayer::place_random_tiles);
 	ClassDB::bind_method(D_METHOD("erase_cell", "coords"), &TileMapLayer::erase_cell);
 	ClassDB::bind_method(D_METHOD("fix_invalid_tiles"), &TileMapLayer::fix_invalid_tiles);
 	ClassDB::bind_method(D_METHOD("clear"), &TileMapLayer::clear);
@@ -2405,6 +2406,110 @@ void TileMapLayer::set_cell(const Vector2i &p_coords, int p_source_id, const Vec
 	_queue_internal_update();
 
 	used_rect_cache_dirty = true;
+}
+
+void TileMapLayer::place_random_tiles(Array atlas_coords_array, Rect2i region, float scattering_probability, bool replace_tile) {
+	// Validate the input
+	if (atlas_coords_array.is_empty()) {
+		return;
+	}
+
+	// Initialize the maximum coordinates for the region
+	int max_x = region.position.x + region.size.x;
+	int max_y = region.position.y + region.size.y;
+
+	// Precompute the sum of probabilities and store them in a vector for quick access
+	Vector<double> probabilities;
+	probabilities.resize(atlas_coords_array.size());
+	double sum = 0.0;
+
+	for (int i = 0; i < atlas_coords_array.size(); ++i) {
+		Vector4i tile_info = atlas_coords_array[i];
+		int source_id = tile_info.x;
+		int scene_id = tile_info.y; // Used for scene collections
+		Vector2i atlas_coords(tile_info.z, tile_info.w); // Used for 2D tile atlases
+
+		Ref<TileSetSource> source = tile_set->get_source(source_id);
+
+		// Check if the source is a TileSetAtlasSource
+		Ref<TileSetAtlasSource> atlas_source = source;
+		if (atlas_source.is_valid()) {
+			if (atlas_source->has_tile(atlas_coords)) {
+				TileData *tile_data = atlas_source->get_tile_data(atlas_coords, 0);
+				if (tile_data) {
+					sum += tile_data->get_probability();
+					probabilities.set(i, sum);
+				}
+			}
+		} else {
+			// Handle scene collections
+			Ref<TileSetScenesCollectionSource> scenes_collection_source = source;
+			if (scenes_collection_source.is_valid()) {
+				if (scenes_collection_source->has_scene_tile_id(scene_id)) {
+					// For scene collections, we don’t need to calculate probability
+					sum += 1.0; // Treat each scene as having equal probability
+					probabilities.set(i, sum);
+				}
+			}
+		}
+	}
+
+	// Loop through each cell in the specified region
+	for (int x = region.position.x; x < max_x; ++x) {
+		for (int y = region.position.y; y < max_y; ++y) {
+			// Use the scattering value to decide whether to place a tile
+			if (Math::randf() > scattering_probability) {
+				continue; // Skip placing a tile in this cell
+			}
+
+			// Check if we should replace existing tiles
+			if (!replace_tile) {
+				int existing_source_id = get_cell_source_id(Vector2i(x, y));
+				if (existing_source_id != -1) {
+					continue; // Skip this cell if it already has a tile and we shouldn't replace it
+				}
+			}
+
+			// Generate a random number to pick a tile based on precomputed probabilities
+			double picked = Math::randf() * sum;
+			for (int i = 0; i < probabilities.size(); ++i) {
+				if (picked <= probabilities[i]) {
+					Vector4i tile_info = atlas_coords_array[i];
+					int source_id = tile_info.x;
+					int scene_id = tile_info.y; // Used for scene collections
+					Vector2i atlas_coords(tile_info.z, tile_info.w); // Used for 2D tile atlases
+
+					Ref<TileSetSource> source = tile_set->get_source(source_id);
+					Ref<TileSetAtlasSource> atlas_source = source;
+
+					if (atlas_source.is_valid()) {
+						if (atlas_source->has_tile(atlas_coords)) {
+							set_cell(Vector2i(x, y), source_id, atlas_coords, 0);
+						}
+					} else {
+						// Handle scene collections
+						Ref<TileSetScenesCollectionSource> scenes_collection_source = source;
+						if (scenes_collection_source.is_valid()) {
+							if (scenes_collection_source->has_scene_tile_id(scene_id)) {
+								Ref<PackedScene> scene = scenes_collection_source->get_scene_tile_scene(scene_id);
+								if (scene.is_valid()) {
+									// Create an instance of the scene
+									Node2D *node = Object::cast_to<Node2D>(scene->instantiate());
+									if (node) {
+										// Set the position of the node
+										Vector2 local_position = map_to_local(Vector2(x, y));
+										node->set_position(local_position);
+										add_child(node);
+									}
+								}
+							}
+						}
+					}
+					break;
+				}
+			}
+		}
+	}
 }
 
 void TileMapLayer::erase_cell(const Vector2i &p_coords) {
