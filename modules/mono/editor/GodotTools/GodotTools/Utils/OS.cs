@@ -53,6 +53,7 @@ namespace GodotTools.Utils
             public const string Win = "win";
             public const string OSX = "osx";
             public const string Linux = "linux";
+            public const string LinuxBionic = "linux-bionic";
             public const string Win10 = "win10";
             public const string Android = "android";
             public const string iOS = "ios";
