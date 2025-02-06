@@ -162,6 +162,9 @@ void SpringArm3D::process_spring() {
 			shape_params.collision_mask = mask;
 
 			get_world_3d()->get_direct_space_state()->cast_motion(shape_params, motion_delta, motion_delta_unsafe);
+			if (motion_delta != 1) {
+				motion_delta -= margin / spring_length;
+			}
 		} else {
 			PhysicsDirectSpaceState3D::RayParameters ray_params;
 			ray_params.from = get_global_transform().origin;
@@ -186,6 +189,9 @@ void SpringArm3D::process_spring() {
 		shape_params.collision_mask = mask;
 
 		get_world_3d()->get_direct_space_state()->cast_motion(shape_params, motion_delta, motion_delta_unsafe);
+		if (motion_delta != 1) {
+			motion_delta -= margin / spring_length;
+		}
 	}
 
 	current_spring_length = spring_length * motion_delta;
