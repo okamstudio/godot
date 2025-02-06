@@ -192,7 +192,7 @@
 				To get a [bool] result from a string comparison, use the [code]==[/code] operator instead. See also [method filecasecmp_to], [method naturalnocasecmp_to], and [method nocasecmp_to].
 			</description>
 		</method>
-		<method name="find" qualifiers="const">
+		<method name="find" qualifiers="const" keywords="search">
 			<return type="int" />
 			<param index="0" name="what" type="String" />
 			<param index="1" name="from" type="int" default="0" />
@@ -217,7 +217,7 @@
 				[b]Note:[/b] If you just want to know whether the string contains [param what], use [method contains]. In GDScript, you may also use the [code]in[/code] operator.
 			</description>
 		</method>
-		<method name="findn" qualifiers="const">
+		<method name="findn" qualifiers="const" keywords="searchn">
 			<return type="int" />
 			<param index="0" name="what" type="String" />
 			<param index="1" name="from" type="int" default="0" />
@@ -586,7 +586,7 @@
 				Formats the string to be at least [param min_length] long by adding [param character]s to the left of the string, if necessary. See also [method rpad].
 			</description>
 		</method>
-		<method name="lstrip" qualifiers="const">
+		<method name="lstrip" qualifiers="const" keywords="ltrim">
 			<return type="String" />
 			<param index="0" name="chars" type="String" />
 			<description>
@@ -594,14 +594,14 @@
 				[b]Note:[/b] [param chars] is not a prefix. Use [method trim_prefix] to remove a single prefix, rather than a set of characters.
 			</description>
 		</method>
-		<method name="match" qualifiers="const">
+		<method name="match" qualifiers="const" keywords="glob, filter">
 			<return type="bool" />
 			<param index="0" name="expr" type="String" />
 			<description>
 				Does a simple expression match (also called "glob" or "globbing"), where [code]*[/code] matches zero or more arbitrary characters and [code]?[/code] matches any single character except a period ([code].[/code]). An empty string or empty expression always evaluates to [code]false[/code].
 			</description>
 		</method>
-		<method name="matchn" qualifiers="const">
+		<method name="matchn" qualifiers="const" keywords="globn, filtern">
 			<return type="bool" />
 			<param index="0" name="expr" type="String" />
 			<description>
@@ -656,14 +656,14 @@
 				Formats the string representing a number to have an exact number of [param digits] [i]after[/i] the decimal point.
 			</description>
 		</method>
-		<method name="pad_zeros" qualifiers="const">
+		<method name="pad_zeros" qualifiers="const" keywords="pad_zeroes">
 			<return type="String" />
 			<param index="0" name="digits" type="int" />
 			<description>
 				Formats the string representing a number to have an exact number of [param digits] [i]before[/i] the decimal point.
 			</description>
 		</method>
-		<method name="path_join" qualifiers="const">
+		<method name="path_join" qualifiers="const" keywords="plus_file">
 			<return type="String" />
 			<param index="0" name="file" type="String" />
 			<description>
@@ -694,13 +694,13 @@
 				Replaces all [b]case-insensitive[/b] occurrences of [param what] inside the string with the given [param forwhat].
 			</description>
 		</method>
-		<method name="reverse" qualifiers="const">
+		<method name="reverse" qualifiers="const" keywords="invert, inverse">
 			<return type="String" />
 			<description>
 				Returns the copy of this string in reverse order. This operation works on unicode codepoints, rather than sequences of codepoints, and may break things like compound letters or emojis.
 			</description>
 		</method>
-		<method name="rfind" qualifiers="const">
+		<method name="rfind" qualifiers="const" keywords="rsearch">
 			<return type="int" />
 			<param index="0" name="what" type="String" />
 			<param index="1" name="from" type="int" default="-1" />
@@ -708,7 +708,7 @@
 				Returns the index of the [b]last[/b] occurrence of [param what] in this string, or [code]-1[/code] if there are none. The search's start can be specified with [param from], continuing to the beginning of the string. This method is the reverse of [method find].
 			</description>
 		</method>
-		<method name="rfindn" qualifiers="const">
+		<method name="rfindn" qualifiers="const" keywords="rsearchn">
 			<return type="int" />
 			<param index="0" name="what" type="String" />
 			<param index="1" name="from" type="int" default="-1" />
@@ -858,7 +858,7 @@
 				[/codeblock]
 			</description>
 		</method>
-		<method name="strip_edges" qualifiers="const">
+		<method name="strip_edges" qualifiers="const" keywords="trim_edges">
 			<return type="String" />
 			<param index="0" name="left" type="bool" default="true" />
 			<param index="1" name="right" type="bool" default="true" />
@@ -867,7 +867,7 @@
 				If [param left] is [code]false[/code], ignores the string's beginning. Likewise, if [param right] is [code]false[/code], ignores the string's end.
 			</description>
 		</method>
-		<method name="strip_escapes" qualifiers="const">
+		<method name="strip_escapes" qualifiers="const" keywords="trim_escapes">
 			<return type="String" />
 			<description>
 				Strips all escape characters from the string. These include all non-printable control characters of the first page of the ASCII table (values from 0 to 31), such as tabulation ([code]\t[/code]) and newline ([code]\n[/code], [code]\r[/code]) characters, but [i]not[/i] spaces.
@@ -979,25 +979,25 @@
 				Converts the string to a [url=https://en.wikipedia.org/wiki/Wide_character]wide character[/url] ([code]wchar_t[/code], UTF-16 on Windows, UTF-32 on other platforms) encoded [PackedByteArray]. This is the inverse of [method PackedByteArray.get_string_from_wchar].
 			</description>
 		</method>
-		<method name="trim_prefix" qualifiers="const">
+		<method name="trim_prefix" qualifiers="const" keywords="strip_prefix">
 			<return type="String" />
 			<param index="0" name="prefix" type="String" />
 			<description>
 				Removes the given [param prefix] from the start of the string, or returns the string unchanged.
 			</description>
 		</method>
-		<method name="trim_suffix" qualifiers="const">
+		<method name="trim_suffix" qualifiers="const" keywords="strip_suffix">
 			<return type="String" />
 			<param index="0" name="suffix" type="String" />
 			<description>
 				Removes the given [param suffix] from the end of the string, or returns the string unchanged.
 			</description>
 		</method>
-		<method name="unicode_at" qualifiers="const">
+		<method name="unicode_at" qualifiers="const" keywords="ord">
 			<return type="int" />
 			<param index="0" name="at" type="int" />
 			<description>
-				Returns the character code at position [param at].
+				Returns the character code at position [param at]. See also [method String.chr], which does the opposite.
 			</description>
 		</method>
 		<method name="uri_decode" qualifiers="const">

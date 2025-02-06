@@ -46,11 +46,11 @@
 				[b]Note:[/b] [method assert] is a keyword, not a function. So you cannot access it as a [Callable] or use it inside expressions.
 			</description>
 		</method>
-		<method name="char">
+		<method name="char" keywords="chr">
 			<return type="String" />
 			<param index="0" name="char" type="int" />
 			<description>
-				Returns a single character (as a [String]) of the given Unicode code point (which is compatible with ASCII code).
+				Returns a single Unicode character from the decimal [param char] Unicode codepoint. You may use [url=https://unicodelookup.com/]unicodelookup.com[/url] or [url=https://www.unicode.org/charts/]unicode.org[/url] as points of reference. Equivalent to [method String.chr].
 				[codeblock]
 				var upper = char(65)      # upper is "A"
 				var lower = char(65 + 32) # lower is "a"
