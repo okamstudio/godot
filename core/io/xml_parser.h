@@ -82,12 +82,12 @@ private:
 	Vector<Attribute> attributes;
 
 	bool _set_text(const char *start, const char *end);
-	void _parse_closing_xml_element();
+	Error _parse_closing_xml_element();
 	void _ignore_definition();
 	bool _parse_cdata();
 	void _parse_comment();
-	void _parse_opening_xml_element();
-	void _parse_current_node();
+	Error _parse_opening_xml_element();
+	Error _parse_current_node();
 
 	_FORCE_INLINE_ void next_char() {
 		if (*P == '\n') {

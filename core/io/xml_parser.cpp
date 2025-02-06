@@ -32,10 +32,16 @@
 
 #include "core/io/file_access.h"
 
+#include <ctype.h>
+
 //#define DEBUG_XML
 
 static inline bool _is_white_space(char c) {
 	return (c == ' ' || c == '\t' || c == '\n' || c == '\r');
+}
+
+static inline bool _is_punctuation(char c) {
+	return !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c == '_'));
 }
 
 //! sets the state that text was found. Returns true if set should be set
@@ -65,7 +71,7 @@ bool XMLParser::_set_text(const char *start, const char *end) {
 	return true;
 }
 
-void XMLParser::_parse_closing_xml_element() {
+Error XMLParser::_parse_closing_xml_element() {
 	node_type = NODE_ELEMENT_END;
 	node_empty = false;
 	attributes.clear();
@@ -77,7 +83,8 @@ void XMLParser::_parse_closing_xml_element() {
 		next_char();
 	}
 
-	node_name = String::utf8(pBeginClose, (int)(P - pBeginClose));
+	node_name = String::utf8(pBeginClose, (int)(P - pBeginClose)).strip_edges();
+
 #ifdef DEBUG_XML
 	print_line("XML CLOSE: " + node_name);
 #endif
@@ -85,6 +92,8 @@ void XMLParser::_parse_closing_xml_element() {
 	if (*P) {
 		next_char();
 	}
+
+	return OK;
 }
 
 void XMLParser::_ignore_definition() {
@@ -194,13 +203,37 @@ void XMLParser::_parse_comment() {
 #endif
 }
 
-void XMLParser::_parse_opening_xml_element() {
+Error XMLParser::_parse_opening_xml_element() {
+	// check if the first character is a digit
+	ERR_FAIL_COND_V_MSG(isdigit(*P), ERR_INVALID_DATA, "Invalid tag name, a tag cannot begin with a number.");
+
+	// check if the first character is a punctuation
+	ERR_FAIL_COND_V_MSG(_is_punctuation(*P), ERR_INVALID_DATA, "Invalid tag name, a tag cannot begin with a punctuation character.");
+
 	node_type = NODE_ELEMENT;
 	node_empty = false;
 	attributes.clear();
 
 	// find name
 	const char *startName = P;
+
+	// check if there is a closing tag
+	auto P_copy = P;
+	int i = length;
+	bool found = false;
+	while (i > 0 && *P_copy) {
+		if (*P_copy == '>') {
+			found = true;
+			break;
+		}
+		if (*P_copy == '<') {
+			ERR_FAIL_V_MSG(ERR_INVALID_DATA, "Invalid element, missing closing tag.");
+		}
+		i--;
+		P_copy++;
+	}
+
+	ERR_FAIL_COND_V_MSG(!found, ERR_INVALID_DATA, "Invalid element, missing closing tag.");
 
 	// find end of element
 	while (*P && *P != '>' && !_is_white_space(*P)) {
@@ -238,7 +271,7 @@ void XMLParser::_parse_opening_xml_element() {
 				}
 
 				if (!*P) { // malformatted xml file
-					break;
+					ERR_FAIL_V_MSG(ERR_INVALID_DATA, "Malformatted XML.");
 				}
 
 				const char attributeQuoteChar = *P;
@@ -267,6 +300,10 @@ void XMLParser::_parse_opening_xml_element() {
 			} else {
 				// tag is closed directly
 				next_char();
+				// check if the ending char is a closing tag
+				if (*P != '>') {
+					ERR_FAIL_V_MSG(ERR_INVALID_DATA, "Invalid tag name, a tag cannot contain any character after '/' except for '>'.");
+				}
 				node_empty = true;
 				break;
 			}
@@ -281,6 +318,11 @@ void XMLParser::_parse_opening_xml_element() {
 	}
 
 	node_name = String::utf8(startName, (int)(endName - startName));
+	// check if node_name starts with xml
+	if (node_name.to_upper().begins_with("XML")) {
+		ERR_FAIL_V_MSG(ERR_INVALID_DATA, "Invalid tag name, a tag cannot begin with letters 'xml'.");
+	}
+
 #ifdef DEBUG_XML
 	print_line("XML OPEN: " + node_name);
 #endif
@@ -288,13 +330,15 @@ void XMLParser::_parse_opening_xml_element() {
 	if (*P) {
 		next_char();
 	}
+
+	return OK;
 }
 
-void XMLParser::_parse_current_node() {
+Error XMLParser::_parse_current_node() {
 	const char *start = P;
 	node_offset = P - data;
 
-	// more forward until '<' found
+	// move forward until '<' found
 	while (*P != '<' && *P) {
 		next_char();
 	}
@@ -302,12 +346,12 @@ void XMLParser::_parse_current_node() {
 	if (P - start > 0) {
 		// we found some text, store it
 		if (_set_text(start, P)) {
-			return;
+			return OK;
 		}
 	}
 
 	if (!*P) {
-		return;
+		return OK;
 	}
 
 	next_char();
@@ -315,8 +359,7 @@ void XMLParser::_parse_current_node() {
 	// based on current token, parse and report next element
 	switch (*P) {
 		case '/':
-			_parse_closing_xml_element();
-			break;
+			return _parse_closing_xml_element();
 		case '?':
 			_ignore_definition();
 			break;
@@ -326,9 +369,10 @@ void XMLParser::_parse_current_node() {
 			}
 			break;
 		default:
-			_parse_opening_xml_element();
-			break;
+			return _parse_opening_xml_element();
 	}
+
+	return OK;
 }
 
 uint64_t XMLParser::get_node_offset() const {
@@ -375,8 +419,7 @@ void XMLParser::_bind_methods() {
 Error XMLParser::read() {
 	// if end not reached, parse the node
 	if (P && (P - data) < (int64_t)length - 1 && *P != 0) {
-		_parse_current_node();
-		return OK;
+		return _parse_current_node();
 	}
 
 	return ERR_FILE_EOF;

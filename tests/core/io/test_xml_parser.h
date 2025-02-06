@@ -230,6 +230,27 @@ TEST_CASE("[XMLParser] CDATA") {
 	CHECK_EQ(parser.get_node_type(), XMLParser::NodeType::NODE_ELEMENT_END);
 	CHECK_EQ(parser.get_node_name(), "a");
 }
+
+TEST_CASE("[XMLParser] Tag starting character(s)") {
+	SUBCASE("First character is a number") {
+		XMLParser parser;
+		const String input = "<1first></first>";
+		REQUIRE_EQ(parser.open_buffer(input.to_utf8_buffer()), OK);
+		REQUIRE_EQ(parser.read(), ERR_INVALID_DATA);
+	}
+	SUBCASE("First character is a punctuation") {
+		XMLParser parser;
+		const String input = "<.first></first>";
+		REQUIRE_EQ(parser.open_buffer(input.to_utf8_buffer()), OK);
+		REQUIRE_EQ(parser.read(), ERR_INVALID_DATA);
+	}
+	SUBCASE("First characters are 'xml") {
+		XMLParser parser;
+		const String input = "<xmlfirst></xmlfirst>";
+		REQUIRE_EQ(parser.open_buffer(input.to_utf8_buffer()), OK);
+		REQUIRE_EQ(parser.read(), ERR_INVALID_DATA);
+	}
+}
 } // namespace TestXMLParser
 
 #endif // TEST_XML_PARSER_H
