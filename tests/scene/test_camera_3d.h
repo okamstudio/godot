@@ -115,6 +115,80 @@ TEST_CASE("[SceneTree][Camera3D] Getters and setters") {
 		CHECK(test_camera->get_size() == size);
 	}
 
+	SUBCASE("Frustum planes") {
+		constexpr real_t sqrt2_half = 1.41421356237 / 2;
+
+		constexpr real_t fov = 90.0, size = 6.0;
+		constexpr real_t near1 = 0.1, near2 = 0.5;
+		constexpr real_t far1 = 11.0, far2 = 15.0;
+
+		SubViewport *mock_viewport = memnew(SubViewport);
+
+		mock_viewport->set_size(Vector2i(512, 512)); // aspect 1
+		SceneTree::get_singleton()->get_root()->add_child(mock_viewport);
+		mock_viewport->add_child(test_camera);
+
+		Vector<Plane> planes;
+
+		test_camera->set_perspective(fov, near1, far1);
+		planes = test_camera->get_frustum();
+		CHECK(planes[Projection::PLANE_NEAR].normalized().is_equal_approx(Plane(0, 0, 1, -near1)));
+		CAPTURE(far1); // FIXME
+		CAPTURE(planes[Projection::PLANE_FAR]); // FIXME
+		CAPTURE(planes[Projection::PLANE_FAR].normalized()); // FIXME
+		CHECK(planes[Projection::PLANE_FAR].normalized().is_equal_approx(Plane(0, 0, -1, far1)));
+		CHECK(planes[Projection::PLANE_LEFT].normalized().is_equal_approx(Plane(-sqrt2_half, 0, sqrt2_half, 0)));
+		CHECK(planes[Projection::PLANE_TOP].normalized().is_equal_approx(Plane(0, sqrt2_half, sqrt2_half, 0)));
+		CHECK(planes[Projection::PLANE_RIGHT].normalized().is_equal_approx(Plane(sqrt2_half, 0, sqrt2_half, 0)));
+		CHECK(planes[Projection::PLANE_BOTTOM].normalized().is_equal_approx(Plane(0, -sqrt2_half, sqrt2_half, 0)));
+
+		test_camera->set_orthogonal(size, near2, far2);
+		planes = test_camera->get_frustum();
+		CHECK(planes[Projection::PLANE_NEAR].normalized().is_equal_approx(Plane(0, 0, 1, -near2)));
+		CHECK(planes[Projection::PLANE_FAR].normalized().is_equal_approx(Plane(0, 0, -1, far2)));
+		CHECK(planes[Projection::PLANE_LEFT].normalized().is_equal_approx(Plane(-1, 0, 0, size / 2)));
+		CHECK(planes[Projection::PLANE_TOP].normalized().is_equal_approx(Plane(0, 1, 0, size / 2)));
+		CHECK(planes[Projection::PLANE_RIGHT].normalized().is_equal_approx(Plane(1, 0, 0, size / 2)));
+		CHECK(planes[Projection::PLANE_BOTTOM].normalized().is_equal_approx(Plane(0, -1, 0, size / 2)));
+
+		mock_viewport->remove_child(test_camera);
+		memdelete(mock_viewport);
+	}
+
+	SUBCASE("Frustum points") {
+		constexpr real_t fov = 90.0, size = 6.0;
+		constexpr real_t near1 = 0.1, near2 = 0.5;
+		constexpr real_t far1 = 11.0, far2 = 15.0;
+		const real_t tan_fov = Math::tan(Math::deg_to_rad(fov / 2));
+
+		SubViewport *mock_viewport = memnew(SubViewport);
+
+		mock_viewport->set_size(Vector2i(512, 512)); // aspect 1
+		SceneTree::get_singleton()->get_root()->add_child(mock_viewport);
+		mock_viewport->add_child(test_camera);
+
+		Vector<Vector3> points;
+
+		test_camera->set_perspective(fov, near1, far1);
+		points = test_camera->get_near_plane_points();
+		CHECK(points[0].is_equal_approx(Vector3())); // CENTER
+		CHECK(points[1].is_equal_approx(Vector3(-tan_fov, tan_fov, -1) * near1)); // NEAR, LEFT, TOP
+		CHECK(points[2].is_equal_approx(Vector3(-tan_fov, -tan_fov, -1) * near1)); // NEAR, LEFT, BOTTOM
+		CHECK(points[3].is_equal_approx(Vector3(tan_fov, tan_fov, -1) * near1)); // NEAR, RIGHT, TOP
+		CHECK(points[4].is_equal_approx(Vector3(tan_fov, -tan_fov, -1) * near1)); // NEAR, RIGHT, BOTTOM
+
+		test_camera->set_orthogonal(size, near2, far2);
+		points = test_camera->get_near_plane_points();
+		CHECK(points[0].is_equal_approx(Vector3())); // CENTER
+		CHECK(points[1].is_equal_approx(Vector3(-size / 2, size / 2, -near2))); //NEAR, LEFT, TOP
+		CHECK(points[2].is_equal_approx(Vector3(-size / 2, -size / 2, -near2))); //NEAR, LEFT, BOTTOM
+		CHECK(points[3].is_equal_approx(Vector3(size / 2, size / 2, -near2))); //NEAR, RIGHT, TOP
+		CHECK(points[4].is_equal_approx(Vector3(size / 2, -size / 2, -near2))); //NEAR, RIGHT, BOTTOM
+
+		mock_viewport->remove_child(test_camera);
+		memdelete(mock_viewport);
+	}
+
 	SUBCASE("Doppler tracking") {
 		test_camera->set_doppler_tracking(Camera3D::DopplerTracking::DOPPLER_TRACKING_IDLE_STEP);
 		CHECK(test_camera->get_doppler_tracking() == Camera3D::DopplerTracking::DOPPLER_TRACKING_IDLE_STEP);
