@@ -71,6 +71,8 @@ Error EngineProfiler::bind(const String &p_name) {
 Error EngineProfiler::unbind() {
 	ERR_FAIL_COND_V(!is_bound(), ERR_UNCONFIGURED);
 	EngineDebugger::unregister_profiler(registration);
+
+	// Mark this instance unbound by clearing the registration name.
 	registration.clear();
 	return OK;
 }

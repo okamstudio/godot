@@ -38,7 +38,7 @@ class EngineProfiler : public RefCounted {
 	GDCLASS(EngineProfiler, RefCounted);
 
 private:
-	String registration;
+	StringName registration;
 
 protected:
 	static void _bind_methods();
@@ -50,7 +50,7 @@ public:
 
 	Error bind(const String &p_name);
 	Error unbind();
-	bool is_bound() const { return registration.length() > 0; }
+	bool is_bound() const { return registration.data_unique_pointer() != nullptr; }
 
 	GDVIRTUAL2(_toggle, bool, Array);
 	GDVIRTUAL1(_add_frame, Array);

@@ -215,6 +215,14 @@ public:
 		}
 	}
 
+	// Explicitly reset a StringName instance to be null.
+	_FORCE_INLINE_ void clear() {
+		if (likely(configured) && _data) { //only free if configured
+			unref();
+		}
+		_data = nullptr;
+	}
+
 #ifdef DEBUG_ENABLED
 	static void set_debug_stringnames(bool p_enable) { debug_stringname = p_enable; }
 #endif

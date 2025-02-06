@@ -42,6 +42,7 @@
 #include "core/io/file_access_pack.h"
 #include "core/os/os.h"
 #include "core/string/string_builder.h"
+#include "main/main.h"
 #include "scene/resources/packed_scene.h"
 
 #include "tests/test_macros.h"
@@ -424,6 +425,13 @@ void GDScriptTestRunner::handle_cmdline() {
 
 			bool completed = runner.generate_outputs();
 			int failed = completed ? 0 : -1;
+
+			// When script test generation is invoked, we don't want to run the rest of the program,
+			// but command line parameter handlers are not expected to decide that running the rest of the program
+			// is unwanted, so we have no way to signal the caller that the process should exit.
+			// We have to exit by force. Run some de-initializations before that, to
+			// avoid assertions about uncleaned resources.
+			Main::cleanup(true);
 			exit(failed);
 		}
 	}
