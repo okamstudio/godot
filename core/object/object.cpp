@@ -1985,8 +1985,8 @@ void Object::set_instance_binding(void *p_token, void *p_binding, const GDExtens
 	ERR_FAIL_COND(_instance_bindings != nullptr && _instance_bindings[0].binding != nullptr);
 	if (_instance_bindings == nullptr) {
 		_instance_bindings = (InstanceBinding *)memalloc(sizeof(InstanceBinding));
-		_instance_binding_count = 1;
 	}
+	_instance_binding_count = 1;
 	_instance_bindings[0].binding = p_binding;
 	_instance_bindings[0].free_callback = p_callbacks->free_callback;
 	_instance_bindings[0].reference_callback = p_callbacks->reference_callback;
