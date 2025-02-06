@@ -2128,22 +2128,26 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 
 			Ref<Resource> res = p_variant;
 			if (res.is_valid()) {
-				//is resource
 				String res_text;
 
-				//try external function
+				// Try external function.
 				if (p_encode_res_func) {
 					res_text = p_encode_res_func(p_encode_res_ud, res);
 				}
 
-				//try path because it's a file
+				// Try path, because it's a file.
 				if (res_text.is_empty() && res->get_path().is_resource_file()) {
-					//external resource
+					// External resource, try saving as UID first.
 					String path = res->get_path();
-					res_text = "Resource(\"" + path + "\")";
+					ResourceUID::ID id = ResourceLoader::get_resource_uid(path);
+					if (id != ResourceUID::INVALID_ID) {
+						res_text = "Resource(\"" + ResourceUID::get_singleton()->id_to_text(id) + "\")";
+					} else {
+						res_text = "Resource(\"" + path + "\")";
+					}
 				}
 
-				//could come up with some sort of text
+				// Could come up with some sort of text.
 				if (!res_text.is_empty()) {
 					p_store_string_func(p_store_string_ud, res_text);
 					break;
