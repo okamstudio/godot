@@ -282,7 +282,9 @@ void EditorHelp::_class_list_select(const String &p_select) {
 }
 
 void EditorHelp::_class_desc_select(const String &p_select) {
-	if (p_select.begins_with("$")) { // Enum.
+	if (p_select.begins_with("res://")) { // Srcript, open in editor
+		ScriptEditor::get_singleton()->open_file(p_select);
+	} else if (p_select.begins_with("$")) { // Enum.
 		const String link = p_select.substr(1);
 
 		String enum_class_name;
@@ -1048,6 +1050,15 @@ void EditorHelp::_update_doc() {
 
 		class_desc->pop(); // color
 		_pop_normal_font();
+	}
+
+	// Add link to script
+	if (cd.is_script_doc) {
+		class_desc->add_newline();
+		class_desc->push_meta(cd.script_path);
+		class_desc->add_image(get_editor_theme_icon(SNAME("Script")));
+		class_desc->add_text(" " + TTR("Open Script"));
+		class_desc->pop();
 	}
 
 	bool has_description = false;
