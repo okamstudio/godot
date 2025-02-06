@@ -1,23 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="MeshTexture" inherits="Texture2D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
 	<brief_description>
-		Simple texture that uses a mesh to draw itself.
+		A 2D texture that uses a mesh to draw itself.
 	</brief_description>
 	<description>
-		Simple texture that uses a mesh to draw itself. It's limited because flags can't be changed and region drawing is not supported.
+		A 2D texture that uses a mesh with a base texture to draw itself. Internally it is drawn using [method RenderingServer.canvas_item_add_mesh] and [Viewport] to capture.
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
+		<member name="background" type="Color" setter="set_background" getter="get_background" default="Color(0, 0, 0, 0)">
+			Sets the background color.
+		</member>
 		<member name="base_texture" type="Texture2D" setter="set_base_texture" getter="get_base_texture">
 			Sets the base texture that the Mesh will use to draw.
 		</member>
-		<member name="image_size" type="Vector2" setter="set_image_size" getter="get_image_size" default="Vector2(0, 0)">
+		<member name="image_size" type="Vector2" setter="set_image_size" getter="get_image_size" default="Vector2(512, 512)">
 			Sets the size of the image, needed for reference.
 		</member>
 		<member name="mesh" type="Mesh" setter="set_mesh" getter="get_mesh">
 			Sets the mesh used to draw. It must be a mesh using 2D vertices.
 		</member>
+		<member name="offset" type="Vector2" setter="set_offset" getter="get_offset" default="Vector2(0, 0)">
+			Sets the offset for mesh drawing in pixels.
+		</member>
 		<member name="resource_local_to_scene" type="bool" setter="set_local_to_scene" getter="is_local_to_scene" overrides="Resource" default="false" />
+		<member name="scale" type="Vector2" setter="set_scale" getter="get_scale" default="Vector2(1, 1)">
+			Sets the scale for mesh drawing.
+		</member>
 	</members>
 </class>
