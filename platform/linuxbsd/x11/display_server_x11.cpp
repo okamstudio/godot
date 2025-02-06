@@ -4418,6 +4418,19 @@ void DisplayServerX11::popup_close(WindowID p_window) {
 	}
 }
 
+bool DisplayServerX11::close_top_popup() {
+	List<WindowID>::Element *E = popup_list.back();
+	while (E) {
+		WindowData wd = windows[E->get()];
+		if (wd.is_popup && wd.focused) {
+			_send_window_event(wd, DisplayServerX11::WINDOW_EVENT_CLOSE_REQUEST);
+			return true;
+		}
+		E = E->prev();
+	}
+	return false;
+}
+
 bool DisplayServerX11::mouse_process_popups() {
 	_THREAD_SAFE_METHOD_
 
@@ -4898,6 +4911,7 @@ void DisplayServerX11::process_events() {
 				wd.focused = false;
 
 				Input::get_singleton()->release_pressed_events();
+				close_top_popup();
 				_send_window_event(wd, WINDOW_EVENT_FOCUS_OUT);
 
 				if (mouse_mode_grab) {

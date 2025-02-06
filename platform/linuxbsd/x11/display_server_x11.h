@@ -399,6 +399,7 @@ protected:
 	void _window_changed(XEvent *event);
 
 public:
+	bool close_top_popup();
 	bool mouse_process_popups();
 	void popup_open(WindowID p_window);
 	void popup_close(WindowID p_window);
