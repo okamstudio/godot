@@ -238,6 +238,16 @@
 				If the node is not inside the tree, returns [code]false[/code] no matter the value of [member process_mode].
 			</description>
 		</method>
+		<method name="clear_children">
+			<return type="void" />
+			<param index="0" name="deferred" type="bool" default="true" />
+			<param index="1" name="include_internal" type="bool" default="false" />
+			<description>
+				Calls [method queue_free] on all children.
+				If [param deferred] is [code]false[/code], [method remove_child] is called before [method queue_free].
+				If [param include_internal] is [code]false[/code], excludes internal children from being cleared (see [method add_child]'s [code]internal[/code] parameter).
+			</description>
+		</method>
 		<method name="create_tween">
 			<return type="Tween" />
 			<description>

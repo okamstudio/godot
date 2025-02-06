@@ -1720,6 +1720,36 @@ void Node::remove_child(Node *p_child) {
 	}
 }
 
+void Node::clear_children(bool p_deferred, bool p_include_internal) {
+	ERR_FAIL_COND_MSG(data.inside_tree && !Thread::is_main_thread(), "Removing children from a node inside the SceneTree is only allowed from the main thread. Use call_deferred(\"clear_children\").");
+	ERR_FAIL_COND_MSG(data.blocked > 0, "Parent node is busy adding/removing children, `clear_children()` can't be called at this time. Consider using `clear_children.call_deferred()` instead.");
+	if (p_deferred) {
+		for (const KeyValue<StringName, Node *> &child : data.children) {
+			if (p_include_internal || child.value->data.internal_mode == INTERNAL_MODE_DISABLED) {
+				child.value->queue_free();
+			}
+		}
+	} else {
+		if (p_include_internal) {
+			for (const KeyValue<StringName, Node *> &child : data.children) {
+				child.value->queue_free();
+				remove_child(child.value);
+			}
+		} else {
+			LocalVector<Node *> nodes_to_remove;
+			for (const KeyValue<StringName, Node *> &child : data.children) {
+				if (child.value->data.internal_mode == INTERNAL_MODE_DISABLED) {
+					child.value->queue_free();
+					nodes_to_remove.push_back(child.value); // Removing it now would invalidate the iterator.
+				}
+			}
+			for (Node *child : nodes_to_remove) {
+				remove_child(child);
+			}
+		}
+	}
+}
+
 void Node::_update_children_cache_impl() const {
 	// Assign children
 	data.children_cache.resize(data.children.size());
@@ -3629,6 +3659,7 @@ void Node::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("find_parent", "pattern"), &Node::find_parent);
 	ClassDB::bind_method(D_METHOD("has_node_and_resource", "path"), &Node::has_node_and_resource);
 	ClassDB::bind_method(D_METHOD("get_node_and_resource", "path"), &Node::_get_node_and_resource);
+	ClassDB::bind_method(D_METHOD("clear_children", "deferred", "include_internal"), &Node::clear_children, DEFVAL(true), DEFVAL(false));
 
 	ClassDB::bind_method(D_METHOD("is_inside_tree"), &Node::is_inside_tree);
 	ClassDB::bind_method(D_METHOD("is_part_of_edited_scene"), &Node::is_part_of_edited_scene);
