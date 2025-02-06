@@ -253,8 +253,8 @@ void GridMapEditor::_update_cursor_transform() {
 	if (mode_buttons_group->get_pressed_button() == paint_mode_button) {
 		// Rotation is only applied in paint mode, we don't want the cursor box to rotate otherwise.
 		cursor_transform.basis = node->get_basis_with_orthogonal_index(cursor_rot);
-		if (selected_palette >= 0 && node && node->get_mesh_library().is_valid()) {
-			cursor_transform *= node->get_mesh_library()->get_item_mesh_transform(selected_palette);
+		if (selected_library_item_id >= 0 && is_library_valid()) {
+			cursor_transform *= node->get_mesh_library()->get_item_mesh_transform(selected_library_item_id);
 		}
 	} else {
 		Transform3D xf;
@@ -384,13 +384,13 @@ bool GridMapEditor::do_input_action(Camera3D *p_camera, const Point2 &p_point, b
 	if (input_action == INPUT_TRANSFORM) {
 		return false;
 	}
-	if (selected_palette < 0 && input_action != INPUT_NONE && input_action != INPUT_PICK && input_action != INPUT_SELECT && input_action != INPUT_PASTE) {
+	if (selected_mesh_palette_idx < 0 && input_action != INPUT_NONE && input_action != INPUT_PICK && input_action != INPUT_SELECT && input_action != INPUT_PASTE) {
 		return false;
 	}
 	if (mesh_library.is_null()) {
 		return false;
 	}
-	if (input_action != INPUT_NONE && input_action != INPUT_PICK && input_action != INPUT_SELECT && input_action != INPUT_PASTE && !mesh_library->has_item(selected_palette)) {
+	if (input_action != INPUT_NONE && input_action != INPUT_PICK && input_action != INPUT_SELECT && input_action != INPUT_PASTE && !mesh_library->has_item(selected_library_item_id)) {
 		return false;
 	}
 
@@ -468,10 +468,10 @@ bool GridMapEditor::do_input_action(Camera3D *p_camera, const Point2 &p_point, b
 	} else if (input_action == INPUT_PICK) {
 		int item = node->get_cell_item(Vector3i(cell[0], cell[1], cell[2]));
 		if (item >= 0) {
-			selected_palette = item;
+			set_selected_library_item(item);
 
 			// Clear the filter if picked an item that's filtered out.
-			int index = mesh_library_palette->find_metadata(item);
+			int index = mesh_palette->find_metadata(item);
 			if (index == -1) {
 				search_box->clear();
 			}
@@ -485,14 +485,28 @@ bool GridMapEditor::do_input_action(Camera3D *p_camera, const Point2 &p_point, b
 	}
 
 	if (input_action == INPUT_PAINT) {
+		// Ensure we only paint when cube changes
+		Vector3i next_cube_to_paint = Vector3i(cell[0], cell[1], cell[2]);
+
+		if (p_click) {
+			last_cube_painted = next_cube_to_paint;
+		} else {
+			if (next_cube_to_paint == last_cube_painted) {
+				return true;
+			}
+		}
+
+		last_cube_painted = next_cube_to_paint;
+
+		// Do the placement
 		SetItem si;
 		si.position = Vector3i(cell[0], cell[1], cell[2]);
-		si.new_value = selected_palette;
+		si.new_value = _take_selected_library_id();
 		si.new_orientation = cursor_rot;
 		si.old_value = node->get_cell_item(Vector3i(cell[0], cell[1], cell[2]));
 		si.old_orientation = node->get_cell_item_orientation(Vector3i(cell[0], cell[1], cell[2]));
 		set_items.push_back(si);
-		node->set_cell_item(Vector3i(cell[0], cell[1], cell[2]), selected_palette, cursor_rot);
+		node->set_cell_item(Vector3i(cell[0], cell[1], cell[2]), si.new_value, cursor_rot);
 		return true;
 	} else if (input_action == INPUT_ERASE) {
 		SetItem si;
@@ -541,7 +555,7 @@ void GridMapEditor::_fill_selection() {
 		for (int j = selection.begin.y; j <= selection.end.y; j++) {
 			for (int k = selection.begin.z; k <= selection.end.z; k++) {
 				Vector3i selected = Vector3i(i, j, k);
-				undo_redo->add_do_method(node, "set_cell_item", selected, selected_palette, cursor_rot);
+				undo_redo->add_do_method(node, "set_cell_item", selected, _take_selected_library_id(), cursor_rot);
 				undo_redo->add_undo_method(node, "set_cell_item", selected, node->get_cell_item(selected), node->get_cell_item_orientation(selected));
 			}
 		}
@@ -769,7 +783,7 @@ EditorPlugin::AfterGUIInput GridMapEditor::forward_spatial_input_event(Camera3D 
 			if ((nav_scheme == Node3DEditorViewport::NAVIGATION_MAYA || nav_scheme == Node3DEditorViewport::NAVIGATION_MODO) && mb->is_alt_pressed()) {
 				input_action = INPUT_NONE;
 			} else if (mb->get_button_index() == MouseButton::LEFT) {
-				bool can_edit = (node && node->get_mesh_library().is_valid());
+				bool can_edit = is_library_valid();
 				if (input_action == INPUT_PASTE) {
 					_do_paste();
 					input_action = INPUT_NONE;
@@ -915,13 +929,13 @@ void GridMapEditor::_sbox_input(const Ref<InputEvent> &p_event) {
 	Ref<InputEventKey> key = p_event;
 	if (key.is_valid()) {
 		if (key->is_action("ui_up", true) || key->is_action("ui_down", true) || key->is_action("ui_page_up") || key->is_action("ui_page_down")) {
-			mesh_library_palette->gui_input(key);
+			mesh_palette->gui_input(key);
 			search_box->accept_event();
 		}
 	}
 }
 
-void GridMapEditor::_mesh_library_palette_input(const Ref<InputEvent> &p_ie) {
+void GridMapEditor::_mesh_palette_input(const Ref<InputEvent> &p_ie) {
 	const Ref<InputEventMouseButton> mb = p_ie;
 
 	// Zoom in/out using Ctrl + mouse wheel
@@ -939,7 +953,7 @@ void GridMapEditor::_mesh_library_palette_input(const Ref<InputEvent> &p_ie) {
 }
 
 void GridMapEditor::_icon_size_changed(float p_value) {
-	mesh_library_palette->set_icon_scale(p_value);
+	mesh_palette->set_icon_scale(p_value);
 	update_palette();
 }
 
@@ -947,19 +961,25 @@ void GridMapEditor::update_palette() {
 	float min_size = EDITOR_GET("editors/grid_map/preview_size");
 	min_size *= EDSCALE;
 
-	mesh_library_palette->clear();
-	if (display_mode == DISPLAY_THUMBNAIL) {
-		mesh_library_palette->set_max_columns(0);
-		mesh_library_palette->set_icon_mode(ItemList::ICON_MODE_TOP);
-		mesh_library_palette->set_fixed_column_width(min_size * MAX(zoom_widget->get_zoom(), 1.5));
-	} else if (display_mode == DISPLAY_LIST) {
-		mesh_library_palette->set_max_columns(0);
-		mesh_library_palette->set_icon_mode(ItemList::ICON_MODE_LEFT);
-		mesh_library_palette->set_fixed_column_width(0);
+	Vector<int> currently_selected;
+
+	for (int palette_idx : mesh_palette->get_selected_items()) {
+		currently_selected.push_back(mesh_palette->get_item_metadata(palette_idx));
 	}
 
-	mesh_library_palette->set_fixed_icon_size(Size2(min_size, min_size));
-	mesh_library_palette->set_max_text_lines(2);
+	mesh_palette->clear();
+	if (display_mode == DISPLAY_THUMBNAIL) {
+		mesh_palette->set_max_columns(0);
+		mesh_palette->set_icon_mode(ItemList::ICON_MODE_TOP);
+		mesh_palette->set_fixed_column_width(min_size * MAX(zoom_widget->get_zoom(), 1.5));
+	} else if (display_mode == DISPLAY_LIST) {
+		mesh_palette->set_max_columns(0);
+		mesh_palette->set_icon_mode(ItemList::ICON_MODE_LEFT);
+		mesh_palette->set_fixed_column_width(0);
+	}
+
+	mesh_palette->set_fixed_icon_size(Size2(min_size, min_size));
+	mesh_palette->set_max_text_lines(2);
 
 	if (mesh_library.is_null()) {
 		search_box->set_text("");
@@ -971,49 +991,54 @@ void GridMapEditor::update_palette() {
 	search_box->set_editable(true);
 	info_message->hide();
 
-	Vector<int> ids;
-	ids = mesh_library->get_item_list();
+	Vector<int> mesh_library_ids;
+	mesh_library_ids = mesh_library->get_item_list();
 
-	List<_CGMEItemSort> il;
-	for (int i = 0; i < ids.size(); i++) {
+	List<_CGMEItemSort> sorted_mesh_library_items;
+	for (int i = 0; i < mesh_library_ids.size(); i++) {
 		_CGMEItemSort is;
-		is.id = ids[i];
-		is.name = mesh_library->get_item_name(ids[i]);
-		il.push_back(is);
+		is.id = mesh_library_ids[i];
+		is.name = mesh_library->get_item_name(mesh_library_ids[i]);
+		sorted_mesh_library_items.push_back(is);
 	}
-	il.sort();
+	sorted_mesh_library_items.sort();
 
 	String filter = search_box->get_text().strip_edges();
 
 	int item = 0;
 
-	for (_CGMEItemSort &E : il) {
-		int id = E.id;
-		String name = mesh_library->get_item_name(id);
-		Ref<Texture2D> preview = mesh_library->get_item_preview(id);
+	for (_CGMEItemSort &sorted_mesh_library_item : sorted_mesh_library_items) {
+		int mesh_library_item_id = sorted_mesh_library_item.id;
+		String mesh_library_item_name = mesh_library->get_item_name(mesh_library_item_id);
+		Ref<Texture2D> mesh_library_item_preview = mesh_library->get_item_preview(mesh_library_item_id);
 
-		if (name.is_empty()) {
-			name = "#" + itos(id);
+		if (mesh_library_item_name.is_empty()) {
+			mesh_library_item_name = "#" + itos(mesh_library_item_id);
 		}
 
-		if (!filter.is_empty() && !filter.is_subsequence_ofn(name)) {
+		if (!filter.is_empty() && !filter.is_subsequence_ofn(mesh_library_item_name)) {
 			continue;
 		}
 
-		mesh_library_palette->add_item("");
-		if (preview.is_valid()) {
-			mesh_library_palette->set_item_icon(item, preview);
-			mesh_library_palette->set_item_tooltip(item, name);
+		mesh_palette->add_item("");
+		if (mesh_library_item_preview.is_valid()) {
+			mesh_palette->set_item_icon(item, mesh_library_item_preview);
+			mesh_palette->set_item_tooltip(item, mesh_library_item_name);
 		}
-		mesh_library_palette->set_item_text(item, name);
-		mesh_library_palette->set_item_metadata(item, id);
-
-		if (selected_palette == id) {
-			mesh_library_palette->select(item);
-		}
+		mesh_palette->set_item_text(item, mesh_library_item_name);
+		mesh_palette->set_item_metadata(item, mesh_library_item_id);
 
 		item++;
 	}
+
+	for (int palette_idx = 0; palette_idx < mesh_palette->get_item_count(); palette_idx++) {
+		int mesh_library_item_id = mesh_palette->get_item_metadata(palette_idx);
+		if (currently_selected.has(mesh_library_item_id)) {
+			mesh_palette->select(palette_idx, false);
+		}
+	}
+
+	_select_next_item();
 }
 
 void GridMapEditor::_update_mesh_library() {
@@ -1035,13 +1060,33 @@ void GridMapEditor::_update_mesh_library() {
 
 	update_palette();
 	// Make sure we select the first tile as default possible.
-	if (mesh_library_palette->get_current() == -1 && mesh_library_palette->get_item_count() > 0) {
-		mesh_library_palette->set_current(0);
-		selected_palette = mesh_library_palette->get_item_metadata(0);
+	if (mesh_palette->get_current() == -1 && mesh_palette->get_item_count() > 0) {
+		set_selected_palette_idx(0);
 	}
 	// Update the cursor and grid in case the library is changed or removed.
 	_update_cursor_instance();
 	update_grid();
+}
+
+void GridMapEditor::set_selected_palette_idx(int p_item) {
+	if (is_library_valid()) {
+		int const clamped_idx = CLAMP(p_item, -1, mesh_palette->get_item_count() - 1);
+
+		if (clamped_idx != selected_mesh_palette_idx) {
+			_set_item_idx(clamped_idx);
+
+			if (clamped_idx == -1) {
+				mesh_palette->deselect_all();
+			} else {
+				mesh_palette->select(clamped_idx); // or set_current
+			}
+		}
+	}
+}
+
+void GridMapEditor::set_selected_library_item(int item_id) {
+	int idx_for_library_item = mesh_palette->find_metadata(item_id);
+	set_selected_palette_idx(idx_for_library_item);
 }
 
 void GridMapEditor::edit(GridMap *p_gridmap) {
@@ -1076,9 +1121,6 @@ void GridMapEditor::edit(GridMap *p_gridmap) {
 		return;
 	}
 
-	update_palette();
-	_update_cursor_instance();
-
 	set_process(true);
 
 	_draw_grids(node->get_cell_size());
@@ -1087,6 +1129,34 @@ void GridMapEditor::edit(GridMap *p_gridmap) {
 	node->connect(SNAME("cell_size_changed"), callable_mp(this, &GridMapEditor::_draw_grids));
 	node->connect(CoreStringName(changed), callable_mp(this, &GridMapEditor::_update_mesh_library));
 	_update_mesh_library();
+	_update_cursor_instance();
+}
+
+void GridMapEditor::_set_item_idx(int new_selected_mesh_palette_idx) {
+	selected_mesh_palette_idx = new_selected_mesh_palette_idx;
+	selected_library_item_id = (selected_mesh_palette_idx == -1)
+			? -1
+			: static_cast<int>(mesh_palette->get_item_metadata(selected_mesh_palette_idx));
+
+	_update_cursor_instance();
+}
+
+void GridMapEditor::_select_next_item() {
+	auto selected_palette_indices = mesh_palette->get_selected_items();
+
+	if (selected_palette_indices.is_empty()) {
+		_set_item_idx(-1);
+		return;
+	}
+
+	int random_palette_idx = Math::random(0, selected_palette_indices.size() - 1);
+	_set_item_idx(selected_palette_indices[random_palette_idx]);
+}
+
+int GridMapEditor::_take_selected_library_id() {
+	int library_id = selected_library_item_id;
+	_select_next_item();
+	return library_id;
 }
 
 void GridMapEditor::update_grid() {
@@ -1180,7 +1250,8 @@ void GridMapEditor::_update_theme() {
 void GridMapEditor::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_ENTER_TREE: {
-			mesh_library_palette->connect(SceneStringName(item_selected), callable_mp(this, &GridMapEditor::_item_selected_cbk));
+			mesh_palette->connect("multi_selected", callable_mp(this, &GridMapEditor::_item_selected_cbk));
+
 			for (int i = 0; i < 3; i++) {
 				grid[i] = RS::get_singleton()->mesh_create();
 				grid_instance[i] = RS::get_singleton()->instance_create2(grid[i], get_tree()->get_root()->get_world_3d()->get_scenario());
@@ -1272,11 +1343,11 @@ void GridMapEditor::_update_cursor_instance() {
 	cursor_instance = RID();
 
 	if (mode_buttons_group->get_pressed_button() == paint_mode_button) {
-		if (selected_palette >= 0 && node && node->get_mesh_library().is_valid()) {
-			Ref<Mesh> mesh = node->get_mesh_library()->get_item_mesh(selected_palette);
+		if (selected_library_item_id >= 0 && is_library_valid()) {
+			Ref<Mesh> mesh = node->get_mesh_library()->get_item_mesh(selected_library_item_id);
 			if (mesh.is_valid() && mesh->get_rid().is_valid()) {
 				cursor_instance = RenderingServer::get_singleton()->instance_create2(mesh->get_rid(), get_tree()->get_root()->get_world_3d()->get_scenario());
-				RS::ShadowCastingSetting cast_shadows = (RS::ShadowCastingSetting)node->get_mesh_library()->get_item_mesh_cast_shadow(selected_palette);
+				RS::ShadowCastingSetting cast_shadows = (RS::ShadowCastingSetting)node->get_mesh_library()->get_item_mesh_cast_shadow(selected_library_item_id);
 				RS::get_singleton()->instance_geometry_set_cast_shadows_setting(cursor_instance, cast_shadows);
 			}
 		}
@@ -1305,10 +1376,8 @@ void GridMapEditor::_on_tool_mode_changed() {
 	_update_cursor_instance();
 }
 
-void GridMapEditor::_item_selected_cbk(int idx) {
-	selected_palette = mesh_library_palette->get_item_metadata(idx);
-
-	_update_cursor_instance();
+void GridMapEditor::_item_selected_cbk(int idx, bool selected) {
+	_select_next_item();
 }
 
 void GridMapEditor::_floor_changed(float p_value) {
@@ -1552,11 +1621,12 @@ GridMapEditor::GridMapEditor() {
 
 	toolbar->add_child(options);
 
-	mesh_library_palette = memnew(ItemList);
-	mesh_library_palette->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
-	add_child(mesh_library_palette);
-	mesh_library_palette->set_v_size_flags(SIZE_EXPAND_FILL);
-	mesh_library_palette->connect(SceneStringName(gui_input), callable_mp(this, &GridMapEditor::_mesh_library_palette_input));
+	mesh_palette = memnew(ItemList);
+	mesh_palette->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
+	add_child(mesh_palette);
+	mesh_palette->set_v_size_flags(SIZE_EXPAND_FILL);
+	mesh_palette->set_select_mode(ItemList::SELECT_MULTI);
+	mesh_palette->connect(SceneStringName(gui_input), callable_mp(this, &GridMapEditor::_mesh_palette_input));
 
 	info_message = memnew(Label);
 	info_message->set_text(TTR("Give a MeshLibrary resource to this GridMap to use its meshes."));
@@ -1565,7 +1635,7 @@ GridMapEditor::GridMapEditor() {
 	info_message->set_autowrap_mode(TextServer::AUTOWRAP_WORD_SMART);
 	info_message->set_custom_minimum_size(Size2(100 * EDSCALE, 0));
 	info_message->set_anchors_and_offsets_preset(PRESET_FULL_RECT, PRESET_MODE_KEEP_SIZE, 8 * EDSCALE);
-	mesh_library_palette->add_child(info_message);
+	mesh_palette->add_child(info_message);
 
 	edit_axis = Vector3::AXIS_Y;
 	edit_floor[0] = -1;
@@ -1856,26 +1926,12 @@ Array GridMapEditorPlugin::get_selected_cells() const {
 
 void GridMapEditorPlugin::set_selected_palette_item(int p_item) const {
 	ERR_FAIL_NULL(grid_map_editor);
-	if (grid_map_editor->node && grid_map_editor->node->get_mesh_library().is_valid()) {
-		if (p_item < -1) {
-			p_item = -1;
-		} else if (p_item >= grid_map_editor->node->get_mesh_library()->get_item_list().size()) {
-			p_item = grid_map_editor->node->get_mesh_library()->get_item_list().size() - 1;
-		}
-		if (p_item != grid_map_editor->selected_palette) {
-			grid_map_editor->selected_palette = p_item;
-			grid_map_editor->update_palette();
-		}
-	}
+	grid_map_editor->set_selected_palette_idx(p_item);
 }
 
 int GridMapEditorPlugin::get_selected_palette_item() const {
 	ERR_FAIL_NULL_V(grid_map_editor, 0);
-	if (grid_map_editor->selected_palette >= 0 && grid_map_editor->node && grid_map_editor->node->get_mesh_library().is_valid()) {
-		return grid_map_editor->selected_palette;
-	} else {
-		return -1;
-	}
+	return grid_map_editor->get_selected_palette_idx();
 }
 
 GridMapEditorPlugin::GridMapEditorPlugin() {

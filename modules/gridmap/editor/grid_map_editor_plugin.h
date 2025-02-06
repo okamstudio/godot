@@ -180,7 +180,16 @@ class GridMapEditor : public VBoxContainer {
 	Vector3 cursor_origin;
 
 	int display_mode = DISPLAY_THUMBNAIL;
-	int selected_palette = -1;
+
+	int selected_mesh_palette_idx = -1;
+	int selected_library_item_id = -1;
+
+	Vector3i last_cube_painted;
+
+	void _set_item_idx(int new_selected_mesh_palette_idx);
+	void _select_next_item();
+	int _take_selected_library_id();
+
 	int cursor_rot = 0;
 
 	enum Menu {
@@ -213,7 +222,7 @@ class GridMapEditor : public VBoxContainer {
 		RID instance;
 	};
 
-	ItemList *mesh_library_palette = nullptr;
+	ItemList *mesh_palette = nullptr;
 	Label *info_message = nullptr;
 
 	void update_grid(); // Change which and where the grid is displayed
@@ -223,7 +232,7 @@ class GridMapEditor : public VBoxContainer {
 	void update_palette();
 	void _update_mesh_library();
 	void _set_display_mode(int p_mode);
-	void _item_selected_cbk(int idx);
+	void _item_selected_cbk(int idx, bool selected);
 	void _update_cursor_transform();
 	void _update_cursor_instance();
 	void _on_tool_mode_changed();
@@ -231,7 +240,7 @@ class GridMapEditor : public VBoxContainer {
 
 	void _text_changed(const String &p_text);
 	void _sbox_input(const Ref<InputEvent> &p_event);
-	void _mesh_library_palette_input(const Ref<InputEvent> &p_ie);
+	void _mesh_palette_input(const Ref<InputEvent> &p_ie);
 
 	void _icon_size_changed(float p_value);
 
@@ -263,6 +272,17 @@ protected:
 
 public:
 	EditorPlugin::AfterGUIInput forward_spatial_input_event(Camera3D *p_camera, const Ref<InputEvent> &p_event);
+
+	bool is_library_valid() const {
+		return node && node->get_mesh_library().is_valid();
+	}
+
+	int get_selected_palette_idx() const {
+		return selected_mesh_palette_idx;
+	}
+
+	void set_selected_palette_idx(int p_item);
+	void set_selected_library_item(int item_id);
 
 	void edit(GridMap *p_gridmap);
 	GridMapEditor();
