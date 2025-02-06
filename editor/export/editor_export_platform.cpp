@@ -38,6 +38,7 @@
 #include "core/io/image_loader.h"
 #include "core/io/resource_uid.h"
 #include "core/io/zip_io.h"
+#include "core/math/random_pcg.h"
 #include "core/version.h"
 #include "editor/editor_file_system.h"
 #include "editor/editor_node.h"
@@ -290,7 +291,7 @@ Error EditorExportPlatform::_save_pack_file(void *p_userdata, const String &p_pa
 				seed = ((seed << 5) + seed) ^ ptr[i];
 			}
 
-			RandomPCG rng = RandomPCG(seed, RandomPCG::DEFAULT_INC);
+			RandomPCG rng = RandomPCG(seed);
 			iv.resize(16);
 			for (int i = 0; i < 16; i++) {
 				iv.write[i] = rng.rand() % 256;
@@ -2023,7 +2024,7 @@ Error EditorExportPlatform::save_pack(const Ref<EditorExportPreset> &p_preset, b
 				seed = ((seed << 5) + seed) ^ pd.file_ofs[i].size;
 			}
 
-			RandomPCG rng = RandomPCG(seed, RandomPCG::DEFAULT_INC);
+			RandomPCG rng = RandomPCG(seed);
 			iv.resize(16);
 			for (int i = 0; i < 16; i++) {
 				iv.write[i] = rng.rand() % 256;
