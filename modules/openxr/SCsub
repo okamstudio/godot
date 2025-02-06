@@ -31,8 +31,8 @@ elif env["platform"] == "linuxbsd":
         env_openxr.AppendUnique(CPPDEFINES=["XR_USE_PLATFORM_EGL"])
 
     # FIXME: Review what needs to be set for Android and macOS.
-    # FreeBSD uses non-standard getenv functions.
-    if not sys.platform.startswith("freebsd"):
+    # BSDs use non-standard getenv functions.
+    if "bsd" not in sys.platform.lower():
         env_openxr.AppendUnique(CPPDEFINES=["HAVE_SECURE_GETENV"])
 elif env["platform"] == "windows":
     env_openxr.AppendUnique(CPPDEFINES=["XR_OS_WINDOWS", "NOMINMAX", "XR_USE_PLATFORM_WIN32"])

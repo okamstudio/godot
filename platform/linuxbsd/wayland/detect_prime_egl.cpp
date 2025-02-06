@@ -38,6 +38,12 @@
 
 #include <stdlib.h>
 
+#ifdef __OpenBSD__
+// Map `quick_exit` to `_Exit`
+// See reason in: GH-92130#issuecomment-2127135908
+#define quick_exit _Exit
+#endif
+
 #include <cstring>
 
 #include <sys/types.h>

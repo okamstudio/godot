@@ -35,7 +35,6 @@
 #ifdef __FreeBSD__
 #include <dev/evdev/input-event-codes.h>
 #else
-// Assume Linux.
 #include <linux/input-event-codes.h>
 #endif
 

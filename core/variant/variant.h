@@ -61,6 +61,8 @@
 #include "core/variant/callable.h"
 #include "core/variant/dictionary.h"
 
+#include <type_traits>
+
 class Object;
 class RefCounted;
 
@@ -487,6 +489,20 @@ public:
 
 	Object *get_validated_object() const;
 	Object *get_validated_object_with_check(bool &r_previously_freed) const;
+
+	// Template constructor for integral types.
+	// _should_ maintain platform compatibility _and_ fix
+	// OpenBSD's "ambiguous" conversion errors.
+	template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+	Variant(T p_val) {
+		if constexpr (std::is_same<T, bool>::value) {
+			type = BOOL;
+			_data._bool = p_val;
+		} else {
+			type = INT;
+			_data._int = static_cast<int64_t>(p_val);
+		}
+	}
 
 	Variant(bool p_bool);
 	Variant(int64_t p_int64);

@@ -69,7 +69,7 @@ Patches:
 ## X11
 
 - Upstream: https://x.org/wiki/
-- Version: 
+- Version:
   * Xcursor: 1.2.0
   * Xext: 1.3.5
   * Xinerama: 1.1.4
