@@ -1344,6 +1344,16 @@
 				Configures fog for the specified environment RID. See [code]fog_*[/code] properties in [Environment] for more information.
 			</description>
 		</method>
+		<method name="environment_set_fog_depth">
+			<return type="void" />
+			<param index="0" name="env" type="RID" />
+			<param index="1" name="curve" type="float" />
+			<param index="2" name="begin" type="float" />
+			<param index="3" name="end" type="float" />
+			<description>
+				Configures fog depth for the specified environment RID. Only has an effect when the fog mode of the environment is [constant ENV_FOG_MODE_DEPTH]. See [code]fog_depth_*[/code] properties in [Environment] for more information.
+			</description>
+		</method>
 		<method name="environment_set_glow">
 			<return type="void" />
 			<param index="0" name="env" type="RID" />
