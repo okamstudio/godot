@@ -211,7 +211,7 @@ Error AudioDriverOpenSL::init_input_device() {
 
 	SLDataLocator_AndroidSimpleBufferQueue loc_bq = {
 		SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE,
-		2
+		1,
 	};
 	SLDataFormat_PCM format_pcm = {
 		SL_DATAFORMAT_PCM,
@@ -220,7 +220,11 @@ Error AudioDriverOpenSL::init_input_device() {
 		SL_PCMSAMPLEFORMAT_FIXED_16,
 		SL_PCMSAMPLEFORMAT_FIXED_16,
 		SL_SPEAKER_FRONT_CENTER,
-		SL_BYTEORDER_LITTLEENDIAN
+#ifdef BIG_ENDIAN_ENABLED
+		SL_BYTEORDER_BIGENDIAN,
+#else
+		SL_BYTEORDER_LITTLEENDIAN,
+#endif
 	};
 	SLDataSink recSnk = { &loc_bq, &format_pcm };
 
