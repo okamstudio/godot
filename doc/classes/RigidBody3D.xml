@@ -28,6 +28,7 @@
 			<param index="0" name="force" type="Vector3" />
 			<description>
 				Adds a constant directional force without affecting rotation that keeps being applied over time until cleared with [code]constant_force = Vector3(0, 0, 0)[/code].
+				[param force] is interpreted in global coordinates and applied as given, without modification by the body's transform.
 				This is equivalent to using [method add_constant_force] at the body's center of mass.
 			</description>
 		</method>
@@ -37,6 +38,7 @@
 			<param index="1" name="position" type="Vector3" default="Vector3(0, 0, 0)" />
 			<description>
 				Adds a constant positioned force to the body that keeps being applied over time until cleared with [code]constant_force = Vector3(0, 0, 0)[/code].
+				[param force] is interpreted in global coordinates and applied as given, without modification by the body's transform.
 				[param position] is the offset from the body origin in global coordinates.
 			</description>
 		</method>
@@ -45,6 +47,7 @@
 			<param index="0" name="torque" type="Vector3" />
 			<description>
 				Adds a constant rotational force without affecting position that keeps being applied over time until cleared with [code]constant_torque = Vector3(0, 0, 0)[/code].
+				[param torque] is interpreted in global coordinates and applied as given, without modification by the body's transform.
 			</description>
 		</method>
 		<method name="apply_central_force">
@@ -52,6 +55,7 @@
 			<param index="0" name="force" type="Vector3" />
 			<description>
 				Applies a directional force without affecting rotation. A force is time dependent and meant to be applied every physics update.
+				[param force] is interpreted in global coordinates and applied as given, without modification by the body's transform.
 				This is equivalent to using [method apply_force] at the body's center of mass.
 			</description>
 		</method>
@@ -61,6 +65,7 @@
 			<description>
 				Applies a directional impulse without affecting rotation.
 				An impulse is time-independent! Applying an impulse every frame would result in a framerate-dependent force. For this reason, it should only be used when simulating one-time impacts (use the "_force" functions otherwise).
+				[param impulse] is interpreted in global coordinates and applied as given, without modification by the body's transform.
 				This is equivalent to using [method apply_impulse] at the body's center of mass.
 			</description>
 		</method>
@@ -70,6 +75,7 @@
 			<param index="1" name="position" type="Vector3" default="Vector3(0, 0, 0)" />
 			<description>
 				Applies a positioned force to the body. A force is time dependent and meant to be applied every physics update.
+				[param force] is interpreted in global coordinates and applied as given, without modification by the body's transform.
 				[param position] is the offset from the body origin in global coordinates.
 			</description>
 		</method>
@@ -80,6 +86,7 @@
 			<description>
 				Applies a positioned impulse to the body.
 				An impulse is time-independent! Applying an impulse every frame would result in a framerate-dependent force. For this reason, it should only be used when simulating one-time impacts (use the "_force" functions otherwise).
+				[param impulse] is interpreted in global coordinates and applied as given, without modification by the body's transform.
 				[param position] is the offset from the body origin in global coordinates.
 			</description>
 		</method>
@@ -88,6 +95,7 @@
 			<param index="0" name="torque" type="Vector3" />
 			<description>
 				Applies a rotational force without affecting position. A force is time dependent and meant to be applied every physics update.
+				[param torque] is interpreted in global coordinates and applied as given, without modification by the body's transform.
 				[b]Note:[/b] [member inertia] is required for this to work. To have [member inertia], an active [CollisionShape3D] must be a child of the node, or you can manually set [member inertia].
 			</description>
 		</method>
@@ -97,6 +105,7 @@
 			<description>
 				Applies a rotational impulse to the body without affecting the position.
 				An impulse is time-independent! Applying an impulse every frame would result in a framerate-dependent force. For this reason, it should only be used when simulating one-time impacts (use the "_force" functions otherwise).
+				[param impulse] is interpreted in global coordinates and applied as given, without modification by the body's transform.
 				[b]Note:[/b] [member inertia] is required for this to work. To have [member inertia], an active [CollisionShape3D] must be a child of the node, or you can manually set [member inertia].
 			</description>
 		</method>
