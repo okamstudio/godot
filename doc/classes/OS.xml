@@ -343,6 +343,18 @@
 				[b]Note:[/b] Thread IDs are not deterministic and may be reused across application restarts.
 			</description>
 		</method>
+		<method name="get_memory_allocations_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the current amount of memory allocations.
+			</description>
+		</method>
+		<method name="get_memory_allocations_performed" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the total amount of memory allocations performed during the application's lifetime. By comparing this value at different points in time, it is possible to detect if the application is performing unnecessary allocations.
+			</description>
+		</method>
 		<method name="get_memory_info" qualifiers="const">
 			<return type="Dictionary" />
 			<description>

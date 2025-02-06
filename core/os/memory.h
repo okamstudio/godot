@@ -45,6 +45,7 @@ class Memory {
 #endif
 
 	static SafeNumeric<uint64_t> alloc_count;
+	static SafeNumeric<uint64_t> alloc_performed;
 
 public:
 	// Alignment:  ↓ max_align_t        ↓ uint64_t          ↓ max_align_t
@@ -89,6 +90,8 @@ public:
 	static uint64_t get_mem_available();
 	static uint64_t get_mem_usage();
 	static uint64_t get_mem_max_usage();
+	static uint64_t get_mem_alloc_count();
+	static uint64_t get_mem_alloc_performed();
 };
 
 class DefaultAllocator {

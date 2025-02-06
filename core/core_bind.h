@@ -229,6 +229,8 @@ public:
 
 	uint64_t get_static_memory_usage() const;
 	uint64_t get_static_memory_peak_usage() const;
+	uint64_t get_memory_allocations_count() const;
+	uint64_t get_memory_allocations_performed() const;
 	Dictionary get_memory_info() const;
 
 	void delay_usec(int p_usec) const;

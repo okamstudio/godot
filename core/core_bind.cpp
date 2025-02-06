@@ -520,6 +520,14 @@ uint64_t OS::get_static_memory_peak_usage() const {
 	return ::OS::get_singleton()->get_static_memory_peak_usage();
 }
 
+uint64_t OS::get_memory_allocations_count() const {
+	return ::OS::get_singleton()->get_memory_allocations_count();
+}
+
+uint64_t OS::get_memory_allocations_performed() const {
+	return ::OS::get_singleton()->get_memory_allocations_performed();
+}
+
 Dictionary OS::get_memory_info() const {
 	return ::OS::get_singleton()->get_memory_info();
 }
@@ -705,6 +713,8 @@ void OS::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_static_memory_usage"), &OS::get_static_memory_usage);
 	ClassDB::bind_method(D_METHOD("get_static_memory_peak_usage"), &OS::get_static_memory_peak_usage);
+	ClassDB::bind_method(D_METHOD("get_memory_allocations_count"), &OS::get_memory_allocations_count);
+	ClassDB::bind_method(D_METHOD("get_memory_allocations_performed"), &OS::get_memory_allocations_performed);
 	ClassDB::bind_method(D_METHOD("get_memory_info"), &OS::get_memory_info);
 
 	ClassDB::bind_method(D_METHOD("move_to_trash", "path"), &OS::move_to_trash);

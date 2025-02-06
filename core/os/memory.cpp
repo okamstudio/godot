@@ -63,6 +63,7 @@ SafeNumeric<uint64_t> Memory::max_usage;
 #endif
 
 SafeNumeric<uint64_t> Memory::alloc_count;
+SafeNumeric<uint64_t> Memory::alloc_performed;
 
 void *Memory::alloc_aligned_static(size_t p_bytes, size_t p_alignment) {
 	DEV_ASSERT(is_power_of_2(p_alignment));
@@ -108,6 +109,7 @@ void *Memory::alloc_static(size_t p_bytes, bool p_pad_align) {
 	ERR_FAIL_NULL_V(mem, nullptr);
 
 	alloc_count.increment();
+	alloc_performed.increment();
 
 	if (prepad) {
 		uint8_t *s8 = (uint8_t *)mem;
@@ -220,6 +222,14 @@ uint64_t Memory::get_mem_max_usage() {
 #else
 	return 0;
 #endif
+}
+
+uint64_t Memory::get_mem_alloc_count() {
+	return alloc_count.get();
+}
+
+uint64_t Memory::get_mem_alloc_performed() {
+	return alloc_performed.get();
 }
 
 _GlobalNil::_GlobalNil() {

@@ -364,6 +364,14 @@ uint64_t OS::get_static_memory_peak_usage() const {
 	return Memory::get_mem_max_usage();
 }
 
+uint64_t OS::get_memory_allocations_count() const {
+	return Memory::get_mem_alloc_count();
+}
+
+uint64_t OS::get_memory_allocations_performed() const {
+	return Memory::get_mem_alloc_performed();
+}
+
 Error OS::set_cwd(const String &p_cwd) {
 	return ERR_CANT_OPEN;
 }
