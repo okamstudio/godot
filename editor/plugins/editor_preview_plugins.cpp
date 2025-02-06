@@ -366,6 +366,9 @@ EditorMaterialPreviewPlugin::EditorMaterialPreviewPlugin() {
 	RS::get_singleton()->viewport_set_update_mode(viewport, RS::VIEWPORT_UPDATE_DISABLED);
 	RS::get_singleton()->viewport_set_scenario(viewport, scenario);
 	RS::get_singleton()->viewport_set_size(viewport, 128, 128);
+	// Use 4× MSAA and 4× SSAA to avoid aliasing on edges and improve texture quality, which helps with thumbnail recognition.
+	RS::get_singleton()->viewport_set_msaa_3d(viewport, RenderingServer::VIEWPORT_MSAA_4X);
+	RS::get_singleton()->viewport_set_scaling_3d_scale(viewport, 2.0);
 	RS::get_singleton()->viewport_set_transparent_background(viewport, true);
 	RS::get_singleton()->viewport_set_active(viewport, true);
 	viewport_texture = RS::get_singleton()->viewport_get_texture(viewport);
@@ -790,6 +793,9 @@ EditorMeshPreviewPlugin::EditorMeshPreviewPlugin() {
 	RS::get_singleton()->viewport_set_update_mode(viewport, RS::VIEWPORT_UPDATE_DISABLED);
 	RS::get_singleton()->viewport_set_scenario(viewport, scenario);
 	RS::get_singleton()->viewport_set_size(viewport, 128, 128);
+	// Use 4× MSAA and 4× SSAA to avoid aliasing on edges and improve texture quality, which helps with thumbnail recognition.
+	RS::get_singleton()->viewport_set_msaa_3d(viewport, RenderingServer::VIEWPORT_MSAA_4X);
+	RS::get_singleton()->viewport_set_scaling_3d_scale(viewport, 2.0);
 	RS::get_singleton()->viewport_set_transparent_background(viewport, true);
 	RS::get_singleton()->viewport_set_active(viewport, true);
 	viewport_texture = RS::get_singleton()->viewport_get_texture(viewport);
