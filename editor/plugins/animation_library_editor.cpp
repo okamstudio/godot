@@ -215,6 +215,10 @@ void AnimationLibraryEditor::_file_popup_selected(int p_id) {
 				Ref<Animation> animation = al->get_animation(animation_name);
 				if (EditorNode::get_singleton()->is_resource_read_only(animation)) {
 					animation = animation->duplicate();
+					// Remove the imported flag from all the tracks in the duplicate.
+					for (int track_idx = 0; track_idx < animation->get_track_count(); track_idx++) {
+						animation->track_set_imported(track_idx, false);
+					}
 				}
 				ald->add_animation(animation_name, animation);
 			}
@@ -287,6 +291,11 @@ void AnimationLibraryEditor::_file_popup_selected(int p_id) {
 			StringName anim_name = file_dialog_animation;
 
 			Ref<Animation> animd = anim->duplicate();
+
+			// Remove the imported flag from all the tracks in the duplicate.
+			for (int track_idx = 0; track_idx < animd->get_track_count(); track_idx++) {
+				animd->track_set_imported(track_idx, false);
+			}
 
 			EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
 			undo_redo->create_action(vformat(TTR("Make Animation Unique: %s"), anim_name));

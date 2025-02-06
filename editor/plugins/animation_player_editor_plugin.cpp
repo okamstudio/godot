@@ -1367,6 +1367,11 @@ Ref<Animation> AnimationPlayerEditor::_animation_clone(Ref<Animation> p_anim) {
 	}
 	new_anim->set_path("");
 
+	// Clear the imported flag.
+	for (int track_idx = 0; track_idx < new_anim->get_track_count(); track_idx++) {
+		new_anim->track_set_imported(track_idx, false);
+	}
+
 	return new_anim;
 }
 
