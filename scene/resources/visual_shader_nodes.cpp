@@ -5408,11 +5408,12 @@ String VisualShaderNodeIntParameter::generate_global(Shader::Mode p_mode, Visual
 		code += _get_qual_str() + "uniform int " + get_parameter_name() + " : hint_range(" + itos(hint_range_min) + ", " + itos(hint_range_max) + ")";
 	} else if (hint == HINT_RANGE_STEP) {
 		code += _get_qual_str() + "uniform int " + get_parameter_name() + " : hint_range(" + itos(hint_range_min) + ", " + itos(hint_range_max) + ", " + itos(hint_range_step) + ")";
-	} else if (hint == HINT_ENUM) {
-		code += _get_qual_str() + "uniform int " + get_parameter_name() + " : hint_enum(";
+	} else if (hint == HINT_ENUM || hint == HINT_FLAGS) {
+		const char *hint_gdshader_name = hint == HINT_ENUM ? "hint_enum" : "hint_flags";
+		code += _get_qual_str() + "uniform int " + get_parameter_name() + " : " + hint_gdshader_name + "(";
 
 		bool first = true;
-		for (const String &_name : hint_enum_names) {
+		for (const String &_name : hint_names) {
 			if (first) {
 				first = false;
 			} else {
@@ -5493,16 +5494,16 @@ int VisualShaderNodeIntParameter::get_step() const {
 	return hint_range_step;
 }
 
-void VisualShaderNodeIntParameter::set_enum_names(const PackedStringArray &p_names) {
-	if (hint_enum_names == p_names) {
+void VisualShaderNodeIntParameter::set_hint_names(const PackedStringArray &p_names) {
+	if (hint_names == p_names) {
 		return;
 	}
-	hint_enum_names = p_names;
+	hint_names = p_names;
 	emit_changed();
 }
 
-PackedStringArray VisualShaderNodeIntParameter::get_enum_names() const {
-	return hint_enum_names;
+PackedStringArray VisualShaderNodeIntParameter::get_hint_names() const {
+	return hint_names;
 }
 
 void VisualShaderNodeIntParameter::set_default_value_enabled(bool p_default_value_enabled) {
@@ -5542,8 +5543,8 @@ void VisualShaderNodeIntParameter::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_step", "value"), &VisualShaderNodeIntParameter::set_step);
 	ClassDB::bind_method(D_METHOD("get_step"), &VisualShaderNodeIntParameter::get_step);
 
-	ClassDB::bind_method(D_METHOD("set_enum_names", "names"), &VisualShaderNodeIntParameter::set_enum_names);
-	ClassDB::bind_method(D_METHOD("get_enum_names"), &VisualShaderNodeIntParameter::get_enum_names);
+	ClassDB::bind_method(D_METHOD("set_hint_names", "names"), &VisualShaderNodeIntParameter::set_hint_names);
+	ClassDB::bind_method(D_METHOD("get_hint_names"), &VisualShaderNodeIntParameter::get_hint_names);
 
 	ClassDB::bind_method(D_METHOD("set_default_value_enabled", "enabled"), &VisualShaderNodeIntParameter::set_default_value_enabled);
 	ClassDB::bind_method(D_METHOD("is_default_value_enabled"), &VisualShaderNodeIntParameter::is_default_value_enabled);
@@ -5551,11 +5552,12 @@ void VisualShaderNodeIntParameter::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_default_value", "value"), &VisualShaderNodeIntParameter::set_default_value);
 	ClassDB::bind_method(D_METHOD("get_default_value"), &VisualShaderNodeIntParameter::get_default_value);
 
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "hint", PROPERTY_HINT_ENUM, "None,Range,Range + Step,Enum"), "set_hint", "get_hint");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "hint", PROPERTY_HINT_ENUM, "None,Range,Range + Step,Enum,Flags"), "set_hint", "get_hint");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "min"), "set_min", "get_min");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "max"), "set_max", "get_max");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "step"), "set_step", "get_step");
-	ADD_PROPERTY(PropertyInfo(Variant::PACKED_STRING_ARRAY, "enum_names"), "set_enum_names", "get_enum_names");
+	ADD_PROPERTY(PropertyInfo(Variant::PACKED_STRING_ARRAY, "enum_names"), "set_hint_names", "get_hint_names");
+	ADD_PROPERTY(PropertyInfo(Variant::PACKED_STRING_ARRAY, "flag_names"), "set_hint_names", "get_hint_names");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "default_value_enabled"), "set_default_value_enabled", "is_default_value_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "default_value"), "set_default_value", "get_default_value");
 
@@ -5563,6 +5565,7 @@ void VisualShaderNodeIntParameter::_bind_methods() {
 	BIND_ENUM_CONSTANT(HINT_RANGE);
 	BIND_ENUM_CONSTANT(HINT_RANGE_STEP);
 	BIND_ENUM_CONSTANT(HINT_ENUM);
+	BIND_ENUM_CONSTANT(HINT_FLAGS);
 	BIND_ENUM_CONSTANT(HINT_MAX);
 }
 
@@ -5586,6 +5589,9 @@ Vector<StringName> VisualShaderNodeIntParameter::get_editable_properties() const
 	}
 	if (hint == HINT_ENUM) {
 		props.push_back("enum_names");
+	}
+	if (hint == HINT_FLAGS) {
+		props.push_back("flag_names");
 	}
 	props.push_back("default_value_enabled");
 	if (default_value_enabled) {

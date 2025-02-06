@@ -15,8 +15,11 @@
 		<member name="default_value_enabled" type="bool" setter="set_default_value_enabled" getter="is_default_value_enabled" default="false">
 			If [code]true[/code], the node will have a custom default value.
 		</member>
-		<member name="enum_names" type="PackedStringArray" setter="set_enum_names" getter="get_enum_names" default="PackedStringArray()">
+		<member name="enum_names" type="PackedStringArray" setter="set_hint_names" getter="get_hint_names" default="PackedStringArray()">
 			The names used for the enum select in the editor. [member hint] must be [constant HINT_ENUM] for this to take effect.
+		</member>
+		<member name="flag_names" type="PackedStringArray" setter="set_hint_names" getter="get_hint_names" default="PackedStringArray()">
+			The names used for the bit flags in the editor. [member hint] must be [constant HINT_FLAGS] for this to take effect.
 		</member>
 		<member name="hint" type="int" setter="set_hint" getter="get_hint" enum="VisualShaderNodeIntParameter.Hint" default="0">
 			Range hint of this node. Use it to customize valid parameter range.
@@ -44,7 +47,10 @@
 		<constant name="HINT_ENUM" value="3" enum="Hint">
 			The parameter uses an enum to associate preset values to names in the editor.
 		</constant>
-		<constant name="HINT_MAX" value="4" enum="Hint">
+		<constant name="HINT_FLAGS" value="4" enum="Hint">
+			The parameter is configured using named bit flags in the editor.
+		</constant>
+		<constant name="HINT_MAX" value="5" enum="Hint">
 			Represents the size of the [enum Hint] enum.
 		</constant>
 	</constants>

@@ -214,6 +214,7 @@ const char *ShaderLanguage::token_names[TK_MAX] = {
 	"HINT_SOURCE_COLOR",
 	"HINT_RANGE",
 	"HINT_ENUM",
+	"HINT_FLAGS",
 	"HINT_INSTANCE_INDEX",
 	"HINT_SCREEN_TEXTURE",
 	"HINT_NORMAL_ROUGHNESS_TEXTURE",
@@ -369,6 +370,7 @@ const ShaderLanguage::KeyWord ShaderLanguage::keyword_list[] = {
 	{ TK_HINT_SOURCE_COLOR, "source_color", CF_UNSPECIFIED, {}, {} },
 	{ TK_HINT_RANGE, "hint_range", CF_UNSPECIFIED, {}, {} },
 	{ TK_HINT_ENUM, "hint_enum", CF_UNSPECIFIED, {}, {} },
+	{ TK_HINT_FLAGS, "hint_flags", CF_UNSPECIFIED, {}, {} },
 	{ TK_HINT_INSTANCE_INDEX, "instance_index", CF_UNSPECIFIED, {}, {} },
 
 	// sampler hints
@@ -1183,6 +1185,9 @@ String ShaderLanguage::get_uniform_hint_name(ShaderNode::Uniform::Hint p_hint) {
 		} break;
 		case ShaderNode::Uniform::HINT_ENUM: {
 			result = "hint_enum";
+		} break;
+		case ShaderNode::Uniform::HINT_FLAGS: {
+			result = "hint_flags";
 		} break;
 		case ShaderNode::Uniform::HINT_SOURCE_COLOR: {
 			result = "source_color";
@@ -4857,11 +4862,11 @@ PropertyInfo ShaderLanguage::uniform_to_property_info(const ShaderNode::Uniform 
 			if (p_uniform.array_size > 0) {
 				pi.type = Variant::PACKED_INT32_ARRAY;
 				// TODO: Handle range and encoding for for unsigned values.
-			} else if (p_uniform.hint == ShaderLanguage::ShaderNode::Uniform::HINT_ENUM) {
+			} else if (p_uniform.hint == ShaderLanguage::ShaderNode::Uniform::HINT_ENUM || p_uniform.hint == ShaderLanguage::ShaderNode::Uniform::HINT_FLAGS) {
 				pi.type = Variant::INT;
-				pi.hint = PROPERTY_HINT_ENUM;
+				pi.hint = p_uniform.hint == ShaderLanguage::ShaderNode::Uniform::HINT_ENUM ? PROPERTY_HINT_ENUM : PROPERTY_HINT_FLAGS;
 				String hint_string;
-				pi.hint_string = String(",").join(p_uniform.hint_enum_names);
+				pi.hint_string = String(",").join(p_uniform.hint_names);
 			} else {
 				pi.type = Variant::INT;
 				pi.hint = PROPERTY_HINT_RANGE;
@@ -9866,15 +9871,24 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 
 									new_hint = ShaderNode::Uniform::HINT_RANGE;
 								} break;
-								case TK_HINT_ENUM: {
+								case TK_HINT_ENUM:
+								case TK_HINT_FLAGS: {
+									bool is_hint_enum = tk.type == TK_HINT_ENUM;
+
 									if (type != TYPE_INT) {
-										_set_error(vformat(RTR("Enum hint is for '%s' only."), "int"));
+										String err;
+										if (is_hint_enum) {
+											err = RTR("Enum hint is for '%s' only.");
+										} else {
+											err = RTR("Flags hint is for '%s' only.");
+										}
+										_set_error(vformat(err, "int"));
 										return ERR_PARSE_ERROR;
 									}
 
 									tk = _get_token();
 									if (tk.type != TK_PARENTHESIS_OPEN) {
-										_set_expected_after_error("(", "hint_enum");
+										_set_expected_after_error("(", is_hint_enum ? "hint_enum" : "hint_flags");
 										return ERR_PARSE_ERROR;
 									}
 
@@ -9886,7 +9900,7 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 											return ERR_PARSE_ERROR;
 										}
 
-										uniform.hint_enum_names.push_back(tk.text);
+										uniform.hint_names.push_back(tk.text);
 
 										tk = _get_token();
 
@@ -9898,7 +9912,7 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 										}
 									}
 
-									new_hint = ShaderNode::Uniform::HINT_ENUM;
+									new_hint = is_hint_enum ? ShaderNode::Uniform::HINT_ENUM : ShaderNode::Uniform::HINT_FLAGS;
 								} break;
 								case TK_HINT_INSTANCE_INDEX: {
 									if (custom_instance_index != -1) {
@@ -9995,7 +10009,7 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 									break;
 							}
 
-							bool is_sampler_hint = new_hint != ShaderNode::Uniform::HINT_NONE && new_hint != ShaderNode::Uniform::HINT_SOURCE_COLOR && new_hint != ShaderNode::Uniform::HINT_RANGE && new_hint != ShaderNode::Uniform::HINT_ENUM;
+							bool is_sampler_hint = new_hint != ShaderNode::Uniform::HINT_NONE && new_hint != ShaderNode::Uniform::HINT_SOURCE_COLOR && new_hint != ShaderNode::Uniform::HINT_RANGE && new_hint != ShaderNode::Uniform::HINT_ENUM && new_hint != ShaderNode::Uniform::HINT_FLAGS;
 							if (((new_filter != FILTER_DEFAULT || new_repeat != REPEAT_DEFAULT) || is_sampler_hint) && !is_sampler_type(type)) {
 								_set_error(RTR("This hint is only for sampler types."));
 								return ERR_PARSE_ERROR;
@@ -11783,6 +11797,7 @@ Error ShaderLanguage::complete(const String &p_code, const ShaderCompileInfo &p_
 					if (completion_base == DataType::TYPE_INT) {
 						options.push_back("hint_range(0, 100, 1)");
 						options.push_back("hint_enum(\"Zero\", \"One\", \"Two\")");
+						options.push_back("hint_flags(\"Flag1\", \"Flag2\")");
 					} else {
 						options.push_back("hint_range(0.0, 1.0, 0.1)");
 					}
