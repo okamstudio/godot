@@ -1305,9 +1305,7 @@ void SceneImportSettingsDialog::_re_import() {
 		subresources["animations"] = animations;
 	}
 
-	if (subresources.size()) {
-		main_settings["_subresources"] = subresources;
-	}
+	main_settings["_subresources"] = subresources;
 
 	_cleanup(); // Prevent skeletons and other pointers from pointing to dangling references.
 	EditorFileSystem::get_singleton()->reimport_file_with_custom_parameters(base_path, editing_animation ? "animation_library" : "scene", main_settings);
