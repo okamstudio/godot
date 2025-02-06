@@ -899,7 +899,7 @@ Color DisplayServerMacOS::get_base_color() const {
 		__block NSColor *color = nullptr;
 		if (@available(macOS 11.0, *)) {
 			[NSApp.effectiveAppearance performAsCurrentDrawingAppearance:^{
-				color = [[NSColor controlColor] colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
+				color = [[NSColor windowBackgroundColor] colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
 			}];
 		} else {
 			NSAppearance *saved_appearance = [NSAppearance currentAppearance];
