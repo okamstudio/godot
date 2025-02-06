@@ -4557,11 +4557,12 @@ bool String::is_valid_unicode_identifier() const {
 bool String::is_valid_string() const {
 	int l = length();
 	const char32_t *src = get_data();
-	bool valid = true;
 	for (int i = 0; i < l; i++) {
-		valid = valid && (src[i] < 0xd800 || (src[i] > 0xdfff && src[i] <= 0x10ffff));
+		if (!(src[i] < 0xd800 || (src[i] > 0xdfff && src[i] <= 0x10ffff))) {
+			return false;
+		}
 	}
-	return valid;
+	return true;
 }
 
 String String::uri_encode() const {
