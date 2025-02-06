@@ -342,6 +342,9 @@
 		<member name="roughness" type="float" setter="set_roughness" getter="get_roughness" default="1.0">
 			Surface reflection. A value of [code]0[/code] represents a perfect mirror while a value of [code]1[/code] completely blurs the reflection. See also [member metallic].
 		</member>
+		<member name="roughness_flip_texture" type="bool" setter="set_flag" getter="get_flag" default="false">
+			Inverts the roughness map. Useful for models created in workflows using smoothness maps.
+		</member>
 		<member name="roughness_texture" type="Texture2D" setter="set_texture" getter="get_texture">
 			Texture used to control the roughness per-pixel. Multiplied by [member roughness].
 		</member>
@@ -706,7 +709,10 @@
 		<constant name="FLAG_DISABLE_FOG" value="21" enum="Flags">
 			Disables receiving depth-based or volumetric fog.
 		</constant>
-		<constant name="FLAG_MAX" value="22" enum="Flags">
+		<constant name="FLAG_INVERT_ROUGHNESS" value="22" enum="Flags">
+			Inverts the roughness map, essentially making it a smoothness map.
+		</constant>
+		<constant name="FLAG_MAX" value="23" enum="Flags">
 			Represents the size of the [enum Flags] enum.
 		</constant>
 		<constant name="DIFFUSE_BURLEY" value="0" enum="DiffuseMode">
