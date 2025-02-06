@@ -1419,56 +1419,56 @@ void RendererCanvasCull::canvas_item_add_rect(RID p_item, const Rect2 &p_rect, c
 	}
 }
 
-void RendererCanvasCull::canvas_item_add_circle(RID p_item, const Point2 &p_pos, float p_radius, const Color &p_color, bool p_antialiased) {
+void RendererCanvasCull::canvas_item_add_ellipse(RID p_item, const Point2 &p_pos, float p_major, float p_minor, const Color &p_color, bool p_antialiased) {
 	Item *canvas_item = canvas_item_owner.get_or_null(p_item);
 	ERR_FAIL_NULL(canvas_item);
 
-	static const int circle_segments = 64;
+	static const int ellipse_segments = 64;
 
 	{
-		Item::CommandPolygon *circle = canvas_item->alloc_command<Item::CommandPolygon>();
-		ERR_FAIL_NULL(circle);
+		Item::CommandPolygon *ellipse = canvas_item->alloc_command<Item::CommandPolygon>();
+		ERR_FAIL_NULL(ellipse);
 
-		circle->primitive = RS::PRIMITIVE_TRIANGLES;
+		ellipse->primitive = RS::PRIMITIVE_TRIANGLES;
 
 		Vector<int> indices;
 		Vector<Vector2> points;
 
-		points.resize(circle_segments + 2);
+		points.resize(ellipse_segments + 2);
 		Vector2 *points_ptr = points.ptrw();
 
-		// Store circle center in the last point.
-		points_ptr[circle_segments + 1] = p_pos;
+		// Store ellipse center in the last point.
+		points_ptr[ellipse_segments + 1] = p_pos;
 
-		const real_t circle_point_step = Math_TAU / circle_segments;
+		const real_t ellipse_point_step = Math_TAU / ellipse_segments;
 
-		for (int i = 0; i < circle_segments + 1; i++) {
-			float angle = i * circle_point_step;
-			points_ptr[i].x = Math::cos(angle) * p_radius;
-			points_ptr[i].y = Math::sin(angle) * p_radius;
+		for (int i = 0; i < ellipse_segments + 1; i++) {
+			float angle = i * ellipse_point_step;
+			points_ptr[i].x = Math::cos(angle) * p_major;
+			points_ptr[i].y = Math::sin(angle) * p_minor;
 			points_ptr[i] += p_pos;
 		}
 
-		indices.resize(circle_segments * 3);
+		indices.resize(ellipse_segments * 3);
 		int *indices_ptr = indices.ptrw();
 
-		for (int i = 0; i < circle_segments; i++) {
-			indices_ptr[i * 3 + 0] = circle_segments + 1;
+		for (int i = 0; i < ellipse_segments; i++) {
+			indices_ptr[i * 3 + 0] = ellipse_segments + 1;
 			indices_ptr[i * 3 + 1] = i;
 			indices_ptr[i * 3 + 2] = i + 1;
 		}
 
 		Vector<Color> color;
 		color.push_back(p_color);
-		circle->polygon.create(indices, points, color);
+		ellipse->polygon.create(indices, points, color);
 	}
 
 	if (p_antialiased) {
 		float border_size = FEATHER_SIZE;
 
-		const float diameter = p_radius * 2.0f;
-		if (0.0f <= diameter && diameter < 1.0f) {
-			border_size *= p_radius;
+		const float max_axis = fmax(p_major, p_minor) * 2.0f;
+		if (0.0f <= max_axis && max_axis < 1.0f) {
+			border_size *= max_axis * 0.5f;
 		}
 
 		Item::CommandPolygon *feather = canvas_item->alloc_command<Item::CommandPolygon>();
@@ -1481,25 +1481,25 @@ void RendererCanvasCull::canvas_item_add_circle(RID p_item, const Point2 &p_pos,
 		Vector<Color> colors;
 		Vector<Vector2> points;
 
-		points.resize(2 * circle_segments + 2);
-		colors.resize(2 * circle_segments + 2);
+		points.resize(2 * ellipse_segments + 2);
+		colors.resize(2 * ellipse_segments + 2);
 
-		const real_t circle_point_step = Math_TAU / circle_segments;
+		const real_t ellipse_point_step = Math_TAU / ellipse_segments;
 
 		Vector2 *points_ptr = points.ptrw();
 		Color *colors_ptr = colors.ptrw();
 
-		for (int i = 0; i < circle_segments + 1; i++) {
-			const float angle = i * circle_point_step;
+		for (int i = 0; i < ellipse_segments + 1; i++) {
+			const float angle = i * ellipse_point_step;
 			const float c = Math::cos(angle);
 			const float s = Math::sin(angle);
 
-			points_ptr[i * 2].x = c * p_radius;
-			points_ptr[i * 2].y = s * p_radius;
+			points_ptr[i * 2].x = c * p_major;
+			points_ptr[i * 2].y = s * p_minor;
 			points_ptr[i * 2] += p_pos;
 
-			points_ptr[i * 2 + 1].x = c * (p_radius + border_size);
-			points_ptr[i * 2 + 1].y = s * (p_radius + border_size);
+			points_ptr[i * 2 + 1].x = c * (p_major + border_size);
+			points_ptr[i * 2 + 1].y = s * (p_minor + border_size);
 			points_ptr[i * 2 + 1] += p_pos;
 
 			colors_ptr[i * 2] = p_color;
@@ -1508,6 +1508,10 @@ void RendererCanvasCull::canvas_item_add_circle(RID p_item, const Point2 &p_pos,
 
 		feather->polygon.create(indices, points, colors);
 	}
+}
+
+void RendererCanvasCull::canvas_item_add_circle(RID p_item, const Point2 &p_pos, float p_radius, const Color &p_color, bool p_antialiased) {
+	canvas_item_add_ellipse(p_item, p_pos, p_radius, p_radius, p_color, p_antialiased);
 }
 
 void RendererCanvasCull::canvas_item_add_texture_rect(RID p_item, const Rect2 &p_rect, RID p_texture, bool p_tile, const Color &p_modulate, bool p_transpose) {

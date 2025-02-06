@@ -227,6 +227,18 @@
 				If [param ignore] is [code]true[/code], ignore clipping on items drawn with this canvas item until this is called again with [param ignore] set to [code]false[/code].
 			</description>
 		</method>
+		<method name="canvas_item_add_ellipse">
+			<return type="void" />
+			<param index="0" name="item" type="RID" />
+			<param index="1" name="pos" type="Vector2" />
+			<param index="2" name="major" type="float" />
+			<param index="3" name="minor" type="float" />
+			<param index="4" name="color" type="Color" />
+			<param index="5" name="antialiased" type="bool" default="false" />
+			<description>
+				Draws an ellipse with semi-major axis [param major] and semi-minor axis [param minor] on the [CanvasItem] pointed to by the [param item] [RID]. See also [method CanvasItem.draw_ellipse].
+			</description>
+		</method>
 		<method name="canvas_item_add_lcd_texture_rect_region">
 			<return type="void" />
 			<param index="0" name="item" type="RID" />

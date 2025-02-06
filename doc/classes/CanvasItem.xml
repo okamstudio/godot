@@ -44,7 +44,7 @@
 			<param index="6" name="width" type="float" default="-1.0" />
 			<param index="7" name="antialiased" type="bool" default="false" />
 			<description>
-				Draws an unfilled arc between the given angles with a uniform [param color] and [param width] and optional antialiasing (supported only for positive [param width]). The larger the value of [param point_count], the smoother the curve. See also [method draw_circle].
+				Draws an unfilled arc between the given angles with a uniform [param color] and [param width] and optional antialiasing (supported only for positive [param width]). The larger the value of [param point_count], the smoother the curve. For elliptical arcs, see [method draw_ellipse_arc]. See also [method draw_circle].
 				If [param width] is negative, it will be ignored and the arc will be drawn using [constant RenderingServer.PRIMITIVE_LINE_STRIP]. This means that when the CanvasItem is scaled, the arc will remain thin. If this behavior is not desired, then pass a positive [param width] like [code]1.0[/code].
 				The arc is drawn from [param start_angle] towards the value of [param end_angle] so in clockwise direction if [code]start_angle &lt; end_angle[/code] and counter-clockwise otherwise. Passing the same angles but in reversed order will produce the same arc. If absolute difference of [param start_angle] and [param end_angle] is greater than [constant @GDScript.TAU] radians, then a full circle arc is drawn (i.e. arc will not overlap itself).
 			</description>
@@ -81,7 +81,7 @@
 			<param index="4" name="width" type="float" default="-1.0" />
 			<param index="5" name="antialiased" type="bool" default="false" />
 			<description>
-				Draws a circle. See also [method draw_arc], [method draw_polyline], and [method draw_polygon].
+				Draws a circle. See also [method draw_ellipse], [method draw_arc], [method draw_polyline], and [method draw_polygon].
 				If [param filled] is [code]true[/code], the circle will be filled with the [param color] specified. If [param filled] is [code]false[/code], the circle will be drawn as a stroke with the [param color] and [param width] specified.
 				If [param width] is negative, then two-point primitives will be drawn instead of a four-point ones. This means that when the CanvasItem is scaled, the lines will remain thin. If this behavior is not desired, then pass a positive [param width] like [code]1.0[/code].
 				If [param antialiased] is [code]true[/code], half transparent "feathers" will be attached to the boundary, making outlines smooth.
@@ -113,6 +113,40 @@
 				If [param width] is negative, then a two-point primitives will be drawn instead of a four-point ones. This means that when the CanvasItem is scaled, the line parts will remain thin. If this behavior is not desired, then pass a positive [param width] like [code]1.0[/code].
 				If [param antialiased] is [code]true[/code], half transparent "feathers" will be attached to the boundary, making outlines smooth.
 				[b]Note:[/b] [param antialiased] is only effective if [param width] is greater than [code]0.0[/code].
+			</description>
+		</method>
+		<method name="draw_ellipse">
+			<return type="void" />
+			<param index="0" name="position" type="Vector2" />
+			<param index="1" name="major" type="float" />
+			<param index="2" name="minor" type="float" />
+			<param index="3" name="color" type="Color" />
+			<param index="4" name="filled" type="bool" default="true" />
+			<param index="5" name="width" type="float" default="-1.0" />
+			<param index="6" name="antialiased" type="bool" default="false" />
+			<description>
+				Draws an ellipse with semi-major axis [param major] and semi-minor axis [param minor]. See also [method draw_circle], [method draw_ellipse_arc], [method draw_polyline], and [method draw_polygon].
+				If [param filled] is [code]true[/code], the ellipse will be filled with the [param color] specified. If [param filled] is [code]false[/code], the ellipse will be drawn as a stroke with the [param color] and [param width] specified.
+				If [param width] is negative, then two-point primitives will be drawn instead of four-point ones. This means that when the CanvasItem is scaled, the lines will remain thin. If this behavior is not desired, then pass a positive [param width] like [code]1.0[/code].
+				If [param antialiased] is [code]true[/code], half transparent "feathers" will be attached to the boundary, making outlines smooth.
+				[b]Note:[/b] [param width] is only effective if [param filled] is [code]false[/code].
+			</description>
+		</method>
+		<method name="draw_ellipse_arc">
+			<return type="void" />
+			<param index="0" name="center" type="Vector2" />
+			<param index="1" name="major" type="float" />
+			<param index="2" name="minor" type="float" />
+			<param index="3" name="start_angle" type="float" />
+			<param index="4" name="end_angle" type="float" />
+			<param index="5" name="point_count" type="int" />
+			<param index="6" name="color" type="Color" />
+			<param index="7" name="width" type="float" default="-1.0" />
+			<param index="8" name="antialiased" type="bool" default="false" />
+			<description>
+				Draws an unfilled elliptical arc between the given angles with a uniform [param color] and [param width] and optional antialiasing (supported only for positive [param width]). The larger the value of [param point_count], the smoother the curve. For circular arcs, see [method draw_arc]. See also [method draw_ellipse].
+				If [param width] is negative, it will be ignored and the arc will be drawn using [constant RenderingServer.PRIMITIVE_LINE_STRIP]. This means that when the CanvasItem is scaled, the arc will remain thin. If this behavior is not desired, then pass a positive [param width] like [code]1.0[/code].
+				The arc is drawn from [param start_angle] towards the value of [param end_angle] so in clockwise direction if [code]start_angle &lt; end_angle[/code] and counter-clockwise otherwise. Passing the same angles but in reversed order will produce the same arc. If absolute difference of [param start_angle] and [param end_angle] is greater than [constant @GDScript.TAU] radians, then a full ellipse is drawn (i.e. arc will not overlap itself).
 			</description>
 		</method>
 		<method name="draw_end_animation">
