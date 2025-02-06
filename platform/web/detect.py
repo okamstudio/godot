@@ -34,7 +34,7 @@ def get_tools(env: "SConsEnvironment"):
 
 
 def get_opts():
-    from SCons.Variables import BoolVariable
+    from SCons.Variables import BoolVariable, EnumVariable
 
     return [
         ("initial_memory", "Initial WASM memory (in MiB)", 32),
@@ -56,6 +56,17 @@ def get_opts():
             "proxy_to_pthread",
             "Use Emscripten PROXY_TO_PTHREAD option to run the main application code to a separate thread",
             False,
+        ),
+        BoolVariable(
+            "async",
+            "Enable synchronous C++ interaction with asynchronous JavaScript. Produces bigger binaries",
+            False,
+        ),
+        EnumVariable(
+            "async_method",
+            "Set the async method to use. Only applies if `async=yes`",
+            "asyncify",
+            ("asyncify", "jspi"),
         ),
     ]
 
@@ -271,10 +282,6 @@ def configure(env: "SConsEnvironment"):
     # Wrap the JavaScript support code around a closure named Godot.
     env.Append(LINKFLAGS=["-sMODULARIZE=1", "-sEXPORT_NAME='Godot'"])
 
-    # Force long jump mode to 'wasm'
-    env.Append(CCFLAGS=["-sSUPPORT_LONGJMP='wasm'"])
-    env.Append(LINKFLAGS=["-sSUPPORT_LONGJMP='wasm'"])
-
     # Allow increasing memory buffer size during runtime. This is efficient
     # when using WebAssembly (in comparison to asm.js) and works well for
     # us since we don't know requirements at compile-time.
@@ -292,3 +299,18 @@ def configure(env: "SConsEnvironment"):
     # This workaround creates a closure that prevents the garbage collector from freeing the WebGL context.
     # We also only use WebGL2, and changing context version is not widely supported anyway.
     env.Append(LINKFLAGS=["-sGL_WORKAROUND_SAFARI_GETCONTEXT_BUG=0"])
+
+    # Async support.
+    if env["async"]:
+        env.Append(CPPDEFINES=["ASYNC_ENABLED"])
+
+        if env["async_method"] == "asyncify":
+            env.Append(LINKFLAGS=["-sASYNCIFY"])
+        elif env["async_method"] == "jspi":
+            env.Append(LINKFLAGS=["-sJSPI"])
+
+        env.Append(CCFLAGS=["-sSUPPORT_LONGJMP='emscripten'"])
+        env.Append(LINKFLAGS=["-sSUPPORT_LONGJMP='emscripten'"])
+    else:
+        env.Append(CCFLAGS=["-sSUPPORT_LONGJMP='wasm'"])
+        env.Append(LINKFLAGS=["-sSUPPORT_LONGJMP='wasm'"])
