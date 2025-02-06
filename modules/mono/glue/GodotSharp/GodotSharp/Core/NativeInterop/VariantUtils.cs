@@ -485,7 +485,14 @@ namespace Godot.NativeInterop
                 NativeFuncs.godotsharp_variant_as_rid(p_var);
 
         public static IntPtr ConvertToGodotObjectPtr(in godot_variant p_var)
-            => p_var.Type == Variant.Type.Object ? p_var.Object : IntPtr.Zero;
+        {
+            if (p_var.Type != Variant.Type.Object || p_var.ObjectId == 0)
+            {
+                return IntPtr.Zero;
+            }
+
+            return NativeFuncs.godotsharp_instance_from_id(p_var.ObjectId);
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static GodotObject ConvertToGodotObject(in godot_variant p_var)

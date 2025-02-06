@@ -455,6 +455,12 @@ namespace Godot.NativeInterop
             get => _data._m_obj_data.obj;
         }
 
+        public readonly ulong ObjectId
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _data._m_obj_data.id;
+        }
+
         public void Dispose()
         {
             switch (Type)
