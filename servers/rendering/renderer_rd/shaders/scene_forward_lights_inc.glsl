@@ -1,5 +1,18 @@
 // Functions related to lighting
 
+#extension GL_EXT_control_flow_attributes : require
+
+// This annotation macro must be placed before any loops that rely on specialization constants as their upper bound.
+// Drivers may choose to unroll these loops based on the possible range of the value that can be deduced from the
+// spec constant, which can lead to their code generation taking a much longer time than desired.
+#ifdef UBERSHADER
+// Prefer to not unroll loops on the ubershader to reduce code size as much as possible.
+#define SPEC_CONSTANT_LOOP_ANNOTATION [[dont_unroll]]
+#else
+// Don't make an explicit hint on specialized shaders.
+#define SPEC_CONSTANT_LOOP_ANNOTATION
+#endif
+
 float D_GGX(float cos_theta_m, float alpha) {
 	float a = cos_theta_m * alpha;
 	float k = alpha / (1.0 - cos_theta_m * cos_theta_m + a * a);
@@ -257,6 +270,7 @@ float sample_directional_pcf_shadow(texture2D shadow, vec2 shadow_pixel_size, ve
 
 	float avg = 0.0;
 
+	SPEC_CONSTANT_LOOP_ANNOTATION
 	for (uint i = 0; i < sc_directional_soft_shadow_samples(); i++) {
 		avg += textureProj(sampler2DShadow(shadow, shadow_sampler), vec4(pos + shadow_pixel_size * (disk_rotation * scene_data_block.data.directional_soft_shadow_kernel[i].xy), depth, 1.0));
 	}
@@ -283,6 +297,7 @@ float sample_pcf_shadow(texture2D shadow, vec2 shadow_pixel_size, vec3 coord, fl
 
 	float avg = 0.0;
 
+	SPEC_CONSTANT_LOOP_ANNOTATION
 	for (uint i = 0; i < sc_soft_shadow_samples(); i++) {
 		avg += textureProj(sampler2DShadow(shadow, shadow_sampler), vec4(pos + shadow_pixel_size * (disk_rotation * scene_data_block.data.soft_shadow_kernel[i].xy), depth, 1.0));
 	}
@@ -309,6 +324,7 @@ float sample_omni_pcf_shadow(texture2D shadow, float blur_scale, vec2 coord, vec
 	float avg = 0.0;
 	vec2 offset_scale = blur_scale * 2.0 * scene_data_block.data.shadow_atlas_pixel_size / uv_rect.zw;
 
+	SPEC_CONSTANT_LOOP_ANNOTATION
 	for (uint i = 0; i < sc_soft_shadow_samples(); i++) {
 		vec2 offset = offset_scale * (disk_rotation * scene_data_block.data.soft_shadow_kernel[i].xy);
 		vec2 sample_coord = coord + offset;
@@ -346,6 +362,7 @@ float sample_directional_soft_shadow(texture2D shadow, vec3 pssm_coord, vec2 tex
 		disk_rotation = mat2(vec2(cr, -sr), vec2(sr, cr));
 	}
 
+	SPEC_CONSTANT_LOOP_ANNOTATION
 	for (uint i = 0; i < sc_directional_penumbra_shadow_samples(); i++) {
 		vec2 suv = pssm_coord.xy + (disk_rotation * scene_data_block.data.directional_penumbra_shadow_kernel[i].xy) * tex_scale;
 		float d = textureLod(sampler2D(shadow, SAMPLER_LINEAR_CLAMP), suv, 0.0).r;
@@ -362,6 +379,8 @@ float sample_directional_soft_shadow(texture2D shadow, vec3 pssm_coord, vec2 tex
 		tex_scale *= penumbra;
 
 		float s = 0.0;
+
+		SPEC_CONSTANT_LOOP_ANNOTATION
 		for (uint i = 0; i < sc_directional_penumbra_shadow_samples(); i++) {
 			vec2 suv = pssm_coord.xy + (disk_rotation * scene_data_block.data.directional_penumbra_shadow_kernel[i].xy) * tex_scale;
 			s += textureProj(sampler2DShadow(shadow, shadow_sampler), vec4(suv, pssm_coord.z, 1.0));
@@ -465,6 +484,7 @@ void light_process_omni(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 v
 			tangent *= omni_lights.data[idx].soft_shadow_size * omni_lights.data[idx].soft_shadow_scale;
 			bitangent *= omni_lights.data[idx].soft_shadow_size * omni_lights.data[idx].soft_shadow_scale;
 
+			SPEC_CONSTANT_LOOP_ANNOTATION
 			for (uint i = 0; i < sc_penumbra_shadow_samples(); i++) {
 				vec2 disk = disk_rotation * scene_data_block.data.penumbra_shadow_kernel[i].xy;
 
@@ -501,6 +521,8 @@ void light_process_omni(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 v
 				z_norm += omni_lights.data[idx].inv_radius * omni_lights.data[idx].shadow_bias;
 
 				shadow = 0.0;
+
+				SPEC_CONSTANT_LOOP_ANNOTATION
 				for (uint i = 0; i < sc_penumbra_shadow_samples(); i++) {
 					vec2 disk = disk_rotation * scene_data_block.data.penumbra_shadow_kernel[i].xy;
 					vec3 pos = local_vert + tangent * disk.x + bitangent * disk.y;
@@ -757,6 +779,8 @@ void light_process_spot(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 v
 
 			float uv_size = spot_lights.data[idx].soft_shadow_size * z_norm * spot_lights.data[idx].soft_shadow_scale;
 			vec2 clamp_max = spot_lights.data[idx].atlas_rect.xy + spot_lights.data[idx].atlas_rect.zw;
+
+			SPEC_CONSTANT_LOOP_ANNOTATION
 			for (uint i = 0; i < sc_penumbra_shadow_samples(); i++) {
 				vec2 suv = shadow_uv + (disk_rotation * scene_data_block.data.penumbra_shadow_kernel[i].xy) * uv_size;
 				suv = clamp(suv, spot_lights.data[idx].atlas_rect.xy, clamp_max);
@@ -774,6 +798,8 @@ void light_process_spot(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 v
 				uv_size *= penumbra;
 
 				shadow = 0.0;
+
+				SPEC_CONSTANT_LOOP_ANNOTATION
 				for (uint i = 0; i < sc_penumbra_shadow_samples(); i++) {
 					vec2 suv = shadow_uv + (disk_rotation * scene_data_block.data.penumbra_shadow_kernel[i].xy) * uv_size;
 					suv = clamp(suv, spot_lights.data[idx].atlas_rect.xy, clamp_max);
