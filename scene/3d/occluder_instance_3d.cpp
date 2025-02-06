@@ -465,6 +465,11 @@ void OccluderInstance3D::_occluder_changed() {
 	update_configuration_warnings();
 }
 
+void OccluderInstance3D::_project_settings_changed() {
+	// Use Occlusion Culling project setting affects node configuration warnings.
+	update_configuration_warnings();
+}
+
 Ref<Occluder3D> OccluderInstance3D::get_occluder() const {
 	return occluder;
 }
@@ -725,6 +730,19 @@ bool OccluderInstance3D::_is_editable_3d_polygon() const {
 
 Ref<Resource> OccluderInstance3D::_get_editable_3d_polygon_resource() const {
 	return occluder;
+}
+
+void OccluderInstance3D::_notification(int p_what) {
+#ifdef TOOLS_ENABLED
+	switch (p_what) {
+		case NOTIFICATION_READY: {
+			if (Engine::get_singleton()->is_editor_hint()) {
+				// Use Occlusion Culling project setting affects node configuration warnings.
+				EditorNode::get_singleton()->connect("project_settings_changed", callable_mp(this, &OccluderInstance3D::_project_settings_changed));
+			}
+		} break;
+	}
+#endif
 }
 
 void OccluderInstance3D::_bind_methods() {

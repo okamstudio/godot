@@ -168,6 +168,7 @@ private:
 	float bake_simplification_dist = 0.1f;
 
 	void _occluder_changed();
+	void _project_settings_changed();
 
 	static bool _bake_material_check(Ref<Material> p_material);
 	static void _bake_surface(const Transform3D &p_transform, Array p_surface_arrays, Ref<Material> p_material, float p_simplification_dist, PackedVector3Array &r_vertices, PackedInt32Array &r_indices);
@@ -177,6 +178,7 @@ private:
 	Ref<Resource> _get_editable_3d_polygon_resource() const;
 
 protected:
+	void _notification(int p_what);
 	static void _bind_methods();
 
 public:
