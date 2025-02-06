@@ -119,6 +119,7 @@ private:
 	Ref<Font> font_override;
 	mutable Ref<Font> theme_font;
 	Color modulate = Color(1, 1, 1, 1);
+	float modulate_energy = 1.0f;
 	Point2 lbl_offset;
 	int outline_render_priority = -1;
 	int render_priority = 0;
@@ -209,6 +210,9 @@ public:
 
 	void set_modulate(const Color &p_color);
 	Color get_modulate() const;
+
+	void set_modulate_energy(float p_energy);
+	float get_modulate_energy() const;
 
 	void set_outline_modulate(const Color &p_color);
 	Color get_outline_modulate() const;

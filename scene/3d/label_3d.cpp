@@ -44,6 +44,9 @@ void Label3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_modulate", "modulate"), &Label3D::set_modulate);
 	ClassDB::bind_method(D_METHOD("get_modulate"), &Label3D::get_modulate);
 
+	ClassDB::bind_method(D_METHOD("set_modulate_energy", "energy"), &Label3D::set_modulate_energy);
+	ClassDB::bind_method(D_METHOD("get_modulate_energy"), &Label3D::get_modulate_energy);
+
 	ClassDB::bind_method(D_METHOD("set_outline_modulate", "modulate"), &Label3D::set_outline_modulate);
 	ClassDB::bind_method(D_METHOD("get_outline_modulate"), &Label3D::get_outline_modulate);
 
@@ -145,6 +148,7 @@ void Label3D::_bind_methods() {
 	ADD_GROUP("Text", "");
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "modulate"), "set_modulate", "get_modulate");
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "outline_modulate"), "set_outline_modulate", "get_outline_modulate");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "modulate_energy", PROPERTY_HINT_RANGE, "0,16,0.01,or_greater"), "set_modulate_energy", "get_modulate_energy");
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "text", PROPERTY_HINT_MULTILINE_TEXT, ""), "set_text", "get_text");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "font", PROPERTY_HINT_RESOURCE_TYPE, "Font"), "set_font", "get_font");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "font_size", PROPERTY_HINT_RANGE, "1,256,1,or_greater,suffix:px"), "set_font_size", "get_font_size");
@@ -363,6 +367,7 @@ void Label3D::_generate_glyph_surfaces(const Glyph &p_glyph, Vector2 &r_offset, 
 			surf.material = RenderingServer::get_singleton()->material_create();
 			// Set defaults for material, names need to match up those in StandardMaterial3D
 			RS::get_singleton()->material_set_param(surf.material, "albedo", Color(1, 1, 1, 1));
+			RS::get_singleton()->material_set_param(surf.material, "albedo_energy", modulate_energy);
 			RS::get_singleton()->material_set_param(surf.material, "specular", 0.5);
 			RS::get_singleton()->material_set_param(surf.material, "metallic", 0.0);
 			RS::get_singleton()->material_set_param(surf.material, "roughness", 1.0);
@@ -866,6 +871,17 @@ void Label3D::set_modulate(const Color &p_color) {
 
 Color Label3D::get_modulate() const {
 	return modulate;
+}
+
+void Label3D::set_modulate_energy(float p_energy) {
+	if (modulate_energy != p_energy) {
+		modulate_energy = p_energy;
+		_queue_update();
+	}
+}
+
+float Label3D::get_modulate_energy() const {
+	return modulate_energy;
 }
 
 void Label3D::set_outline_modulate(const Color &p_color) {

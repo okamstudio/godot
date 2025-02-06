@@ -250,6 +250,8 @@ void SpriteBase3D::draw_texture_rect(Ref<Texture2D> p_texture, Rect2 p_dst_rect,
 	RS::get_singleton()->mesh_set_custom_aabb(mesh_new, aabb_new);
 	set_aabb(aabb_new);
 
+	RS::get_singleton()->material_set_param(get_material(), "albedo_energy", modulate_energy);
+
 	RS::get_singleton()->material_set_param(get_material(), "alpha_scissor_threshold", alpha_scissor_threshold);
 	RS::get_singleton()->material_set_param(get_material(), "alpha_hash_scale", alpha_hash_scale);
 	RS::get_singleton()->material_set_param(get_material(), "alpha_antialiasing_edge", alpha_antialiasing_edge);
@@ -349,6 +351,19 @@ void SpriteBase3D::set_modulate(const Color &p_color) {
 
 Color SpriteBase3D::get_modulate() const {
 	return modulate;
+}
+
+void SpriteBase3D::set_modulate_energy(float p_energy) {
+	if (modulate_energy == p_energy) {
+		return;
+	}
+
+	modulate_energy = p_energy;
+	_queue_redraw();
+}
+
+float SpriteBase3D::get_modulate_energy() const {
+	return modulate_energy;
 }
 
 void SpriteBase3D::set_render_priority(int p_priority) {
@@ -604,6 +619,9 @@ void SpriteBase3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_modulate", "modulate"), &SpriteBase3D::set_modulate);
 	ClassDB::bind_method(D_METHOD("get_modulate"), &SpriteBase3D::get_modulate);
 
+	ClassDB::bind_method(D_METHOD("set_modulate_energy", "energy"), &SpriteBase3D::set_modulate_energy);
+	ClassDB::bind_method(D_METHOD("get_modulate_energy"), &SpriteBase3D::get_modulate_energy);
+
 	ClassDB::bind_method(D_METHOD("set_render_priority", "priority"), &SpriteBase3D::set_render_priority);
 	ClassDB::bind_method(D_METHOD("get_render_priority"), &SpriteBase3D::get_render_priority);
 
@@ -645,6 +663,7 @@ void SpriteBase3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "flip_h"), "set_flip_h", "is_flipped_h");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "flip_v"), "set_flip_v", "is_flipped_v");
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "modulate"), "set_modulate", "get_modulate");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "modulate_energy", PROPERTY_HINT_RANGE, "0,16,0.01,or_greater"), "set_modulate_energy", "get_modulate_energy");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "pixel_size", PROPERTY_HINT_RANGE, "0.0001,128,0.0001,suffix:m"), "set_pixel_size", "get_pixel_size");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "axis", PROPERTY_HINT_ENUM, "X-Axis,Y-Axis,Z-Axis"), "set_axis", "get_axis");
 	ADD_GROUP("Flags", "");
@@ -683,6 +702,7 @@ SpriteBase3D::SpriteBase3D() {
 	material = RenderingServer::get_singleton()->material_create();
 	// Set defaults for material, names need to match up those in StandardMaterial3D.
 	RS::get_singleton()->material_set_param(material, "albedo", Color(1, 1, 1, 1));
+	RS::get_singleton()->material_set_param(material, "albedo_energy", 1.0);
 	RS::get_singleton()->material_set_param(material, "specular", 0.5);
 	RS::get_singleton()->material_set_param(material, "metallic", 0.0);
 	RS::get_singleton()->material_set_param(material, "roughness", 1.0);

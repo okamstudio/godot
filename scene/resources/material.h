@@ -412,6 +412,7 @@ private:
 
 	struct ShaderNames {
 		StringName albedo;
+		StringName albedo_energy;
 		StringName specular;
 		StringName metallic;
 		StringName roughness;
@@ -483,6 +484,7 @@ private:
 	HashMap<StringName, Variant> pending_params;
 
 	Color albedo;
+	float albedo_energy = 1.0f;
 	float specular = 0.0f;
 	float metallic = 0.0f;
 	float roughness = 0.0f;
@@ -579,6 +581,9 @@ protected:
 public:
 	void set_albedo(const Color &p_albedo);
 	Color get_albedo() const;
+
+	void set_albedo_energy(float p_albedo_energy);
+	float get_albedo_energy() const;
 
 	void set_specular(float p_specular);
 	float get_specular() const;

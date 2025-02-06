@@ -77,8 +77,11 @@
 		</member>
 		<member name="modulate" type="Color" setter="set_modulate" getter="get_modulate" default="Color(1, 1, 1, 1)" keywords="color, colour">
 			A color value used to [i]multiply[/i] the texture's colors. Can be used for mood-coloring or to simulate the color of ambient light.
-			[b]Note:[/b] Unlike [member CanvasItem.modulate] for 2D, colors with values above [code]1.0[/code] (overbright) are not supported.
+			[b]Note:[/b] Unlike [member CanvasItem.modulate] for 2D, colors with values above [code]1.0[/code] (overbright) are not supported using [member modulate] alone. Use [member modulate_energy] instead.
 			[b]Note:[/b] If a [member GeometryInstance3D.material_override] is defined on the [SpriteBase3D], the material override must be configured to take vertex colors into account for albedo. Otherwise, the color defined in [member modulate] will be ignored. For a [BaseMaterial3D], [member BaseMaterial3D.vertex_color_use_as_albedo] must be [code]true[/code]. For a [ShaderMaterial], [code]ALBEDO *= COLOR.rgb;[/code] must be inserted in the shader's [code]fragment()[/code] function.
+		</member>
+		<member name="modulate_energy" type="float" setter="set_modulate_energy" getter="get_modulate_energy" default="1.0">
+			The brightness multiplier for [member modulate]. This can be used to achieve [i]overbright[/i] colors to make specific materials glow (when [member Environment.glow_enabled] is [code]true[/code]), or to adjust brightness independently of color.
 		</member>
 		<member name="no_depth_test" type="bool" setter="set_draw_flag" getter="get_draw_flag" default="false">
 			If [code]true[/code], depth testing is disabled and the object will be drawn in render order.

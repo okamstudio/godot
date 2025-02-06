@@ -589,6 +589,7 @@ void BaseMaterial3D::init_shaders() {
 	shader_names = memnew(ShaderNames);
 
 	shader_names->albedo = "albedo";
+	shader_names->albedo_energy = "albedo_energy";
 	shader_names->specular = "specular";
 	shader_names->roughness = "roughness";
 	shader_names->metallic = "metallic";
@@ -886,6 +887,7 @@ void BaseMaterial3D::_update_shader() {
 	// Generate list of uniforms.
 	code += vformat(R"(
 uniform vec4 albedo : source_color;
+uniform float albedo_energy : hint_range(0.0, 100.0, 0.01);
 uniform sampler2D texture_albedo : source_color, %s;
 )",
 			texfilter_str);
@@ -1549,7 +1551,7 @@ void fragment() {)";
 
 )";
 	}
-	code += "	ALBEDO = albedo.rgb * albedo_tex.rgb;\n";
+	code += "	ALBEDO = albedo.rgb * albedo_energy * albedo_tex.rgb;\n";
 
 	if (!orm) {
 		if (flags[FLAG_UV1_USE_TRIPLANAR]) {
@@ -1994,6 +1996,15 @@ void BaseMaterial3D::set_albedo(const Color &p_albedo) {
 
 Color BaseMaterial3D::get_albedo() const {
 	return albedo;
+}
+
+void BaseMaterial3D::set_albedo_energy(float p_albedo_energy) {
+	albedo_energy = p_albedo_energy;
+	RS::get_singleton()->material_set_param(_get_material(), shader_names->albedo_energy, p_albedo_energy);
+}
+
+float BaseMaterial3D::get_albedo_energy() const {
+	return albedo_energy;
 }
 
 void BaseMaterial3D::set_specular(float p_specular) {
@@ -2957,6 +2968,9 @@ void BaseMaterial3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_albedo", "albedo"), &BaseMaterial3D::set_albedo);
 	ClassDB::bind_method(D_METHOD("get_albedo"), &BaseMaterial3D::get_albedo);
 
+	ClassDB::bind_method(D_METHOD("set_albedo_energy", "albedo_energy"), &BaseMaterial3D::set_albedo_energy);
+	ClassDB::bind_method(D_METHOD("get_albedo_energy"), &BaseMaterial3D::get_albedo_energy);
+
 	ClassDB::bind_method(D_METHOD("set_transparency", "transparency"), &BaseMaterial3D::set_transparency);
 	ClassDB::bind_method(D_METHOD("get_transparency"), &BaseMaterial3D::get_transparency);
 
@@ -3182,6 +3196,7 @@ void BaseMaterial3D::_bind_methods() {
 
 	ADD_GROUP("Albedo", "albedo_");
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "albedo_color"), "set_albedo", "get_albedo");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "albedo_energy", PROPERTY_HINT_RANGE, "0,16,0.01,or_greater"), "set_albedo_energy", "get_albedo_energy");
 	ADD_PROPERTYI(PropertyInfo(Variant::OBJECT, "albedo_texture", PROPERTY_HINT_RESOURCE_TYPE, "Texture2D"), "set_texture", "get_texture", TEXTURE_ALBEDO);
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "albedo_texture_force_srgb"), "set_flag", "get_flag", FLAG_ALBEDO_TEXTURE_FORCE_SRGB);
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "albedo_texture_msdf"), "set_flag", "get_flag", FLAG_ALBEDO_TEXTURE_MSDF);
@@ -3465,6 +3480,7 @@ BaseMaterial3D::BaseMaterial3D(bool p_orm) :
 	orm = p_orm;
 	// Initialize to the same values as the shader
 	set_albedo(Color(1.0, 1.0, 1.0, 1.0));
+	set_albedo_energy(1.0);
 	set_specular(0.5);
 	set_roughness(1.0);
 	set_metallic(0.0);

@@ -82,7 +82,11 @@
 			Additional vertical spacing between lines (in pixels), spacing is added to line descent. This value can be negative.
 		</member>
 		<member name="modulate" type="Color" setter="set_modulate" getter="get_modulate" default="Color(1, 1, 1, 1)" keywords="color, colour">
-			Text [Color] of the [Label3D].
+			Text [Color] of the [Label3D]. See also [member outline_modulate] and [member modulate_energy].
+			[b]Note:[/b] Unlike [member CanvasItem.modulate] for 2D, colors with values above [code]1.0[/code] (overbright) are not supported using [member modulate] alone. Use [member modulate_energy] instead.
+		</member>
+		<member name="modulate_energy" type="float" setter="set_modulate_energy" getter="get_modulate_energy" default="1.0">
+			The brightness multiplier for [member modulate] and [member outline_modulate]. This can be used to achieve [i]overbright[/i] colors to make specific materials glow (when [member Environment.glow_enabled] is [code]true[/code]), or to adjust brightness independently of color.
 		</member>
 		<member name="no_depth_test" type="bool" setter="set_draw_flag" getter="get_draw_flag" default="false">
 			If [code]true[/code], depth testing is disabled and the object will be drawn in render order.
@@ -91,7 +95,7 @@
 			The text drawing offset (in pixels).
 		</member>
 		<member name="outline_modulate" type="Color" setter="set_outline_modulate" getter="get_outline_modulate" default="Color(0, 0, 0, 1)">
-			The tint of text outline.
+			The tint of text outline. See also [member modulate] and [member modulate_energy].
 		</member>
 		<member name="outline_render_priority" type="int" setter="set_outline_render_priority" getter="get_outline_render_priority" default="-1">
 			Sets the render priority for the text outline. Higher priority objects will be sorted in front of lower priority objects.

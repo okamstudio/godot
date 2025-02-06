@@ -58,8 +58,11 @@
 	</methods>
 	<members>
 		<member name="albedo_color" type="Color" setter="set_albedo" getter="get_albedo" default="Color(1, 1, 1, 1)" keywords="albedo_colour, diffuse_color, diffuse_colour">
-			The material's base color.
+			The material's base color. See also [member albedo_energy].
 			[b]Note:[/b] If [member detail_enabled] is [code]true[/code] and a [member detail_albedo] texture is specified, [member albedo_color] will [i]not[/i] modulate the detail texture. This can be used to color partial areas of a material by not specifying an albedo texture and using a transparent [member detail_albedo] texture instead.
+		</member>
+		<member name="albedo_energy" type="float" setter="set_albedo_energy" getter="get_albedo_energy" default="1.0">
+			The brightness multiplier for [member albedo_color]. This can be used to achieve [i]overbright[/i] colors to make specific materials glow (when [member Environment.glow_enabled] is [code]true[/code]), or to adjust brightness independently of color.
 		</member>
 		<member name="albedo_texture" type="Texture2D" setter="set_texture" getter="get_texture" keywords="diffuse_texture">
 			Texture to multiply by [member albedo_color]. Used for basic texturing of objects.

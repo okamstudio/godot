@@ -73,6 +73,7 @@ private:
 	bool vflip = false;
 
 	Color modulate = Color(1, 1, 1, 1);
+	float modulate_energy = 1.0f;
 	int render_priority = 0;
 
 	Vector3::Axis axis = Vector3::AXIS_Z;
@@ -137,6 +138,9 @@ public:
 
 	void set_modulate(const Color &p_color);
 	Color get_modulate() const;
+
+	void set_modulate_energy(float p_energy);
+	float get_modulate_energy() const;
 
 	void set_pixel_size(real_t p_amount);
 	real_t get_pixel_size() const;
