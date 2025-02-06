@@ -4091,6 +4091,34 @@ bool RenderingDevice::compute_pipeline_is_valid(RID p_pipeline) {
 	return compute_pipeline_owner.owns(p_pipeline);
 }
 
+/*******************/
+/**** SEMAPHORE ****/
+/*******************/
+
+RID RenderingDevice::semaphore_create() {
+	ERR_FAIL_COND_V_MSG(::OS::get_singleton()->get_current_rendering_driver_name() == "metal", RID(), "The current metal backend does not use Semaphore.");
+	Semaphore semaphore;
+	semaphore.driver_id = driver->semaphore_create();
+	RID id = semaphore_owner.make_rid(semaphore);
+
+	return id;
+}
+
+RID RenderingDevice::semaphore_create_from_extension(uint64_t p_image) {
+	ERR_FAIL_COND_V_MSG(::OS::get_singleton()->get_current_rendering_driver_name() == "metal", RID(), "The current metal backend does not use Semaphore.");
+	Semaphore semaphore;
+	semaphore.driver_id = driver->semaphore_create();
+	RID id = semaphore_owner.make_rid(semaphore);
+
+	return id;
+}
+
+bool RenderingDevice::semaphore_is_valid(RID p_semaphore) {
+	_THREAD_SAFE_METHOD_
+
+	return semaphore_owner.owns(p_semaphore);
+}
+
 /****************/
 /**** SCREEN ****/
 /****************/
@@ -4639,6 +4667,38 @@ void RenderingDevice::draw_list_set_push_constant(DrawListID p_list, const void 
 #ifdef DEBUG_ENABLED
 	dl->validation.pipeline_push_constant_supplied = true;
 #endif
+}
+
+void RenderingDevice::draw_list_set_signal_semaphores(DrawListID p_list, const TypedArray<RID> &p_signal_semaphores) {
+	ERR_RENDER_THREAD_GUARD();
+
+	DrawList *dl = _get_draw_list_ptr(p_list);
+	ERR_FAIL_NULL(dl);
+
+	LocalVector<RDD::SemaphoreID> signal_semaphores;
+	for (int i = 0; i < p_signal_semaphores.size(); i++) {
+		const Semaphore *signal_semaphore = semaphore_owner.get_or_null(p_signal_semaphores[i]);
+		ERR_FAIL_NULL(signal_semaphore);
+		signal_semaphores.push_back(signal_semaphore->driver_id);
+	}
+
+	draw_graph.add_draw_list_set_signal_semaphores(signal_semaphores);
+}
+
+void RenderingDevice::draw_list_set_wait_semaphores(DrawListID p_list, const TypedArray<RID> &p_wait_semaphores) {
+	ERR_RENDER_THREAD_GUARD();
+
+	DrawList *dl = _get_draw_list_ptr(p_list);
+	ERR_FAIL_NULL(dl);
+
+	LocalVector<RDD::SemaphoreID> wait_semaphores;
+	for (int i = 0; i < p_wait_semaphores.size(); i++) {
+		const Semaphore *wait_semaphore = semaphore_owner.get_or_null(p_wait_semaphores[i]);
+		ERR_FAIL_NULL(wait_semaphore);
+		wait_semaphores.push_back(wait_semaphore->driver_id);
+	}
+
+	draw_graph.add_draw_list_set_wait_semaphores(wait_semaphores);
 }
 
 void RenderingDevice::draw_list_draw(DrawListID p_list, bool p_use_indices, uint32_t p_instances, uint32_t p_procedural_vertices) {
@@ -5206,6 +5266,46 @@ void RenderingDevice::compute_list_set_push_constant(ComputeListID p_list, const
 #endif
 }
 
+void RenderingDevice::compute_list_set_signal_semaphores(ComputeListID p_list, const TypedArray<RID> &p_signal_semaphores) {
+	ERR_RENDER_THREAD_GUARD();
+
+	ERR_FAIL_COND(p_list != ID_TYPE_COMPUTE_LIST);
+	ERR_FAIL_NULL(compute_list);
+	ComputeList *cl = compute_list;
+
+	LocalVector<RDD::SemaphoreID> signal_semaphores;
+	for (int i = 0; i < p_signal_semaphores.size(); i++) {
+		const Semaphore *signal_semaphore = semaphore_owner.get_or_null(p_signal_semaphores[i]);
+		ERR_FAIL_NULL(signal_semaphore);
+		signal_semaphores.push_back(signal_semaphore->driver_id);
+	}
+
+	draw_graph.add_compute_list_set_signal_semaphores(signal_semaphores);
+
+	// Store it in the state in case we need to restart the compute list.
+	cl->state.signal_semaphores = p_signal_semaphores;
+}
+
+void RenderingDevice::compute_list_set_wait_semaphores(ComputeListID p_list, const TypedArray<RID> &p_wait_semaphores) {
+	ERR_RENDER_THREAD_GUARD();
+
+	ERR_FAIL_COND(p_list != ID_TYPE_COMPUTE_LIST);
+	ERR_FAIL_NULL(compute_list);
+	ComputeList *cl = compute_list;
+
+	LocalVector<RDD::SemaphoreID> wait_semaphores;
+	for (int i = 0; i < p_wait_semaphores.size(); i++) {
+		const Semaphore *wait_semaphore = semaphore_owner.get_or_null(p_wait_semaphores[i]);
+		ERR_FAIL_NULL(wait_semaphore);
+		wait_semaphores.push_back(wait_semaphore->driver_id);
+	}
+
+	draw_graph.add_compute_list_set_wait_semaphores(wait_semaphores);
+
+	// Store it in the state in case we need to restart the compute list.
+	cl->state.wait_semaphores = p_wait_semaphores;
+}
+
 void RenderingDevice::compute_list_dispatch(ComputeListID p_list, uint32_t p_x_groups, uint32_t p_y_groups, uint32_t p_z_groups) {
 	ERR_RENDER_THREAD_GUARD();
 
@@ -5487,6 +5587,9 @@ void RenderingDevice::compute_list_add_barrier(ComputeListID p_list) {
 	if (compute_list_barrier_state.pipeline.is_valid()) {
 		compute_list_bind_compute_pipeline(p_list, compute_list_barrier_state.pipeline);
 	}
+
+	ERR_FAIL_COND_MSG(compute_list_barrier_state.signal_semaphores.size() > 0, "Barriers cannot be added to a compute list that contains explicit signal semaphores.");
+	ERR_FAIL_COND_MSG(compute_list_barrier_state.wait_semaphores.size() > 0, "Barriers cannot be added to a compute list that contains explicit wait semaphores.");
 
 	for (uint32_t i = 0; i < compute_list_barrier_state.set_count; i++) {
 		if (compute_list_barrier_state.sets[i].uniform_set.is_valid()) {
@@ -6104,6 +6207,10 @@ void RenderingDevice::_free_internal(RID p_id) {
 		ComputePipeline *pipeline = compute_pipeline_owner.get_or_null(p_id);
 		frames[frame].compute_pipelines_to_dispose_of.push_back(*pipeline);
 		compute_pipeline_owner.free(p_id);
+	} else if (semaphore_owner.owns(p_id)) {
+		Semaphore *semaphore = semaphore_owner.get_or_null(p_id);
+		frames[frame].semaphores_to_dispose_of.push_back(*semaphore);
+		semaphore_owner.free(p_id);
 	} else {
 #ifdef DEV_ENABLED
 		ERR_PRINT("Attempted to free invalid ID: " + itos(p_id.get_id()) + " " + resource_name);
@@ -6156,6 +6263,9 @@ void RenderingDevice::set_resource_name(RID p_id, const String &p_name) {
 	} else if (compute_pipeline_owner.owns(p_id)) {
 		ComputePipeline *pipeline = compute_pipeline_owner.get_or_null(p_id);
 		driver->set_object_name(RDD::OBJECT_TYPE_PIPELINE, pipeline->driver_id, p_name);
+	} else if (semaphore_owner.owns(p_id)) {
+		Semaphore *semaphore = semaphore_owner.get_or_null(p_id);
+		driver->set_object_name(RDD::OBJECT_TYPE_SEMAPHORE, semaphore->driver_id, p_name);
 	} else {
 		ERR_PRINT("Attempted to name invalid ID: " + itos(p_id.get_id()));
 		return;
@@ -6248,6 +6358,15 @@ void RenderingDevice::sync() {
 
 void RenderingDevice::_free_pending_resources(int p_frame) {
 	// Free in dependency usage order, so nothing weird happens.
+	// Semaphores
+	while (frames[p_frame].semaphores_to_dispose_of.front()) {
+		Semaphore *semaphore = &frames[p_frame].semaphores_to_dispose_of.front()->get();
+
+		driver->semaphore_free(semaphore->driver_id);
+
+		frames[p_frame].semaphores_to_dispose_of.pop_front();
+	}
+
 	// Pipelines.
 	while (frames[p_frame].render_pipelines_to_dispose_of.front()) {
 		RenderPipeline *pipeline = &frames[p_frame].render_pipelines_to_dispose_of.front()->get();
@@ -6437,10 +6556,31 @@ void RenderingDevice::execute_chained_cmds(bool p_present_swap_chain, RenderingD
 	thread_local LocalVector<RDD::SemaphoreID> wait_semaphores;
 	wait_semaphores = frames[frame].semaphores_to_wait_on;
 
+	uint32_t semaphores_list_count = buffer_pool.signal_semaphores_list.size();
+	if (semaphores_list_count < command_buffer_count) {
+		semaphores_list_count = command_buffer_count;
+	}
+	buffer_pool.signal_semaphores_list.resize(semaphores_list_count);
+	buffer_pool.wait_semaphores_list.resize(semaphores_list_count);
+
+	bool has_explicit_semaphores = false;
+	for (uint32_t i = 0; i < semaphores_list_count; i++) {
+		const LocalVector<RDD::SemaphoreID> &_signal_semaphores = buffer_pool.signal_semaphores_list[i];
+		if (_signal_semaphores.size() > 0) {
+			has_explicit_semaphores = true;
+			break;
+		}
+	}
+	has_explicit_semaphores = has_explicit_semaphores && command_buffer_count == semaphores_list_count;
+
 	for (uint32_t i = 0; i < command_buffer_count; i++) {
 		RDD::CommandBufferID command_buffer;
 		RDD::SemaphoreID signal_semaphore;
 		RDD::FenceID signal_fence;
+
+		LocalVector<RDD::SemaphoreID> signal_semaphores;
+		const LocalVector<RDD::SemaphoreID> &_signal_semaphores = buffer_pool.signal_semaphores_list[i];
+
 		if (i > 0) {
 			command_buffer = buffer_pool.buffers[i - 1];
 		} else {
@@ -6460,14 +6600,26 @@ void RenderingDevice::execute_chained_cmds(bool p_present_swap_chain, RenderingD
 			signal_semaphore = buffer_pool.semaphores[i];
 			// Semaphores always need to be signaled if it's not the last command buffer.
 		}
+		if (has_explicit_semaphores && _signal_semaphores.size() > 0) {
+			signal_semaphores = _signal_semaphores;
+			buffer_pool.signal_semaphores_list[i].resize(0);
+		} else if (signal_semaphore) {
+			signal_semaphores.push_back(signal_semaphore);
+		}
 
 		driver->command_queue_execute_and_present(main_queue, wait_semaphores, command_buffer,
-				signal_semaphore ? signal_semaphore : VectorView<RDD::SemaphoreID>(), signal_fence,
+				signal_semaphores, signal_fence,
 				swap_chains);
 
-		// Make the next command buffer wait on the semaphore signaled by this one.
-		wait_semaphores.resize(1);
-		wait_semaphores[0] = signal_semaphore;
+		const LocalVector<RDD::SemaphoreID> &_wait_semaphores = buffer_pool.wait_semaphores_list[i];
+		if (has_explicit_semaphores && _wait_semaphores.size() > 0) {
+			wait_semaphores = _wait_semaphores;
+			buffer_pool.wait_semaphores_list[i].resize(0);
+		} else {
+			// Make the next command buffer wait on the semaphore signaled by this one.
+			wait_semaphores.resize(1);
+			wait_semaphores[0] = signal_semaphore;
+		}
 	}
 
 	frames[frame].semaphores_to_wait_on.clear();
@@ -7005,6 +7157,12 @@ uint64_t RenderingDevice::get_driver_resource(DriverResource p_resource, RID p_r
 
 			driver_id = render_pipeline->driver_id.id;
 		} break;
+		case DRIVER_RESOURCE_SEMAPHORE: {
+			Semaphore *semaphore = semaphore_owner.get_or_null(p_rid);
+			ERR_FAIL_NULL_V(semaphore, 0);
+
+			driver_id = semaphore->driver_id.id;
+		} break;
 		default: {
 			ERR_FAIL_V(0);
 		} break;
@@ -7104,6 +7262,7 @@ void RenderingDevice::finalize() {
 	draw_graph.finalize();
 
 	// Free all resources.
+	_free_rids(semaphore_owner, "Semaphore");
 	_free_rids(render_pipeline_owner, "Pipeline");
 	_free_rids(compute_pipeline_owner, "Compute");
 	_free_rids(uniform_set_owner, "UniformSet");
@@ -7168,6 +7327,7 @@ void RenderingDevice::finalize() {
 		RDG::CommandBufferPool &buffer_pool = frames[i].command_buffer_pool;
 		for (uint32_t j = 0; j < buffer_pool.buffers.size(); j++) {
 			driver->semaphore_free(buffer_pool.semaphores[j]);
+			// For explicitly set wait_semaphores and signal_semaphores, they need to be free manually.
 		}
 
 		for (uint32_t j = 0; j < frames[i].transfer_worker_semaphores.size(); j++) {
@@ -7334,6 +7494,9 @@ void RenderingDevice::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("compute_pipeline_create", "shader", "specialization_constants"), &RenderingDevice::_compute_pipeline_create, DEFVAL(TypedArray<RDPipelineSpecializationConstant>()));
 	ClassDB::bind_method(D_METHOD("compute_pipeline_is_valid", "compute_pipeline"), &RenderingDevice::compute_pipeline_is_valid);
 
+	ClassDB::bind_method(D_METHOD("semaphore_create"), &RenderingDevice::semaphore_create);
+	ClassDB::bind_method(D_METHOD("semaphore_is_valid", "semaphore"), &RenderingDevice::semaphore_is_valid);
+
 	ClassDB::bind_method(D_METHOD("screen_get_width", "screen"), &RenderingDevice::screen_get_width, DEFVAL(DisplayServer::MAIN_WINDOW_ID));
 	ClassDB::bind_method(D_METHOD("screen_get_height", "screen"), &RenderingDevice::screen_get_height, DEFVAL(DisplayServer::MAIN_WINDOW_ID));
 	ClassDB::bind_method(D_METHOD("screen_get_framebuffer_format", "screen"), &RenderingDevice::screen_get_framebuffer_format, DEFVAL(DisplayServer::MAIN_WINDOW_ID));
@@ -7351,6 +7514,8 @@ void RenderingDevice::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("draw_list_bind_vertex_array", "draw_list", "vertex_array"), &RenderingDevice::draw_list_bind_vertex_array);
 	ClassDB::bind_method(D_METHOD("draw_list_bind_index_array", "draw_list", "index_array"), &RenderingDevice::draw_list_bind_index_array);
 	ClassDB::bind_method(D_METHOD("draw_list_set_push_constant", "draw_list", "buffer", "size_bytes"), &RenderingDevice::_draw_list_set_push_constant);
+	ClassDB::bind_method(D_METHOD("draw_list_set_signal_semaphores", "draw_list", "signal_semaphores"), &RenderingDevice::draw_list_set_signal_semaphores);
+	ClassDB::bind_method(D_METHOD("draw_list_set_wait_semaphores", "draw_list", "wait_semaphores"), &RenderingDevice::draw_list_set_wait_semaphores);
 
 	ClassDB::bind_method(D_METHOD("draw_list_draw", "draw_list", "use_indices", "instances", "procedural_vertex_count"), &RenderingDevice::draw_list_draw, DEFVAL(0));
 	ClassDB::bind_method(D_METHOD("draw_list_draw_indirect", "draw_list", "use_indices", "buffer", "offset", "draw_count", "stride"), &RenderingDevice::draw_list_draw_indirect, DEFVAL(0), DEFVAL(1), DEFVAL(0));
@@ -7368,6 +7533,8 @@ void RenderingDevice::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("compute_list_begin"), &RenderingDevice::compute_list_begin);
 	ClassDB::bind_method(D_METHOD("compute_list_bind_compute_pipeline", "compute_list", "compute_pipeline"), &RenderingDevice::compute_list_bind_compute_pipeline);
 	ClassDB::bind_method(D_METHOD("compute_list_set_push_constant", "compute_list", "buffer", "size_bytes"), &RenderingDevice::_compute_list_set_push_constant);
+	ClassDB::bind_method(D_METHOD("compute_list_set_signal_semaphores", "compute_list", "signal_semaphores"), &RenderingDevice::compute_list_set_signal_semaphores);
+	ClassDB::bind_method(D_METHOD("compute_list_set_wait_semaphores", "compute_list", "wait_semaphores"), &RenderingDevice::compute_list_set_wait_semaphores);
 	ClassDB::bind_method(D_METHOD("compute_list_bind_uniform_set", "compute_list", "uniform_set", "set_index"), &RenderingDevice::compute_list_bind_uniform_set);
 	ClassDB::bind_method(D_METHOD("compute_list_dispatch", "compute_list", "x_groups", "y_groups", "z_groups"), &RenderingDevice::compute_list_dispatch);
 	ClassDB::bind_method(D_METHOD("compute_list_dispatch_indirect", "compute_list", "buffer", "offset"), &RenderingDevice::compute_list_dispatch_indirect);
@@ -7446,6 +7613,7 @@ void RenderingDevice::_bind_methods() {
 	BIND_ENUM_CONSTANT(DRIVER_RESOURCE_BUFFER);
 	BIND_ENUM_CONSTANT(DRIVER_RESOURCE_COMPUTE_PIPELINE);
 	BIND_ENUM_CONSTANT(DRIVER_RESOURCE_RENDER_PIPELINE);
+	BIND_ENUM_CONSTANT(DRIVER_RESOURCE_SEMAPHORE);
 #ifndef DISABLE_DEPRECATED
 	BIND_ENUM_CONSTANT(DRIVER_RESOURCE_VULKAN_DEVICE);
 	BIND_ENUM_CONSTANT(DRIVER_RESOURCE_VULKAN_PHYSICAL_DEVICE);

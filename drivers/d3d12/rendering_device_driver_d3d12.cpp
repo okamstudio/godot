@@ -2194,6 +2194,14 @@ RDD::SemaphoreID RenderingDeviceDriverD3D12::semaphore_create() {
 	return SemaphoreID(semaphore);
 }
 
+RDD::SemaphoreID RenderingDeviceDriverD3D12::semaphore_create_from_extension(uint64_t p_native_semaphore) {
+	ComPtr<ID3D12Fence> d3d_fence((ID3D12Fence *)p_native_semaphore);
+
+	SemaphoreInfo *semaphore = memnew(SemaphoreInfo);
+	semaphore->d3d_fence = d3d_fence;
+	return SemaphoreID(semaphore);
+}
+
 void RenderingDeviceDriverD3D12::semaphore_free(SemaphoreID p_semaphore) {
 	SemaphoreInfo *semaphore = (SemaphoreInfo *)(p_semaphore.id);
 	memdelete(semaphore);
@@ -6122,6 +6130,10 @@ void RenderingDeviceDriverD3D12::set_object_name(ObjectType p_type, ID p_driver_
 			const PipelineInfo *pipeline_info = (const PipelineInfo *)p_driver_id.id;
 			_set_object_name(pipeline_info->pso, p_name);
 		} break;
+		case OBJECT_TYPE_SEMAPHORE: {
+			const SemaphoreInfo *semaphore_info = (const SemaphoreInfo *)p_driver_id.id;
+			_set_object_name(semaphore_info->d3d_fence.Get(), p_name);
+		} break;
 		default: {
 			DEV_ASSERT(false);
 		}
@@ -6167,6 +6179,13 @@ uint64_t RenderingDeviceDriverD3D12::get_resource_native_handle(DriverResource p
 		case DRIVER_RESOURCE_COMPUTE_PIPELINE:
 		case DRIVER_RESOURCE_RENDER_PIPELINE: {
 			return p_driver_id.id;
+		} break;
+		case DRIVER_RESOURCE_SEMAPHORE: {
+			// Note: Here only the fence of d3d12 is returned.
+			// When using this resource explicitly, we need to clearly understand the changes of the `fence_value`
+			// inside the engine during the wait and signal process.
+			const SemaphoreInfo *semaphore_info = (const SemaphoreInfo *)p_driver_id.id;
+			return reinterpret_cast<uint64_t>(semaphore_info->d3d_fence.Get());
 		}
 		default: {
 			return 0;

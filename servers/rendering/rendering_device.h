@@ -1138,6 +1138,23 @@ public:
 	RID compute_pipeline_create(RID p_shader, const Vector<PipelineSpecializationConstant> &p_specialization_constants = Vector<PipelineSpecializationConstant>());
 	bool compute_pipeline_is_valid(RID p_pipeline);
 
+	/*******************/
+	/**** SEMAPHORE ****/
+	/*******************/
+
+private:
+	struct Semaphore {
+		RDD::SemaphoreID driver_id;
+	};
+
+	RID_Owner<Semaphore, true> semaphore_owner;
+
+public:
+	RID semaphore_create();
+	RID semaphore_create_from_extension(uint64_t p_image);
+
+	bool semaphore_is_valid(RID p_semaphore);
+
 private:
 	/****************/
 	/**** SCREEN ****/
@@ -1279,6 +1296,8 @@ public:
 	void draw_list_bind_index_array(DrawListID p_list, RID p_index_array);
 	void draw_list_set_line_width(DrawListID p_list, float p_width);
 	void draw_list_set_push_constant(DrawListID p_list, const void *p_data, uint32_t p_data_size);
+	void draw_list_set_signal_semaphores(DrawListID p_list, const TypedArray<RID> &p_signal_semaphores);
+	void draw_list_set_wait_semaphores(DrawListID p_list, const TypedArray<RID> &p_wait_semaphores);
 
 	void draw_list_draw(DrawListID p_list, bool p_use_indices, uint32_t p_instances = 1, uint32_t p_procedural_vertices = 0);
 	void draw_list_draw_indirect(DrawListID p_list, bool p_use_indices, RID p_buffer, uint32_t p_offset = 0, uint32_t p_draw_count = 1, uint32_t p_stride = 0);
@@ -1316,6 +1335,8 @@ private:
 			uint32_t local_group_size[3] = { 0, 0, 0 };
 			uint8_t push_constant_data[MAX_PUSH_CONSTANT_SIZE] = {};
 			uint32_t push_constant_size = 0;
+			TypedArray<RID> signal_semaphores;
+			TypedArray<RID> wait_semaphores;
 			uint32_t dispatch_count = 0;
 		} state;
 
@@ -1343,6 +1364,8 @@ public:
 	void compute_list_bind_compute_pipeline(ComputeListID p_list, RID p_compute_pipeline);
 	void compute_list_bind_uniform_set(ComputeListID p_list, RID p_uniform_set, uint32_t p_index);
 	void compute_list_set_push_constant(ComputeListID p_list, const void *p_data, uint32_t p_data_size);
+	void compute_list_set_signal_semaphores(ComputeListID p_list, const TypedArray<RID> &p_signal_semaphores);
+	void compute_list_set_wait_semaphores(ComputeListID p_list, const TypedArray<RID> &p_wait_semaphores);
 	void compute_list_dispatch(ComputeListID p_list, uint32_t p_x_groups, uint32_t p_y_groups, uint32_t p_z_groups);
 	void compute_list_dispatch_threads(ComputeListID p_list, uint32_t p_x_threads, uint32_t p_y_threads, uint32_t p_z_threads);
 	void compute_list_dispatch_indirect(ComputeListID p_list, RID p_buffer, uint32_t p_offset);
@@ -1453,6 +1476,7 @@ private:
 		List<UniformSet> uniform_sets_to_dispose_of;
 		List<RenderPipeline> render_pipelines_to_dispose_of;
 		List<ComputePipeline> compute_pipelines_to_dispose_of;
+		List<Semaphore> semaphores_to_dispose_of;
 
 		// Pending asynchronous data transfer for buffers.
 		LocalVector<RDD::BufferID> download_buffer_staging_buffers;

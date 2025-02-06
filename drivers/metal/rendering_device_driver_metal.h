@@ -169,6 +169,7 @@ public:
 
 public:
 	virtual SemaphoreID semaphore_create() override final;
+	virtual SemaphoreID semaphore_create_from_extension(uint64_t p_native_semaphore) override final;
 	virtual void semaphore_free(SemaphoreID p_semaphore) override final;
 
 #pragma mark - Commands

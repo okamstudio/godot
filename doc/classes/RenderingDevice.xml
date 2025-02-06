@@ -191,6 +191,51 @@
 				Sets the push constant data to [param buffer] for the specified [param compute_list]. The shader determines how this binary data is used. The buffer's size in bytes must also be specified in [param size_bytes] (this can be obtained by calling the [method PackedByteArray.size] method on the passed [param buffer]).
 			</description>
 		</method>
+		<method name="compute_list_set_signal_semaphores">
+			<return type="void" />
+			<param index="0" name="compute_list" type="int" />
+			<param index="1" name="signal_semaphores" type="RID[]" />
+			<description>
+				Sets the signal semaphores explicitly for the specified [param compute_list]. For usage, refer to [method compute_list_set_wait_semaphores].
+			</description>
+		</method>
+		<method name="compute_list_set_wait_semaphores">
+			<return type="void" />
+			<param index="0" name="compute_list" type="int" />
+			<param index="1" name="wait_semaphores" type="RID[]" />
+			<description>
+				Sets the wait semaphores explicitly for the specified [param compute_list]. Before using it, some previously created compute lists must have an explicit signal semaphore.
+				[b]Note:[/b] A semaphore can only be used once as a signal semaphore and once as a wait semaphore before syncing.
+				A simple code example for this situation (code is not a complete example):
+				[codeblock]
+				var rd = RenderingDevice.new()
+				var prev_compute_list = rd.compute_list_begin()
+				var prev_semaphore1 = rd.semaphore_create()
+				var prev_semaphore2 = rd.semaphore_create()
+				rd.compute_list_set_signal_semaphores(prev_compute_list, [prev_semaphore1, prev_semaphore2])
+				rd.compute_list_end()
+
+				var cur_compute_list1 = rd.compute_list_begin()
+				var cur_semaphore1 = rd.semaphore_create()
+				rd.compute_list_set_wait_semaphores(cur_compute_list1, [prev_semaphore1])
+				rd.compute_list_set_signal_semaphores(cur_compute_list1, [cur_semaphore1])
+				# Replace with the custom code
+				rd.compute_list_end()
+
+				var cur_compute_list2 = rd.compute_list_begin()
+				var cur_semaphore2 = rd.semaphore_create()
+				rd.compute_list_set_wait_semaphores(cur_compute_list2, [prev_semaphore2])
+				rd.compute_list_set_signal_semaphores(cur_compute_list2, [cur_semaphore2])
+				# Replace with the custom code
+				rd.compute_list_end()
+
+				var next_compute_list = rd.compute_list_begin()
+				rd.compute_list_set_wait_semaphores(next_compute_list, [cur_semaphore1, cur_semaphore2])
+				# Replace with the custom code
+				rd.compute_list_end()
+				[/codeblock]
+			</description>
+		</method>
 		<method name="compute_pipeline_create">
 			<return type="RID" />
 			<param index="0" name="shader" type="RID" />
@@ -393,6 +438,22 @@
 			<param index="2" name="size_bytes" type="int" />
 			<description>
 				Sets the push constant data to [param buffer] for the specified [param draw_list]. The shader determines how this binary data is used. The buffer's size in bytes must also be specified in [param size_bytes] (this can be obtained by calling the [method PackedByteArray.size] method on the passed [param buffer]).
+			</description>
+		</method>
+		<method name="draw_list_set_signal_semaphores">
+			<return type="void" />
+			<param index="0" name="draw_list" type="int" />
+			<param index="1" name="signal_semaphores" type="RID[]" />
+			<description>
+				Sets the signal semaphores explicitly for the specified [param draw_list]. Its usage is similar to [method compute_list_set_signal_semaphores].
+			</description>
+		</method>
+		<method name="draw_list_set_wait_semaphores">
+			<return type="void" />
+			<param index="0" name="draw_list" type="int" />
+			<param index="1" name="wait_semaphores" type="RID[]" />
+			<description>
+				Sets the wait semaphores explicitly for the specified [param draw_list]. Its usage is similar to [method compute_list_set_wait_semaphores].
 			</description>
 		</method>
 		<method name="draw_list_switch_to_next_pass">
@@ -781,6 +842,27 @@
 			<description>
 				Returns the window width matching the graphics API context for the given window ID (in pixels). Despite the parameter being named [param screen], this returns the [i]window[/i] size. See also [method screen_get_height].
 				[b]Note:[/b] Only the main [RenderingDevice] returned by [method RenderingServer.get_rendering_device] has a width. If called on a local [RenderingDevice], this method prints an error and returns [constant INVALID_ID].
+			</description>
+		</method>
+		<method name="semaphore_create">
+			<return type="RID" />
+			<description>
+				Creates a new semaphore. It can be accessed with the RID that is returned.
+				Once finished with your RID, you will want to free the RID using the RenderingDevice's [method free_rid] method.
+			</description>
+		</method>
+		<method name="semaphore_create_from_extension">
+			<return type="RID" />
+			<param index="0" name="semaphore" type="int" />
+			<description>
+				Returns an RID for an existing [param semaphore] ([code]VkSemaphore[/code]). This can be used to allow foreign semaphores to participate in Godot's rendering pipeline.
+			</description>
+		</method>
+		<method name="semaphore_is_valid">
+			<return type="bool" />
+			<param index="0" name="semaphore" type="RID" />
+			<description>
+				Returns [code]true[/code] if the semaphore specified by the [param semaphore] RID is valid, [code]false[/code] otherwise.
 			</description>
 		</method>
 		<method name="set_resource_name">
@@ -1192,6 +1274,9 @@
 		</constant>
 		<constant name="DRIVER_RESOURCE_RENDER_PIPELINE" value="12" enum="DriverResource">
 			- Vulkan: [code]VkPipeline[/code].
+		</constant>
+		<constant name="DRIVER_RESOURCE_SEMAPHORE" value="13" enum="DriverResource">
+			- Vulkan: [code]VkSemaphore[/code].
 		</constant>
 		<constant name="DRIVER_RESOURCE_VULKAN_DEVICE" value="0" enum="DriverResource" deprecated="Use [constant DRIVER_RESOURCE_LOGICAL_DEVICE] instead.">
 		</constant>

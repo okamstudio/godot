@@ -843,6 +843,11 @@ RDD::SemaphoreID RenderingDeviceDriverMetal::semaphore_create() {
 	return SemaphoreID(1);
 }
 
+RDD::SemaphoreID RenderingDeviceDriverMetal::semaphore_create_from_extension(uint64_t p_native_semaphore) {
+	// TODO: Use a wrapper of MTLFence as Metal Semaphore.
+	return SemaphoreID(1);
+}
+
 void RenderingDeviceDriverMetal::semaphore_free(SemaphoreID p_semaphore) {
 }
 
@@ -3832,6 +3837,9 @@ void RenderingDeviceDriverMetal::set_object_name(ObjectType p_type, ID p_driver_
 		case OBJECT_TYPE_PIPELINE: {
 			// Can't set label after creation.
 		} break;
+		case OBJECT_TYPE_SEMAPHORE: {
+			// Semaphore is not currently implemented on the Metal backend
+		} break;
 		default: {
 			DEV_ASSERT(false);
 		}
@@ -3880,6 +3888,9 @@ uint64_t RenderingDeviceDriverMetal::get_resource_native_handle(DriverResource p
 		case DRIVER_RESOURCE_RENDER_PIPELINE: {
 			MDRenderPipeline *pipeline = (MDRenderPipeline *)(p_driver_id.id);
 			return (uint64_t)(uintptr_t)(__bridge void *)pipeline->state;
+		}
+		case DRIVER_RESOURCE_SEMAPHORE: {
+			return p_driver_id.id;
 		}
 		default: {
 			return 0;

@@ -515,6 +515,17 @@ Error RenderingDeviceDriverVulkan::_initialize_device_extensions() {
 	_register_requested_device_extension(VK_EXT_ASTC_DECODE_MODE_EXTENSION_NAME, false);
 	_register_requested_device_extension(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME, false);
 
+	// Enable external memory and synchronization to facilitate the use of `texture_create_from_extension` and `semaphore_create_from_extension`.
+	_register_requested_device_extension(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME, false);
+	_register_requested_device_extension(VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME, false);
+#ifdef _WIN64
+	_register_requested_device_extension(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME, false);
+	_register_requested_device_extension(VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME, false);
+#else
+	_register_requested_device_extension(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME, false);
+	_register_requested_device_extension(VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME, false);
+#endif
+
 	if (Engine::get_singleton()->is_generate_spirv_debug_info_enabled()) {
 		_register_requested_device_extension(VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME, true);
 	}
@@ -2424,6 +2435,10 @@ RDD::SemaphoreID RenderingDeviceDriverVulkan::semaphore_create() {
 	ERR_FAIL_COND_V(err != VK_SUCCESS, SemaphoreID());
 
 	return SemaphoreID(semaphore);
+}
+
+RDD::SemaphoreID RenderingDeviceDriverVulkan::semaphore_create_from_extension(uint64_t p_native_semaphore) {
+	return SemaphoreID((VkSemaphore)p_native_semaphore);
 }
 
 void RenderingDeviceDriverVulkan::semaphore_free(SemaphoreID p_semaphore) {
@@ -5734,6 +5749,9 @@ void RenderingDeviceDriverVulkan::set_object_name(ObjectType p_type, ID p_driver
 		case OBJECT_TYPE_PIPELINE: {
 			_set_object_name(VK_OBJECT_TYPE_PIPELINE, (uint64_t)p_driver_id.id, p_name);
 		} break;
+		case OBJECT_TYPE_SEMAPHORE: {
+			_set_object_name(VK_OBJECT_TYPE_SEMAPHORE, (uint64_t)p_driver_id.id, p_name);
+		} break;
 		default: {
 			DEV_ASSERT(false);
 		}
@@ -5774,7 +5792,8 @@ uint64_t RenderingDeviceDriverVulkan::get_resource_native_handle(DriverResource 
 		case DRIVER_RESOURCE_UNIFORM_SET:
 		case DRIVER_RESOURCE_BUFFER:
 		case DRIVER_RESOURCE_COMPUTE_PIPELINE:
-		case DRIVER_RESOURCE_RENDER_PIPELINE: {
+		case DRIVER_RESOURCE_RENDER_PIPELINE:
+		case DRIVER_RESOURCE_SEMAPHORE: {
 			return p_driver_id.id;
 		}
 		default: {

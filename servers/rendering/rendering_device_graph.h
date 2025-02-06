@@ -53,6 +53,8 @@ public:
 			TYPE_DISPATCH,
 			TYPE_DISPATCH_INDIRECT,
 			TYPE_SET_PUSH_CONSTANT,
+			TYPE_SET_SIGNAL_SEMAPHORES,
+			TYPE_SET_WAIT_SEMAPHORES,
 			TYPE_UNIFORM_SET_PREPARE_FOR_USE
 		};
 
@@ -77,7 +79,9 @@ public:
 			TYPE_SET_LINE_WIDTH,
 			TYPE_SET_PUSH_CONSTANT,
 			TYPE_SET_SCISSOR,
+			TYPE_SET_SIGNAL_SEMAPHORES,
 			TYPE_SET_VIEWPORT,
+			TYPE_SET_WAIT_SEMAPHORES,
 			TYPE_UNIFORM_SET_PREPARE_FOR_USE
 		};
 
@@ -218,7 +222,10 @@ public:
 
 		// Created internally by RenderingDeviceGraph.
 		LocalVector<RDD::CommandBufferID> buffers;
+		// buffers[i-1] wait semaphores[i-1] and wait_semaphores_list[i-1], signal semaphores[i] and signal_semaphores_list[i].
 		LocalVector<RDD::SemaphoreID> semaphores;
+		LocalVector<LocalVector<RDD::SemaphoreID>> signal_semaphores_list;
+		LocalVector<LocalVector<RDD::SemaphoreID>> wait_semaphores_list;
 		uint32_t buffers_used = 0;
 	};
 
@@ -610,6 +617,18 @@ private:
 		uint32_t set_index = 0;
 	};
 
+	struct DrawListSemaphoresInstruction : DrawListInstruction {
+		uint32_t count = 0;
+
+		_FORCE_INLINE_ RDD::SemaphoreID *semaphore_ids() {
+			return reinterpret_cast<RDD::SemaphoreID *>(&this[1]);
+		}
+
+		_FORCE_INLINE_ const RDD::SemaphoreID *semaphore_ids() const {
+			return reinterpret_cast<const RDD::SemaphoreID *>(&this[1]);
+		}
+	};
+
 	struct ComputeListBindPipelineInstruction : ComputeListInstruction {
 		RDD::PipelineID pipeline;
 	};
@@ -656,6 +675,18 @@ private:
 		RDD::UniformSetID uniform_set;
 		RDD::ShaderID shader;
 		uint32_t set_index = 0;
+	};
+
+	struct ComputeListSemaphoresInstruction : ComputeListInstruction {
+		uint32_t count = 0;
+
+		_FORCE_INLINE_ RDD::SemaphoreID *semaphore_ids() {
+			return reinterpret_cast<RDD::SemaphoreID *>(&this[1]);
+		}
+
+		_FORCE_INLINE_ const RDD::SemaphoreID *semaphore_ids() const {
+			return reinterpret_cast<const RDD::SemaphoreID *>(&this[1]);
+		}
 	};
 
 	struct BarrierGroup {
@@ -749,8 +780,10 @@ private:
 #if USE_BUFFER_BARRIERS
 	void _add_buffer_barrier_to_command(RDD::BufferID p_buffer_id, BitField<RDD::BarrierAccessBits> p_src_access, BitField<RDD::BarrierAccessBits> p_dst_access, int32_t &r_barrier_index, int32_t &r_barrier_count);
 #endif
+	const ComputeListInstruction *_get_compute_list_command_instruction(const uint8_t *p_instruction_data, uint32_t p_instruction_data_size, ComputeListInstruction::Type p_type);
 	void _run_compute_list_command(RDD::CommandBufferID p_command_buffer, const uint8_t *p_instruction_data, uint32_t p_instruction_data_size);
 	void _get_draw_list_render_pass_and_framebuffer(const RecordedDrawListCommand *p_draw_list_command, RDD::RenderPassID &r_render_pass, RDD::FramebufferID &r_framebuffer);
+	const DrawListInstruction *_get_draw_list_command_instruction(const uint8_t *p_instruction_data, uint32_t p_instruction_data_size, DrawListInstruction::Type p_type);
 	void _run_draw_list_command(RDD::CommandBufferID p_command_buffer, const uint8_t *p_instruction_data, uint32_t p_instruction_data_size);
 	void _add_draw_list_begin(FramebufferCache *p_framebuffer_cache, RDD::RenderPassID p_render_pass, RDD::FramebufferID p_framebuffer, Rect2i p_region, VectorView<AttachmentOperation> p_attachment_operations, VectorView<RDD::RenderPassClearValue> p_attachment_clear_values, bool p_uses_color, bool p_uses_depth, uint32_t p_breadcrumb, bool p_split_cmd_buffer);
 	void _run_secondary_command_buffer_task(const SecondaryCommandBuffer *p_secondary);
@@ -781,6 +814,8 @@ public:
 	void add_compute_list_dispatch(uint32_t p_x_groups, uint32_t p_y_groups, uint32_t p_z_groups);
 	void add_compute_list_dispatch_indirect(RDD::BufferID p_buffer, uint32_t p_offset);
 	void add_compute_list_set_push_constant(RDD::ShaderID p_shader, const void *p_data, uint32_t p_data_size);
+	void add_compute_list_set_signal_semaphores(VectorView<RDD::SemaphoreID> p_signal_semaphore);
+	void add_compute_list_set_wait_semaphores(VectorView<RDD::SemaphoreID> p_wait_semaphore);
 	void add_compute_list_uniform_set_prepare_for_use(RDD::ShaderID p_shader, RDD::UniformSetID p_uniform_set, uint32_t set_index);
 	void add_compute_list_usage(ResourceTracker *p_tracker, ResourceUsage p_usage);
 	void add_compute_list_usages(VectorView<ResourceTracker *> p_trackers, VectorView<ResourceUsage> p_usages);
@@ -802,6 +837,8 @@ public:
 	void add_draw_list_set_blend_constants(const Color &p_color);
 	void add_draw_list_set_line_width(float p_width);
 	void add_draw_list_set_push_constant(RDD::ShaderID p_shader, const void *p_data, uint32_t p_data_size);
+	void add_draw_list_set_signal_semaphores(VectorView<RDD::SemaphoreID> p_signal_semaphore);
+	void add_draw_list_set_wait_semaphores(VectorView<RDD::SemaphoreID> p_wait_semaphore);
 	void add_draw_list_set_scissor(Rect2i p_rect);
 	void add_draw_list_set_viewport(Rect2i p_rect);
 	void add_draw_list_uniform_set_prepare_for_use(RDD::ShaderID p_shader, RDD::UniformSetID p_uniform_set, uint32_t set_index);

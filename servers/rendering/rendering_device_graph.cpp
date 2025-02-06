@@ -733,6 +733,54 @@ void RenderingDeviceGraph::_add_buffer_barrier_to_command(RDD::BufferID p_buffer
 }
 #endif
 
+const RenderingDeviceGraph::ComputeListInstruction *RenderingDeviceGraph::_get_compute_list_command_instruction(const uint8_t *p_instruction_data, uint32_t p_instruction_data_size, ComputeListInstruction::Type p_type) {
+	uint32_t instruction_data_cursor = 0;
+	while (instruction_data_cursor < p_instruction_data_size) {
+		DEV_ASSERT((instruction_data_cursor + sizeof(ComputeListInstruction)) <= p_instruction_data_size);
+
+		const ComputeListInstruction *instruction = reinterpret_cast<const ComputeListInstruction *>(&p_instruction_data[instruction_data_cursor]);
+		if (instruction->type == p_type) {
+			return instruction;
+		}
+		switch (instruction->type) {
+			case ComputeListInstruction::TYPE_BIND_PIPELINE: {
+				instruction_data_cursor += sizeof(ComputeListBindPipelineInstruction);
+			} break;
+			case ComputeListInstruction::TYPE_BIND_UNIFORM_SETS: {
+				const ComputeListBindUniformSetsInstruction *bind_uniform_sets_instruction = reinterpret_cast<const ComputeListBindUniformSetsInstruction *>(instruction);
+				instruction_data_cursor += sizeof(ComputeListBindUniformSetsInstruction) + sizeof(RDD::UniformSetID) * bind_uniform_sets_instruction->set_count;
+			} break;
+			case ComputeListInstruction::TYPE_DISPATCH: {
+				instruction_data_cursor += sizeof(ComputeListDispatchInstruction);
+			} break;
+			case ComputeListInstruction::TYPE_DISPATCH_INDIRECT: {
+				instruction_data_cursor += sizeof(ComputeListDispatchIndirectInstruction);
+			} break;
+			case ComputeListInstruction::TYPE_SET_PUSH_CONSTANT: {
+				const ComputeListSetPushConstantInstruction *set_push_constant_instruction = reinterpret_cast<const ComputeListSetPushConstantInstruction *>(instruction);
+				const VectorView push_constant_data_view(reinterpret_cast<const uint32_t *>(set_push_constant_instruction->data()), set_push_constant_instruction->size / sizeof(uint32_t));
+				instruction_data_cursor += sizeof(ComputeListSetPushConstantInstruction);
+				instruction_data_cursor += set_push_constant_instruction->size;
+			} break;
+			case ComputeListInstruction::TYPE_SET_SIGNAL_SEMAPHORES: {
+				const ComputeListSemaphoresInstruction *signal_semaphore_instruction = reinterpret_cast<const ComputeListSemaphoresInstruction *>(instruction);
+				instruction_data_cursor += sizeof(ComputeListSemaphoresInstruction) + sizeof(RDD::UniformSetID) * signal_semaphore_instruction->count;
+			} break;
+			case ComputeListInstruction::TYPE_SET_WAIT_SEMAPHORES: {
+				const ComputeListSemaphoresInstruction *wait_semaphore_instruction = reinterpret_cast<const ComputeListSemaphoresInstruction *>(instruction);
+				instruction_data_cursor += sizeof(ComputeListSemaphoresInstruction) + sizeof(RDD::UniformSetID) * wait_semaphore_instruction->count;
+			} break;
+			case ComputeListInstruction::TYPE_UNIFORM_SET_PREPARE_FOR_USE: {
+				instruction_data_cursor += sizeof(ComputeListUniformSetPrepareForUseInstruction);
+			} break;
+			default:
+				DEV_ASSERT(false && "Unknown compute list instruction type.");
+				return nullptr;
+		}
+	}
+	return nullptr;
+}
+
 void RenderingDeviceGraph::_run_compute_list_command(RDD::CommandBufferID p_command_buffer, const uint8_t *p_instruction_data, uint32_t p_instruction_data_size) {
 	uint32_t instruction_data_cursor = 0;
 	while (instruction_data_cursor < p_instruction_data_size) {
@@ -766,6 +814,14 @@ void RenderingDeviceGraph::_run_compute_list_command(RDD::CommandBufferID p_comm
 				driver->command_bind_push_constants(p_command_buffer, set_push_constant_instruction->shader, 0, push_constant_data_view);
 				instruction_data_cursor += sizeof(ComputeListSetPushConstantInstruction);
 				instruction_data_cursor += set_push_constant_instruction->size;
+			} break;
+			case ComputeListInstruction::TYPE_SET_SIGNAL_SEMAPHORES: {
+				const ComputeListSemaphoresInstruction *signal_semaphore_instruction = reinterpret_cast<const ComputeListSemaphoresInstruction *>(instruction);
+				instruction_data_cursor += sizeof(ComputeListSemaphoresInstruction) + sizeof(RDD::UniformSetID) * signal_semaphore_instruction->count;
+			} break;
+			case ComputeListInstruction::TYPE_SET_WAIT_SEMAPHORES: {
+				const ComputeListSemaphoresInstruction *wait_semaphore_instruction = reinterpret_cast<const ComputeListSemaphoresInstruction *>(instruction);
+				instruction_data_cursor += sizeof(ComputeListSemaphoresInstruction) + sizeof(RDD::UniformSetID) * wait_semaphore_instruction->count;
 			} break;
 			case ComputeListInstruction::TYPE_UNIFORM_SET_PREPARE_FOR_USE: {
 				const ComputeListUniformSetPrepareForUseInstruction *uniform_set_prepare_for_use_instruction = reinterpret_cast<const ComputeListUniformSetPrepareForUseInstruction *>(instruction);
@@ -809,6 +865,92 @@ void RenderingDeviceGraph::_get_draw_list_render_pass_and_framebuffer(const Reco
 
 	r_render_pass = it->value.render_pass;
 	r_framebuffer = it->value.framebuffer;
+}
+
+const RenderingDeviceGraph::DrawListInstruction *RenderingDeviceGraph::_get_draw_list_command_instruction(const uint8_t *p_instruction_data, uint32_t p_instruction_data_size, DrawListInstruction::Type p_type) {
+	uint32_t instruction_data_cursor = 0;
+	while (instruction_data_cursor < p_instruction_data_size) {
+		DEV_ASSERT((instruction_data_cursor + sizeof(DrawListInstruction)) <= p_instruction_data_size);
+
+		const DrawListInstruction *instruction = reinterpret_cast<const DrawListInstruction *>(&p_instruction_data[instruction_data_cursor]);
+		if (instruction->type == p_type) {
+			return instruction;
+		}
+		switch (instruction->type) {
+			case DrawListInstruction::TYPE_BIND_INDEX_BUFFER: {
+				instruction_data_cursor += sizeof(DrawListBindIndexBufferInstruction);
+			} break;
+			case DrawListInstruction::TYPE_BIND_PIPELINE: {
+				instruction_data_cursor += sizeof(DrawListBindPipelineInstruction);
+			} break;
+			case DrawListInstruction::TYPE_BIND_UNIFORM_SETS: {
+				const DrawListBindUniformSetsInstruction *bind_uniform_sets_instruction = reinterpret_cast<const DrawListBindUniformSetsInstruction *>(instruction);
+				instruction_data_cursor += sizeof(DrawListBindUniformSetsInstruction) + sizeof(RDD::UniformSetID) * bind_uniform_sets_instruction->set_count;
+			} break;
+			case DrawListInstruction::TYPE_BIND_VERTEX_BUFFERS: {
+				const DrawListBindVertexBuffersInstruction *bind_vertex_buffers_instruction = reinterpret_cast<const DrawListBindVertexBuffersInstruction *>(instruction);
+				instruction_data_cursor += sizeof(DrawListBindVertexBuffersInstruction);
+				instruction_data_cursor += sizeof(RDD::BufferID) * bind_vertex_buffers_instruction->vertex_buffers_count;
+				instruction_data_cursor += sizeof(uint64_t) * bind_vertex_buffers_instruction->vertex_buffers_count;
+			} break;
+			case DrawListInstruction::TYPE_CLEAR_ATTACHMENTS: {
+				const DrawListClearAttachmentsInstruction *clear_attachments_instruction = reinterpret_cast<const DrawListClearAttachmentsInstruction *>(instruction);
+				instruction_data_cursor += sizeof(DrawListClearAttachmentsInstruction);
+				instruction_data_cursor += sizeof(RDD::AttachmentClear) * clear_attachments_instruction->attachments_clear_count;
+				instruction_data_cursor += sizeof(Rect2i) * clear_attachments_instruction->attachments_clear_rect_count;
+			} break;
+			case DrawListInstruction::TYPE_DRAW: {
+				instruction_data_cursor += sizeof(DrawListDrawInstruction);
+			} break;
+			case DrawListInstruction::TYPE_DRAW_INDEXED: {
+				instruction_data_cursor += sizeof(DrawListDrawIndexedInstruction);
+			} break;
+			case DrawListInstruction::TYPE_DRAW_INDIRECT: {
+				instruction_data_cursor += sizeof(DrawListDrawIndirectInstruction);
+			} break;
+			case DrawListInstruction::TYPE_DRAW_INDEXED_INDIRECT: {
+				instruction_data_cursor += sizeof(DrawListDrawIndexedIndirectInstruction);
+			} break;
+			case DrawListInstruction::TYPE_EXECUTE_COMMANDS: {
+				instruction_data_cursor += sizeof(DrawListExecuteCommandsInstruction);
+			} break;
+			case DrawListInstruction::TYPE_NEXT_SUBPASS: {
+				instruction_data_cursor += sizeof(DrawListNextSubpassInstruction);
+			} break;
+			case DrawListInstruction::TYPE_SET_BLEND_CONSTANTS: {
+				instruction_data_cursor += sizeof(DrawListSetBlendConstantsInstruction);
+			} break;
+			case DrawListInstruction::TYPE_SET_LINE_WIDTH: {
+				instruction_data_cursor += sizeof(DrawListSetLineWidthInstruction);
+			} break;
+			case DrawListInstruction::TYPE_SET_PUSH_CONSTANT: {
+				const DrawListSetPushConstantInstruction *set_push_constant_instruction = reinterpret_cast<const DrawListSetPushConstantInstruction *>(instruction);
+				instruction_data_cursor += sizeof(DrawListSetPushConstantInstruction);
+				instruction_data_cursor += set_push_constant_instruction->size;
+			} break;
+			case DrawListInstruction::TYPE_SET_SCISSOR: {
+				instruction_data_cursor += sizeof(DrawListSetScissorInstruction);
+			} break;
+			case DrawListInstruction::TYPE_SET_SIGNAL_SEMAPHORES: {
+				const DrawListSemaphoresInstruction *signal_semaphore_instruction = reinterpret_cast<const DrawListSemaphoresInstruction *>(instruction);
+				instruction_data_cursor += sizeof(DrawListSemaphoresInstruction) + sizeof(RDD::UniformSetID) * signal_semaphore_instruction->count;
+			} break;
+			case DrawListInstruction::TYPE_SET_VIEWPORT: {
+				instruction_data_cursor += sizeof(DrawListSetViewportInstruction);
+			} break;
+			case DrawListInstruction::TYPE_SET_WAIT_SEMAPHORES: {
+				const DrawListSemaphoresInstruction *wait_semaphore_instruction = reinterpret_cast<const DrawListSemaphoresInstruction *>(instruction);
+				instruction_data_cursor += sizeof(DrawListSemaphoresInstruction) + sizeof(RDD::UniformSetID) * wait_semaphore_instruction->count;
+			} break;
+			case DrawListInstruction::TYPE_UNIFORM_SET_PREPARE_FOR_USE: {
+				instruction_data_cursor += sizeof(DrawListUniformSetPrepareForUseInstruction);
+			} break;
+			default:
+				DEV_ASSERT(false && "Unknown draw list instruction type.");
+				return nullptr;
+		}
+	}
+	return nullptr;
 }
 
 void RenderingDeviceGraph::_run_draw_list_command(RDD::CommandBufferID p_command_buffer, const uint8_t *p_instruction_data, uint32_t p_instruction_data_size) {
@@ -901,10 +1043,18 @@ void RenderingDeviceGraph::_run_draw_list_command(RDD::CommandBufferID p_command
 				driver->command_render_set_scissor(p_command_buffer, set_scissor_instruction->rect);
 				instruction_data_cursor += sizeof(DrawListSetScissorInstruction);
 			} break;
+			case DrawListInstruction::TYPE_SET_SIGNAL_SEMAPHORES: {
+				const DrawListSemaphoresInstruction *signal_semaphore_instruction = reinterpret_cast<const DrawListSemaphoresInstruction *>(instruction);
+				instruction_data_cursor += sizeof(DrawListSemaphoresInstruction) + sizeof(RDD::UniformSetID) * signal_semaphore_instruction->count;
+			} break;
 			case DrawListInstruction::TYPE_SET_VIEWPORT: {
 				const DrawListSetViewportInstruction *set_viewport_instruction = reinterpret_cast<const DrawListSetViewportInstruction *>(instruction);
 				driver->command_render_set_viewport(p_command_buffer, set_viewport_instruction->rect);
 				instruction_data_cursor += sizeof(DrawListSetViewportInstruction);
+			} break;
+			case DrawListInstruction::TYPE_SET_WAIT_SEMAPHORES: {
+				const DrawListSemaphoresInstruction *wait_semaphore_instruction = reinterpret_cast<const DrawListSemaphoresInstruction *>(instruction);
+				instruction_data_cursor += sizeof(DrawListSemaphoresInstruction) + sizeof(RDD::UniformSetID) * wait_semaphore_instruction->count;
 			} break;
 			case DrawListInstruction::TYPE_UNIFORM_SET_PREPARE_FOR_USE: {
 				const DrawListUniformSetPrepareForUseInstruction *uniform_set_prepare_for_use_instruction = reinterpret_cast<const DrawListUniformSetPrepareForUseInstruction *>(instruction);
@@ -968,6 +1118,11 @@ void RenderingDeviceGraph::_wait_for_secondary_command_buffer_tasks() {
 }
 
 void RenderingDeviceGraph::_run_render_commands(int32_t p_level, const RecordedCommandSort *p_sorted_commands, uint32_t p_sorted_commands_count, RDD::CommandBufferID &r_command_buffer, CommandBufferPool &r_command_buffer_pool, int32_t &r_current_label_index, int32_t &r_current_label_level) {
+	// signal_semaphores_list[0] stores signal_semaphores of frames[frame].command_buffer
+	if (r_command_buffer_pool.signal_semaphores_list.size() == 0) {
+		r_command_buffer_pool.signal_semaphores_list.resize(1);
+	}
+
 	for (uint32_t i = 0; i < p_sorted_commands_count; i++) {
 		const uint32_t command_index = p_sorted_commands[i].index;
 		const uint32_t command_data_offset = command_data_offsets[command_index];
@@ -999,9 +1154,21 @@ void RenderingDeviceGraph::_run_render_commands(int32_t p_level, const RecordedC
 				driver_callback_command->callback(driver, r_command_buffer, driver_callback_command->userdata);
 			} break;
 			case RecordedCommand::TYPE_COMPUTE_LIST: {
-				if (device.workarounds.avoid_compute_after_draw && workarounds_state.draw_list_found) {
-					// Avoid compute after draw workaround. Refer to the comment that enables this in the Vulkan driver for more information.
-					workarounds_state.draw_list_found = false;
+				const RecordedComputeListCommand *compute_list_command = reinterpret_cast<const RecordedComputeListCommand *>(command);
+				const ComputeListSemaphoresInstruction *signal_semaphores_instruction = reinterpret_cast<const ComputeListSemaphoresInstruction *>(_get_compute_list_command_instruction(compute_list_command->instruction_data(), compute_list_command->instruction_data_size, ComputeListInstruction::TYPE_SET_SIGNAL_SEMAPHORES));
+				const ComputeListSemaphoresInstruction *wait_semaphores_instruction = reinterpret_cast<const ComputeListSemaphoresInstruction *>(_get_compute_list_command_instruction(compute_list_command->instruction_data(), compute_list_command->instruction_data_size, ComputeListInstruction::TYPE_SET_WAIT_SEMAPHORES));
+
+				bool has_signal_semaphores = signal_semaphores_instruction != nullptr && signal_semaphores_instruction->count;
+				bool has_wait_semaphores = wait_semaphores_instruction != nullptr && wait_semaphores_instruction->count;
+				bool split_cmd_buffer = has_wait_semaphores;
+				bool avoid_compute_after_draw = device.workarounds.avoid_compute_after_draw && workarounds_state.draw_list_found;
+				bool has_new_cmd_buffer = split_cmd_buffer || avoid_compute_after_draw;
+
+				if (has_new_cmd_buffer) {
+					if (avoid_compute_after_draw) {
+						// Avoid compute after draw workaround. Refer to the comment that enables this in the Vulkan driver for more information.
+						workarounds_state.draw_list_found = false;
+					}
 
 					// Create or reuse a command buffer and finish recording the current one.
 					driver->command_buffer_end(r_command_buffer);
@@ -1011,15 +1178,44 @@ void RenderingDeviceGraph::_run_render_commands(int32_t p_level, const RecordedC
 						RDD::SemaphoreID command_semaphore = driver->semaphore_create();
 						r_command_buffer_pool.buffers.push_back(command_buffer);
 						r_command_buffer_pool.semaphores.push_back(command_semaphore);
+						r_command_buffer_pool.signal_semaphores_list.push_back(LocalVector<RDD::SemaphoreID>());
+						r_command_buffer_pool.wait_semaphores_list.push_back(LocalVector<RDD::SemaphoreID>());
 					}
 
 					// Start recording on the next usable command buffer from the pool.
 					uint32_t command_buffer_index = r_command_buffer_pool.buffers_used++;
 					r_command_buffer = r_command_buffer_pool.buffers[command_buffer_index];
 					driver->command_buffer_begin(r_command_buffer);
+
+					// wait_semaphores of buffers[i] are stored in wait_semaphores_list[i]
+					if (has_wait_semaphores) {
+						const RDD::SemaphoreID *ids = wait_semaphores_instruction->semaphore_ids();
+						LocalVector<RDD::SemaphoreID> wait_semaphores;
+						for (uint32_t j = 0; j < wait_semaphores_instruction->count; j++) {
+							wait_semaphores.push_back(ids[j]);
+						}
+						r_command_buffer_pool.wait_semaphores_list[command_buffer_index] = wait_semaphores;
+					}
 				}
 
-				const RecordedComputeListCommand *compute_list_command = reinterpret_cast<const RecordedComputeListCommand *>(command);
+				if (has_signal_semaphores) {
+					// signal_semaphores of buffers[i] are stored in signal_semaphores_list[i + 1]
+					// signal_semaphores_list[0] stores signal_semaphores of frames[frame].command_buffer
+					uint32_t signal_index = r_command_buffer_pool.buffers_used;
+					const RDD::SemaphoreID *ids = signal_semaphores_instruction->semaphore_ids();
+					LocalVector<RDD::SemaphoreID> signal_semaphores;
+					const LocalVector<RDD::SemaphoreID> &_signal_semaphores = r_command_buffer_pool.signal_semaphores_list[signal_index];
+
+					for (uint32_t j = 0; j < signal_semaphores_instruction->count; ++j) {
+						signal_semaphores.push_back(ids[j]);
+					}
+					for (uint32_t j = 0; j < _signal_semaphores.size(); j++) {
+						signal_semaphores.push_back(_signal_semaphores[j]);
+					}
+
+					r_command_buffer_pool.signal_semaphores_list[signal_index] = signal_semaphores;
+				}
+
 				_run_compute_list_command(r_command_buffer, compute_list_command->instruction_data(), compute_list_command->instruction_data_size);
 			} break;
 			case RecordedCommand::TYPE_DRAW_LIST: {
@@ -1029,8 +1225,14 @@ void RenderingDeviceGraph::_run_render_commands(int32_t p_level, const RecordedC
 				}
 
 				const RecordedDrawListCommand *draw_list_command = reinterpret_cast<const RecordedDrawListCommand *>(command);
+				const DrawListSemaphoresInstruction *signal_semaphores_instruction = reinterpret_cast<const DrawListSemaphoresInstruction *>(_get_draw_list_command_instruction(draw_list_command->instruction_data(), draw_list_command->instruction_data_size, DrawListInstruction::TYPE_SET_SIGNAL_SEMAPHORES));
+				const DrawListSemaphoresInstruction *wait_semaphores_instruction = reinterpret_cast<const DrawListSemaphoresInstruction *>(_get_draw_list_command_instruction(draw_list_command->instruction_data(), draw_list_command->instruction_data_size, DrawListInstruction::TYPE_SET_WAIT_SEMAPHORES));
 
-				if (draw_list_command->split_cmd_buffer) {
+				bool has_signal_semaphores = signal_semaphores_instruction != nullptr && signal_semaphores_instruction->count;
+				bool has_wait_semaphores = wait_semaphores_instruction != nullptr && wait_semaphores_instruction->count;
+				bool split_cmd_buffer = has_wait_semaphores || draw_list_command->split_cmd_buffer;
+
+				if (split_cmd_buffer) {
 					// Create or reuse a command buffer and finish recording the current one.
 					driver->command_buffer_end(r_command_buffer);
 
@@ -1039,12 +1241,42 @@ void RenderingDeviceGraph::_run_render_commands(int32_t p_level, const RecordedC
 						RDD::SemaphoreID command_semaphore = driver->semaphore_create();
 						r_command_buffer_pool.buffers.push_back(command_buffer);
 						r_command_buffer_pool.semaphores.push_back(command_semaphore);
+						r_command_buffer_pool.signal_semaphores_list.push_back(LocalVector<RDD::SemaphoreID>());
+						r_command_buffer_pool.wait_semaphores_list.push_back(LocalVector<RDD::SemaphoreID>());
 					}
 
 					// Start recording on the next usable command buffer from the pool.
 					uint32_t command_buffer_index = r_command_buffer_pool.buffers_used++;
 					r_command_buffer = r_command_buffer_pool.buffers[command_buffer_index];
 					driver->command_buffer_begin(r_command_buffer);
+
+					// wait_semaphores of buffers[i] are stored in wait_semaphores_list[i]
+					if (has_wait_semaphores) {
+						const RDD::SemaphoreID *ids = wait_semaphores_instruction->semaphore_ids();
+						LocalVector<RDD::SemaphoreID> wait_semaphores;
+						for (uint32_t j = 0; j < wait_semaphores_instruction->count; j++) {
+							wait_semaphores.push_back(ids[j]);
+						}
+						r_command_buffer_pool.wait_semaphores_list[command_buffer_index] = wait_semaphores;
+					}
+				}
+
+				if (has_signal_semaphores) {
+					// signal_semaphores of buffers[i] are stored in signal_semaphores_list[i + 1]
+					// signal_semaphores_list[0] stores signal_semaphores of frames[frame].command_buffer
+					uint32_t signal_index = r_command_buffer_pool.buffers_used;
+					const RDD::SemaphoreID *ids = signal_semaphores_instruction->semaphore_ids();
+					LocalVector<RDD::SemaphoreID> signal_semaphores;
+					const LocalVector<RDD::SemaphoreID> &_signal_semaphores = r_command_buffer_pool.signal_semaphores_list[signal_index];
+
+					for (uint32_t j = 0; j < signal_semaphores_instruction->count; ++j) {
+						signal_semaphores.push_back(ids[j]);
+					}
+					for (uint32_t j = 0; j < _signal_semaphores.size(); j++) {
+						signal_semaphores.push_back(_signal_semaphores[j]);
+					}
+
+					r_command_buffer_pool.signal_semaphores_list[signal_index] = signal_semaphores;
 				}
 
 				const VectorView clear_values(draw_list_command->clear_values(), draw_list_command->clear_values_count);
@@ -1743,6 +1975,30 @@ void RenderingDeviceGraph::add_compute_list_set_push_constant(RDD::ShaderID p_sh
 	memcpy(instruction->data(), p_data, p_data_size);
 }
 
+void RenderingDeviceGraph::add_compute_list_set_signal_semaphores(VectorView<RDD::SemaphoreID> p_signal_semaphores) {
+	uint32_t instruction_size = sizeof(ComputeListSemaphoresInstruction) + sizeof(RDD::UniformSetID) * p_signal_semaphores.size();
+	ComputeListSemaphoresInstruction *instruction = reinterpret_cast<ComputeListSemaphoresInstruction *>(_allocate_compute_list_instruction(instruction_size));
+	instruction->type = ComputeListInstruction::TYPE_SET_SIGNAL_SEMAPHORES;
+	instruction->count = p_signal_semaphores.size();
+
+	RDD::SemaphoreID *ids = instruction->semaphore_ids();
+	for (uint32_t i = 0; i < p_signal_semaphores.size(); i++) {
+		ids[i] = p_signal_semaphores[i];
+	}
+}
+
+void RenderingDeviceGraph::add_compute_list_set_wait_semaphores(VectorView<RDD::SemaphoreID> p_wait_semaphores) {
+	uint32_t instruction_size = sizeof(ComputeListSemaphoresInstruction) + sizeof(RDD::UniformSetID) * p_wait_semaphores.size();
+	ComputeListSemaphoresInstruction *instruction = reinterpret_cast<ComputeListSemaphoresInstruction *>(_allocate_compute_list_instruction(instruction_size));
+	instruction->type = ComputeListInstruction::TYPE_SET_WAIT_SEMAPHORES;
+	instruction->count = p_wait_semaphores.size();
+
+	RDD::SemaphoreID *ids = instruction->semaphore_ids();
+	for (uint32_t i = 0; i < p_wait_semaphores.size(); i++) {
+		ids[i] = p_wait_semaphores[i];
+	}
+}
+
 void RenderingDeviceGraph::add_compute_list_uniform_set_prepare_for_use(RDD::ShaderID p_shader, RDD::UniformSetID p_uniform_set, uint32_t set_index) {
 	ComputeListUniformSetPrepareForUseInstruction *instruction = reinterpret_cast<ComputeListUniformSetPrepareForUseInstruction *>(_allocate_compute_list_instruction(sizeof(ComputeListUniformSetPrepareForUseInstruction)));
 	instruction->type = ComputeListInstruction::TYPE_UNIFORM_SET_PREPARE_FOR_USE;
@@ -1939,6 +2195,30 @@ void RenderingDeviceGraph::add_draw_list_set_push_constant(RDD::ShaderID p_shade
 	instruction->size = p_data_size;
 	instruction->shader = p_shader;
 	memcpy(instruction->data(), p_data, p_data_size);
+}
+
+void RenderingDeviceGraph::add_draw_list_set_signal_semaphores(VectorView<RDD::SemaphoreID> p_signal_semaphores) {
+	uint32_t instruction_size = sizeof(DrawListSemaphoresInstruction) + sizeof(RDD::UniformSetID) * p_signal_semaphores.size();
+	DrawListSemaphoresInstruction *instruction = reinterpret_cast<DrawListSemaphoresInstruction *>(_allocate_draw_list_instruction(instruction_size));
+	instruction->type = DrawListInstruction::TYPE_SET_SIGNAL_SEMAPHORES;
+	instruction->count = p_signal_semaphores.size();
+
+	RDD::SemaphoreID *ids = instruction->semaphore_ids();
+	for (uint32_t i = 0; i < p_signal_semaphores.size(); i++) {
+		ids[i] = p_signal_semaphores[i];
+	}
+}
+
+void RenderingDeviceGraph::add_draw_list_set_wait_semaphores(VectorView<RDD::SemaphoreID> p_wait_semaphores) {
+	uint32_t instruction_size = sizeof(DrawListSemaphoresInstruction) + sizeof(RDD::UniformSetID) * p_wait_semaphores.size();
+	DrawListSemaphoresInstruction *instruction = reinterpret_cast<DrawListSemaphoresInstruction *>(_allocate_draw_list_instruction(instruction_size));
+	instruction->type = DrawListInstruction::TYPE_SET_WAIT_SEMAPHORES;
+	instruction->count = p_wait_semaphores.size();
+
+	RDD::SemaphoreID *ids = instruction->semaphore_ids();
+	for (uint32_t i = 0; i < p_wait_semaphores.size(); i++) {
+		ids[i] = p_wait_semaphores[i];
+	}
 }
 
 void RenderingDeviceGraph::add_draw_list_set_scissor(Rect2i p_rect) {
