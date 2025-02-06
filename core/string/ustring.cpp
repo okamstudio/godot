@@ -3088,7 +3088,7 @@ String String::substr(int p_from, int p_chars) const {
 	}
 
 	if (p_from == 0 && p_chars >= length()) {
-		return String(*this);
+		return *this;
 	}
 
 	String s;
@@ -4327,84 +4327,128 @@ bool String::is_network_share_path() const {
 	return begins_with("//") || begins_with("\\\\");
 }
 
-String String::simplify_path() const {
-	String s = *this;
-	String drive;
-
+static int find_drive_end_idx(const String &p_str) {
 	// Check if we have a special path (like res://) or a protocol identifier.
-	int p = s.find("://");
-	bool found = false;
+	int p = p_str.find("://");
 	if (p > 0) {
 		bool only_chars = true;
 		for (int i = 0; i < p; i++) {
-			if (!is_ascii_alphanumeric_char(s[i])) {
+			if (!is_ascii_alphanumeric_char(p_str[i])) {
 				only_chars = false;
 				break;
 			}
 		}
 		if (only_chars) {
-			found = true;
-			drive = s.substr(0, p + 3);
-			s = s.substr(p + 3);
-		}
-	}
-	if (!found) {
-		if (is_network_share_path()) {
-			// Network path, beginning with // or \\.
-			drive = s.substr(0, 2);
-			s = s.substr(2);
-		} else if (s.begins_with("/") || s.begins_with("\\")) {
-			// Absolute path.
-			drive = s.substr(0, 1);
-			s = s.substr(1);
-		} else {
-			// Windows-style drive path, like C:/ or C:\.
-			p = s.find(":/");
-			if (p == -1) {
-				p = s.find(":\\");
-			}
-			if (p != -1 && p < s.find_char('/')) {
-				drive = s.substr(0, p + 2);
-				s = s.substr(p + 2);
-			}
+			return p + 3;
 		}
 	}
 
-	s = s.replace("\\", "/");
-	while (true) { // in case of using 2 or more slash
-		String compare = s.replace("//", "/");
-		if (s == compare) {
-			break;
-		} else {
-			s = compare;
-		}
+	if (p_str.is_network_share_path()) {
+		// Network path, beginning with // or \\.
+		return 2;
 	}
-	Vector<String> dirs = s.split("/", false);
 
-	for (int i = 0; i < dirs.size(); i++) {
-		String d = dirs[i];
-		if (d == ".") {
-			dirs.remove_at(i);
-			i--;
-		} else if (d == "..") {
-			if (i != 0 && dirs[i - 1] != "..") {
-				dirs.remove_at(i);
-				dirs.remove_at(i - 1);
-				i -= 2;
+	if (p_str.begins_with("/") || p_str.begins_with("\\")) {
+		// Absolute path.
+		return 1;
+	}
+
+	// Windows-style drive path, like C:/ or C:\.
+	p = p_str.find(":/");
+	if (p == -1) {
+		p = p_str.find(":\\");
+	}
+	if (p != -1) {
+		bool no_separator = true;
+		const char32_t *ptr = p_str.ptr();
+		for (const char32_t *end = ptr + p; ptr < end; ptr++) {
+			if (is_path_seperator(*ptr)) {
+				no_separator = false;
+				break;
 			}
 		}
-	}
-
-	s = "";
-
-	for (int i = 0; i < dirs.size(); i++) {
-		if (i > 0) {
-			s += "/";
+		if (no_separator) {
+			return p + 2;
 		}
-		s += dirs[i];
 	}
 
-	return drive + s;
+	return 0;
+}
+
+String String::simplify_path() const {
+	if (is_empty()) {
+		return *this;
+	}
+
+	String ret;
+	// The new string is guaranteed to be equal to or shorter than us.
+	// If shorter, it will be shrunk at the end of the function.
+	ret.resize(size());
+
+	// dst points to the next character to write.
+	char32_t *dst = ret.ptrw();
+
+	// src points to the next character being read.
+	const char32_t *src = ptr();
+	const char32_t *end = src + length();
+
+	// Consume drive part verbatim.
+	for (int drive_end_idx = find_drive_end_idx(*this); drive_end_idx > 0; --drive_end_idx) {
+		const char32_t ch = *src++;
+		*dst++ = ch == '\\' ? '/' : ch;
+	}
+
+	// Part of dst beyond which we don't backtrack, i.e. drive and potential ../ parts.
+	char32_t *dst_fixed = dst;
+	const char32_t *dst_path_start = dst;
+
+	for (; src < end; ++src) {
+		if (is_path_seperator(*src)) {
+			// Double slash; ignore.
+			continue;
+		}
+
+		char32_t *dst_part_start = dst;
+		const char32_t *src_part_start = src;
+
+		// Parse Part
+		if (dst > dst_path_start) {
+			// There was a previous part; prepend separator.
+			*dst++ = '/';
+		}
+
+		// Append new part.
+		do {
+			*dst++ = *src++;
+		} while (src < end && !is_path_seperator(*src));
+
+		const std::ptrdiff_t part_len = src - src_part_start;
+		if (part_len == 1 && *src_part_start == '.') {
+			// Single-dot part; reset.
+			dst = dst_part_start;
+			continue;
+		}
+		if (part_len == 2 && *src_part_start == '.' && *(src_part_start + 1) == '.') {
+			// Double-dot part.
+			if (dst_part_start > dst_fixed) {
+				// Can backtrack.
+				dst = dst_part_start - (dst > dst_path_start ? 1 : 0);
+				for (; dst > dst_fixed && !is_path_seperator(*dst); --dst) {
+				}
+			} else {
+				// Can't backtrack, so save double dot in the fixed section.
+				dst_fixed = dst;
+			}
+		}
+	}
+
+	// Insert NULL string terminator.
+	*dst++ = 0;
+
+	// Shrink the buffer as needed.
+	ret.resize(dst - ret.ptr());
+
+	return ret;
 }
 
 static int _humanize_digits(int p_num) {
@@ -5147,64 +5191,10 @@ bool String::is_relative_path() const {
 }
 
 String String::get_base_dir() const {
-	int end = 0;
+	const int drive_end_idx = find_drive_end_idx(*this);
+	const int last_separator_idx = MAX(rfind_char('/'), rfind_char('\\'));
 
-	// URL scheme style base.
-	int basepos = find("://");
-	if (basepos != -1) {
-		end = basepos + 3;
-	}
-
-	// Windows top level directory base.
-	if (end == 0) {
-		basepos = find(":/");
-		if (basepos == -1) {
-			basepos = find(":\\");
-		}
-		if (basepos != -1) {
-			end = basepos + 2;
-		}
-	}
-
-	// Windows UNC network share path.
-	if (end == 0) {
-		if (is_network_share_path()) {
-			basepos = find_char('/', 2);
-			if (basepos == -1) {
-				basepos = find_char('\\', 2);
-			}
-			int servpos = find_char('/', basepos + 1);
-			if (servpos == -1) {
-				servpos = find_char('\\', basepos + 1);
-			}
-			if (servpos != -1) {
-				end = servpos + 1;
-			}
-		}
-	}
-
-	// Unix root directory base.
-	if (end == 0) {
-		if (begins_with("/")) {
-			end = 1;
-		}
-	}
-
-	String rs;
-	String base;
-	if (end != 0) {
-		rs = substr(end, length());
-		base = substr(0, end);
-	} else {
-		rs = *this;
-	}
-
-	int sep = MAX(rs.rfind_char('/'), rs.rfind_char('\\'));
-	if (sep == -1) {
-		return base;
-	}
-
-	return base + rs.substr(0, sep);
+	return substr(0, MAX(last_separator_idx, drive_end_idx));
 }
 
 String String::get_file() const {
