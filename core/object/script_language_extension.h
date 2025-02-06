@@ -271,6 +271,16 @@ public:
 		}
 	}
 
+	GDVIRTUAL0RC(Vector<String>, _get_block_key_delimiters)
+
+	virtual void get_block_key_delimiters(List<String> *p_words) const override {
+		Vector<String> ret;
+		GDVIRTUAL_CALL(_get_block_key_delimiters, ret);
+		for (const String &delimiter : ret) {
+			p_words->push_back(delimiter);
+		}
+	}
+
 	GDVIRTUAL0RC_REQUIRED(Vector<String>, _get_string_delimiters)
 
 	virtual void get_string_delimiters(List<String> *p_words) const override {

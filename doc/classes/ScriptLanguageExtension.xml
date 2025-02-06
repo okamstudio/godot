@@ -142,6 +142,11 @@
 			<description>
 			</description>
 		</method>
+		<method name="_get_block_key_delimiters" qualifiers="virtual const">
+			<return type="PackedStringArray" />
+			<description>
+			</description>
+		</method>
 		<method name="_get_built_in_templates" qualifiers="virtual const">
 			<return type="Dictionary[]" />
 			<param index="0" name="object" type="StringName" />

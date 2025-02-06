@@ -74,6 +74,7 @@ private:
 	int _calculate_spaces_till_next_right_indent(int p_column) const;
 
 	void _new_line(bool p_split_current_line = true, bool p_above = false);
+	void _auto_fill_doc_comments(int p_caret, bool p_above);
 
 	/* Auto brace completion */
 	bool auto_brace_completion_enabled = false;
@@ -184,6 +185,8 @@ private:
 	 *  ]
 	 */
 	Vector<RBMap<int, int>> delimiter_cache;
+
+	Vector<String> block_key_delimiters;
 
 	void _update_delimiter_cache(int p_from_line = 0, int p_to_line = -1);
 	int _is_in_delimiter(int p_line, int p_column, DelimiterType p_type) const;
@@ -311,6 +314,7 @@ private:
 	void _text_changed();
 
 	void _apply_project_settings();
+	Vector<Callable> new_lines_actions;
 
 protected:
 	void _notification(int p_what);
@@ -464,6 +468,9 @@ public:
 
 	Point2 get_delimiter_start_position(int p_line, int p_column) const;
 	Point2 get_delimiter_end_position(int p_line, int p_column) const;
+
+	Vector<String> get_block_key_delimiters() const;
+	void set_block_key_delimiters(const Vector<String> &p_delimiters);
 
 	/* Code hint */
 	void set_code_hint(const String &p_hint);

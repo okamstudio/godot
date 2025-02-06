@@ -341,6 +341,11 @@ void CSharpLanguage::get_doc_comment_delimiters(List<String> *p_delimiters) cons
 	p_delimiters->push_back("/** */"); // delimited doc comment
 }
 
+void CSharpLanguage::get_block_key_delimiters(List<String> *p_delimiters) const {
+	p_delimiters->push_back("///");
+	p_delimiters->push_back("/**| *|*/");
+}
+
 void CSharpLanguage::get_string_delimiters(List<String> *p_delimiters) const {
 	p_delimiters->push_back("' '"); // character literal
 	p_delimiters->push_back("\" \""); // regular string literal

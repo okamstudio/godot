@@ -1191,10 +1191,82 @@ void CodeEdit::_new_line(bool p_split_current_line, bool p_above) {
 			set_caret_line(get_caret_line(i) - 1, false, true, 0, i);
 			set_caret_column(get_line(get_caret_line(i)).length(), i == 0, i);
 		}
+
+		_auto_fill_doc_comments(i, p_above);
 	}
 
 	end_multicaret_edit();
 	end_complex_operation();
+}
+
+void CodeEdit::_auto_fill_doc_comments(int p_caret, bool p_above) {
+	if (block_key_delimiters.is_empty()) {
+		return;
+	}
+
+	const int cl = p_above ? (get_caret_line(p_caret) + 1) : (get_caret_line(p_caret) - 1);
+	const String line = get_line(cl);
+
+	if (is_in_comment(cl) != -1) {
+		for (const String &block_key : block_key_delimiters) {
+			const String delimiter_begin = block_key.get_slice("|", 0);
+			const String delimiter_block = block_key.get_slice("|", 1);
+			const String delimiter_end = block_key.get_slice("|", 2);
+			String line_strip = line.strip_edges();
+
+			// Case for inline comments.
+			if (delimiter_begin == delimiter_end) {
+				if (line_strip.begins_with(delimiter_begin)) {
+					insert_text_at_caret(delimiter_begin + " ", p_caret);
+					break;
+				}
+
+				continue;
+			}
+
+			// Case when the caret is on the same line as a block comment.
+			if (!p_above && line_strip.begins_with(delimiter_begin)) {
+				const String next_line = get_line(cl + 1);
+
+				if (next_line.ends_with(delimiter_end.strip_edges())) {
+					const int non_whitespace_column = get_first_non_whitespace_column(cl);
+					const String indent = line.substr(0, non_whitespace_column);
+
+					insert_text_at_caret(delimiter_begin + " ", p_caret);
+
+					const int line_to_move_on = cl + 1;
+					const int line_length = get_line(line_to_move_on).length();
+					set_caret_line(line_to_move_on, false, true, -1, p_caret);
+					set_caret_column(line_length, false, p_caret);
+					break;
+				}
+
+				insert_text_at_caret(delimiter_begin + " ", p_caret);
+				break;
+			}
+
+			// Case when the caret is on the same line as the end delimiter.
+			if (p_above && line_strip.ends_with(delimiter_end)) {
+				insert_text_at_caret(delimiter_begin + " ", p_caret);
+				break;
+			}
+
+			// Case when the caret is in a block comment; needs to go up to
+			// find the beginning of the current doc comment.
+			for (int j = cl - 1; j >= 0; --j) {
+				line_strip = get_line(j).strip_edges();
+
+				if (is_in_comment(j) == -1) {
+					break;
+				}
+
+				if (line_strip.begins_with(delimiter_begin)) {
+					insert_text_at_caret(delimiter_begin + " ", p_caret);
+					break;
+				}
+			}
+		}
+	}
 }
 
 /* Auto brace completion */
@@ -2051,6 +2123,18 @@ Point2 CodeEdit::get_delimiter_end_position(int p_line, int p_column) const {
 		end_position.x = -1;
 	}
 	return end_position;
+}
+
+Vector<String> CodeEdit::get_block_key_delimiters() const {
+	return block_key_delimiters;
+}
+
+void CodeEdit::set_block_key_delimiters(const Vector<String> &p_delimiters) {
+	block_key_delimiters.clear();
+
+	for (const String &delimiter : p_delimiters) {
+		block_key_delimiters.push_back(delimiter);
+	}
 }
 
 /* Code hint */

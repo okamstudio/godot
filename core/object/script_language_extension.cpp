@@ -97,6 +97,7 @@ void ScriptLanguageExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_is_control_flow_keyword, "keyword");
 	GDVIRTUAL_BIND(_get_comment_delimiters);
 	GDVIRTUAL_BIND(_get_doc_comment_delimiters);
+	GDVIRTUAL_BIND(_get_block_key_delimiters);
 	GDVIRTUAL_BIND(_get_string_delimiters);
 	GDVIRTUAL_BIND(_make_template, "template", "class_name", "base_class_name");
 	GDVIRTUAL_BIND(_get_built_in_templates, "object");
