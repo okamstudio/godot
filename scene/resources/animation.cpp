@@ -4742,7 +4742,7 @@ Vector3i Animation::_compress_key(uint32_t p_track, const AABB &p_bounds, int32_
 			}
 			pos = (pos - p_bounds.position) / p_bounds.size;
 			for (int j = 0; j < 3; j++) {
-				values[j] = CLAMP(int32_t(pos[j] * 65535.0), 0, 65535);
+				values[j] = CLAMP(int32_t((pos[j] * 65535.0) + 0.5), 0, 65535);
 			}
 		} break;
 		case TYPE_ROTATION_3D: {
@@ -4755,11 +4755,14 @@ Vector3i Animation::_compress_key(uint32_t p_track, const AABB &p_bounds, int32_
 			Vector3 axis = rot.get_axis();
 			float angle = rot.get_angle();
 			angle = Math::fposmod(double(angle), double(Math_PI * 2.0));
-			Vector2 oct = axis.octahedron_encode();
+			Vector2 oct(0.0, 0.0);
+			if (axis != Vector3(0.0, 0.0, 0.0)) {
+				oct = axis.octahedron_encode();
+			}
 			Vector3 rot_norm(oct.x, oct.y, angle / (Math_PI * 2.0)); // high resolution rotation in 0-1 angle.
 
 			for (int j = 0; j < 3; j++) {
-				values[j] = CLAMP(int32_t(rot_norm[j] * 65535.0), 0, 65535);
+				values[j] = CLAMP(int32_t((rot_norm[j] * 65535.0) + 0.5), 0, 65535);
 			}
 		} break;
 		case TYPE_SCALE_3D: {
@@ -4771,7 +4774,7 @@ Vector3i Animation::_compress_key(uint32_t p_track, const AABB &p_bounds, int32_
 			}
 			scale = (scale - p_bounds.position) / p_bounds.size;
 			for (int j = 0; j < 3; j++) {
-				values[j] = CLAMP(int32_t(scale[j] * 65535.0), 0, 65535);
+				values[j] = CLAMP(int32_t((scale[j] * 65535.0) + 0.5), 0, 65535);
 			}
 		} break;
 		case TYPE_BLEND_SHAPE: {
@@ -4783,7 +4786,7 @@ Vector3i Animation::_compress_key(uint32_t p_track, const AABB &p_bounds, int32_
 			}
 
 			blend = (blend / float(Compression::BLEND_SHAPE_RANGE)) * 0.5 + 0.5;
-			values[0] = CLAMP(int32_t(blend * 65535.0), 0, 65535);
+			values[0] = CLAMP(int32_t((blend * 65534.0) + 0.5), 0, 65534); // Unlike other tracks, scale by 65534 so that zero is preserved.
 		} break;
 		default: {
 			ERR_FAIL_V(Vector3i()); // Safety check.
@@ -5540,7 +5543,7 @@ Vector3 Animation::_uncompress_pos_scale(uint32_t p_compressed_track, const Vect
 	return compression.bounds[p_compressed_track].position + pos_norm * compression.bounds[p_compressed_track].size;
 }
 float Animation::_uncompress_blend_shape(const Vector3i &p_value) const {
-	float bsn = float(p_value.x) / 65535.0;
+	float bsn = float(p_value.x) / 65534.0; // Unlike other tracks, scale by 65534 so that zero is preserved.
 	return (bsn * 2.0 - 1.0) * float(Compression::BLEND_SHAPE_RANGE);
 }
 
