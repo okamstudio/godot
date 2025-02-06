@@ -50,18 +50,18 @@ typedef uint32_t uintr_t;
 
 union MarshallFloat {
 	uint32_t i; ///< int
-	float f; ///< float
+	float f = 0.0f; ///< float
 };
 
 union MarshallDouble {
 	uint64_t l; ///< long long
-	double d; ///< double
+	double d = 0.0l; ///< double
 };
 
 // Behaves like one of the above, depending on compilation setting.
 union MarshallReal {
 	uintr_t i;
-	real_t r;
+	real_t r = 0;
 };
 
 static inline unsigned int encode_uint16(uint16_t p_uint, uint8_t *p_arr) {
@@ -109,7 +109,7 @@ static inline unsigned int encode_uint64(uint64_t p_uint, uint8_t *p_arr) {
 }
 
 static inline unsigned int encode_double(double p_double, uint8_t *p_arr) {
-	MarshallDouble md;
+	MarshallDouble md{};
 	md.d = p_double;
 	encode_uint64(md.l, p_arr);
 

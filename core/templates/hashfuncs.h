@@ -138,7 +138,7 @@ static _FORCE_INLINE_ uint32_t hash_murmur3_one_32(uint32_t p_in, uint32_t p_see
 
 static _FORCE_INLINE_ uint32_t hash_murmur3_one_float(float p_in, uint32_t p_seed = HASH_MURMUR3_SEED) {
 	union {
-		float f;
+		float f = { 0.0f };
 		uint32_t i;
 	} u;
 
@@ -161,7 +161,7 @@ static _FORCE_INLINE_ uint32_t hash_murmur3_one_64(uint64_t p_in, uint32_t p_see
 
 static _FORCE_INLINE_ uint32_t hash_murmur3_one_double(double p_in, uint32_t p_seed = HASH_MURMUR3_SEED) {
 	union {
-		double d;
+		double d = { 0.0 };
 		uint64_t i;
 	} u;
 
@@ -249,7 +249,7 @@ static _FORCE_INLINE_ uint32_t hash_murmur3_buffer(const void *key, int length, 
 
 static _FORCE_INLINE_ uint32_t hash_djb2_one_float(double p_in, uint32_t p_prev = 5381) {
 	union {
-		double d;
+		double d = { 0.0 };
 		uint64_t i;
 	} u;
 
@@ -278,7 +278,7 @@ static _FORCE_INLINE_ uint32_t hash_make_uint32_t(T p_in) {
 
 static _FORCE_INLINE_ uint64_t hash_djb2_one_float_64(double p_in, uint64_t p_prev = 5381) {
 	union {
-		double d;
+		double d = { 0.0 };
 		uint64_t i;
 	} u;
 

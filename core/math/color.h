@@ -146,7 +146,7 @@ struct [[nodiscard]] Color {
 		// bit and the first 8 mantissa bits to be shifted down to the low 9 bits
 		// of the mantissa, rounding the truncated bits.
 		union {
-			float f;
+			float f = 0.0f;
 			uint32_t i;
 		} R, G, B, E;
 

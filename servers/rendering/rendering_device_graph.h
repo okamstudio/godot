@@ -593,7 +593,7 @@ private:
 	};
 
 	struct DrawListSetLineWidthInstruction : DrawListInstruction {
-		float width;
+		float width = 0.0F;
 	};
 
 	struct DrawListSetScissorInstruction : DrawListInstruction {
