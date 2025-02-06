@@ -253,6 +253,11 @@ public:
 	void add_context_menu_plugin(EditorContextMenuPlugin::ContextMenuSlot p_slot, const Ref<EditorContextMenuPlugin> &p_plugin);
 	void remove_context_menu_plugin(const Ref<EditorContextMenuPlugin> &p_plugin);
 
+	bool is_node_3d_snap_enabled();
+	real_t get_node_3d_translate_snap();
+	real_t get_node_3d_rotate_snap();
+	real_t get_node_3d_scale_snap();
+
 	void enable_plugin();
 	void disable_plugin();
 

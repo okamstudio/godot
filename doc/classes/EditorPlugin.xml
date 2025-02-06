@@ -587,6 +587,24 @@
 				Returns the [PopupMenu] under [b]Scene &gt; Export As...[/b].
 			</description>
 		</method>
+		<method name="get_node_3d_rotate_snap">
+			<return type="float" />
+			<description>
+				Returns the amount of degrees the 3D editor's rotational snapping is set to.
+			</description>
+		</method>
+		<method name="get_node_3d_scale_snap">
+			<return type="float" />
+			<description>
+				Returns the amount of units the 3D editor's scale snapping is set to.
+			</description>
+		</method>
+		<method name="get_node_3d_translate_snap">
+			<return type="float" />
+			<description>
+				Returns the amount of units the 3D editor's translation snapping is set to.
+			</description>
+		</method>
 		<method name="get_plugin_version" qualifiers="const">
 			<return type="String" />
 			<description>
@@ -611,6 +629,12 @@
 			<return type="void" />
 			<description>
 				Minimizes the bottom panel.
+			</description>
+		</method>
+		<method name="is_node_3d_snap_enabled">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if the 3D editor currently has snapping mode enabled, and [code]false[/code] otherwise.
 			</description>
 		</method>
 		<method name="make_bottom_panel_item_visible">
