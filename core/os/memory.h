@@ -38,6 +38,11 @@
 #include <new>
 #include <type_traits>
 
+static constexpr size_t mem_aligned_address(size_t address, size_t alignment) {
+	size_t n_bytes_unaligned = address % alignment;
+	return (n_bytes_unaligned == 0) ? address : (address + alignment - n_bytes_unaligned);
+}
+
 class Memory {
 #ifdef DEBUG_ENABLED
 	static SafeNumeric<uint64_t> mem_usage;
@@ -55,8 +60,8 @@ public:
 	// Offset:     ↑ SIZE_OFFSET        ↑ ELEMENT_OFFSET    ↑ DATA_OFFSET
 
 	static constexpr size_t SIZE_OFFSET = 0;
-	static constexpr size_t ELEMENT_OFFSET = ((SIZE_OFFSET + sizeof(uint64_t)) % alignof(uint64_t) == 0) ? (SIZE_OFFSET + sizeof(uint64_t)) : ((SIZE_OFFSET + sizeof(uint64_t)) + alignof(uint64_t) - ((SIZE_OFFSET + sizeof(uint64_t)) % alignof(uint64_t)));
-	static constexpr size_t DATA_OFFSET = ((ELEMENT_OFFSET + sizeof(uint64_t)) % alignof(max_align_t) == 0) ? (ELEMENT_OFFSET + sizeof(uint64_t)) : ((ELEMENT_OFFSET + sizeof(uint64_t)) + alignof(max_align_t) - ((ELEMENT_OFFSET + sizeof(uint64_t)) % alignof(max_align_t)));
+	static constexpr size_t ELEMENT_OFFSET = mem_aligned_address(SIZE_OFFSET + sizeof(uint64_t), alignof(uint64_t));
+	static constexpr size_t DATA_OFFSET = mem_aligned_address(ELEMENT_OFFSET + sizeof(uint64_t), alignof(max_align_t));
 
 	static void *alloc_static(size_t p_bytes, bool p_pad_align = false);
 	static void *realloc_static(void *p_memory, size_t p_bytes, bool p_pad_align = false);
