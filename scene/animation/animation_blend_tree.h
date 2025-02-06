@@ -149,6 +149,7 @@ private:
 	double auto_restart_random_delay = 0.0;
 	MixMode mix = MIX_MODE_BLEND;
 	bool break_loop_at_end = false;
+	bool use_self_delta_to_fade = false;
 
 	StringName request = PNAME("request");
 	StringName active = PNAME("active");
@@ -192,6 +193,9 @@ public:
 
 	void set_break_loop_at_end(bool p_enable);
 	bool is_loop_broken_at_end() const;
+
+	void set_use_self_delta_to_fade(bool p_enable);
+	bool is_using_self_delta_to_fade() const;
 
 	virtual bool has_filter() const override;
 	virtual NodeTimeInfo _process(const AnimationMixer::PlaybackInfo p_playback_info, bool p_test_only = false) override;

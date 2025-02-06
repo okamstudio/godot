@@ -527,6 +527,14 @@ bool AnimationNodeOneShot::is_loop_broken_at_end() const {
 	return break_loop_at_end;
 }
 
+void AnimationNodeOneShot::set_use_self_delta_to_fade(bool p_enable) {
+	use_self_delta_to_fade = p_enable;
+}
+
+bool AnimationNodeOneShot::is_using_self_delta_to_fade() const {
+	return use_self_delta_to_fade;
+}
+
 String AnimationNodeOneShot::get_caption() const {
 	return "OneShot";
 }
@@ -686,7 +694,7 @@ AnimationNode::NodeTimeInfo AnimationNodeOneShot::_process(const AnimationMixer:
 				set_parameter(time_to_restart, restart_sec);
 			}
 		}
-		double d = Math::abs(os_nti.delta);
+		double d = use_self_delta_to_fade ? abs_delta : Math::abs(os_nti.delta);
 		if (!do_start) {
 			cur_fade_in_remaining = MAX(0, cur_fade_in_remaining - d); // Don't consider seeked delta by restart.
 		}
@@ -715,6 +723,9 @@ void AnimationNodeOneShot::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_break_loop_at_end", "enable"), &AnimationNodeOneShot::set_break_loop_at_end);
 	ClassDB::bind_method(D_METHOD("is_loop_broken_at_end"), &AnimationNodeOneShot::is_loop_broken_at_end);
 
+	ClassDB::bind_method(D_METHOD("set_use_self_delta_to_fade", "enable"), &AnimationNodeOneShot::set_use_self_delta_to_fade);
+	ClassDB::bind_method(D_METHOD("is_using_self_delta_to_fade"), &AnimationNodeOneShot::is_using_self_delta_to_fade);
+
 	ClassDB::bind_method(D_METHOD("set_autorestart", "active"), &AnimationNodeOneShot::set_auto_restart_enabled);
 	ClassDB::bind_method(D_METHOD("has_autorestart"), &AnimationNodeOneShot::is_auto_restart_enabled);
 
@@ -734,6 +745,7 @@ void AnimationNodeOneShot::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "fadeout_time", PROPERTY_HINT_RANGE, "0,60,0.01,or_greater,suffix:s"), "set_fadeout_time", "get_fadeout_time");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "fadeout_curve", PROPERTY_HINT_RESOURCE_TYPE, "Curve"), "set_fadeout_curve", "get_fadeout_curve");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "break_loop_at_end"), "set_break_loop_at_end", "is_loop_broken_at_end");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "use_self_delta_to_fade"), "set_use_self_delta_to_fade", "is_using_self_delta_to_fade");
 
 	ADD_GROUP("Auto Restart", "autorestart_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "autorestart"), "set_autorestart", "has_autorestart");
