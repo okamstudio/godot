@@ -10848,7 +10848,13 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 
 					if (tk.type == TK_COMMA) {
 						tk = _get_token();
-						//do none and go on
+#ifdef DISABLE_DEPRECATED
+						// Disallow trailing comma.
+						if (tk.type == TK_PARENTHESIS_CLOSE) {
+							_set_error(RTR("Expected a valid data type for argument. Trailing commas are not allowed."));
+							return ERR_PARSE_ERROR;
+						}
+#endif
 					} else if (tk.type != TK_PARENTHESIS_CLOSE) {
 						_set_expected_error(",", ")");
 						return ERR_PARSE_ERROR;
