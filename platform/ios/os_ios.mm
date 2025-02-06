@@ -659,5 +659,4 @@ void OS_IOS::on_exit_background() {
 		}
 	}
 }
-
 #endif // IOS_ENABLED
