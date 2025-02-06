@@ -349,7 +349,7 @@ void CSharpLanguage::get_string_delimiters(List<String> *p_delimiters) const {
 }
 
 static String get_base_class_name(const String &p_base_class_name, const String p_class_name) {
-	String base_class = pascal_to_pascal_case(p_base_class_name);
+	String base_class = pascal_to_pascal_case(p_base_class_name.split(".").back());
 	if (p_class_name == base_class) {
 		base_class = "Godot." + base_class;
 	}
@@ -391,11 +391,12 @@ String CSharpLanguage::validate_path(const String &p_path) const {
 	String class_name = p_path.get_file().get_basename();
 	List<String> keywords;
 	get_reserved_words(&keywords);
-	if (keywords.find(class_name)) {
-		return RTR("Class name can't be a reserved keyword");
+	Vector<String> segments = class_name.split(".");
+	if (keywords.find(segments.back())) {
+		return RTR("Class name can't contain a reserved keyword: ") + segments.back();
 	}
-	if (!TS->is_valid_identifier(class_name)) {
-		return RTR("Class name must be a valid identifier");
+	if (!TS->is_valid_identifier(segments.back())) {
+		return RTR("Class name must be a valid identifier: ") + segments.back();
 	}
 
 	return "";
