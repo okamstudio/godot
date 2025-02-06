@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="CallErrorInfo" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Information pertaining to error reporting on called functions.
+	</brief_description>
+	<description>
+		Information pertaining to error reporting on called functions. This object is used in conjunction with [method Object.call_with_error_test].
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_call_error">
+			<return type="int" enum="CallErrorInfo.CallError" />
+			<description>
+				Return the error type.
+			</description>
+		</method>
+		<method name="get_expected_arguments">
+			<return type="int" />
+			<description>
+				Return the amount of arguments expected (when the error is too many or too few arguments).
+			</description>
+		</method>
+		<method name="get_invalid_argument_index">
+			<return type="int" />
+			<description>
+				Return the index of the invalid argument (when the error is an invalid argument).
+			</description>
+		</method>
+		<method name="get_invalid_argument_type">
+			<return type="int" enum="Variant.Type" />
+			<description>
+				Return the expected type for the invalid argument (when the error is an invalid argument).
+			</description>
+		</method>
+		<method name="set_call_error">
+			<return type="void" />
+			<param index="0" name="error" type="int" enum="CallErrorInfo.CallError" />
+			<param index="1" name="argument" type="int" />
+			<param index="2" name="expected" type="int" />
+			<description>
+				Setup the error. For invalid arguments [param argument] is the argument index and [param expected] is the expected variant type. For too few or too many arguments, [param argument] is the expected argument count.
+			</description>
+		</method>
+	</methods>
+	<constants>
+		<constant name="CALL_OK" value="0" enum="CallError">
+			Call happened with no errors.
+		</constant>
+		<constant name="CALL_ERROR_INVALID_METHOD" value="1" enum="CallError">
+			The method was invalid (non existing).
+		</constant>
+		<constant name="CALL_ERROR_INVALID_ARGUMENT" value="2" enum="CallError">
+			At least one argument of the call was invalid (the type was not the right one).
+		</constant>
+		<constant name="CALL_ERROR_TOO_MANY_ARGUMENTS" value="3" enum="CallError">
+			More arguments were passed to the call than expected.
+		</constant>
+		<constant name="CALL_ERROR_TOO_FEW_ARGUMENTS" value="4" enum="CallError">
+			Fewer arguments were passed to the call than expected.
+		</constant>
+		<constant name="CALL_ERROR_INSTANCE_IS_NULL" value="5" enum="CallError">
+			A call happened on a null object instance.
+		</constant>
+		<constant name="CALL_ERROR_METHOD_NOT_CONST" value="6" enum="CallError">
+			A constant call happened in a non-const function.
+		</constant>
+		<constant name="CALL_ERROR_SCRIPT_ERROR" value="7" enum="CallError">
+			The function called was provided by a script, which failed during the call.
+		</constant>
+	</constants>
+</class>

@@ -69,6 +69,7 @@
 #include "core/math/expression.h"
 #include "core/math/random_number_generator.h"
 #include "core/math/triangle_mesh.h"
+#include "core/object/call_error_info.h"
 #include "core/object/class_db.h"
 #include "core/object/script_language_extension.h"
 #include "core/object/undo_redo.h"
@@ -154,6 +155,8 @@ void register_core_types() {
 	ResourceLoader::add_resource_format_loader(resource_format_image);
 
 	GDREGISTER_CLASS(Object);
+
+	GDREGISTER_CLASS(CallErrorInfo);
 
 	GDREGISTER_ABSTRACT_CLASS(Script);
 	GDREGISTER_ABSTRACT_CLASS(ScriptLanguage);

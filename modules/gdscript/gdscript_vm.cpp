@@ -181,6 +181,8 @@ String GDScriptFunction::_get_call_error(const String &p_where, const Variant **
 			return "Attempt to call " + p_where + " on a null instance.";
 		case Callable::CallError::CALL_ERROR_METHOD_NOT_CONST:
 			return "Attempt to call " + p_where + " on a const instance.";
+		case Callable::CallError::CALL_ERROR_SCRIPT_ERROR:
+			return "Function called resulted in a script error.";
 	}
 	return "Bug: Invalid call error code " + itos(p_err.error) + ".";
 }
@@ -3852,6 +3854,8 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 		// Get a default return type in case of failure
 		retvalue = _get_default_variant_for_data_type(return_type);
 #endif
+
+		r_err.error = Callable::CallError::CALL_ERROR_SCRIPT_ERROR;
 
 		OPCODE_OUT;
 	}

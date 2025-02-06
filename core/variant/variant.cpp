@@ -3534,6 +3534,8 @@ String Variant::get_call_error_text(Object *p_base, const StringName &p_method, 
 		err_text = "Instance is null";
 	} else if (ce.error == Callable::CallError::CALL_ERROR_METHOD_NOT_CONST) {
 		err_text = "Method not const in const instance";
+	} else if (ce.error == Callable::CallError::CALL_ERROR_SCRIPT_ERROR) {
+		err_text = "Script error";
 	} else if (ce.error == Callable::CallError::CALL_OK) {
 		return "Call OK";
 	}

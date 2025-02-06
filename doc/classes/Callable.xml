@@ -130,6 +130,13 @@
 				See also [method Object.call_deferred].
 			</description>
 		</method>
+		<method name="call_with_error" qualifiers="vararg const">
+			<return type="void" />
+			<param index="0" name="call_error_info" type="Object" />
+			<description>
+				Calls the method represented by this [Callable]. If an error occurs, the error information will be stored in the [param call_error_info] argument, which must be of type [CallErrorInfo].
+			</description>
+		</method>
 		<method name="callv" qualifiers="const">
 			<return type="Variant" />
 			<param index="0" name="arguments" type="Array" />

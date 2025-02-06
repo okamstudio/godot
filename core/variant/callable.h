@@ -62,6 +62,7 @@ public:
 			CALL_ERROR_TOO_FEW_ARGUMENTS, // expected is number of arguments
 			CALL_ERROR_INSTANCE_IS_NULL,
 			CALL_ERROR_METHOD_NOT_CONST,
+			CALL_ERROR_SCRIPT_ERROR,
 		};
 		Error error = Error::CALL_OK;
 		int argument = 0;

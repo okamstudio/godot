@@ -34,6 +34,7 @@
 #include "core/debugger/engine_debugger.h"
 #include "core/io/compression.h"
 #include "core/io/marshalls.h"
+#include "core/object/call_error_info.h"
 #include "core/object/class_db.h"
 #include "core/os/os.h"
 #include "core/templates/local_vector.h"
@@ -1037,6 +1038,30 @@ struct _VariantCall {
 	static void func_Callable_call(Variant *v, const Variant **p_args, int p_argcount, Variant &r_ret, Callable::CallError &r_error) {
 		Callable *callable = VariantGetInternalPtr<Callable>::get_ptr(v);
 		callable->callp(p_args, p_argcount, r_ret, r_error);
+	}
+
+	static void func_Callable_call_with_error(Variant *v, const Variant **p_args, int p_argcount, Variant &r_ret, Callable::CallError &r_error) {
+		Callable *callable = VariantGetInternalPtr<Callable>::get_ptr(v);
+		if (p_argcount == 0) {
+			r_error.error = Callable::CallError::CALL_ERROR_TOO_FEW_ARGUMENTS;
+			r_error.expected = 1;
+			return;
+		}
+
+		Ref<CallErrorInfo> err_info = *p_args[0];
+
+		if (err_info.is_null()) {
+			ERR_PRINT("First argument to function must be a CallErrorInfo object.");
+			r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
+			r_error.argument = 0;
+			r_error.expected = Variant::OBJECT;
+			return;
+		}
+
+		callable->callp(p_args + 1, p_argcount - 1, r_ret, r_error);
+
+		err_info->set_call_error(CallErrorInfo::CallError(r_error.error), r_error.argument, r_error.expected);
+		r_error.error = Callable::CallError::CALL_OK; // This call validates, so the call should not fail.
 	}
 
 	static void func_Callable_call_deferred(Variant *v, const Variant **p_args, int p_argcount, Variant &r_ret, Callable::CallError &r_error) {
@@ -2153,6 +2178,7 @@ static void _register_variant_builtin_methods_misc() {
 
 	bind_custom(Callable, call, _VariantCall::func_Callable_call, true, Variant);
 	bind_custom(Callable, call_deferred, _VariantCall::func_Callable_call_deferred, false, Variant);
+	bind_custom1(Callable, call_with_error, _VariantCall::func_Callable_call_with_error, Variant::OBJECT, "call_error_info");
 	bind_custom(Callable, rpc, _VariantCall::func_Callable_rpc, false, Variant);
 	bind_custom1(Callable, rpc_id, _VariantCall::func_Callable_rpc_id, Variant::INT, "peer_id");
 	bind_custom(Callable, bind, _VariantCall::func_Callable_bind, true, Callable);

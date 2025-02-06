@@ -481,6 +481,14 @@
 				[/codeblock]
 			</description>
 		</method>
+		<method name="call_with_error_test" qualifiers="vararg">
+			<return type="Variant" />
+			<param index="0" name="call_error_info" type="CallErrorInfo" />
+			<param index="1" name="method" type="StringName" />
+			<description>
+				Similar to [method call], but instead of failing if an error occurs, the error is recorded in the [param call_error_info] argument.
+			</description>
+		</method>
 		<method name="callv">
 			<return type="Variant" />
 			<param index="0" name="method" type="StringName" />

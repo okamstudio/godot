@@ -3243,6 +3243,7 @@ void GDScriptAnalyzer::reduce_call(GDScriptParser::CallNode *p_call, bool p_is_a
 										   Variant::get_type_name(Variant::Type(err.expected)), p_call->arguments[err.argument]->get_datatype().to_string()),
 								p_call->arguments[err.argument]);
 						break;
+					case Callable::CallError::CALL_ERROR_SCRIPT_ERROR:
 					case Callable::CallError::CALL_ERROR_INVALID_METHOD: {
 						String signature = Variant::get_type_name(builtin_type) + "(";
 						for (int i = 0; i < p_call->arguments.size(); i++) {
@@ -3433,6 +3434,7 @@ void GDScriptAnalyzer::reduce_call(GDScriptParser::CallNode *p_call, bool p_is_a
 						break;
 					case Callable::CallError::CALL_ERROR_METHOD_NOT_CONST:
 					case Callable::CallError::CALL_ERROR_INSTANCE_IS_NULL:
+					case Callable::CallError::CALL_ERROR_SCRIPT_ERROR:
 						break; // Can't happen in a builtin constructor.
 					case Callable::CallError::CALL_OK:
 						p_call->is_constant = true;
@@ -3473,6 +3475,7 @@ void GDScriptAnalyzer::reduce_call(GDScriptParser::CallNode *p_call, bool p_is_a
 									p_call->arguments[err.argument]);
 						}
 						break;
+					case Callable::CallError::CALL_ERROR_SCRIPT_ERROR:
 					case Callable::CallError::CALL_ERROR_INVALID_METHOD:
 						push_error(vformat(R"(Invalid call for function "%s".)", function_name), p_call);
 						break;
