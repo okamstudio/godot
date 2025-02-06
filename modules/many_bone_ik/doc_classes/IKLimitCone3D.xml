@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="IKLimitCone3D" inherits="Resource" experimental="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		A 3D cone used to open the rotation of a ball-and-socket joint in inverse kinematics calculations.
+	</brief_description>
+	<description>
+		A open cone is a cone freeing the rotation of a ball-and-socket joint. A open cone is defined as a vector pointing in the direction which the cone is opening, and a radius (in radians) representing how much the cone is opening up.
+	</description>
+	<tutorials>
+	</tutorials>
+</class>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="IKNode3D" inherits="RefCounted" experimental="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		A 3D node used for inverse kinematics calculations.
+	</brief_description>
+	<description>
+		The IKNode3D class provides a node that can be used in an inverse kinematics chain. It includes methods for getting and setting the global and local transforms of the node, as well as disabling scaling and converting between local and global coordinates.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_global_transform" qualifiers="const">
+			<return type="Transform3D" />
+			<description>
+				Returns the global transform of this node.
+			</description>
+		</method>
+		<method name="get_parent" qualifiers="const">
+			<return type="IKNode3D" />
+			<description>
+				Returns the parent of this node.
+			</description>
+		</method>
+		<method name="get_transform" qualifiers="const">
+			<return type="Transform3D" />
+			<description>
+				Returns the local transform of this node.
+			</description>
+		</method>
+		<method name="is_scale_disabled" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns whether scaling is disabled for this node.
+			</description>
+		</method>
+		<method name="rotate_local_with_global">
+			<return type="void" />
+			<param index="0" name="p_basis" type="Basis" />
+			<param index="1" name="p_propagate" type="bool" default="false" />
+			<description>
+				Rotates the local transform of this node with a global basis. If propagate is true, the rotation is also applied to the children of this node.
+			</description>
+		</method>
+		<method name="set_disable_scale">
+			<return type="void" />
+			<param index="0" name="p_enabled" type="bool" />
+			<description>
+				Disables or enables scaling for this node.
+			</description>
+		</method>
+		<method name="set_global_transform">
+			<return type="void" />
+			<param index="0" name="p_transform" type="Transform3D" />
+			<description>
+				Sets the global transform of this node.
+			</description>
+		</method>
+		<method name="set_parent">
+			<return type="void" />
+			<param index="0" name="p_parent" type="IKNode3D" />
+			<description>
+				Sets the parent of this node.
+			</description>
+		</method>
+		<method name="set_transform">
+			<return type="void" />
+			<param index="0" name="p_transform" type="Transform3D" />
+			<description>
+				Sets the local transform of this node.
+			</description>
+		</method>
+		<method name="to_global" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="p_local" type="Vector3" />
+			<description>
+				Converts a point from local space to global space.
+			</description>
+		</method>
+		<method name="to_local" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="p_global" type="Vector3" />
+			<description>
+				Converts a point from global space to local space.
+			</description>
+		</method>
+	</methods>
+</class>

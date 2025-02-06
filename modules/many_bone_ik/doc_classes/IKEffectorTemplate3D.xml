@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="IKEffectorTemplate3D" inherits="Resource" experimental="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		A template class for creating 3D effectors in an Inverse Kinematics system.
+	</brief_description>
+	<description>
+		The IKEffectorTemplate3D class provides a template for creating effectors in a 3D Inverse Kinematics (IK) system. It includes properties for direction priorities, passthrough factor, target node, and weight. These properties can be set to customize the behavior of the effector.
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="direction_priorities" type="Vector3" setter="set_direction_priorities" getter="get_direction_priorities" default="Vector3(0.2, 0, 0.2)">
+			Specifies the priority of movement in each direction (X, Y, Z). Higher values indicate higher priority.
+		</member>
+		<member name="motion_propagation_factor" type="float" setter="set_motion_propagation_factor" getter="get_motion_propagation_factor" default="1.0">
+		</member>
+		<member name="root_bone" type="String" setter="set_root_bone" getter="get_root_bone" default="&quot;&quot;">
+		</member>
+		<member name="target_node" type="NodePath" setter="set_target_node" getter="get_target_node" default="NodePath(&quot;&quot;)">
+			The NodePath of the target node that the effector aims to reach.
+		</member>
+		<member name="weight" type="float" setter="set_weight" getter="get_weight" default="0.0">
+			The weight of the effector. This determines how much the effector's position influences the IK calculation. Higher values result in greater influence.
+		</member>
+	</members>
+</class>

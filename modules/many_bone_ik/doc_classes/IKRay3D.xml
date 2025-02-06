@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="IKRay3D" inherits="RefCounted" experimental="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		A class representing a 3D ray in an Inverse Kinematics system.
+	</brief_description>
+	<description>
+		The IKRay3D class represents a 3D ray in an Inverse Kinematics (IK) system. It provides methods to get the heading of the ray, check if the ray intersects a plane, and get a scaled projection of the ray.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_heading">
+			<return type="Vector3" />
+			<description>
+				Returns the heading of the ray as a Vector3.
+			</description>
+		</method>
+		<method name="get_intersects_plane">
+			<return type="Vector3" />
+			<param index="0" name="a" type="Vector3" />
+			<param index="1" name="b" type="Vector3" />
+			<param index="2" name="c" type="Vector3" />
+			<description>
+				Checks if the ray intersects a plane defined by three points (a, b, c). Returns the intersection point as a Vector3, or null if there is no intersection.
+			</description>
+		</method>
+		<method name="get_scaled_projection">
+			<return type="float" />
+			<param index="0" name="input" type="Vector3" />
+			<description>
+				Returns the scaled projection of the ray onto the input vector.
+			</description>
+		</method>
+	</methods>
+</class>

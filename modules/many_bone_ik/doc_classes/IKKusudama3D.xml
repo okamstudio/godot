@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="IKKusudama3D" inherits="Resource" experimental="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		Kusudamas are sequential collections of reach cones that form a path through their tangents.
+	</brief_description>
+	<description>
+		A Kusudama represents a ball with multiple reach-cones protruding from it. These reach cones are arranged in sequence, creating an automatic smooth path from one cone to another. The term 'Kusudama' originates from Japanese, referring to a ball with multiple cones protruding from it.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_open_cones" qualifiers="const">
+			<return type="IKLimitCone3D[]" />
+			<description>
+				This method returns an array of limit cones associated with the Kusudama.
+			</description>
+		</method>
+		<method name="set_open_cones">
+			<return type="void" />
+			<param index="0" name="open_cones" type="IKLimitCone3D[]" />
+			<description>
+				This method sets the limit cones associated with the Kusudama.
+			</description>
+		</method>
+	</methods>
+</class>

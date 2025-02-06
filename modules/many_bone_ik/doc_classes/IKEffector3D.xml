@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="IKEffector3D" inherits="Resource" experimental="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		A class representing a 3D effector in an Inverse Kinematics system.
+	</brief_description>
+	<description>
+		The IKEffector3D class represents an effector in a 3D Inverse Kinematics (IK) system. An effector is the end point of a chain of bones, and its position is used to calculate the rotations of all preceding bones in the IK chain. This class provides methods for getting and setting the target node of the effector.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_target_node" qualifiers="const">
+			<return type="NodePath" />
+			<description>
+				Returns the NodePath of the target node for this effector. The target node is the node that the effector aims to reach.
+			</description>
+		</method>
+		<method name="set_target_node">
+			<return type="void" />
+			<param index="0" name="skeleton" type="Skeleton3D" />
+			<param index="1" name="node" type="NodePath" />
+			<description>
+				Sets the target node for this effector using a Skeleton3D and a NodePath. The effector will aim to reach this target node.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="motion_propagation_factor" type="float" setter="set_motion_propagation_factor" getter="get_motion_propagation_factor" default="0.0">
+			Pins can be ultimate targets or intermediary targets.
+			By default, each pin is treated as an ultimate target, meaning any bones which are ancestors to that pin's effector are not aware of any pins which are the target of bones descending from that effector.
+			Changing this value makes ancestor bones aware and determines how much less they care with each level down.
+			Presuming all descendants of this pin have a falloff of 1, then: A pin falloff of 0 on this pin means only this pin is reported to ancestors. A pin falloff of 1 on this pin means ancestors care about all descendant pins equally (after accounting for their pin weight), regardless of how many levels down they are. A pin falloff of 0.5 means each descendant pin is used about half as much as its ancestor. The pin's falloff of a descendant is taken into account for each level with each level.
+			Meaning, if this pin has a falloff of 1 and its descendent has a falloff of 0.5, then it will be reported with total weight. Then, its descendant will be calculated with total weight; the descendant of that pin will be calculated with half weight. Finally, the descendant of that one's descendant will be with calculated quarter weight.
+		</member>
+	</members>
+</class>

@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ManyBoneIK3D" inherits="SkeletonModifier3D" experimental="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		A general inverse kinematics system with constraints.
+	</brief_description>
+	<description>
+		The ManyBoneIK3D class provides a comprehensive system for inverse kinematics (IK) with support for various constraints. It allows for complex IK setups involving multiple bones, each with their own constraints and parameters.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="find_constraint" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="name" type="String" />
+			<description>
+				Returns the index of the constraint with the given name. If no such constraint exists, returns -1.
+			</description>
+		</method>
+		<method name="find_pin" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="name" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="get_bone_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the total number of bones in the IK system.
+			</description>
+		</method>
+		<method name="get_constraint_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the total number of constraints in the IK system.
+			</description>
+		</method>
+		<method name="get_constraint_name" qualifiers="const">
+			<return type="StringName" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the name of the constraint at the specified index.
+			</description>
+		</method>
+		<method name="get_direction_transform_of_bone" qualifiers="const">
+			<return type="Transform3D" />
+			<param index="0" name="index" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_effector_bone_name" qualifiers="const">
+			<return type="StringName" />
+			<param index="0" name="index" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_effector_pin_node_path" qualifiers="const">
+			<return type="NodePath" />
+			<param index="0" name="index" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_joint_twist" qualifiers="const">
+			<return type="Vector2" />
+			<param index="0" name="index" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_kusudama_open_cone_center" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="cone_index" type="int" />
+			<description>
+				Returns the center of the limit cone for the kusudama at the specified index.
+			</description>
+		</method>
+		<method name="get_kusudama_open_cone_count" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the count of limit cones for the kusudama at the specified index.
+			</description>
+		</method>
+		<method name="get_kusudama_open_cone_radius" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="cone_index" type="int" />
+			<description>
+				Returns the radius of the limit cone for the kusudama at the specified index.
+			</description>
+		</method>
+		<method name="get_orientation_transform_of_constraint" qualifiers="const">
+			<return type="Transform3D" />
+			<param index="0" name="index" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_pin_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the total number of pins in the IK system.
+			</description>
+		</method>
+		<method name="get_pin_direction_priorities" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the direction priorities of the pin at the specified index.
+			</description>
+		</method>
+		<method name="get_pin_enabled" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns whether the pin at the specified index is enabled or not.
+			</description>
+		</method>
+		<method name="get_pin_motion_propagation_factor" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the passthrough factor of the pin at the specified index.
+			</description>
+		</method>
+		<method name="get_pin_weight" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the weight of the pin at the specified index.
+			</description>
+		</method>
+		<method name="get_twist_transform_of_constraint" qualifiers="const">
+			<return type="Transform3D" />
+			<param index="0" name="index" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="register_skeleton">
+			<return type="void" />
+			<description>
+				Registers the skeleton to the IK system. This should be called after all bones and constraints have been added to the system.
+			</description>
+		</method>
+		<method name="remove_constraint_at_index">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="reset_constraints">
+			<return type="void" />
+			<description>
+				Resets all constraints in the IK system to their default state.
+			</description>
+		</method>
+		<method name="set_constraint_count">
+			<return type="void" />
+			<param index="0" name="count" type="int" />
+			<description>
+				Sets the total number of constraints.
+			</description>
+		</method>
+		<method name="set_constraint_name_at_index">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="name" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="set_direction_transform_of_bone">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="transform" type="Transform3D" />
+			<description>
+			</description>
+		</method>
+		<method name="set_dirty">
+			<return type="void" />
+			<description>
+				Marks the IK system as dirty, indicating that it needs to be updated. This should be called whenever a significant change is made to the system.
+			</description>
+		</method>
+		<method name="set_effector_bone_name">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="name" type="String" />
+			<description>
+				Sets the name of the bone at the specified pin index.
+			</description>
+		</method>
+		<method name="set_effector_pin_node_path">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="nodepath" type="NodePath" />
+			<description>
+			</description>
+		</method>
+		<method name="set_joint_twist">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="limit" type="Vector2" />
+			<description>
+			</description>
+		</method>
+		<method name="set_kusudama_open_cone_center">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="cone_index" type="int" />
+			<param index="2" name="center" type="Vector3" />
+			<description>
+				Sets the center of the limit cone for the kusudama at the specified index.
+			</description>
+		</method>
+		<method name="set_kusudama_open_cone_count">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="count" type="int" />
+			<description>
+				Sets the count of limit cones for the kusudama at the specified index.
+			</description>
+		</method>
+		<method name="set_kusudama_open_cone_radius">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="cone_index" type="int" />
+			<param index="2" name="radius" type="float" />
+			<description>
+				Sets the radius of the limit cone for the kusudama at the specified index.
+			</description>
+		</method>
+		<method name="set_orientation_transform_of_constraint">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="transform" type="Transform3D" />
+			<description>
+			</description>
+		</method>
+		<method name="set_pin_count">
+			<return type="void" />
+			<param index="0" name="count" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="set_pin_direction_priorities">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="priority" type="Vector3" />
+			<description>
+				Sets the direction priorities of the pin at the specified index.
+			</description>
+		</method>
+		<method name="set_pin_motion_propagation_factor">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="falloff" type="float" />
+			<description>
+				Sets the passthrough factor of the pin at the specified index.
+			</description>
+		</method>
+		<method name="set_pin_weight">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="weight" type="float" />
+			<description>
+				Sets the weight of the pin at the specified index.
+			</description>
+		</method>
+		<method name="set_total_effector_count">
+			<return type="void" />
+			<param index="0" name="count" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="set_twist_transform_of_constraint">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="transform" type="Transform3D" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="constraint_mode" type="bool" setter="set_constraint_mode" getter="get_constraint_mode" default="false">
+			A boolean value indicating whether the IK system is in constraint mode or not.
+		</member>
+		<member name="default_damp" type="float" setter="set_default_damp" getter="get_default_damp" default="0.0872665">
+			The default maximum number of radians a bone is allowed to rotate per solver iteration. The lower this value, the more natural the pose results. However, this will increase the number of iterations_per_frame the solver requires to converge.
+		</member>
+		<member name="iterations_per_frame" type="float" setter="set_iterations_per_frame" getter="get_iterations_per_frame" default="15.0">
+			The number of iterations performed by the solver per frame.
+		</member>
+		<member name="stabilization_passes" type="int" setter="set_stabilization_passes" getter="get_stabilization_passes" default="0">
+			The number of stabilization passes performed by the solver. This can help to improve the stability of the IK solution.
+		</member>
+		<member name="ui_selected_bone" type="int" setter="set_ui_selected_bone" getter="get_ui_selected_bone" default="-1">
+			The index of the bone currently selected in the user interface.
+		</member>
+	</members>
+</class>

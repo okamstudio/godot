@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="IKBone3D" inherits="Resource" experimental="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		A class representing a 3D bone in an Inverse Kinematics system.
+	</brief_description>
+	<description>
+		The IKBone3D class represents a 3D bone in an Inverse Kinematics (IK) system. It provides methods to get and set constraints, pins, and check if the bone is pinned.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_constraint" qualifiers="const">
+			<return type="IKKusudama3D" />
+			<description>
+				Returns the IKKusudama3D object representing the constraint of the bone.
+			</description>
+		</method>
+		<method name="get_constraint_orientation_transform">
+			<return type="IKNode3D" />
+			<description>
+				Returns the IKNode3D object representing the orientation transform of the constraint.
+			</description>
+		</method>
+		<method name="get_constraint_twist_transform">
+			<return type="IKNode3D" />
+			<description>
+				Returns the IKNode3D object representing the twist transform of the constraint.
+			</description>
+		</method>
+		<method name="get_pin" qualifiers="const">
+			<return type="IKEffector3D" />
+			<description>
+				Returns the IKEffector3D object representing the pin of the bone.
+			</description>
+		</method>
+		<method name="is_pinned" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns true if the bone is pinned, false otherwise.
+			</description>
+		</method>
+		<method name="set_pin">
+			<return type="void" />
+			<param index="0" name="pin" type="IKEffector3D" />
+			<description>
+				Sets the IKEffector3D object representing the pin of the bone.
+			</description>
+		</method>
+	</methods>
+</class>
