@@ -1322,7 +1322,8 @@ bool AnimationNodeStateMachine::are_ends_reset() const {
 
 bool AnimationNodeStateMachine::can_edit_node(const StringName &p_name) const {
 	if (states.has(p_name)) {
-		return !(states[p_name].node->is_class("AnimationNodeStartState") || states[p_name].node->is_class("AnimationNodeEndState"));
+		const AnimationNode *anode = states[p_name].node.ptr();
+		return !(Object::cast_to<AnimationNodeStartState>(anode) || Object::cast_to<AnimationNodeEndState>(anode));
 	}
 
 	return true;

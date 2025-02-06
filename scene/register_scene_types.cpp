@@ -523,9 +523,6 @@ void register_scene_types() {
 	GDREGISTER_CLASS(AnimationNodeStateMachinePlayback);
 	GDREGISTER_VIRTUAL_CLASS(AnimationNodeExtension);
 
-	GDREGISTER_INTERNAL_CLASS(AnimationNodeStartState);
-	GDREGISTER_INTERNAL_CLASS(AnimationNodeEndState);
-
 	GDREGISTER_CLASS(AnimationNodeSync);
 	GDREGISTER_CLASS(AnimationNodeStateMachineTransition);
 	GDREGISTER_CLASS(AnimationNodeOutput);
