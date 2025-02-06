@@ -244,6 +244,47 @@
 				Draws a [MultiMesh] in 2D with the provided texture. See [MultiMeshInstance2D] for related documentation.
 			</description>
 		</method>
+		<method name="draw_nine_patch">
+			<return type="void" />
+			<param index="0" name="rect" type="Rect2" />
+			<param index="1" name="texture" type="Texture2D" />
+			<param index="2" name="top_left" type="Vector2" />
+			<param index="3" name="bottom_right" type="Vector2" />
+			<param index="4" name="draw_center" type="bool" default="true" />
+			<param index="5" name="modulate" type="Color" default="Color(1, 1, 1, 1)" />
+			<param index="6" name="x_axis_mode" type="int" enum="RenderingServer.NinePatchAxisMode" default="0" />
+			<param index="7" name="y_axis_mode" type="int" enum="RenderingServer.NinePatchAxisMode" default="0" />
+			<description>
+				Draws a nine-patch rectangle [param rect] using the [param texture]. The [param top_left] and [param bottom_right] parameters set the margins of the corresponding corners of the center patch.
+				[codeblock]
+				top_left
+				┌─┬─────┬─┐
+				│↘│     │ │
+				├─┼─────┼─┤
+				│ │     │ │
+				│ │     │ │
+				├─┼─────┼─┤
+				│ │     │↖│
+				└─┴─────┴─┘
+				bottom_right
+				[/codeblock]
+			</description>
+		</method>
+		<method name="draw_nine_patch_region">
+			<return type="void" />
+			<param index="0" name="rect" type="Rect2" />
+			<param index="1" name="texture" type="Texture2D" />
+			<param index="2" name="region" type="Rect2" />
+			<param index="3" name="top_left" type="Vector2" />
+			<param index="4" name="bottom_right" type="Vector2" />
+			<param index="5" name="draw_center" type="bool" default="true" />
+			<param index="6" name="modulate" type="Color" default="Color(1, 1, 1, 1)" />
+			<param index="7" name="x_axis_mode" type="int" enum="RenderingServer.NinePatchAxisMode" default="0" />
+			<param index="8" name="y_axis_mode" type="int" enum="RenderingServer.NinePatchAxisMode" default="0" />
+			<description>
+				Same as [method draw_nine_patch], but allows you to use a [param region] instead of the entire [param texture].
+			</description>
+		</method>
 		<method name="draw_polygon">
 			<return type="void" />
 			<param index="0" name="points" type="PackedVector2Array" />

@@ -856,6 +856,18 @@ void CanvasItem::draw_texture_rect_region(const Ref<Texture2D> &p_texture, const
 	p_texture->draw_rect_region(canvas_item, p_rect, p_src_rect, p_modulate, p_transpose, p_clip_uv);
 }
 
+void CanvasItem::draw_nine_patch(const Rect2 &p_rect, const Ref<Texture2D> &p_texture, const Vector2 &p_top_left, const Vector2 &p_bottom_right, bool p_draw_center, const Color &p_modulate, RS::NinePatchAxisMode p_x_axis_mode, RS::NinePatchAxisMode p_y_axis_mode) {
+	ERR_FAIL_COND_MSG(!drawing, "Drawing is only allowed inside NOTIFICATION_DRAW, _draw() function or 'draw' signal.");
+	ERR_FAIL_COND(p_texture.is_null());
+	RenderingServer::get_singleton()->canvas_item_add_nine_patch(canvas_item, p_rect, Rect2(Vector2(), p_texture->get_size()), p_texture->get_rid(), p_top_left, p_bottom_right, p_x_axis_mode, p_y_axis_mode, p_draw_center, p_modulate);
+}
+
+void CanvasItem::draw_nine_patch_region(const Rect2 &p_rect, const Ref<Texture2D> &p_texture, const Rect2 &p_region, const Vector2 &p_top_left, const Vector2 &p_bottom_right, bool p_draw_center, const Color &p_modulate, RS::NinePatchAxisMode p_x_axis_mode, RS::NinePatchAxisMode p_y_axis_mode) {
+	ERR_FAIL_COND_MSG(!drawing, "Drawing is only allowed inside NOTIFICATION_DRAW, _draw() function or 'draw' signal.");
+	ERR_FAIL_COND(p_texture.is_null());
+	RenderingServer::get_singleton()->canvas_item_add_nine_patch(canvas_item, p_rect, p_region, p_texture->get_rid(), p_top_left, p_bottom_right, p_x_axis_mode, p_y_axis_mode, p_draw_center, p_modulate);
+}
+
 void CanvasItem::draw_msdf_texture_rect_region(const Ref<Texture2D> &p_texture, const Rect2 &p_rect, const Rect2 &p_src_rect, const Color &p_modulate, double p_outline, double p_pixel_range, double p_scale) {
 	ERR_THREAD_GUARD;
 	ERR_DRAW_GUARD;
@@ -1314,6 +1326,8 @@ void CanvasItem::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("draw_texture", "texture", "position", "modulate"), &CanvasItem::draw_texture, DEFVAL(Color(1, 1, 1, 1)));
 	ClassDB::bind_method(D_METHOD("draw_texture_rect", "texture", "rect", "tile", "modulate", "transpose"), &CanvasItem::draw_texture_rect, DEFVAL(Color(1, 1, 1, 1)), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("draw_texture_rect_region", "texture", "rect", "src_rect", "modulate", "transpose", "clip_uv"), &CanvasItem::draw_texture_rect_region, DEFVAL(Color(1, 1, 1, 1)), DEFVAL(false), DEFVAL(true));
+	ClassDB::bind_method(D_METHOD("draw_nine_patch", "rect", "texture", "top_left", "bottom_right", "draw_center", "modulate", "x_axis_mode", "y_axis_mode"), &CanvasItem::draw_nine_patch, DEFVAL(true), DEFVAL(Color(1, 1, 1)), DEFVAL(RS::NINE_PATCH_STRETCH), DEFVAL(RS::NINE_PATCH_STRETCH));
+	ClassDB::bind_method(D_METHOD("draw_nine_patch_region", "rect", "texture", "region", "top_left", "bottom_right", "draw_center", "modulate", "x_axis_mode", "y_axis_mode"), &CanvasItem::draw_nine_patch_region, DEFVAL(true), DEFVAL(Color(1, 1, 1)), DEFVAL(RS::NINE_PATCH_STRETCH), DEFVAL(RS::NINE_PATCH_STRETCH));
 	ClassDB::bind_method(D_METHOD("draw_msdf_texture_rect_region", "texture", "rect", "src_rect", "modulate", "outline", "pixel_range", "scale"), &CanvasItem::draw_msdf_texture_rect_region, DEFVAL(Color(1, 1, 1, 1)), DEFVAL(0.0), DEFVAL(4.0), DEFVAL(1.0));
 	ClassDB::bind_method(D_METHOD("draw_lcd_texture_rect_region", "texture", "rect", "src_rect", "modulate"), &CanvasItem::draw_lcd_texture_rect_region, DEFVAL(Color(1, 1, 1, 1)));
 	ClassDB::bind_method(D_METHOD("draw_style_box", "style_box", "rect"), &CanvasItem::draw_style_box);

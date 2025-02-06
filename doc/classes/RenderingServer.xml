@@ -205,7 +205,7 @@
 			<param index="3" name="slice_end" type="float" />
 			<param index="4" name="offset" type="float" default="0.0" />
 			<description>
-				Subsequent drawing commands will be ignored unless they fall within the specified animation slice. This is a faster way to implement animations that loop on background rather than redrawing constantly.
+				Subsequent drawing commands will be ignored unless they fall within the specified animation slice. This is a faster way to implement animations that loop on background rather than redrawing constantly. See also [method CanvasItem.draw_animation_slice] and [method CanvasItem.draw_end_animation].
 			</description>
 		</method>
 		<method name="canvas_item_add_circle">
@@ -258,7 +258,7 @@
 			<param index="3" name="modulate" type="Color" default="Color(1, 1, 1, 1)" />
 			<param index="4" name="texture" type="RID" default="RID()" />
 			<description>
-				Draws a mesh created with [method mesh_create] with given [param transform], [param modulate] color, and [param texture]. This is used internally by [MeshInstance2D].
+				Draws a mesh created with [method mesh_create] with given [param transform], [param modulate] color, and [param texture]. This is used internally by [MeshInstance2D]. See also [method CanvasItem.draw_mesh].
 			</description>
 		</method>
 		<method name="canvas_item_add_msdf_texture_rect_region">
@@ -308,7 +308,7 @@
 			<param index="8" name="draw_center" type="bool" default="true" />
 			<param index="9" name="modulate" type="Color" default="Color(1, 1, 1, 1)" />
 			<description>
-				Draws a nine-patch rectangle on the [CanvasItem] pointed to by the [param item] [RID].
+				Draws a nine-patch rectangle on the [CanvasItem] pointed to by the [param item] [RID]. See also [method CanvasItem.draw_nine_patch] and [method CanvasItem.draw_nine_patch_region].
 			</description>
 		</method>
 		<method name="canvas_item_add_particles">
@@ -369,7 +369,7 @@
 			<param index="0" name="item" type="RID" />
 			<param index="1" name="transform" type="Transform2D" />
 			<description>
-				Sets a [Transform2D] that will be used to transform subsequent canvas item commands.
+				Sets a [Transform2D] that will be used to transform subsequent canvas item commands. See also [method CanvasItem.draw_set_transform].
 			</description>
 		</method>
 		<method name="canvas_item_add_texture_rect">
