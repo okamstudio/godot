@@ -424,6 +424,7 @@ class ColorPickerButton : public Button {
 	ColorPicker *picker = nullptr;
 	Color color;
 	bool edit_alpha = true;
+	bool popup_was_open = false;
 
 	struct ThemeCache {
 		Ref<StyleBox> normal_style;
@@ -443,6 +444,7 @@ class ColorPickerButton : public Button {
 protected:
 	void _notification(int);
 	static void _bind_methods();
+	virtual void gui_input(const Ref<InputEvent> &p_event) override;
 
 public:
 	void set_pick_color(const Color &p_color);
