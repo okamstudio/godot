@@ -152,6 +152,24 @@ TEST_CASE("[OptimizedTranslation] Generate from Translation and read messages") 
 	CHECK(messages.size() == 0);
 }
 
+TEST_CASE("[OptimizedTranslation] Generates translatoins and checks get_translated_message_list") {
+	Ref<Translation> translation = memnew(Translation);
+	translation->set_locale("fr");
+	translation->add_message("Hello", "Bonjour");
+	translation->add_message("Hello2", "Bonjour2");
+	translation->add_message("Hello3", "Bonjour3");
+
+	Ref<OptimizedTranslation> optimized_translation = memnew(OptimizedTranslation);
+	optimized_translation->generate(translation);
+	
+
+	CHECK(optimized_translation->get_translated_message_list().size() == 3);
+	CHECK(optimized_translation->get_translated_message_list().find("Bonjour") != -1);
+	CHECK(optimized_translation->get_translated_message_list().find("Bonjour2") != -1);
+	CHECK(optimized_translation->get_translated_message_list().find("Bonjour3") != -1);
+	CHECK(optimized_translation->get_translated_message_list().find("NotInList") == -1);
+}
+
 TEST_CASE("[TranslationCSV] CSV import") {
 	Ref<ResourceImporterCSVTranslation> import_csv_translation = memnew(ResourceImporterCSVTranslation);
 
