@@ -218,6 +218,8 @@ class DisplayServerX11 : public DisplayServer {
 	Point2i im_selection;
 	String im_text;
 
+	bool was_maximized = false;
+
 #ifdef XKB_ENABLED
 	bool xkb_loaded_v05p = false;
 	bool xkb_loaded_v08p = false;

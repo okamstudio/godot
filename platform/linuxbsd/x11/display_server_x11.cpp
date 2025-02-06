@@ -2847,7 +2847,7 @@ void DisplayServerX11::window_set_mode(WindowMode p_mode, WindowID p_window) {
 	// Remove all "extra" modes.
 	switch (old_mode) {
 		case WINDOW_MODE_WINDOWED: {
-			//do nothing
+			was_maximized = false;
 		} break;
 		case WINDOW_MODE_MINIMIZED: {
 			_set_wm_minimized(p_window, false);
@@ -2865,12 +2865,17 @@ void DisplayServerX11::window_set_mode(WindowMode p_mode, WindowID p_window) {
 
 			window_set_position(wd.last_position_before_fs, p_window);
 
+			if (was_maximized && p_mode == WINDOW_MODE_WINDOWED) {
+				p_mode = WINDOW_MODE_MAXIMIZED;
+			}
+
 			if (on_top) {
 				_set_wm_maximized(p_window, false);
 			}
 
 		} break;
 		case WINDOW_MODE_MAXIMIZED: {
+			was_maximized = true;
 			_set_wm_maximized(p_window, false);
 		} break;
 	}
