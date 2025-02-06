@@ -19,7 +19,7 @@ layout(r32f, set = 3, binding = 0) uniform restrict readonly image2D source_dept
 layout(push_constant, std430) uniform Params {
 	vec4 proj_info;
 
-	bool orthogonal;
+	uint pad;
 	float edge_tolerance;
 	int increment;
 	uint view_index;
@@ -62,6 +62,17 @@ float gauss_weight(float p_val) {
 	}
 
 	return mix(gauss_table[idx], gauss_table[idx + 1], c);
+}
+
+vec3 reconstructCSPosition(vec2 screen_pos, float view_z) {
+	if (sc_multiview) {
+		screen_pos = screen_pos / vec2(params.screen_size) * 2.0 - 1.0;
+		vec4 ndc = vec4(screen_pos, z_ndc_from_view(screen_pos, view_z), 1.0);
+		vec4 view = scene_data.inv_projection[params.view_index] * ndc;
+		return view.xyz / view.w;
+	} else {
+		return vec3(-(screen_pos.xy * params.proj_info.xy + params.proj_info.zw) * (scene_data.projection[params.view_index][2][3] * view_z + scene_data.projection[params.view_index][3][3]), view_z);
+	}
 }
 
 #define M_PI 3.14159265359

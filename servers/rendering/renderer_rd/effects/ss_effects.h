@@ -423,14 +423,11 @@ private:
 	// SSR Scale
 
 	struct ScreenSpaceReflectionScalePushConstant {
-		int32_t screen_size[2];
-		float camera_z_near;
-		float camera_z_far;
+		float inv_projection[16];
 
-		uint32_t orthogonal;
+		int32_t screen_size[2];
 		uint32_t filter;
-		uint32_t view_index;
-		uint32_t pad1;
+		uint32_t pad;
 	};
 
 	struct ScreenSpaceReflectionScale {
@@ -448,23 +445,14 @@ private:
 	};
 
 	struct ScreenSpaceReflectionPushConstant {
-		float proj_info[4]; // 16 - 16
+		int32_t screen_size[2];
+		int32_t num_steps;
+		float depth_tolerance;
 
-		int32_t screen_size[2]; //  8 - 24
-		float camera_z_near; //  4 - 28
-		float camera_z_far; //  4 - 32
-
-		int32_t num_steps; //  4 - 36
-		float depth_tolerance; //  4 - 40
-		float distance_fade; //  4 - 44
-		float curve_fade_in; //  4 - 48
-
-		uint32_t orthogonal; //  4 - 52
-		float filter_mipmap_levels; //  4 - 56
-		uint32_t use_half_res; //  4 - 60
-		uint32_t view_index; //  4 - 64
-
-		// float projection[16];			// this is in our ScreenSpaceReflectionSceneData now
+		float distance_fade;
+		float curve_fade_in;
+		uint32_t view_index;
+		uint32_t pad;
 	};
 
 	struct ScreenSpaceReflection {
@@ -478,16 +466,16 @@ private:
 	// SSR Filter
 
 	struct ScreenSpaceReflectionFilterPushConstant {
-		float proj_info[4]; // 16 - 16
+		float proj_info[4];
 
-		uint32_t orthogonal; //  4 - 20
-		float edge_tolerance; //  4 - 24
-		int32_t increment; //  4 - 28
-		uint32_t view_index; //  4 - 32
+		uint32_t pad;
+		float edge_tolerance;
+		int32_t increment;
+		uint32_t view_index;
 
-		int32_t screen_size[2]; //  8 - 40
-		uint32_t vertical; //  4 - 44
-		uint32_t steps; //  4 - 48
+		int32_t screen_size[2];
+		uint32_t vertical;
+		uint32_t steps;
 	};
 
 	enum SSRReflectionMode {

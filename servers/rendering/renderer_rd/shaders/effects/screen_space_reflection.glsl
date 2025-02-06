@@ -16,33 +16,18 @@ layout(rgba8, set = 2, binding = 0) uniform restrict readonly image2D source_nor
 layout(set = 3, binding = 0) uniform sampler2D source_metallic;
 
 layout(push_constant, std430) uniform Params {
-	vec4 proj_info;
-
 	ivec2 screen_size;
-	float camera_z_near;
-	float camera_z_far;
-
 	int num_steps;
 	float depth_tolerance;
+
 	float distance_fade;
 	float curve_fade_in;
-
-	bool orthogonal;
-	float filter_mipmap_levels;
-	bool use_half_res;
 	uint view_index;
+	uint pad;
 }
 params;
 
 #include "screen_space_reflection_inc.glsl"
-
-vec2 view_to_screen(vec3 view_pos, out float w) {
-	vec4 projected = scene_data.projection[params.view_index] * vec4(view_pos, 1.0);
-	projected.xyz /= projected.w;
-	projected.xy = projected.xy * 0.5 + 0.5;
-	w = projected.w;
-	return projected.xy;
-}
 
 #define M_PI 3.14159265359
 
@@ -54,163 +39,123 @@ void main() {
 		return;
 	}
 
-	vec2 pixel_size = 1.0 / vec2(params.screen_size);
-	vec2 uv = vec2(ssC.xy) * pixel_size;
+	vec3 normal;
+	float roughness;
 
-	uv += pixel_size * 0.5;
+	{ // Get normal and roughness at vertex position
+		vec4 normal_roughness = imageLoad(source_normal_roughness, ssC);
+		normal = normalize(normal_roughness.xyz * 2.0 - 1.0);
+		normal.y = -normal.y; //because this code reads flipped
+		roughness = normal_roughness.w;
+		if (roughness > 0.5) {
+			roughness = 1.0 - roughness;
+		}
+		roughness /= (127.0 / 255.0);
 
-	float base_depth = imageLoad(source_depth, ssC).r;
-
-	// World space point being shaded
-	vec3 vertex = reconstructCSPosition(uv * vec2(params.screen_size), base_depth);
-
-	vec4 normal_roughness = imageLoad(source_normal_roughness, ssC);
-	vec3 normal = normalize(normal_roughness.xyz * 2.0 - 1.0);
-	float roughness = normal_roughness.w;
-	if (roughness > 0.5) {
-		roughness = 1.0 - roughness;
-	}
-	roughness /= (127.0 / 255.0);
-
-	// The roughness cutoff of 0.6 is chosen to match the roughness fadeout from GH-69828.
-	if (roughness > 0.6) {
-		// Do not compute SSR for rough materials to improve performance at the cost of
-		// subtle artifacting.
+		// The roughness cutoff of 0.6 is chosen to match the roughness fadeout from GH-69828.
+		if (roughness > 0.6) {
+			// Do not compute SSR for rough materials to improve performance at the cost of
+			// subtle artifacting.
 #ifdef MODE_ROUGH
-		imageStore(blur_radius_image, ssC, vec4(0.0));
+			imageStore(blur_radius_image, ssC, vec4(0.0));
 #endif
-		imageStore(ssr_image, ssC, vec4(0.0));
-		return;
+			imageStore(ssr_image, ssC, vec4(0.0));
+			return;
+		}
 	}
 
-	normal = normalize(normal);
-	normal.y = -normal.y; //because this code reads flipped
+	vec2 uv = (vec2(ssC.xy) + 0.5) / vec2(params.screen_size);
+
+	vec3 vertex_view;
+	vec4 vertex_hom;
+	vec4 vertex_clip;
+
+	{ // Compute vertex position
+		float depth_view = imageLoad(source_depth, ssC).r;
+		vertex_clip = vec4(uv * 2.0 - 1.0, 0.0, 1.0);
+		vertex_clip.z = z_ndc_from_view(vertex_clip.xy, depth_view);
+		vertex_hom = scene_data.inv_projection[params.view_index] * vertex_clip;
+		vertex_clip /= vertex_hom.w;
+		vertex_view = vertex_hom.xyz / vertex_hom.w;
+	}
 
 	vec3 view_dir;
+
 	if (sc_multiview) {
-		view_dir = normalize(vertex + scene_data.eye_offset[params.view_index].xyz);
+		view_dir = normalize(vertex_view + scene_data.eye_offset[params.view_index].xyz);
 	} else {
-		view_dir = params.orthogonal ? vec3(0.0, 0.0, -1.0) : normalize(vertex);
-	}
-	vec3 ray_dir = normalize(reflect(view_dir, normal));
-
-	if (dot(ray_dir, normal) < 0.001) {
-		imageStore(ssr_image, ssC, vec4(0.0));
-		return;
+		view_dir = scene_data.projection[params.view_index][3][3] == 1.0 ? vec3(0.0, 0.0, -1.0) : normalize(vertex_view);
 	}
 
-	////////////////
+	// xy in screen space, z in ndc space
+	vec3 dray;
+	vec3 ray_start = vec3(uv * vec2(params.screen_size), vertex_clip.z / vertex_clip.w);
 
-	// make ray length and clip it against the near plane (don't want to trace beyond visible)
-	float ray_len = (vertex.z + ray_dir.z * params.camera_z_far) > -params.camera_z_near ? (-params.camera_z_near - vertex.z) / ray_dir.z : params.camera_z_far;
-	vec3 ray_end = vertex + ray_dir * ray_len;
+	// zw in homogeneous view space
+	vec2 ddepth;
 
-	float w_begin;
-	vec2 vp_line_begin = view_to_screen(vertex, w_begin);
-	float w_end;
-	vec2 vp_line_end = view_to_screen(ray_end, w_end);
-	vec2 vp_line_dir = vp_line_end - vp_line_begin;
+	{ // compute ray from shaded vertex
+		vec3 ray_dir = normalize(reflect(view_dir, normal));
 
-	// we need to interpolate w along the ray, to generate perspective correct reflections
-	w_begin = 1.0 / w_begin;
-	w_end = 1.0 / w_end;
-
-	float z_begin = vertex.z * w_begin;
-	float z_end = ray_end.z * w_end;
-
-	vec2 line_begin = vp_line_begin / pixel_size;
-	vec2 line_dir = vp_line_dir / pixel_size;
-	float z_dir = z_end - z_begin;
-	float w_dir = w_end - w_begin;
-
-	// clip the line to the viewport edges
-
-	float scale_max_x = min(1.0, 0.99 * (1.0 - vp_line_begin.x) / max(1e-5, vp_line_dir.x));
-	float scale_max_y = min(1.0, 0.99 * (1.0 - vp_line_begin.y) / max(1e-5, vp_line_dir.y));
-	float scale_min_x = min(1.0, 0.99 * vp_line_begin.x / max(1e-5, -vp_line_dir.x));
-	float scale_min_y = min(1.0, 0.99 * vp_line_begin.y / max(1e-5, -vp_line_dir.y));
-	float line_clip = min(scale_max_x, scale_max_y) * min(scale_min_x, scale_min_y);
-	line_dir *= line_clip;
-	z_dir *= line_clip;
-	w_dir *= line_clip;
-
-	// clip z and w advance to line advance
-	vec2 line_advance = normalize(line_dir); // down to pixel
-	float step_size = 1.0 / length(line_dir);
-	float z_advance = z_dir * step_size; // adapt z advance to line advance
-	float w_advance = w_dir * step_size; // adapt w advance to line advance
-
-	// make line advance faster if direction is closer to pixel edges (this avoids sampling the same pixel twice)
-	float advance_angle_adj = 1.0 / max(abs(line_advance.x), abs(line_advance.y));
-	line_advance *= advance_angle_adj; // adapt z advance to line advance
-	z_advance *= advance_angle_adj;
-	w_advance *= advance_angle_adj;
-
-	vec2 pos = line_begin;
-	float z = z_begin;
-	float w = w_begin;
-	float z_from = z / w;
-	float z_to = z_from;
-	float depth;
-	vec2 prev_pos = pos;
-
-	if (ivec2(pos + line_advance - 0.5) == ssC) {
-		// It is possible for rounding to cause our first pixel to check to be the pixel we're reflecting.
-		// Make sure we skip it
-		pos += line_advance;
-		z += z_advance;
-		w += w_advance;
-	}
-
-	bool found = false;
-
-	float steps_taken = 0.0;
-
-	for (int i = 0; i < params.num_steps; i++) {
-		pos += line_advance;
-		z += z_advance;
-		w += w_advance;
-
-		// convert to linear depth
-		ivec2 test_pos = ivec2(pos - 0.5);
-		depth = imageLoad(source_depth, test_pos).r;
-		if (sc_multiview) {
-			depth = depth * 2.0 - 1.0;
-			depth = 2.0 * params.camera_z_near * params.camera_z_far / (params.camera_z_far + params.camera_z_near - depth * (params.camera_z_far - params.camera_z_near));
-			depth = -depth;
+		if (dot(ray_dir, normal) < 0.001) {
+			imageStore(ssr_image, ssC, vec4(0.0));
+			return;
 		}
 
-		z_from = z_to;
-		z_to = z / w;
+		vec4 ray_dir_clip = scene_data.projection[params.view_index] * vec4(ray_dir, 0.0); // Not a unit vector
 
-		if (depth > z_to) {
-			// Test if our ray is hitting the "right" side of the surface, if not we're likely self reflecting and should skip.
-			vec4 test_normal_roughness = imageLoad(source_normal_roughness, test_pos);
-			vec3 test_normal = test_normal_roughness.xyz * 2.0 - 1.0;
-			test_normal = normalize(test_normal);
-			test_normal.y = -test_normal.y; // Because this code reads flipped.
+		// Scale down to prevent w to go negative, which breaks perspective division;
+		float scale = vertex_clip.w + ray_dir_clip.w <= 0.01 ? (0.01 - vertex_clip.w) / ray_dir_clip.w : 1.0;
+		vec4 ray_end_clip = ray_dir_clip * scale + vertex_clip;
+		vec4 ray_end_hom = vec4(ray_dir * scale + vertex_view, 1.0) / ray_end_clip.w;
 
-			if (dot(ray_dir, test_normal) < 0.001) {
-				// if depth was surpassed
-				if (depth <= max(z_to, z_from) + params.depth_tolerance && -depth < params.camera_z_far * 0.95) {
-					// check the depth tolerance and far clip
-					// check that normal is valid
-					found = true;
-				}
+		vec3 ray_end_ndc = ray_end_clip.xyz / ray_end_clip.w;
+		ray_end_ndc.xy = (ray_end_ndc.xy * 0.5 + 0.5) * vec2(params.screen_size);
+
+		dray = ray_end_ndc - ray_start;
+		ddepth = ray_end_hom.zw - vertex_hom.zw;
+		float nb_steps = max(abs(dray.x), abs(dray.y)); // DDA : normalize advance to 1 px across the fastest axis
+		dray /= nb_steps;
+		ddepth /= nb_steps;
+	}
+
+	float max_steps;
+
+	{ // compute number of steps to the frustum bounds across each axis
+		max_steps = (dray.x > 0.0 ? (params.screen_size.x - ray_start.x) : -ray_start.x) / dray.x;
+		max_steps = min(max_steps, (dray.y > 0.0 ? (params.screen_size.y - ray_start.y) : -ray_start.y) / dray.y);
+		max_steps = min(max_steps, (dray.z > 0.0 ? (1.0 - ray_start.z) : -ray_start.z) / dray.z);
+	}
+
+	vec2 final_pos;
+	bool found = false;
+	float iter;
+
+	{ // raymarch
+		// xy in screen space, zw in homogeneous view space
+		vec4 step = vec4(dray.xy, ddepth);
+		vec4 pos = vec4(ray_start.xy, vertex_hom.zw);
+
+		bool front_facing = true;
+
+		for (iter = 0; iter < params.num_steps && iter < max_steps; iter++) {
+			pos += step;
+			float depth = imageLoad(source_depth, ivec2(pos.xy - 0.5)).r;
+			float pos_depth = pos.z / pos.w;
+			if (depth > pos_depth && depth < pos_depth + params.depth_tolerance && front_facing) {
+				final_pos = pos.xy;
+				found = true;
 				break;
 			}
+			front_facing = depth < pos_depth;
 		}
-
-		steps_taken += 1.0;
-		prev_pos = pos;
 	}
 
 	if (found) {
 		float margin_blend = 1.0;
-		vec2 final_pos = pos;
 
 		vec2 margin = vec2((params.screen_size.x + params.screen_size.y) * 0.05); // make a uniform margin
-		if (any(bvec4(lessThan(pos, vec2(0.0, 0.0)), greaterThan(pos, params.screen_size)))) {
+		if (any(bvec4(lessThan(final_pos, vec2(0.0)), greaterThan(final_pos, params.screen_size)))) {
 			// clip at the screen edges
 			imageStore(ssr_image, ssC, vec4(0.0));
 			return;
@@ -219,13 +164,13 @@ void main() {
 		{
 			//blend fading out towards inner margin
 			// 0.5 = midpoint of reflection
-			vec2 margin_grad = mix(params.screen_size - pos, pos, lessThan(pos, params.screen_size * 0.5));
+			vec2 margin_grad = mix(params.screen_size - final_pos, final_pos, lessThan(final_pos, params.screen_size * 0.5));
 			margin_blend = smoothstep(0.0, margin.x * margin.y, margin_grad.x * margin_grad.y);
 			//margin_blend = 1.0;
 		}
 
 		// Fade In / Fade Out
-		float grad = (steps_taken + 1.0) / float(params.num_steps);
+		float grad = (iter + 1.0) / float(params.num_steps);
 		float initial_fade = params.curve_fade_in == 0.0 ? 1.0 : pow(clamp(grad, 0.0, 1.0), params.curve_fade_in);
 		float fade = pow(clamp(1.0 - grad, 0.0, 1.0), params.distance_fade) * initial_fade;
 
@@ -266,7 +211,7 @@ void main() {
 
 		if (roughness > 0.001) {
 			float cone_angle = min(roughness, 0.999) * M_PI * 0.5;
-			float cone_len = length(final_pos - line_begin);
+			float cone_len = length(final_pos - ray_start.xy);
 			float op_len = 2.0 * tan(cone_angle) * cone_len; // opposite side of iso triangle
 			{
 				// fit to sphere inside cone (sphere ends at end of cone), something like this:

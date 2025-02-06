@@ -19,13 +19,11 @@ layout(r32f, set = 3, binding = 0) uniform restrict writeonly image2D dest_depth
 layout(rgba8, set = 3, binding = 1) uniform restrict writeonly image2D dest_normal;
 
 layout(push_constant, std430) uniform Params {
-	ivec2 screen_size;
-	float camera_z_near;
-	float camera_z_far;
+	mat4 inv_projection;
 
-	bool orthogonal;
+	ivec2 screen_size;
 	bool filtered;
-	uint pad[2];
+	uint pad;
 }
 params;
 
@@ -67,18 +65,12 @@ void main() {
 			roughness /= (127.0 / 255.0);
 			normal.w += roughness;
 
+			// Store linear depth
 			if (sc_multiview) {
-				// we're doing a full unproject so we need the value as is.
-				depth += d;
+				vec4 dh = params.inv_projection * vec4((vec2(ofs) + 0.5) / vec2(params.screen_size) * 2.0 - 1.0, d, 1.0);
+				depth += dh.z / dh.w;
 			} else {
-				// unproject our Z value so we can use it directly.
-				d = d * 2.0 - 1.0;
-				if (params.orthogonal) {
-					d = ((d + (params.camera_z_far + params.camera_z_near) / (params.camera_z_far - params.camera_z_near)) * (params.camera_z_far - params.camera_z_near)) / 2.0;
-				} else {
-					d = 2.0 * params.camera_z_near * params.camera_z_far / (params.camera_z_far + params.camera_z_near - d * (params.camera_z_far - params.camera_z_near));
-				}
-				depth += -d;
+				depth += (params.inv_projection[2][2] * d + params.inv_projection[3][2]) / (params.inv_projection[2][3] * d + params.inv_projection[3][3]);
 			}
 		}
 
@@ -94,15 +86,12 @@ void main() {
 		depth = texelFetch(source_depth, ofs, 0).r;
 		normal = texelFetch(source_normal, ofs, 0);
 
-		if (!sc_multiview) {
-			// unproject our Z value so we can use it directly.
-			depth = depth * 2.0 - 1.0;
-			if (params.orthogonal) {
-				depth = -(depth * (params.camera_z_far - params.camera_z_near) - (params.camera_z_far + params.camera_z_near)) / 2.0;
-			} else {
-				depth = 2.0 * params.camera_z_near * params.camera_z_far / (params.camera_z_far + params.camera_z_near + depth * (params.camera_z_far - params.camera_z_near));
-			}
-			depth = -depth;
+		// Store linear depth
+		if (sc_multiview) {
+			vec4 dh = params.inv_projection * vec4((vec2(ofs) + 0.5) / vec2(params.screen_size) * 2.0 - 1.0, depth, 1.0);
+			depth = dh.z / dh.w;
+		} else {
+			depth = (params.inv_projection[2][2] * depth + params.inv_projection[3][2]) / (params.inv_projection[2][3] * depth + params.inv_projection[3][3]);
 		}
 	}
 
