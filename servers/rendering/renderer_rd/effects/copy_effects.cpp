@@ -107,6 +107,7 @@ CopyEffects::CopyEffects(bool p_prefer_raster_effects) {
 		copy_modes.push_back("\n#define MODE_PANORAMA_TO_DP\n"); // COPY_TO_FB_COPY_PANORAMA_TO_DP
 		copy_modes.push_back("\n#define MODE_TWO_SOURCES\n"); // COPY_TO_FB_COPY2
 		copy_modes.push_back("\n#define MODE_SET_COLOR\n"); // COPY_TO_FB_SET_COLOR
+
 		copy_modes.push_back("\n#define USE_MULTIVIEW\n"); // COPY_TO_FB_MULTIVIEW
 		copy_modes.push_back("\n#define USE_MULTIVIEW\n#define MODE_TWO_SOURCES\n"); // COPY_TO_FB_MULTIVIEW_WITH_DEPTH
 
@@ -119,11 +120,28 @@ CopyEffects::CopyEffects(bool p_prefer_raster_effects) {
 
 		copy_to_fb.shader_version = copy_to_fb.shader.version_create();
 
-		//use additive
-
 		for (int i = 0; i < COPY_TO_FB_MAX; i++) {
 			if (copy_to_fb.shader.is_variant_enabled(i)) {
-				copy_to_fb.pipelines[i].setup(copy_to_fb.shader.version_get_shader(copy_to_fb.shader_version, i), RD::RENDER_PRIMITIVE_TRIANGLES, RD::PipelineRasterizationState(), RD::PipelineMultisampleState(), RD::PipelineDepthStencilState(), RD::PipelineColorBlendState::create_disabled(), 0);
+				RD::PipelineColorBlendState blend_state;
+				if (i == COPY_TO_FB_OCCLUSION_CULLING_BUFFER) {
+					// Use additive blend mode.
+					RD::PipelineColorBlendState::Attachment ba;
+					ba.enable_blend = true;
+					ba.src_color_blend_factor = RD::BLEND_FACTOR_SRC_ALPHA;
+					ba.dst_color_blend_factor = RD::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+					ba.src_alpha_blend_factor = RD::BLEND_FACTOR_ONE;
+					ba.dst_alpha_blend_factor = RD::BLEND_FACTOR_ONE;
+					ba.color_blend_op = RD::BLEND_OP_ADD;
+					ba.alpha_blend_op = RD::BLEND_OP_MAXIMUM;
+
+					RD::PipelineColorBlendState blend_additive;
+					blend_additive.attachments.push_back(ba);
+					blend_state = blend_additive;
+				} else {
+					blend_state = RD::PipelineColorBlendState::create_disabled();
+				}
+
+				copy_to_fb.pipelines[i].setup(copy_to_fb.shader.version_get_shader(copy_to_fb.shader_version, i), RD::RENDER_PRIMITIVE_TRIANGLES, RD::PipelineRasterizationState(), RD::PipelineMultisampleState(), RD::PipelineDepthStencilState(), blend_state, 0);
 			} else {
 				copy_to_fb.pipelines[i].clear();
 			}
@@ -533,7 +551,7 @@ void CopyEffects::copy_to_atlas_fb(RID p_source_rd_texture, RID p_dest_framebuff
 	RD::get_singleton()->draw_list_draw(draw_list, true);
 }
 
-void CopyEffects::copy_to_fb_rect(RID p_source_rd_texture, RID p_dest_framebuffer, const Rect2i &p_rect, bool p_flip_y, bool p_force_luminance, bool p_alpha_to_zero, bool p_srgb, RID p_secondary, bool p_multiview, bool p_alpha_to_one, bool p_linear, bool p_normal, const Rect2 &p_src_rect) {
+void CopyEffects::copy_to_fb_rect(RID p_source_rd_texture, RID p_dest_framebuffer, const Rect2i &p_rect, bool p_flip_y, bool p_force_luminance, bool p_alpha_to_zero, bool p_srgb, RID p_secondary, bool p_multiview, bool p_alpha_to_one, bool p_linear, bool p_normal, const Rect2 &p_src_rect, bool p_occlusion_culling_buffer) {
 	UniformSetCacheRD *uniform_set_cache = UniformSetCacheRD::get_singleton();
 	ERR_FAIL_NULL(uniform_set_cache);
 	MaterialStorage *material_storage = MaterialStorage::get_singleton();
@@ -566,6 +584,10 @@ void CopyEffects::copy_to_fb_rect(RID p_source_rd_texture, RID p_dest_framebuffe
 
 	if (p_normal) {
 		copy_to_fb.push_constant.flags |= COPY_TO_FB_FLAG_NORMAL;
+	}
+
+	if (p_occlusion_culling_buffer) {
+		copy_to_fb.push_constant.flags |= COPY_TO_FB_FLAG_OCCLUSION_CULLING_BUFFER;
 	}
 
 	if (p_src_rect != Rect2()) {

@@ -84,6 +84,7 @@ void main() {
 #define FLAG_ALPHA_TO_ONE (1 << 5)
 #define FLAG_LINEAR (1 << 6)
 #define FLAG_NORMAL (1 << 7)
+#define FLAG_OCCLUSION_CULLING_BUFFER (1 << 9)
 
 layout(push_constant, std430) uniform Params {
 	vec4 section;
@@ -201,6 +202,13 @@ void main() {
 	}
 	if (bool(params.flags & FLAG_NORMAL)) {
 		color.rgb = normalize(color.rgb * 2.0 - 1.0) * 0.5 + 0.5;
+	}
+	if (bool(params.flags & FLAG_OCCLUSION_CULLING_BUFFER)) {
+		// Modify result to make the background partially visible,
+		// which helps with 3D navigation.
+		// This relies on the additive blend state from the `CopyEffects()` constructor.
+		color.a = (1.0 - color.r) * 0.5;
+		color.rgb = vec3(1.0, 0.0, 0.0);
 	}
 
 	frag_color = color / params.luminance_multiplier;

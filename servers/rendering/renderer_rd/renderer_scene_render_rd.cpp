@@ -911,7 +911,7 @@ void RendererSceneRenderRD::_render_buffers_debug_draw(const RenderDataRD *p_ren
 	if (debug_draw == RS::VIEWPORT_DEBUG_DRAW_OCCLUDERS) {
 		if (p_render_data->occluder_debug_tex.is_valid()) {
 			Size2i rtsize = texture_storage->render_target_get_size(render_target);
-			copy_effects->copy_to_fb_rect(texture_storage->texture_get_rd_texture(p_render_data->occluder_debug_tex), texture_storage->render_target_get_rd_framebuffer(render_target), Rect2i(Vector2(), rtsize), true, false);
+			copy_effects->copy_to_fb_rect(texture_storage->texture_get_rd_texture(p_render_data->occluder_debug_tex), texture_storage->render_target_get_rd_framebuffer(render_target), Rect2i(Vector2(), rtsize), true, false, false, false, RID(), false, false, false, false, Rect2(), true);
 		}
 	}
 
