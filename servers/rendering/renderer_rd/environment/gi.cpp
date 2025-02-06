@@ -3859,9 +3859,14 @@ void GI::process_gi(Ref<RenderSceneBuffersRD> p_render_buffers, const RID *p_nor
 	push_constant.high_quality_vct = voxel_gi_quality == RS::VOXEL_GI_QUALITY_HIGH;
 
 	// these should be the same for all views
-	push_constant.orthogonal = p_projections[0].is_orthogonal();
-	push_constant.z_near = p_projections[0].get_z_near();
-	push_constant.z_far = p_projections[0].get_z_far();
+	Projection correction;
+	correction.set_depth_correction(false);
+	Projection corrected = correction * p_projections[0];
+
+	push_constant.proj_zw[0][0] = corrected[2][2];
+	push_constant.proj_zw[0][1] = corrected[2][3];
+	push_constant.proj_zw[1][0] = corrected[3][2];
+	push_constant.proj_zw[1][1] = corrected[3][3];
 
 	// these are only used if we have 1 view, else we use the projections in our scene data
 	push_constant.proj_info[0] = -2.0f / (internal_size.x * p_projections[0].columns[0][0]);

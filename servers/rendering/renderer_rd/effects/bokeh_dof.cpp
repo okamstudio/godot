@@ -84,7 +84,7 @@ BokehDOF::~BokehDOF() {
 	}
 }
 
-void BokehDOF::bokeh_dof_compute(const BokehBuffers &p_buffers, RID p_camera_attributes, float p_cam_znear, float p_cam_zfar, bool p_cam_orthogonal) {
+void BokehDOF::bokeh_dof_compute(const BokehBuffers &p_buffers, RID p_camera_attributes, const Projection &p_camera) {
 	ERR_FAIL_COND_MSG(prefer_raster_effects, "Can't use compute version of bokeh depth of field with the mobile renderer.");
 
 	UniformSetCacheRD *uniform_set_cache = UniformSetCacheRD::get_singleton();
@@ -121,9 +121,14 @@ void BokehDOF::bokeh_dof_compute(const BokehBuffers &p_buffers, RID p_camera_att
 	bokeh.push_constant.use_jitter = use_jitter;
 	bokeh.push_constant.jitter_seed = Math::randf() * 1000.0;
 
-	bokeh.push_constant.z_near = p_cam_znear;
-	bokeh.push_constant.z_far = p_cam_zfar;
-	bokeh.push_constant.orthogonal = p_cam_orthogonal;
+	Projection correction;
+	correction.set_depth_correction(false);
+	Projection corrected = correction * p_camera;
+
+	bokeh.push_constant.proj_zw[0][0] = corrected[2][2];
+	bokeh.push_constant.proj_zw[0][1] = corrected[2][3];
+	bokeh.push_constant.proj_zw[1][0] = corrected[3][2];
+	bokeh.push_constant.proj_zw[1][1] = corrected[3][3];
 	bokeh.push_constant.blur_size = (dof_near_size < 0.0 && dof_far_size < 0.0) ? 32 : bokeh_size; // Cap with physically-based to keep performance reasonable.
 
 	bokeh.push_constant.second_pass = false;
@@ -290,7 +295,7 @@ void BokehDOF::bokeh_dof_compute(const BokehBuffers &p_buffers, RID p_camera_att
 	RD::get_singleton()->compute_list_end();
 }
 
-void BokehDOF::bokeh_dof_raster(const BokehBuffers &p_buffers, RID p_camera_attributes, float p_cam_znear, float p_cam_zfar, bool p_cam_orthogonal) {
+void BokehDOF::bokeh_dof_raster(const BokehBuffers &p_buffers, RID p_camera_attributes, const Projection &p_camera) {
 	ERR_FAIL_COND_MSG(!prefer_raster_effects, "Can't blur-based depth of field with the clustered renderer.");
 
 	UniformSetCacheRD *uniform_set_cache = UniformSetCacheRD::get_singleton();
@@ -312,11 +317,17 @@ void BokehDOF::bokeh_dof_raster(const BokehBuffers &p_buffers, RID p_camera_attr
 	// setup our base push constant
 	memset(&bokeh.push_constant, 0, sizeof(BokehPushConstant));
 
-	bokeh.push_constant.orthogonal = p_cam_orthogonal;
 	bokeh.push_constant.size[0] = p_buffers.base_texture_size.width;
 	bokeh.push_constant.size[1] = p_buffers.base_texture_size.height;
-	bokeh.push_constant.z_far = p_cam_zfar;
-	bokeh.push_constant.z_near = p_cam_znear;
+
+	Projection correction;
+	correction.set_depth_correction(false);
+	Projection corrected = correction * p_camera;
+
+	bokeh.push_constant.proj_zw[0][0] = corrected[2][2];
+	bokeh.push_constant.proj_zw[0][1] = corrected[2][3];
+	bokeh.push_constant.proj_zw[1][0] = corrected[3][2];
+	bokeh.push_constant.proj_zw[1][1] = corrected[3][3];
 
 	bokeh.push_constant.second_pass = false;
 	bokeh.push_constant.half_size = false;

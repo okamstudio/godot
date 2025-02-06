@@ -467,10 +467,7 @@ void RendererSceneRenderRD::_render_buffers_post_process_and_tonemap(const Rende
 				buffers.base_texture = use_upscaled_texture ? rb->get_upscaled_texture(i) : rb->get_internal_texture(i);
 				buffers.depth_texture = rb->get_depth_texture(i);
 
-				// In stereo p_render_data->z_near and p_render_data->z_far can be offset for our combined frustum.
-				float z_near = p_render_data->scene_data->view_projection[i].get_z_near();
-				float z_far = p_render_data->scene_data->view_projection[i].get_z_far();
-				bokeh_dof->bokeh_dof_compute(buffers, p_render_data->camera_attributes, z_near, z_far, p_render_data->scene_data->cam_orthogonal);
+				bokeh_dof->bokeh_dof_compute(buffers, p_render_data->camera_attributes, p_render_data->scene_data->view_projection[i]);
 			};
 		} else {
 			// Set framebuffers.
@@ -490,10 +487,7 @@ void RendererSceneRenderRD::_render_buffers_post_process_and_tonemap(const Rende
 				buffers.depth_texture = rb->get_depth_texture(i);
 				buffers.base_fb = FramebufferCacheRD::get_singleton()->get_cache(buffers.base_texture); // TODO move this into bokeh_dof_raster, we can do this internally
 
-				// In stereo p_render_data->z_near and p_render_data->z_far can be offset for our combined frustum.
-				float z_near = p_render_data->scene_data->view_projection[i].get_z_near();
-				float z_far = p_render_data->scene_data->view_projection[i].get_z_far();
-				bokeh_dof->bokeh_dof_raster(buffers, p_render_data->camera_attributes, z_near, z_far, p_render_data->scene_data->cam_orthogonal);
+				bokeh_dof->bokeh_dof_raster(buffers, p_render_data->camera_attributes, p_render_data->scene_data->view_projection[i]);
 			}
 		}
 		RD::get_singleton()->draw_command_end_label();

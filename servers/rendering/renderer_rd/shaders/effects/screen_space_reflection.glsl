@@ -175,9 +175,8 @@ void main() {
 		ivec2 test_pos = ivec2(pos - 0.5);
 		depth = imageLoad(source_depth, test_pos).r;
 		if (sc_multiview) {
-			depth = depth * 2.0 - 1.0;
-			depth = 2.0 * params.camera_z_near * params.camera_z_far / (params.camera_z_far + params.camera_z_near - depth * (params.camera_z_far - params.camera_z_near));
-			depth = -depth;
+			depth = 1.0 - depth * 2.0;
+			depth = -(scene_data.projection[params.view_index][3][2] - scene_data.projection[params.view_index][3][3] * depth) / (scene_data.projection[params.view_index][2][3] * depth - scene_data.projection[params.view_index][2][2]);
 		}
 
 		z_from = z_to;

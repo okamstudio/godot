@@ -781,10 +781,7 @@ public:
 
 		float proj_info[4];
 
-		float z_near;
-		float z_far;
-		float pad2;
-		float pad3;
+		float proj_zw[2][2]; // Bottom-right 2x2 corner of the projection matrix with reverse-z and z-remap applied
 	};
 
 	RID sdfgi_ubo;

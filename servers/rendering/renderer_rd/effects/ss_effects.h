@@ -177,11 +177,9 @@ private:
 
 	struct SSEffectsDownsamplePushConstant {
 		float pixel_size[2];
-		float z_far;
-		float z_near;
-		uint32_t orthogonal;
 		float radius_sq;
-		uint32_t pad[2];
+		uint32_t pad[1];
+		float proj_zw[2][2]; // Bottom-right 2x2 corner of the projection matrix with reverse-z and z-remap applied
 	};
 
 	enum SSEffectsMode {
@@ -243,9 +241,7 @@ private:
 		float NDC_to_view_mul[2];
 		float NDC_to_view_add[2];
 
-		float pad2[2];
-		float z_near;
-		float z_far;
+		float proj_zw[2][2]; // Bottom-right 2x2 corner of the projection matrix in OpenGL standard form (no reverse-z, no z-remap)
 
 		float radius;
 		float intensity;
@@ -424,13 +420,10 @@ private:
 
 	struct ScreenSpaceReflectionScalePushConstant {
 		int32_t screen_size[2];
-		float camera_z_near;
-		float camera_z_far;
-
 		uint32_t orthogonal;
 		uint32_t filter;
-		uint32_t view_index;
-		uint32_t pad1;
+
+		float proj_zw[2][2]; // Bottom-right 2x2 corner of the projection matrix with reverse-z and z-remap applied
 	};
 
 	struct ScreenSpaceReflectionScale {
@@ -506,16 +499,14 @@ private:
 
 	struct SubSurfaceScatteringPushConstant {
 		int32_t screen_size[2];
-		float camera_z_far;
-		float camera_z_near;
-
 		uint32_t vertical;
-		uint32_t orthogonal;
 		float unit_size;
-		float scale;
 
+		float proj_zw[2][2]; // Bottom-right 2x2 corner of the projection matrix with reverse-z and z-remap applied
+
+		float scale;
 		float depth_scale;
-		uint32_t pad[3];
+		uint32_t pad[2];
 	};
 
 	struct SubSurfaceScattering {

@@ -124,10 +124,7 @@ layout(push_constant, std430) uniform Params {
 
 	vec4 proj_info;
 
-	float z_near;
-	float z_far;
-	float pad2;
-	float pad3;
+	float proj_zw[2][2]; // Bottom-right 2x2 corner of the projection matrix with reverse-z and z-remap applied
 }
 params;
 
@@ -172,18 +169,9 @@ vec3 reconstruct_position(ivec2 screen_pos) {
 		vec3 pos;
 		pos.z = texelFetch(sampler2D(depth_buffer, linear_sampler), screen_pos, 0).r;
 
-		pos.z = pos.z * 2.0 - 1.0;
-		if (params.orthogonal) {
-			pos.z = -(pos.z * (params.z_far - params.z_near) - (params.z_far + params.z_near)) / 2.0;
-		} else {
-			pos.z = 2.0 * params.z_near * params.z_far / (params.z_far + params.z_near + pos.z * (params.z_far - params.z_near));
-		}
-		pos.z = -pos.z;
-
+		pos.z = (params.proj_zw[1][0] - params.proj_zw[1][1] * pos.z) / (params.proj_zw[0][1] * pos.z - params.proj_zw[0][0]);
 		pos.xy = vec2(screen_pos) * params.proj_info.xy + params.proj_info.zw;
-		if (!params.orthogonal) {
-			pos.xy *= pos.z;
-		}
+		pos.xy *= -params.proj_zw[0][1] * pos.z + params.proj_zw[1][1];
 
 		return pos;
 	}

@@ -27,11 +27,9 @@ layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
 layout(push_constant, std430) uniform Params {
 	vec2 pixel_size;
-	float z_far;
-	float z_near;
-	bool orthogonal;
 	float radius_sq;
-	uvec2 pad;
+	uint pad;
+	mat2 proj_zw; // Bottom-right 2x2 corner of the projection matrix with reverse-z and z-remap applied
 }
 params;
 
@@ -48,33 +46,11 @@ layout(r16f, set = 2, binding = 3) uniform restrict writeonly image2DArray dest_
 #endif
 
 vec4 screen_space_to_view_space_depth(vec4 p_depth) {
-	if (params.orthogonal) {
-		vec4 depth = p_depth * 2.0 - 1.0;
-		return -(depth * (params.z_far - params.z_near) - (params.z_far + params.z_near)) / 2.0;
-	}
-
-	float depth_linearize_mul = params.z_near;
-	float depth_linearize_add = params.z_far;
-
-	// Optimized version of "-cameraClipNear / (cameraClipFar - projDepth * (cameraClipFar - cameraClipNear)) * cameraClipFar"
-
-	// Set your depth_linearize_mul and depth_linearize_add to:
-	// depth_linearize_mul = ( cameraClipFar * cameraClipNear) / ( cameraClipFar - cameraClipNear );
-	// depth_linearize_add = cameraClipFar / ( cameraClipFar - cameraClipNear );
-
-	return depth_linearize_mul / (depth_linearize_add - p_depth);
+	return -(params.proj_zw[1][0] - params.proj_zw[1][1] * p_depth) / (params.proj_zw[0][1] * p_depth - params.proj_zw[0][0]);
 }
 
 float screen_space_to_view_space_depth(float p_depth) {
-	if (params.orthogonal) {
-		float depth = p_depth * 2.0 - 1.0;
-		return -(depth * (params.z_far - params.z_near) - (params.z_far + params.z_near)) / 2.0;
-	}
-
-	float depth_linearize_mul = params.z_near;
-	float depth_linearize_add = params.z_far;
-
-	return depth_linearize_mul / (depth_linearize_add - p_depth);
+	return -(params.proj_zw[1][0] - params.proj_zw[1][1] * p_depth) / (params.proj_zw[0][1] * p_depth - params.proj_zw[0][0]);
 }
 
 #ifdef GENERATE_MIPS

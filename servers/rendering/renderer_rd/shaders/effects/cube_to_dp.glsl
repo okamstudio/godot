@@ -5,8 +5,9 @@
 #VERSION_DEFINES
 
 layout(push_constant, std430) uniform Params {
+	float[2][2] proj_zw; // Bottom-right 2x2 corner of the projection matrix in OpenGL format (no reverse-z, no Y-flip, no z-remap)
 	float z_far;
-	float z_near;
+	uint pad;
 	vec2 texel_size;
 }
 params;
@@ -30,8 +31,9 @@ layout(location = 0) in vec2 uv_interp;
 layout(set = 0, binding = 0) uniform samplerCube source_cube;
 
 layout(push_constant, std430) uniform Params {
+	float[2][2] proj_zw; // Bottom-right 2x2 corner of the projection matrix in OpenGL format (no reverse-z, no Y-flip, no z-remap)
 	float z_far;
-	float z_near;
+	uint pad;
 	vec2 texel_size;
 }
 params;
@@ -74,7 +76,7 @@ void main() {
 	float depth_fix = 1.0 / dot(normal, unorm);
 
 	depth = 2.0 * depth - 1.0;
-	float linear_depth = 2.0 * params.z_near * params.z_far / (params.z_far + params.z_near + depth * (params.z_far - params.z_near));
+	float linear_depth = (params.proj_zw[1][1] * depth + params.proj_zw[1][0]) / (params.proj_zw[0][1] * depth + params.proj_zw[0][0]);
 	// linear_depth equal to view space depth
 	depth = (params.z_far - linear_depth * depth_fix) / params.z_far;
 	gl_FragDepth = depth;

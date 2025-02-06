@@ -65,12 +65,7 @@ layout(set = 2, binding = 0) uniform sampler2D original_weight;
 
 float get_depth_at_pos(vec2 uv) {
 	float depth = textureLod(source_depth, uv, 0.0).x * 2.0 - 1.0;
-	if (params.orthogonal) {
-		depth = -(depth * (params.z_far - params.z_near) - (params.z_far + params.z_near)) / 2.0;
-	} else {
-		depth = 2.0 * params.z_near * params.z_far / (params.z_far + params.z_near + depth * (params.z_far - params.z_near));
-	}
-	return depth;
+	return -(params.proj_zw[1][0] - params.proj_zw[1][1] * depth) / (params.proj_zw[0][1] * depth - params.proj_zw[0][0]);
 }
 
 float get_blur_size(float depth) {

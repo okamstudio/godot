@@ -99,9 +99,7 @@ layout(push_constant, std430) uniform Params {
 	vec2 NDC_to_view_mul;
 	vec2 NDC_to_view_add;
 
-	vec2 pad2;
-	float z_near;
-	float z_far;
+	float proj_zw[2][2]; // Bottom-right 2x2 corner of the projection matrix in OpenGL standard form (no reverse-z, no z-remap)
 
 	float radius;
 	float intensity;
@@ -201,7 +199,7 @@ void SSIL_tap_inner(const int p_quality_level, inout vec3 r_color_sum, inout flo
 	}
 
 	// Translate sampling_uv to last screen's coordinates
-	const vec4 sample_pos = projection_constants.reprojection * vec4(p_sampling_uv * 2.0 - 1.0, (viewspace_sample_z - params.z_near) / (params.z_far - params.z_near) * 2.0 - 1.0, 1.0);
+	const vec4 sample_pos = projection_constants.reprojection * vec4(p_sampling_uv * 2.0 - 1.0, (params.proj_zw[1][0] - params.proj_zw[0][0] * viewspace_sample_z) / (params.proj_zw[1][1] - params.proj_zw[0][1] * viewspace_sample_z), 1.0);
 	vec2 reprojected_sampling_uv = (sample_pos.xy / sample_pos.w) * 0.5 + 0.5;
 
 	weight *= p_weight_mod;

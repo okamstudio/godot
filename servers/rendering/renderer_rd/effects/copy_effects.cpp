@@ -399,7 +399,7 @@ void CopyEffects::copy_cubemap_to_panorama(RID p_source_cube, RID p_dest_panoram
 	copy.push_constant.section[3] = p_panorama_size.height;
 	copy.push_constant.target[0] = 0;
 	copy.push_constant.target[1] = 0;
-	copy.push_constant.camera_z_far = p_lod;
+	copy.push_constant.lod = p_lod;
 
 	// setup our uniforms
 	RID default_sampler = material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
@@ -457,7 +457,7 @@ void CopyEffects::copy_depth_to_rect(RID p_source_rd_texture, RID p_dest_texture
 	RD::get_singleton()->compute_list_end();
 }
 
-void CopyEffects::copy_depth_to_rect_and_linearize(RID p_source_rd_texture, RID p_dest_texture, const Rect2i &p_rect, bool p_flip_y, float p_z_near, float p_z_far) {
+void CopyEffects::copy_depth_to_rect_and_linearize(RID p_source_rd_texture, RID p_dest_texture, const Rect2i &p_rect, bool p_flip_y, const Projection &projection) {
 	UniformSetCacheRD *uniform_set_cache = UniformSetCacheRD::get_singleton();
 	ERR_FAIL_NULL(uniform_set_cache);
 	MaterialStorage *material_storage = MaterialStorage::get_singleton();
@@ -474,8 +474,10 @@ void CopyEffects::copy_depth_to_rect_and_linearize(RID p_source_rd_texture, RID 
 	copy.push_constant.section[3] = p_rect.size.height;
 	copy.push_constant.target[0] = p_rect.position.x;
 	copy.push_constant.target[1] = p_rect.position.y;
-	copy.push_constant.camera_z_far = p_z_far;
-	copy.push_constant.camera_z_near = p_z_near;
+	copy.push_constant.proj_zw[0][0] = projection[2][2];
+	copy.push_constant.proj_zw[0][1] = projection[2][3];
+	copy.push_constant.proj_zw[1][0] = projection[3][2];
+	copy.push_constant.proj_zw[1][1] = projection[3][3];
 
 	// setup our uniforms
 	RID default_sampler = material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
@@ -996,7 +998,7 @@ void CopyEffects::set_color_raster(RID p_dest_texture, const Color &p_color, con
 	RD::get_singleton()->draw_list_end();
 }
 
-void CopyEffects::copy_cubemap_to_dp(RID p_source_rd_texture, RID p_dst_framebuffer, const Rect2 &p_rect, const Vector2 &p_dst_size, float p_z_near, float p_z_far, bool p_dp_flip) {
+void CopyEffects::copy_cubemap_to_dp(RID p_source_rd_texture, RID p_dst_framebuffer, const Rect2 &p_rect, const Vector2 &p_dst_size, const Projection &p_projection, float p_z_far, bool p_dp_flip) {
 	UniformSetCacheRD *uniform_set_cache = UniformSetCacheRD::get_singleton();
 	ERR_FAIL_NULL(uniform_set_cache);
 	MaterialStorage *material_storage = MaterialStorage::get_singleton();
@@ -1011,8 +1013,11 @@ void CopyEffects::copy_cubemap_to_dp(RID p_source_rd_texture, RID p_dst_framebuf
 	screen_rect.size.height = (int32_t)(Math::round(p_dst_size.height));
 
 	CopyToDPPushConstant push_constant;
+	push_constant.proj_zw[0][0] = p_projection[2][2];
+	push_constant.proj_zw[0][1] = p_projection[2][3];
+	push_constant.proj_zw[1][0] = p_projection[3][2];
+	push_constant.proj_zw[1][1] = p_projection[3][3];
 	push_constant.z_far = p_z_far;
-	push_constant.z_near = p_z_near;
 	push_constant.texel_size[0] = 1.0f / p_dst_size.width;
 	push_constant.texel_size[1] = 1.0f / p_dst_size.height;
 	push_constant.texel_size[0] *= p_dp_flip ? -1.0f : 1.0f; // Encode dp flip as x size sign

@@ -487,19 +487,10 @@ void SSEffects::downsample_depth(Ref<RenderSceneBuffersRD> p_render_buffers, uin
 	correction.set_depth_correction(false);
 	Projection temp = correction * p_projection;
 
-	float depth_linearize_mul = -temp.columns[3][2];
-	float depth_linearize_add = temp.columns[2][2];
-	if (depth_linearize_mul * depth_linearize_add < 0) {
-		depth_linearize_add = -depth_linearize_add;
-	}
-
-	ss_effects.downsample_push_constant.orthogonal = p_projection.is_orthogonal();
-	ss_effects.downsample_push_constant.z_near = depth_linearize_mul;
-	ss_effects.downsample_push_constant.z_far = depth_linearize_add;
-	if (ss_effects.downsample_push_constant.orthogonal) {
-		ss_effects.downsample_push_constant.z_near = p_projection.get_z_near();
-		ss_effects.downsample_push_constant.z_far = p_projection.get_z_far();
-	}
+	ss_effects.downsample_push_constant.proj_zw[0][0] = temp[2][2];
+	ss_effects.downsample_push_constant.proj_zw[0][1] = temp[2][3];
+	ss_effects.downsample_push_constant.proj_zw[1][0] = temp[3][2];
+	ss_effects.downsample_push_constant.proj_zw[1][1] = temp[3][3];
 	ss_effects.downsample_push_constant.pixel_size[0] = 1.0 / full_screen_size.x;
 	ss_effects.downsample_push_constant.pixel_size[1] = 1.0 / full_screen_size.y;
 	ss_effects.downsample_push_constant.radius_sq = 1.0;
@@ -692,8 +683,10 @@ void SSEffects::screen_space_indirect_lighting(Ref<RenderSceneBuffersRD> p_rende
 		ssil.gather_push_constant.NDC_to_view_mul[1] = tan_half_fov_y * -2.0;
 		ssil.gather_push_constant.NDC_to_view_add[0] = tan_half_fov_x * -1.0;
 		ssil.gather_push_constant.NDC_to_view_add[1] = tan_half_fov_y;
-		ssil.gather_push_constant.z_near = p_projection.get_z_near();
-		ssil.gather_push_constant.z_far = p_projection.get_z_far();
+		ssil.gather_push_constant.proj_zw[0][0] = p_projection[2][2];
+		ssil.gather_push_constant.proj_zw[0][1] = p_projection[2][3];
+		ssil.gather_push_constant.proj_zw[1][0] = p_projection[3][2];
+		ssil.gather_push_constant.proj_zw[1][1] = p_projection[3][3];
 		ssil.gather_push_constant.is_orthogonal = p_projection.is_orthogonal();
 
 		ssil.gather_push_constant.radius = p_settings.radius;
@@ -1424,10 +1417,13 @@ void SSEffects::screen_space_reflection(Ref<RenderSceneBuffersRD> p_render_buffe
 		{ //scale color and depth to half
 			RD::get_singleton()->draw_command_begin_label("SSR Scale");
 
+			Projection correction = Projection::create_depth_correction(false);
+			Projection corrected = correction * p_projections[v];
 			ScreenSpaceReflectionScalePushConstant push_constant;
-			push_constant.view_index = v;
-			push_constant.camera_z_far = p_projections[v].get_z_far();
-			push_constant.camera_z_near = p_projections[v].get_z_near();
+			push_constant.proj_zw[0][0] = corrected[2][2];
+			push_constant.proj_zw[0][1] = corrected[2][3];
+			push_constant.proj_zw[1][0] = corrected[3][2];
+			push_constant.proj_zw[1][1] = corrected[3][3];
 			push_constant.orthogonal = p_projections[v].is_orthogonal();
 			push_constant.filter = false; // Enabling causes artifacts.
 			push_constant.screen_size[0] = p_ssr_buffers.size.x;
@@ -1638,12 +1634,17 @@ void SSEffects::sub_surface_scattering(Ref<RenderSceneBuffersRD> p_render_buffer
 	p.normal /= p.d;
 	float unit_size = p.normal.x;
 
+	Projection correction;
+	correction.set_depth_correction(false);
+	Projection temp = correction * p_camera;
+
 	{ //scale color and depth to half
 		RD::ComputeListID compute_list = RD::get_singleton()->compute_list_begin();
 
-		sss.push_constant.camera_z_far = p_camera.get_z_far();
-		sss.push_constant.camera_z_near = p_camera.get_z_near();
-		sss.push_constant.orthogonal = p_camera.is_orthogonal();
+		sss.push_constant.proj_zw[0][0] = temp[2][2];
+		sss.push_constant.proj_zw[0][1] = temp[2][3];
+		sss.push_constant.proj_zw[1][0] = temp[3][2];
+		sss.push_constant.proj_zw[1][1] = temp[3][3];
 		sss.push_constant.unit_size = unit_size;
 		sss.push_constant.screen_size[0] = p_screen_size.x;
 		sss.push_constant.screen_size[1] = p_screen_size.y;

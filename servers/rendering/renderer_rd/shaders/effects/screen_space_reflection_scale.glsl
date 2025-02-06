@@ -20,12 +20,10 @@ layout(rgba8, set = 3, binding = 1) uniform restrict writeonly image2D dest_norm
 
 layout(push_constant, std430) uniform Params {
 	ivec2 screen_size;
-	float camera_z_near;
-	float camera_z_far;
-
 	bool orthogonal;
 	bool filtered;
-	uint pad[2];
+
+	mat2 proj_zw; // Bottom-right 2x2 corner of the projection matrix with reverse-z and z-remap applied
 }
 params;
 
@@ -71,14 +69,8 @@ void main() {
 				// we're doing a full unproject so we need the value as is.
 				depth += d;
 			} else {
-				// unproject our Z value so we can use it directly.
-				d = d * 2.0 - 1.0;
-				if (params.orthogonal) {
-					d = ((d + (params.camera_z_far + params.camera_z_near) / (params.camera_z_far - params.camera_z_near)) * (params.camera_z_far - params.camera_z_near)) / 2.0;
-				} else {
-					d = 2.0 * params.camera_z_near * params.camera_z_far / (params.camera_z_far + params.camera_z_near - d * (params.camera_z_far - params.camera_z_near));
-				}
-				depth += -d;
+				d = (params.proj_zw[1][0] - params.proj_zw[1][1] * d) / (params.proj_zw[0][1] * d - params.proj_zw[0][0]);
+				depth += d;
 			}
 		}
 
@@ -96,13 +88,7 @@ void main() {
 
 		if (!sc_multiview) {
 			// unproject our Z value so we can use it directly.
-			depth = depth * 2.0 - 1.0;
-			if (params.orthogonal) {
-				depth = -(depth * (params.camera_z_far - params.camera_z_near) - (params.camera_z_far + params.camera_z_near)) / 2.0;
-			} else {
-				depth = 2.0 * params.camera_z_near * params.camera_z_far / (params.camera_z_far + params.camera_z_near + depth * (params.camera_z_far - params.camera_z_near));
-			}
-			depth = -depth;
+			depth = (params.proj_zw[1][0] - params.proj_zw[1][1] * depth) / (params.proj_zw[0][1] * depth - params.proj_zw[0][0]);
 		}
 	}
 
