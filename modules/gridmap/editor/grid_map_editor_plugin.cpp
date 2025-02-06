@@ -1864,6 +1864,7 @@ void GridMapEditorPlugin::set_selected_palette_item(int p_item) const {
 		}
 		if (p_item != grid_map_editor->selected_palette) {
 			grid_map_editor->selected_palette = p_item;
+			grid_map_editor->_update_cursor_instance();
 			grid_map_editor->update_palette();
 		}
 	}
