@@ -1568,7 +1568,9 @@ Error EditorExportPlatform::export_project_files(const Ref<EditorExportPreset> &
 	}
 
 	Dictionary int_export = get_internal_export_files(p_preset, p_debug);
-	for (const Variant &int_name : int_export.keys()) {
+	List<Variant> keys;
+	int_export.get_key_list(&keys);
+	for (const Variant &int_name : keys) {
 		const PackedByteArray &array = int_export[int_name];
 		err = save_proxy.save_file(p_udata, int_name, array, idx, total, enc_in_filters, enc_ex_filters, key, seed);
 		if (err != OK) {

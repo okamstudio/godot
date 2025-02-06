@@ -2872,9 +2872,10 @@ Node *ResourceImporterScene::pre_import(const String &p_source_file, const HashM
 }
 
 Error ResourceImporterScene::_check_resource_save_paths(const Dictionary &p_data) {
-	Array keys = p_data.keys();
-	for (int i = 0; i < keys.size(); i++) {
-		const Dictionary &settings = p_data[keys[i]];
+	List<Variant> keys;
+	p_data.get_key_list(&keys);
+	for (const Variant &key : keys) {
+		const Dictionary &settings = p_data[key];
 
 		if (bool(settings.get("save_to_file/enabled", false)) && settings.has("save_to_file/path")) {
 			const String save_path = ResourceUID::ensure_path(settings["save_to_file/path"]);

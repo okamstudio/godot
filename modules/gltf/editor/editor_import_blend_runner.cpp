@@ -94,9 +94,9 @@ bpy.ops.export_scene.gltf(**opts['gltf_options'])
 
 String dict_to_python(const Dictionary &p_dict) {
 	String entries;
-	Array dict_keys = p_dict.keys();
-	for (int i = 0; i < dict_keys.size(); i++) {
-		const String key = dict_keys[i];
+	List<Variant> dict_keys;
+	p_dict.get_key_list(&dict_keys);
+	for (const String key : dict_keys) {
 		String value;
 		Variant raw_value = p_dict[key];
 
@@ -127,9 +127,9 @@ String dict_to_python(const Dictionary &p_dict) {
 
 String dict_to_xmlrpc(const Dictionary &p_dict) {
 	String members;
-	Array dict_keys = p_dict.keys();
-	for (int i = 0; i < dict_keys.size(); i++) {
-		const String key = dict_keys[i];
+	List<Variant> dict_keys;
+	p_dict.get_key_list(&dict_keys);
+	for (const String key : dict_keys) {
 		String value;
 		Variant raw_value = p_dict[key];
 

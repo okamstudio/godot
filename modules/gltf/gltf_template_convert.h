@@ -85,9 +85,10 @@ static Dictionary to_dictionary(const HashMap<K, V> &p_inp) {
 template <typename K, typename V>
 static void set_from_dictionary(HashMap<K, V> &r_out, const Dictionary &p_inp) {
 	r_out.clear();
-	Array keys = p_inp.keys();
-	for (int i = 0; i < keys.size(); i++) {
-		r_out[keys[i]] = p_inp[keys[i]];
+	List<Variant> keys;
+	p_inp.get_key_list(&keys);
+	for (const Variant &key : keys) {
+		r_out[key] = p_inp[key];
 	}
 }
 } //namespace GLTFTemplateConvert
