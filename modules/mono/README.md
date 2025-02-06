@@ -20,7 +20,7 @@ MSBuild project SDK as NuGet packages. This is all transparent to the user,
 but it can make things complicated during development.
 
 In order to use Godot with a development of those packages, we must create
-a local NuGet source where MSBuild can find them. This can be  done with
+a local NuGet source where MSBuild can find them. This can be done with
 the .NET CLI:
 
 ```sh
@@ -28,7 +28,7 @@ dotnet nuget add source ~/MyLocalNugetSource --name MyLocalNugetSource
 ```
 
 The Godot NuGet packages must be added to that local source. Additionally,
-we must  make sure there are no other versions of the package in the NuGet
+we must make sure there are no other versions of the package in the NuGet
 cache, as MSBuild may pick one of those instead.
 
 In order to simplify this process, the `build_assemblies.py` script provides
