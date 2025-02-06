@@ -244,12 +244,17 @@ class ScriptEditor : public PanelContainer {
 		FILE_NEW,
 		FILE_NEW_TEXTFILE,
 		FILE_OPEN,
+		FILE_OPEN_INTERNAL,
 		FILE_REOPEN_CLOSED,
 		FILE_OPEN_RECENT,
 		FILE_SAVE,
 		FILE_SAVE_AS,
 		FILE_SAVE_ALL,
 		FILE_THEME,
+		THEME_IMPORT,
+		THEME_RELOAD,
+		THEME_SAVE,
+		THEME_SAVE_AS,
 		FILE_RUN,
 		FILE_CLOSE,
 		CLOSE_DOCS,
@@ -273,13 +278,6 @@ class ScriptEditor : public PanelContainer {
 		WINDOW_PREV,
 		WINDOW_SORT,
 		WINDOW_SELECT_BASE = 100,
-	};
-
-	enum {
-		THEME_IMPORT,
-		THEME_RELOAD,
-		THEME_SAVE,
-		THEME_SAVE_AS
 	};
 
 	enum ScriptSortBy {
@@ -553,14 +551,14 @@ public:
 	void reload_scripts(bool p_refresh_only = false);
 	void open_script_create_dialog(const String &p_base_name, const String &p_base_path);
 	void open_text_file_create_dialog(const String &p_base_path, const String &p_base_name = "");
-	Ref<Resource> open_file(const String &p_file);
+	Ref<Resource> open_file(const String &p_file, bool p_force_internal_editor = false);
 
 	void ensure_select_current();
 
 	bool is_editor_floating();
 
-	_FORCE_INLINE_ bool edit(const Ref<Resource> &p_resource, bool p_grab_focus = true) { return edit(p_resource, -1, 0, p_grab_focus); }
-	bool edit(const Ref<Resource> &p_resource, int p_line, int p_col, bool p_grab_focus = true);
+	_FORCE_INLINE_ bool edit(const Ref<Resource> &p_resource, bool p_grab_focus = true, bool p_force_builtin_editor = false) { return edit(p_resource, -1, 0, p_grab_focus, p_force_builtin_editor); }
+	bool edit(const Ref<Resource> &p_resource, int p_line, int p_col, bool p_grab_focus = true, bool p_force_builtin_editor = false);
 
 	Vector<String> _get_breakpoints();
 	void get_breakpoints(List<String> *p_breakpoints);
