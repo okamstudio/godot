@@ -581,10 +581,11 @@ public:
 
 	enum ConnectFlags {
 		CONNECT_DEFERRED = 1,
-		CONNECT_PERSIST = 2, // hint for scene to save this connection
+		CONNECT_PERSIST = 2, // Hint for scene to save this connection
 		CONNECT_ONE_SHOT = 4,
 		CONNECT_REFERENCE_COUNTED = 8,
 		CONNECT_INHERITED = 16, // Used in editor builds.
+		CONNECT_APPEND_SOURCE_OBJECT = 32, // Hint for the connection dialog to append the source object as the last call argument.
 	};
 
 	struct Connection {

@@ -1160,5 +1160,8 @@
 		<constant name="CONNECT_REFERENCE_COUNTED" value="8" enum="ConnectFlags">
 			Reference-counted connections can be assigned to the same [Callable] multiple times. Each disconnection decreases the internal counter. The signal fully disconnects only when the counter reaches 0.
 		</constant>
+		<constant name="CONNECT_APPEND_SOURCE_OBJECT" value="32" enum="ConnectFlags">
+			Automatically sends the source object when emitting the signal. Mainly used to improve the usability of the connection dialog. If this flag bit is enabled, the source object will be appended right after the original arguments of the signal.
+		</constant>
 	</constants>
 </class>
