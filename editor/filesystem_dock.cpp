@@ -4005,8 +4005,20 @@ void FileSystemDock::_load_layout_from_config(Ref<ConfigFile> p_layout, const St
 
 	if (p_layout->has_section_key(p_section, "dock_filesystem_selected_paths")) {
 		PackedStringArray dock_filesystem_selected_paths = p_layout->get_value(p_section, "dock_filesystem_selected_paths");
+		PackedStringArray dock_filesystem_really_selected_paths;
+		bool dock_filesystem_selected_paths_changed = false;
+		Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_RESOURCES);
 		for (int i = 0; i < dock_filesystem_selected_paths.size(); i++) {
-			select_file(dock_filesystem_selected_paths[i]);
+			auto p_path = dock_filesystem_selected_paths[i];
+			if (da->file_exists(p_path) || da->dir_exists(p_path)) {
+				select_file(p_path);
+				dock_filesystem_really_selected_paths.push_back(p_path);
+			} else {
+				dock_filesystem_selected_paths_changed = true;
+			}
+		}
+		if (dock_filesystem_selected_paths_changed) {
+			p_layout->set_value(p_section, "dock_filesystem_selected_paths", dock_filesystem_really_selected_paths);
 		}
 	}
 
