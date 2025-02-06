@@ -164,11 +164,11 @@ private:
 	bool glow_enabled = false;
 	Vector<float> glow_levels;
 	bool glow_normalize_levels = false;
-	float glow_intensity = 0.8;
+	float glow_intensity = 0.3;
 	float glow_strength = 1.0;
 	float glow_mix = 0.05;
 	float glow_bloom = 0.0;
-	GlowBlendMode glow_blend_mode = GLOW_BLEND_MODE_SOFTLIGHT;
+	GlowBlendMode glow_blend_mode = GLOW_BLEND_MODE_SCREEN;
 	float glow_hdr_bleed_threshold = 1.0;
 	float glow_hdr_bleed_scale = 2.0;
 	float glow_hdr_luminance_cap = 12.0;

@@ -124,7 +124,7 @@
 		<member name="fog_sun_scatter" type="float" setter="set_fog_sun_scatter" getter="get_fog_sun_scatter" default="0.0">
 			If set above [code]0.0[/code], renders the scene's directional light(s) in the fog color depending on the view angle. This can be used to give the impression that the sun is "piercing" through the fog.
 		</member>
-		<member name="glow_blend_mode" type="int" setter="set_glow_blend_mode" getter="get_glow_blend_mode" enum="Environment.GlowBlendMode" default="2">
+		<member name="glow_blend_mode" type="int" setter="set_glow_blend_mode" getter="get_glow_blend_mode" enum="Environment.GlowBlendMode" default="1">
 			The glow blending mode.
 			[b]Note:[/b] [member glow_blend_mode] has no effect when using the Compatibility rendering method, due to this rendering method using a simpler glow implementation optimized for low-end devices.
 		</member>
@@ -145,26 +145,26 @@
 		<member name="glow_hdr_threshold" type="float" setter="set_glow_hdr_bleed_threshold" getter="get_glow_hdr_bleed_threshold" default="1.0">
 			The lower threshold of the HDR glow. When using the Mobile rendering method (which only supports a lower dynamic range up to [code]2.0[/code]), this may need to be below [code]1.0[/code] for glow to be visible. A value of [code]0.9[/code] works well in this case. This value also needs to be decreased below [code]1.0[/code] when using glow in 2D, as 2D rendering is performed in SDR.
 		</member>
-		<member name="glow_intensity" type="float" setter="set_glow_intensity" getter="get_glow_intensity" default="0.8">
-			The overall brightness multiplier of the glow effect. When using the Mobile rendering method (which only supports a lower dynamic range up to [code]2.0[/code]), this should be increased to [code]1.5[/code] to compensate.
+		<member name="glow_intensity" type="float" setter="set_glow_intensity" getter="get_glow_intensity" default="0.3">
+			The overall brightness multiplier of the glow effect. When using the Mobile rendering method (which only supports a lower dynamic range up to [code]2.0[/code]), this should be increased to [code]0.6[/code] to compensate.
 		</member>
-		<member name="glow_levels/1" type="float" setter="set_glow_level" getter="get_glow_level" default="0.0">
+		<member name="glow_levels/1" type="float" setter="set_glow_level" getter="get_glow_level" default="1.0">
 			The intensity of the 1st level of glow. This is the most "local" level (least blurry).
 			[b]Note:[/b] [member glow_levels/1] has no effect when using the Compatibility rendering method, due to this rendering method using a simpler glow implementation optimized for low-end devices.
 		</member>
-		<member name="glow_levels/2" type="float" setter="set_glow_level" getter="get_glow_level" default="0.0">
+		<member name="glow_levels/2" type="float" setter="set_glow_level" getter="get_glow_level" default="0.8">
 			The intensity of the 2nd level of glow.
 			[b]Note:[/b] [member glow_levels/2] has no effect when using the Compatibility rendering method, due to this rendering method using a simpler glow implementation optimized for low-end devices.
 		</member>
-		<member name="glow_levels/3" type="float" setter="set_glow_level" getter="get_glow_level" default="1.0">
+		<member name="glow_levels/3" type="float" setter="set_glow_level" getter="get_glow_level" default="0.4">
 			The intensity of the 3rd level of glow.
 			[b]Note:[/b] [member glow_levels/3] has no effect when using the Compatibility rendering method, due to this rendering method using a simpler glow implementation optimized for low-end devices.
 		</member>
-		<member name="glow_levels/4" type="float" setter="set_glow_level" getter="get_glow_level" default="0.0">
+		<member name="glow_levels/4" type="float" setter="set_glow_level" getter="get_glow_level" default="0.1">
 			The intensity of the 4th level of glow.
 			[b]Note:[/b] [member glow_levels/4] has no effect when using the Compatibility rendering method, due to this rendering method using a simpler glow implementation optimized for low-end devices.
 		</member>
-		<member name="glow_levels/5" type="float" setter="set_glow_level" getter="get_glow_level" default="1.0">
+		<member name="glow_levels/5" type="float" setter="set_glow_level" getter="get_glow_level" default="0.0">
 			The intensity of the 5th level of glow.
 			[b]Note:[/b] [member glow_levels/5] has no effect when using the Compatibility rendering method, due to this rendering method using a simpler glow implementation optimized for low-end devices.
 		</member>

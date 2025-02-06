@@ -99,11 +99,11 @@ private:
 		// Glow
 		bool glow_enabled = false;
 		Vector<float> glow_levels;
-		float glow_intensity = 0.8;
+		float glow_intensity = 0.3;
 		float glow_strength = 1.0;
 		float glow_bloom = 0.0;
 		float glow_mix = 0.01;
-		RS::EnvironmentGlowBlendMode glow_blend_mode = RS::ENV_GLOW_BLEND_MODE_SOFTLIGHT;
+		RS::EnvironmentGlowBlendMode glow_blend_mode = RS::ENV_GLOW_BLEND_MODE_SCREEN;
 		float glow_hdr_bleed_threshold = 1.0;
 		float glow_hdr_luminance_cap = 12.0;
 		float glow_hdr_bleed_scale = 2.0;

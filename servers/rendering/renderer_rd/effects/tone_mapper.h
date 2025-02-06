@@ -114,10 +114,10 @@ public:
 			GLOW_MODE_MIX
 		};
 
-		GlowMode glow_mode = GLOW_MODE_ADD;
-		float glow_intensity = 1.0;
+		GlowMode glow_mode = GLOW_MODE_SCREEN;
+		float glow_intensity = 0.3;
 		float glow_map_strength = 0.0f;
-		float glow_levels[7] = { 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0 };
+		float glow_levels[7] = { 1.0, 0.8, 0.4, 0.1, 0.0, 0.0, 0.0 };
 		Vector2i glow_texture_size;
 		bool glow_use_bicubic_upscale = false;
 		RID glow_texture;

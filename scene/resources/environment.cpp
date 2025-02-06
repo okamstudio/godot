@@ -1436,7 +1436,7 @@ void Environment::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "glow_strength", PROPERTY_HINT_RANGE, "0.0,2.0,0.01"), "set_glow_strength", "get_glow_strength");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "glow_mix", PROPERTY_HINT_RANGE, "0.0,1.0,0.001"), "set_glow_mix", "get_glow_mix");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "glow_bloom", PROPERTY_HINT_RANGE, "0.0,1.0,0.01"), "set_glow_bloom", "get_glow_bloom");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "glow_blend_mode", PROPERTY_HINT_ENUM, "Additive,Screen,Softlight,Replace,Mix"), "set_glow_blend_mode", "get_glow_blend_mode");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "glow_blend_mode", PROPERTY_HINT_ENUM, "Additive,Screen,Soft Light,Replace,Mix"), "set_glow_blend_mode", "get_glow_blend_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "glow_hdr_threshold", PROPERTY_HINT_RANGE, "0.0,4.0,0.01"), "set_glow_hdr_bleed_threshold", "get_glow_hdr_bleed_threshold");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "glow_hdr_scale", PROPERTY_HINT_RANGE, "0.0,4.0,0.01"), "set_glow_hdr_bleed_scale", "get_glow_hdr_bleed_scale");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "glow_hdr_luminance_cap", PROPERTY_HINT_RANGE, "0.0,256.0,0.01"), "set_glow_hdr_luminance_cap", "get_glow_hdr_luminance_cap");
@@ -1603,11 +1603,11 @@ Environment::Environment() {
 	set_camera_feed_id(bg_camera_feed_id);
 
 	glow_levels.resize(7);
-	glow_levels.write[0] = 0.0;
-	glow_levels.write[1] = 0.0;
-	glow_levels.write[2] = 1.0;
-	glow_levels.write[3] = 0.0;
-	glow_levels.write[4] = 1.0;
+	glow_levels.write[0] = 1.0;
+	glow_levels.write[1] = 0.8;
+	glow_levels.write[2] = 0.4;
+	glow_levels.write[3] = 0.1;
+	glow_levels.write[4] = 0.0;
 	glow_levels.write[5] = 0.0;
 	glow_levels.write[6] = 0.0;
 
