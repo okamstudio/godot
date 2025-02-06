@@ -45,6 +45,7 @@ public:
 	void set_search_text(const String &p_pattern);
 	void set_whole_words(bool p_whole_word);
 	void set_match_case(bool p_match_case);
+	void set_include_addons(bool p_include_addons);
 	void set_folder(const String &folder);
 	void set_filter(const HashSet<String> &exts);
 
@@ -52,6 +53,7 @@ public:
 
 	bool is_whole_words() const { return _whole_words; }
 	bool is_match_case() const { return _match_case; }
+	bool is_include_addons() const { return _include_addons; }
 
 	void start();
 	void stop();
@@ -76,6 +78,7 @@ private:
 	String _root_dir;
 	bool _whole_words = true;
 	bool _match_case = true;
+	bool _include_addons = false;
 
 	// State
 	bool _searching = false;
@@ -114,19 +117,19 @@ public:
 	String get_replace_text() const;
 	bool is_match_case() const;
 	bool is_whole_words() const;
+	bool is_include_addons() const;
 	String get_folder() const;
 	HashSet<String> get_filter() const;
 
 protected:
 	void _notification(int p_what);
 
-	void _visibility_changed();
 	void custom_action(const String &p_action) override;
 	static void _bind_methods();
 
 private:
 	void _on_folder_button_pressed();
-	void _on_folder_selected(String path);
+	void _on_folder_selected(String path, bool p_update_text_field);
 	void _on_search_text_modified(const String &text);
 	void _on_search_text_submitted(const String &text);
 	void _on_replace_text_submitted(const String &text);
@@ -140,6 +143,7 @@ private:
 	LineEdit *_folder_line_edit = nullptr;
 	CheckBox *_match_case_checkbox = nullptr;
 	CheckBox *_whole_words_checkbox = nullptr;
+	CheckBox *_include_addons_checkbox = nullptr;
 	Button *_find_button = nullptr;
 	Button *_replace_button = nullptr;
 	FileDialog *_folder_dialog = nullptr;

@@ -95,6 +95,10 @@ void FindInFiles::set_match_case(bool p_match_case) {
 	_match_case = p_match_case;
 }
 
+void FindInFiles::set_include_addons(bool p_include_addons) {
+	_include_addons = p_include_addons;
+}
+
 void FindInFiles::set_folder(const String &folder) {
 	_root_dir = folder;
 }
@@ -167,6 +171,10 @@ void FindInFiles::_iterate() {
 
 			String folder_name = folders_to_scan[folders_to_scan.size() - 1];
 			pop_back(folders_to_scan);
+
+			if (!_include_addons && _current_dir == "" && folder_name == "addons") {
+				return;
+			}
 
 			_current_dir = _current_dir.path_join(folder_name);
 
@@ -352,7 +360,12 @@ FindInFilesDialog::FindInFilesDialog() {
 
 	Label *folder_label = memnew(Label);
 	folder_label->set_text(TTR("Folder:"));
+	folder_label->set_v_size_flags(Control::SIZE_FILL);
+	folder_label->set_vertical_alignment(VERTICAL_ALIGNMENT_TOP);
 	gc->add_child(folder_label);
+
+	VBoxContainer *vbc_folder = memnew(VBoxContainer);
+	gc->add_child(vbc_folder);
 
 	{
 		HBoxContainer *hbc = memnew(HBoxContainer);
@@ -363,6 +376,7 @@ FindInFilesDialog::FindInFilesDialog() {
 
 		_folder_line_edit = memnew(LineEdit);
 		_folder_line_edit->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+		_folder_line_edit->connect(SceneStringName(text_changed), callable_mp(this, &FindInFilesDialog::_on_folder_selected).bind(false));
 		hbc->add_child(_folder_line_edit);
 
 		Button *folder_button = memnew(Button);
@@ -372,11 +386,17 @@ FindInFilesDialog::FindInFilesDialog() {
 
 		_folder_dialog = memnew(FileDialog);
 		_folder_dialog->set_file_mode(FileDialog::FILE_MODE_OPEN_DIR);
-		_folder_dialog->connect("dir_selected", callable_mp(this, &FindInFilesDialog::_on_folder_selected));
+		_folder_dialog->connect(SNAME("dir_selected"), callable_mp(this, &FindInFilesDialog::_on_folder_selected).bind(true));
 		add_child(_folder_dialog);
 
-		gc->add_child(hbc);
+		vbc_folder->add_child(hbc);
 	}
+
+	_include_addons_checkbox = memnew(CheckBox);
+	_include_addons_checkbox->set_pressed(true);
+	_include_addons_checkbox->set_text(TTR("Include addons folder"));
+	_include_addons_checkbox->set_tooltip_text(TTR("Include the files from addons folder."));
+	vbc_folder->add_child(_include_addons_checkbox);
 
 	Label *filter_label = memnew(Label);
 	filter_label->set_text(TTR("Filters:"));
@@ -458,6 +478,10 @@ bool FindInFilesDialog::is_match_case() const {
 
 bool FindInFilesDialog::is_whole_words() const {
 	return _whole_words_checkbox->is_pressed();
+}
+
+bool FindInFilesDialog::is_include_addons() const {
+	return _include_addons_checkbox->is_pressed() || !_folder_line_edit->get_text().is_empty();
 }
 
 String FindInFilesDialog::get_folder() const {
@@ -551,12 +575,16 @@ void FindInFilesDialog::_on_replace_text_submitted(const String &text) {
 	}
 }
 
-void FindInFilesDialog::_on_folder_selected(String path) {
+void FindInFilesDialog::_on_folder_selected(String path, bool p_update_text_field) {
 	int i = path.find("://");
 	if (i != -1) {
 		path = path.substr(i + 3);
 	}
-	_folder_line_edit->set_text(path);
+	if (p_update_text_field) {
+		_folder_line_edit->set_text(path);
+	}
+
+	_include_addons_checkbox->set_disabled(!path.is_empty());
 }
 
 void FindInFilesDialog::_bind_methods() {
