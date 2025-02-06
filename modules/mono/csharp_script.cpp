@@ -1024,6 +1024,10 @@ Error CSharpLanguage::open_in_external_editor(const Ref<Script> &p_script, int p
 bool CSharpLanguage::overrides_external_editor() {
 	return get_godotsharp_editor()->call("OverridesExternalEditor");
 }
+
+bool CSharpLanguage::supports_documentation() const {
+	return true;
+}
 #endif
 
 bool CSharpLanguage::debug_break_parse(const String &p_file, int p_line, const String &p_error) {
@@ -2100,6 +2104,56 @@ void GD_CLR_STDCALL CSharpScript::_add_property_default_values_callback(CSharpSc
 		p_script->exported_members_defval_cache[name] = value;
 	}
 }
+
+void CSharpScript::get_docs(Ref<CSharpScript> p_script) {
+	Dictionary class_doc_dict;
+	class_doc_dict.~Dictionary();
+
+	GDMonoCache::managed_callbacks.ScriptManagerBridge_GetDocs(p_script.ptr(), &class_doc_dict);
+
+	p_script->docs.clear();
+
+	if (class_doc_dict.is_empty()) {
+		// Script has no docs.
+		return;
+	}
+
+	String inherits;
+	Ref<CSharpScript> base = p_script->get_base_script();
+	if (base.is_null()) {
+		// Must be a native base type.
+		inherits = p_script->get_instance_base_type();
+	} else {
+		inherits = base->get_global_name();
+		if (inherits == StringName()) {
+			inherits = base->get_path();
+		}
+	}
+
+	DocData::ClassDoc class_doc = DocData::ClassDoc();
+	class_doc.inherits = inherits;
+	class_doc.name = class_doc_dict["name"];
+	class_doc.brief_description = class_doc_dict["description"];
+	class_doc.is_script_doc = true;
+
+	Array property_docs_dict = class_doc_dict["properties"];
+	for (Dictionary property_doc_dict : property_docs_dict) {
+		DocData::PropertyDoc prop_doc;
+		prop_doc.name = property_doc_dict["name"];
+		prop_doc.description = property_doc_dict["description"];
+		class_doc.properties.push_back(prop_doc);
+	}
+
+	Array signals_docs_dict = class_doc_dict["signals"];
+	for (Dictionary signals_doc_dict : signals_docs_dict) {
+		DocData::MethodDoc signal_doc;
+		signal_doc.name = signals_doc_dict["name"];
+		signal_doc.description = signals_doc_dict["description"];
+		class_doc.signals.push_back(signal_doc);
+	}
+
+	p_script->docs.append(class_doc);
+}
 #endif
 
 bool CSharpScript::_update_exports(PlaceHolderScriptInstance *p_instance_to_update) {
@@ -2120,7 +2174,11 @@ bool CSharpScript::_update_exports(PlaceHolderScriptInstance *p_instance_to_upda
 #endif
 	{
 #ifdef TOOLS_ENABLED
-		exports_invalidated = false;
+		if (!get_path().is_empty()) {
+			// If the script doesn't have a path we can't properly add the CATEGORY PropertyInfo,
+			// so we keep the exports invalidated so the next update can fix them.
+			exports_invalidated = false;
+		}
 #endif
 
 		changed = true;
@@ -2223,6 +2281,15 @@ void CSharpScript::reload_registered_script(Ref<CSharpScript> p_script) {
 	p_script->_update_exports();
 
 #ifdef TOOLS_ENABLED
+	get_docs(p_script);
+	Vector<DocData::ClassDoc> docs = p_script->docs;
+	// At this point, `EditorFileSystem::_update_script_documentation()` cannot be triggered.
+	if (EditorHelp::get_doc_data()) {
+		for (int i = 0; i < docs.size(); i++) {
+			EditorHelp::get_doc_data()->add_doc(docs[i]);
+		}
+	}
+
 	// If the EditorFileSystem singleton is available, update the file;
 	// otherwise, the file will be updated when the singleton becomes available.
 	EditorFileSystem *efs = EditorFileSystem::get_singleton();
@@ -2601,6 +2668,8 @@ Error CSharpScript::reload(bool p_keep_state) {
 		_update_exports();
 
 #ifdef TOOLS_ENABLED
+		get_docs(this);
+
 		// If the EditorFileSystem singleton is available, update the file;
 		// otherwise, the file will be updated when the singleton becomes available.
 		EditorFileSystem *efs = EditorFileSystem::get_singleton();

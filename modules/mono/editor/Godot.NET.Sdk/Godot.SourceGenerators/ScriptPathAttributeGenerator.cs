@@ -185,7 +185,7 @@ namespace Godot.SourceGenerators
         {
         }
 
-        private static string RelativeToDir(string path, string dir)
+        public static string RelativeToDir(string path, string dir)
         {
             // Make sure the directory ends with a path separator
             dir = Path.Combine(dir, " ").TrimEnd();

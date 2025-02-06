@@ -198,6 +198,8 @@ private:
 	bool exports_invalidated = true;
 	void _update_exports_values(HashMap<StringName, Variant> &values, List<PropertyInfo> &propnames);
 	void _placeholder_erased(PlaceHolderScriptInstance *p_placeholder) override;
+
+	Vector<DocData::ClassDoc> docs;
 #endif
 
 #if defined(TOOLS_ENABLED) || defined(DEBUG_ENABLED)
@@ -211,6 +213,7 @@ private:
 	static void GD_CLR_STDCALL _add_property_info_list_callback(CSharpScript *p_script, const String *p_current_class_name, void *p_props, int32_t p_count);
 #ifdef TOOLS_ENABLED
 	static void GD_CLR_STDCALL _add_property_default_values_callback(CSharpScript *p_script, void *p_def_vals, int32_t p_count);
+	static void get_docs(Ref<CSharpScript> p_script);
 #endif
 	bool _update_exports(PlaceHolderScriptInstance *p_instance_to_update = nullptr);
 
@@ -245,8 +248,6 @@ public:
 #ifdef TOOLS_ENABLED
 	virtual StringName get_doc_class_name() const override { return StringName(); } // TODO
 	virtual Vector<DocData::ClassDoc> get_documentation() const override {
-		// TODO
-		Vector<DocData::ClassDoc> docs;
 		return docs;
 	}
 	virtual String get_class_icon_path() const override {
@@ -573,6 +574,7 @@ public:
 #ifdef TOOLS_ENABLED
 	Error open_in_external_editor(const Ref<Script> &p_script, int p_line, int p_col) override;
 	bool overrides_external_editor() override;
+	virtual bool supports_documentation() const override;
 #endif
 
 	RBMap<Object *, CSharpScriptBinding>::Element *insert_script_binding(Object *p_object, const CSharpScriptBinding &p_script_binding);

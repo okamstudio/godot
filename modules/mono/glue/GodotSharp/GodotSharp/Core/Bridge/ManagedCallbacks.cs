@@ -28,6 +28,7 @@ namespace Godot.Bridge
         public delegate* unmanaged<IntPtr, void> ScriptManagerBridge_RemoveScriptBridge;
         public delegate* unmanaged<IntPtr, godot_bool> ScriptManagerBridge_TryReloadRegisteredScriptWithClass;
         public delegate* unmanaged<IntPtr, godot_csharp_type_info*, godot_array*, godot_dictionary*, godot_dictionary*, godot_ref*, void> ScriptManagerBridge_UpdateScriptClassInfo;
+        public delegate* unmanaged<IntPtr, godot_dictionary*, void> ScriptManagerBridge_GetDocs;
         public delegate* unmanaged<IntPtr, IntPtr*, godot_bool, godot_bool> ScriptManagerBridge_SwapGCHandleForType;
         public delegate* unmanaged<IntPtr, delegate* unmanaged<IntPtr, godot_string*, void*, int, void>, void> ScriptManagerBridge_GetPropertyInfoList;
         public delegate* unmanaged<IntPtr, delegate* unmanaged<IntPtr, void*, int, void>, void> ScriptManagerBridge_GetPropertyDefaultValues;
@@ -72,6 +73,7 @@ namespace Godot.Bridge
                 ScriptManagerBridge_RemoveScriptBridge = &ScriptManagerBridge.RemoveScriptBridge,
                 ScriptManagerBridge_TryReloadRegisteredScriptWithClass = &ScriptManagerBridge.TryReloadRegisteredScriptWithClass,
                 ScriptManagerBridge_UpdateScriptClassInfo = &ScriptManagerBridge.UpdateScriptClassInfo,
+                ScriptManagerBridge_GetDocs = &ScriptManagerBridge.GetDocs,
                 ScriptManagerBridge_SwapGCHandleForType = &ScriptManagerBridge.SwapGCHandleForType,
                 ScriptManagerBridge_GetPropertyInfoList = &ScriptManagerBridge.GetPropertyInfoList,
                 ScriptManagerBridge_GetPropertyDefaultValues = &ScriptManagerBridge.GetPropertyDefaultValues,

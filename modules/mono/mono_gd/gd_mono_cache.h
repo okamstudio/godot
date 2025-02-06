@@ -94,6 +94,7 @@ struct ManagedCallbacks {
 	using FuncScriptManagerBridge_RemoveScriptBridge = void(GD_CLR_STDCALL *)(const CSharpScript *);
 	using FuncScriptManagerBridge_TryReloadRegisteredScriptWithClass = bool(GD_CLR_STDCALL *)(const CSharpScript *);
 	using FuncScriptManagerBridge_UpdateScriptClassInfo = void(GD_CLR_STDCALL *)(const CSharpScript *, CSharpScript::TypeInfo *, Array *, Dictionary *, Dictionary *, Ref<CSharpScript> *);
+	using FuncScriptManagerBridge_GetDocs = void(GD_CLR_STDCALL *)(const CSharpScript *, Dictionary *);
 	using FuncScriptManagerBridge_SwapGCHandleForType = bool(GD_CLR_STDCALL *)(GCHandleIntPtr, GCHandleIntPtr *, bool);
 	using FuncScriptManagerBridge_GetPropertyInfoList = void(GD_CLR_STDCALL *)(CSharpScript *, Callback_ScriptManagerBridge_GetPropertyInfoList_Add);
 	using FuncScriptManagerBridge_GetPropertyDefaultValues = void(GD_CLR_STDCALL *)(CSharpScript *, Callback_ScriptManagerBridge_GetPropertyDefaultValues_Add);
@@ -132,6 +133,7 @@ struct ManagedCallbacks {
 	FuncScriptManagerBridge_RemoveScriptBridge ScriptManagerBridge_RemoveScriptBridge;
 	FuncScriptManagerBridge_TryReloadRegisteredScriptWithClass ScriptManagerBridge_TryReloadRegisteredScriptWithClass;
 	FuncScriptManagerBridge_UpdateScriptClassInfo ScriptManagerBridge_UpdateScriptClassInfo;
+	FuncScriptManagerBridge_GetDocs ScriptManagerBridge_GetDocs;
 	FuncScriptManagerBridge_SwapGCHandleForType ScriptManagerBridge_SwapGCHandleForType;
 	FuncScriptManagerBridge_GetPropertyInfoList ScriptManagerBridge_GetPropertyInfoList;
 	FuncScriptManagerBridge_GetPropertyDefaultValues ScriptManagerBridge_GetPropertyDefaultValues;

@@ -938,6 +938,38 @@ namespace Godot.Bridge
             }
         }
 
+        [UnmanagedCallersOnly]
+        internal static unsafe void GetDocs(IntPtr scriptPtr, godot_dictionary* outClassDocDest)
+        {
+            try
+            {
+                var scriptType = _scriptTypeBiMap.GetScriptType(scriptPtr);
+
+                var getGetGodotClassDocsMethod = scriptType.GetMethod(
+                    "GetGodotClassDocs",
+                    BindingFlags.DeclaredOnly | BindingFlags.Static |
+                    BindingFlags.NonPublic | BindingFlags.Public);
+                if (getGetGodotClassDocsMethod == null)
+                {
+                    *outClassDocDest = NativeFuncs.godotsharp_dictionary_new();
+                    return;
+                }
+                else
+                {
+                    using Collections.Dictionary? classDocsObj = (Collections.Dictionary?)getGetGodotClassDocsMethod.Invoke(null, null);
+                    if (classDocsObj != null)
+                    {
+                        *outClassDocDest = NativeFuncs.godotsharp_dictionary_new_copy((godot_dictionary)classDocsObj.NativeValue);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                ExceptionUtils.LogException(e);
+                *outClassDocDest = NativeFuncs.godotsharp_dictionary_new();
+            }
+        }
+
         private static List<MethodInfo>? GetSignalListForType(Type type)
         {
             var getGodotSignalListMethod = type.GetMethod(
