@@ -2320,6 +2320,13 @@ def format_text_block(
                     tag_depth += 1
                 tag_text = ""
 
+            elif tag_state.name == "true":
+                tag_text = ":ref:`true<class_bool>`"
+            elif tag_state.name == "false":
+                tag_text = ":ref:`false<class_bool>`"
+            elif tag_state.name == "null":
+                tag_text = ":ref:`null<class_variant>`"
+
             elif tag_state.name == "i":
                 if tag_state.closing:
                     tag_depth -= 1

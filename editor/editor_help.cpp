@@ -53,6 +53,7 @@
 #include "scene/gui/line_edit.h"
 
 #include "modules/modules_enabled.gen.h" // For gdscript, mono.
+#include "scene/gui/rich_text_label.h"
 
 // For syntax highlighting.
 #ifdef MODULE_GDSCRIPT_ENABLED
@@ -2633,6 +2634,25 @@ static void _add_text_to_rt(const String &p_bbcode, RichTextLabel *p_rt, const C
 
 			p_rt->pop(); // meta
 			p_rt->pop(); // color
+			p_rt->pop(); // font_size
+			p_rt->pop(); // font
+
+			pos = brk_end + 1;
+		} else if (tag == "true" || tag == "false" || tag == "null") {
+			// Use monospace font with darkened background color to make code easier to distinguish from other text.
+			String link_target = (tag == "null" ? "Variant" : "bool");
+
+			p_rt->push_font(doc_bold_font);
+			p_rt->push_font_size(doc_code_font_size);
+			p_rt->push_bgcolor(code_bg_color);
+			p_rt->push_color(code_color.lerp(p_owner_node->get_theme_color(SNAME("error_color"), EditorStringName(Editor)), 0.6));
+			p_rt->push_meta("#" + link_target, RichTextLabel::META_UNDERLINE_ON_HOVER);
+
+			p_rt->add_text(tag);
+
+			p_rt->pop(); // meta
+			p_rt->pop(); // color
+			p_rt->pop(); // bgcolor
 			p_rt->pop(); // font_size
 			p_rt->pop(); // font
 

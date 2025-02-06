@@ -141,8 +141,8 @@
 			<param index="2" name="internal" type="int" enum="Node.InternalMode" default="0" />
 			<description>
 				Adds a child [param node]. Nodes can have any number of children, but every child must have a unique name. Child nodes are automatically deleted when the parent node is deleted, so an entire scene can be removed by deleting its topmost node.
-				If [param force_readable_name] is [code]true[/code], improves the readability of the added [param node]. If not named, the [param node] is renamed to its type, and if it shares [member name] with a sibling, a number is suffixed more appropriately. This operation is very slow. As such, it is recommended leaving this to [code]false[/code], which assigns a dummy name featuring [code]@[/code] in both situations.
-				If [param internal] is different than [constant INTERNAL_MODE_DISABLED], the child will be added as internal node. These nodes are ignored by methods like [method get_children], unless their parameter [code]include_internal[/code] is [code]true[/code]. The intended usage is to hide the internal nodes from the user, so the user won't accidentally delete or modify them. Used by some GUI nodes, e.g. [ColorPicker]. See [enum InternalMode] for available modes.
+				If [param force_readable_name] is [true], improves the readability of the added [param node]. If not named, the [param node] is renamed to its type, and if it shares [member name] with a sibling, a number is suffixed more appropriately. This operation is very slow. As such, it is recommended leaving this to [false], which assigns a dummy name featuring [code]@[/code] in both situations.
+				If [param internal] is different than [constant INTERNAL_MODE_DISABLED], the child will be added as internal node. These nodes are ignored by methods like [method get_children], unless their parameter [code]include_internal[/code] is [true]. The intended usage is to hide the internal nodes from the user, so the user won't accidentally delete or modify them. Used by some GUI nodes, e.g. [ColorPicker]. See [enum InternalMode] for available modes.
 				[b]Note:[/b] If [param node] already has a parent, this method will fail. Use [method remove_child] first to remove [param node] from its current parent. For example:
 				[codeblocks]
 				[gdscript]
@@ -170,7 +170,7 @@
 			<param index="1" name="force_readable_name" type="bool" default="false" />
 			<description>
 				Adds a [param sibling] node to this node's parent, and moves the added sibling right below this node.
-				If [param force_readable_name] is [code]true[/code], improves the readability of the added [param sibling]. If not named, the [param sibling] is renamed to its type, and if it shares [member name] with a sibling, a number is suffixed more appropriately. This operation is very slow. As such, it is recommended leaving this to [code]false[/code], which assigns a dummy name featuring [code]@[/code] in both situations.
+				If [param force_readable_name] is [true], improves the readability of the added [param sibling]. If not named, the [param sibling] is renamed to its type, and if it shares [member name] with a sibling, a number is suffixed more appropriately. This operation is very slow. As such, it is recommended leaving this to [false], which assigns a dummy name featuring [code]@[/code] in both situations.
 				Use [method add_child] instead of this method if you don't need the child node to be added below a specific node in the list of children.
 				[b]Note:[/b] If this node is internal, the added sibling will be internal too (see [method add_child]'s [code]internal[/code] parameter).
 			</description>
@@ -181,7 +181,7 @@
 			<param index="1" name="persistent" type="bool" default="false" />
 			<description>
 				Adds the node to the [param group]. Groups can be helpful to organize a subset of nodes, for example [code]"enemies"[/code] or [code]"collectables"[/code]. See notes in the description, and the group methods in [SceneTree].
-				If [param persistent] is [code]true[/code], the group will be stored when saved inside a [PackedScene]. All groups created and displayed in the Node dock are persistent.
+				If [param persistent] is [true], the group will be stored when saved inside a [PackedScene]. All groups created and displayed in the Node dock are persistent.
 				[b]Note:[/b] To improve performance, the order of group names is [i]not[/i] guaranteed and may vary between project runs. Therefore, do not rely on the group order.
 				[b]Note:[/b] [SceneTree]'s group methods will [i]not[/i] work on this node if not inside the tree (see [method is_inside_tree]).
 			</description>
@@ -193,7 +193,7 @@
 			<description>
 				Translates a [param message], using the translation catalogs configured in the Project Settings. Further [param context] can be specified to help with the translation. Note that most [Control] nodes automatically translate their strings, so this method is mostly useful for formatted strings or custom drawn text.
 				This method works the same as [method Object.tr], with the addition of respecting the [member auto_translate_mode] state.
-				If [method Object.can_translate_messages] is [code]false[/code], or no translation is available, this method returns the [param message] without changes. See [method Object.set_message_translation].
+				If [method Object.can_translate_messages] is [false], or no translation is available, this method returns the [param message] without changes. See [method Object.set_message_translation].
 				For detailed examples, see [url=$DOCS_URL/tutorials/i18n/internationalizing_games.html]Internationalizing games[/url].
 			</description>
 		</method>
@@ -206,7 +206,7 @@
 			<description>
 				Translates a [param message] or [param plural_message], using the translation catalogs configured in the Project Settings. Further [param context] can be specified to help with the translation.
 				This method works the same as [method Object.tr_n], with the addition of respecting the [member auto_translate_mode] state.
-				If [method Object.can_translate_messages] is [code]false[/code], or no translation is available, this method returns [param message] or [param plural_message], without changes. See [method Object.set_message_translation].
+				If [method Object.can_translate_messages] is [false], or no translation is available, this method returns [param message] or [param plural_message], without changes. See [method Object.set_message_translation].
 				The [param n] is the number, or amount, of the message's subject. It is used by the translation system to fetch the correct plural form for the current language.
 				For detailed examples, see [url=$DOCS_URL/tutorials/i18n/localization_using_gettext.html]Localization using gettext[/url].
 				[b]Note:[/b] Negative and [float] numbers may not properly apply to some countable subjects. It's recommended to handle these cases with [method atr].
@@ -229,13 +229,13 @@
 		<method name="can_process" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if the node can receive processing notifications and input callbacks ([constant NOTIFICATION_PROCESS], [method _input], etc.) from the [SceneTree] and [Viewport]. The returned value depends on [member process_mode]:
-				- If set to [constant PROCESS_MODE_PAUSABLE], returns [code]true[/code] when the game is processing, i.e. [member SceneTree.paused] is [code]false[/code];
-				- If set to [constant PROCESS_MODE_WHEN_PAUSED], returns [code]true[/code] when the game is paused, i.e. [member SceneTree.paused] is [code]true[/code];
-				- If set to [constant PROCESS_MODE_ALWAYS], always returns [code]true[/code];
-				- If set to [constant PROCESS_MODE_DISABLED], always returns [code]false[/code];
+				Returns [true] if the node can receive processing notifications and input callbacks ([constant NOTIFICATION_PROCESS], [method _input], etc.) from the [SceneTree] and [Viewport]. The returned value depends on [member process_mode]:
+				- If set to [constant PROCESS_MODE_PAUSABLE], returns [true] when the game is processing, i.e. [member SceneTree.paused] is [false];
+				- If set to [constant PROCESS_MODE_WHEN_PAUSED], returns [true] when the game is paused, i.e. [member SceneTree.paused] is [true];
+				- If set to [constant PROCESS_MODE_ALWAYS], always returns [true];
+				- If set to [constant PROCESS_MODE_DISABLED], always returns [false];
 				- If set to [constant PROCESS_MODE_INHERIT], use the parent node's [member process_mode] to determine the result.
-				If the node is not inside the tree, returns [code]false[/code] no matter the value of [member process_mode].
+				If the node is not inside the tree, returns [false] no matter the value of [member process_mode].
 			</description>
 		</method>
 		<method name="create_tween">
@@ -269,9 +269,9 @@
 			<param index="1" name="recursive" type="bool" default="true" />
 			<param index="2" name="owned" type="bool" default="true" />
 			<description>
-				Finds the first descendant of this node whose [member name] matches [param pattern], returning [code]null[/code] if no match is found. The matching is done against node names, [i]not[/i] their paths, through [method String.match]. As such, it is case-sensitive, [code]"*"[/code] matches zero or more characters, and [code]"?"[/code] matches any single character.
-				If [param recursive] is [code]false[/code], only this node's direct children are checked. Nodes are checked in tree order, so this node's first direct child is checked first, then its own direct children, etc., before moving to the second direct child, and so on. Internal children are also included in the search (see [code]internal[/code] parameter in [method add_child]).
-				If [param owned] is [code]true[/code], only descendants with a valid [member owner] node are checked.
+				Finds the first descendant of this node whose [member name] matches [param pattern], returning [null] if no match is found. The matching is done against node names, [i]not[/i] their paths, through [method String.match]. As such, it is case-sensitive, [code]"*"[/code] matches zero or more characters, and [code]"?"[/code] matches any single character.
+				If [param recursive] is [false], only this node's direct children are checked. Nodes are checked in tree order, so this node's first direct child is checked first, then its own direct children, etc., before moving to the second direct child, and so on. Internal children are also included in the search (see [code]internal[/code] parameter in [method add_child]).
+				If [param owned] is [true], only descendants with a valid [member owner] node are checked.
 				[b]Note:[/b] This method can be very slow. Consider storing a reference to the found node in a variable. Alternatively, use [method get_node] with unique names (see [member unique_name_in_owner]).
 				[b]Note:[/b] To find all descendant nodes matching a pattern or a class type, see [method find_children].
 			</description>
@@ -285,8 +285,8 @@
 			<description>
 				Finds all descendants of this node whose names match [param pattern], returning an empty [Array] if no match is found. The matching is done against node names, [i]not[/i] their paths, through [method String.match]. As such, it is case-sensitive, [code]"*"[/code] matches zero or more characters, and [code]"?"[/code] matches any single character.
 				If [param type] is not empty, only ancestors inheriting from [param type] are included (see [method Object.is_class]).
-				If [param recursive] is [code]false[/code], only this node's direct children are checked. Nodes are checked in tree order, so this node's first direct child is checked first, then its own direct children, etc., before moving to the second direct child, and so on. Internal children are also included in the search (see [code]internal[/code] parameter in [method add_child]).
-				If [param owned] is [code]true[/code], only descendants with a valid [member owner] node are checked.
+				If [param recursive] is [false], only this node's direct children are checked. Nodes are checked in tree order, so this node's first direct child is checked first, then its own direct children, etc., before moving to the second direct child, and so on. Internal children are also included in the search (see [code]internal[/code] parameter in [method add_child]).
+				If [param owned] is [true], only descendants with a valid [member owner] node are checked.
 				[b]Note:[/b] This method can be very slow. Consider storing references to the found nodes in a variable.
 				[b]Note:[/b] To find a single descendant node matching a pattern, see [method find_child].
 			</description>
@@ -295,7 +295,7 @@
 			<return type="Node" />
 			<param index="0" name="pattern" type="String" />
 			<description>
-				Finds the first ancestor of this node whose [member name] matches [param pattern], returning [code]null[/code] if no match is found. The matching is done through [method String.match]. As such, it is case-sensitive, [code]"*"[/code] matches zero or more characters, and [code]"?"[/code] matches any single character. See also [method find_child] and [method find_children].
+				Finds the first ancestor of this node whose [member name] matches [param pattern], returning [null] if no match is found. The matching is done through [method String.match]. As such, it is case-sensitive, [code]"*"[/code] matches zero or more characters, and [code]"?"[/code] matches any single character. See also [method find_child] and [method find_children].
 				[b]Note:[/b] As this method walks upwards in the scene tree, it can be slow in large, deeply nested nodes. Consider storing a reference to the found node in a variable. Alternatively, use [method get_node] with unique names (see [member unique_name_in_owner]).
 			</description>
 		</method>
@@ -304,8 +304,8 @@
 			<param index="0" name="idx" type="int" />
 			<param index="1" name="include_internal" type="bool" default="false" />
 			<description>
-				Fetches a child node by its index. Each child node has an index relative its siblings (see [method get_index]). The first child is at index 0. Negative values can also be used to start from the end of the list. This method can be used in combination with [method get_child_count] to iterate over this node's children. If no child exists at the given index, this method returns [code]null[/code] and an error is generated.
-				If [param include_internal] is [code]false[/code], internal children are ignored (see [method add_child]'s [code]internal[/code] parameter).
+				Fetches a child node by its index. Each child node has an index relative its siblings (see [method get_index]). The first child is at index 0. Negative values can also be used to start from the end of the list. This method can be used in combination with [method get_child_count] to iterate over this node's children. If no child exists at the given index, this method returns [null] and an error is generated.
+				If [param include_internal] is [false], internal children are ignored (see [method add_child]'s [code]internal[/code] parameter).
 				[codeblock]
 				# Assuming the following are children of this node, in order:
 				# First, Middle, Last.
@@ -323,7 +323,7 @@
 			<param index="0" name="include_internal" type="bool" default="false" />
 			<description>
 				Returns the number of children of this node.
-				If [param include_internal] is [code]false[/code], internal children are not counted (see [method add_child]'s [code]internal[/code] parameter).
+				If [param include_internal] is [false], internal children are not counted (see [method add_child]'s [code]internal[/code] parameter).
 			</description>
 		</method>
 		<method name="get_children" qualifiers="const">
@@ -331,7 +331,7 @@
 			<param index="0" name="include_internal" type="bool" default="false" />
 			<description>
 				Returns all children of this node inside an [Array].
-				If [param include_internal] is [code]false[/code], excludes internal children from the returned array (see [method add_child]'s [code]internal[/code] parameter).
+				If [param include_internal] is [false], excludes internal children from the returned array (see [method add_child]'s [code]internal[/code] parameter).
 			</description>
 		</method>
 		<method name="get_groups" qualifiers="const">
@@ -365,7 +365,7 @@
 			<param index="0" name="include_internal" type="bool" default="false" />
 			<description>
 				Returns this node's order among its siblings. The first node's index is [code]0[/code]. See also [method get_child].
-				If [param include_internal] is [code]false[/code], returns the index ignoring internal children. The first, non-internal child will have an index of [code]0[/code] (see [method add_child]'s [code]internal[/code] parameter).
+				If [param include_internal] is [false], returns the index ignoring internal children. The first, non-internal child will have an index of [code]0[/code] (see [method add_child]'s [code]internal[/code] parameter).
 			</description>
 		</method>
 		<method name="get_last_exclusive_window" qualifiers="const">
@@ -384,7 +384,7 @@
 			<return type="Node" />
 			<param index="0" name="path" type="NodePath" />
 			<description>
-				Fetches a node. The [NodePath] can either be a relative path (from this node), or an absolute path (from the [member SceneTree.root]) to a node. If [param path] does not point to a valid node, generates an error and returns [code]null[/code]. Attempts to access methods on the return value will result in an [i]"Attempt to call &lt;method&gt; on a null instance."[/i] error.
+				Fetches a node. The [NodePath] can either be a relative path (from this node), or an absolute path (from the [member SceneTree.root]) to a node. If [param path] does not point to a valid node, generates an error and returns [null]. Attempts to access methods on the return value will result in an [i]"Attempt to call &lt;method&gt; on a null instance."[/i] error.
 				[b]Note:[/b] Fetching by absolute path only works when the node is inside the scene tree (see [method is_inside_tree]).
 				[b]Example:[/b] Assume this method is called from the Character node, inside the following tree:
 				[codeblock lang=text]
@@ -421,8 +421,8 @@
 			<param index="0" name="path" type="NodePath" />
 			<description>
 				Fetches a node and its most nested resource as specified by the [NodePath]'s subname. Returns an [Array] of size [code]3[/code] where:
-				- Element [code]0[/code] is the [Node], or [code]null[/code] if not found;
-				- Element [code]1[/code] is the subname's last nested [Resource], or [code]null[/code] if not found;
+				- Element [code]0[/code] is the [Node], or [null] if not found;
+				- Element [code]1[/code] is the subname's last nested [Resource], or [null] if not found;
 				- Element [code]2[/code] is the remaining [NodePath], referring to an existing, non-[Resource] property (see [method Object.get_indexed]).
 				[b]Example:[/b] Assume that the child's [member Sprite2D.texture] has been assigned a [AtlasTexture]:
 				[codeblocks]
@@ -471,7 +471,7 @@
 		<method name="get_parent" qualifiers="const">
 			<return type="Node" />
 			<description>
-				Returns this node's parent node, or [code]null[/code] if the node doesn't have a parent.
+				Returns this node's parent node, or [null] if the node doesn't have a parent.
 			</description>
 		</method>
 		<method name="get_path" qualifiers="const">
@@ -486,7 +486,7 @@
 			<param index="1" name="use_unique_path" type="bool" default="false" />
 			<description>
 				Returns the relative [NodePath] from this node to the specified [param node]. Both nodes must be in the same [SceneTree] or scene hierarchy, otherwise this method fails and returns an empty [NodePath].
-				If [param use_unique_path] is [code]true[/code], returns the shortest path accounting for this node's unique name (see [member unique_name_in_owner]).
+				If [param use_unique_path] is [true], returns the shortest path accounting for this node's unique name (see [member unique_name_in_owner]).
 				[b]Note:[/b] If you get a relative path which starts from a unique node, the path may be longer than a normal relative path, due to the addition of the unique node's name.
 			</description>
 		</method>
@@ -513,13 +513,13 @@
 		<method name="get_scene_instance_load_placeholder" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if this node is an instance load placeholder. See [InstancePlaceholder] and [method set_scene_instance_load_placeholder].
+				Returns [true] if this node is an instance load placeholder. See [InstancePlaceholder] and [method set_scene_instance_load_placeholder].
 			</description>
 		</method>
 		<method name="get_tree" qualifiers="const">
 			<return type="SceneTree" />
 			<description>
-				Returns the [SceneTree] that contains this node. If this node is not inside the tree, generates an error and returns [code]null[/code]. See also [method is_inside_tree].
+				Returns the [SceneTree] that contains this node. If this node is not inside the tree, generates an error and returns [null]. See also [method is_inside_tree].
 			</description>
 		</method>
 		<method name="get_tree_string">
@@ -555,7 +555,7 @@
 		<method name="get_viewport" qualifiers="const">
 			<return type="Viewport" />
 			<description>
-				Returns the node's closest [Viewport] ancestor, if the node is inside the tree. Otherwise, returns [code]null[/code].
+				Returns the node's closest [Viewport] ancestor, if the node is inside the tree. Otherwise, returns [null].
 			</description>
 		</method>
 		<method name="get_window" qualifiers="const">
@@ -568,86 +568,86 @@
 			<return type="bool" />
 			<param index="0" name="path" type="NodePath" />
 			<description>
-				Returns [code]true[/code] if the [param path] points to a valid node. See also [method get_node].
+				Returns [true] if the [param path] points to a valid node. See also [method get_node].
 			</description>
 		</method>
 		<method name="has_node_and_resource" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="path" type="NodePath" />
 			<description>
-				Returns [code]true[/code] if [param path] points to a valid node and its subnames point to a valid [Resource], e.g. [code]Area2D/CollisionShape2D:shape[/code]. Properties that are not [Resource] types (such as nodes or other [Variant] types) are not considered. See also [method get_node_and_resource].
+				Returns [true] if [param path] points to a valid node and its subnames point to a valid [Resource], e.g. [code]Area2D/CollisionShape2D:shape[/code]. Properties that are not [Resource] types (such as nodes or other [Variant] types) are not considered. See also [method get_node_and_resource].
 			</description>
 		</method>
 		<method name="is_ancestor_of" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="node" type="Node" />
 			<description>
-				Returns [code]true[/code] if the given [param node] is a direct or indirect child of this node.
+				Returns [true] if the given [param node] is a direct or indirect child of this node.
 			</description>
 		</method>
 		<method name="is_displayed_folded" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if the node is folded (collapsed) in the Scene dock. This method is intended to be used in editor plugins and tools. See also [method set_display_folded].
+				Returns [true] if the node is folded (collapsed) in the Scene dock. This method is intended to be used in editor plugins and tools. See also [method set_display_folded].
 			</description>
 		</method>
 		<method name="is_editable_instance" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="node" type="Node" />
 			<description>
-				Returns [code]true[/code] if [param node] has editable children enabled relative to this node. This method is intended to be used in editor plugins and tools. See also [method set_editable_instance].
+				Returns [true] if [param node] has editable children enabled relative to this node. This method is intended to be used in editor plugins and tools. See also [method set_editable_instance].
 			</description>
 		</method>
 		<method name="is_greater_than" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="node" type="Node" />
 			<description>
-				Returns [code]true[/code] if the given [param node] occurs later in the scene hierarchy than this node. A node occurring later is usually processed last.
+				Returns [true] if the given [param node] occurs later in the scene hierarchy than this node. A node occurring later is usually processed last.
 			</description>
 		</method>
 		<method name="is_in_group" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="group" type="StringName" />
 			<description>
-				Returns [code]true[/code] if this node has been added to the given [param group]. See [method add_to_group] and [method remove_from_group]. See also notes in the description, and the [SceneTree]'s group methods.
+				Returns [true] if this node has been added to the given [param group]. See [method add_to_group] and [method remove_from_group]. See also notes in the description, and the [SceneTree]'s group methods.
 			</description>
 		</method>
 		<method name="is_inside_tree" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if this node is currently inside a [SceneTree]. See also [method get_tree].
+				Returns [true] if this node is currently inside a [SceneTree]. See also [method get_tree].
 			</description>
 		</method>
 		<method name="is_multiplayer_authority" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if the local system is the multiplayer authority of this node.
+				Returns [true] if the local system is the multiplayer authority of this node.
 			</description>
 		</method>
 		<method name="is_node_ready" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if the node is ready, i.e. it's inside scene tree and all its children are initialized.
-				[method request_ready] resets it back to [code]false[/code].
+				Returns [true] if the node is ready, i.e. it's inside scene tree and all its children are initialized.
+				[method request_ready] resets it back to [false].
 			</description>
 		</method>
 		<method name="is_part_of_edited_scene" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if the node is part of the scene currently opened in the editor.
+				Returns [true] if the node is part of the scene currently opened in the editor.
 			</description>
 		</method>
 		<method name="is_physics_interpolated" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if physics interpolation is enabled for this node (see [member physics_interpolation_mode]).
+				Returns [true] if physics interpolation is enabled for this node (see [member physics_interpolation_mode]).
 				[b]Note:[/b] Interpolation will only be active if both the flag is set [b]and[/b] physics interpolation is enabled within the [SceneTree]. This can be tested using [method is_physics_interpolated_and_enabled].
 			</description>
 		</method>
 		<method name="is_physics_interpolated_and_enabled" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if physics interpolation is enabled (see [member physics_interpolation_mode]) [b]and[/b] enabled in the [SceneTree].
+				Returns [true] if physics interpolation is enabled (see [member physics_interpolation_mode]) [b]and[/b] enabled in the [SceneTree].
 				This is a convenience version of [method is_physics_interpolated] that also checks whether physics interpolation is enabled globally.
 				See [member SceneTree.physics_interpolation] and [member ProjectSettings.physics/common/physics_interpolation].
 			</description>
@@ -655,49 +655,49 @@
 		<method name="is_physics_processing" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if physics processing is enabled (see [method set_physics_process]).
+				Returns [true] if physics processing is enabled (see [method set_physics_process]).
 			</description>
 		</method>
 		<method name="is_physics_processing_internal" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if internal physics processing is enabled (see [method set_physics_process_internal]).
+				Returns [true] if internal physics processing is enabled (see [method set_physics_process_internal]).
 			</description>
 		</method>
 		<method name="is_processing" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if processing is enabled (see [method set_process]).
+				Returns [true] if processing is enabled (see [method set_process]).
 			</description>
 		</method>
 		<method name="is_processing_input" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if the node is processing input (see [method set_process_input]).
+				Returns [true] if the node is processing input (see [method set_process_input]).
 			</description>
 		</method>
 		<method name="is_processing_internal" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if internal processing is enabled (see [method set_process_internal]).
+				Returns [true] if internal processing is enabled (see [method set_process_internal]).
 			</description>
 		</method>
 		<method name="is_processing_shortcut_input" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if the node is processing shortcuts (see [method set_process_shortcut_input]).
+				Returns [true] if the node is processing shortcuts (see [method set_process_shortcut_input]).
 			</description>
 		</method>
 		<method name="is_processing_unhandled_input" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if the node is processing unhandled input (see [method set_process_unhandled_input]).
+				Returns [true] if the node is processing unhandled input (see [method set_process_unhandled_input]).
 			</description>
 		</method>
 		<method name="is_processing_unhandled_key_input" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if the node is processing unhandled key input (see [method set_process_unhandled_key_input]).
+				Returns [true] if the node is processing unhandled key input (see [method set_process_unhandled_key_input]).
 			</description>
 		</method>
 		<method name="move_child">
@@ -767,7 +767,7 @@
 			<param index="2" name="parent_first" type="bool" default="false" />
 			<description>
 				Calls the given [param method] name, passing [param args] as arguments, on this node and all of its children, recursively.
-				If [param parent_first] is [code]true[/code], the method is called on this node first, then on all of its children. If [code]false[/code], the children's methods are called first.
+				If [param parent_first] is [true], the method is called on this node first, then on all of its children. If [false], the children's methods are called first.
 			</description>
 		</method>
 		<method name="propagate_notification">
@@ -790,7 +790,7 @@
 			<param index="0" name="node" type="Node" />
 			<description>
 				Removes a child [param node]. The [param node], along with its children, are [b]not[/b] deleted. To delete a node, see [method queue_free].
-				[b]Note:[/b] When this node is inside the tree, this method sets the [member owner] of the removed [param node] (or its descendants) to [code]null[/code], if their [member owner] is no longer an ancestor (see [method is_ancestor_of]).
+				[b]Note:[/b] When this node is inside the tree, this method sets the [member owner] of the removed [param node] (or its descendants) to [null], if their [member owner] is no longer an ancestor (see [method is_ancestor_of]).
 			</description>
 		</method>
 		<method name="remove_from_group">
@@ -806,7 +806,7 @@
 			<param index="1" name="keep_global_transform" type="bool" default="true" />
 			<description>
 				Changes the parent of this [Node] to the [param new_parent]. The node needs to already have a parent. The node's [member owner] is preserved if its owner is still reachable from the new location (i.e., the node is still a descendant of the new parent after the operation).
-				If [param keep_global_transform] is [code]true[/code], the node's global transform will be preserved if supported. [Node2D], [Node3D] and [Control] support this argument (but [Control] keeps only position).
+				If [param keep_global_transform] is [true], the node's global transform will be preserved if supported. [Node2D], [Node3D] and [Control] support this argument (but [Control] keeps only position).
 			</description>
 		</method>
 		<method name="replace_by">
@@ -815,7 +815,7 @@
 			<param index="1" name="keep_groups" type="bool" default="false" />
 			<description>
 				Replaces this node by the given [param node]. All children of this node are moved to [param node].
-				If [param keep_groups] is [code]true[/code], the [param node] is added to the same groups that the replaced node is in (see [method add_to_group]).
+				If [param keep_groups] is [true], the [param node] is added to the same groups that the replaced node is in (see [method add_to_group]).
 				[b]Warning:[/b] The replaced node is removed from the tree, but it is [b]not[/b] deleted. To prevent memory leaks, store a reference to the node in a variable, or use [method Object.free].
 			</description>
 		</method>
@@ -849,10 +849,10 @@
 			<param index="0" name="method" type="StringName" />
 			<param index="1" name="config" type="Variant" />
 			<description>
-				Changes the RPC configuration for the given [param method]. [param config] should either be [code]null[/code] to disable the feature (as by default), or a [Dictionary] containing the following entries:
+				Changes the RPC configuration for the given [param method]. [param config] should either be [null] to disable the feature (as by default), or a [Dictionary] containing the following entries:
 				- [code]rpc_mode[/code]: see [enum MultiplayerAPI.RPCMode];
 				- [code]transfer_mode[/code]: see [enum MultiplayerPeer.TransferMode];
-				- [code]call_local[/code]: if [code]true[/code], the method will also be called locally;
+				- [code]call_local[/code]: if [true], the method will also be called locally;
 				- [code]channel[/code]: an [int] representing the channel to send the RPC on.
 				[b]Note:[/b] In GDScript, this method corresponds to the [annotation @GDScript.@rpc] annotation, with various parameters passed ([code]@rpc(any)[/code], [code]@rpc(authority)[/code]...). See also the [url=$DOCS_URL/tutorials/networking/high_level_multiplayer.html]high-level multiplayer[/url] tutorial.
 			</description>
@@ -878,7 +878,7 @@
 			<return type="void" />
 			<param index="0" name="fold" type="bool" />
 			<description>
-				If set to [code]true[/code], the node appears folded in the Scene dock. As a result, all of its children are hidden. This method is intended to be used in editor plugins and tools, but it also works in release builds. See also [method is_displayed_folded].
+				If set to [true], the node appears folded in the Scene dock. As a result, all of its children are hidden. This method is intended to be used in editor plugins and tools, but it also works in release builds. See also [method is_displayed_folded].
 			</description>
 		</method>
 		<method name="set_editable_instance">
@@ -886,7 +886,7 @@
 			<param index="0" name="node" type="Node" />
 			<param index="1" name="is_editable" type="bool" />
 			<description>
-				Set to [code]true[/code] to allow all nodes owned by [param node] to be available, and editable, in the Scene dock, even if their [member owner] is not the scene root. This method is intended to be used in editor plugins and tools, but it also works in release builds. See also [method is_editable_instance].
+				Set to [true] to allow all nodes owned by [param node] to be available, and editable, in the Scene dock, even if their [member owner] is not the scene root. This method is intended to be used in editor plugins and tools, but it also works in release builds. See also [method is_editable_instance].
 			</description>
 		</method>
 		<method name="set_multiplayer_authority">
@@ -895,7 +895,7 @@
 			<param index="1" name="recursive" type="bool" default="true" />
 			<description>
 				Sets the node's multiplayer authority to the peer with the given peer [param id]. The multiplayer authority is the peer that has authority over the node on the network. Defaults to peer ID 1 (the server). Useful in conjunction with [method rpc_config] and the [MultiplayerAPI].
-				If [param recursive] is [code]true[/code], the given peer is recursively set as the authority for all children of this node.
+				If [param recursive] is [true], the given peer is recursively set as the authority for all children of this node.
 				[b]Warning:[/b] This does [b]not[/b] automatically replicate the new authority to other peers. It is the developer's responsibility to do so. You may replicate the new authority's information using [member MultiplayerSpawner.spawn_function], an RPC, or a [MultiplayerSynchronizer]. Furthermore, the parent's authority does [b]not[/b] propagate to newly added children.
 			</description>
 		</method>
@@ -903,7 +903,7 @@
 			<return type="void" />
 			<param index="0" name="enable" type="bool" />
 			<description>
-				If set to [code]true[/code], enables physics (fixed framerate) processing. When a node is being processed, it will receive a [constant NOTIFICATION_PHYSICS_PROCESS] at a fixed (usually 60 FPS, see [member Engine.physics_ticks_per_second] to change) interval (and the [method _physics_process] callback will be called if it exists).
+				If set to [true], enables physics (fixed framerate) processing. When a node is being processed, it will receive a [constant NOTIFICATION_PHYSICS_PROCESS] at a fixed (usually 60 FPS, see [member Engine.physics_ticks_per_second] to change) interval (and the [method _physics_process] callback will be called if it exists).
 				[b]Note:[/b] If [method _physics_process] is overridden, this will be automatically enabled before [method _ready] is called.
 			</description>
 		</method>
@@ -911,7 +911,7 @@
 			<return type="void" />
 			<param index="0" name="enable" type="bool" />
 			<description>
-				If set to [code]true[/code], enables internal physics for this node. Internal physics processing happens in isolation from the normal [method _physics_process] calls and is used by some nodes internally to guarantee proper functioning even if the node is paused or physics processing is disabled for scripting ([method set_physics_process]).
+				If set to [true], enables internal physics for this node. Internal physics processing happens in isolation from the normal [method _physics_process] calls and is used by some nodes internally to guarantee proper functioning even if the node is paused or physics processing is disabled for scripting ([method set_physics_process]).
 				[b]Warning:[/b] Built-in nodes rely on internal processing for their internal logic. Disabling it is unsafe and may lead to unexpected behavior. Use this method if you know what you are doing.
 			</description>
 		</method>
@@ -919,7 +919,7 @@
 			<return type="void" />
 			<param index="0" name="enable" type="bool" />
 			<description>
-				If set to [code]true[/code], enables processing. When a node is being processed, it will receive a [constant NOTIFICATION_PROCESS] on every drawn frame (and the [method _process] callback will be called if it exists).
+				If set to [true], enables processing. When a node is being processed, it will receive a [constant NOTIFICATION_PROCESS] on every drawn frame (and the [method _process] callback will be called if it exists).
 				[b]Note:[/b] If [method _process] is overridden, this will be automatically enabled before [method _ready] is called.
 				[b]Note:[/b] This method only affects the [method _process] callback, i.e. it has no effect on other callbacks like [method _physics_process]. If you want to disable all processing for the node, set [member process_mode] to [constant PROCESS_MODE_DISABLED].
 			</description>
@@ -928,7 +928,7 @@
 			<return type="void" />
 			<param index="0" name="enable" type="bool" />
 			<description>
-				If set to [code]true[/code], enables input processing.
+				If set to [true], enables input processing.
 				[b]Note:[/b] If [method _input] is overridden, this will be automatically enabled before [method _ready] is called. Input processing is also already enabled for GUI controls, such as [Button] and [TextEdit].
 			</description>
 		</method>
@@ -936,7 +936,7 @@
 			<return type="void" />
 			<param index="0" name="enable" type="bool" />
 			<description>
-				If set to [code]true[/code], enables internal processing for this node. Internal processing happens in isolation from the normal [method _process] calls and is used by some nodes internally to guarantee proper functioning even if the node is paused or processing is disabled for scripting ([method set_process]).
+				If set to [true], enables internal processing for this node. Internal processing happens in isolation from the normal [method _process] calls and is used by some nodes internally to guarantee proper functioning even if the node is paused or processing is disabled for scripting ([method set_process]).
 				[b]Warning:[/b] Built-in nodes rely on internal processing for their internal logic. Disabling it is unsafe and may lead to unexpected behavior. Use this method if you know what you are doing.
 			</description>
 		</method>
@@ -944,7 +944,7 @@
 			<return type="void" />
 			<param index="0" name="enable" type="bool" />
 			<description>
-				If set to [code]true[/code], enables shortcut processing for this node.
+				If set to [true], enables shortcut processing for this node.
 				[b]Note:[/b] If [method _shortcut_input] is overridden, this will be automatically enabled before [method _ready] is called.
 			</description>
 		</method>
@@ -952,7 +952,7 @@
 			<return type="void" />
 			<param index="0" name="enable" type="bool" />
 			<description>
-				If set to [code]true[/code], enables unhandled input processing. It enables the node to receive all input that was not previously handled (usually by a [Control]).
+				If set to [true], enables unhandled input processing. It enables the node to receive all input that was not previously handled (usually by a [Control]).
 				[b]Note:[/b] If [method _unhandled_input] is overridden, this will be automatically enabled before [method _ready] is called. Unhandled input processing is also already enabled for GUI controls, such as [Button] and [TextEdit].
 			</description>
 		</method>
@@ -960,7 +960,7 @@
 			<return type="void" />
 			<param index="0" name="enable" type="bool" />
 			<description>
-				If set to [code]true[/code], enables unhandled key input processing.
+				If set to [true], enables unhandled key input processing.
 				[b]Note:[/b] If [method _unhandled_key_input] is overridden, this will be automatically enabled before [method _ready] is called.
 			</description>
 		</method>
@@ -968,7 +968,7 @@
 			<return type="void" />
 			<param index="0" name="load_placeholder" type="bool" />
 			<description>
-				If set to [code]true[/code], the node becomes a [InstancePlaceholder] when packed and instantiated from a [PackedScene]. See also [method get_scene_instance_load_placeholder].
+				If set to [true], the node becomes a [InstancePlaceholder] when packed and instantiated from a [PackedScene]. See also [method get_scene_instance_load_placeholder].
 			</description>
 		</method>
 		<method name="set_thread_safe">
@@ -1042,7 +1042,7 @@
 			The original scene's file path, if the node has been instantiated from a [PackedScene] file. Only scene root nodes contains this.
 		</member>
 		<member name="unique_name_in_owner" type="bool" setter="set_unique_name_in_owner" getter="is_unique_name_in_owner" default="false">
-			If [code]true[/code], the node can be accessed from any node sharing the same [member owner] or from the [member owner] itself, with special [code]%Name[/code] syntax in [method get_node].
+			If [true], the node can be accessed from any node sharing the same [member owner] or from the [member owner] itself, with special [code]%Name[/code] syntax in [method get_node].
 			[b]Note:[/b] If another node with the same [member owner] shares the same [member name] as this node, the other node will no longer be accessible as unique.
 		</member>
 	</members>
@@ -1134,10 +1134,10 @@
 			Notification received when the node is unpaused. See [member process_mode].
 		</constant>
 		<constant name="NOTIFICATION_PHYSICS_PROCESS" value="16">
-			Notification received from the tree every physics frame when [method is_physics_processing] returns [code]true[/code]. See [method _physics_process].
+			Notification received from the tree every physics frame when [method is_physics_processing] returns [true]. See [method _physics_process].
 		</constant>
 		<constant name="NOTIFICATION_PROCESS" value="17">
-			Notification received from the tree every rendered frame when [method is_processing] returns [code]true[/code]. See [method _process].
+			Notification received from the tree every rendered frame when [method is_processing] returns [true]. See [method _process].
 		</constant>
 		<constant name="NOTIFICATION_PARENTED" value="18">
 			Notification received when the node is set as a child of another node (see [method add_child] and [method add_sibling]).
@@ -1166,10 +1166,10 @@
 			Notification received when the list of children is changed. This happens when child nodes are added, moved or removed.
 		</constant>
 		<constant name="NOTIFICATION_INTERNAL_PROCESS" value="25">
-			Notification received from the tree every rendered frame when [method is_processing_internal] returns [code]true[/code].
+			Notification received from the tree every rendered frame when [method is_processing_internal] returns [true].
 		</constant>
 		<constant name="NOTIFICATION_INTERNAL_PHYSICS_PROCESS" value="26">
-			Notification received from the tree every physics frame when [method is_physics_processing_internal] returns [code]true[/code].
+			Notification received from the tree every physics frame when [method is_physics_processing_internal] returns [true].
 		</constant>
 		<constant name="NOTIFICATION_POST_ENTER_TREE" value="27">
 			Notification received when the node enters the tree, just before [constant NOTIFICATION_READY] may be received. Unlike the latter, it is sent every time the node enters tree, not just once.
@@ -1221,10 +1221,10 @@
 			Notification received from the OS when the screen's dots per inch (DPI) scale is changed. Only implemented on macOS.
 		</constant>
 		<constant name="NOTIFICATION_VP_MOUSE_ENTER" value="1010">
-			Notification received when the mouse cursor enters the [Viewport]'s visible area, that is not occluded behind other [Control]s or [Window]s, provided its [member Viewport.gui_disable_input] is [code]false[/code] and regardless if it's currently focused or not.
+			Notification received when the mouse cursor enters the [Viewport]'s visible area, that is not occluded behind other [Control]s or [Window]s, provided its [member Viewport.gui_disable_input] is [false] and regardless if it's currently focused or not.
 		</constant>
 		<constant name="NOTIFICATION_VP_MOUSE_EXIT" value="1011">
-			Notification received when the mouse cursor leaves the [Viewport]'s visible area, that is not occluded behind other [Control]s or [Window]s, provided its [member Viewport.gui_disable_input] is [code]false[/code] and regardless if it's currently focused or not.
+			Notification received when the mouse cursor leaves the [Viewport]'s visible area, that is not occluded behind other [Control]s or [Window]s, provided its [member Viewport.gui_disable_input] is [false] and regardless if it's currently focused or not.
 		</constant>
 		<constant name="NOTIFICATION_OS_MEMORY_WARNING" value="2009">
 			Notification received from the OS when the application is exceeding its allocated memory.
@@ -1277,10 +1277,10 @@
 			Inherits [member process_mode] from the node's parent. This is the default for any newly created node.
 		</constant>
 		<constant name="PROCESS_MODE_PAUSABLE" value="1" enum="ProcessMode">
-			Stops processing when [member SceneTree.paused] is [code]true[/code]. This is the inverse of [constant PROCESS_MODE_WHEN_PAUSED], and the default for the root node.
+			Stops processing when [member SceneTree.paused] is [true]. This is the inverse of [constant PROCESS_MODE_WHEN_PAUSED], and the default for the root node.
 		</constant>
 		<constant name="PROCESS_MODE_WHEN_PAUSED" value="2" enum="ProcessMode">
-			Process [b]only[/b] when [member SceneTree.paused] is [code]true[/code]. This is the inverse of [constant PROCESS_MODE_PAUSABLE].
+			Process [b]only[/b] when [member SceneTree.paused] is [true]. This is the inverse of [constant PROCESS_MODE_PAUSABLE].
 		</constant>
 		<constant name="PROCESS_MODE_ALWAYS" value="3" enum="ProcessMode">
 			Always process. Keeps processing, ignoring [member SceneTree.paused]. This is the inverse of [constant PROCESS_MODE_DISABLED].

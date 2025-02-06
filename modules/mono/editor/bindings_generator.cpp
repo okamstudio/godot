@@ -302,7 +302,7 @@ String BindingsGenerator::bbcode_to_text(const String &p_bbcode, const TypeInter
 				output.append("'" BINDINGS_NAMESPACE_COLLECTIONS ".");
 				output.append(tag);
 				output.append("'");
-			} else if (tag == "bool" || tag == "int") {
+			} else if (tag == "bool" || tag == "int" || tag == "true" || tag == "false" || tag == "null") {
 				output.append(tag);
 			} else if (tag == "float") {
 				output.append(
