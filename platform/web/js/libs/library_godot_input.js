@@ -482,6 +482,11 @@ mergeInto(LibraryManager.library, GodotInputDragDrop);
 const GodotInput = {
 	$GodotInput__deps: ['$GodotRuntime', '$GodotConfig', '$GodotEventListeners', '$GodotInputGamepads', '$GodotInputDragDrop', '$GodotIME'],
 	$GodotInput: {
+		accelerometerCallback: null,
+		accelerometerSensor: null,
+		gyroscopeCallback: null,
+		gyroscopeSensor: null,
+
 		getModifiers: function (evt) {
 			return (evt.shiftKey + 0) + ((evt.altKey + 0) << 1) + ((evt.ctrlKey + 0) << 2) + ((evt.metaKey + 0) << 3);
 		},
@@ -493,6 +498,75 @@ const GodotInput = {
 			const y = (evt.clientY - rect.y) * rh;
 			return [x, y];
 		},
+		setupAccelerometer: function () {
+			navigator.permissions.query({ name: 'accelerometer' })
+				.catch((err) => {
+					if (err instanceof TypeError) {
+						// Accelerometer not supported on this platform.
+					} else {
+						throw err;
+					}
+				})
+				.then((permissionStatus) => {
+					if (permissionStatus.state !== 'granted') {
+						return;
+					}
+					/** @suppress {undefinedVars} */
+					GodotInput.accelerometerSensor = new Accelerometer({ frequency: 60 });
+					GodotInput.accelerometerSensor.addEventListener('reading', () => {
+						if (GodotInput.accelerometerCallback == null) {
+							return;
+						}
+						GodotInput.accelerometerCallback(GodotInput.accelerometerSensor.x, GodotInput.accelerometerSensor.y, GodotInput.accelerometerSensor.z);
+					});
+					GodotInput.accelerometerSensor.start();
+				})
+				.catch((err) => {
+					const newErr = new Error('Error while setuping accelerometer.');
+					newErr.cause = err;
+					throw newErr;
+				});
+		},
+		setupGyroscope: function () {
+			navigator.permissions.query({ name: 'gyroscope' })
+				.catch((err) => {
+					if (err instanceof TypeError) {
+						// Gyroscope not supported on this platform.
+					} else {
+						throw err;
+					}
+				})
+				.then((permissionStatus) => {
+					if (permissionStatus.state !== 'granted') {
+						return;
+					}
+					/** @suppress {undefinedVars} */
+					GodotInput.gyroscopeSensor = new Gyroscope({ frequency: 60 });
+					GodotInput.gyroscopeSensor.addEventListener('reading', () => {
+						if (GodotInput.gyroscopeCallback == null) {
+							return;
+						}
+						GodotInput.gyroscopeCallback(GodotInput.gyroscopeSensor.x, GodotInput.gyroscopeSensor.y, GodotInput.gyroscopeSensor.z);
+					});
+					GodotInput.gyroscopeSensor.start();
+				})
+				.catch((err) => {
+					const newErr = new Error('Error while setuping gyroscope.');
+					newErr.cause = err;
+					throw newErr;
+				});
+		},
+	},
+
+	godot_js_input_init__proxy: 'sync',
+	godot_js_input_init__sig: 'vi',
+	godot_js_input_init: function (accelerometerEnabled, gyroscopeEnabled) {
+		if (accelerometerEnabled) {
+			GodotInput.setupAccelerometer();
+		}
+		if (gyroscopeEnabled) {
+			GodotInput.setupGyroscope();
+		}
 	},
 
 	/*
@@ -583,6 +657,24 @@ const GodotInput = {
 		GodotEventListeners.add(canvas, 'touchend', touch_cb.bind(null, 1), false);
 		GodotEventListeners.add(canvas, 'touchcancel', touch_cb.bind(null, 1), false);
 		GodotEventListeners.add(canvas, 'touchmove', touch_cb.bind(null, 2), false);
+	},
+
+	/*
+	 * Accelerometer API
+	 */
+	godot_js_input_accelerometer_cb__proxy: 'sync',
+	godot_js_input_accelerometer_cb__sig: 'vi',
+	godot_js_input_accelerometer_cb: function (callbackPtr) {
+		GodotInput.accelerometerCallback = GodotRuntime.get_func(callbackPtr);
+	},
+
+	/*
+	 * Gyroscope API
+	 */
+	godot_js_input_gyroscope_cb__proxy: 'sync',
+	godot_js_input_gyroscope_cb__sig: 'vi',
+	godot_js_input_gyroscope_cb: function (callbackPtr) {
+		GodotInput.gyroscopeCallback = GodotRuntime.get_func(callbackPtr);
 	},
 
 	/*

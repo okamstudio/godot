@@ -742,6 +742,38 @@ bool DisplayServerWeb::is_touchscreen_available() const {
 	return godot_js_display_touchscreen_is_available() || (Input::get_singleton() && Input::get_singleton()->is_emulating_touch_from_mouse());
 }
 
+// Accelerometer
+void DisplayServerWeb::accelerometer_callback(double p_x, double p_y, double p_z) {
+#ifdef PROXY_TO_PTHREAD_ENABLED
+	if (!Thread::is_main_thread()) {
+		callable_mp_static(DisplayServerWeb::_accelerometer_callback).call_deferred(p_x, p_y, p_z);
+		return;
+	}
+#endif
+
+	_accelerometer_callback(p_x, p_y, p_z);
+}
+
+void DisplayServerWeb::_accelerometer_callback(double p_x, double p_y, double p_z) {
+	Input::get_singleton()->set_accelerometer(Vector3(p_x, p_y, p_z));
+}
+
+// Gyroscope
+void DisplayServerWeb::gyroscope_callback(double p_x, double p_y, double p_z) {
+#ifdef PROXY_TO_PTHREAD_ENABLED
+	if (!Thread::is_main_thread()) {
+		callable_mp_static(DisplayServerWeb::_gyroscope_callback).call_deferred(p_x, p_y, p_z);
+		return;
+	}
+#endif
+
+	_gyroscope_callback(p_x, p_y, p_z);
+}
+
+void DisplayServerWeb::_gyroscope_callback(double p_x, double p_y, double p_z) {
+	Input::get_singleton()->set_gyroscope(Vector3(p_x, p_y, p_z));
+}
+
 // Virtual Keyboard
 void DisplayServerWeb::vk_input_text_callback(const char *p_text, int p_cursor) {
 	String text = String::utf8(p_text);
@@ -1116,10 +1148,13 @@ DisplayServerWeb::DisplayServerWeb(const String &p_rendering_driver, WindowMode 
 #endif
 
 	// JS Input interface (js/libs/library_godot_input.js)
+	godot_js_input_init(GLOBAL_DEF_RST_BASIC("input_devices/sensors/enable_accelerometer", false), GLOBAL_DEF_RST_BASIC("input_devices/sensors/enable_gyroscope", false));
 	godot_js_input_mouse_button_cb(&DisplayServerWeb::mouse_button_callback);
 	godot_js_input_mouse_move_cb(&DisplayServerWeb::mouse_move_callback);
 	godot_js_input_mouse_wheel_cb(&DisplayServerWeb::mouse_wheel_callback);
 	godot_js_input_touch_cb(&DisplayServerWeb::touch_callback, touch_event.identifier, touch_event.coords);
+	godot_js_input_accelerometer_cb(&DisplayServerWeb::accelerometer_callback);
+	godot_js_input_gyroscope_cb(&DisplayServerWeb::gyroscope_callback);
 	godot_js_input_key_cb(&DisplayServerWeb::key_callback, key_event.code, key_event.key);
 	godot_js_input_paste_cb(&DisplayServerWeb::update_clipboard_callback);
 	godot_js_input_drop_files_cb(&DisplayServerWeb::drop_files_js_callback);

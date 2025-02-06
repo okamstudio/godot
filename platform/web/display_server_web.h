@@ -126,6 +126,10 @@ private:
 	static int _mouse_wheel_callback(double p_delta_x, double p_delta_y);
 	WASM_EXPORT static void touch_callback(int p_type, int p_count);
 	static void _touch_callback(int p_type, int p_count);
+	WASM_EXPORT static void accelerometer_callback(double p_x, double p_y, double p_z);
+	static void _accelerometer_callback(double p_x, double p_y, double p_z);
+	WASM_EXPORT static void gyroscope_callback(double p_x, double p_y, double p_z);
+	static void _gyroscope_callback(double p_x, double p_y, double p_z);
 	WASM_EXPORT static void key_callback(int p_pressed, int p_repeat, int p_modifiers);
 	static void _key_callback(const String &p_key_event_code, const String &p_key_event_key, int p_pressed, int p_repeat, int p_modifiers);
 	WASM_EXPORT static void vk_input_text_callback(const char *p_text, int p_cursor);
