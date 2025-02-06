@@ -294,6 +294,8 @@ if env["import_env_vars"]:
     for env_var in str(env["import_env_vars"]).split(","):
         if env_var in os.environ:
             env["ENV"][env_var] = os.environ[env_var]
+        else:
+            print_warning(f"Environment variable {env_var} doesn't exist and wasn't imported")
 
 # Platform selection: validate input, and add options.
 
