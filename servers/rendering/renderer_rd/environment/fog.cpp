@@ -691,9 +691,9 @@ void Fog::volumetric_fog_update(const VolumetricFogSettings &p_settings, const P
 				// when the camera's near plane is inside the fog, we must always consider the entire screen
 				Vector3 near_plane_corner(frustum_near_size.x, frustum_near_size.y, z_near);
 				float expand = near_plane_corner.length();
-				if (cam_position.x > (corner_min.x - expand) && cam_position.x < (corner_max.x + expand) &&
-						cam_position.y > (corner_min.y - expand) && cam_position.y < (corner_max.y + expand) &&
-						cam_position.z > (corner_min.z - expand) && cam_position.z < (corner_max.z + expand)) {
+				if ((cam_position.x > (corner_min.x - expand) && cam_position.x < (corner_max.x + expand)) ||
+						(cam_position.y > (corner_min.y - expand) && cam_position.y < (corner_max.y + expand)) ||
+						(cam_position.z > (corner_min.z - expand) && cam_position.z < (corner_max.z + expand))) {
 					froxel_min.x = 0;
 					froxel_min.y = 0;
 					froxel_min.z = 0;
