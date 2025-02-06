@@ -5635,8 +5635,12 @@ bool TextServerAdvanced::_shaped_text_update_breaks(const RID &p_shaped) {
 				i++;
 			}
 			int r_end = sd->spans[i].end;
-			UBreakIterator *bi = ubrk_open(UBRK_LINE, (language.is_empty()) ? TranslationServer::get_singleton()->get_tool_locale().ascii().get_data() : language.ascii().get_data(), data + _convert_pos_inv(sd, r_start), _convert_pos_inv(sd, r_end - r_start), &err);
-			if (U_FAILURE(err)) {
+			UBreakIterator *bi = sd->_get_break_iterator_for_locale(language, &err);
+			if (!U_FAILURE(err) && bi) {
+				ubrk_setText(bi, data + _convert_pos_inv(sd, r_start), _convert_pos_inv(sd, r_end - r_start), &err);
+			}
+
+			if (U_FAILURE(err) || !bi) {
 				// No data loaded - use fallback.
 				for (int j = r_start; j < r_end; j++) {
 					char32_t c = sd->text[j - sd->start];
@@ -5665,7 +5669,6 @@ bool TextServerAdvanced::_shaped_text_update_breaks(const RID &p_shaped) {
 					}
 				}
 			}
-			ubrk_close(bi);
 			i++;
 		}
 		sd->break_ops_valid = true;
@@ -6111,6 +6114,15 @@ _FORCE_INLINE_ void TextServerAdvanced::_add_featuers(const Dictionary &p_source
 			r_ftrs.push_back(feature);
 		}
 	}
+}
+
+UBreakIterator *TextServerAdvanced::ShapedTextDataAdvanced::_get_break_iterator_for_locale(const String &p_language, UErrorCode *r_err) {
+	HashMap<String, UBreakIterator *>::Iterator key_value = line_break_iterators_per_language.find(p_language);
+	if (key_value) {
+		return key_value->value;
+	}
+	UBreakIterator *brk = ubrk_open(UBRK_LINE, p_language.is_empty() ? TranslationServer::get_singleton()->get_tool_locale().ascii().get_data() : p_language.ascii().get_data(), nullptr, 0, r_err);
+	return line_break_iterators_per_language.insert(p_language, brk)->value;
 }
 
 void TextServerAdvanced::_shape_run(ShapedTextDataAdvanced *p_sd, int64_t p_start, int64_t p_end, hb_script_t p_script, hb_direction_t p_direction, TypedArray<RID> p_fonts, int64_t p_span, int64_t p_fb_index, int64_t p_prev_start, int64_t p_prev_end, RID p_prev_font) {
