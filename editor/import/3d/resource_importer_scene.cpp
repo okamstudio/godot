@@ -1645,11 +1645,16 @@ Node *ResourceImporterScene::_post_fix_node(Node *p_node, Node *p_root, HashMap<
 						base->set_collision_mask(node_settings["physics/mask"]);
 
 						for (const Ref<Shape3D> &E : shapes) {
-							CollisionShape3D *cshape = memnew(CollisionShape3D);
-							cshape->set_shape(E);
-							base->add_child(cshape, true);
+							Ref<ConcavePolygonShape3D> concave_shape = E;
+							if (concave_shape.is_valid()) {
+								concave_shape->set_backface_collision_enabled(node_settings["physics/backface_collision"]);
+							}
 
-							cshape->set_owner(base->get_owner());
+							CollisionShape3D *collision_shape = memnew(CollisionShape3D);
+							collision_shape->set_shape(E);
+							base->add_child(collision_shape, true);
+
+							collision_shape->set_owner(base->get_owner());
 						}
 					}
 				}
@@ -2000,6 +2005,7 @@ void ResourceImporterScene::get_internal_import_options(InternalImportCategory p
 			r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "generate/navmesh", PROPERTY_HINT_ENUM, "Disabled,Mesh + NavMesh,NavMesh Only"), 0));
 			r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "physics/body_type", PROPERTY_HINT_ENUM, "Static,Dynamic,Area"), 0));
 			r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "physics/shape_type", PROPERTY_HINT_ENUM, "Decompose Convex,Simple Convex,Trimesh,Box,Sphere,Cylinder,Capsule,Automatic", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), 7));
+			r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "physics/backface_collision", PROPERTY_HINT_NONE, "Backface Collision"), 0));
 			r_options->push_back(ImportOption(PropertyInfo(Variant::OBJECT, "physics/physics_material_override", PROPERTY_HINT_RESOURCE_TYPE, "PhysicsMaterial"), Variant()));
 			r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "physics/layer", PROPERTY_HINT_LAYERS_3D_PHYSICS), 1));
 			r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "physics/mask", PROPERTY_HINT_LAYERS_3D_PHYSICS), 1));
