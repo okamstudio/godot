@@ -396,24 +396,24 @@ void EditorExportPlatformAndroid::_check_for_changes_poll_thread(void *ud) {
 							p = p.replace("]", "");
 
 							if (p.begins_with("ro.product.model=")) {
-								device = p.get_slice("=", 1).strip_edges();
+								device = p.get_slicec('=', 1).strip_edges();
 							} else if (p.begins_with("ro.product.brand=")) {
-								vendor = p.get_slice("=", 1).strip_edges().capitalize();
+								vendor = p.get_slicec('=', 1).strip_edges().capitalize();
 							} else if (p.begins_with("ro.build.display.id=")) {
-								d.description += "Build: " + p.get_slice("=", 1).strip_edges() + "\n";
+								d.description += "Build: " + p.get_slicec('=', 1).strip_edges() + "\n";
 							} else if (p.begins_with("ro.build.version.release=")) {
-								d.description += "Release: " + p.get_slice("=", 1).strip_edges() + "\n";
+								d.description += "Release: " + p.get_slicec('=', 1).strip_edges() + "\n";
 							} else if (p.begins_with("ro.build.version.sdk=")) {
-								d.api_level = p.get_slice("=", 1).to_int();
+								d.api_level = p.get_slicec('=', 1).to_int();
 							} else if (p.begins_with("ro.product.cpu.abi=")) {
-								d.architecture = p.get_slice("=", 1).strip_edges();
+								d.architecture = p.get_slicec('=', 1).strip_edges();
 								d.description += "CPU: " + d.architecture + "\n";
 							} else if (p.begins_with("ro.product.manufacturer=")) {
-								d.description += "Manufacturer: " + p.get_slice("=", 1).strip_edges() + "\n";
+								d.description += "Manufacturer: " + p.get_slicec('=', 1).strip_edges() + "\n";
 							} else if (p.begins_with("ro.board.platform=")) {
-								d.description += "Chipset: " + p.get_slice("=", 1).strip_edges() + "\n";
+								d.description += "Chipset: " + p.get_slicec('=', 1).strip_edges() + "\n";
 							} else if (p.begins_with("ro.opengles.version=")) {
-								uint32_t opengl = p.get_slice("=", 1).to_int();
+								uint32_t opengl = p.get_slicec('=', 1).to_int();
 								d.description += "OpenGL: " + itos(opengl >> 16) + "." + itos((opengl >> 8) & 0xFF) + "." + itos((opengl) & 0xFF) + "\n";
 							}
 						}

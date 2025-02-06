@@ -133,8 +133,8 @@ ScrollContainer *EditorAbout::_populate_list(const String &p_name, const List<St
 
 				while (*names_ptr) {
 					const String name = String::utf8(*names_ptr++);
-					const String identifier = name.get_slice("<", 0);
-					const String website = name.get_slice_count("<") == 1 ? "" : name.get_slice("<", 1).trim_suffix(">");
+					const String identifier = name.get_slicec('<', 0);
+					const String website = name.get_slice_count("<") == 1 ? "" : name.get_slicec('<', 1).trim_suffix(">");
 
 					const int name_item_id = il->add_item(identifier, nullptr, false);
 					il->set_item_tooltip_enabled(name_item_id, false);

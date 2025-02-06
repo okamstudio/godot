@@ -1812,9 +1812,9 @@ void Collada::_parse_animation(XMLParser &p_parser) {
 				track.target = target.get_slicec('/', 0);
 				track.param = target.get_slicec('/', 1);
 				if (track.param.contains_char('.')) {
-					track.component = track.param.get_slice(".", 1).to_upper();
+					track.component = track.param.get_slicec('.', 1).to_upper();
 				}
-				track.param = track.param.get_slice(".", 0);
+				track.param = track.param.get_slicec('.', 0);
 				if (names.size() > 1 && track.component.is_empty()) {
 					//this is a guess because the collada spec is ambiguous here...
 					//i suppose if you have many names (outputs) you can't use a component and i should abide to that.
@@ -2347,9 +2347,9 @@ Error Collada::load(const String &p_path, int p_flags) {
 	{
 		//version
 		String version = parser.get_named_attribute_value("version");
-		state.version.major = version.get_slice(".", 0).to_int();
-		state.version.minor = version.get_slice(".", 1).to_int();
-		state.version.rev = version.get_slice(".", 2).to_int();
+		state.version.major = version.get_slicec('.', 0).to_int();
+		state.version.minor = version.get_slicec('.', 1).to_int();
+		state.version.rev = version.get_slicec('.', 2).to_int();
 		COLLADA_PRINT("Collada VERSION: " + version);
 	}
 

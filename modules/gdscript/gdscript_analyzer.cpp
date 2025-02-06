@@ -5569,7 +5569,7 @@ GDScriptParser::DataType GDScriptAnalyzer::type_from_property(const PropertyInfo
 			result.set_container_element_type(0, elem_type);
 		} else if (p_property.type == Variant::DICTIONARY && p_property.hint == PROPERTY_HINT_DICTIONARY_TYPE) {
 			// Check element type.
-			StringName key_elem_type_name = p_property.hint_string.get_slice(";", 0);
+			StringName key_elem_type_name = p_property.hint_string.get_slicec(';', 0);
 			GDScriptParser::DataType key_elem_type;
 			key_elem_type.type_source = GDScriptParser::DataType::ANNOTATED_EXPLICIT;
 
@@ -5594,7 +5594,7 @@ GDScriptParser::DataType GDScriptAnalyzer::type_from_property(const PropertyInfo
 			}
 			key_elem_type.is_constant = false;
 
-			StringName value_elem_type_name = p_property.hint_string.get_slice(";", 1);
+			StringName value_elem_type_name = p_property.hint_string.get_slicec(';', 1);
 			GDScriptParser::DataType value_elem_type;
 			value_elem_type.type_source = GDScriptParser::DataType::ANNOTATED_EXPLICIT;
 

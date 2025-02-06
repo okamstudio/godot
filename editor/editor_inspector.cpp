@@ -3485,9 +3485,9 @@ void EditorInspector::update_tree() {
 			String swap_method;
 			for (int i = (p.type == Variant::NIL ? 1 : 2); i < class_name_components.size(); i++) {
 				if (class_name_components[i].begins_with("page_size") && class_name_components[i].get_slice_count("=") == 2) {
-					page_size = class_name_components[i].get_slice("=", 1).to_int();
+					page_size = class_name_components[i].get_slicec('=', 1).to_int();
 				} else if (class_name_components[i].begins_with("add_button_text") && class_name_components[i].get_slice_count("=") == 2) {
-					add_button_text = class_name_components[i].get_slice("=", 1).strip_edges();
+					add_button_text = class_name_components[i].get_slicec('=', 1).strip_edges();
 				} else if (class_name_components[i] == "static") {
 					movable = false;
 				} else if (class_name_components[i] == "const") {
@@ -3497,7 +3497,7 @@ void EditorInspector::update_tree() {
 				} else if (class_name_components[i] == "unfoldable") {
 					foldable = false;
 				} else if (class_name_components[i].begins_with("swap_method") && class_name_components[i].get_slice_count("=") == 2) {
-					swap_method = class_name_components[i].get_slice("=", 1).strip_edges();
+					swap_method = class_name_components[i].get_slicec('=', 1).strip_edges();
 				}
 			}
 
@@ -4537,7 +4537,7 @@ void EditorInspector::_set_property_favorited(const String &p_path, bool p_favor
 
 	String theme_property;
 	if (p_path.begins_with("theme_override_")) {
-		theme_property = p_path.get_slice("/", 1);
+		theme_property = p_path.get_slicec('/', 1);
 	}
 
 	while (!validate_name.is_empty()) {

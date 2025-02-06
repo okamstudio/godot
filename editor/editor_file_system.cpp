@@ -383,8 +383,8 @@ void EditorFileSystem::_scan_filesystem() {
 					name = cpath.path_join(name);
 
 					FileCache fc;
-					fc.type = split[1].get_slice("/", 0);
-					fc.resource_script_class = split[1].get_slice("/", 1);
+					fc.type = split[1].get_slicec('/', 0);
+					fc.resource_script_class = split[1].get_slicec('/', 1);
 					fc.uid = split[2].to_int();
 					fc.modification_time = split[3].to_int();
 					fc.import_modification_time = split[4].to_int();

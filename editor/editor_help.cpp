@@ -1703,8 +1703,8 @@ void EditorHelp::_update_doc() {
 
 			for (KeyValue<String, Vector<DocData::ConstantDoc>> &E : enums) {
 				String key = E.key;
-				if ((key.get_slice_count(".") > 1) && (key.get_slice(".", 0) == edited_class)) {
-					key = key.get_slice(".", 1);
+				if ((key.get_slice_count(".") > 1) && (key.get_slicec('.', 0) == edited_class)) {
+					key = key.get_slicec('.', 1);
 				}
 				if (cd.enums.has(key)) {
 					const bool is_documented = cd.enums[key].is_deprecated || cd.enums[key].is_experimental || !cd.enums[key].description.strip_edges().is_empty();
@@ -2333,11 +2333,11 @@ void EditorHelp::_request_help(const String &p_string) {
 }
 
 void EditorHelp::_help_callback(const String &p_topic) {
-	String what = p_topic.get_slice(":", 0);
-	String clss = p_topic.get_slice(":", 1);
+	String what = p_topic.get_slicec(':', 0);
+	String clss = p_topic.get_slicec(':', 1);
 	String name;
 	if (p_topic.get_slice_count(":") == 3) {
-		name = p_topic.get_slice(":", 2);
+		name = p_topic.get_slicec(':', 2);
 	}
 
 	_request_help(clss); // First go to class.

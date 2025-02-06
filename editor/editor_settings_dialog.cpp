@@ -572,7 +572,7 @@ void EditorSettingsDialog::_update_shortcuts() {
 	// Create all sections first.
 	for (const String &E : slist) {
 		Ref<Shortcut> sc = EditorSettings::get_singleton()->get_shortcut(E);
-		String section_name = E.get_slice("/", 0);
+		String section_name = E.get_slicec('/', 0);
 
 		if (sections.has(section_name)) {
 			continue;
@@ -605,7 +605,7 @@ void EditorSettingsDialog::_update_shortcuts() {
 			continue;
 		}
 
-		String section_name = E.get_slice("/", 0);
+		String section_name = E.get_slicec('/', 0);
 		TreeItem *section = sections[section_name];
 
 		if (!_should_display_shortcut(sc->get_name(), sc->get_events(), true)) {

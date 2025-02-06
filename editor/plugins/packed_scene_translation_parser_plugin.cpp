@@ -161,7 +161,7 @@ Error PackedSceneEditorTranslationParserPlugin::parse_file(const String &p_path,
 				// Extract FileDialog's filters property with values in format "*.png ; PNG Images","*.gd ; GDScript Files".
 				Vector<String> str_values = property_value;
 				for (int k = 0; k < str_values.size(); k++) {
-					String desc = str_values[k].get_slice(";", 1).strip_edges();
+					String desc = str_values[k].get_slicec(';', 1).strip_edges();
 					if (!desc.is_empty()) {
 						parsed_strings.push_back(desc);
 					}

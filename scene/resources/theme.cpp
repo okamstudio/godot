@@ -164,7 +164,7 @@ void Theme::_get_property_list(List<PropertyInfo> *p_list) const {
 	String prev_type;
 	for (const PropertyInfo &E : list) {
 		// Add groups for types so that their names are left unchanged in the inspector.
-		String current_type = E.name.get_slice("/", 0);
+		String current_type = E.name.get_slicec('/', 0);
 		if (prev_type != current_type) {
 			p_list->push_back(PropertyInfo(Variant::NIL, current_type, PROPERTY_HINT_NONE, current_type + "/", PROPERTY_USAGE_GROUP));
 			prev_type = current_type;

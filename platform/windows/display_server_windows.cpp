@@ -493,7 +493,7 @@ void DisplayServerWindows::_thread_fd_monitor(void *p_ud) {
 			int filter_slice_count = flt.get_slice_count(",");
 			Vector<String> exts;
 			for (int j = 0; j < filter_slice_count; j++) {
-				String str = (flt.get_slice(",", j).strip_edges());
+				String str = (flt.get_slicec(',', j).strip_edges());
 				if (!str.is_empty()) {
 					exts.push_back(str);
 				}
@@ -6438,8 +6438,8 @@ Vector2i _get_device_ids(const String &p_device_name) {
 			SysFreeString(object_name);
 			if (hr == S_OK) {
 				String device_id = String(V_BSTR(&did));
-				ids.x = device_id.get_slice("&", 0).lstrip("PCI\\VEN_").hex_to_int();
-				ids.y = device_id.get_slice("&", 1).lstrip("DEV_").hex_to_int();
+				ids.x = device_id.get_slicec('&', 0).lstrip("PCI\\VEN_").hex_to_int();
+				ids.y = device_id.get_slicec('&', 1).lstrip("DEV_").hex_to_int();
 			}
 
 			for (ULONG i = 0; i < resultCount; i++) {

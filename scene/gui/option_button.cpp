@@ -165,7 +165,7 @@ bool OptionButton::_set(const StringName &p_name, const Variant &p_value) {
 			_select(index, false);
 		}
 
-		const String property = sname.get_slice("/", 2);
+		const String property = sname.get_slicec('/', 2);
 		if (property == "text" || property == "icon") {
 			_queue_update_size_cache();
 		}

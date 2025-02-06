@@ -397,7 +397,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 		for (const String &locale : get_editor_locales()) {
 			// Skip locales which we can't render properly (see above comment).
 			// Test against language code without regional variants (e.g. ur_PK).
-			String lang_code = locale.get_slice("_", 0);
+			String lang_code = locale.get_slicec('_', 0);
 			if (locales_to_skip.has(lang_code)) {
 				continue;
 			}

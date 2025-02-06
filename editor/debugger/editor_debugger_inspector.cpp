@@ -290,7 +290,7 @@ void EditorDebuggerInspector::clear_stack_variables() {
 String EditorDebuggerInspector::get_stack_variable(const String &p_var) {
 	for (KeyValue<StringName, Variant> &E : variables->prop_values) {
 		String v = E.key.operator String();
-		if (v.get_slice("/", 1) == p_var) {
+		if (v.get_slicec('/', 1) == p_var) {
 			return variables->get_variant(v);
 		}
 	}

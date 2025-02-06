@@ -115,7 +115,7 @@ Error RDShaderFile::parse_versions_from_text(const String &p_text, const String 
 					base_error = "Missing `;` in '" + l + "'. Version syntax is `version = \"<defines with C escaping>\";`.";
 					break;
 				}
-				Vector<String> slices = l.get_slice(";", 0).split("=");
+				Vector<String> slices = l.get_slicec(';', 0).split("=");
 				String version = slices[0].strip_edges();
 				if (!version.is_valid_ascii_identifier()) {
 					base_error = "Version names must be valid identifiers, found '" + version + "' instead.";

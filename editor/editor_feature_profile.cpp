@@ -261,7 +261,7 @@ Error EditorFeatureProfile::load_from_file(const String &p_path) {
 		Array disabled_properties_arr = data["disabled_properties"];
 		for (int i = 0; i < disabled_properties_arr.size(); i++) {
 			String s = disabled_properties_arr[i];
-			set_disable_class_property(s.get_slice(":", 0), s.get_slice(":", 1), true);
+			set_disable_class_property(s.get_slicec(':', 0), s.get_slicec(':', 1), true);
 		}
 	}
 

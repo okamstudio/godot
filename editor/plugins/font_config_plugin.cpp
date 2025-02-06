@@ -158,7 +158,7 @@ void EditorPropertyFontMetaOverride::_notification(int p_what) {
 void EditorPropertyFontMetaOverride::_property_changed(const String &p_property, const Variant &p_value, const String &p_name, bool p_changing) {
 	if (p_property.begins_with("keys")) {
 		Dictionary dict = object->get_dict();
-		String key = p_property.get_slice("/", 1);
+		String key = p_property.get_slicec('/', 1);
 		dict[key] = (bool)p_value;
 
 		emit_changed(get_edited_property(), dict, "", true);
@@ -378,7 +378,7 @@ EditorPropertyFontMetaOverride::EditorPropertyFontMetaOverride(bool p_script) {
 void EditorPropertyOTVariation::_property_changed(const String &p_property, const Variant &p_value, const String &p_name, bool p_changing) {
 	if (p_property.begins_with("keys")) {
 		Dictionary dict = object->get_dict();
-		int key = p_property.get_slice("/", 1).to_int();
+		int key = p_property.get_slicec('/', 1).to_int();
 		dict[key] = (int)p_value;
 
 		emit_changed(get_edited_property(), dict, "", true);
@@ -561,7 +561,7 @@ void EditorPropertyOTFeatures::_notification(int p_what) {
 void EditorPropertyOTFeatures::_property_changed(const String &p_property, const Variant &p_value, const String &p_name, bool p_changing) {
 	if (p_property.begins_with("keys")) {
 		Dictionary dict = object->get_dict();
-		int key = p_property.get_slice("/", 1).to_int();
+		int key = p_property.get_slicec('/', 1).to_int();
 		dict[key] = (int)p_value;
 
 		emit_changed(get_edited_property(), dict, "", true);
