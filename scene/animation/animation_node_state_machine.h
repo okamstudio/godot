@@ -312,6 +312,8 @@ class AnimationNodeStateMachinePlayback : public Resource {
 	bool _can_transition_to_next(AnimationTree *p_tree, AnimationNodeStateMachine *p_state_machine, NextInfo p_next, bool p_test_only);
 
 	void _set_current(AnimationNodeStateMachine *p_state_machine, const StringName &p_state);
+	void _current_state_changed_in_child(AnimationNodeStateMachine *p_state_machine, const String p_left_over);
+	void _set_fading_from(const StringName &p_fading_from);
 	void _set_grouped(bool p_is_grouped);
 	void _set_base_path(const String &p_base_path);
 	Ref<AnimationNodeStateMachinePlayback> _get_parent_playback(AnimationTree *p_tree) const;

@@ -93,4 +93,19 @@
 	<members>
 		<member name="resource_local_to_scene" type="bool" setter="set_local_to_scene" getter="is_local_to_scene" overrides="Resource" default="true" />
 	</members>
+	<signals>
+		<signal name="current_state_changed">
+			<param index="0" name="node_name" type="StringName" />
+			<description>
+				Emitted when the current animation node is changed in the state machine playback.
+				When the [member AnimationNodeStateMachine.state_machine_type] is [constant AnimationNodeStateMachine.STATE_MACHINE_TYPE_GROUPED] the signal is emitted by the parent state node.
+			</description>
+		</signal>
+		<signal name="fading_from_state_changed">
+			<param index="0" name="fading_from" type="StringName" />
+			<description>
+				Emitted when the fading from source is changed in the state machine playback.
+			</description>
+		</signal>
+	</signals>
 </class>
