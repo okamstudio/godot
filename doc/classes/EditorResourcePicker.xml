@@ -63,8 +63,9 @@
 		<signal name="resource_selected">
 			<param index="0" name="resource" type="Resource" />
 			<param index="1" name="inspect" type="bool" />
+			<param index="2" name="force_open" type="bool" />
 			<description>
-				Emitted when the resource value was set and user clicked to edit it. When [param inspect] is [code]true[/code], the signal was caused by the context menu "Edit" or "Inspect" option.
+				Emitted when the resource value was set and user clicked to edit it. When [param inspect] is [code]true[/code], the signal was caused by the context menu "Edit" or "Inspect" option. If [param force_open] is [code]true[/code], the resource will always be expanded if [member EditorSettings.interface/inspector/open_resources_in_current_inspector] is [code]true[/code], instead of toggling whether it's expanded in the inspector.
 			</description>
 		</signal>
 	</signals>
