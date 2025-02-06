@@ -115,7 +115,7 @@ void JoltSoftBody3D::_add_to_space() {
 	jolt_settings->mUserData = reinterpret_cast<JPH::uint64>(this);
 	jolt_settings->mObjectLayer = _get_object_layer();
 	jolt_settings->mCollisionGroup = JPH::CollisionGroup(nullptr, group_id, sub_group_id);
-	jolt_settings->mMaxLinearVelocity = JoltProjectSettings::get_max_linear_velocity();
+	jolt_settings->mMaxLinearVelocity = JoltProjectSettings::max_linear_velocity;
 
 	const JPH::BodyID new_jolt_id = space->add_soft_body(*this, *jolt_settings);
 	if (new_jolt_id.IsInvalid()) {
@@ -148,7 +148,7 @@ bool JoltSoftBody3D::_ref_shared_data() {
 		LocalVector<int> &mesh_to_physics = iter_shared_data->value.mesh_to_physics;
 
 		JPH::SoftBodySharedSettings &settings = *iter_shared_data->value.settings;
-		settings.mVertexRadius = JoltProjectSettings::get_soft_body_point_radius();
+		settings.mVertexRadius = JoltProjectSettings::soft_body_point_radius;
 
 		JPH::Array<JPH::SoftBodySharedSettings::Vertex> &physics_vertices = settings.mVertices;
 		JPH::Array<JPH::SoftBodySharedSettings::Face> &physics_faces = settings.mFaces;

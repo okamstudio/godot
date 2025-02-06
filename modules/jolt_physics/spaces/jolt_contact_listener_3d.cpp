@@ -200,7 +200,7 @@ bool JoltContactListener3D::_try_add_contacts(const JPH::Body &p_jolt_body1, con
 	manifold.depth = p_manifold.mPenetrationDepth;
 
 	JPH::CollisionEstimationResult collision;
-	JPH::EstimateCollisionResponse(p_jolt_body1, p_jolt_body2, p_manifold, collision, p_settings.mCombinedFriction, p_settings.mCombinedRestitution, JoltProjectSettings::get_bounce_velocity_threshold(), 5);
+	JPH::EstimateCollisionResponse(p_jolt_body1, p_jolt_body2, p_manifold, collision, p_settings.mCombinedFriction, p_settings.mCombinedRestitution, JoltProjectSettings::bounce_velocity_threshold, 5);
 
 	for (JPH::uint i = 0; i < contact_count; ++i) {
 		const JPH::RVec3 relative_point1 = JPH::RVec3(p_manifold.mRelativeContactPointsOn1[i]);

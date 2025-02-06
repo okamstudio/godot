@@ -37,7 +37,7 @@
 
 JPH::ShapeRefC JoltBoxShape3D::_build() const {
 	const float min_half_extent = (float)half_extents[half_extents.min_axis_index()];
-	const float actual_margin = MIN(margin, min_half_extent * JoltProjectSettings::get_collision_margin_fraction());
+	const float actual_margin = MIN(margin, min_half_extent * JoltProjectSettings::collision_margin_fraction);
 
 	const JPH::BoxShapeSettings shape_settings(to_jolt(half_extents), actual_margin);
 	const JPH::ShapeSettings::ShapeResult shape_result = shape_settings.Create();

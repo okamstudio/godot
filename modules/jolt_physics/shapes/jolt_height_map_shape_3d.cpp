@@ -106,7 +106,7 @@ JPH::ShapeRefC JoltHeightMapShape3D::_build_height_field() const {
 	JPH::HeightFieldShapeSettings shape_settings(heights_rev.ptr(), JPH::Vec3(offset_x, 0, offset_y), JPH::Vec3::sReplicate(1.0f), (JPH::uint32)width);
 
 	shape_settings.mBitsPerSample = shape_settings.CalculateBitsPerSampleForError(0.0f);
-	shape_settings.mActiveEdgeCosThresholdAngle = JoltProjectSettings::get_active_edge_threshold();
+	shape_settings.mActiveEdgeCosThresholdAngle = JoltProjectSettings::active_edge_threshold_cos;
 
 	const JPH::ShapeSettings::ShapeResult shape_result = shape_settings.Create();
 	ERR_FAIL_COND_V_MSG(shape_result.HasError(), nullptr, vformat("Failed to build Jolt Physics height map shape with %s. It returned the following error: '%s'. This shape belongs to %s.", to_string(), to_godot(shape_result.GetError()), _owners_to_string()));
@@ -160,7 +160,7 @@ JPH::ShapeRefC JoltHeightMapShape3D::_build_mesh() const {
 	}
 
 	JPH::MeshShapeSettings shape_settings(std::move(vertices), std::move(indices));
-	shape_settings.mActiveEdgeCosThresholdAngle = JoltProjectSettings::get_active_edge_threshold();
+	shape_settings.mActiveEdgeCosThresholdAngle = JoltProjectSettings::active_edge_threshold_cos;
 
 	const JPH::ShapeSettings::ShapeResult shape_result = shape_settings.Create();
 	ERR_FAIL_COND_V_MSG(shape_result.HasError(), nullptr, vformat("Failed to build Jolt Physics height map shape (as polygon) with %s. It returned the following error: '%s'. This shape belongs to %s.", to_string(), to_godot(shape_result.GetError()), _owners_to_string()));

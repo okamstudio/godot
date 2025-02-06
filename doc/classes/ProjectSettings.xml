@@ -2383,13 +2383,11 @@
 			[b]Note:[/b] Setting this too high can result in objects not depenetrating properly.
 			[b]Note:[/b] This applies to all shape queries, as well as physics bodies within the simulation.
 			[b]Note:[/b] This does not apply when enabling Jolt's enhanced internal edge removal, which supersedes this.
-			[b]Note:[/b] This setting will only be read once during the lifetime of the application.
 		</member>
 		<member name="physics/jolt_physics_3d/collisions/collision_margin_fraction" type="float" setter="" getter="" default="0.08">
 			The amount of collision margin to use for certain convex collision shapes, such as [BoxShape3D], [CylinderShape3D] and [ConvexPolygonShape3D], as a fraction of the shape's shortest axis, with [member Shape3D.margin] as the upper bound. This is mainly used to speed up collision detection with convex shapes.
 			[b]Note:[/b] Collision margins in Jolt do not add any extra size to the shape. Instead the shape is first shrunk by the margin and then expanded by the same amount, resulting in a shape with rounded corners.
 			[b]Note:[/b] Setting this value too close to [code]0.0[/code] may also negatively affect the accuracy of the collision detection with convex shapes.
-			[b]Note:[/b] This setting will only be read once during the lifetime of the application.
 		</member>
 		<member name="physics/jolt_physics_3d/joints/world_node" type="int" setter="" getter="" default="0">
 			Which of the two nodes bound by a joint should represent the world when one of the two is omitted, as either [member Joint3D.node_a] or [member Joint3D.node_b]. This can be thought of as having the omitted node be a [StaticBody3D] at the joint's position. Joint limits are more easily expressed when [member Joint3D.node_a] represents the world.
@@ -2424,28 +2422,23 @@
 		<member name="physics/jolt_physics_3d/motion_queries/recovery_amount" type="float" setter="" getter="" default="0.4">
 			Fraction of the total penetration to depenetrate per iteration during motion queries.
 			[b]Note:[/b] This affects methods [method CharacterBody3D.move_and_slide], [method PhysicsBody3D.move_and_collide], [method PhysicsBody3D.test_move] and [method PhysicsServer3D.body_test_motion].
-			[b]Note:[/b] This setting will only be read once during the lifetime of the application.
 		</member>
 		<member name="physics/jolt_physics_3d/motion_queries/recovery_iterations" type="int" setter="" getter="" default="4">
 			The number of iterations to run when depenetrating during motion queries.
 			[b]Note:[/b] This affects methods [method CharacterBody3D.move_and_slide], [method PhysicsBody3D.move_and_collide], [method PhysicsBody3D.test_move] and [method PhysicsServer3D.body_test_motion].
-			[b]Note:[/b] This setting will only be read once during the lifetime of the application.
 		</member>
 		<member name="physics/jolt_physics_3d/motion_queries/use_enhanced_internal_edge_removal" type="bool" setter="" getter="" default="true">
 			If [code]true[/code], enables Jolt's enhanced internal edge removal during motion queries. This can help alleviate ghost collisions, but only with edges within a single body, meaning edges between separate bodies can still cause ghost collisions.
 			[b]Note:[/b] This affects methods [method CharacterBody3D.move_and_slide], [method PhysicsBody3D.move_and_collide], [method PhysicsBody3D.test_move] and [method PhysicsServer3D.body_test_motion].
-			[b]Note:[/b] This setting will only be read once during the lifetime of the application.
 		</member>
 		<member name="physics/jolt_physics_3d/queries/enable_ray_cast_face_index" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], populates the [code]face_index[/code] field in the results of [method PhysicsDirectSpaceState3D.intersect_ray], also accessed through [method RayCast3D.get_collision_face_index]. If [code]false[/code], the [code]face_index[/code] field will be left at its default value of [code]-1[/code].
 			[b]Note:[/b] Enabling this setting will increase Jolt's memory usage for [ConcavePolygonShape3D] by around 25%.
-			[b]Note:[/b] This setting will only be read once during the lifetime of the application.
 		</member>
 		<member name="physics/jolt_physics_3d/queries/use_enhanced_internal_edge_removal" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], enables Jolt's enhanced internal edge removal during shape queries. This can help alleviate ghost collisions when using shape queries for things like character movement, but only with edges within a single body, meaning edges between separate bodies can still cause ghost collisions.
 			[b]Note:[/b] This affects methods [method PhysicsDirectSpaceState3D.cast_motion], [method PhysicsDirectSpaceState3D.collide_shape], [method PhysicsDirectSpaceState3D.get_rest_info] and [method PhysicsDirectSpaceState3D.intersect_shape].
 			[b]Note:[/b] Enabling this setting can cause certain shapes to be culled from the results entirely, but you will get at least one intersection per body.
-			[b]Note:[/b] This setting will only be read once during the lifetime of the application.
 		</member>
 		<member name="physics/jolt_physics_3d/simulation/allow_sleep" type="bool" setter="" getter="" default="true">
 			If [code]true[/code], [RigidBody3D] nodes are allowed to go to sleep if their velocity is below the threshold defined in [member physics/jolt_physics_3d/simulation/sleep_velocity_threshold] for the duration set in [member physics/jolt_physics_3d/simulation/sleep_time_threshold]. This can improve physics simulation performance when there are non-moving [RigidBody3D] nodes, at the cost of some nodes possibly failing to wake up in certain scenarios. Consider disabling this temporarily to troubleshoot [RigidBody3D] nodes not moving when they should.
@@ -2471,7 +2464,6 @@
 		</member>
 		<member name="physics/jolt_physics_3d/simulation/bounce_velocity_threshold" type="float" setter="" getter="" default="1.0">
 			The minimum velocity needed before a collision can be bouncy, in meters per second.
-			[b]Note:[/b] This setting will only be read once during the lifetime of the application.
 		</member>
 		<member name="physics/jolt_physics_3d/simulation/continuous_cd_max_penetration" type="float" setter="" getter="" default="0.25">
 			Fraction of a body's inner radius that may penetrate another body while using continuous collision detection.

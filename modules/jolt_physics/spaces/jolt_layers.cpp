@@ -64,7 +64,7 @@ public:
 		allow_collision(AREA_UNDETECTABLE, BODY_DYNAMIC);
 		allow_collision(AREA_UNDETECTABLE, AREA_DETECTABLE);
 
-		if (JoltProjectSettings::areas_detect_static_bodies()) {
+		if (JoltProjectSettings::areas_detect_static_bodies) {
 			allow_collision(BODY_STATIC, AREA_DETECTABLE);
 			allow_collision(BODY_STATIC, AREA_UNDETECTABLE);
 			allow_collision(BODY_STATIC_BIG, AREA_DETECTABLE);

@@ -64,7 +64,7 @@ constexpr TValue align_up(TValue p_value, TAlignment p_alignment) {
 } //namespace
 
 JoltTempAllocator::JoltTempAllocator() :
-		capacity((uint64_t)JoltProjectSettings::get_temp_memory_b()),
+		capacity((uint64_t)JoltProjectSettings::temp_memory_b),
 		base(static_cast<uint8_t *>(JPH::Allocate((size_t)capacity))) {
 }
 
@@ -89,7 +89,7 @@ void *JoltTempAllocator::Allocate(uint32_t p_size) {
 		WARN_PRINT_ONCE(vformat("Jolt Physics temporary memory allocator exceeded capacity of %d MiB. "
 								"Falling back to slower general-purpose allocator. "
 								"Consider increasing maximum temporary memory in project settings.",
-				JoltProjectSettings::get_temp_memory_mib()));
+				JoltProjectSettings::temp_memory_mib));
 
 		ptr = JPH::Allocate(p_size);
 	}

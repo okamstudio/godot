@@ -32,15 +32,6 @@
 
 #include "core/config/project_settings.h"
 
-namespace {
-
-enum JoltJointWorldNode : int {
-	JOLT_JOINT_WORLD_NODE_A,
-	JOLT_JOINT_WORLD_NODE_B,
-};
-
-} // namespace
-
 void JoltProjectSettings::register_settings() {
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "physics/jolt_physics_3d/simulation/velocity_steps", PROPERTY_HINT_RANGE, U"2,16,or_greater"), 10);
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "physics/jolt_physics_3d/simulation/position_steps", PROPERTY_HINT_RANGE, U"1,16,or_greater"), 2);
@@ -80,149 +71,53 @@ void JoltProjectSettings::register_settings() {
 	GLOBAL_DEF_RST(PropertyInfo(Variant::INT, "physics/jolt_physics_3d/limits/max_bodies", PROPERTY_HINT_RANGE, U"1,10240,or_greater"), 10240);
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "physics/jolt_physics_3d/limits/max_body_pairs", PROPERTY_HINT_RANGE, U"8,65536,or_greater"), 65536);
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "physics/jolt_physics_3d/limits/max_contact_constraints", PROPERTY_HINT_RANGE, U"8,20480,or_greater"), 20480);
+
+	read_settings();
+
+	ProjectSettings::get_singleton()->connect("settings_changed", callable_mp_static(JoltProjectSettings::read_settings));
 }
 
-int JoltProjectSettings::get_simulation_velocity_steps() {
-	return GLOBAL_GET("physics/jolt_physics_3d/simulation/velocity_steps");
-}
+void JoltProjectSettings::read_settings() {
+	simulation_velocity_steps = GLOBAL_GET("physics/jolt_physics_3d/simulation/velocity_steps");
+	simulation_position_steps = GLOBAL_GET("physics/jolt_physics_3d/simulation/position_steps");
+	use_enhanced_internal_edge_removal_for_bodies = GLOBAL_GET("physics/jolt_physics_3d/simulation/use_enhanced_internal_edge_removal");
+	areas_detect_static_bodies = GLOBAL_GET("physics/jolt_physics_3d/simulation/areas_detect_static_bodies");
+	generate_all_kinematic_contacts = GLOBAL_GET("physics/jolt_physics_3d/simulation/generate_all_kinematic_contacts");
+	penetration_slop = GLOBAL_GET("physics/jolt_physics_3d/simulation/penetration_slop");
+	speculative_contact_distance = GLOBAL_GET("physics/jolt_physics_3d/simulation/speculative_contact_distance");
+	baumgarte_stabilization_factor = GLOBAL_GET("physics/jolt_physics_3d/simulation/baumgarte_stabilization_factor");
+	soft_body_point_radius = GLOBAL_GET("physics/jolt_physics_3d/simulation/soft_body_point_radius");
+	bounce_velocity_threshold = GLOBAL_GET("physics/jolt_physics_3d/simulation/bounce_velocity_threshold");
+	sleep_allowed = GLOBAL_GET("physics/jolt_physics_3d/simulation/allow_sleep");
+	sleep_velocity_threshold = GLOBAL_GET("physics/jolt_physics_3d/simulation/sleep_velocity_threshold");
+	sleep_time_threshold = GLOBAL_GET("physics/jolt_physics_3d/simulation/sleep_time_threshold");
+	ccd_movement_threshold = GLOBAL_GET("physics/jolt_physics_3d/simulation/continuous_cd_movement_threshold");
+	ccd_max_penetration = GLOBAL_GET("physics/jolt_physics_3d/simulation/continuous_cd_max_penetration");
+	body_pair_contact_cache_enabled = GLOBAL_GET("physics/jolt_physics_3d/simulation/body_pair_contact_cache_enabled");
+	float body_pair_cache_distance = GLOBAL_GET("physics/jolt_physics_3d/simulation/body_pair_contact_cache_distance_threshold");
+	body_pair_cache_distance_sq = body_pair_cache_distance * body_pair_cache_distance;
+	float body_pair_cache_angle = GLOBAL_GET("physics/jolt_physics_3d/simulation/body_pair_contact_cache_angle_threshold");
+	body_pair_cache_angle_cos_div2 = Math::cos(body_pair_cache_angle / 2.0f);
 
-int JoltProjectSettings::get_simulation_position_steps() {
-	return GLOBAL_GET("physics/jolt_physics_3d/simulation/position_steps");
-}
+	use_enhanced_internal_edge_removal_for_queries = GLOBAL_GET("physics/jolt_physics_3d/queries/use_enhanced_internal_edge_removal");
+	enable_ray_cast_face_index = GLOBAL_GET("physics/jolt_physics_3d/queries/enable_ray_cast_face_index");
 
-bool JoltProjectSettings::use_enhanced_internal_edge_removal_for_bodies() {
-	return GLOBAL_GET("physics/jolt_physics_3d/simulation/use_enhanced_internal_edge_removal");
-}
+	use_enhanced_internal_edge_removal_for_motion_queries = GLOBAL_GET("physics/jolt_physics_3d/motion_queries/use_enhanced_internal_edge_removal");
+	motion_query_recovery_iterations = GLOBAL_GET("physics/jolt_physics_3d/motion_queries/recovery_iterations");
+	motion_query_recovery_amount = GLOBAL_GET("physics/jolt_physics_3d/motion_queries/recovery_amount");
 
-bool JoltProjectSettings::areas_detect_static_bodies() {
-	return GLOBAL_GET("physics/jolt_physics_3d/simulation/areas_detect_static_bodies");
-}
+	collision_margin_fraction = GLOBAL_GET("physics/jolt_physics_3d/collisions/collision_margin_fraction");
+	float active_edge_threshold = GLOBAL_GET("physics/jolt_physics_3d/collisions/active_edge_threshold");
+	active_edge_threshold_cos = Math::cos(active_edge_threshold);
 
-bool JoltProjectSettings::should_generate_all_kinematic_contacts() {
-	return GLOBAL_GET("physics/jolt_physics_3d/simulation/generate_all_kinematic_contacts");
-}
+	joint_world_node = (JoltJointWorldNode)(int)GLOBAL_GET("physics/jolt_physics_3d/joints/world_node");
 
-float JoltProjectSettings::get_penetration_slop() {
-	return GLOBAL_GET("physics/jolt_physics_3d/simulation/penetration_slop");
-}
-
-float JoltProjectSettings::get_speculative_contact_distance() {
-	return GLOBAL_GET("physics/jolt_physics_3d/simulation/speculative_contact_distance");
-}
-
-float JoltProjectSettings::get_baumgarte_stabilization_factor() {
-	return GLOBAL_GET("physics/jolt_physics_3d/simulation/baumgarte_stabilization_factor");
-}
-
-float JoltProjectSettings::get_soft_body_point_radius() {
-	return GLOBAL_GET("physics/jolt_physics_3d/simulation/soft_body_point_radius");
-}
-
-float JoltProjectSettings::get_bounce_velocity_threshold() {
-	static const float value = GLOBAL_GET("physics/jolt_physics_3d/simulation/bounce_velocity_threshold");
-	return value;
-}
-
-bool JoltProjectSettings::is_sleep_allowed() {
-	return GLOBAL_GET("physics/jolt_physics_3d/simulation/allow_sleep");
-}
-
-float JoltProjectSettings::get_sleep_velocity_threshold() {
-	return GLOBAL_GET("physics/jolt_physics_3d/simulation/sleep_velocity_threshold");
-}
-
-float JoltProjectSettings::get_sleep_time_threshold() {
-	return GLOBAL_GET("physics/jolt_physics_3d/simulation/sleep_time_threshold");
-}
-
-float JoltProjectSettings::get_ccd_movement_threshold() {
-	return GLOBAL_GET("physics/jolt_physics_3d/simulation/continuous_cd_movement_threshold");
-}
-
-float JoltProjectSettings::get_ccd_max_penetration() {
-	return GLOBAL_GET("physics/jolt_physics_3d/simulation/continuous_cd_max_penetration");
-}
-
-bool JoltProjectSettings::is_body_pair_contact_cache_enabled() {
-	return GLOBAL_GET("physics/jolt_physics_3d/simulation/body_pair_contact_cache_enabled");
-}
-
-float JoltProjectSettings::get_body_pair_cache_distance_sq() {
-	const float value = GLOBAL_GET("physics/jolt_physics_3d/simulation/body_pair_contact_cache_distance_threshold");
-	return value * value;
-}
-
-float JoltProjectSettings::get_body_pair_cache_angle_cos_div2() {
-	return Math::cos((float)GLOBAL_GET("physics/jolt_physics_3d/simulation/body_pair_contact_cache_angle_threshold") / 2.0f);
-}
-
-bool JoltProjectSettings::use_enhanced_internal_edge_removal_for_queries() {
-	static const bool value = GLOBAL_GET("physics/jolt_physics_3d/queries/use_enhanced_internal_edge_removal");
-	return value;
-}
-
-bool JoltProjectSettings::enable_ray_cast_face_index() {
-	static const bool value = GLOBAL_GET("physics/jolt_physics_3d/queries/enable_ray_cast_face_index");
-	return value;
-}
-
-bool JoltProjectSettings::use_enhanced_internal_edge_removal_for_motion_queries() {
-	static const bool value = GLOBAL_GET("physics/jolt_physics_3d/motion_queries/use_enhanced_internal_edge_removal");
-	return value;
-}
-
-int JoltProjectSettings::get_motion_query_recovery_iterations() {
-	static const int value = GLOBAL_GET("physics/jolt_physics_3d/motion_queries/recovery_iterations");
-	return value;
-}
-
-float JoltProjectSettings::get_motion_query_recovery_amount() {
-	static const float value = GLOBAL_GET("physics/jolt_physics_3d/motion_queries/recovery_amount");
-	return value;
-}
-
-float JoltProjectSettings::get_collision_margin_fraction() {
-	static const float value = GLOBAL_GET("physics/jolt_physics_3d/collisions/collision_margin_fraction");
-	return value;
-}
-
-float JoltProjectSettings::get_active_edge_threshold() {
-	static const float value = Math::cos((float)GLOBAL_GET("physics/jolt_physics_3d/collisions/active_edge_threshold"));
-	return value;
-}
-
-bool JoltProjectSettings::use_joint_world_node_a() {
-	return (int)GLOBAL_GET("physics/jolt_physics_3d/joints/world_node") == JOLT_JOINT_WORLD_NODE_A;
-}
-
-int JoltProjectSettings::get_temp_memory_mib() {
-	return GLOBAL_GET("physics/jolt_physics_3d/limits/temporary_memory_buffer_size");
-}
-
-int64_t JoltProjectSettings::get_temp_memory_b() {
-	return get_temp_memory_mib() * 1024 * 1024;
-}
-
-float JoltProjectSettings::get_world_boundary_shape_size() {
-	return GLOBAL_GET("physics/jolt_physics_3d/limits/world_boundary_shape_size");
-}
-
-float JoltProjectSettings::get_max_linear_velocity() {
-	return GLOBAL_GET("physics/jolt_physics_3d/limits/max_linear_velocity");
-}
-
-float JoltProjectSettings::get_max_angular_velocity() {
-	return GLOBAL_GET("physics/jolt_physics_3d/limits/max_angular_velocity");
-}
-
-int JoltProjectSettings::get_max_bodies() {
-	return GLOBAL_GET("physics/jolt_physics_3d/limits/max_bodies");
-}
-
-int JoltProjectSettings::get_max_pairs() {
-	return GLOBAL_GET("physics/jolt_physics_3d/limits/max_body_pairs");
-}
-
-int JoltProjectSettings::get_max_contact_constraints() {
-	return GLOBAL_GET("physics/jolt_physics_3d/limits/max_contact_constraints");
+	temp_memory_mib = GLOBAL_GET("physics/jolt_physics_3d/limits/temporary_memory_buffer_size");
+	temp_memory_b = temp_memory_mib * 1024 * 1024;
+	world_boundary_shape_size = GLOBAL_GET("physics/jolt_physics_3d/limits/world_boundary_shape_size");
+	max_linear_velocity = GLOBAL_GET("physics/jolt_physics_3d/limits/max_linear_velocity");
+	max_angular_velocity = GLOBAL_GET("physics/jolt_physics_3d/limits/max_angular_velocity");
+	max_bodies = GLOBAL_GET("physics/jolt_physics_3d/limits/max_bodies");
+	max_body_pairs = GLOBAL_GET("physics/jolt_physics_3d/limits/max_body_pairs");
+	max_contact_constraints = GLOBAL_GET("physics/jolt_physics_3d/limits/max_contact_constraints");
 }

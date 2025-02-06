@@ -69,8 +69,8 @@ JPH::ShapeRefC JoltConcavePolygonShape3D::_build() const {
 	}
 
 	JPH::MeshShapeSettings shape_settings(jolt_faces);
-	shape_settings.mActiveEdgeCosThresholdAngle = JoltProjectSettings::get_active_edge_threshold();
-	shape_settings.mPerTriangleUserData = JoltProjectSettings::enable_ray_cast_face_index();
+	shape_settings.mActiveEdgeCosThresholdAngle = JoltProjectSettings::active_edge_threshold_cos;
+	shape_settings.mPerTriangleUserData = JoltProjectSettings::enable_ray_cast_face_index;
 
 	const JPH::ShapeSettings::ShapeResult shape_result = shape_settings.Create();
 	ERR_FAIL_COND_V_MSG(shape_result.HasError(), nullptr, vformat("Failed to build Jolt Physics concave polygon shape with %s. It returned the following error: '%s'. This shape belongs to %s.", to_string(), to_godot(shape_result.GetError()), _owners_to_string()));
