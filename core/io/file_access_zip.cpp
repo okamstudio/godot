@@ -236,11 +236,12 @@ ZipArchive::~ZipArchive() {
 
 Error FileAccessZip::open_internal(const String &p_path, int p_mode_flags) {
 	_close();
+	String path = fix_path(p_path);
 
 	ERR_FAIL_COND_V(p_mode_flags & FileAccess::WRITE, FAILED);
 	ZipArchive *arch = ZipArchive::get_singleton();
 	ERR_FAIL_NULL_V(arch, FAILED);
-	zfile = arch->get_file_handle(p_path);
+	zfile = arch->get_file_handle(path);
 	ERR_FAIL_NULL_V(zfile, FAILED);
 
 	int err = unzGetCurrentFileInfo64(zfile, &file_info, nullptr, 0, nullptr, 0, nullptr, 0);
