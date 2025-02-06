@@ -2204,6 +2204,10 @@ Variant ClassDB::class_get_default_property_value(const StringName &p_class, con
 				if (E.usage & (PROPERTY_USAGE_STORAGE | PROPERTY_USAGE_EDITOR)) {
 					if (!default_values[p_class].has(E.name)) {
 						Variant v = c->get(E.name);
+						if (v.get_type() == Variant::OBJECT && v.get_validated_object() != nullptr) {
+							// Skip non-null objects, caching a specific instance causes unexpected behavior.
+							continue;
+						}
 						default_values[p_class][E.name] = v;
 					}
 				}
@@ -2234,24 +2238,7 @@ Variant ClassDB::class_get_default_property_value(const StringName &p_class, con
 	if (r_valid != nullptr) {
 		*r_valid = true;
 	}
-
-	Variant var = default_values[p_class][p_property];
-
-#ifdef DEBUG_ENABLED
-	// Some properties may have an instantiated Object as default value,
-	// (like Path2D's `curve` used to have), but that's not a good practice.
-	// Instead, those properties should use PROPERTY_USAGE_EDITOR_INSTANTIATE_OBJECT
-	// to be auto-instantiated when created in the editor with the following method:
-	// EditorNode::get_editor_data().instantiate_object_properties(obj);
-	if (var.get_type() == Variant::OBJECT) {
-		Object *obj = var.get_validated_object();
-		if (obj) {
-			WARN_PRINT(vformat("Instantiated %s used as default value for %s's \"%s\" property.", obj->get_class(), p_class, p_property));
-		}
-	}
-#endif
-
-	return var;
+	return default_values[p_class][p_property];
 }
 
 void ClassDB::register_extension_class(ObjectGDExtension *p_extension) {
