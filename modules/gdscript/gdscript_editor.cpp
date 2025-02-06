@@ -2842,7 +2842,7 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 										opt = "^" + opt;
 									}
 								}
-								ScriptLanguage::CodeCompletionOption option(opt, ScriptLanguage::CODE_COMPLETION_KIND_FUNCTION);
+								ScriptLanguage::CodeCompletionOption option(opt, ScriptLanguage::CODE_COMPLETION_KIND_PLAIN_TEXT);
 								r_result.insert(option.display, option);
 							}
 						}
