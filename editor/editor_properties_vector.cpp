@@ -194,6 +194,7 @@ EditorPropertyVectorN::EditorPropertyVectorN(Variant::Type p_type, bool p_force_
 			break;
 	}
 	bool horizontal = p_force_wide || p_horizontal;
+	bool grid = false;
 
 	HBoxContainer *hb = memnew(HBoxContainer);
 	hb->set_h_size_flags(SIZE_EXPAND_FILL);
@@ -203,10 +204,18 @@ EditorPropertyVectorN::EditorPropertyVectorN(Variant::Type p_type, bool p_force_
 	if (p_force_wide) {
 		bc = memnew(HBoxContainer);
 		hb->add_child(bc);
-	} else if (horizontal) {
+	} else if (horizontal && component_count < 4) {
 		bc = memnew(HBoxContainer);
 		hb->add_child(bc);
 		set_bottom_editor(hb);
+	} else if (horizontal) {
+		bc = memnew(VBoxContainer);
+		hb->add_child(bc);
+		set_bottom_editor(hb);
+
+		bc->add_child(memnew(HBoxContainer));
+		bc->add_child(memnew(HBoxContainer));
+		grid = true;
 	} else {
 		bc = memnew(VBoxContainer);
 		hb->add_child(bc);
@@ -218,7 +227,11 @@ EditorPropertyVectorN::EditorPropertyVectorN(Variant::Type p_type, bool p_force_
 
 	for (int i = 0; i < component_count; i++) {
 		spin[i] = memnew(EditorSpinSlider);
-		bc->add_child(spin[i]);
+		if (grid) {
+			bc->get_child(i / 2)->add_child(spin[i]);
+		} else {
+			bc->add_child(spin[i]);
+		}
 		spin[i]->set_flat(true);
 		spin[i]->set_label(String(COMPONENT_LABELS[i]));
 		if (horizontal) {

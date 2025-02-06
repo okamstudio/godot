@@ -3695,14 +3695,14 @@ EditorProperty *EditorInspectorDefaultPlugin::get_editor_for_property(Object *p_
 
 		} break;
 		case Variant::VECTOR4: {
-			EditorPropertyVector4 *editor = memnew(EditorPropertyVector4);
+			EditorPropertyVector4 *editor = memnew(EditorPropertyVector4(p_wide));
 			EditorPropertyRangeHint hint = _parse_range_hint(p_hint, p_hint_text, default_float_step);
 			editor->setup(hint.min, hint.max, hint.step, hint.hide_slider, p_hint == PROPERTY_HINT_LINK, hint.suffix);
 			return editor;
 
 		} break;
 		case Variant::VECTOR4I: {
-			EditorPropertyVector4i *editor = memnew(EditorPropertyVector4i);
+			EditorPropertyVector4i *editor = memnew(EditorPropertyVector4i(p_wide));
 			EditorPropertyRangeHint hint = _parse_range_hint(p_hint, p_hint_text, 1, true);
 			editor->setup(hint.min, hint.max, 1, false, p_hint == PROPERTY_HINT_LINK, hint.suffix);
 			return editor;
