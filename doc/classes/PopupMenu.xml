@@ -666,6 +666,18 @@
 				[b]Note:[/b] If [param id] is negative (either explicitly or due to overflow), this will return the corresponding index instead.
 			</description>
 		</signal>
+		<signal name="id_mouse_entered">
+			<param index="0" name="id" type="int" />
+			<description>
+				Emitted when the mouse cursor enters an item's clickable area.
+			</description>
+		</signal>
+		<signal name="id_mouse_exited">
+			<param index="0" name="id" type="int" />
+			<description>
+				Emitted when the mouse cursor leaves an item's clickable area.
+			</description>
+		</signal>
 		<signal name="index_pressed">
 			<param index="0" name="index" type="int" />
 			<description>

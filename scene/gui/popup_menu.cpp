@@ -741,11 +741,15 @@ void PopupMenu::_input_from_window_internal(const Ref<InputEvent> &p_event) {
 
 void PopupMenu::_mouse_over_update(const Point2 &p_over) {
 	int over = _get_mouse_over(p_over);
+	int old_id = mouse_over;
 	int id = (over < 0 || items[over].separator || items[over].disabled) ? -1 : (items[over].id >= 0 ? items[over].id : over);
 
 	if (id < 0) {
 		mouse_over = -1;
 		control->queue_redraw();
+		if (old_id > -1) {
+			emit_signal(SNAME("id_mouse_exited"), old_id);
+		}
 		return;
 	}
 
@@ -757,6 +761,10 @@ void PopupMenu::_mouse_over_update(const Point2 &p_over) {
 	if (over != mouse_over) {
 		mouse_over = over;
 		control->queue_redraw();
+		if (old_id > -1) {
+			emit_signal(SNAME("id_mouse_exited"), old_id);
+		}
+		emit_signal(SNAME("id_mouse_entered"), mouse_over);
 	}
 }
 
@@ -2899,6 +2907,8 @@ void PopupMenu::_bind_methods() {
 
 	ADD_SIGNAL(MethodInfo("id_pressed", PropertyInfo(Variant::INT, "id")));
 	ADD_SIGNAL(MethodInfo("id_focused", PropertyInfo(Variant::INT, "id")));
+	ADD_SIGNAL(MethodInfo("id_mouse_entered", PropertyInfo(Variant::INT, "id")));
+	ADD_SIGNAL(MethodInfo("id_mouse_exited", PropertyInfo(Variant::INT, "id")));
 	ADD_SIGNAL(MethodInfo("index_pressed", PropertyInfo(Variant::INT, "index")));
 	ADD_SIGNAL(MethodInfo("menu_changed"));
 
