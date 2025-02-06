@@ -263,7 +263,15 @@ void EditorAudioBus::update_bus() {
 		fx->set_cell_mode(0, TreeItem::CELL_MODE_CHECK);
 		fx->set_editable(0, true);
 		fx->set_checked(0, AudioServer::get_singleton()->is_bus_effect_enabled(index, i));
-		fx->set_text(0, afx->get_name());
+
+		if (afx->get_name().is_empty()) { // If the effect has no name use the file name.
+			fx->set_text(0, afx->get_path().get_file());
+		} else {
+			fx->set_text(0, afx->get_name());
+		}
+
+		afx->connect_changed(callable_mp(this, &EditorAudioBus::update_bus));
+
 		fx->set_metadata(0, i);
 	}
 
@@ -677,13 +685,30 @@ Variant EditorAudioBus::get_drag_data_fw(const Point2 &p_point, Control *p_from)
 
 bool EditorAudioBus::can_drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from) const {
 	Dictionary d = p_data;
-	if (!d.has("type") || String(d["type"]) != "audio_bus_effect") {
+	if (!d.has("type")) {
 		return false;
 	}
 
 	TreeItem *item = effects->get_item_at_position(p_point);
 	if (!item) {
 		return false;
+	}
+
+	// Check if dropped file(s) are AudioEffects.
+	if (String(d["type"]) == "files") {
+		Vector<String> files = d["files"];
+
+		if (files.is_empty()) {
+			return false;
+		}
+
+		for (const String &E : files) {
+			String ftype = EditorFileSystem::get_singleton()->get_file_type(E);
+
+			if (!ClassDB::is_parent_class(ftype, "AudioEffect")) {
+				return false;
+			}
+		}
 	}
 
 	effects->set_drop_mode_flags(Tree::DROP_MODE_INBETWEEN);
@@ -701,53 +726,78 @@ void EditorAudioBus::drop_data_fw(const Point2 &p_point, const Variant &p_data, 
 	int pos = effects->get_drop_section_at_position(p_point);
 	Variant md = item->get_metadata(0);
 
-	int paste_at;
-	int bus = d["bus"];
-	int effect = d["effect"];
+	int paste_at = -1;
 
 	if (md.get_type() == Variant::INT) {
 		paste_at = md;
 		if (pos > 0) {
 			paste_at++;
 		}
+	}
+
+	EditorUndoRedoManager *ur = EditorUndoRedoManager::get_singleton();
+
+	if (String(d["type"]) == "audio_bus_effect") {
+		int bus = d["bus"];
+		int effect = d["effect"];
 
 		if (bus == get_index() && paste_at > effect) {
 			paste_at--;
 		}
-	} else {
-		paste_at = -1;
-	}
 
-	bool enabled = AudioServer::get_singleton()->is_bus_effect_enabled(bus, effect);
+		bool enabled = AudioServer::get_singleton()->is_bus_effect_enabled(bus, effect);
 
-	EditorUndoRedoManager *ur = EditorUndoRedoManager::get_singleton();
-	ur->create_action(TTR("Move Bus Effect"));
-	ur->add_do_method(AudioServer::get_singleton(), "remove_bus_effect", bus, effect);
-	ur->add_do_method(AudioServer::get_singleton(), "add_bus_effect", get_index(), AudioServer::get_singleton()->get_bus_effect(bus, effect), paste_at);
+		ur->create_action(TTR("Move Bus Effect"));
+		ur->add_do_method(AudioServer::get_singleton(), "remove_bus_effect", bus, effect);
+		ur->add_do_method(AudioServer::get_singleton(), "add_bus_effect", get_index(), AudioServer::get_singleton()->get_bus_effect(bus, effect), paste_at);
 
-	if (paste_at == -1) {
-		paste_at = AudioServer::get_singleton()->get_bus_effect_count(get_index());
-		if (bus == get_index()) {
-			paste_at--;
+		if (paste_at == -1) {
+			paste_at = AudioServer::get_singleton()->get_bus_effect_count(get_index());
+			if (bus == get_index()) {
+				paste_at--;
+			}
 		}
-	}
-	if (!enabled) {
-		ur->add_do_method(AudioServer::get_singleton(), "set_bus_effect_enabled", get_index(), paste_at, false);
+		if (!enabled) {
+			ur->add_do_method(AudioServer::get_singleton(), "set_bus_effect_enabled", get_index(), paste_at, false);
+		}
+
+		ur->add_undo_method(AudioServer::get_singleton(), "remove_bus_effect", get_index(), paste_at);
+		ur->add_undo_method(AudioServer::get_singleton(), "add_bus_effect", bus, AudioServer::get_singleton()->get_bus_effect(bus, effect), effect);
+		if (!enabled) {
+			ur->add_undo_method(AudioServer::get_singleton(), "set_bus_effect_enabled", bus, effect, false);
+		}
+
+		ur->add_do_method(buses, "_update_bus", get_index());
+		ur->add_undo_method(buses, "_update_bus", get_index());
+		if (get_index() != bus) {
+			ur->add_do_method(buses, "_update_bus", bus);
+			ur->add_undo_method(buses, "_update_bus", bus);
+		}
+		ur->commit_action();
 	}
 
-	ur->add_undo_method(AudioServer::get_singleton(), "remove_bus_effect", get_index(), paste_at);
-	ur->add_undo_method(AudioServer::get_singleton(), "add_bus_effect", bus, AudioServer::get_singleton()->get_bus_effect(bus, effect), effect);
-	if (!enabled) {
-		ur->add_undo_method(AudioServer::get_singleton(), "set_bus_effect_enabled", bus, effect, false);
-	}
+	if (String(d["type"]) == "files") {
+		Vector<String> files = d["files"];
 
-	ur->add_do_method(buses, "_update_bus", get_index());
-	ur->add_undo_method(buses, "_update_bus", get_index());
-	if (get_index() != bus) {
-		ur->add_do_method(buses, "_update_bus", bus);
-		ur->add_undo_method(buses, "_update_bus", bus);
+		if (paste_at == -1) {
+			paste_at = AudioServer::get_singleton()->get_bus_effect_count(get_index());
+		}
+
+		ur->create_action(TTR("Add Bus Effects"));
+
+		for (const String &E : files) {
+			if (!ClassDB::is_parent_class(EditorFileSystem::get_singleton()->get_file_type(E), "AudioEffect")) {
+				continue;
+			}
+			ur->add_do_method(AudioServer::get_singleton(), "add_bus_effect", get_index(), ResourceLoader::load(E), paste_at);
+			ur->add_undo_method(AudioServer::get_singleton(), "remove_bus_effect", get_index(), paste_at);
+			paste_at++;
+		}
+
+		ur->add_do_method(buses, "_update_bus", get_index());
+		ur->add_undo_method(buses, "_update_bus", get_index());
+		ur->commit_action();
 	}
-	ur->commit_action();
 }
 
 void EditorAudioBus::_delete_effect_pressed(int p_option) {
