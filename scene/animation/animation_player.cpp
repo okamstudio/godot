@@ -299,10 +299,31 @@ void AnimationPlayer::_blend_playback_data(double p_delta, bool p_started) {
 	}
 }
 
+bool AnimationPlayer::_ensure_current_animation() {
+	if (!playback.current.from || playback.current.from->animation.is_null()) {
+		if (playback.assigned) {
+			ERR_FAIL_COND_V_MSG(!animation_set.has(playback.assigned), false, vformat("Animation not found: %s.", playback.assigned));
+			playback.current.from = &animation_set[playback.assigned];
+		}
+		if (!playback.current.from) {
+			return false; // There is no animation.
+		}
+	}
+	return true;
+}
+
 bool AnimationPlayer::_blend_pre_process(double p_delta, int p_track_count, const AHashMap<NodePath, int> &p_track_map) {
-	if (!playback.current.from) {
+	if (!_ensure_current_animation()) {
 		_set_process(false);
 		return false;
+	}
+
+	if (playback.current.from->animation.is_null()) {
+		playback.current.from = &animation_set[playback.assigned];
+		if (!playback.current.from) {
+			_set_process(false);
+			return false;
+		}
 	}
 
 	tmp_from = playback.current.from->animation->get_instance_id();
@@ -649,16 +670,10 @@ void AnimationPlayer::seek_internal(double p_time, bool p_update, bool p_update_
 
 	_check_immediately_after_start();
 
-	playback.current.pos = p_time;
-	if (!playback.current.from) {
-		if (playback.assigned) {
-			ERR_FAIL_COND_MSG(!animation_set.has(playback.assigned), vformat("Animation not found: %s.", playback.assigned));
-			playback.current.from = &animation_set[playback.assigned];
-		}
-		if (!playback.current.from) {
-			return; // There is no animation.
-		}
+	if (!_ensure_current_animation()) {
+		return;
 	}
+	playback.current.pos = p_time;
 
 	double start = playback.current.get_start_time();
 	double end = playback.current.get_end_time();
