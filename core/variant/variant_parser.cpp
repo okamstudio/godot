@@ -2156,6 +2156,11 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 
 			List<PropertyInfo> props;
 			obj->get_property_list(&props);
+			thread_local HashSet<Object *> used_objects;
+			if (p_recursion_count == 0) {
+				used_objects.clear();
+			}
+
 			bool first = true;
 			for (const PropertyInfo &E : props) {
 				if (E.usage & PROPERTY_USAGE_STORAGE || E.usage & PROPERTY_USAGE_SCRIPT_VARIABLE) {
@@ -2166,9 +2171,20 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 					} else {
 						p_store_string_func(p_store_string_ud, ",");
 					}
-
+					Variant v = obj->get(E.name);
+					if (v.get_type() == Variant::OBJECT) {
+						if (v.get_validated_object() == obj) {
+							p_store_string_func(p_store_string_ud, "\"" + String("self"));
+							continue;
+						}
+						if (used_objects.has(obj)) {
+							p_store_string_func(p_store_string_ud, "\"" + obj->get_class() + "\": Recursive object");
+							continue;
+						}
+						used_objects.insert(obj);
+					}
 					p_store_string_func(p_store_string_ud, "\"" + E.name + "\":");
-					write(obj->get(E.name), p_store_string_func, p_store_string_ud, p_encode_res_func, p_encode_res_ud, p_recursion_count, p_compat);
+					write(v, p_store_string_func, p_store_string_ud, p_encode_res_func, p_encode_res_ud, p_recursion_count, p_compat);
 				}
 			}
 
