@@ -56,6 +56,7 @@
 #include "editor/gui/editor_toaster.h"
 #include "editor/import/3d/resource_importer_obj.h"
 #include "editor/import/3d/resource_importer_scene.h"
+#include "editor/import/3d/scene_import_settings.h"
 #include "editor/import/editor_import_plugin.h"
 #include "editor/import/resource_importer_bitmask.h"
 #include "editor/import/resource_importer_bmfont.h"
@@ -282,6 +283,7 @@ void register_editor_types() {
 
 	GLOBAL_DEF("editor/import/reimport_missing_imported_files", true);
 	GLOBAL_DEF("editor/import/use_multiple_threads", true);
+	GLOBAL_DEF(PropertyInfo(Variant::INT, "editor/import/camera_view", PROPERTY_HINT_ENUM, "Orthographic,Perspective"), SceneImportSettingsDialog::CameraView::CAMERA_VIEW_PERSPECTIVE);
 
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "editor/import/atlas_max_width", PROPERTY_HINT_RANGE, "128,8192,1,or_greater"), 2048);
 

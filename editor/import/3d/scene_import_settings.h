@@ -221,6 +221,8 @@ class SceneImportSettingsDialog : public ConfirmationDialog {
 
 	int current_action = 0;
 
+	int current_camera_view = 0;
+
 	Vector<TreeItem *> save_path_items;
 
 	TreeItem *save_path_item = nullptr;
@@ -242,6 +244,11 @@ protected:
 	void _notification(int p_what);
 
 public:
+	enum CameraView {
+		CAMERA_VIEW_ORTHOGRAPHIC,
+		CAMERA_VIEW_PERSPECTIVE,
+	};
+
 	bool is_editing_animation() const { return editing_animation; }
 	void request_generate_collider();
 	void update_view();

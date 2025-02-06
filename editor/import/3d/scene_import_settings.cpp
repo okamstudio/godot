@@ -669,12 +669,20 @@ void SceneImportSettingsDialog::_update_camera() {
 	Vector3 center = camera_aabb.get_center();
 	float camera_size = camera_aabb.get_longest_axis_size();
 
-	camera->set_orthogonal(camera_size * zoom, 0.0001, camera_size * 2);
-
 	Transform3D xf;
-	xf.basis = Basis(Vector3(0, 1, 0), rot_y) * Basis(Vector3(1, 0, 0), rot_x);
-	xf.origin = center;
-	xf.translate_local(0, 0, camera_size);
+	if (current_camera_view == 0) {
+		WARN_PRINT("Camera set to orthogonal");
+		camera->set_orthogonal(camera_size * zoom, 0.0001, camera_size * 2);
+		xf.basis = Basis(Vector3(0, 1, 0), rot_y) * Basis(Vector3(1, 0, 0), rot_x);
+		xf.origin = center;
+		xf.translate_local(0, 0, camera_size);
+	} else {
+		WARN_PRINT("Camera set to perspective");
+		camera->set_perspective(camera_size * 2, 0.0001, camera_size * zoom * 12);
+		xf.basis = Basis(Vector3(0, 1, 0), rot_y) * Basis(Vector3(1, 0, 0), rot_x);
+		xf.origin = center;
+		xf.translate_local(0, 0, camera_size * zoom * 5);
+	}
 
 	camera->set_transform(xf);
 }
@@ -1785,6 +1793,8 @@ SceneImportSettingsDialog::SceneImportSettingsDialog() {
 	camera = memnew(Camera3D);
 	base_viewport->add_child(camera);
 	camera->make_current();
+
+	current_camera_view = GLOBAL_GET("editor/import/camera_view");
 
 	if (GLOBAL_GET("rendering/lights_and_shadows/use_physical_light_units")) {
 		camera_attributes.instantiate();
