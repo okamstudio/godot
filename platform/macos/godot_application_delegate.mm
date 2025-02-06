@@ -169,10 +169,34 @@
 		// Opening file association.
 		NSAppleEventDescriptor *files = [event paramDescriptorForKeyword:keyDirectObject];
 		if (files) {
+			bool sb = os->is_sandboxed();
+			NSArray *bookmarks = sb ? [[NSUserDefaults standardUserDefaults] arrayForKey:@"sec_bookmarks"] : nullptr;
 			NSInteger count = [files numberOfItems];
 			for (NSInteger i = 1; i <= count; i++) {
-				NSURL *url = [NSURL URLWithString:[[files descriptorAtIndex:i] stringValue]];
+				NSURL *url = [[files descriptorAtIndex:i] fileURLValue];
 				args.push_back(String::utf8([url.path UTF8String]));
+				if (sb && bookmarks) {
+					bool skip = false;
+					for (id bookmark in bookmarks) {
+						NSError *error = nil;
+						BOOL isStale = NO;
+						NSURL *exurl = [NSURL URLByResolvingBookmarkData:bookmark options:NSURLBookmarkResolutionWithSecurityScope relativeToURL:nil bookmarkDataIsStale:&isStale error:&error];
+						if (!error && !isStale && ([[exurl path] compare:[url path]] == NSOrderedSame)) {
+							skip = true;
+							break;
+						}
+					}
+					if (!skip) {
+						NSError *error = nil;
+						NSData *bookmark = [url bookmarkDataWithOptions:NSURLBookmarkCreationWithSecurityScope includingResourceValuesForKeys:nil relativeToURL:nil error:&error];
+						if (!error) {
+							bookmarks = [bookmarks arrayByAddingObject:bookmark];
+						}
+					}
+				}
+			}
+			if (sb && bookmarks) {
+				[[NSUserDefaults standardUserDefaults] setObject:bookmarks forKey:@"sec_bookmarks"];
 			}
 		}
 	}
