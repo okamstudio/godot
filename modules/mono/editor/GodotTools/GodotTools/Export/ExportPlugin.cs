@@ -232,6 +232,13 @@ namespace GodotTools.Export
                         projectDataDirName = Path.Combine("Contents", "Resources", projectDataDirName);
                     }
 
+                    // Delete old publish output files to prevent problems with file mixing.
+                    string projectDataDir = Path.Join(ProjectSettings.GlobalizePath("res://"), Path.GetDirectoryName(path), projectDataDirName);
+                    if (!embedBuildResults && Directory.Exists(projectDataDir))
+                    {
+                        Directory.Delete(projectDataDir, true);
+                    }
+
                     // Create temporary publish output directory.
                     string publishOutputDir;
 
