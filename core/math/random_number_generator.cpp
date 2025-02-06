@@ -38,6 +38,7 @@ void RandomNumberGenerator::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_state"), &RandomNumberGenerator::get_state);
 
 	ClassDB::bind_method(D_METHOD("randi"), &RandomNumberGenerator::randi);
+	ClassDB::bind_method(D_METHOD("rand_bool", "true_chance"), &RandomNumberGenerator::rand_bool, DEFVAL(0.5));
 	ClassDB::bind_method(D_METHOD("randf"), &RandomNumberGenerator::randf);
 	ClassDB::bind_method(D_METHOD("randfn", "mean", "deviation"), &RandomNumberGenerator::randfn, DEFVAL(0.0), DEFVAL(1.0));
 	ClassDB::bind_method(D_METHOD("randf_range", "from", "to"), &RandomNumberGenerator::randf_range);

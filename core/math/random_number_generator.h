@@ -52,6 +52,7 @@ public:
 	_FORCE_INLINE_ void randomize() { randbase.randomize(); }
 
 	_FORCE_INLINE_ uint32_t randi() { return randbase.rand(); }
+	_FORCE_INLINE_ bool rand_bool(real_t p_true_chance = 0.5) { return randbase.rand_bool(p_true_chance); }
 	_FORCE_INLINE_ real_t randf() { return randbase.randf(); }
 	_FORCE_INLINE_ real_t randf_range(real_t p_from, real_t p_to) { return randbase.random(p_from, p_to); }
 	_FORCE_INLINE_ real_t randfn(real_t p_mean = 0.0, real_t p_deviation = 1.0) { return randbase.randfn(p_mean, p_deviation); }

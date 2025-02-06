@@ -990,6 +990,13 @@
 				[/codeblock]
 			</description>
 		</method>
+		<method name="rand_bool">
+			<return type="bool" />
+			<param index="0" name="true_chance" type="float" />
+			<description>
+				Returns either [code]true[/code] or [code]false[/code] at random. [param true_chance] should be a number between [code]0.0[/code] and [code]1.0[/code] (inclusive). The greater [param true_chance] is, the more likely this function returns [code]true[/code].
+			</description>
+		</method>
 		<method name="rand_from_seed">
 			<return type="PackedInt64Array" />
 			<param index="0" name="seed" type="int" />

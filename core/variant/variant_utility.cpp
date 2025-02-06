@@ -781,6 +781,10 @@ int64_t VariantUtilityFunctions::randi() {
 	return Math::rand();
 }
 
+bool VariantUtilityFunctions::rand_bool(double p_true_chance) {
+	return Math::rand_bool(p_true_chance);
+}
+
 double VariantUtilityFunctions::randf() {
 	return Math::randf();
 }
@@ -1811,6 +1815,7 @@ void Variant::_register_variant_utility_functions() {
 
 	FUNCBIND(randomize, sarray(), Variant::UTILITY_FUNC_TYPE_RANDOM);
 	FUNCBINDR(randi, sarray(), Variant::UTILITY_FUNC_TYPE_RANDOM);
+	FUNCBINDR(rand_bool, sarray("true_chance"), Variant::UTILITY_FUNC_TYPE_RANDOM);
 	FUNCBINDR(randf, sarray(), Variant::UTILITY_FUNC_TYPE_RANDOM);
 	FUNCBINDR(randi_range, sarray("from", "to"), Variant::UTILITY_FUNC_TYPE_RANDOM);
 	FUNCBINDR(randf_range, sarray("from", "to"), Variant::UTILITY_FUNC_TYPE_RANDOM);

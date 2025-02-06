@@ -17,6 +17,13 @@
 		<link title="Random number generation">$DOCS_URL/tutorials/math/random_number_generation.html</link>
 	</tutorials>
 	<methods>
+		<method name="rand_bool">
+			<return type="bool" />
+			<param index="0" name="true_chance" type="float" default="0.5" />
+			<description>
+				Returns either [code]true[/code] or [code]false[/code] at random. [param true_chance] should be a number between [code]0.0[/code] and [code]1.0[/code] (inclusive). The greater [param true_chance] is, the more likely this function returns [code]true[/code].
+			</description>
+		</method>
 		<method name="rand_weighted">
 			<return type="int" />
 			<param index="0" name="weights" type="PackedFloat32Array" />

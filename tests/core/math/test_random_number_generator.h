@@ -78,6 +78,29 @@ TEST_CASE_MAY_FAIL("[RandomNumberGenerator] Integer 32 bit") {
 	CHECK_MESSAGE(higher, "Given current seed, this should give an integer higher than 0x0fff'ffff at least once.");
 }
 
+TEST_CASE_MAY_FAIL("[RandomNumberGenerator] Boolean") {
+	Ref<RandomNumberGenerator> rng = memnew(RandomNumberGenerator);
+	rng->set_seed(0); // Change the seed if this fails.
+
+	bool has_seen_true = false;
+	bool has_seen_false = false;
+	int i;
+	for (i = 0; i < 100; i++) {
+		if (rng->rand_bool(0.5)) {
+			has_seen_true = true;
+		} else {
+			has_seen_false = true;
+		}
+		if (has_seen_true && has_seen_false) {
+			break;
+		}
+	}
+	bool has_seen_both = has_seen_true && has_seen_false;
+	INFO("Current seed: ", rng->get_seed());
+	INFO("Current iteration: ", i);
+	CHECK_MESSAGE(has_seen_both, "Given current seed, this should have given both true and false.");
+}
+
 TEST_CASE("[RandomNumberGenerator] Float and integer range") {
 	Ref<RandomNumberGenerator> rng = memnew(RandomNumberGenerator);
 	rng->set_seed(0);

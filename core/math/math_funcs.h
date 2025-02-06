@@ -560,6 +560,7 @@ public:
 	static void randomize();
 	static uint32_t rand_from_seed(uint64_t *seed);
 	static uint32_t rand();
+	static bool rand_bool(double p_true_chance);
 	static _ALWAYS_INLINE_ double randd() { return (double)rand() / (double)Math::RANDOM_32BIT_MAX; }
 	static _ALWAYS_INLINE_ float randf() { return (float)rand() / (float)Math::RANDOM_32BIT_MAX; }
 	static double randfn(double mean, double deviation);

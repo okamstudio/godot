@@ -53,6 +53,10 @@ uint32_t Math::rand() {
 	return default_rand.rand();
 }
 
+bool Math::rand_bool(double p_true_chance) {
+	return default_rand.rand_bool(p_true_chance);
+}
+
 double Math::randfn(double mean, double deviation) {
 	return default_rand.randfn(mean, deviation);
 }

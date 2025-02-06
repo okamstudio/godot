@@ -456,6 +456,15 @@ namespace Godot
         }
 
         /// <summary>
+        /// Returns a random boolean with a bias of <paramref name="true_chance"/> to be <see langword="true"/> and <see langword="false"/> otherwise.
+        /// </summary>
+        /// <returns>A random <see langword="bool"/>.</returns>
+        public static bool RandBool(double true_chance = 0.5)
+        {
+            return NativeFuncs.godotsharp_rand_bool(true_chance);
+        }
+
+        /// <summary>
         /// Randomizes the seed (or the internal state) of the random number generator.
         /// The current implementation uses a number based on the device's time.
         ///

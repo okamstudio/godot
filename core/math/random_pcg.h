@@ -90,6 +90,10 @@ public:
 		return pcg32_boundedrand_r(&pcg, bounds);
 	}
 
+	_FORCE_INLINE_ bool rand_bool(double p_true_chance) {
+		return randf() < p_true_chance;
+	}
+
 	int64_t rand_weighted(const Vector<float> &p_weights);
 
 	// Obtaining floating point numbers in [0, 1] range with "good enough" uniformity.
