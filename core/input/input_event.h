@@ -73,6 +73,7 @@ public:
 	bool is_action_released(const StringName &p_action, bool p_exact_match = false) const;
 	float get_action_strength(const StringName &p_action, bool p_exact_match = false) const;
 	float get_action_raw_strength(const StringName &p_action, bool p_exact_match = false) const;
+	Vector2 get_vector(const StringName &p_negative_x, const StringName &p_positive_x, const StringName &p_negative_y, const StringName &p_positive_y, float p_deadzone = -1.0f) const;
 
 	bool is_canceled() const;
 	bool is_pressed() const;

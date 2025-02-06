@@ -75,6 +75,32 @@ float InputEvent::get_action_raw_strength(const StringName &p_action, bool p_exa
 	return valid ? raw_strength : 0.0f;
 }
 
+Vector2 InputEvent::get_vector(const StringName &p_negative_x, const StringName &p_positive_x, const StringName &p_negative_y, const StringName &p_positive_y, float p_deadzone) const {
+	Vector2 vector = Vector2(
+			get_action_raw_strength(p_positive_x) - get_action_raw_strength(p_negative_x),
+			get_action_raw_strength(p_positive_y) - get_action_raw_strength(p_negative_y));
+
+	if (p_deadzone < 0.0f) {
+		// If the deadzone isn't specified, get it from the average of the actions.
+		p_deadzone = 0.25 *
+				(InputMap::get_singleton()->action_get_deadzone(p_positive_x) +
+						InputMap::get_singleton()->action_get_deadzone(p_negative_x) +
+						InputMap::get_singleton()->action_get_deadzone(p_positive_y) +
+						InputMap::get_singleton()->action_get_deadzone(p_negative_y));
+	}
+
+	// Circular length limiting and deadzone.
+	float length = vector.length();
+	if (length <= p_deadzone) {
+		return Vector2();
+	} else if (length > 1.0f) {
+		return vector / length;
+	} else {
+		// Inverse lerp length to map (p_deadzone, 1) to (0, 1).
+		return vector * (Math::inverse_lerp(p_deadzone, 1.0f, length) / length);
+	}
+}
+
 bool InputEvent::is_canceled() const {
 	return canceled;
 }
@@ -115,6 +141,8 @@ void InputEvent::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_action_pressed", "action", "allow_echo", "exact_match"), &InputEvent::is_action_pressed, DEFVAL(false), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("is_action_released", "action", "exact_match"), &InputEvent::is_action_released, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("get_action_strength", "action", "exact_match"), &InputEvent::get_action_strength, DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("get_vector", "negative_x", "positive_x", "negative_y", "positive_y", "deadzone"),
+			&InputEvent::get_vector, DEFVAL(-1.0f));
 
 	ClassDB::bind_method(D_METHOD("is_canceled"), &InputEvent::is_canceled);
 	ClassDB::bind_method(D_METHOD("is_pressed"), &InputEvent::is_pressed);
