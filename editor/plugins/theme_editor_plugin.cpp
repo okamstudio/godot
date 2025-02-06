@@ -2320,33 +2320,41 @@ VBoxContainer *ThemeTypeEditor::_create_item_list(Theme::DataType p_data_type) {
 }
 
 void ThemeTypeEditor::_update_type_list() {
-	ERR_FAIL_COND(edited_theme.is_null());
-
-	if (updating) {
-		return;
-	}
-	updating = true;
-
 	Control *focused = get_viewport()->gui_get_focus_owner();
+	bool is_internal = focused == this;
 	if (focused) {
 		if (focusables.has(focused)) {
 			// If focus is currently on one of the internal property editors, don't update.
-			updating = false;
 			return;
 		}
 
 		Node *focus_parent = focused->get_parent();
 		while (focus_parent) {
 			Control *c = Object::cast_to<Control>(focus_parent);
+			is_internal |= c == this;
 			if (c && focusables.has(c)) {
 				// If focus is currently on one of the internal property editors, don't update.
-				updating = false;
 				return;
 			}
 
 			focus_parent = focus_parent->get_parent();
 		}
 	}
+
+	if (is_internal) {
+		_update_type_list_internal();
+	} else {
+		_update_type_list_debounced();
+	}
+}
+
+void ThemeTypeEditor::_update_type_list_internal() {
+	ERR_FAIL_COND(edited_theme.is_null());
+
+	if (updating) {
+		return;
+	}
+	updating = true;
 
 	List<StringName> theme_types;
 	edited_theme->get_type_list(&theme_types);
@@ -3398,12 +3406,12 @@ void ThemeTypeEditor::_bind_methods() {
 
 void ThemeTypeEditor::set_edited_theme(const Ref<Theme> &p_theme) {
 	if (edited_theme.is_valid()) {
-		edited_theme->disconnect_changed(callable_mp(this, &ThemeTypeEditor::_update_type_list_debounced));
+		edited_theme->disconnect_changed(callable_mp(this, &ThemeTypeEditor::_update_type_list));
 	}
 
 	edited_theme = p_theme;
 	if (edited_theme.is_valid()) {
-		edited_theme->connect_changed(callable_mp(this, &ThemeTypeEditor::_update_type_list_debounced));
+		edited_theme->connect_changed(callable_mp(this, &ThemeTypeEditor::_update_type_list));
 		_update_type_list();
 	}
 
@@ -3542,7 +3550,7 @@ ThemeTypeEditor::ThemeTypeEditor() {
 	update_debounce_timer = memnew(Timer);
 	update_debounce_timer->set_one_shot(true);
 	update_debounce_timer->set_wait_time(0.5);
-	update_debounce_timer->connect("timeout", callable_mp(this, &ThemeTypeEditor::_update_type_list));
+	update_debounce_timer->connect("timeout", callable_mp(this, &ThemeTypeEditor::_update_type_list_internal));
 	add_child(update_debounce_timer);
 }
 

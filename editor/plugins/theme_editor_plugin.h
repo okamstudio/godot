@@ -373,6 +373,7 @@ class ThemeTypeEditor : public MarginContainer {
 
 	VBoxContainer *_create_item_list(Theme::DataType p_data_type);
 	void _update_type_list();
+	void _update_type_list_internal();
 	void _update_type_list_debounced();
 	HashMap<StringName, bool> _get_type_items(String p_type_name, Theme::DataType p_type, bool p_include_default);
 	HBoxContainer *_create_property_control(Theme::DataType p_data_type, String p_item_name, bool p_editable);
