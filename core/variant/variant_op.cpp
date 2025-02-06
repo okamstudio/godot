@@ -466,6 +466,7 @@ void Variant::_register_variant_operators() {
 	register_string_modulo_op(Color, Variant::COLOR);
 	register_string_modulo_op(StringName, Variant::STRING_NAME);
 	register_string_modulo_op(NodePath, Variant::NODE_PATH);
+	register_string_modulo_op(::RID, Variant::RID);
 	register_string_modulo_op(Object, Variant::OBJECT);
 	register_string_modulo_op(Callable, Variant::CALLABLE);
 	register_string_modulo_op(Signal, Variant::SIGNAL);
