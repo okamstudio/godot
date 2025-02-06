@@ -179,13 +179,24 @@ TEST_CASE("[OS] Execute") {
 	arguments.push_back("/C");
 	arguments.push_back("dir > NUL");
 	int exit_code;
-	const Error err = OS::get_singleton()->execute("cmd", arguments, nullptr, &exit_code);
+	Error err = OS::get_singleton()->execute("cmd", arguments, nullptr, &exit_code);
 	CHECK_MESSAGE(
 			err == OK,
 			"(Running the command `cmd /C \"dir > NUL\"` returns the expected Godot error code (OK).");
 	CHECK_MESSAGE(
 			exit_code == 0,
 			"Running the command `cmd /C \"dir > NUL\"` returns a zero (successful) exit code.");
+	arguments.clear();
+	arguments.push_back("-Command");
+	arguments.push_back("if ('%LOCALAPPDATA%' -eq $env:LOCALAPPDATA) { exit 0 } else { exit 1 }");
+	err = OS::get_singleton()->execute("powershell", arguments, nullptr, &exit_code);
+	CHECK_MESSAGE(
+			err == OK,
+			"(Running the command that checks if the variable is expanded returns the expected Godot error code (OK).");
+	CHECK_MESSAGE(
+			exit_code == 0,
+			"Running the command that checks if the variable is expanded returns a zero (successful) exit code.");
+
 #else
 	List<String> arguments;
 	arguments.push_back("-c");

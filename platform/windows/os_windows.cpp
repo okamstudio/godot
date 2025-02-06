@@ -1129,7 +1129,15 @@ Error OS_Windows::execute(const String &p_path, const List<String> &p_arguments,
 	String path = p_path.is_absolute_path() ? fix_path(p_path) : p_path;
 	String command = _quote_command_line_argument(path);
 	for (const String &E : p_arguments) {
-		command += " " + _quote_command_line_argument(E);
+		String argument = E;
+		DWORD buffer_size = ExpandEnvironmentStringsW((LPCWSTR)argument.utf16().ptr(), NULL, 0);
+		if (buffer_size > 0) {
+			Char16String expanded;
+			expanded.resize(buffer_size + 1);
+			ExpandEnvironmentStringsW((LPCWSTR)argument.utf16().ptr(), (LPWSTR)expanded.ptrw(), buffer_size);
+			argument = String::utf16(expanded.get_data());
+		}
+		command += " " + _quote_command_line_argument(argument);
 	}
 
 	ProcessInfo pi;
