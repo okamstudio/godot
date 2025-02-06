@@ -286,8 +286,6 @@ bool AnimationTreeEditorPlugin::handles(Object *p_object) const {
 
 void AnimationTreeEditorPlugin::make_visible(bool p_visible) {
 	if (p_visible) {
-		//editor->hide_animation_player_editors();
-		//editor->animation_panel_make_visible(true);
 		button->show();
 		EditorNode::get_bottom_panel()->make_item_visible(anim_tree_editor);
 		anim_tree_editor->set_process(true);
