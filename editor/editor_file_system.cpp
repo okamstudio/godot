@@ -1797,7 +1797,7 @@ bool EditorFileSystem::_find_file(const String &p_file, EditorFileSystemDirector
 	EditorFileSystemDirectory *fs = filesystem;
 
 	for (int i = 0; i < path.size(); i++) {
-		if (path[i].begins_with(".")) {
+		if (path[i].begins_with(".") && !path[i].match(".godot")) {
 			return false;
 		}
 
