@@ -362,20 +362,32 @@ void GeometryInstance3D::_get_property_list(List<PropertyInfo> *p_list) const {
 	List<PropertyInfo> pinfo;
 	RS::get_singleton()->instance_geometry_get_shader_parameter_list(get_instance(), &pinfo);
 	for (PropertyInfo &pi : pinfo) {
-		bool has_def_value = false;
-		Variant def_value = RS::get_singleton()->instance_geometry_get_shader_parameter_default_value(get_instance(), pi.name);
-		if (def_value.get_type() != Variant::NIL) {
-			has_def_value = true;
-		}
 		if (instance_shader_parameters.has(pi.name)) {
-			pi.usage = PROPERTY_USAGE_EDITOR | PROPERTY_USAGE_STORAGE | (has_def_value ? (PROPERTY_USAGE_CHECKABLE | PROPERTY_USAGE_CHECKED) : PROPERTY_USAGE_NONE);
+			pi.usage = PROPERTY_USAGE_EDITOR | PROPERTY_USAGE_STORAGE;
 		} else {
-			pi.usage = PROPERTY_USAGE_EDITOR | (has_def_value ? PROPERTY_USAGE_CHECKABLE : PROPERTY_USAGE_NONE); //do not save if not changed
+			pi.usage = PROPERTY_USAGE_EDITOR; //do not save if not changed
 		}
 
 		pi.name = "instance_shader_parameters/" + pi.name;
 		p_list->push_back(pi);
 	}
+}
+
+bool GeometryInstance3D::_property_can_revert(const StringName &p_name) const {
+	const String prefix = "instance_shader_parameters/";
+	String name = ((String)p_name).substr(prefix.length());
+	return instance_shader_parameters.has(name);
+}
+
+bool GeometryInstance3D::_property_get_revert(const StringName &p_name, Variant &r_property) const {
+	const String prefix = "instance_shader_parameters/";
+	String name = ((String)p_name).substr(prefix.length());
+	Variant def_value = RS::get_singleton()->instance_geometry_get_shader_parameter_default_value(get_instance(), name);
+	if (instance_shader_parameters.has(name) && def_value.get_type() != Variant::NIL) {
+		r_property = def_value;
+		return true;
+	}
+	return false;
 }
 
 void GeometryInstance3D::set_cast_shadows_setting(ShadowCastingSetting p_shadow_casting_setting) {
