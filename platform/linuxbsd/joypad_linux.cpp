@@ -309,7 +309,7 @@ void JoypadLinux::setup_joypad_properties(Joypad &p_joypad) {
 			p_joypad.key_map[i] = num_buttons++;
 		}
 	}
-	for (int i = BTN_MISC; i < BTN_JOYSTICK; ++i) {
+	for (int i = 0; i < BTN_JOYSTICK; ++i) {
 		if (test_bit(i, keybit)) {
 			p_joypad.key_map[i] = num_buttons++;
 		}
