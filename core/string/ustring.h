@@ -602,6 +602,9 @@ public:
 	_FORCE_INLINE_ String(const String &p_str) { _cowdata._ref(p_str._cowdata); }
 	_FORCE_INLINE_ String(String &&p_str) :
 			_cowdata(std::move(p_str._cowdata)) {}
+#ifdef SIZE_EXTRA
+	_NO_INLINE_ ~String() {}
+#endif
 	_FORCE_INLINE_ void operator=(const String &p_str) { _cowdata._ref(p_str._cowdata); }
 	_FORCE_INLINE_ void operator=(String &&p_str) { _cowdata = std::move(p_str._cowdata); }
 
