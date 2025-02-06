@@ -106,7 +106,7 @@ public:
 class ColorModeRAW : public ColorMode {
 public:
 	String labels[3] = { "R", "G", "B" };
-	float slider_max[4] = { 100, 100, 100, 1 };
+	float slider_max[4] = { 1, 1, 1, 1 };
 
 	virtual String get_name() const override { return "RAW"; }
 
