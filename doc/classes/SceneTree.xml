@@ -108,7 +108,7 @@
 		<method name="get_frame" qualifiers="const">
 			<return type="int" />
 			<description>
-				Returns how many frames have been processed, since the application started. This is [i]not[/i] a measurement of elapsed time.
+				Returns how many physics_process steps have been processed, since the application started. This is [i]not[/i] a measurement of elapsed time.
 			</description>
 		</method>
 		<method name="get_multiplayer" qualifiers="const">
