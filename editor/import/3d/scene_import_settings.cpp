@@ -1860,6 +1860,7 @@ SceneImportSettingsDialog::SceneImportSettingsDialog() {
 
 	{
 		mesh_preview = memnew(MeshInstance3D);
+		RenderingServer::get_singleton()->instance_set_ignore_culling(mesh_preview->get_instance(), true);
 		base_viewport->add_child(mesh_preview);
 		mesh_preview->hide();
 
