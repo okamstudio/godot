@@ -121,7 +121,8 @@ public:
 		PRESET_BOTTOM_WIDE,
 		PRESET_VCENTER_WIDE,
 		PRESET_HCENTER_WIDE,
-		PRESET_FULL_RECT
+		PRESET_FULL_RECT,
+		PRESET_CUSTOM = -1, //	Keep the original serialized value
 	};
 
 	enum LayoutPresetMode {

@@ -1311,6 +1311,9 @@
 		<constant name="PRESET_FULL_RECT" value="15" enum="LayoutPreset">
 			Snap all 4 anchors to the respective corners of the parent control. Set all 4 offsets to 0 after you applied this preset and the [Control] will fit its parent control. Use with [method set_anchors_preset].
 		</constant>
+		<constant name="PRESET_CUSTOM" value="-1" enum="LayoutPreset">
+			Custom anchors. Use with [method set_anchors_preset].
+		</constant>
 		<constant name="PRESET_MODE_MINSIZE" value="0" enum="LayoutPresetMode">
 			The control will be resized to its minimum size.
 		</constant>
