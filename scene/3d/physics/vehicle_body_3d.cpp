@@ -852,18 +852,26 @@ void VehicleBody3D::_body_state_changed(PhysicsDirectBodyState3D *p_state) {
 	for (int i = 0; i < wheels.size(); i++) {
 		VehicleWheel3D &wheel = *wheels[i];
 		Vector3 relpos = wheel.m_raycastInfo.m_hardPointWS - p_state->get_transform().origin;
-		Vector3 vel = p_state->get_linear_velocity() + (p_state->get_angular_velocity()).cross(relpos); // * mPos);
+		Vector3 vel = p_state->get_linear_velocity() + (p_state->get_angular_velocity()).cross(relpos);
 
 		if (wheel.m_raycastInfo.m_isInContact) {
 			const Transform3D &chassisWorldTransform = p_state->get_transform();
 
+			// Get forward vector.
 			Vector3 fwd(
 					chassisWorldTransform.basis[0][Vector3::AXIS_Z],
 					chassisWorldTransform.basis[1][Vector3::AXIS_Z],
 					chassisWorldTransform.basis[2][Vector3::AXIS_Z]);
 
+			// Apply steering rotation to forward vector for steerable wheels.
+			if (wheel.steers) {
+				Basis steering_mat(Vector3(0, 1, 0), wheel.m_steering);
+				fwd = steeringMat.xform(fwd);
+			}
+
 			real_t proj = fwd.dot(wheel.m_raycastInfo.m_contactNormalWS);
 			fwd -= wheel.m_raycastInfo.m_contactNormalWS * proj;
+			fwd.normalize();
 
 			real_t proj2 = fwd.dot(vel);
 
