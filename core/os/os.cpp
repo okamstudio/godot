@@ -411,6 +411,10 @@ int OS::get_processor_count() const {
 	return THREADING_NAMESPACE::thread::hardware_concurrency();
 }
 
+int OS::get_physical_processor_count() const {
+	return get_processor_count();
+}
+
 String OS::get_processor_name() const {
 	return "";
 }

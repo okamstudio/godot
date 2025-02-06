@@ -548,6 +548,10 @@ int OS::get_processor_count() const {
 	return ::OS::get_singleton()->get_processor_count();
 }
 
+int OS::get_physical_processor_count() const {
+	return ::OS::get_singleton()->get_physical_processor_count();
+}
+
 String OS::get_processor_name() const {
 	return ::OS::get_singleton()->get_processor_name();
 }
@@ -650,6 +654,7 @@ void OS::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_delta_smoothing_enabled"), &OS::is_delta_smoothing_enabled);
 
 	ClassDB::bind_method(D_METHOD("get_processor_count"), &OS::get_processor_count);
+	ClassDB::bind_method(D_METHOD("get_physical_processor_count"), &OS::get_physical_processor_count);
 	ClassDB::bind_method(D_METHOD("get_processor_name"), &OS::get_processor_name);
 
 	ClassDB::bind_method(D_METHOD("get_system_fonts"), &OS::get_system_fonts);

@@ -314,6 +314,7 @@ public:
 	virtual void set_exit_code(int p_code);
 
 	virtual int get_processor_count() const;
+	virtual int get_physical_processor_count() const;
 	virtual String get_processor_name() const;
 	virtual int get_default_thread_pool_size() const { return get_processor_count(); }
 

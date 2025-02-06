@@ -114,6 +114,7 @@ public:
 	virtual bool is_process_running(const ProcessID &p_pid) const override;
 
 	virtual String get_unique_id() const override;
+	virtual int get_physical_processor_count() const override;
 	virtual String get_processor_name() const override;
 
 	virtual String get_model_name() const override;

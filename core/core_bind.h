@@ -241,6 +241,7 @@ public:
 	bool is_stdout_verbose() const;
 
 	int get_processor_count() const;
+	int get_physical_processor_count() const;
 	String get_processor_name() const;
 
 	enum SystemDir {

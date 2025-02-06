@@ -420,6 +420,14 @@
 				[b]Note:[/b] On Web platforms, it is still possible to determine the host platform's OS with feature tags. See [method has_feature].
 			</description>
 		</method>
+		<method name="get_physical_processor_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the number of [i]physical[/i] CPU cores available on the host machine. On CPUs with HyperThreading enabled, this number will be lower than the number of [i]logical[/i] CPU cores. In some situations, this can be used to set the level of parallelism for multithreaded algorithms that don't scale well to logical CPU cores. However, in most cases, [method get_processor_count] is more suited to determine parallelism.
+				[b]Note:[/b] On systems with big.LITTLE topologies (i.e. with "performance" and "efficiency" cores), all core types are taken into account.
+				[b]Note:[/b] This method is only implemented on Windows, macOS and Linux. On Android, iOS and Web, [method get_physical_processor_count] returns the same value as [method get_processor_count].
+			</description>
+		</method>
 		<method name="get_process_exit_code" qualifiers="const">
 			<return type="int" />
 			<param index="0" name="pid" type="int" />
@@ -440,7 +448,8 @@
 		<method name="get_processor_count" qualifiers="const">
 			<return type="int" />
 			<description>
-				Returns the number of [i]logical[/i] CPU cores available on the host machine. On CPUs with HyperThreading enabled, this number will be greater than the number of [i]physical[/i] CPU cores.
+				Returns the number of [i]logical[/i] CPU cores available on the host machine. On CPUs with HyperThreading enabled, this number will be greater than the number of [i]physical[/i] CPU cores. In most cases, [method get_processor_count] should be used instead of [method get_physical_processor_count] to determine parallelism to use for multithreaded algorithms. See also [method get_physical_processor_count].
+				[b]Note:[/b] On systems with big.LITTLE topologies (i.e. with "performance" and "efficiency" cores), all core types are taken into account.
 			</description>
 		</method>
 		<method name="get_processor_name" qualifiers="const">

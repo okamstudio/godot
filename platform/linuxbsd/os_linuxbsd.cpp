@@ -58,6 +58,10 @@
 #include <sys/utsname.h>
 #include <unistd.h>
 
+#ifndef __linux__
+#include <sys/sysctl.h>
+#endif
+
 #ifdef HAVE_MNTENT
 #include <mntent.h>
 #endif
@@ -167,6 +171,31 @@ String OS_LinuxBSD::get_unique_id() const {
 #endif
 	}
 	return machine_id;
+}
+
+int OS_LinuxBSD::get_physical_processor_count() const {
+#if defined(__linux__)
+	Ref<FileAccess> f = FileAccess::open("/proc/cpuinfo", FileAccess::READ);
+	ERR_FAIL_COND_V_MSG(f.is_null(), get_processor_count(), String("Couldn't open `/proc/cpuinfo` to get the physical processor count. Returning the logical processor count."));
+
+	while (!f->eof_reached()) {
+		const String line = f->get_line();
+		if (line.find("cpu cores") != -1) {
+			return line.split(":")[1].strip_edges().to_int();
+		}
+	}
+#elif defined(__FreeBSD__)
+	uint32_t num_cores = 0;
+	size_t num_cores_len = sizeof(num_cores);
+	sysctlbyname("kern.smp.cores", &num_cores, &num_cores_len, 0, 0);
+	return num_cores;
+#else
+	uint32_t num_cores = 0;
+	size_t num_cores_len = sizeof(num_cores);
+	sysctlbyname("hw.ncpu", &num_cores, &num_cores_len, 0, 0);
+	return num_cores;
+#endif
+	ERR_FAIL_V_MSG(get_processor_count(), String("Couldn't get the physical processor count from `/proc/cpuinfo`. Returning the logical processor count."));
 }
 
 String OS_LinuxBSD::get_processor_name() const {
