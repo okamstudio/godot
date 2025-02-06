@@ -1,0 +1,6 @@
+GDTEST_RUNTIME_ERROR
+>> SCRIPT ERROR
+>> on function: test()
+>> runtime/errors/for_loop_typed_iterator_assign_line.gd
+>> 5
+>> Trying to assign value of type 'String' to a variable of type 'int'.

@@ -1563,7 +1563,7 @@ void GDScriptByteCodeGenerator::write_for_assignment(const Address &p_list) {
 	append(p_list);
 }
 
-void GDScriptByteCodeGenerator::write_for(const Address &p_variable, bool p_use_conversion) {
+void GDScriptByteCodeGenerator::write_for(const Address &p_variable, bool p_use_conversion, int p_variable_line) {
 	const Address &counter = for_counter_variables.back()->get();
 	const Address &container = for_container_variables.back()->get();
 
@@ -1672,18 +1672,27 @@ void GDScriptByteCodeGenerator::write_for(const Address &p_variable, bool p_use_
 	append(p_use_conversion ? temp : p_variable);
 	for_jmp_addrs.push_back(opcodes.size());
 	append(0); // End of loop address, will be patched.
-	append_opcode(GDScriptFunction::OPCODE_JUMP);
-	append(opcodes.size() + 6); // Skip over 'continue' code.
+	append_opcode(GDScriptFunction::OPCODE_JUMP); // Skip over continue code.
+	int body_jmp_addr = opcodes.size();
+	append(0); // Jump destination, will be patched.
 
 	// Next iteration.
 	int continue_addr = opcodes.size();
 	continue_addrs.push_back(continue_addr);
+#ifdef DEBUG_ENABLED
+	if (p_use_conversion) {
+		// GH-92681. Add a newline before continuing a typed loop, because the iterator assignment may fail.
+		write_newline(p_variable_line);
+	}
+#endif
 	append_opcode(iterate_opcode);
 	append(counter);
 	append(container);
 	append(p_use_conversion ? temp : p_variable);
 	for_jmp_addrs.push_back(opcodes.size());
 	append(0); // Jump destination, will be patched.
+
+	patch_jump(body_jmp_addr);
 
 	if (p_use_conversion) {
 		write_assign_with_conversion(p_variable, temp);

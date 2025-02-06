@@ -2061,10 +2061,11 @@ Error GDScriptCompiler::_parse_block(CodeGen &codegen, const GDScriptParser::Sui
 				gen->write_for_assignment(list);
 
 				if (list.mode == GDScriptCodeGenerator::Address::TEMPORARY) {
-					codegen.generator->pop_temporary();
+					gen->pop_temporary();
+					gen->clear_temporaries(); // Statement ended. Clear the temporary outside the loop body.
 				}
 
-				gen->write_for(iterator, for_n->use_conversion_assign);
+				gen->write_for(iterator, for_n->use_conversion_assign, for_n->variable->start_line);
 
 				// Loop variables must be cleared even when `break`/`continue` is used.
 				List<GDScriptCodeGenerator::Address> loop_locals = _add_block_locals(codegen, for_n->loop);

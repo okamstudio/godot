@@ -151,7 +151,7 @@ public:
 	virtual void write_end_jump_if_shared() = 0;
 	virtual void start_for(const GDScriptDataType &p_iterator_type, const GDScriptDataType &p_list_type) = 0;
 	virtual void write_for_assignment(const Address &p_list) = 0;
-	virtual void write_for(const Address &p_variable, bool p_use_conversion) = 0;
+	virtual void write_for(const Address &p_variable, bool p_use_conversion, int p_variable_line) = 0;
 	virtual void write_endfor() = 0;
 	virtual void start_while_condition() = 0; // Used to allow a jump to the expression evaluation.
 	virtual void write_while(const Address &p_condition) = 0;
