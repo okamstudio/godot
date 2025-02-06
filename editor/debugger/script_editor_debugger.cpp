@@ -1570,6 +1570,10 @@ void ScriptEditorDebugger::_error_activated() {
 	if (ci) {
 		selected->set_collapsed(!selected->is_collapsed());
 	}
+
+	if (bool(EDITOR_GET("text_editor/external/use_external_editor"))) {
+		_emit_error_selected(selected);
+	}
 }
 
 void ScriptEditorDebugger::_error_selected() {
@@ -1579,7 +1583,15 @@ void ScriptEditorDebugger::_error_selected() {
 		return;
 	}
 
-	Array meta = selected->get_metadata(0);
+	if (bool(EDITOR_GET("text_editor/external/use_external_editor"))) {
+		return;
+	}
+
+	_emit_error_selected(selected);
+}
+
+void ScriptEditorDebugger::_emit_error_selected(TreeItem *p_selected) {
+	Array meta = p_selected->get_metadata(0);
 	if (meta.size() == 0) {
 		return;
 	}

@@ -212,6 +212,7 @@ private:
 
 	void _error_activated();
 	void _error_selected();
+	void _emit_error_selected(TreeItem *p_selected);
 
 	void _expand_errors_list();
 	void _collapse_errors_list();
