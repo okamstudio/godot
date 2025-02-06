@@ -3447,6 +3447,26 @@ bool StringLikeVariantComparator::compare(const Variant &p_lhs, const Variant &p
 	return false;
 }
 
+bool StringLikeVariantOrder::compare(const Variant &p_lhs, const Variant &p_rhs) {
+	if (p_lhs.get_type() == Variant::STRING) {
+		const String &lhs = *VariantInternal::get_string(&p_lhs);
+		if (p_rhs.get_type() == Variant::STRING) {
+			return StringName::AlphCompare::compare(lhs, *VariantInternal::get_string(&p_rhs));
+		} else if (p_rhs.get_type() == Variant::STRING_NAME) {
+			return StringName::AlphCompare::compare(lhs, *VariantInternal::get_string_name(&p_rhs));
+		}
+	} else if (p_lhs.get_type() == Variant::STRING_NAME) {
+		const StringName &lhs = *VariantInternal::get_string_name(&p_lhs);
+		if (p_rhs.get_type() == Variant::STRING) {
+			return StringName::AlphCompare::compare(lhs, *VariantInternal::get_string(&p_rhs));
+		} else if (p_rhs.get_type() == Variant::STRING_NAME) {
+			return StringName::AlphCompare::compare(lhs, *VariantInternal::get_string_name(&p_rhs));
+		}
+	}
+
+	return p_lhs < p_rhs;
+}
+
 bool Variant::is_ref_counted() const {
 	return type == OBJECT && _get_obj().id.is_ref_counted();
 }

@@ -910,12 +910,7 @@ struct StringLikeVariantComparator {
 };
 
 struct StringLikeVariantOrder {
-	static _ALWAYS_INLINE_ bool compare(const Variant &p_lhs, const Variant &p_rhs) {
-		if (p_lhs.is_string() && p_rhs.is_string()) {
-			return p_lhs.operator String() < p_rhs.operator String();
-		}
-		return p_lhs < p_rhs;
-	}
+	static bool compare(const Variant &p_lhs, const Variant &p_rhs);
 
 	_ALWAYS_INLINE_ bool operator()(const Variant &p_lhs, const Variant &p_rhs) const {
 		return compare(p_lhs, p_rhs);
