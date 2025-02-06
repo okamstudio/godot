@@ -332,7 +332,7 @@ TEST_CASE("[Object] Signals") {
 	List<MethodInfo> signals_before;
 	object.get_signal_list(&signals_before);
 
-	object.add_user_signal(MethodInfo("my_custom_signal"));
+	object.add_user_signal(MethodInfo("my_custom_signal")); // This one prevents running remove_user_signal
 
 	CHECK(object.has_signal("my_custom_signal"));
 
@@ -463,6 +463,25 @@ TEST_CASE("[Object] Signals") {
 		signal_connections.clear();
 		object.get_all_signal_connections(&signal_connections);
 		CHECK(signal_connections.size() == 0);
+	}
+
+	SUBCASE("Deleting a signal with objects connected to it should remove the connections.") {
+		Object connected_object;
+
+		//object.add_user_signal(MethodInfo("my_custom_signal2")); // This one prevents running remove_user_signal
+		object.call("add_user_signal", "my_custom_signal2"); //This one does not.
+
+		CHECK(object.has_signal("my_custom_signal2"));
+
+		object.connect("my_custom_signal2", Callable(&connected_object, "get_instance_id"));
+		CHECK(object.is_connected("my_custom_signal2", Callable(&connected_object, "get_instance_id")));
+
+		object.call("remove_user_signal", "my_custom_signal2");
+
+		CHECK_FALSE(object.has_signal("my_custom_signal2"));
+		ERR_PRINT_OFF
+		CHECK_FALSE(object.is_connected("my_custom_signal2", Callable(&connected_object, "get_instance_id")));
+		ERR_PRINT_ON
 	}
 }
 
