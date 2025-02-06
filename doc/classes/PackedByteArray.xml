@@ -486,6 +486,30 @@
 				If the original data can't be converted to signed 64-bit integers, the resulting data is undefined.
 			</description>
 		</method>
+		<method name="to_vector2_array" qualifiers="const">
+			<return type="PackedVector2Array" />
+			<description>
+				Returns a copy of the data converted to a [PackedVector2Array], where each block of 8 bytes has been converted to a [Vector2].
+				The size of the input array must be a multiple of 8 (size of Vector2). The size of the new array will be [code]byte_array.size() / 8[/code].
+				If the original data can't be converted to Vector2, the resulting data is undefined.
+			</description>
+		</method>
+		<method name="to_vector3_array" qualifiers="const">
+			<return type="PackedVector3Array" />
+			<description>
+				Returns a copy of the data converted to a [PackedVector3Array], where each block of 12 bytes has been converted to a [Vector3].
+				The size of the input array must be a multiple of 12 (size of Vector3). The size of the new array will be [code]byte_array.size() / 12[/code].
+				If the original data can't be converted to Vector3, the resulting data is undefined.
+			</description>
+		</method>
+		<method name="to_color_array" qualifiers="const">
+			<return type="PackedColorArray" />
+			<description>
+				Returns a copy of the data converted to a [PackedVector3Array], where each block of 12 bytes has been converted to a [Vector3].
+				The size of the input array must be a multiple of 12 (size of Vector3). The size of the new array will be [code]byte_array.size() / 12[/code].
+				If the original data can't be converted to Vector3, the resulting data is undefined.
+			</description>
+		</method>
 	</methods>
 	<operators>
 		<operator name="operator !=">
