@@ -4,6 +4,10 @@ using Godot;
 using Godot.NativeInterop;
 using GodotTools.Core;
 using static GodotTools.Internals.Globals;
+using Microsoft.Build.Construction;
+using System.Collections.Generic;
+using System.Linq;
+using System;
 
 namespace GodotTools.Internals
 {
@@ -79,11 +83,79 @@ namespace GodotTools.Internals
             // The csproj should be in the same folder as project.godot.
             string csprojParentDir = "res://";
 
-            _projectSlnPath = Path.Combine(ProjectSettings.GlobalizePath(slnParentDir),
-                string.Concat(_projectAssemblyName, ".sln"));
+            _projectSlnPath = FindSolutionFileWithAssemblyName(slnParentDir, _projectAssemblyName);
 
             _projectCsProjPath = Path.Combine(ProjectSettings.GlobalizePath(csprojParentDir),
                 string.Concat(_projectAssemblyName, ".csproj"));
+        }
+
+        private static string FindSolutionFileWithAssemblyName(string directory, string assemblyName)
+        {
+            string globalizedPath = ProjectSettings.GlobalizePath(directory);
+            string[] solutionFiles = Directory.GetFiles(globalizedPath, "*.sln");
+
+            if (solutionFiles.Length == 0)
+            {
+                return Path.Combine(globalizedPath, $"{assemblyName}.sln");
+            }
+
+            List<string> matchingSolutions = new List<string>();
+
+            foreach (string solutionPath in solutionFiles)
+            {
+                try
+                {
+                    var solution = SolutionFile.Parse(solutionPath);
+
+                    foreach (var project in solution.ProjectsInOrder)
+                    {
+                        if (project.ProjectType == SolutionProjectType.SolutionFolder)
+                            continue;
+
+                        if (File.Exists(project.AbsolutePath))
+                        {
+                            var projectRoot = ProjectRootElement.Open(project.AbsolutePath);
+                            var assemblyNameProperty = projectRoot.Properties
+                                .FirstOrDefault(p => p.Name.Equals("AssemblyName", StringComparison.OrdinalIgnoreCase));
+
+                            if (assemblyNameProperty != null &&
+                                assemblyNameProperty.Value.Equals(assemblyName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                matchingSolutions.Add(solutionPath);
+                                break;
+                            }
+
+                            if (assemblyNameProperty == null)
+                            {
+                                string projectNameWithoutExtension = Path.GetFileNameWithoutExtension(project.AbsolutePath);
+                                if (projectNameWithoutExtension.Equals(assemblyName, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    matchingSolutions.Add(solutionPath);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    continue;
+                }
+            }
+
+            if (matchingSolutions.Count == 1)
+            {
+                return matchingSolutions.Single();
+            }
+            else if (matchingSolutions.Count > 1)
+            {
+                GD.PrintErr($"Multiple solutions containing a project with assembly name '{assemblyName}' were found in {globalizedPath}. Please ensure only one solution contains the assembly.");
+                return Path.Combine(globalizedPath, $"{assemblyName}.sln");
+            }
+            else
+            {
+                return Path.Combine(globalizedPath, $"{assemblyName}.sln");
+            }
         }
 
         private static string? _projectAssemblyName;
