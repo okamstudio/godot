@@ -5139,7 +5139,10 @@
 		<constant name="VIEWPORT_SCREEN_SPACE_AA_FXAA" value="1" enum="ViewportScreenSpaceAA">
 			Use fast approximate antialiasing. FXAA is a popular screen-space antialiasing method, which is fast but will make the image look blurry, especially at lower resolutions. It can still work relatively well at large resolutions such as 1440p and 4K.
 		</constant>
-		<constant name="VIEWPORT_SCREEN_SPACE_AA_MAX" value="2" enum="ViewportScreenSpaceAA">
+		<constant name="VIEWPORT_SCREEN_SPACE_AA_SMAA" value="2" enum="ViewportScreenSpaceAA">
+			Use subpixel morphological antialiasing. SMAA may produce clearer results than FXAA, but at a slightly higher performance cost.
+		</constant>
+		<constant name="VIEWPORT_SCREEN_SPACE_AA_MAX" value="3" enum="ViewportScreenSpaceAA">
 			Represents the size of the [enum ViewportScreenSpaceAA] enum.
 		</constant>
 		<constant name="VIEWPORT_OCCLUSION_BUILD_QUALITY_LOW" value="0" enum="ViewportOcclusionCullingBuildQuality">

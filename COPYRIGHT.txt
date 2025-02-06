@@ -163,6 +163,18 @@ Comment: Temporal Anti-Aliasing resolve implementation
 Copyright: 2016, Panos Karabelas
 License: Expat
 
+Files: servers/rendering/renderer_rd/shaders/smaa_blending.glsl
+ servers/rendering/renderer_rd/shaders/smaa_weight_calculation.glsl
+ servers/rendering/renderer_rd/shaders/smaa_edge_detection.glsl
+ thirdparty/smaa/*
+Comment: Subpixel Morphological Antialiasing
+Copyright: 2013 Jorge Jimenez (jorge@iryoku.com)
+ 2013 Jose I. Echevarria (joseignacioechevarria@gmail.com)
+ 2013 Belen Masia (bmasia@unizar.es)
+ 2013 Fernando Navarro (fernandn@microsoft.com)
+ 2013 Diego Gutierrez (diegog@unizar.es)
+License: Expat
+
 Files: thirdparty/amd-fsr/*
 Comment: AMD FidelityFX Super Resolution
 Copyright: 2021, Advanced Micro Devices, Inc.
