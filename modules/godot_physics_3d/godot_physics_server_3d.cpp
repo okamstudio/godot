@@ -140,6 +140,10 @@ real_t GodotPhysicsServer3D::shape_get_custom_solver_bias(RID p_shape) const {
 	return shape->get_custom_bias();
 }
 
+bool GodotPhysicsServer3D::is_heightmap_hole(float p_height) const {
+	return Math::is_nan(p_height);
+}
+
 RID GodotPhysicsServer3D::space_create() {
 	GodotSpace3D *space = memnew(GodotSpace3D);
 	RID id = space_owner.make_rid(space);

@@ -279,6 +279,8 @@ public:
 
 	virtual real_t shape_get_custom_solver_bias(RID p_shape) const = 0;
 
+	virtual bool is_heightmap_hole(float p_height) const = 0;
+
 	/* SPACE API */
 
 	virtual RID space_create() = 0;

@@ -227,6 +227,8 @@ public:
 	EXBIND1RC(Variant, shape_get_data, RID)
 	EXBIND1RC(real_t, shape_get_custom_solver_bias, RID)
 
+	EXBIND1RC(bool, is_heightmap_hole, float)
+
 	/* SPACE API */
 
 	EXBIND0R(RID, space_create)

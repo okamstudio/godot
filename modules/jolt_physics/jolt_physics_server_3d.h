@@ -149,6 +149,8 @@ public:
 
 	virtual real_t shape_get_custom_solver_bias(RID p_shape) const override;
 
+	virtual bool is_heightmap_hole(float p_height) const override;
+
 	virtual RID space_create() override;
 
 	virtual void space_set_active(RID p_space, bool p_active) override;

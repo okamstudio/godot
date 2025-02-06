@@ -195,6 +195,7 @@ void StaticBody3D::navmesh_parse_source_geometry(const Ref<NavigationMesh> &p_na
 					int heightmap_width = heightmap_shape->get_map_width();
 
 					if (heightmap_depth >= 2 && heightmap_width >= 2) {
+						const PhysicsServer3D *physics_server = PhysicsServer3D::get_singleton();
 						const Vector<real_t> &map_data = heightmap_shape->get_map_data();
 
 						Vector2 heightmap_gridsize(heightmap_width - 1, heightmap_depth - 1);
@@ -205,18 +206,30 @@ void StaticBody3D::navmesh_parse_source_geometry(const Ref<NavigationMesh> &p_na
 						Vector3 *vertex_array_ptrw = vertex_array.ptrw();
 						const real_t *map_data_ptr = map_data.ptr();
 						int vertex_index = 0;
+						real_t h0, h1, h2, h3;
 
 						for (int d = 0; d < heightmap_depth - 1; d++) {
 							for (int w = 0; w < heightmap_width - 1; w++) {
-								vertex_array_ptrw[vertex_index] = start + Vector3(w, map_data_ptr[(heightmap_width * d) + w], d);
-								vertex_array_ptrw[vertex_index + 1] = start + Vector3(w + 1, map_data_ptr[(heightmap_width * d) + w + 1], d);
-								vertex_array_ptrw[vertex_index + 2] = start + Vector3(w, map_data_ptr[(heightmap_width * d) + heightmap_width + w], d + 1);
-								vertex_array_ptrw[vertex_index + 3] = start + Vector3(w + 1, map_data_ptr[(heightmap_width * d) + w + 1], d);
-								vertex_array_ptrw[vertex_index + 4] = start + Vector3(w + 1, map_data_ptr[(heightmap_width * d) + heightmap_width + w + 1], d + 1);
-								vertex_array_ptrw[vertex_index + 5] = start + Vector3(w, map_data_ptr[(heightmap_width * d) + heightmap_width + w], d + 1);
-								vertex_index += 6;
+								h0 = map_data_ptr[(heightmap_width * d) + w];
+								h1 = map_data_ptr[(heightmap_width * d) + w + 1];
+								h2 = map_data_ptr[(heightmap_width * d) + heightmap_width + w];
+								h3 = map_data_ptr[(heightmap_width * d) + heightmap_width + w + 1];
+
+								if (!(physics_server->is_heightmap_hole(h0) || physics_server->is_heightmap_hole(h1) || physics_server->is_heightmap_hole(h2))) {
+									vertex_array_ptrw[vertex_index] = start + Vector3(w, map_data_ptr[(heightmap_width * d) + w], d);
+									vertex_array_ptrw[vertex_index + 1] = start + Vector3(w + 1, map_data_ptr[(heightmap_width * d) + w + 1], d);
+									vertex_array_ptrw[vertex_index + 2] = start + Vector3(w, map_data_ptr[(heightmap_width * d) + heightmap_width + w], d + 1);
+									vertex_index += 3;
+								}
+								if (!(physics_server->is_heightmap_hole(h3) || physics_server->is_heightmap_hole(h1) || physics_server->is_heightmap_hole(h2))) {
+									vertex_array_ptrw[vertex_index] = start + Vector3(w + 1, map_data_ptr[(heightmap_width * d) + w + 1], d);
+									vertex_array_ptrw[vertex_index + 1] = start + Vector3(w + 1, map_data_ptr[(heightmap_width * d) + heightmap_width + w + 1], d + 1);
+									vertex_array_ptrw[vertex_index + 2] = start + Vector3(w, map_data_ptr[(heightmap_width * d) + heightmap_width + w], d + 1);
+									vertex_index += 3;
+								}
 							}
 						}
+						vertex_array.resize(vertex_index);
 						if (vertex_array.size() > 0) {
 							p_source_geometry_data->add_faces(vertex_array, transform);
 						}

@@ -180,6 +180,10 @@ real_t JoltPhysicsServer3D::shape_get_custom_solver_bias(RID p_shape) const {
 	return (real_t)shape->get_solver_bias();
 }
 
+bool JoltPhysicsServer3D::is_heightmap_hole(float p_height) const {
+	return p_height == FLT_MAX || Math::is_nan(p_height);
+}
+
 RID JoltPhysicsServer3D::space_create() {
 	JoltSpace3D *space = memnew(JoltSpace3D(job_system));
 	RID rid = space_owner.make_rid(space);
