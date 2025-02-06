@@ -190,6 +190,7 @@ private:
 	Node *current_scene = nullptr;
 	Node *prev_scene = nullptr;
 	Node *pending_new_scene = nullptr;
+	bool possible_uninitialized_scene = false;
 
 	Color debug_collisions_color;
 	Color debug_collision_contact_color;
