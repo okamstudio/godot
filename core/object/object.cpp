@@ -1224,6 +1224,12 @@ Error Object::emit_signalp(const StringName &p_name, const Variant **p_args, int
 			continue;
 		}
 
+#ifdef DEBUG_ENABLED
+		if (flags & CONNECT_PERSIST && Engine::get_singleton()->is_editor_hint() && (script.is_null() || !Ref<Script>(script)->is_tool())) {
+			continue;
+		}
+#endif
+
 		const Variant **args = p_args;
 		int argc = p_argcount;
 
@@ -1237,11 +1243,6 @@ Error Object::emit_signalp(const StringName &p_name, const Variant **p_args, int
 			_emitting = false;
 
 			if (ce.error != Callable::CallError::CALL_OK) {
-#ifdef DEBUG_ENABLED
-				if (flags & CONNECT_PERSIST && Engine::get_singleton()->is_editor_hint() && (script.is_null() || !Ref<Script>(script)->is_tool())) {
-					continue;
-				}
-#endif
 				Object *target = callable.get_object();
 				if (ce.error == Callable::CallError::CALL_ERROR_INVALID_METHOD && target && !ClassDB::class_exists(target->get_class_name())) {
 					//most likely object is not initialized yet, do not throw error.
