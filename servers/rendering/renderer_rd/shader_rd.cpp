@@ -334,7 +334,7 @@ void ShaderRD::_compile_variant(uint32_t p_variant, CompileData p_data) {
 		ERR_PRINT(error);
 
 #ifdef DEBUG_ENABLED
-		ERR_PRINT("code:\n" + current_source.get_with_code_lines());
+		ERR_PRINT("Code:\n" + current_source.get_with_code_lines());
 #endif
 		return;
 	}
@@ -616,7 +616,7 @@ void ShaderRD::version_set_code(RID p_version, const HashMap<String, String> &p_
 	ERR_FAIL_COND(is_compute);
 
 	Version *version = version_owner.get_or_null(p_version);
-	ERR_FAIL_NULL(version);
+	ERR_FAIL_NULL_MSG(version, "Can't set shader code for a nonexistent shader version. This may happen because the shader previously failed to compile.");
 
 	_compile_ensure_finished(version);
 
@@ -651,7 +651,7 @@ void ShaderRD::version_set_compute_code(RID p_version, const HashMap<String, Str
 	ERR_FAIL_COND(!is_compute);
 
 	Version *version = version_owner.get_or_null(p_version);
-	ERR_FAIL_NULL(version);
+	ERR_FAIL_NULL_MSG(version, "Can't set compute shader code for a nonexistent shader version. This may happen because the shader previously failed to compile.");
 
 	_compile_ensure_finished(version);
 
@@ -896,7 +896,7 @@ ShaderRD::~ShaderRD() {
 	List<RID> remaining;
 	version_owner.get_owned_list(&remaining);
 	if (remaining.size()) {
-		ERR_PRINT(itos(remaining.size()) + " shaders of type " + name + " were never freed");
+		ERR_PRINT(itos(remaining.size()) + " shaders of type " + name + " were never freed.");
 		while (remaining.size()) {
 			version_free(remaining.front()->get());
 			remaining.pop_front();

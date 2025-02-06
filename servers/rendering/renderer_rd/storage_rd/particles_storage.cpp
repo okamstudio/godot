@@ -1715,7 +1715,7 @@ void ParticlesStorage::ParticlesShaderData::set_code(const String &p_code) {
 	actions.uniforms = &uniforms;
 
 	Error err = particles_storage->particles_shader.compiler.compile(RS::SHADER_PARTICLES, code, &actions, path, gen_code);
-	ERR_FAIL_COND_MSG(err != OK, "Shader compilation failed.");
+	ERR_FAIL_COND_MSG(err != OK, "Particles shader compilation failed (most likely due to a syntax error). Shader code has been printed above for troubleshooting.");
 
 	if (version.is_null()) {
 		version = particles_storage->particles_shader.shader.version_create();

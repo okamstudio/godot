@@ -105,7 +105,7 @@ void SkyRD::SkyShaderData::set_code(const String &p_code) {
 	RendererSceneRenderRD *scene_singleton = static_cast<RendererSceneRenderRD *>(RendererSceneRenderRD::singleton);
 
 	Error err = scene_singleton->sky.sky_shader.compiler.compile(RS::SHADER_SKY, code, &actions, path, gen_code);
-	ERR_FAIL_COND_MSG(err != OK, "Shader compilation failed.");
+	ERR_FAIL_COND_MSG(err != OK, "Sky shader compilation failed (most likely due to a syntax error). Shader code has been printed above for troubleshooting.");
 
 	if (version.is_null()) {
 		version = scene_singleton->sky.sky_shader.shader.version_create();

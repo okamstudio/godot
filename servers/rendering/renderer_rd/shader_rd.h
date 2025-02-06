@@ -167,7 +167,7 @@ public:
 		ERR_FAIL_COND_V(!variants_enabled[p_variant], RID());
 
 		Version *version = version_owner.get_or_null(p_version);
-		ERR_FAIL_NULL_V(version, RID());
+		ERR_FAIL_NULL_V_MSG(version, RID(), vformat("Can't get the shader version for variant %d (and therefore its shader code). This may happen because the shader previously failed to compile.", p_variant));
 
 		if (version->dirty) {
 			_initialize_version(version);
@@ -196,7 +196,7 @@ public:
 
 	bool version_free(RID p_version);
 
-	// Enable/disable variants for things that you know won't be used at engine initialization time .
+	// Enable/disable variants for things that you know won't be used at engine initialization time.
 	void set_variant_enabled(int p_variant, bool p_enabled);
 	bool is_variant_enabled(int p_variant) const;
 

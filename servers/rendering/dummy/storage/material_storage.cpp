@@ -187,7 +187,7 @@ void MaterialStorage::shader_set_code(RID p_shader, const String &p_code) {
 	ShaderCompiler::GeneratedCode gen_code;
 
 	Error err = MaterialStorage::get_singleton()->dummy_compiler.compile(new_mode, p_code, &actions, "", gen_code);
-	ERR_FAIL_COND_MSG(err != OK, "Shader compilation failed.");
+	ERR_FAIL_COND_MSG(err != OK, vformat("%s shader compilation failed (most likely due to a syntax error). Shader code has been printed above for troubleshooting.", mode_string.capitalize()));
 }
 
 void MaterialStorage::get_shader_parameter_list(RID p_shader, List<PropertyInfo> *p_param_list) const {

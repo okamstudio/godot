@@ -149,7 +149,7 @@ void SceneShaderForwardClustered::ShaderData::set_code(const String &p_code) {
 			SceneShaderForwardClustered::singleton->shader.version_free(version);
 			version = RID();
 		}
-		ERR_FAIL_MSG("Shader compilation failed.");
+		ERR_FAIL_MSG("Spatial shader compilation failed (most likely due to a syntax error). Shader code has been printed above for troubleshooting.");
 	}
 
 	if (version.is_null()) {

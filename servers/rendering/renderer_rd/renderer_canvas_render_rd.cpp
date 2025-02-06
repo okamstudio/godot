@@ -1574,7 +1574,7 @@ void RendererCanvasRenderRD::CanvasShaderData::set_code(const String &p_code) {
 			canvas_singleton->shader.canvas_shader.version_free(version);
 			version = RID();
 		}
-		ERR_FAIL_MSG("Shader compilation failed.");
+		ERR_FAIL_MSG("CanvasItem shader compilation failed (most likely due to a syntax error). Shader code has been printed above for troubleshooting.");
 	}
 
 	uses_screen_texture_mipmaps = gen_code.uses_screen_texture_mipmaps;
