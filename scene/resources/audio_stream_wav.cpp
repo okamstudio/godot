@@ -597,16 +597,15 @@ Vector<uint8_t> AudioStreamWAV::get_data() const {
 
 Error AudioStreamWAV::save_to_wav(const String &p_path) {
 	if (format == AudioStreamWAV::FORMAT_IMA_ADPCM || format == AudioStreamWAV::FORMAT_QOA) {
-		WARN_PRINT("Saving IMA_ADPCM and QOA samples is not supported yet");
-		return ERR_UNAVAILABLE;
+		ERR_FAIL_V_MSG(ERR_UNAVAILABLE, "Saving IMA ADPCM or Quite OK Audio samples is not supported. Quite OK Audio data can still be saved as a .qoa file using FileAccess.");
 	}
 
 	int sub_chunk_2_size = data_bytes; //Subchunk2Size = Size of data in bytes
 
 	// Format code
-	// 1:PCM format (for 8 or 16 bit)
-	// 3:IEEE float format
-	int format_code = (format == FORMAT_IMA_ADPCM) ? 3 : 1;
+	// 1: PCM format (for 8 or 16 bit)
+	// 17: IMA ADPCM format, unhandled since Godot's IMA ADPCM compression is too messy to be saved.
+	int format_code = 1;
 
 	int n_channels = stereo ? 2 : 1;
 
@@ -618,11 +617,9 @@ Error AudioStreamWAV::save_to_wav(const String &p_path) {
 			byte_pr_sample = 1;
 			break;
 		case AudioStreamWAV::FORMAT_16_BITS:
-		case AudioStreamWAV::FORMAT_QOA:
 			byte_pr_sample = 2;
 			break;
-		case AudioStreamWAV::FORMAT_IMA_ADPCM:
-			byte_pr_sample = 4;
+		default:
 			break;
 	}
 
@@ -661,14 +658,13 @@ Error AudioStreamWAV::save_to_wav(const String &p_path) {
 			}
 			break;
 		case AudioStreamWAV::FORMAT_16_BITS:
-		case AudioStreamWAV::FORMAT_QOA:
 			for (unsigned int i = 0; i < data_bytes / 2; i++) {
 				uint16_t data_point = decode_uint16(&read_data[i * 2]);
 				file->store_16(data_point);
 			}
 			break;
-		case AudioStreamWAV::FORMAT_IMA_ADPCM:
-			//Unimplemented
+		default:
+			// Unsupported.
 			break;
 	}
 
