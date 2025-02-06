@@ -1,0 +1,2 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 6: Value of type "Array[int]" cannot be assigned to a variable of type "PackedVector2Array".

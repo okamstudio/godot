@@ -6055,6 +6055,17 @@ bool GDScriptAnalyzer::check_type_compatibility(const GDScriptParser::DataType &
 				valid = p_target.get_container_element_type(0) == p_source.get_container_element_type(0);
 			}
 		}
+		if (valid && p_target.builtin_type != Variant::ARRAY && p_source.builtin_type == Variant::ARRAY) {
+			// Converting from some array to some packed array. Check the element types.
+			if (p_source.has_container_element_type(0)) {
+				GDScriptParser::DataType container_type = p_target.get_typed_container_type();
+				container_type.type_source = p_target.type_source;
+				valid = p_source.get_container_element_type(0) == container_type;
+			} else {
+				// don't support converting a non-static array into a packed array
+				valid = false;
+			}
+		}
 		if (valid && p_target.builtin_type == Variant::DICTIONARY && p_source.builtin_type == Variant::DICTIONARY) {
 			// Check the element types.
 			if (p_target.has_container_element_type(0) && p_source.has_container_element_type(0)) {
