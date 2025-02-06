@@ -191,6 +191,12 @@ static void disassemble_function(const GDScriptFunction *p_func, const Vector<St
 		arg_string += arg_info.name;
 		is_first_arg = false;
 	}
+	if (p_func->is_vararg()) {
+		if (!is_first_arg) {
+			arg_string += ", ";
+		}
+		arg_string += "...args"; // `MethodInfo` does not support the rest parameter name.
+	}
 
 	print_line(vformat("Function %s(%s)", p_func->get_name(), arg_string));
 #ifdef TOOLS_ENABLED

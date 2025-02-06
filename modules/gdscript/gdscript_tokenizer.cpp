@@ -134,6 +134,7 @@ static const char *token_names[] = {
 	";", // SEMICOLON,
 	".", // PERIOD,
 	"..", // PERIOD_PERIOD,
+	"...", // PERIOD_PERIOD_PERIOD,
 	":", // COLON,
 	"$", // DOLLAR,
 	"->", // FORWARD_ARROW,
@@ -1548,6 +1549,10 @@ GDScriptTokenizer::Token GDScriptTokenizerText::scan() {
 		case '.':
 			if (_peek() == '.') {
 				_advance();
+				if (_peek() == '.') {
+					_advance();
+					return make_token(Token::PERIOD_PERIOD_PERIOD);
+				}
 				return make_token(Token::PERIOD_PERIOD);
 			} else if (is_digit(_peek())) {
 				// Number starting with '.'.
