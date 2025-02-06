@@ -88,6 +88,8 @@ class ProjectConverter3To4 {
 
 	Vector<String> check_for_files();
 
+	void split_transform_tracks(Vector<SourceLine> &source_lines);
+
 	Vector<String> parse_arguments(const String &line);
 	int get_end_parenthesis(const String &line) const;
 	String connect_arguments(const Vector<String> &line, int from, int to = -1) const;

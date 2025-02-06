@@ -432,6 +432,7 @@ bool ProjectConverter3To4::convert() {
 				custom_rename(source_lines, "\\.shader", ".gdshader");
 
 				convert_hexadecimal_colors(source_lines, reg_container);
+				split_transform_tracks(source_lines);
 			} else if (file_name.ends_with(".cs")) { // TODO, C# should use different methods.
 				rename_classes(source_lines, reg_container); // Using only specialized function.
 				rename_common(RenamesMap3To4::csharp_function_renames, reg_container.csharp_function_regexes, source_lines);
@@ -2903,6 +2904,159 @@ Vector<String> ProjectConverter3To4::check_for_rename_common(const char *array[]
 	}
 
 	return found_renames;
+}
+
+void generate_tracks_source_lines(Vector<SourceLine> &source_lines, String &track_name, int &line_n, HashMap<String, String> &track_properties_map, HashMap<String, String> &track_keys_map, int &track_number) {
+	Vector<String> tracks = { "position_3d", "rotation_3d", "scale_3d" };
+	for (const String &track : tracks) {
+		SourceLine source_line1;
+		source_line1.line = track_name + "/type = \"" + track + "\"";
+		source_lines.insert(line_n, source_line1);
+		line_n++;
+		for (HashMap<String, String>::ConstIterator it = track_properties_map.begin(); it != track_properties_map.end(); ++it) {
+			const String &key = it->key;
+			const String &value = it->value;
+			SourceLine source_line2;
+			String line = track_name + "/" + key + " = " + value;
+			source_line2.line = line;
+			source_lines.insert(line_n, source_line2);
+			line_n++;
+		}
+		SourceLine keys;
+		keys.line = track_name + "/keys = " + track_keys_map[track];
+		source_lines.insert(line_n, keys);
+		line_n++;
+		track_number++;
+		track_name = vformat("tracks/%d", track_number);
+	}
+}
+
+//Convert the 'transform' tracks in Godot 3 into position3D, rotation3D, and scale3D tracks in Godot 4.
+
+void ProjectConverter3To4::split_transform_tracks(Vector<SourceLine> &source_lines) {
+	bool generating_tracks = false;
+	String track_name = "";
+	int track_number = -1;
+	int current_number = 0;
+
+	HashMap<String, String> track_properties_map;
+	HashMap<String, String> track_keys_map;
+	track_properties_map.insert("path", "");
+	track_properties_map.insert("interp", "");
+	track_properties_map.insert("loop_wrap", "");
+	track_properties_map.insert("imported", "");
+	track_properties_map.insert("enabled", "");
+	track_keys_map.insert("position_3d", "");
+	track_keys_map.insert("rotation_3d", "");
+	track_keys_map.insert("scale_3d", "");
+
+	String position, rotation, scale;
+	RegEx tracks_regex = RegEx("tracks/(\\d+)/(.*) = ([^\n]+)");
+	for (int line_n = 0; line_n < source_lines.size(); line_n++) {
+		if (source_lines[line_n].is_comment) {
+			continue;
+		}
+
+		const SourceLine source_line = source_lines[line_n];
+		const String &line = source_line.line;
+		if (uint64_t(line.length()) <= maximum_line_length) {
+			if (line.begins_with("tracks")) {
+				Ref<RegExMatch> result = tracks_regex.search(line);
+				if (result.is_valid()) {
+					String track_property = result->get_string(2);
+					String property_value = result->get_string(3);
+					if ((generating_tracks == true) && (current_number != result->get_string(1).to_int())) {
+						generate_tracks_source_lines(source_lines, track_name, line_n, track_properties_map, track_keys_map, track_number);
+						generating_tracks = false;
+					}
+
+					if ((track_property == "type") && (property_value == "\"transform\"")) {
+						generating_tracks = true;
+						current_number = result->get_string(1).to_int();
+						if (track_number == -1) {
+							track_number = current_number;
+						}
+						track_name = vformat("tracks/%d", track_number);
+					} else if (track_property == "keys") {
+						String keys = property_value.get_slice("PackedFloat32Array", 1);
+						RegEx number_regex = RegEx("-?\\d+(\\.\\d+)?(?:[eE][-+]?\\d+)?");
+						TypedArray<RegExMatch> keys_array = number_regex.search_all(keys);
+						int position_count = 0;
+						int rotation_count = 0;
+						int scale_count = 0;
+						bool first_value = true;
+						position = "PackedFloat32Array(";
+						rotation = "PackedFloat32Array(";
+						scale = "PackedFloat32Array(";
+						for (int i = 0; i < keys_array.size(); i++) {
+							Ref<RegExMatch> match = keys_array[i];
+							if (position_count > 0) {
+								position += ", ";
+								position_count -= 1;
+								position += match->get_string(0);
+								continue;
+							} else if (rotation_count > 0) {
+								rotation += ", ";
+								rotation_count -= 1;
+								rotation += match->get_string(0);
+								continue;
+							} else if (scale_count > 0) {
+								scale_count -= 1;
+								scale += ", ";
+								scale += match->get_string(0);
+								continue;
+							}
+							if ((position_count == 0) && (rotation_count == 0) && (scale_count == 0)) {
+								Ref<RegExMatch> match2 = keys_array[i + 1];
+								if (first_value != true) {
+									position += ", ";
+								}
+								position += match->get_string(0);
+								position += ", " + match2->get_string(0);
+								if (first_value != true) {
+									rotation += ", ";
+								}
+								rotation += match->get_string(0);
+								rotation += ", " + match2->get_string(0);
+								if (first_value != true) {
+									scale += ", ";
+								}
+								scale += match->get_string(0);
+								scale += ", " + match2->get_string(0);
+
+								first_value = false;
+
+								i++;
+
+								position_count = 3;
+								rotation_count = 4;
+								scale_count = 3;
+							}
+						}
+						position += ")";
+						rotation += ")";
+						scale += ")";
+						track_keys_map["position_3d"] = position;
+						track_keys_map["rotation_3d"] = rotation;
+						track_keys_map["scale_3d"] = scale;
+					} else if (track_properties_map.has(track_property)) {
+						track_properties_map[track_property] = property_value;
+					}
+				} else {
+					track_name = "";
+					generating_tracks = false;
+				}
+				source_lines.remove_at(line_n);
+				line_n = line_n - 1;
+			} else if (generating_tracks) {
+				generate_tracks_source_lines(source_lines, track_name, line_n, track_properties_map, track_keys_map, track_number);
+				track_number = -1;
+				current_number = 0;
+				track_name = "";
+				generating_tracks = false;
+			}
+		}
+	}
 }
 
 // Prints full info about renamed things e.g.:
