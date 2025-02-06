@@ -1026,45 +1026,6 @@ String String::get_with_code_lines() const {
 	return ret;
 }
 
-int String::get_slice_count(const String &p_splitter) const {
-	if (is_empty()) {
-		return 0;
-	}
-	if (p_splitter.is_empty()) {
-		return 0;
-	}
-
-	int pos = 0;
-	int slices = 1;
-
-	while ((pos = find(p_splitter, pos)) >= 0) {
-		slices++;
-		pos += p_splitter.length();
-	}
-
-	return slices;
-}
-
-int String::get_slice_count(const char *p_splitter) const {
-	if (is_empty()) {
-		return 0;
-	}
-	if (p_splitter == nullptr || *p_splitter == '\0') {
-		return 0;
-	}
-
-	int pos = 0;
-	int slices = 1;
-	int splitter_length = strlen(p_splitter);
-
-	while ((pos = find(p_splitter, pos)) >= 0) {
-		slices++;
-		pos += splitter_length;
-	}
-
-	return slices;
-}
-
 String String::get_slice(const String &p_splitter, int p_slice) const {
 	if (is_empty() || p_splitter.is_empty()) {
 		return "";
