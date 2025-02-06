@@ -64,6 +64,16 @@
 				[b]Note:[/b] This method is only implemented on Linux (X11/Wayland).
 			</description>
 		</method>
+		<method name="color_picker">
+			<return type="bool" />
+			<param index="0" name="callback" type="Callable" />
+			<description>
+				Displays OS native color picker.
+				Callbacks have the following arguments: [code]status: bool, color: Color[/code].
+				[b]Note:[/b] This method is implemented if the display server has the [constant FEATURE_NATIVE_COLOR_PICKER] feature.
+				[b]Note:[/b] This method is only implemented on Linux (X11/Wayland).
+			</description>
+		</method>
 		<method name="create_status_indicator">
 			<return type="int" />
 			<param index="0" name="icon" type="Texture2D" />
@@ -1951,6 +1961,9 @@
 		</constant>
 		<constant name="FEATURE_EMOJI_AND_SYMBOL_PICKER" value="31" enum="Feature">
 			Display server supports system emoji and symbol picker. [b]Windows, macOS[/b]
+		</constant>
+		<constant name="FEATURE_NATIVE_COLOR_PICKER" value="32" enum="Feature">
+			Display server supports native color picker. [b]Linux (X11/Wayland)[/b]
 		</constant>
 		<constant name="MOUSE_MODE_VISIBLE" value="0" enum="MouseMode">
 			Makes the mouse cursor visible if it is hidden.

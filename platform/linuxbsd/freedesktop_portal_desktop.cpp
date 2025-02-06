@@ -52,6 +52,7 @@
 #define BUS_INTERFACE_PROPERTIES "org.freedesktop.DBus.Properties"
 #define BUS_INTERFACE_SETTINGS "org.freedesktop.portal.Settings"
 #define BUS_INTERFACE_FILE_CHOOSER "org.freedesktop.portal.FileChooser"
+#define BUS_INTERFACE_SCREENSHOT "org.freedesktop.portal.Screenshot"
 
 bool FreeDesktopPortalDesktop::try_parse_variant(DBusMessage *p_reply_message, int p_type, void *r_value) {
 	DBusMessageIter iter[3];
@@ -295,6 +296,61 @@ void FreeDesktopPortalDesktop::append_dbus_dict_bool(DBusMessageIter *p_iter, co
 	dbus_message_iter_close_container(p_iter, &dict_iter);
 }
 
+bool FreeDesktopPortalDesktop::color_picker_parse_response(DBusMessageIter *p_iter, bool &r_cancel, Color &r_color) {
+	ERR_FAIL_COND_V(dbus_message_iter_get_arg_type(p_iter) != DBUS_TYPE_UINT32, false);
+
+	dbus_uint32_t resp_code;
+	dbus_message_iter_get_basic(p_iter, &resp_code);
+	if (resp_code != 0) {
+		r_cancel = true;
+	} else {
+		r_cancel = false;
+		ERR_FAIL_COND_V(!dbus_message_iter_next(p_iter), false);
+		ERR_FAIL_COND_V(dbus_message_iter_get_arg_type(p_iter) != DBUS_TYPE_ARRAY, false);
+
+		DBusMessageIter dict_iter;
+		dbus_message_iter_recurse(p_iter, &dict_iter);
+		while (dbus_message_iter_get_arg_type(&dict_iter) == DBUS_TYPE_DICT_ENTRY) {
+			DBusMessageIter iter;
+			dbus_message_iter_recurse(&dict_iter, &iter);
+			if (dbus_message_iter_get_arg_type(&iter) == DBUS_TYPE_STRING) {
+				const char *key;
+				dbus_message_iter_get_basic(&iter, &key);
+				dbus_message_iter_next(&iter);
+
+				DBusMessageIter var_iter;
+				dbus_message_iter_recurse(&iter, &var_iter);
+				if (strcmp(key, "color") == 0) { // (ddd)
+					if (dbus_message_iter_get_arg_type(&var_iter) == DBUS_TYPE_STRUCT) {
+						DBusMessageIter struct_iter;
+						dbus_message_iter_recurse(&var_iter, &struct_iter);
+						int idx = 0;
+						while (dbus_message_iter_get_arg_type(&struct_iter) == DBUS_TYPE_DOUBLE) {
+							double value = 0.0;
+							dbus_message_iter_get_basic(&struct_iter, &value);
+							if (idx == 0) {
+								r_color.r = value;
+							} else if (idx == 1) {
+								r_color.g = value;
+							} else if (idx == 2) {
+								r_color.b = value;
+							}
+							idx++;
+							if (!dbus_message_iter_next(&struct_iter)) {
+								break;
+							}
+						}
+					}
+				}
+			}
+			if (!dbus_message_iter_next(&dict_iter)) {
+				break;
+			}
+		}
+	}
+	return true;
+}
+
 bool FreeDesktopPortalDesktop::file_chooser_parse_response(DBusMessageIter *p_iter, const Vector<String> &p_names, const HashMap<String, String> &p_ids, bool &r_cancel, Vector<String> &r_urls, int &r_index, Dictionary &r_options) {
 	ERR_FAIL_COND_V(dbus_message_iter_get_arg_type(p_iter) != DBUS_TYPE_UINT32, false);
 
@@ -388,6 +444,92 @@ bool FreeDesktopPortalDesktop::file_chooser_parse_response(DBusMessageIter *p_it
 	return true;
 }
 
+bool FreeDesktopPortalDesktop::color_picker(const String &p_xid, const Callable &p_callback) {
+	if (unsupported) {
+		return false;
+	}
+
+	DBusError err;
+	dbus_error_init(&err);
+
+	// Open connection and add signal handler.
+	ColorPickerData cd;
+	cd.callback = p_callback;
+
+	CryptoCore::RandomGenerator rng;
+	ERR_FAIL_COND_V_MSG(rng.init(), false, "Failed to initialize random number generator.");
+	uint8_t uuid[64];
+	Error rng_err = rng.get_random_bytes(uuid, 64);
+	ERR_FAIL_COND_V_MSG(rng_err, false, "Failed to generate unique token.");
+
+	String dbus_unique_name = String::utf8(dbus_bus_get_unique_name(monitor_connection));
+	String token = String::hex_encode_buffer(uuid, 64);
+	String path = vformat("/org/freedesktop/portal/desktop/request/%s/%s", dbus_unique_name.replace(".", "_").replace(":", ""), token);
+
+	cd.path = path;
+	cd.filter = vformat("type='signal',sender='org.freedesktop.portal.Desktop',path='%s',interface='org.freedesktop.portal.Request',member='Response',destination='%s'", path, dbus_unique_name);
+	dbus_bus_add_match(monitor_connection, cd.filter.utf8().get_data(), &err);
+	if (dbus_error_is_set(&err)) {
+		ERR_PRINT(vformat("Failed to add DBus match: %s", err.message));
+		dbus_error_free(&err);
+		return false;
+	}
+
+	DBusMessage *message = dbus_message_new_method_call(BUS_OBJECT_NAME, BUS_OBJECT_PATH, BUS_INTERFACE_SCREENSHOT, "PickColor");
+	{
+		DBusMessageIter iter;
+		dbus_message_iter_init_append(message, &iter);
+
+		append_dbus_string(&iter, p_xid);
+
+		DBusMessageIter arr_iter;
+		dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &arr_iter);
+		append_dbus_dict_string(&arr_iter, "handle_token", token);
+		dbus_message_iter_close_container(&iter, &arr_iter);
+	}
+	DBusMessage *reply = dbus_connection_send_with_reply_and_block(monitor_connection, message, DBUS_TIMEOUT_INFINITE, &err);
+	dbus_message_unref(message);
+
+	if (!reply || dbus_error_is_set(&err)) {
+		ERR_PRINT(vformat("Failed to send DBus message: %s", err.message));
+		dbus_error_free(&err);
+		dbus_bus_remove_match(monitor_connection, cd.filter.utf8().get_data(), &err);
+		return false;
+	}
+
+	// Update signal path.
+	{
+		DBusMessageIter iter;
+		if (dbus_message_iter_init(reply, &iter)) {
+			if (dbus_message_iter_get_arg_type(&iter) == DBUS_TYPE_OBJECT_PATH) {
+				const char *new_path = nullptr;
+				dbus_message_iter_get_basic(&iter, &new_path);
+				if (String::utf8(new_path) != path) {
+					dbus_bus_remove_match(monitor_connection, cd.filter.utf8().get_data(), &err);
+					if (dbus_error_is_set(&err)) {
+						ERR_PRINT(vformat("Failed to remove DBus match: %s", err.message));
+						dbus_error_free(&err);
+						return false;
+					}
+					cd.filter = String::utf8(new_path);
+					dbus_bus_add_match(monitor_connection, cd.filter.utf8().get_data(), &err);
+					if (dbus_error_is_set(&err)) {
+						ERR_PRINT(vformat("Failed to add DBus match: %s", err.message));
+						dbus_error_free(&err);
+						return false;
+					}
+				}
+			}
+		}
+	}
+	dbus_message_unref(reply);
+
+	MutexLock lock(color_picker_mutex);
+	color_pickers.push_back(cd);
+
+	return true;
+}
+
 bool FreeDesktopPortalDesktop::_is_interface_supported(const char *p_iface) {
 	bool supported = false;
 	DBusError err;
@@ -439,6 +581,14 @@ bool FreeDesktopPortalDesktop::is_settings_supported() {
 	static int supported = -1;
 	if (supported == -1) {
 		supported = _is_interface_supported(BUS_INTERFACE_SETTINGS);
+	}
+	return supported;
+}
+
+bool FreeDesktopPortalDesktop::is_screenshot_supported() {
+	static int supported = -1;
+	if (supported == -1) {
+		supported = _is_interface_supported(BUS_INTERFACE_SCREENSHOT);
 	}
 	return supported;
 }
@@ -592,29 +742,47 @@ Error FreeDesktopPortalDesktop::file_dialog_show(DisplayServer::WindowID p_windo
 	return OK;
 }
 
-void FreeDesktopPortalDesktop::process_file_dialog_callbacks() {
-	MutexLock lock(file_dialog_mutex);
-	while (!pending_cbs.is_empty()) {
-		FileDialogCallback cb = pending_cbs.front()->get();
-		pending_cbs.pop_front();
+void FreeDesktopPortalDesktop::process_callbacks() {
+	{
+		MutexLock lock(file_dialog_mutex);
+		while (!pending_file_cbs.is_empty()) {
+			FileDialogCallback cb = pending_file_cbs.front()->get();
+			pending_file_cbs.pop_front();
 
-		if (cb.opt_in_cb) {
-			Variant ret;
-			Callable::CallError ce;
-			const Variant *args[4] = { &cb.status, &cb.files, &cb.index, &cb.options };
+			if (cb.opt_in_cb) {
+				Variant ret;
+				Callable::CallError ce;
+				const Variant *args[4] = { &cb.status, &cb.files, &cb.index, &cb.options };
 
-			cb.callback.callp(args, 4, ret, ce);
-			if (ce.error != Callable::CallError::CALL_OK) {
-				ERR_PRINT(vformat("Failed to execute file dialog callback: %s.", Variant::get_callable_error_text(cb.callback, args, 4, ce)));
+				cb.callback.callp(args, 4, ret, ce);
+				if (ce.error != Callable::CallError::CALL_OK) {
+					ERR_PRINT(vformat("Failed to execute file dialog callback: %s.", Variant::get_callable_error_text(cb.callback, args, 4, ce)));
+				}
+			} else {
+				Variant ret;
+				Callable::CallError ce;
+				const Variant *args[3] = { &cb.status, &cb.files, &cb.index };
+
+				cb.callback.callp(args, 3, ret, ce);
+				if (ce.error != Callable::CallError::CALL_OK) {
+					ERR_PRINT(vformat("Failed to execute file dialog callback: %s.", Variant::get_callable_error_text(cb.callback, args, 3, ce)));
+				}
 			}
-		} else {
+		}
+	}
+	{
+		MutexLock lock(color_picker_mutex);
+		while (!pending_color_cbs.is_empty()) {
+			ColorPickerCallback cb = pending_color_cbs.front()->get();
+			pending_color_cbs.pop_front();
+
 			Variant ret;
 			Callable::CallError ce;
-			const Variant *args[3] = { &cb.status, &cb.files, &cb.index };
+			const Variant *args[2] = { &cb.status, &cb.color };
 
-			cb.callback.callp(args, 3, ret, ce);
+			cb.callback.callp(args, 2, ret, ce);
 			if (ce.error != Callable::CallError::CALL_OK) {
-				ERR_PRINT(vformat("Failed to execute file dialog callback: %s.", Variant::get_callable_error_text(cb.callback, args, 3, ce)));
+				ERR_PRINT(vformat("Failed to execute color picker callback: %s.", Variant::get_callable_error_text(cb.callback, args, 2, ce)));
 			}
 		}
 	}
@@ -645,40 +813,72 @@ void FreeDesktopPortalDesktop::_thread_monitor(void *p_ud) {
 					}
 				} else if (dbus_message_is_signal(msg, "org.freedesktop.portal.Request", "Response")) {
 					String path = String::utf8(dbus_message_get_path(msg));
-					MutexLock lock(portal->file_dialog_mutex);
-					for (int i = 0; i < portal->file_dialogs.size(); i++) {
-						FreeDesktopPortalDesktop::FileDialogData &fd = portal->file_dialogs.write[i];
-						if (fd.path == path) {
-							DBusMessageIter iter;
-							if (dbus_message_iter_init(msg, &iter)) {
-								bool cancel = false;
-								Vector<String> uris;
-								Dictionary options;
-								int index = 0;
-								file_chooser_parse_response(&iter, fd.filter_names, fd.option_ids, cancel, uris, index, options);
+					{
+						MutexLock lock(portal->file_dialog_mutex);
+						for (int i = 0; i < portal->file_dialogs.size(); i++) {
+							FreeDesktopPortalDesktop::FileDialogData &fd = portal->file_dialogs.write[i];
+							if (fd.path == path) {
+								DBusMessageIter iter;
+								if (dbus_message_iter_init(msg, &iter)) {
+									bool cancel = false;
+									Vector<String> uris;
+									Dictionary options;
+									int index = 0;
+									file_chooser_parse_response(&iter, fd.filter_names, fd.option_ids, cancel, uris, index, options);
 
-								if (fd.callback.is_valid()) {
-									FileDialogCallback cb;
-									cb.callback = fd.callback;
-									cb.status = !cancel;
-									cb.files = uris;
-									cb.index = index;
-									cb.options = options;
-									cb.opt_in_cb = fd.opt_in_cb;
-									portal->pending_cbs.push_back(cb);
+									if (fd.callback.is_valid()) {
+										FileDialogCallback cb;
+										cb.callback = fd.callback;
+										cb.status = !cancel;
+										cb.files = uris;
+										cb.index = index;
+										cb.options = options;
+										cb.opt_in_cb = fd.opt_in_cb;
+										portal->pending_file_cbs.push_back(cb);
+									}
+									if (fd.prev_focus != DisplayServer::INVALID_WINDOW_ID) {
+										callable_mp(DisplayServer::get_singleton(), &DisplayServer::window_move_to_foreground).call_deferred(fd.prev_focus);
+									}
 								}
-								if (fd.prev_focus != DisplayServer::INVALID_WINDOW_ID) {
-									callable_mp(DisplayServer::get_singleton(), &DisplayServer::window_move_to_foreground).call_deferred(fd.prev_focus);
-								}
+
+								DBusError err;
+								dbus_error_init(&err);
+								dbus_bus_remove_match(portal->monitor_connection, fd.filter.utf8().get_data(), &err);
+								dbus_error_free(&err);
+
+								portal->file_dialogs.remove_at(i);
+								break;
 							}
+						}
+					}
+					{
+						MutexLock lock(portal->color_picker_mutex);
+						for (int i = 0; i < portal->color_pickers.size(); i++) {
+							FreeDesktopPortalDesktop::ColorPickerData &cd = portal->color_pickers.write[i];
+							if (cd.path == path) {
+								DBusMessageIter iter;
+								if (dbus_message_iter_init(msg, &iter)) {
+									bool cancel = false;
+									Color c;
+									color_picker_parse_response(&iter, cancel, c);
 
-							DBusError err;
-							dbus_error_init(&err);
-							dbus_bus_remove_match(portal->monitor_connection, fd.filter.utf8().get_data(), &err);
-							dbus_error_free(&err);
+									if (cd.callback.is_valid()) {
+										ColorPickerCallback cb;
+										cb.callback = cd.callback;
+										cb.color = c;
+										cb.status = !cancel;
+										portal->pending_color_cbs.push_back(cb);
+									}
+								}
 
-							portal->file_dialogs.remove_at(i);
-							break;
+								DBusError err;
+								dbus_error_init(&err);
+								dbus_bus_remove_match(portal->monitor_connection, cd.filter.utf8().get_data(), &err);
+								dbus_error_free(&err);
+
+								portal->color_pickers.remove_at(i);
+								break;
+							}
 						}
 					}
 				}

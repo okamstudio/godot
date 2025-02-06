@@ -300,6 +300,8 @@ public:
 	virtual String keyboard_get_layout_name(int p_index) const override;
 	virtual Key keyboard_get_keycode_from_physical(Key p_keycode) const override;
 
+	virtual bool color_picker(const Callable &p_callback) override;
+
 	virtual void process_events() override;
 
 	virtual void release_rendering_thread() override;

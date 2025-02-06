@@ -742,6 +742,10 @@ Key DisplayServer::keyboard_get_label_from_physical(Key p_keycode) const {
 void DisplayServer::show_emoji_and_symbol_picker() const {
 }
 
+bool DisplayServer::color_picker(const Callable &p_callback) {
+	return false;
+}
+
 void DisplayServer::force_process_and_drop_events() {
 }
 
@@ -1049,6 +1053,7 @@ void DisplayServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("keyboard_get_label_from_physical", "keycode"), &DisplayServer::keyboard_get_label_from_physical);
 
 	ClassDB::bind_method(D_METHOD("show_emoji_and_symbol_picker"), &DisplayServer::show_emoji_and_symbol_picker);
+	ClassDB::bind_method(D_METHOD("color_picker", "callback"), &DisplayServer::color_picker);
 
 	ClassDB::bind_method(D_METHOD("process_events"), &DisplayServer::process_events);
 	ClassDB::bind_method(D_METHOD("force_process_and_drop_events"), &DisplayServer::force_process_and_drop_events);
@@ -1108,6 +1113,7 @@ void DisplayServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(FEATURE_WINDOW_EMBEDDING);
 	BIND_ENUM_CONSTANT(FEATURE_NATIVE_DIALOG_FILE_MIME);
 	BIND_ENUM_CONSTANT(FEATURE_EMOJI_AND_SYMBOL_PICKER);
+	BIND_ENUM_CONSTANT(FEATURE_NATIVE_COLOR_PICKER);
 
 	BIND_ENUM_CONSTANT(MOUSE_MODE_VISIBLE);
 	BIND_ENUM_CONSTANT(MOUSE_MODE_HIDDEN);

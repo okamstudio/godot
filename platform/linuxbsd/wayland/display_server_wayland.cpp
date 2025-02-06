@@ -222,6 +222,9 @@ bool DisplayServerWayland::has_feature(Feature p_feature) const {
 		case FEATURE_NATIVE_DIALOG_FILE_MIME: {
 			return (portal_desktop && portal_desktop->is_supported() && portal_desktop->is_file_chooser_supported());
 		} break;
+		case FEATURE_NATIVE_COLOR_PICKER: {
+			return (portal_desktop && portal_desktop->is_supported() && portal_desktop->is_screenshot_supported());
+		} break;
 #endif
 
 #ifdef SPEECHD_ENABLED
@@ -1165,6 +1168,14 @@ Key DisplayServerWayland::keyboard_get_keycode_from_physical(Key p_keycode) cons
 	return key;
 }
 
+bool DisplayServerWayland::color_picker(const Callable &p_callback) {
+	WindowID window_id = MAIN_WINDOW_ID;
+	// TODO: Use window IDs for multiwindow support.
+
+	WaylandThread::WindowState *ws = wayland_thread.wl_surface_get_window_state(wayland_thread.window_get_wl_surface(window_id));
+	return portal_desktop->color_picker((ws ? ws->exported_handle : String()), p_callback);
+}
+
 void DisplayServerWayland::try_suspend() {
 	// Due to various reasons, we manually handle display synchronization by
 	// waiting for a frame event (request to draw) or, if available, the actual
@@ -1321,7 +1332,7 @@ void DisplayServerWayland::process_events() {
 
 #ifdef DBUS_ENABLED
 	if (portal_desktop) {
-		portal_desktop->process_file_dialog_callbacks();
+		portal_desktop->process_callbacks();
 	}
 #endif
 
