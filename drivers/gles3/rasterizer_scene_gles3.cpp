@@ -708,12 +708,7 @@ void RasterizerSceneGLES3::_setup_sky(const RenderDataGLES3 *p_render_data, cons
 				sky_light_data.enabled = true;
 
 				float angular_diameter = light_storage->light_get_param(base, RS::LIGHT_PARAM_SIZE);
-				if (angular_diameter > 0.0) {
-					angular_diameter = Math::tan(Math::deg_to_rad(angular_diameter));
-				} else {
-					angular_diameter = 0.0;
-				}
-				sky_light_data.size = angular_diameter;
+				sky_light_data.size = Math::deg_to_rad(angular_diameter);
 				sky_globals.directional_light_count++;
 				if (sky_globals.directional_light_count >= sky_globals.max_directional_lights) {
 					break;

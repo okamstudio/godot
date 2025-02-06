@@ -1093,15 +1093,7 @@ void SkyRD::setup_sky(const RenderDataRD *p_render_data, const Size2i p_screen_s
 				sky_light_data.enabled = true;
 
 				float angular_diameter = light_storage->light_get_param(base, RS::LIGHT_PARAM_SIZE);
-				if (angular_diameter > 0.0) {
-					// I know tan(0) is 0, but let's not risk it with numerical precision.
-					// Technically this will keep expanding until reaching the sun, but all we care about
-					// is expanding until we reach the radius of the near plane. There can't be more occluders than that.
-					angular_diameter = Math::tan(Math::deg_to_rad(angular_diameter));
-				} else {
-					angular_diameter = 0.0;
-				}
-				sky_light_data.size = angular_diameter;
+				sky_light_data.size = Math::deg_to_rad(angular_diameter);
 				sky_scene_state.ubo.directional_light_count++;
 				if (sky_scene_state.ubo.directional_light_count >= sky_scene_state.max_directional_lights) {
 					break;
