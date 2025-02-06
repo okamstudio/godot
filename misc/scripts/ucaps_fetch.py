@@ -18,12 +18,11 @@ from methods import generate_copyright_header
 URL: Final[str] = "https://www.unicode.org/Public/16.0.0/ucd/UnicodeData.txt"
 
 
-lower_to_upper: List[Tuple[str, str]] = []
-upper_to_lower: List[Tuple[str, str]] = []
-
-
-def parse_unicode_data() -> None:
+def fetch_unicode_data() -> Tuple[List[Tuple[str, str]], List[Tuple[str, str]]]:
     lines: List[str] = [line.decode("utf-8") for line in urlopen(URL)]
+
+    lower_to_upper = []
+    upper_to_lower = []
 
     for line in lines:
         split_line: List[str] = line.split(";")
@@ -37,11 +36,15 @@ def parse_unicode_data() -> None:
         if lowercase_mapping:
             upper_to_lower.append((f"0x{code_value}", f"0x{lowercase_mapping}"))
 
+    return lower_to_upper, upper_to_lower
 
-def make_cap_table(table_name: str, len_name: str, table: List[Tuple[str, str]]) -> str:
-    result: str = f"static const int {table_name}[{len_name}][2] = {{\n"
+
+def make_cap_table(table_name: str, table: List[Tuple[str, str]], starting_from: int) -> str:
+    result: str = f"static const char32_t {table_name}[][2] = {{\n"
 
     for first, second in table:
+        if int(first, 16) < starting_from:
+            continue
         result += f"\t{{ {first}, {second} }},\n"
 
     result += "};\n\n"
@@ -50,64 +53,23 @@ def make_cap_table(table_name: str, len_name: str, table: List[Tuple[str, str]])
 
 
 def generate_ucaps_fetch() -> None:
-    parse_unicode_data()
+    lower_to_upper, upper_to_lower = fetch_unicode_data()
 
     source: str = generate_copyright_header("ucaps.h")
 
-    source += f"""
+    source += """
 #ifndef UCAPS_H
 #define UCAPS_H
 
 // This file was generated using the `misc/scripts/ucaps_fetch.py` script.
 
-#define LTU_LEN {len(lower_to_upper)}
-#define UTL_LEN {len(upper_to_lower)}\n\n"""
-
-    source += make_cap_table("caps_table", "LTU_LEN", lower_to_upper)
-    source += make_cap_table("reverse_caps_table", "UTL_LEN", upper_to_lower)
-
-    source += """static int _find_upper(int ch) {
-\tint low = 0;
-\tint high = LTU_LEN - 1;
-\tint middle;
-
-\twhile (low <= high) {
-\t\tmiddle = (low + high) / 2;
-
-\t\tif (ch < caps_table[middle][0]) {
-\t\t\thigh = middle - 1; // Search low end of array.
-\t\t} else if (caps_table[middle][0] < ch) {
-\t\t\tlow = middle + 1; // Search high end of array.
-\t\t} else {
-\t\t\treturn caps_table[middle][1];
-\t\t}
-\t}
-
-\treturn ch;
-}
-
-static int _find_lower(int ch) {
-\tint low = 0;
-\tint high = UTL_LEN - 1;
-\tint middle;
-
-\twhile (low <= high) {
-\t\tmiddle = (low + high) / 2;
-
-\t\tif (ch < reverse_caps_table[middle][0]) {
-\t\t\thigh = middle - 1; // Search low end of array.
-\t\t} else if (reverse_caps_table[middle][0] < ch) {
-\t\t\tlow = middle + 1; // Search high end of array.
-\t\t} else {
-\t\t\treturn reverse_caps_table[middle][1];
-\t\t}
-\t}
-
-\treturn ch;
-}
-
-#endif // UCAPS_H
 """
+
+    # We skip the lower bit characters because they are handled with a manual if statement.
+    source += make_cap_table("caps_table", lower_to_upper, starting_from=0x00FF)
+    source += make_cap_table("reverse_caps_table", upper_to_lower, starting_from=0x0100)
+
+    source += "#endif // UCAPS_H\n"
 
     ucaps_path: str = os.path.join(os.path.dirname(__file__), "../../core/string/ucaps.h")
     with open(ucaps_path, "w", newline="\n") as f:
