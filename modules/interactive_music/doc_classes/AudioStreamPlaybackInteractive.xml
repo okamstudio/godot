@@ -36,4 +36,18 @@
 			</description>
 		</method>
 	</methods>
+	<signals>
+		<signal name="clip_ended">
+			<param index="0" name="clip_idx" type="int" />
+			<description>
+				Emitted when a clip ends playing because of a transition or the last clip is done playing.
+			</description>
+		</signal>
+		<signal name="clip_started">
+			<param index="0" name="clip_idx" type="int" />
+			<description>
+				Emitted when a clip starts playing because of a transition or the first time the stream is played.
+			</description>
+		</signal>
+	</signals>
 </class>
