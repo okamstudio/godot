@@ -2270,7 +2270,10 @@ void GDScriptAnalyzer::resolve_for(GDScriptParser::ForNode *p_for) {
 			} else {
 				push_error(vformat(R"(Unable to iterate on object of type "%s".)", list_type.to_string()), p_for->list);
 			}
-		} else if (list_type.builtin_type == Variant::ARRAY || list_type.builtin_type == Variant::DICTIONARY || !list_type.is_hard_type()) {
+		} else if (list_type.builtin_type == Variant::ARRAY || list_type.builtin_type == Variant::DICTIONARY) {
+			variable_type.type_source = list_type.type_source;
+			variable_type.kind = GDScriptParser::DataType::VARIANT;
+		} else if (!list_type.is_hard_type()) {
 			variable_type.kind = GDScriptParser::DataType::VARIANT;
 		} else {
 			push_error(vformat(R"(Unable to iterate on value of type "%s".)", list_type.to_string()), p_for->list);
