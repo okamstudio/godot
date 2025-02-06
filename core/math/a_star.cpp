@@ -493,6 +493,10 @@ Vector<int64_t> AStar3D::get_id_path(int64_t p_from_id, int64_t p_to_id, bool p_
 		return ret;
 	}
 
+	if (!a->enabled) {
+		return Vector<int64_t>();
+	}
+
 	Point *begin_point = a;
 	Point *end_point = b;
 
@@ -774,6 +778,10 @@ Vector<int64_t> AStar2D::get_id_path(int64_t p_from_id, int64_t p_to_id, bool p_
 		Vector<int64_t> ret;
 		ret.push_back(a->id);
 		return ret;
+	}
+
+	if (!a->enabled) {
+		return Vector<int64_t>();
 	}
 
 	AStar3D::Point *begin_point = a;
