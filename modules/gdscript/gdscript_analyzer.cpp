@@ -5900,7 +5900,31 @@ void GDScriptAnalyzer::is_shadowing(GDScriptParser::IdentifierNode *p_identifier
 
 		if (base_class != nullptr) {
 			if (base_class->has_member(name)) {
-				parser->push_warning(p_identifier, GDScriptWarning::SHADOWED_VARIABLE, p_context, p_identifier->name, base_class->get_member(name).get_type_name(), itos(base_class->get_member(name).get_line()));
+				GDScriptParser::ClassNode::Member member = base_class->get_member(name);
+
+				bool is_member_static = true;
+
+				switch (member.type) {
+					case GDScriptParser::ClassNode::Member::FUNCTION:
+						is_member_static = member.function->is_static;
+						break;
+					case GDScriptParser::ClassNode::Member::VARIABLE:
+						is_member_static = member.variable->is_static;
+						break;
+					case GDScriptParser::ClassNode::Member::UNDEFINED:
+					case GDScriptParser::ClassNode::Member::CLASS:
+					case GDScriptParser::ClassNode::Member::CONSTANT:
+					case GDScriptParser::ClassNode::Member::SIGNAL:
+					case GDScriptParser::ClassNode::Member::ENUM:
+					case GDScriptParser::ClassNode::Member::ENUM_VALUE:
+					case GDScriptParser::ClassNode::Member::GROUP:
+						break;
+				}
+
+				if (is_member_static || !static_context) {
+					parser->push_warning(p_identifier, GDScriptWarning::SHADOWED_VARIABLE, p_context, p_identifier->name, base_class->get_member(name).get_type_name(), itos(base_class->get_member(name).get_line()));
+				}
+
 				return;
 			}
 			base_class = base_class->base_type.class_type;
@@ -5908,12 +5932,36 @@ void GDScriptAnalyzer::is_shadowing(GDScriptParser::IdentifierNode *p_identifier
 
 		while (base_class != nullptr) {
 			if (base_class->has_member(name)) {
-				String base_class_name = base_class->get_global_name();
-				if (base_class_name.is_empty()) {
-					base_class_name = base_class->fqcn;
+				GDScriptParser::ClassNode::Member member = base_class->get_member(name);
+
+				bool is_member_static = true;
+
+				switch (member.type) {
+					case GDScriptParser::ClassNode::Member::FUNCTION:
+						is_member_static = member.function->is_static;
+						break;
+					case GDScriptParser::ClassNode::Member::VARIABLE:
+						is_member_static = member.variable->is_static;
+						break;
+					case GDScriptParser::ClassNode::Member::UNDEFINED:
+					case GDScriptParser::ClassNode::Member::CLASS:
+					case GDScriptParser::ClassNode::Member::CONSTANT:
+					case GDScriptParser::ClassNode::Member::SIGNAL:
+					case GDScriptParser::ClassNode::Member::ENUM:
+					case GDScriptParser::ClassNode::Member::ENUM_VALUE:
+					case GDScriptParser::ClassNode::Member::GROUP:
+						break;
 				}
 
-				parser->push_warning(p_identifier, GDScriptWarning::SHADOWED_VARIABLE_BASE_CLASS, p_context, p_identifier->name, base_class->get_member(name).get_type_name(), itos(base_class->get_member(name).get_line()), base_class_name);
+				if (is_member_static || !static_context) {
+					String base_class_name = base_class->get_global_name();
+					if (base_class_name.is_empty()) {
+						base_class_name = base_class->fqcn;
+					}
+
+					parser->push_warning(p_identifier, GDScriptWarning::SHADOWED_VARIABLE_BASE_CLASS, p_context, p_identifier->name, base_class->get_member(name).get_type_name(), itos(base_class->get_member(name).get_line()), base_class_name);
+				}
+
 				return;
 			}
 			base_class = base_class->base_type.class_type;
