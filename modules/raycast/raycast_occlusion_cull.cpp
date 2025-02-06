@@ -338,7 +338,7 @@ void RaycastOcclusionCull::Scenario::_update_dirty_instance(int p_idx, RID *p_in
 	const Vector3 *read_ptr = occ->vertices.ptr();
 	float *write_ptr = occ_inst->xformed_vertices.ptr();
 
-	if (vertices_size > 1024) {
+	if (vertices_size > 1024 && WorkerThreadPool::get_singleton()->get_thread_index() == -1) {
 		TransformThreadData td;
 		td.xform = occ_inst->xform;
 		td.read = read_ptr;
