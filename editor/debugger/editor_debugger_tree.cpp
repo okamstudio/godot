@@ -195,9 +195,9 @@ void EditorDebuggerTree::update_scene_tree(const SceneDebuggerTree *p_tree, int 
 		TreeItem *item = create_item(parent);
 		item->set_text(0, node.name);
 		if (node.scene_file_path.is_empty()) {
-			item->set_tooltip_text(0, node.name + "\n" + TTR("Type:") + " " + node.type_name);
+			item->set_tooltip_text(0, node.name + "\n" + TTR("Type:") + " " + node.type_name + "\n" + TTR("Child nodes:") + " " + String::num_int64(node.child_count));
 		} else {
-			item->set_tooltip_text(0, node.name + "\n" + TTR("Instance:") + " " + node.scene_file_path + "\n" + TTR("Type:") + " " + node.type_name);
+			item->set_tooltip_text(0, node.name + "\n" + TTR("Instance:") + " " + node.scene_file_path + "\n" + TTR("Type:") + " " + node.type_name + "\n" + TTR("Child nodes:") + " " + String::num_int64(node.child_count));
 		}
 		Ref<Texture2D> icon = EditorNode::get_singleton()->get_class_icon(node.type_name, "");
 		if (icon.is_valid()) {

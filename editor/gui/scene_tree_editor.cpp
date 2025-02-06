@@ -668,6 +668,7 @@ void SceneTreeEditor::_update_node_tooltip(Node *p_node, TreeItem *p_item) {
 
 	StringName custom_type = EditorNode::get_singleton()->get_object_custom_type_name(p_node);
 	tooltip += "\n" + TTR("Type:") + " " + (custom_type != StringName() ? String(custom_type) : p_node->get_class());
+	tooltip += "\n" + TTR("Child nodes:") + " " + String::num_int64(p_node->get_child_count());
 
 	if (!p_node->get_editor_description().is_empty()) {
 		const PackedInt32Array boundaries = TS->string_get_word_breaks(p_node->get_editor_description(), "", 80);
