@@ -1506,6 +1506,7 @@ ProjectExportDialog::ProjectExportDialog() {
 	export_filter->add_item(TTR("Export selected resources (and dependencies)"));
 	export_filter->add_item(TTR("Export all resources in the project except resources checked below"));
 	export_filter->add_item(TTR("Export as dedicated server"));
+	export_filter->add_item(TTR("Export selected resources (without dependencies)"));
 	resources_vb->add_margin_child(TTR("Export Mode:"), export_filter);
 	export_filter->connect(SceneStringName(item_selected), callable_mp(this, &ProjectExportDialog::_export_type_changed));
 
