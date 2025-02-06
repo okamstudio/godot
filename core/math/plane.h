@@ -57,7 +57,7 @@ struct [[nodiscard]] Plane {
 	/* intersections */
 
 	bool intersect_3(const Plane &p_plane1, const Plane &p_plane2, Vector3 *r_result = nullptr) const;
-	bool intersects_ray(const Vector3 &p_from, const Vector3 &p_dir, Vector3 *p_intersection) const;
+	bool intersects_ray(const Vector3 &p_from, const Vector3 &p_dir, Vector3 *p_intersection, real_t p_max_distance = 0) const;
 	bool intersects_segment(const Vector3 &p_begin, const Vector3 &p_end, Vector3 *p_intersection) const;
 
 	// For Variant bindings.

@@ -94,7 +94,7 @@ bool Plane::intersect_3(const Plane &p_plane1, const Plane &p_plane2, Vector3 *r
 	return true;
 }
 
-bool Plane::intersects_ray(const Vector3 &p_from, const Vector3 &p_dir, Vector3 *p_intersection) const {
+bool Plane::intersects_ray(const Vector3 &p_from, const Vector3 &p_dir, Vector3 *p_intersection, real_t p_max_distance) const {
 	Vector3 segment = p_dir;
 	real_t den = normal.dot(segment);
 
@@ -104,8 +104,7 @@ bool Plane::intersects_ray(const Vector3 &p_from, const Vector3 &p_dir, Vector3 
 
 	real_t dist = (normal.dot(p_from) - d) / den;
 
-	if (dist > (real_t)CMP_EPSILON) { //this is a ray, before the emitting pos (p_from) doesn't exist
-
+	if (dist > (real_t)CMP_EPSILON || (p_max_distance > 0 && dist < -p_max_distance)) {
 		return false;
 	}
 
@@ -116,23 +115,12 @@ bool Plane::intersects_ray(const Vector3 &p_from, const Vector3 &p_dir, Vector3 
 }
 
 bool Plane::intersects_segment(const Vector3 &p_begin, const Vector3 &p_end, Vector3 *p_intersection) const {
-	Vector3 segment = p_begin - p_end;
-	real_t den = normal.dot(segment);
-
-	if (Math::is_zero_approx(den)) {
+	Vector3 segment = p_end - p_begin;
+	real_t length = segment.length();
+	if (unlikely(length == 0)) { // p_from and p_to are strictly identical.
 		return false;
 	}
-
-	real_t dist = (normal.dot(p_begin) - d) / den;
-
-	if (dist < (real_t)-CMP_EPSILON || dist > (1.0f + (real_t)CMP_EPSILON)) {
-		return false;
-	}
-
-	dist = -dist;
-	*p_intersection = p_begin + segment * dist;
-
-	return true;
+	return intersects_ray(p_begin, segment / length, p_intersection, length);
 }
 
 Variant Plane::intersect_3_bind(const Plane &p_plane1, const Plane &p_plane2) const {

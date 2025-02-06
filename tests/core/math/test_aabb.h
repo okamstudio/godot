@@ -186,24 +186,51 @@ TEST_CASE("[AABB] Intersection") {
 			!aabb_big.intersects_plane(Plane(Vector3(0, 1, 0), 200)),
 			"intersects_plane() should return the expected result.");
 
+	Vector3 result;
+	Vector3 normal;
 	CHECK_MESSAGE(
-			aabb_big.intersects_segment(Vector3(1, 3, 0), Vector3(0, 3, 0)),
+			aabb_big.intersects_segment(Vector3(1, 3, 0), Vector3(0, 3, 0), &result, &normal),
 			"intersects_segment() should return the expected result.");
+	CHECK(result == Vector3(1, 3, 0));
+	CHECK(normal == Vector3());
+	result = Vector3();
+	normal = Vector3();
 	CHECK_MESSAGE(
-			aabb_big.intersects_segment(Vector3(0, 3, 0), Vector3(0, -300, 0)),
+			aabb_big.intersects_segment(Vector3(0, 3, 0), Vector3(0, -300, 0), &result, &normal),
 			"intersects_segment() should return the expected result.");
+	CHECK(result == Vector3(0, 3, 0));
+	CHECK(normal == Vector3());
+	result = Vector3();
+	normal = Vector3();
 	CHECK_MESSAGE(
-			aabb_big.intersects_segment(Vector3(-50, 3, -50), Vector3(50, 3, 50)),
+			aabb_big.intersects_segment(Vector3(-50, 3, -50), Vector3(50, 3, 50), &result, &normal),
 			"intersects_segment() should return the expected result.");
+	CHECK(result.is_equal_approx(Vector3(-1.5, 3.0, -1.5)));
+	CHECK(normal == Vector3(-1, 0, 0));
+	result = Vector3();
+	normal = Vector3();
 	CHECK_MESSAGE(
-			!aabb_big.intersects_segment(Vector3(-50, 25, -50), Vector3(50, 25, 50)),
+			!aabb_big.intersects_segment(Vector3(-50, 25, -50), Vector3(50, 25, 50), &result, &normal),
 			"intersects_segment() should return the expected result.");
+	CHECK(result == Vector3());
+	CHECK(normal == Vector3());
+	result = Vector3();
+	normal = Vector3();
 	CHECK_MESSAGE(
-			aabb_big.intersects_segment(Vector3(0, 3, 0), Vector3(0, 3, 0)),
+			aabb_big.intersects_segment(Vector3(0, 3, 0), Vector3(0, 3, 0), &result, &normal),
 			"intersects_segment() should return the expected result with segment of length 0.");
+	CHECK(result == Vector3(0, 3, 0));
+	CHECK(normal == Vector3());
+	result = Vector3();
+	normal = Vector3();
 	CHECK_MESSAGE(
-			!aabb_big.intersects_segment(Vector3(0, 300, 0), Vector3(0, 300, 0)),
+			!aabb_big.intersects_segment(Vector3(0, 300, 0), Vector3(0, 300, 0), &result, &normal),
 			"intersects_segment() should return the expected result with segment of length 0.");
+	CHECK(result == Vector3());
+	CHECK(normal == Vector3());
+	result = Vector3();
+	normal = Vector3();
+
 	CHECK_MESSAGE( // Simple ray intersection test.
 			aabb_big.intersects_ray(Vector3(-100, 3, 0), Vector3(1, 0, 0)),
 			"intersects_ray() should return true when ray points directly to AABB from outside.");

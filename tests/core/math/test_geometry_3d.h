@@ -136,57 +136,99 @@ TEST_CASE("[Geometry3D] Get Closest Point To Segment") {
 }
 
 TEST_CASE("[Geometry3D] Plane and Box Overlap") {
-	CHECK(Geometry3D::planeBoxOverlap(Vector3(3, 4, 2), 5.0f, Vector3(5, 5, 5)) == true);
-	CHECK(Geometry3D::planeBoxOverlap(Vector3(0, 1, 0), -10.0f, Vector3(5, 5, 5)) == false);
-	CHECK(Geometry3D::planeBoxOverlap(Vector3(1, 0, 0), -6.0f, Vector3(5, 5, 5)) == false);
+	CHECK(Geometry3D::planeBoxOverlap(Vector3(3, 4, 2), 5.0f, Vector3(5, 5, 5)));
+	CHECK_FALSE(Geometry3D::planeBoxOverlap(Vector3(0, 1, 0), -10.0f, Vector3(5, 5, 5)));
+	CHECK_FALSE(Geometry3D::planeBoxOverlap(Vector3(1, 0, 0), -6.0f, Vector3(5, 5, 5)));
 }
 
 TEST_CASE("[Geometry3D] Is Point in Projected Triangle") {
-	CHECK(Geometry3D::point_in_projected_triangle(Vector3(1, 1, 0), Vector3(3, 0, 0), Vector3(0, 3, 0), Vector3(-3, 0, 0)) == true);
-	CHECK(Geometry3D::point_in_projected_triangle(Vector3(5, 1, 0), Vector3(3, 0, 0), Vector3(0, 3, 0), Vector3(-3, 0, 0)) == false);
-	CHECK(Geometry3D::point_in_projected_triangle(Vector3(3, 0, 0), Vector3(3, 0, 0), Vector3(0, 3, 0), Vector3(-3, 0, 0)) == true);
+	CHECK(Geometry3D::point_in_projected_triangle(Vector3(1, 1, 0), Vector3(3, 0, 0), Vector3(0, 3, 0), Vector3(-3, 0, 0)));
+	CHECK_FALSE(Geometry3D::point_in_projected_triangle(Vector3(5, 1, 0), Vector3(3, 0, 0), Vector3(0, 3, 0), Vector3(-3, 0, 0)));
+	CHECK(Geometry3D::point_in_projected_triangle(Vector3(3, 0, 0), Vector3(3, 0, 0), Vector3(0, 3, 0), Vector3(-3, 0, 0)));
 }
 
-TEST_CASE("[Geometry3D] Does Ray Intersect Triangle") {
+TEST_CASE("[Geometry3D] Ray Intersects Triangle") {
 	Vector3 result;
-	CHECK(Geometry3D::ray_intersects_triangle(Vector3(0, 1, 1), Vector3(0, 0, -10), Vector3(0, 3, 0), Vector3(-3, 0, 0), Vector3(3, 0, 0), &result) == true);
-	CHECK(Geometry3D::ray_intersects_triangle(Vector3(5, 10, 1), Vector3(0, 0, -10), Vector3(0, 3, 0), Vector3(-3, 0, 0), Vector3(3, 0, 0), &result) == false);
-	CHECK(Geometry3D::ray_intersects_triangle(Vector3(0, 1, 1), Vector3(0, 0, 10), Vector3(0, 3, 0), Vector3(-3, 0, 0), Vector3(3, 0, 0), &result) == false);
+	CHECK(Geometry3D::ray_intersects_triangle(Vector3(0, 1, 1), Vector3(0, 0, -10), Vector3(0, 3, 0), Vector3(-3, 0, 0), Vector3(3, 0, 0), &result));
+	CHECK_FALSE(Geometry3D::ray_intersects_triangle(Vector3(5, 10, 1), Vector3(0, 0, -10), Vector3(0, 3, 0), Vector3(-3, 0, 0), Vector3(3, 0, 0), &result));
+	CHECK_FALSE(Geometry3D::ray_intersects_triangle(Vector3(0, 1, 1), Vector3(0, 0, 10), Vector3(0, 3, 0), Vector3(-3, 0, 0), Vector3(3, 0, 0), &result));
 }
 
-TEST_CASE("[Geometry3D] Does Segment Intersect Convex") {
+TEST_CASE("[Geometry3D] Segment Intersects Convex") {
 	Vector<Plane> box_planes = Geometry3D::build_box_planes(Vector3(5, 5, 5));
 	Vector3 result, normal;
-	CHECK(Geometry3D::segment_intersects_convex(Vector3(10, 10, 10), Vector3(0, 0, 0), &box_planes[0], box_planes.size(), &result, &normal) == true);
-	CHECK(Geometry3D::segment_intersects_convex(Vector3(10, 10, 10), Vector3(5, 5, 5), &box_planes[0], box_planes.size(), &result, &normal) == true);
-	CHECK(Geometry3D::segment_intersects_convex(Vector3(10, 10, 10), Vector3(6, 5, 5), &box_planes[0], box_planes.size(), &result, &normal) == false);
+	CHECK(Geometry3D::segment_intersects_convex(Vector3(10, 10, 10), Vector3(0, 0, 0), &box_planes[0], box_planes.size(), &result, &normal));
+	CHECK(Geometry3D::segment_intersects_convex(Vector3(10, 10, 10), Vector3(5, 5, 5), &box_planes[0], box_planes.size(), &result, &normal));
+	CHECK_FALSE(Geometry3D::segment_intersects_convex(Vector3(10, 10, 10), Vector3(6, 5, 5), &box_planes[0], box_planes.size(), &result, &normal));
+}
+
+TEST_CASE("[Geometry3D] Ray Intersects Convex") {
+	constexpr real_t sqrt2 = 1.41421356237309504880;
+	constexpr real_t sqrt3 = 1.7320508075688772935274463415059;
+	Vector<Plane> box_planes = Geometry3D::build_box_planes(Vector3(5, 5, 5));
+	Vector3 result;
+	Vector3 normal;
+	CHECK(Geometry3D::ray_intersects_convex(Vector3(10, 10, 10), Vector3(-1.0 / sqrt3, -1.0 / sqrt3, -1.0 / sqrt3), &box_planes[0], box_planes.size(), &result, &normal));
+	CHECK_FALSE(Geometry3D::ray_intersects_convex(Vector3(0, 0, 1), Vector3(1.0 / sqrt3, 1.0 / sqrt3, -1.0 / sqrt3), &box_planes[0], box_planes.size(), &result, &normal));
+	CHECK_FALSE(Geometry3D::ray_intersects_convex(Vector3(10, 10, 10), Vector3(-1.0 / sqrt3, -1.0 / sqrt3, -1.0 / sqrt3), &box_planes[0], box_planes.size(), &result, &normal, 2.0));
+	CHECK(Geometry3D::ray_intersects_convex(Vector3(7, 7, 1), Vector3(-1.0 / sqrt2, -1.0 / sqrt2, 0), &box_planes[0], box_planes.size(), &result, &normal));
 }
 
 TEST_CASE("[Geometry3D] Segment Intersects Cylinder") {
 	Vector3 result, normal;
-	CHECK(Geometry3D::segment_intersects_cylinder(Vector3(10, 10, 10), Vector3(0, 0, 0), 5, 5, &result, &normal) == true);
-	CHECK(Geometry3D::segment_intersects_cylinder(Vector3(10, 10, 10), Vector3(6, 6, 6), 5, 5, &result, &normal) == false);
+	CHECK(Geometry3D::segment_intersects_cylinder(Vector3(10, 10, 10), Vector3(0, 0, 0), 5, 5, &result, &normal));
+	CHECK(result.is_equal_approx(Vector3(2.5, 2.5, 2.5)));
+	CHECK(normal.is_equal_approx(Vector3(0, 0, 1)));
+	CHECK_FALSE(Geometry3D::segment_intersects_cylinder(Vector3(10, 10, 10), Vector3(6, 6, 6), 5, 5, &result, &normal));
 }
 
-TEST_CASE("[Geometry3D] Segment Intersects Cylinder") {
+TEST_CASE("[Geometry3D] Ray Intersects Cylinder") {
+	constexpr real_t sqrt2 = 1.41421356237309504880;
+	constexpr real_t sqrt3 = 1.7320508075688772935274463415059;
+	Vector3 result;
+	Vector3 normal;
+	CHECK(Geometry3D::ray_intersects_cylinder(Vector3(10, 10, 10), Vector3(-1.0 / sqrt3, -1.0 / sqrt3, -1.0 / sqrt3), 50, 5, &result, &normal));
+	CHECK(result.is_equal_approx(Vector3(5.0 * sqrt2 / 2.0, 5.0 * sqrt2 / 2.0, 5.0 * sqrt2 / 2.0)));
+	CHECK(normal.is_equal_approx(Vector3(1.0 / sqrt2, 1.0 / sqrt2, 0)));
+	CHECK_FALSE(Geometry3D::ray_intersects_cylinder(Vector3(10, 10, 10), Vector3(-1.0 / sqrt3, -1.0 / sqrt3, -1.0 / sqrt3), 5, 5, &result, &normal, 2, 3.0));
+	CHECK(Geometry3D::ray_intersects_cylinder(Vector3(1, 10, -1), Vector3(0, -1, 0), 5, 5, &result, &normal, 1));
+	CHECK(result.is_equal_approx(Vector3(1, 2.5, -1)));
+	CHECK(normal.is_equal_approx(Vector3(0, 1, 0)));
+	CHECK_FALSE(Geometry3D::ray_intersects_cylinder(Vector3(1, 10, -1), Vector3(0, -1, 0), 5, 5, &result, &normal, 2, 2.0));
+	CHECK_FALSE(Geometry3D::ray_intersects_cylinder(Vector3(10, 10, 10), Vector3(1.0 / sqrt2, 0, 1.0 / sqrt2), 5, 5, &result, &normal));
+}
+
+TEST_CASE("[Geometry3D] Segment Intersects Sphere") {
 	Vector3 result, normal;
-	CHECK(Geometry3D::segment_intersects_sphere(Vector3(10, 10, 10), Vector3(0, 0, 0), Vector3(0, 0, 0), 5, &result, &normal) == true);
-	CHECK(Geometry3D::segment_intersects_sphere(Vector3(10, 10, 10), Vector3(0, 0, 2.5), Vector3(0, 0, 0), 5, &result, &normal) == true);
-	CHECK(Geometry3D::segment_intersects_sphere(Vector3(10, 10, 10), Vector3(5, 5, 5), Vector3(0, 0, 0), 5, &result, &normal) == false);
+	CHECK(Geometry3D::segment_intersects_sphere(Vector3(10, 10, 10), Vector3(0, 0, 0), Vector3(0, 0, 0), 5, &result, &normal));
+	CHECK(Geometry3D::segment_intersects_sphere(Vector3(10, 10, 10), Vector3(0, 0, 2.5), Vector3(0, 0, 0), 5, &result, &normal));
+	CHECK_FALSE(Geometry3D::segment_intersects_sphere(Vector3(10, 10, 10), Vector3(5, 5, 5), Vector3(0, 0, 0), 5, &result, &normal));
+}
+
+TEST_CASE("[Geometry3D] Ray Intersects Sphere") {
+	constexpr real_t sqrt2 = 1.41421356237309504880;
+	constexpr real_t sqrt3 = 1.7320508075688772935274463415059;
+	Vector3 result;
+	Vector3 normal;
+	CHECK(Geometry3D::ray_intersects_sphere(Vector3(-25, -25, -25), Vector3(1.0 / sqrt3, 1.0 / sqrt3, 1.0 / sqrt3), Vector3(0, -1, 0), 5, &result, &normal));
+	CHECK_FALSE(Geometry3D::ray_intersects_sphere(Vector3(-25, -25, -25), Vector3(1.0 / sqrt3, 1.0 / sqrt3, 1.0 / sqrt3), Vector3(0, -1, 0), 5, &result, &normal, 5.0));
+	CHECK_FALSE(Geometry3D::ray_intersects_sphere(Vector3(-25, -25, -25), Vector3(-1.0 / sqrt3, 1.0 / sqrt3, 1.0 / sqrt3), Vector3(0, 0, 1), 200, &result, &normal));
+	CHECK(Geometry3D::ray_intersects_sphere(Vector3(-25, -25, -25), Vector3(1.0 / sqrt2, 1.0 / sqrt2, 0), Vector3(0, 0, -20), 8, &result, &normal));
+	CHECK_FALSE(Geometry3D::ray_intersects_sphere(Vector3(-25, -25, -25), Vector3(1.0 / sqrt2, 1.0 / sqrt2, 0), Vector3(0, 0, -20), 8, &result, &normal, 2.0));
 }
 
 TEST_CASE("[Geometry3D] Segment Intersects Triangle") {
 	Vector3 result;
-	CHECK(Geometry3D::segment_intersects_triangle(Vector3(1, 1, 1), Vector3(-1, -1, -1), Vector3(-3, 0, 0), Vector3(0, 3, 0), Vector3(3, 0, 0), &result) == true);
-	CHECK(Geometry3D::segment_intersects_triangle(Vector3(1, 1, 1), Vector3(3, 0, 0), Vector3(-3, 0, 0), Vector3(0, 3, 0), Vector3(3, 0, 0), &result) == true);
-	CHECK(Geometry3D::segment_intersects_triangle(Vector3(1, 1, 1), Vector3(10, -1, -1), Vector3(-3, 0, 0), Vector3(0, 3, 0), Vector3(3, 0, 0), &result) == false);
+	CHECK(Geometry3D::segment_intersects_triangle(Vector3(1, 1, 1), Vector3(-1, -1, -1), Vector3(-3, 0, 0), Vector3(0, 3, 0), Vector3(3, 0, 0), &result));
+	CHECK(Geometry3D::segment_intersects_triangle(Vector3(1, 1, 1), Vector3(3, 0, 0), Vector3(-3, 0, 0), Vector3(0, 3, 0), Vector3(3, 0, 0), &result));
+	CHECK_FALSE(Geometry3D::segment_intersects_triangle(Vector3(1, 1, 1), Vector3(10, -1, -1), Vector3(-3, 0, 0), Vector3(0, 3, 0), Vector3(3, 0, 0), &result));
 }
 
 TEST_CASE("[Geometry3D] Triangle and Box Overlap") {
 	Vector3 good_triangle[3] = { Vector3(3, 2, 3), Vector3(2, 2, 1), Vector3(2, 1, 1) };
-	CHECK(Geometry3D::triangle_box_overlap(Vector3(0, 0, 0), Vector3(5, 5, 5), good_triangle) == true);
+	CHECK(Geometry3D::triangle_box_overlap(Vector3(0, 0, 0), Vector3(5, 5, 5), good_triangle));
 	Vector3 bad_triangle[3] = { Vector3(100, 100, 100), Vector3(-100, -100, -100), Vector3(10, 10, 10) };
-	CHECK(Geometry3D::triangle_box_overlap(Vector3(1000, 1000, 1000), Vector3(1, 1, 1), bad_triangle) == false);
+	CHECK_FALSE(Geometry3D::triangle_box_overlap(Vector3(1000, 1000, 1000), Vector3(1, 1, 1), bad_triangle));
 }
 
 TEST_CASE("[Geometry3D] Triangle and Sphere Intersect") {
@@ -195,9 +237,9 @@ TEST_CASE("[Geometry3D] Triangle and Sphere Intersect") {
 	triangle.push_back(Vector3(-3, 0, 0));
 	triangle.push_back(Vector3(0, 3, 0));
 	Vector3 triangle_contact, sphere_contact;
-	CHECK(Geometry3D::triangle_sphere_intersection_test(&triangle[0], Vector3(0, -1, 0), Vector3(0, 0, 0), 5, triangle_contact, sphere_contact) == true);
-	CHECK(Geometry3D::triangle_sphere_intersection_test(&triangle[0], Vector3(0, 1, 0), Vector3(0, 0, 0), 5, triangle_contact, sphere_contact) == true);
-	CHECK(Geometry3D::triangle_sphere_intersection_test(&triangle[0], Vector3(0, 1, 0), Vector3(20, 0, 0), 5, triangle_contact, sphere_contact) == false);
+	CHECK(Geometry3D::triangle_sphere_intersection_test(&triangle[0], Vector3(0, -1, 0), Vector3(0, 0, 0), 5, triangle_contact, sphere_contact));
+	CHECK(Geometry3D::triangle_sphere_intersection_test(&triangle[0], Vector3(0, 1, 0), Vector3(0, 0, 0), 5, triangle_contact, sphere_contact));
+	CHECK_FALSE(Geometry3D::triangle_sphere_intersection_test(&triangle[0], Vector3(0, 1, 0), Vector3(20, 0, 0), 5, triangle_contact, sphere_contact));
 }
 } // namespace TestGeometry3D
 
