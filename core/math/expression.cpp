@@ -31,6 +31,7 @@
 #include "expression.h"
 
 #include "core/object/class_db.h"
+#include "core/templates/hash_set.h"
 
 Error Expression::_get_token(Token &r_token) {
 	while (true) {
@@ -1515,11 +1516,62 @@ String Expression::get_error_text() const {
 	return error_str;
 }
 
+String Expression::get_method_literal(const Expression::ENode *node) {
+	if (node->type == Expression::ENode::TYPE_CALL) {
+		const Expression::CallNode *callNode = static_cast<const Expression::CallNode *>(node);
+		if (callNode->base->type == Expression::ENode::TYPE_SELF) {
+			return callNode->method;
+		}
+	}
+	return {};
+}
+
+String Expression::get_property_literal(const Expression::ENode *node) {
+	if (node->type == Expression::ENode::TYPE_NAMED_INDEX) {
+		const Expression::NamedIndexNode *namedIndexNode = static_cast<const Expression::NamedIndexNode *>(node);
+		if (namedIndexNode->base->type == Expression::ENode::TYPE_SELF) {
+			return namedIndexNode->name;
+		}
+	}
+	return {};
+}
+
+PackedStringArray Expression::get_required_literals(const Expression::ENode *node, String (*get_literal)(const Expression::ENode *node)) {
+	PackedStringArray required_literals;
+	HashSet<String> unique_literals;
+
+	while (node != nullptr) {
+		String literal = get_literal(node);
+		if (!literal.is_empty() && !unique_literals.has(literal)) {
+			required_literals.push_back(literal);
+			unique_literals.insert(literal);
+		}
+
+		node = node->next;
+	}
+	return required_literals;
+}
+
+PackedStringArray Expression::get_input_names() const {
+	return input_names;
+}
+
+PackedStringArray Expression::get_required_methods() const {
+	return get_required_literals(nodes, get_method_literal);
+}
+
+PackedStringArray Expression::get_required_properties() const {
+	return get_required_literals(nodes, get_property_literal);
+}
+
 void Expression::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("parse", "expression", "input_names"), &Expression::parse, DEFVAL(Vector<String>()));
 	ClassDB::bind_method(D_METHOD("execute", "inputs", "base_instance", "show_error", "const_calls_only"), &Expression::execute, DEFVAL(Array()), DEFVAL(Variant()), DEFVAL(true), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("has_execute_failed"), &Expression::has_execute_failed);
 	ClassDB::bind_method(D_METHOD("get_error_text"), &Expression::get_error_text);
+	ClassDB::bind_method(D_METHOD("get_input_names"), &Expression::get_input_names);
+	ClassDB::bind_method(D_METHOD("get_required_methods"), &Expression::get_required_methods);
+	ClassDB::bind_method(D_METHOD("get_required_properties"), &Expression::get_required_properties);
 }
 
 Expression::~Expression() {

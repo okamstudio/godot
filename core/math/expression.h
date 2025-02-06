@@ -153,6 +153,9 @@ private:
 	};
 
 	ENode *_parse_expression();
+	static String get_method_literal(const Expression::ENode *node);
+	static String get_property_literal(const Expression::ENode *node);
+	static PackedStringArray get_required_literals(const Expression::ENode *node, String (*get_literal)(const Expression::ENode *node));
 
 	struct InputNode : public ENode {
 		int index = 0;
@@ -267,6 +270,9 @@ public:
 	Variant execute(const Array &p_inputs = Array(), Object *p_base = nullptr, bool p_show_error = true, bool p_const_calls_only = false);
 	bool has_execute_failed() const;
 	String get_error_text() const;
+	PackedStringArray get_input_names() const;
+	PackedStringArray get_required_methods() const;
+	PackedStringArray get_required_properties() const;
 
 	Expression() {}
 	~Expression();

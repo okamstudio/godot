@@ -504,6 +504,188 @@ TEST_CASE("[Expression] Unusual expressions") {
 	//		int64_t(expression.execute()) == 0,
 	//		"`(-9223372036854775807 - 1) / -1` should return the expected result.");
 }
+
+TEST_CASE("[Expression] Input names") {
+	Expression expression;
+
+	CHECK_MESSAGE(
+			expression.get_input_names().size() == 0,
+			"There should be 0 input names before parsing.");
+
+	CHECK_MESSAGE(
+			expression.parse("a") == OK,
+			"The expression should parse successfully.");
+
+	CHECK_MESSAGE(
+			expression.get_input_names().size() == 0,
+			"There were 0 input names supplied during parsing.");
+
+	PackedStringArray input_names;
+	input_names.push_back("a");
+
+	CHECK_MESSAGE(
+			expression.parse("a", input_names) == OK,
+			"The expression should parse successfully.");
+
+	CHECK_MESSAGE(
+			expression.get_input_names().size() == 1,
+			"There was 1 input name supplied during parsing.");
+
+	CHECK_MESSAGE(
+			expression.execute() == Variant(),
+			"No result expected from invalid expression.");
+
+	CHECK_MESSAGE(
+			expression.has_execute_failed(),
+			"Execute should fail due to missing inputs.");
+
+	Array inputs;
+	inputs.push_back(42);
+	CHECK_MESSAGE(
+			int(expression.execute(inputs)) == 42,
+			"Expected 42 to be returned from execution");
+}
+
+TEST_CASE("[Expression] Getting required literals") {
+	Expression expression;
+	PackedStringArray required_methods;
+	PackedStringArray required_properties;
+
+	// Not parsed
+	required_methods = expression.get_required_methods();
+	required_properties = expression.get_required_properties();
+	CHECK_MESSAGE(
+			required_methods.size() == 0,
+			"There should be no required methods.");
+	CHECK_MESSAGE(
+			required_properties.size() == 0,
+			"There should be no required properties.");
+
+	// No literals
+	CHECK_MESSAGE(
+			expression.parse("5") == OK,
+			"The expression should parse successfully.");
+	required_methods = expression.get_required_methods();
+	required_properties = expression.get_required_properties();
+	CHECK_MESSAGE(
+			required_methods.size() == 0,
+			"There should be no required methods.");
+	CHECK_MESSAGE(
+			required_properties.size() == 0,
+			"There should be no required properties.");
+
+	// One of each
+	CHECK_MESSAGE(
+			expression.parse("a + b()") == OK,
+			"The expression should parse successfully.");
+	required_methods = expression.get_required_methods();
+	required_properties = expression.get_required_properties();
+	CHECK_MESSAGE(
+			required_methods.size() == 1,
+			"There should be one required method.");
+	CHECK_MESSAGE(
+			required_methods[0] == "b",
+			"Expected method b to exist.");
+	CHECK_MESSAGE(
+			required_properties.size() == 1,
+			"There should be one required property.");
+	CHECK_MESSAGE(
+			required_properties[0] == "a",
+			"Expected property a to exist.");
+
+	// Explicit self
+	CHECK_MESSAGE(
+			expression.parse("self.a + self.b()") == OK,
+			"The expression should parse successfully.");
+	required_methods = expression.get_required_methods();
+	required_properties = expression.get_required_properties();
+	CHECK_MESSAGE(
+			required_methods.size() == 1,
+			"There should be one required method.");
+	CHECK_MESSAGE(
+			required_methods[0] == "b",
+			"Expected method b to exist.");
+	CHECK_MESSAGE(
+			required_properties.size() == 1,
+			"There should be one required property.");
+	CHECK_MESSAGE(
+			required_properties[0] == "a",
+			"Expected property a to exist.");
+
+	// Duplicates
+	CHECK_MESSAGE(
+			expression.parse("a + b() + a + b()") == OK,
+			"The expression should parse successfully.");
+	required_methods = expression.get_required_methods();
+	required_properties = expression.get_required_properties();
+	CHECK_MESSAGE(
+			required_methods.size() == 1,
+			"There should be one required method.");
+	CHECK_MESSAGE(
+			required_methods[0] == "b",
+			"Expected method b to exist.");
+	CHECK_MESSAGE(
+			required_properties.size() == 1,
+			"There should be one required property.");
+	CHECK_MESSAGE(
+			required_properties[0] == "a",
+			"Expected property a to exist.");
+
+	// Nested
+	CHECK_MESSAGE(
+			expression.parse("[a, b()] == {a(): b}") == OK,
+			"The expression should parse successfully.");
+	required_methods = expression.get_required_methods();
+	required_properties = expression.get_required_properties();
+	CHECK_MESSAGE(
+			required_methods.size() == 2,
+			"There should be two required methods.");
+	CHECK_MESSAGE(
+			required_methods[0] == "a",
+			"Expected method a to exist.");
+	CHECK_MESSAGE(
+			required_methods[1] == "b",
+			"Expected method b to exist.");
+	CHECK_MESSAGE(
+			required_properties.size() == 2,
+			"There should be two required properties.");
+	CHECK_MESSAGE(
+			required_properties[0] == "b",
+			"Expected property b to exist.");
+	CHECK_MESSAGE(
+			required_properties[1] == "a",
+			"Expected property a to exist.");
+
+	// Members
+	CHECK_MESSAGE(
+			expression.parse("a.b.c.d() == a().b().c().d") == OK,
+			"The expression should parse successfully.");
+	required_methods = expression.get_required_methods();
+	required_properties = expression.get_required_properties();
+	CHECK_MESSAGE(
+			required_methods.size() == 1,
+			"There should be one required method.");
+	CHECK_MESSAGE(
+			required_methods[0] == "a",
+			"Expected method a to exist.");
+	CHECK_MESSAGE(
+			required_properties.size() == 1,
+			"There should be one required property.");
+	CHECK_MESSAGE(
+			required_properties[0] == "a",
+			"Expected property a to exist.");
+
+	// Input Names
+	PackedStringArray input_names;
+	input_names.push_back("a");
+	CHECK_MESSAGE(
+			expression.parse("a", input_names) == OK,
+			"The expression should parse successfully.");
+	required_properties = expression.get_required_properties();
+	CHECK_MESSAGE(
+			required_properties.size() == 0,
+			"Input names should not be required properties.");
+}
 } // namespace TestExpression
 
 #endif // TEST_EXPRESSION_H

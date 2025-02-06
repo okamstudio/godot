@@ -69,6 +69,24 @@
 				Returns the error text if [method parse] or [method execute] has failed.
 			</description>
 		</method>
+		<method name="get_input_names" qualifiers="const">
+			<return type="PackedStringArray" />
+			<description>
+				Returns the input names supplied when [method parse] was called.
+			</description>
+		</method>
+		<method name="get_required_methods" qualifiers="const">
+			<return type="PackedStringArray" />
+			<description>
+				Scans the parsed expression and returns a [PackedStringArray] of method literals that must exist on the base instance for this expression to execute successfully.
+			</description>
+		</method>
+		<method name="get_required_properties" qualifiers="const">
+			<return type="PackedStringArray" />
+			<description>
+				Scans the parsed expression and returns a [PackedStringArray] of property literals that must exist on the base instance for this expression to execute successfully.
+			</description>
+		</method>
 		<method name="has_execute_failed" qualifiers="const">
 			<return type="bool" />
 			<description>
