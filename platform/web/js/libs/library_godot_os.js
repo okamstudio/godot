@@ -112,6 +112,7 @@ const GodotFS = {
 	$GodotFS__postset: [
 		'Module["initFS"] = GodotFS.init;',
 		'Module["copyToFS"] = GodotFS.copy_to_fs;',
+		'Module["getFromFS"] = GodotFS.get_from_fs;',
 	].join(''),
 	$GodotFS: {
 		// ERRNO_CODES works every odd version of emscripten, but this will break too eventually.
@@ -220,6 +221,20 @@ const GodotFS = {
 				FS.mkdirTree(dir);
 			}
 			FS.writeFile(path, new Uint8Array(buffer));
+		},
+
+		/**
+		 * Gets the buffer of a file from the internal file system.
+		 * @param {string} path Path to get file from
+		 * @returns {Uint8Array | null} `Uint8Array` if it found the file, `null` if an error occurred
+		 */
+		get_from_fs: function (path) {
+			try {
+				const array = FS.readFile(path, { encoding: 'binary' });
+				return array.buffer;
+			} catch (e) {
+				return null;
+			}
 		},
 	},
 };
