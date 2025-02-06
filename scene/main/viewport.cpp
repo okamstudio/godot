@@ -2337,6 +2337,93 @@ void Viewport::_gui_remove_root_control(List<Control *>::Element *RI) {
 	gui.roots.erase(RI);
 }
 
+void Viewport::_gui_send_fake_release_button_event(Control *p_control, int p_button) {
+	Ref<InputEventMouseButton> mb;
+	Viewport *vp = p_control->get_viewport();
+	bool save_handle_input_locally = vp->handle_input_locally;
+	bool save_local_input_handled = vp->local_input_handled;
+	vp->handle_input_locally = true;
+	vp->local_input_handled = false;
+	mb.instantiate();
+	mb->set_position(p_control->get_local_mouse_position());
+	mb->set_global_position(p_control->get_global_mouse_position());
+	mb->set_button_index(MouseButton(p_button));
+	mb->set_pressed(false);
+	mb->set_device(InputEvent::DEVICE_ID_EMULATION);
+	p_control->_call_gui_input(mb);
+	vp->handle_input_locally = save_handle_input_locally;
+	vp->local_input_handled = save_local_input_handled;
+}
+
+void Viewport::_gui_reparent_control(Control *p_control, Node *p_parent) {
+	DEV_ASSERT(p_control);
+	DEV_ASSERT(p_parent);
+
+	bool restore_mouse_focus = false;
+	BitField<MouseButtonMask> mouse_focus_mask;
+	bool restore_key_focus = false;
+
+	if (p_control == gui.mouse_focus) {
+		restore_mouse_focus = true;
+		mouse_focus_mask = gui.mouse_focus_mask;
+		gui.mouse_focus = nullptr; // do not generate focus loss events
+		gui.mouse_focus_mask.clear();
+	}
+	if (p_control == gui.key_focus) {
+		restore_key_focus = true;
+		gui.key_focus = nullptr;
+	}
+
+	p_control->Node::reparent(p_parent);
+
+	// Restore state
+	if (restore_mouse_focus || restore_key_focus) {
+		// Find subviewport ancestor, if any
+		Viewport *vp = nullptr;
+		for (Node *ancestor = p_parent; ancestor != nullptr; ancestor = ancestor->get_parent()) {
+			if (Object::cast_to<SubViewport>(ancestor)) {
+				vp = static_cast<SubViewport *>(ancestor);
+				break;
+			}
+		}
+		if (vp == nullptr) {
+			vp = p_control->get_viewport();
+		}
+		if (vp) {
+			// If the viewport changed, the 'release' events will go to the original viewport instead of the new one,
+			// which can leave a control in an intermediate state.  To avoid this we generate fake events for releasing
+			// the mouse buttons and key focus
+			if (vp != this) {
+				if (restore_mouse_focus) {
+					for (int i = 0; i < (int)MouseButton::MB_XBUTTON2; i++) {
+						if ((int)mouse_focus_mask & (1 << i)) {
+							// The request to reparent a control could come from within a press event handler, so we
+							// use a deferred call instead of generating the release event immediately to avoid the
+							// release event handler being called before the press event handler exits and thus ending
+							// up with a control in a mixed state (e.g. the state of the control after release handler
+							// exits mixed with the state of the control after the call to reparent is made until the
+							// press handler exits)
+							call_deferred("_gui_send_fake_release_button_event", p_control, i + 1);
+						}
+					}
+				}
+				if (restore_key_focus) {
+					p_control->notification(Control::NOTIFICATION_FOCUS_EXIT, true);
+					p_control->queue_redraw();
+				}
+			} else { // otherwise restore the state
+				if (restore_mouse_focus) {
+					gui.mouse_focus = p_control;
+					gui.mouse_focus_mask = mouse_focus_mask;
+				}
+				if (restore_key_focus) {
+					gui.key_focus = p_control;
+				}
+			}
+		}
+	}
+}
+
 void Viewport::_gui_unfocus_control(Control *p_control) {
 	if (gui.key_focus == p_control) {
 		gui.key_focus->release_focus();
@@ -4834,6 +4921,7 @@ void Viewport::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_disable_input", "disable"), &Viewport::set_disable_input);
 	ClassDB::bind_method(D_METHOD("is_input_disabled"), &Viewport::is_input_disabled);
 
+	ClassDB::bind_method(D_METHOD("_gui_send_fake_release_button_event"), &Viewport::_gui_send_fake_release_button_event);
 	ClassDB::bind_method(D_METHOD("_gui_remove_focus_for_window"), &Viewport::_gui_remove_focus_for_window);
 
 	ClassDB::bind_method(D_METHOD("set_positional_shadow_atlas_size", "size"), &Viewport::set_positional_shadow_atlas_size);

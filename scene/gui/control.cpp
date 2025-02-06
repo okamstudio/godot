@@ -184,12 +184,21 @@ bool Control::_edit_use_rect() const {
 
 void Control::reparent(Node *p_parent, bool p_keep_global_transform) {
 	ERR_MAIN_THREAD_GUARD;
+	Viewport *vp = get_viewport();
 	if (p_keep_global_transform) {
 		Transform2D temp = get_global_transform();
-		Node::reparent(p_parent);
+		if (vp) {
+			vp->_gui_reparent_control(this, p_parent);
+		} else {
+			Node::reparent(p_parent);
+		}
 		set_global_position(temp.get_origin());
 	} else {
-		Node::reparent(p_parent);
+		if (vp) {
+			vp->_gui_reparent_control(this, p_parent);
+		} else {
+			Node::reparent(p_parent);
+		}
 	}
 }
 

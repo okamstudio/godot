@@ -435,6 +435,9 @@ private:
 
 	void _gui_remove_root_control(List<Control *>::Element *RI);
 
+	void _gui_send_fake_release_button_event(Control *p_control, int p_button);
+	void _gui_reparent_control(Control *p_control, Node *p_parent);
+
 	String _gui_get_tooltip(Control *p_control, const Vector2 &p_pos, Control **r_tooltip_owner = nullptr);
 	void _gui_cancel_tooltip();
 	void _gui_show_tooltip();
