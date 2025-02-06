@@ -1876,6 +1876,14 @@ bool Control::is_force_pass_scroll_events() const {
 	return data.force_pass_scroll_events;
 }
 
+void Control::set_mouse_force_focus_from_keyboard(bool p_mouse_force_focus_from_keyboard) {
+	data.mouse_force_focus_from_keyboard = p_mouse_force_focus_from_keyboard;
+}
+
+bool Control::is_mouse_force_focus_from_keyboard() const {
+	return data.mouse_force_focus_from_keyboard;
+}
+
 void Control::warp_mouse(const Point2 &p_position) {
 	ERR_MAIN_THREAD_GUARD;
 	ERR_FAIL_COND(!is_inside_tree());
@@ -3617,6 +3625,9 @@ void Control::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_force_pass_scroll_events", "force_pass_scroll_events"), &Control::set_force_pass_scroll_events);
 	ClassDB::bind_method(D_METHOD("is_force_pass_scroll_events"), &Control::is_force_pass_scroll_events);
 
+	ClassDB::bind_method(D_METHOD("set_mouse_force_focus_from_keyboard", "mouse_force_focus_from_keyboard"), &Control::set_mouse_force_focus_from_keyboard);
+	ClassDB::bind_method(D_METHOD("is_mouse_force_focus_from_keyboard"), &Control::is_mouse_force_focus_from_keyboard);
+
 	ClassDB::bind_method(D_METHOD("set_clip_contents", "enable"), &Control::set_clip_contents);
 	ClassDB::bind_method(D_METHOD("is_clipping_contents"), &Control::is_clipping_contents);
 
@@ -3713,6 +3724,7 @@ void Control::_bind_methods() {
 	ADD_GROUP("Mouse", "mouse_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "mouse_filter", PROPERTY_HINT_ENUM, "Stop,Pass (Propagate Up),Ignore"), "set_mouse_filter", "get_mouse_filter");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "mouse_force_pass_scroll_events"), "set_force_pass_scroll_events", "is_force_pass_scroll_events");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "mouse_force_focus_from_keyboard"), "set_mouse_force_focus_from_keyboard", "is_mouse_force_focus_from_keyboard");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "mouse_default_cursor_shape", PROPERTY_HINT_ENUM, "Arrow,I-Beam,Pointing Hand,Cross,Wait,Busy,Drag,Can Drop,Forbidden,Vertical Resize,Horizontal Resize,Secondary Diagonal Resize,Main Diagonal Resize,Move,Vertical Split,Horizontal Split,Help"), "set_default_cursor_shape", "get_default_cursor_shape");
 
 	ADD_GROUP("Input", "");

@@ -996,6 +996,9 @@
 		<member name="mouse_filter" type="int" setter="set_mouse_filter" getter="get_mouse_filter" enum="Control.MouseFilter" default="0">
 			Controls whether the control will be able to receive mouse button input events through [method _gui_input] and how these events should be handled. Also controls whether the control can receive the [signal mouse_entered], and [signal mouse_exited] signals. See the constants to learn what each does.
 		</member>
+		<member name="mouse_force_focus_from_keyboard" type="bool" setter="set_mouse_force_focus_from_keyboard" getter="is_mouse_force_focus_from_keyboard" default="false">
+			If [code]true[/code], [Control] will have mouse focus if it has key focus, so it can e.g. receive mouse motion events while cursor is outside. The [Control] with actual mouse focus will have priority.
+		</member>
 		<member name="mouse_force_pass_scroll_events" type="bool" setter="set_force_pass_scroll_events" getter="is_force_pass_scroll_events" default="true">
 			When enabled, scroll wheel events processed by [method _gui_input] will be passed to the parent control even if [member mouse_filter] is set to [constant MOUSE_FILTER_STOP].
 			You should disable it on the root of your UI if you do not want scroll events to go to the [method Node._unhandled_input] processing.

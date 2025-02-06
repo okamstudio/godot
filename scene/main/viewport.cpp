@@ -1952,6 +1952,8 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 		Control *over = nullptr;
 		if (gui.mouse_focus) {
 			over = gui.mouse_focus;
+		} else if (gui.key_focus && gui.key_focus->is_mouse_force_focus_from_keyboard()) {
+			over = gui.key_focus;
 		} else if (gui.mouse_in_viewport) {
 			over = gui_find_control(mpos);
 		}

@@ -2728,12 +2728,21 @@ bool CanvasItemEditor::_gui_input_hover(const Ref<InputEvent> &p_event) {
 }
 
 void CanvasItemEditor::_gui_input_viewport(const Ref<InputEvent> &p_event) {
+	bool simple_panning = EDITOR_GET("editors/panning/simple_panning");
+
+	Ref<InputEventKey> k = p_event;
+	if (simple_panning && k.is_valid() && !k->is_echo()) {
+		if (ED_GET_SHORTCUT("canvas_item_editor/pan_view")->matches_event(k)) {
+			viewport->set_mouse_force_focus_from_keyboard(k->is_pressed());
+		}
+	}
+
 	bool accepted = false;
 
 	Ref<InputEventMouseButton> mb = p_event;
 	bool release_lmb = (mb.is_valid() && !mb->is_pressed() && mb->get_button_index() == MouseButton::LEFT); // Required to properly release some stuff (e.g. selection box) while panning.
 
-	if (EDITOR_GET("editors/panning/simple_panning") || !pan_pressed || release_lmb) {
+	if (simple_panning || !pan_pressed || release_lmb) {
 		accepted = true;
 		if (_gui_input_rulers_and_guides(p_event)) {
 			// print_line("Rulers and guides");
