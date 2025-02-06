@@ -303,8 +303,8 @@ EditorThemeManager::ThemeConfiguration EditorThemeManager::_create_theme_config(
 				preset_contrast = -0.06;
 			} else if (config.preset == "Solarized (Dark)") {
 				preset_accent_color = Color(0.15, 0.55, 0.82);
-				preset_base_color = Color(0.04, 0.23, 0.27);
-				preset_contrast = config.default_contrast;
+				preset_base_color = Color(0.03, 0.21, 0.26);
+				preset_contrast = 0.23;
 			} else if (config.preset == "Solarized (Light)") {
 				preset_accent_color = Color(0.15, 0.55, 0.82);
 				preset_base_color = Color(0.89, 0.86, 0.79);
