@@ -1002,3 +1002,102 @@ PhysicsServer2DManager::PhysicsServer2DManager() {
 PhysicsServer2DManager::~PhysicsServer2DManager() {
 	singleton = nullptr;
 }
+
+///////////////////////////////////////////////////////
+
+bool PhysicsIntersectRay2D::perform() {
+	ERR_FAIL_NULL_V(space_state, false);
+
+	return space_state->intersect_ray(parameters, result);
+}
+
+void PhysicsIntersectRay2D::set_exclude(const TypedArray<RID> &p_exclude) {
+	parameters.exclude.clear();
+	for (int i = 0; i < p_exclude.size(); i++) {
+		parameters.exclude.insert(p_exclude[i]);
+	}
+}
+
+TypedArray<RID> PhysicsIntersectRay2D::get_exclude() const {
+	TypedArray<RID> ret;
+	ret.resize(parameters.exclude.size());
+	int idx = 0;
+	for (const RID &E : parameters.exclude) {
+		ret[idx++] = E;
+	}
+	return ret;
+}
+
+void PhysicsIntersectRay2D::insert_exclude(const RID &p_exclude) {
+	parameters.exclude.insert(p_exclude);
+}
+
+void PhysicsIntersectRay2D::erase_exclude(const RID &p_exclude) {
+	parameters.exclude.erase(p_exclude);
+}
+
+bool PhysicsIntersectRay2D::has_exclude(const RID &p_exclude) {
+	return parameters.exclude.has(p_exclude);
+}
+
+void PhysicsIntersectRay2D::clear_exclude() {
+	parameters.exclude.clear();
+}
+
+PhysicsIntersectRay2D::PhysicsIntersectRay2D() {
+}
+
+void PhysicsIntersectRay2D::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("perform"), &PhysicsIntersectRay2D::perform);
+
+	ClassDB::bind_method(D_METHOD("set_space_state", "space_state"), &PhysicsIntersectRay2D::set_space_state);
+	ClassDB::bind_method(D_METHOD("get_space_state"), &PhysicsIntersectRay2D::get_space_state);
+
+	ClassDB::bind_method(D_METHOD("set_from", "from"), &PhysicsIntersectRay2D::set_from);
+	ClassDB::bind_method(D_METHOD("get_from"), &PhysicsIntersectRay2D::get_from);
+
+	ClassDB::bind_method(D_METHOD("set_to", "to"), &PhysicsIntersectRay2D::set_to);
+	ClassDB::bind_method(D_METHOD("get_to"), &PhysicsIntersectRay2D::get_to);
+
+	ClassDB::bind_method(D_METHOD("set_collision_mask", "collision_mask"), &PhysicsIntersectRay2D::set_collision_mask);
+	ClassDB::bind_method(D_METHOD("get_collision_mask"), &PhysicsIntersectRay2D::get_collision_mask);
+
+	ClassDB::bind_method(D_METHOD("set_exclude", "exclude"), &PhysicsIntersectRay2D::set_exclude);
+	ClassDB::bind_method(D_METHOD("get_exclude"), &PhysicsIntersectRay2D::get_exclude);
+	ClassDB::bind_method(D_METHOD("insert_exclude", "exclude"), &PhysicsIntersectRay2D::insert_exclude);
+	ClassDB::bind_method(D_METHOD("erase_exclude", "exclude"), &PhysicsIntersectRay2D::erase_exclude);
+	ClassDB::bind_method(D_METHOD("has_exclude", "exclude"), &PhysicsIntersectRay2D::has_exclude);
+	ClassDB::bind_method(D_METHOD("clear_exclude"), &PhysicsIntersectRay2D::clear_exclude);
+
+	ClassDB::bind_method(D_METHOD("set_collide_with_bodies", "enable"), &PhysicsIntersectRay2D::set_collide_with_bodies);
+	ClassDB::bind_method(D_METHOD("is_collide_with_bodies_enabled"), &PhysicsIntersectRay2D::is_collide_with_bodies_enabled);
+
+	ClassDB::bind_method(D_METHOD("set_collide_with_areas", "enable"), &PhysicsIntersectRay2D::set_collide_with_areas);
+	ClassDB::bind_method(D_METHOD("is_collide_with_areas_enabled"), &PhysicsIntersectRay2D::is_collide_with_areas_enabled);
+
+	ClassDB::bind_method(D_METHOD("set_hit_from_inside", "enable"), &PhysicsIntersectRay2D::set_hit_from_inside);
+	ClassDB::bind_method(D_METHOD("is_hit_from_inside_enabled"), &PhysicsIntersectRay2D::is_hit_from_inside_enabled);
+
+	ClassDB::bind_method(D_METHOD("get_position"), &PhysicsIntersectRay2D::get_position);
+	ClassDB::bind_method(D_METHOD("get_normal"), &PhysicsIntersectRay2D::get_normal);
+	ClassDB::bind_method(D_METHOD("get_rid"), &PhysicsIntersectRay2D::get_rid);
+	ClassDB::bind_method(D_METHOD("get_collider_id"), &PhysicsIntersectRay2D::get_collider_id);
+	ClassDB::bind_method(D_METHOD("get_collider"), &PhysicsIntersectRay2D::get_collider);
+	ClassDB::bind_method(D_METHOD("get_shape"), &PhysicsIntersectRay2D::get_shape);
+
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "space_state"), "set_space_state", "get_space_state");
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "from"), "set_from", "get_from");
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "to"), "set_to", "get_to");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "collision_mask", PROPERTY_HINT_LAYERS_2D_PHYSICS), "set_collision_mask", "get_collision_mask");
+	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "exclude", PROPERTY_HINT_ARRAY_TYPE, "RID"), "set_exclude", "get_exclude");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "collide_with_bodies"), "set_collide_with_bodies", "is_collide_with_bodies_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "collide_with_areas"), "set_collide_with_areas", "is_collide_with_areas_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "hit_from_inside"), "set_hit_from_inside", "is_hit_from_inside_enabled");
+
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "position"), "", "get_position");
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "normal"), "", "get_normal");
+	ADD_PROPERTY(PropertyInfo(Variant::RID, "rid"), "", "get_rid");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "collider_id"), "", "get_collider_id");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "collider"), "", "get_collider");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "shape"), "", "get_shape");
+}

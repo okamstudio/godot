@@ -829,6 +829,62 @@ public:
 	~PhysicsServer2DManager();
 };
 
+class PhysicsIntersectRay2D : public Object {
+	GDCLASS(PhysicsIntersectRay2D, Object);
+
+	PhysicsDirectSpaceState2D *space_state;
+	PhysicsDirectSpaceState2D::RayParameters parameters;
+	PhysicsDirectSpaceState2D::RayResult result;
+
+protected:
+	static void _bind_methods();
+
+public:
+	bool perform();
+
+	void set_space_state(PhysicsDirectSpaceState2D *p_space_state) { space_state = p_space_state; }
+	PhysicsDirectSpaceState2D *get_space_state() const { return space_state; }
+
+	void set_from(const Vector2 &p_from) { parameters.from = p_from; }
+	const Vector2 &get_from() const { return parameters.from; }
+
+	void set_to(const Vector2 &p_to) { parameters.to = p_to; }
+	const Vector2 &get_to() const { return parameters.to; }
+
+	void set_collision_mask(uint32_t p_mask) { parameters.collision_mask = p_mask; }
+	uint32_t get_collision_mask() const { return parameters.collision_mask; }
+
+	void set_collide_with_bodies(bool p_enable) { parameters.collide_with_bodies = p_enable; }
+	bool is_collide_with_bodies_enabled() const { return parameters.collide_with_bodies; }
+
+	void set_collide_with_areas(bool p_enable) { parameters.collide_with_areas = p_enable; }
+	bool is_collide_with_areas_enabled() const { return parameters.collide_with_areas; }
+
+	void set_hit_from_inside(bool p_enable) { parameters.hit_from_inside = p_enable; }
+	bool is_hit_from_inside_enabled() const { return parameters.hit_from_inside; }
+
+	void set_exclude(const TypedArray<RID> &p_exclude);
+	TypedArray<RID> get_exclude() const;
+	void insert_exclude(const RID &p_exclude);
+	void erase_exclude(const RID &p_exclude);
+	bool has_exclude(const RID &p_exclude);
+	void clear_exclude();
+
+	const Vector2 &get_position() const { return result.position; }
+
+	const Vector2 &get_normal() const { return result.normal; }
+
+	const RID &get_rid() const { return result.rid; }
+
+	ObjectID get_collider_id() const { return result.collider_id; }
+
+	Object *get_collider() const { return result.collider; }
+
+	int get_shape() const { return result.shape; }
+
+	PhysicsIntersectRay2D();
+};
+
 VARIANT_ENUM_CAST(PhysicsServer2D::ShapeType);
 VARIANT_ENUM_CAST(PhysicsServer2D::SpaceParameter);
 VARIANT_ENUM_CAST(PhysicsServer2D::AreaParameter);
