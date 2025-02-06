@@ -151,6 +151,9 @@
 			<param index="0" name="byte_offset" type="int" />
 			<description>
 				Decodes a 64-bit unsigned integer number from the bytes starting at [param byte_offset]. Fails if the byte count is insufficient. Returns [code]0[/code] if a valid number can't be decoded.
+				[b]Warning:[/b] Since GDScript's [int] is a 64-bit signed integer, the result will be automatically cast to a signed value when called in GDScript. Unsigned 64-bit integers can represent numbers in the range [code][0, 2^64 - 1][/code], but signed ones can represent numbers in the range [code][-(2^63), 2^63 - 1][/code]. This means:
+				- For values between [code]0[/code] and [code]2^63 - 1[/code], the decoded number will appear as the expected positive integer.
+				- For values above [code]2^63 - 1[/code], the decoded number will "wrap around" and be represented as a negative number (for example, [code]2^63[/code] will become [code]-(2^63)[/code]).
 			</description>
 		</method>
 		<method name="decode_var" qualifiers="const">
