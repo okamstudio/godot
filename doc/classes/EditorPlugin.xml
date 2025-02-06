@@ -398,7 +398,7 @@
 			<param index="0" name="name" type="String" />
 			<param index="1" name="path" type="String" />
 			<description>
-				Adds a script at [param path] to the Autoload list as [param name].
+				Adds a script or scene at [param path] to the Autoload list as [param name].
 			</description>
 		</method>
 		<method name="add_context_menu_plugin">
