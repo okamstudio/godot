@@ -695,6 +695,9 @@ protected:
 	}
 
 	friend class GDExtensionMethodBind;
+#ifdef MODULE_MONO_ENABLED
+	friend class CSharpInstance;
+#endif
 	_ALWAYS_INLINE_ const ObjectGDExtension *_get_extension() const { return _extension; }
 	_ALWAYS_INLINE_ GDExtensionClassInstancePtr _get_extension_instance() const { return _extension_instance; }
 	virtual void _initialize_classv() { initialize_class(); }

@@ -1959,6 +1959,22 @@ String CSharpInstance::to_string(bool *r_valid) {
 	return res;
 }
 
+// Default implementation of `Object::to_string` that avoids calling the script's to_string method
+// to prevent an endless circular loop. It is used by the `GodotObject.ToString` implementation
+// which is used when the user C# class does not override `ToString`.
+String CSharpInstance::object_to_string(const Object *p_self) {
+	// Keep this method in sync with `Object::to_string`.
+	const ObjectGDExtension *extension = p_self->_get_extension();
+	if (extension && extension->to_string) {
+		String ret;
+		GDExtensionBool is_valid;
+		extension->to_string(p_self->_get_extension_instance(), &is_valid, &ret);
+		return ret;
+	}
+
+	return "<" + p_self->get_class() + "#" + itos(p_self->get_instance_id()) + ">";
+}
+
 Ref<Script> CSharpInstance::get_script() const {
 	return script;
 }
