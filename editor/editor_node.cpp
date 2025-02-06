@@ -4888,6 +4888,19 @@ Ref<Texture2D> EditorNode::_get_class_or_script_icon(const String &p_class, cons
 			return theme->get_icon(p_class, EditorStringName(EditorIcons));
 		}
 
+		// If there is a path associated with the node but there was no icon there or it was invalid.
+		// Then it takes the basename of the file and, if it's the name of an icon in the theme, it uses that instead as a fallback.
+		// This enables using "Node2D" as a valid path to get the icon without having to copy it and have it inside the project folder.
+		if (GDExtensionManager::get_singleton()->class_has_icon_path(p_class)) {
+			String icon_name = GDExtensionManager::get_singleton()
+									   ->class_get_icon_path(p_class)
+									   .get_file()
+									   .get_basename();
+			if (theme->has_icon(icon_name, EditorStringName(EditorIcons))) {
+				return theme->get_icon(icon_name, EditorStringName(EditorIcons));
+			}
+		}
+
 		if (!p_fallback.is_empty() && theme->has_icon(p_fallback, EditorStringName(EditorIcons))) {
 			return theme->get_icon(p_fallback, EditorStringName(EditorIcons));
 		}
