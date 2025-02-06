@@ -154,7 +154,7 @@ public:
 #endif
 	};
 
-	static_assert((sizeof(default_warning_levels) / sizeof(default_warning_levels[0])) == WARNING_MAX, "Amount of default levels does not match the amount of warnings.");
+	static_assert(std::size(default_warning_levels) == WARNING_MAX, "Amount of default levels does not match the amount of warnings.");
 
 	Code code = WARNING_MAX;
 	int start_line = -1, end_line = -1;

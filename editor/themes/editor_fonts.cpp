@@ -159,7 +159,7 @@ void editor_register_fonts(const Ref<Theme> &p_theme) {
 	String noto_cjk_path;
 	String noto_cjk_bold_path;
 	String var_suffix[] = { "HK", "KR", "SC", "TC", "JP" }; // Note: All Noto Sans CJK versions support all glyph variations, it should not match current locale.
-	for (size_t i = 0; i < sizeof(var_suffix) / sizeof(String); i++) {
+	for (size_t i = 0; i < std::size(var_suffix); i++) {
 		if (noto_cjk_path.is_empty()) {
 			noto_cjk_path = OS::get_singleton()->get_system_font_path("Noto Sans CJK " + var_suffix[i], 400, 100);
 		}

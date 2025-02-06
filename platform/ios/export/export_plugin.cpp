@@ -351,7 +351,7 @@ void EditorExportPlatformIOS::get_export_options(List<ExportOption> *r_options) 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "privacy/photolibrary_usage_description", PROPERTY_HINT_PLACEHOLDER_TEXT, "Provide a message if you need access to the photo library"), ""));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::DICTIONARY, "privacy/photolibrary_usage_description_localized", PROPERTY_HINT_LOCALIZABLE_STRING), Dictionary()));
 
-	for (uint64_t i = 0; i < sizeof(api_info) / sizeof(api_info[0]); ++i) {
+	for (uint64_t i = 0; i < std::size(api_info); ++i) {
 		String prop_name = vformat("privacy/%s_access_reasons", api_info[i].prop_name);
 		String hint;
 		for (int j = 0; j < api_info[i].prop_flag_value.size(); j++) {
@@ -368,13 +368,13 @@ void EditorExportPlatformIOS::get_export_options(List<ExportOption> *r_options) 
 
 	{
 		String hint;
-		for (uint64_t i = 0; i < sizeof(data_collect_purpose_info) / sizeof(data_collect_purpose_info[0]); ++i) {
+		for (uint64_t i = 0; i < std::size(data_collect_purpose_info); ++i) {
 			if (i != 0) {
 				hint += ",";
 			}
 			hint += vformat("%s:%d", data_collect_purpose_info[i].prop_name, (1 << i));
 		}
-		for (uint64_t i = 0; i < sizeof(data_collect_type_info) / sizeof(data_collect_type_info[0]); ++i) {
+		for (uint64_t i = 0; i < std::size(data_collect_type_info); ++i) {
 			r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, vformat("privacy/collected_data/%s/collected", data_collect_type_info[i].prop_name)), false));
 			r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, vformat("privacy/collected_data/%s/linked_to_user", data_collect_type_info[i].prop_name)), false));
 			r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, vformat("privacy/collected_data/%s/used_for_tracking", data_collect_type_info[i].prop_name)), false));
@@ -387,7 +387,7 @@ void EditorExportPlatformIOS::get_export_options(List<ExportOption> *r_options) 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "icons/icon_1024x1024_tinted", PROPERTY_HINT_FILE, "*.svg,*.png,*.webp,*.jpg,*.jpeg"), ""));
 
 	HashSet<String> used_names;
-	for (uint64_t i = 0; i < sizeof(icon_infos) / sizeof(icon_infos[0]); ++i) {
+	for (uint64_t i = 0; i < std::size(icon_infos); ++i) {
 		if (!used_names.has(icon_infos[i].preset_key)) {
 			used_names.insert(icon_infos[i].preset_key);
 			r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, String(icon_infos[i].preset_key), PROPERTY_HINT_FILE, "*.png,*.jpg,*.jpeg"), ""));
@@ -765,7 +765,7 @@ void EditorExportPlatformIOS::_fix_config_file(const Ref<EditorExportPreset> &p_
 			strnew += lines[i].replace("$swift_runtime_build_phase", value) + "\n";
 		} else if (lines[i].contains("$priv_collection")) {
 			bool section_opened = false;
-			for (uint64_t j = 0; j < sizeof(data_collect_type_info) / sizeof(data_collect_type_info[0]); ++j) {
+			for (uint64_t j = 0; j < std::size(data_collect_type_info); ++j) {
 				bool data_collected = p_preset->get(vformat("privacy/collected_data/%s/collected", data_collect_type_info[j].prop_name));
 				bool linked = p_preset->get(vformat("privacy/collected_data/%s/linked_to_user", data_collect_type_info[j].prop_name));
 				bool tracking = p_preset->get(vformat("privacy/collected_data/%s/used_for_tracking", data_collect_type_info[j].prop_name));
@@ -794,7 +794,7 @@ void EditorExportPlatformIOS::_fix_config_file(const Ref<EditorExportPreset> &p_
 					if (purposes != 0) {
 						strnew += "\t\t\t\t<key>NSPrivacyCollectedDataTypePurposes</key>\n";
 						strnew += "\t\t\t\t<array>\n";
-						for (uint64_t k = 0; k < sizeof(data_collect_purpose_info) / sizeof(data_collect_purpose_info[0]); ++k) {
+						for (uint64_t k = 0; k < std::size(data_collect_purpose_info); ++k) {
 							if (purposes & (1 << k)) {
 								strnew += vformat("\t\t\t\t\t<string>%s</string>\n", data_collect_purpose_info[k].type_name);
 							}
@@ -826,7 +826,7 @@ void EditorExportPlatformIOS::_fix_config_file(const Ref<EditorExportPreset> &p_
 			}
 		} else if (lines[i].contains("$priv_api_types")) {
 			strnew += "\t<array>\n";
-			for (uint64_t j = 0; j < sizeof(api_info) / sizeof(api_info[0]); ++j) {
+			for (uint64_t j = 0; j < std::size(api_info); ++j) {
 				int api_access = p_preset->get(vformat("privacy/%s_access_reasons", api_info[j].prop_name));
 				if (api_access != 0) {
 					strnew += "\t\t<dict>\n";
@@ -946,7 +946,7 @@ Error EditorExportPlatformIOS::_export_icons(const Ref<EditorExportPreset> &p_pr
 	};
 
 	bool first_icon = true;
-	for (uint64_t i = 0; i < (sizeof(icon_infos) / sizeof(icon_infos[0])); ++i) {
+	for (uint64_t i = 0; i < std::size(icon_infos); ++i) {
 		for (int color_mode = ICON_NORMAL; color_mode < ICON_MAX; color_mode++) {
 			IconInfo info = icon_infos[i];
 			int side_size = String(info.actual_size_side).to_int();

@@ -466,7 +466,7 @@ godot_plugins_initialize_fn initialize_coreclr_and_godot_plugins(bool &r_runtime
 	String tpa_list = make_tpa_list();
 	const char *prop_keys[] = { "TRUSTED_PLATFORM_ASSEMBLIES" };
 	const char *prop_values[] = { tpa_list.utf8().get_data() };
-	int nprops = sizeof(prop_keys) / sizeof(prop_keys[0]);
+	constexpr int nprops = std::size(prop_keys);
 
 	void *coreclr_handle = nullptr;
 	unsigned int domain_id = 0;

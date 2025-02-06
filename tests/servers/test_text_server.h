@@ -508,7 +508,7 @@ TEST_SUITE("[TextServer]") {
 						{ U"test\r test", { 0, 5, 5, 10 } },
 						{ U"test\r test \r test", { 0, 5, 5, 12, 12, 17 } },
 					};
-					for (size_t j = 0; j < sizeof(cases) / sizeof(TestCase); j++) {
+					for (size_t j = 0; j < std::size(cases); j++) {
 						RID ctx = ts->create_shaped_text();
 						CHECK_FALSE_MESSAGE(ctx == RID(), "Creating text buffer failed.");
 						bool ok = ts->shaped_text_add_string(ctx, cases[j].text, font, 16);

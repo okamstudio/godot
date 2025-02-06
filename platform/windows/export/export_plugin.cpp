@@ -96,7 +96,7 @@ Error EditorExportPlatformWindows::_process_icon(const Ref<EditorExportPreset> &
 		Ref<Image> src_image = _load_icon_or_splash_image(p_src_path, &err);
 		ERR_FAIL_COND_V(err != OK || src_image.is_null() || src_image->is_empty(), ERR_CANT_OPEN);
 
-		for (size_t i = 0; i < sizeof(icon_size) / sizeof(icon_size[0]); ++i) {
+		for (size_t i = 0; i < std::size(icon_size); ++i) {
 			int size = (icon_size[i] == 0) ? 256 : icon_size[i];
 
 			Ref<Image> res_image = src_image->duplicate();
@@ -107,7 +107,7 @@ Error EditorExportPlatformWindows::_process_icon(const Ref<EditorExportPreset> &
 	}
 
 	uint16_t valid_icon_count = 0;
-	for (size_t i = 0; i < sizeof(icon_size) / sizeof(icon_size[0]); ++i) {
+	for (size_t i = 0; i < std::size(icon_size); ++i) {
 		if (images.has(icon_size[i])) {
 			valid_icon_count++;
 		} else {
@@ -129,7 +129,7 @@ Error EditorExportPlatformWindows::_process_icon(const Ref<EditorExportPreset> &
 
 	// Write ICONDIRENTRY.
 	uint32_t img_offset = 6 + 16 * valid_icon_count;
-	for (size_t i = 0; i < sizeof(icon_size) / sizeof(icon_size[0]); ++i) {
+	for (size_t i = 0; i < std::size(icon_size); ++i) {
 		if (images.has(icon_size[i])) {
 			const IconData &di = images[icon_size[i]];
 			fw->store_8(icon_size[i]); // Width in pixels.
@@ -146,7 +146,7 @@ Error EditorExportPlatformWindows::_process_icon(const Ref<EditorExportPreset> &
 	}
 
 	// Write image data.
-	for (size_t i = 0; i < sizeof(icon_size) / sizeof(icon_size[0]); ++i) {
+	for (size_t i = 0; i < std::size(icon_size); ++i) {
 		if (images.has(icon_size[i])) {
 			const IconData &di = images[icon_size[i]];
 			fw->store_buffer(di.data.ptr(), di.data.size());
