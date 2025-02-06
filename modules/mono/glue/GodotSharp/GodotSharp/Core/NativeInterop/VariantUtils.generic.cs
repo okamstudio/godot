@@ -227,6 +227,12 @@ public partial class VariantUtils
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public static T ConvertTo<[MustBeVariant] T>(in godot_variant variant)
     {
+        return ConvertTo<T>(in variant, true);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    public static T ConvertTo<[MustBeVariant] T>(in godot_variant variant, bool directCast)
+    {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static T UnsafeAsT<TFrom>(TFrom f) => Unsafe.As<TFrom, T>(ref Unsafe.AsRef(in f));
 
@@ -385,7 +391,17 @@ public partial class VariantUtils
         // `typeof(X).IsAssignableFrom(typeof(T))` is optimized away
 
         if (typeof(GodotObject).IsAssignableFrom(typeof(T)))
-            return (T)(object)ConvertToGodotObject(variant);
+        {
+            var godotObject = (object)ConvertToGodotObject(variant);
+
+            if (directCast)
+                return (T)godotObject;
+
+            if (godotObject is T go)
+                return go;
+
+            return default!;
+        }
 
         // `typeof(T).IsValueType` is optimized away
         // `typeof(T).IsEnum` is NOT optimized away: https://github.com/dotnet/runtime/issues/67113
