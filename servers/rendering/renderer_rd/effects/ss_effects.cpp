@@ -1525,6 +1525,8 @@ void SSEffects::screen_space_reflection(Ref<RenderSceneBuffersRD> p_render_buffe
 			push_constant.view_index = v;
 			push_constant.orthogonal = p_projections[v].is_orthogonal();
 			push_constant.edge_tolerance = Math::sin(Math::deg_to_rad(15.0));
+			constexpr int taa_phase_count = 16;
+			push_constant.taa_frame_count = (RSG::rasterizer->get_frame_number() % taa_phase_count) / float(taa_phase_count);
 			push_constant.proj_info[0] = -2.0f / (p_ssr_buffers.size.width * p_projections[v].columns[0][0]);
 			push_constant.proj_info[1] = -2.0f / (p_ssr_buffers.size.height * p_projections[v].columns[1][1]);
 			push_constant.proj_info[2] = (1.0f - p_projections[v].columns[0][2]) / p_projections[v].columns[0][0];

@@ -27,6 +27,12 @@ layout(push_constant, std430) uniform Params {
 	ivec2 screen_size;
 	bool vertical;
 	uint steps;
+
+	// Used to add break up samples over multiple frames. Value is an integer from 0 to taa_phase_count -1.
+	float taa_frame_count;
+	uint pad0;
+	uint pad1;
+	uint pad2;
 }
 params;
 
@@ -65,6 +71,13 @@ float gauss_weight(float p_val) {
 }
 
 #define M_PI 3.14159265359
+
+// Interleaved Gradient Noise
+// https://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare
+float quick_hash(vec2 pos) {
+	const vec3 magic = vec3(0.06711056f, 0.00583715f, 52.9829189f);
+	return fract(magic.z * fract(dot(pos, magic.xy)));
+}
 
 void do_filter(inout vec4 accum, inout float accum_radius, inout float divisor, ivec2 texcoord, ivec2 increment, vec3 p_pos, vec3 normal, float p_limit_radius) {
 	for (int i = 1; i < params.steps; i++) {
@@ -118,10 +131,19 @@ void main() {
 	float divisor = gauss_table[0];
 	accum *= divisor;
 	accum_radius *= divisor;
+
+	// The intent is to spread the increment on Low quality (3) to be between 1 and 5.
+	// On Medium quality (2), it would be between 1 and 3.
+	//
+	// See https://github.com/godotengine/godot/blob/ad2722f48180c21147a31ee59e15722a237a7445/servers/rendering/renderer_rd/effects/ss_effects.cpp#L1535-L1544
+	// for values of `params.increment` depending on quality.
+	int increment_offset = params.increment - 1;
+	int taa_jitter = int(quick_hash(vec2(ssC.xy) + vec2(params.taa_frame_count * 5.0, params.taa_frame_count * 2.0)) * (params.increment + increment_offset) - increment_offset);
+
 #ifdef VERTICAL_PASS
-	ivec2 direction = ivec2(0, params.increment);
+	ivec2 direction = ivec2(0, params.increment + taa_jitter);
 #else
-	ivec2 direction = ivec2(params.increment, 0);
+	ivec2 direction = ivec2(params.increment + taa_jitter, 0);
 #endif
 	float depth = imageLoad(source_depth, ssC).r;
 	vec3 pos = reconstructCSPosition(vec2(ssC.xy) + 0.5, depth);

@@ -488,6 +488,12 @@ private:
 		int32_t screen_size[2]; //  8 - 40
 		uint32_t vertical; //  4 - 44
 		uint32_t steps; //  4 - 48
+
+		// Used to add break up samples over multiple frames. Value is an integer from 0 to taa_phase_count -1.
+		float taa_frame_count; // 4 - 52
+		uint32_t pad0; // 4 - 56
+		uint32_t pad1; // 4 - 60
+		uint32_t pad2; // 4 - 64
 	};
 
 	enum SSRReflectionMode {
