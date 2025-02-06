@@ -74,7 +74,7 @@ void JoltProjectSettings::register_settings() {
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "physics/jolt_physics_3d/joints/world_node", PROPERTY_HINT_ENUM, U"Node A,Node B"), JOLT_JOINT_WORLD_NODE_A);
 
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "physics/jolt_physics_3d/limits/temporary_memory_buffer_size", PROPERTY_HINT_RANGE, U"1,32,or_greater,suffix:MiB"), 32);
-	GLOBAL_DEF_RST(PropertyInfo(Variant::FLOAT, "physics/jolt_physics_3d/limits/world_boundary_shape_size", PROPERTY_HINT_RANGE, U"2,2000,0.1,or_greater,suffix:m"), 2000.0f);
+	GLOBAL_DEF_RST(PropertyInfo(Variant::FLOAT, "physics/jolt_physics_3d/limits/world_boundary_shape_size", PROPERTY_HINT_RANGE, U"2,32768,0.1,or_greater,suffix:m"), 8192.0f);
 	GLOBAL_DEF(PropertyInfo(Variant::FLOAT, "physics/jolt_physics_3d/limits/max_linear_velocity", PROPERTY_HINT_RANGE, U"0,500,0.01,or_greater,suffix:m/s"), 500.0f);
 	GLOBAL_DEF(PropertyInfo(Variant::FLOAT, "physics/jolt_physics_3d/limits/max_angular_velocity", PROPERTY_HINT_RANGE, U"0,2700,0.01,or_greater,radians_as_degrees,suffix:°/s"), Math::deg_to_rad(2700.0f));
 	GLOBAL_DEF_RST(PropertyInfo(Variant::INT, "physics/jolt_physics_3d/limits/max_bodies", PROPERTY_HINT_RANGE, U"1,10240,or_greater"), 10240);

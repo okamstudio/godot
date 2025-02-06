@@ -2416,7 +2416,7 @@
 		<member name="physics/jolt_physics_3d/limits/temporary_memory_buffer_size" type="int" setter="" getter="" default="32">
 			The amount of memory to pre-allocate for the stack allocator used within Jolt, in MiB. This allocator is used within the physics step to store things that are only needed during it, like which bodies are in contact, how they form islands and the data needed to solve the contacts.
 		</member>
-		<member name="physics/jolt_physics_3d/limits/world_boundary_shape_size" type="float" setter="" getter="" default="2000.0">
+		<member name="physics/jolt_physics_3d/limits/world_boundary_shape_size" type="float" setter="" getter="" default="8192.0">
 			The size of [WorldBoundaryShape3D] boundaries, for all three dimensions. The plane is effectively centered within a box of this size, and anything outside of the box will not collide with it. This is necessary as [WorldBoundaryShape3D] is not unbounded when using Jolt, in order to prevent precision issues.
 			[b]Note:[/b] Setting this value too high can make collision detection less accurate.
 			[b]Note:[/b] Collisions against the effective edges of a [WorldBoundaryShape3D] will be inconsistent.
