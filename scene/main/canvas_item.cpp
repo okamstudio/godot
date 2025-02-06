@@ -292,6 +292,9 @@ void CanvasItem::_exit_canvas() {
 
 void CanvasItem::_notification(int p_what) {
 	switch (p_what) {
+		case NOTIFICATION_DRAW: {
+			draw_transform = Transform2D();
+		} break;
 		case NOTIFICATION_ENTER_TREE: {
 			ERR_MAIN_THREAD_GUARD;
 			ERR_FAIL_COND(!is_inside_tree());
@@ -856,6 +859,24 @@ void CanvasItem::draw_texture_rect_region(const Ref<Texture2D> &p_texture, const
 	p_texture->draw_rect_region(canvas_item, p_rect, p_src_rect, p_modulate, p_transpose, p_clip_uv);
 }
 
+void CanvasItem::draw_texture_rotated(const Ref<Texture2D> &p_texture, const Point2 &p_pos, real_t p_rotation, const Vector2 &p_origin, const Rect2 &p_texture_region, const Color &p_modulate) {
+	ERR_THREAD_GUARD;
+	ERR_DRAW_GUARD;
+	ERR_FAIL_COND(p_texture.is_null());
+
+	Transform2D prev_transform = draw_transform;
+	draw_set_transform_matrix(draw_transform * Transform2D(p_rotation, p_pos));
+
+	if (p_texture_region.has_area()) {
+		const Rect2 draw_rect(-p_texture_region.get_size() * p_origin, p_texture_region.get_size());
+		p_texture->draw_rect_region(canvas_item, draw_rect, p_texture_region, p_modulate, false);
+	} else {
+		p_texture->draw(canvas_item, -p_texture->get_size() * p_origin, p_modulate, false);
+	}
+
+	draw_set_transform_matrix(prev_transform);
+}
+
 void CanvasItem::draw_msdf_texture_rect_region(const Ref<Texture2D> &p_texture, const Rect2 &p_rect, const Rect2 &p_src_rect, const Color &p_modulate, double p_outline, double p_pixel_range, double p_scale) {
 	ERR_THREAD_GUARD;
 	ERR_DRAW_GUARD;
@@ -893,6 +914,7 @@ void CanvasItem::draw_set_transform(const Point2 &p_offset, real_t p_rot, const 
 
 	Transform2D xform(p_rot, p_offset);
 	xform.scale_basis(p_scale);
+	draw_transform = xform;
 	RenderingServer::get_singleton()->canvas_item_add_set_transform(canvas_item, xform);
 }
 
@@ -900,6 +922,7 @@ void CanvasItem::draw_set_transform_matrix(const Transform2D &p_matrix) {
 	ERR_THREAD_GUARD;
 	ERR_DRAW_GUARD;
 
+	draw_transform = p_matrix;
 	RenderingServer::get_singleton()->canvas_item_add_set_transform(canvas_item, p_matrix);
 }
 void CanvasItem::draw_animation_slice(double p_animation_length, double p_slice_begin, double p_slice_end, double p_offset) {
@@ -1314,6 +1337,7 @@ void CanvasItem::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("draw_texture", "texture", "position", "modulate"), &CanvasItem::draw_texture, DEFVAL(Color(1, 1, 1, 1)));
 	ClassDB::bind_method(D_METHOD("draw_texture_rect", "texture", "rect", "tile", "modulate", "transpose"), &CanvasItem::draw_texture_rect, DEFVAL(Color(1, 1, 1, 1)), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("draw_texture_rect_region", "texture", "rect", "src_rect", "modulate", "transpose", "clip_uv"), &CanvasItem::draw_texture_rect_region, DEFVAL(Color(1, 1, 1, 1)), DEFVAL(false), DEFVAL(true));
+	ClassDB::bind_method(D_METHOD("draw_texture_rotated", "texture", "position", "rotation", "origin", "region", "modulate"), &CanvasItem::draw_texture_rotated, DEFVAL(Vector2(0.5, 0.5)), DEFVAL(Rect2()), DEFVAL(Color(1, 1, 1, 1)));
 	ClassDB::bind_method(D_METHOD("draw_msdf_texture_rect_region", "texture", "rect", "src_rect", "modulate", "outline", "pixel_range", "scale"), &CanvasItem::draw_msdf_texture_rect_region, DEFVAL(Color(1, 1, 1, 1)), DEFVAL(0.0), DEFVAL(4.0), DEFVAL(1.0));
 	ClassDB::bind_method(D_METHOD("draw_lcd_texture_rect_region", "texture", "rect", "src_rect", "modulate"), &CanvasItem::draw_lcd_texture_rect_region, DEFVAL(Color(1, 1, 1, 1)));
 	ClassDB::bind_method(D_METHOD("draw_style_box", "style_box", "rect"), &CanvasItem::draw_style_box);

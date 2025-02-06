@@ -412,6 +412,18 @@
 				Draws a textured rectangle from a texture's region (specified by [param src_rect]) at a given position, optionally modulated by a color. If [param transpose] is [code]true[/code], the texture will have its X and Y coordinates swapped. See also [method draw_texture_rect].
 			</description>
 		</method>
+		<method name="draw_texture_rotated">
+			<return type="void" />
+			<param index="0" name="texture" type="Texture2D" />
+			<param index="1" name="position" type="Vector2" />
+			<param index="2" name="rotation" type="float" />
+			<param index="3" name="origin" type="Vector2" default="Vector2(0.5, 0.5)" />
+			<param index="4" name="region" type="Rect2" default="Rect2(0, 0, 0, 0)" />
+			<param index="5" name="modulate" type="Color" default="Color(1, 1, 1, 1)" />
+			<description>
+				Draws a texture at a given [param position] with a given [param rotation]. [param origin] is a relative pivot point, with [code]Vector2(0.5, 0.5)[/code] (default) being the texture center. [param region] can be used to draw a sub-region of the texture; if its size is [code]0[/code], whole texture will be used.
+			</description>
+		</method>
 		<method name="force_update_transform">
 			<return type="void" />
 			<description>

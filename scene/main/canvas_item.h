@@ -120,6 +120,7 @@ private:
 
 	mutable Transform2D global_transform;
 	mutable MTFlag global_invalid;
+	Transform2D draw_transform;
 
 	_FORCE_INLINE_ bool _is_global_invalid() const { return is_group_processing() ? global_invalid.mt.is_set() : global_invalid.st; }
 	void _set_global_invalid(bool p_invalid) const;
@@ -302,6 +303,7 @@ public:
 	void draw_texture(const Ref<Texture2D> &p_texture, const Point2 &p_pos, const Color &p_modulate = Color(1, 1, 1, 1));
 	void draw_texture_rect(const Ref<Texture2D> &p_texture, const Rect2 &p_rect, bool p_tile = false, const Color &p_modulate = Color(1, 1, 1), bool p_transpose = false);
 	void draw_texture_rect_region(const Ref<Texture2D> &p_texture, const Rect2 &p_rect, const Rect2 &p_src_rect, const Color &p_modulate = Color(1, 1, 1), bool p_transpose = false, bool p_clip_uv = false);
+	void draw_texture_rotated(const Ref<Texture2D> &p_texture, const Point2 &p_pos, real_t p_rotation, const Vector2 &p_origin = Vector2(0.5, 0.5), const Rect2 &p_texture_region = Rect2(), const Color &p_modulate = Color(1, 1, 1, 1));
 	void draw_msdf_texture_rect_region(const Ref<Texture2D> &p_texture, const Rect2 &p_rect, const Rect2 &p_src_rect, const Color &p_modulate = Color(1, 1, 1), double p_outline = 0.0, double p_pixel_range = 4.0, double p_scale = 1.0);
 	void draw_lcd_texture_rect_region(const Ref<Texture2D> &p_texture, const Rect2 &p_rect, const Rect2 &p_src_rect, const Color &p_modulate = Color(1, 1, 1));
 	void draw_style_box(const Ref<StyleBox> &p_style_box, const Rect2 &p_rect);
