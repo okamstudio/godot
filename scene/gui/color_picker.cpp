@@ -2571,6 +2571,12 @@ ColorPickerButton::ColorPickerButton(const String &p_text) :
 	set_toggle_mode(true);
 }
 
+void ColorPickerButton::_validate_property(PropertyInfo &p_property) const {
+	if (p_property.name == "text" || p_property.name == "icon" || p_property.name == "alignment" || p_property.name == "text_overrun_behavior" || p_property.name == "clip_text" || p_property.name == "icon_alignment" || p_property.name == "vertical_icon_alignment" || p_property.name == "expand_icon" || p_property.name == "text_direction" || p_property.name == "language") {
+		p_property.usage &= ~PROPERTY_USAGE_EDITOR;
+	}
+}
+
 /////////////////
 
 void ColorPresetButton::_notification(int p_what) {

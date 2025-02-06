@@ -443,6 +443,7 @@ class ColorPickerButton : public Button {
 protected:
 	void _notification(int);
 	static void _bind_methods();
+	void _validate_property(PropertyInfo &p_property) const;
 
 public:
 	void set_pick_color(const Color &p_color);
