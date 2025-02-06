@@ -190,6 +190,19 @@ public:
 	void set_movie_maker_enabled(bool p_enabled);
 	bool is_movie_maker_enabled() const;
 
+	bool is_2d_editor_grid_snap_enabled() const;
+	bool is_2d_editor_smart_snap_enabled() const;
+	bool is_2d_editor_snap_relative_enabled() const;
+	bool is_2d_editor_snap_rotation_enabled() const;
+	bool is_2d_editor_snap_scale_enabled() const;
+
+	Vector2 get_2d_editor_grid_offset() const;
+	Vector2 get_2d_editor_grid_step() const;
+	Vector2i get_2d_editor_grid_primary_steps() const;
+	float get_2d_editor_snap_rotation_step() const;
+	float get_2d_editor_snap_rotation_offset() const;
+	float get_2d_editor_snap_scale_step() const;
+
 #ifdef TOOLS_ENABLED
 	virtual void get_argument_options(const StringName &p_function, int p_idx, List<String> *r_options) const override;
 #endif

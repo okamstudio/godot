@@ -48,6 +48,7 @@
 #include "editor/gui/editor_toaster.h"
 #include "editor/gui/scene_tree_editor.h"
 #include "editor/inspector_dock.h"
+#include "editor/plugins/canvas_item_editor_plugin.h"
 #include "editor/plugins/node_3d_editor_plugin.h"
 #include "editor/property_selector.h"
 #include "editor/themes/editor_scale.h"
@@ -393,6 +394,50 @@ SubViewport *EditorInterface::get_editor_viewport_2d() const {
 SubViewport *EditorInterface::get_editor_viewport_3d(int p_idx) const {
 	ERR_FAIL_INDEX_V(p_idx, static_cast<int>(Node3DEditor::VIEWPORTS_COUNT), nullptr);
 	return Node3DEditor::get_singleton()->get_editor_viewport(p_idx)->get_viewport_node();
+}
+
+Vector2 EditorInterface::get_2d_editor_grid_offset() const {
+	return CanvasItemEditor::get_singleton()->get_grid_offset();
+}
+
+bool EditorInterface::is_2d_editor_grid_snap_enabled() const {
+	return CanvasItemEditor::get_singleton()->is_grid_snap_enabled();
+}
+
+bool EditorInterface::is_2d_editor_smart_snap_enabled() const {
+	return CanvasItemEditor::get_singleton()->is_smart_snap_enabled();
+}
+
+bool EditorInterface::is_2d_editor_snap_relative_enabled() const {
+	return CanvasItemEditor::get_singleton()->is_snap_relative_enabled();
+}
+
+bool EditorInterface::is_2d_editor_snap_rotation_enabled() const {
+	return CanvasItemEditor::get_singleton()->is_snap_rotation_enabled();
+}
+
+bool EditorInterface::is_2d_editor_snap_scale_enabled() const {
+	return CanvasItemEditor::get_singleton()->is_snap_scale_enabled();
+}
+
+Vector2 EditorInterface::get_2d_editor_grid_step() const {
+	return CanvasItemEditor::get_singleton()->get_grid_step();
+}
+
+Vector2i EditorInterface::get_2d_editor_grid_primary_steps() const {
+	return CanvasItemEditor::get_singleton()->get_grid_primary_steps();
+}
+
+float EditorInterface::get_2d_editor_snap_rotation_step() const {
+	return CanvasItemEditor::get_singleton()->get_snap_rotation_step();
+}
+
+float EditorInterface::get_2d_editor_snap_rotation_offset() const {
+	return CanvasItemEditor::get_singleton()->get_snap_rotation_offset();
+}
+
+float EditorInterface::get_2d_editor_snap_scale_step() const {
+	return CanvasItemEditor::get_singleton()->get_snap_scale_step();
 }
 
 void EditorInterface::set_main_screen_editor(const String &p_name) {
@@ -851,6 +896,21 @@ void EditorInterface::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_movie_maker_enabled"), &EditorInterface::is_movie_maker_enabled);
 
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "movie_maker_enabled"), "set_movie_maker_enabled", "is_movie_maker_enabled");
+
+	// 2D (canvas) editor.
+
+	ClassDB::bind_method(D_METHOD("is_2d_editor_grid_snap_enabled"), &EditorInterface::is_2d_editor_grid_snap_enabled);
+	ClassDB::bind_method(D_METHOD("is_2d_editor_smart_snap_enabled"), &EditorInterface::is_2d_editor_smart_snap_enabled);
+	ClassDB::bind_method(D_METHOD("is_2d_editor_snap_relative_enabled"), &EditorInterface::is_2d_editor_snap_relative_enabled);
+	ClassDB::bind_method(D_METHOD("is_2d_editor_snap_rotation_enabled"), &EditorInterface::is_2d_editor_snap_rotation_enabled);
+	ClassDB::bind_method(D_METHOD("is_2d_editor_snap_scale_enabled"), &EditorInterface::is_2d_editor_snap_scale_enabled);
+
+	ClassDB::bind_method(D_METHOD("get_2d_editor_grid_offset"), &EditorInterface::get_2d_editor_grid_offset);
+	ClassDB::bind_method(D_METHOD("get_2d_editor_grid_step"), &EditorInterface::get_2d_editor_grid_step);
+	ClassDB::bind_method(D_METHOD("get_2d_editor_grid_primary_steps"), &EditorInterface::get_2d_editor_grid_primary_steps);
+	ClassDB::bind_method(D_METHOD("get_2d_editor_snap_rotation_step"), &EditorInterface::get_2d_editor_snap_rotation_step);
+	ClassDB::bind_method(D_METHOD("get_2d_editor_snap_rotation_offset"), &EditorInterface::get_2d_editor_snap_rotation_offset);
+	ClassDB::bind_method(D_METHOD("get_2d_editor_snap_scale_step"), &EditorInterface::get_2d_editor_snap_scale_step);
 }
 
 void EditorInterface::create() {

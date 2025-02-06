@@ -553,6 +553,20 @@ public:
 	Point2 snap_point(Point2 p_target, unsigned int p_modes = SNAP_DEFAULT, unsigned int p_forced_modes = 0, const CanvasItem *p_self_canvas_item = nullptr, const List<CanvasItem *> &p_other_nodes_exceptions = List<CanvasItem *>());
 	real_t snap_angle(real_t p_target, real_t p_start = 0) const;
 
+	bool is_grid_snap_enabled() const { return grid_snap_active; }
+	bool is_smart_snap_enabled() const { return smart_snap_active; }
+	bool is_snap_relative_enabled() const { return snap_relative; }
+	bool is_snap_rotation_enabled() const { return snap_rotation; }
+	bool is_snap_scale_enabled() const { return snap_scale; }
+
+	Point2 get_grid_offset() const { return grid_offset; }
+	Point2 get_grid_step() const { return grid_step * Math::pow(2.0, grid_step_multiplier); }
+	Vector2i get_grid_primary_steps() const { return primary_grid_step; }
+
+	real_t get_snap_rotation_step() const { return snap_rotation_step; }
+	real_t get_snap_rotation_offset() const { return snap_rotation_offset; }
+	real_t get_snap_scale_step() const { return snap_scale_step; }
+
 	Transform2D get_canvas_transform() const { return transform; }
 
 	static CanvasItemEditor *get_singleton() { return singleton; }

@@ -43,6 +43,42 @@
 				Edits the given [Script]. The line and column on which to open the script can also be specified. The script will be open with the user-configured editor for the script's language which may be an external editor.
 			</description>
 		</method>
+		<method name="get_2d_editor_grid_offset" qualifiers="const">
+			<return type="Vector2" />
+			<description>
+				Returns the current 2D editor grid offset in pixels. This affects grid snapping when enabled (see [method is_2d_editor_grid_snap_enabled]).
+			</description>
+		</method>
+		<method name="get_2d_editor_grid_primary_steps" qualifiers="const">
+			<return type="Vector2i" />
+			<description>
+				Returns the current 2D editor grid offset in pixels.
+			</description>
+		</method>
+		<method name="get_2d_editor_grid_step" qualifiers="const">
+			<return type="Vector2" />
+			<description>
+				Returns the current 2D editor grid step in pixels. This takes the temporary multiplier into account (when pressing the shortcuts that multiply or divide the grid size by 2). This affects grid snapping when enabled (see [method is_2d_editor_grid_snap_enabled]).
+			</description>
+		</method>
+		<method name="get_2d_editor_snap_rotation_offset" qualifiers="const">
+			<return type="float" />
+			<description>
+				Returns the current 2D editor snap rotation offset in radians.
+			</description>
+		</method>
+		<method name="get_2d_editor_snap_rotation_step" qualifiers="const">
+			<return type="float" />
+			<description>
+				Returns the current 2D editor snap rotation step in radians.
+			</description>
+		</method>
+		<method name="get_2d_editor_snap_scale_step" qualifiers="const">
+			<return type="float" />
+			<description>
+				Returns the current 2D editor snap scale step.
+			</description>
+		</method>
 		<method name="get_base_control" qualifiers="const">
 			<return type="Control" />
 			<description>
@@ -206,6 +242,36 @@
 			<param index="2" name="inspector_only" type="bool" default="false" />
 			<description>
 				Shows the given property on the given [param object] in the editor's Inspector dock. If [param inspector_only] is [code]true[/code], plugins will not attempt to edit [param object].
+			</description>
+		</method>
+		<method name="is_2d_editor_grid_snap_enabled" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if grid snapping is enabled in the 2D editor, [code]false[/code] otherwise. See also [method get_2d_editor_grid_step] and [method get_2d_editor_grid_offset].
+			</description>
+		</method>
+		<method name="is_2d_editor_smart_snap_enabled" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if smart snapping is enabled in the 2D editor, [code]false[/code] otherwise.
+			</description>
+		</method>
+		<method name="is_2d_editor_snap_relative_enabled" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if relative snapping is enabled in the 2D editor, [code]false[/code] otherwise (absolute snapping is used instead).
+			</description>
+		</method>
+		<method name="is_2d_editor_snap_rotation_enabled" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if rotation snapping is enabled in the 2D editor, [code]false[/code] otherwise.
+			</description>
+		</method>
+		<method name="is_2d_editor_snap_scale_enabled" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if scale snapping is enabled in the 2D editor, [code]false[/code] otherwise.
 			</description>
 		</method>
 		<method name="is_multi_window_enabled" qualifiers="const">
