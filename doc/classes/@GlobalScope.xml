@@ -1160,6 +1160,12 @@
 				A type-safe version of [method round], returning an [int].
 			</description>
 		</method>
+		<method name="script_backtrace">
+			<return type="String" />
+			<description>
+				Returns a multiple line text with the current call stack information of running scripts.
+			</description>
+		</method>
 		<method name="seed">
 			<return type="void" />
 			<param index="0" name="base" type="int" />

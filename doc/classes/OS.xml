@@ -11,6 +11,13 @@
 		<link title="Operating System Testing Demo">https://godotengine.org/asset-library/asset/2789</link>
 	</tutorials>
 	<methods>
+		<method name="add_logger">
+			<return type="void" />
+			<param index="0" name="logger" type="Logger" />
+			<description>
+				Add a custom logger to intercept the internal message stream.
+			</description>
+		</method>
 		<method name="alert">
 			<return type="void" />
 			<param index="0" name="text" type="String" />
@@ -741,6 +748,13 @@
 				[b]Note:[/b] This method automatically replaces [code]\r\n[/code] line breaks with [code]\n[/code] and removes them from the end of the string. Use [method read_buffer_from_stdin] to read the unprocessed data.
 				[b]Note:[/b] This method is implemented on Linux, macOS, and Windows.
 				[b]Note:[/b] On exported Windows builds, run the console wrapper executable to access the terminal. If standard input is console, calling this method without console wrapped will freeze permanently. If standard input is pipe or file, it can be used without console wrapper. If you need a single executable with full console support, use a custom build compiled with the [code]windows_subsystem=console[/code] flag.
+			</description>
+		</method>
+		<method name="remove_logger">
+			<return type="void" />
+			<param index="0" name="logger" type="Logger" />
+			<description>
+				Remove a custom logger added by [method add_logger].
 			</description>
 		</method>
 		<method name="request_permission">

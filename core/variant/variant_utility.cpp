@@ -32,6 +32,7 @@
 
 #include "core/io/marshalls.h"
 #include "core/object/ref_counted.h"
+#include "core/object/script_language.h"
 #include "core/os/os.h"
 #include "core/templates/oa_hash_map.h"
 #include "core/templates/rid.h"
@@ -1234,6 +1235,10 @@ bool VariantUtilityFunctions::is_same(const Variant &p_a, const Variant &p_b) {
 	return p_a.identity_compare(p_b);
 }
 
+String VariantUtilityFunctions::script_backtrace() {
+	return ScriptServer::get_current_script_backtrace();
+}
+
 #ifdef DEBUG_METHODS_ENABLED
 #define VCALLR *ret = p_func(VariantCasterAndValidate<P>::cast(p_args, Is, r_error)...)
 #define VCALL p_func(VariantCasterAndValidate<P>::cast(p_args, Is, r_error)...)
@@ -1855,6 +1860,8 @@ void Variant::_register_variant_utility_functions() {
 	FUNCBINDR(rid_from_int64, sarray("base"), Variant::UTILITY_FUNC_TYPE_GENERAL);
 
 	FUNCBINDR(is_same, sarray("a", "b"), Variant::UTILITY_FUNC_TYPE_GENERAL);
+
+	FUNCBINDR(script_backtrace, sarray(), Variant::UTILITY_FUNC_TYPE_GENERAL);
 }
 
 void Variant::_unregister_variant_utility_functions() {

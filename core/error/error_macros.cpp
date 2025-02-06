@@ -31,6 +31,7 @@
 #include "error_macros.h"
 
 #include "core/io/logger.h"
+#include "core/object/script_language.h"
 #include "core/os/os.h"
 #include "core/string/ustring.h"
 
@@ -90,7 +91,8 @@ void _err_print_error(const char *p_function, const char *p_file, int p_line, co
 // Main error printing function.
 void _err_print_error(const char *p_function, const char *p_file, int p_line, const char *p_error, const char *p_message, bool p_editor_notify, ErrorHandlerType p_type) {
 	if (OS::get_singleton()) {
-		OS::get_singleton()->print_error(p_function, p_file, p_line, p_error, p_message, p_editor_notify, (Logger::ErrorType)p_type);
+		String script_backtrace = ScriptServer::get_current_script_backtrace();
+		OS::get_singleton()->print_error(p_function, p_file, p_line, p_error, p_message, p_editor_notify, (Logger::ErrorType)p_type, script_backtrace.utf8().get_data());
 	} else {
 		// Fallback if errors happen before OS init or after it's destroyed.
 		const char *err_details = (p_message && *p_message) ? p_message : p_error;

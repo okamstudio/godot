@@ -74,7 +74,7 @@ void WindowsTerminalLogger::logv(const char *p_format, va_list p_list, bool p_er
 #endif
 }
 
-void WindowsTerminalLogger::log_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify, ErrorType p_type) {
+void WindowsTerminalLogger::log_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify, ErrorType p_type, const char *p_script_backtrace) {
 	if (!should_log(true)) {
 		return;
 	}
@@ -150,6 +150,11 @@ void WindowsTerminalLogger::log_error(const char *p_function, const char *p_file
 			logf_error("(%s:%i)\n", p_file, p_line);
 		} else {
 			logf_error("%s (%s:%i)\n", p_function, p_file, p_line);
+		}
+
+		if (p_script_backtrace && p_script_backtrace[0] != 0) {
+			SetConsoleTextAttribute(hCon, FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+			logf_error("%s\n", p_script_backtrace);
 		}
 
 		SetConsoleTextAttribute(hCon, sbi.wAttributes);

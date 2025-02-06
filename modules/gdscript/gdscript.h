@@ -434,28 +434,18 @@ class GDScriptLanguage : public ScriptLanguage {
 		GDScriptInstance *instance = nullptr;
 		int *ip = nullptr;
 		int *line = nullptr;
+		CallLevel *prev = nullptr; // Reverse linked list (stack).
 	};
 
 	static thread_local int _debug_parse_err_line;
 	static thread_local String _debug_parse_err_file;
 	static thread_local String _debug_error;
-	struct CallStack {
-		CallLevel *levels = nullptr;
-		int stack_pos = 0;
 
-		void free() {
-			if (levels) {
-				memdelete(levels);
-				levels = nullptr;
-			}
-		}
-		~CallStack() {
-			free();
-		}
-	};
+	static thread_local CallLevel *_call_stack;
+	static thread_local uint32_t _call_stack_size;
+	uint32_t _debug_max_call_stack = 0;
 
-	static thread_local CallStack _call_stack;
-	int _debug_max_call_stack = 0;
+	static CallLevel *_get_stack_level(uint32_t p_level);
 
 	void _add_global(const StringName &p_name, const Variant &p_value);
 	void _remove_global(const StringName &p_name);
@@ -487,53 +477,64 @@ public:
 	bool debug_break(const String &p_error, bool p_allow_continue = true);
 	bool debug_break_parse(const String &p_file, int p_line, const String &p_error);
 
-	_FORCE_INLINE_ void enter_function(GDScriptInstance *p_instance, GDScriptFunction *p_function, Variant *p_stack, int *p_ip, int *p_line) {
-		if (unlikely(_call_stack.levels == nullptr)) {
-			_call_stack.levels = memnew_arr(CallLevel, _debug_max_call_stack + 1);
+	_FORCE_INLINE_ void enter_function(CallLevel *call_level, GDScriptInstance *p_instance, GDScriptFunction *p_function, Variant *p_stack, int *p_ip, int *p_line) {
+		if (unlikely(_call_stack_size >= _debug_max_call_stack)) {
+			//stack overflow
+			_debug_error = vformat("Stack overflow (stack size: %s). Check for infinite recursion in your script.", _debug_max_call_stack);
+			if (EngineDebugger::get_script_debugger()) {
+				EngineDebugger::get_script_debugger()->debug(this);
+			} else {
+				CRASH_NOW_MSG(_debug_error);
+			}
+			return;
 		}
 
-		if (EngineDebugger::get_script_debugger()->get_lines_left() > 0 && EngineDebugger::get_script_debugger()->get_depth() >= 0) {
+		if (EngineDebugger::get_script_debugger() && EngineDebugger::get_script_debugger()->get_lines_left() > 0 && EngineDebugger::get_script_debugger()->get_depth() >= 0) {
 			EngineDebugger::get_script_debugger()->set_depth(EngineDebugger::get_script_debugger()->get_depth() + 1);
 		}
 
-		if (_call_stack.stack_pos >= _debug_max_call_stack) {
-			//stack overflow
-			_debug_error = vformat("Stack overflow (stack size: %s). Check for infinite recursion in your script.", _debug_max_call_stack);
-			EngineDebugger::get_script_debugger()->debug(this);
-			return;
-		}
-
-		_call_stack.levels[_call_stack.stack_pos].stack = p_stack;
-		_call_stack.levels[_call_stack.stack_pos].instance = p_instance;
-		_call_stack.levels[_call_stack.stack_pos].function = p_function;
-		_call_stack.levels[_call_stack.stack_pos].ip = p_ip;
-		_call_stack.levels[_call_stack.stack_pos].line = p_line;
-		_call_stack.stack_pos++;
+		call_level->prev = _call_stack;
+		_call_stack = call_level;
+		call_level->stack = p_stack;
+		call_level->instance = p_instance;
+		call_level->function = p_function;
+		call_level->ip = p_ip;
+		call_level->line = p_line;
+		_call_stack_size++;
 	}
 
 	_FORCE_INLINE_ void exit_function() {
-		if (EngineDebugger::get_script_debugger()->get_lines_left() > 0 && EngineDebugger::get_script_debugger()->get_depth() >= 0) {
-			EngineDebugger::get_script_debugger()->set_depth(EngineDebugger::get_script_debugger()->get_depth() - 1);
-		}
-
-		if (_call_stack.stack_pos == 0) {
-			_debug_error = "Stack Underflow (Engine Bug)";
-			EngineDebugger::get_script_debugger()->debug(this);
+		if (unlikely(_call_stack_size == 0)) {
+			if (EngineDebugger::get_script_debugger()) {
+				_debug_error = "Stack Underflow (Engine Bug)";
+				EngineDebugger::get_script_debugger()->debug(this);
+			} else {
+				ERR_PRINT("Stack underflow! (Engine Bug)");
+			}
 			return;
 		}
 
-		_call_stack.stack_pos--;
+		_call_stack_size--;
+		_call_stack = _call_stack->prev;
+
+		if (EngineDebugger::get_script_debugger() && EngineDebugger::get_script_debugger()->get_lines_left() > 0 && EngineDebugger::get_script_debugger()->get_depth() >= 0) {
+			EngineDebugger::get_script_debugger()->set_depth(EngineDebugger::get_script_debugger()->get_depth() - 1);
+		}
 	}
 
 	virtual Vector<StackInfo> debug_get_current_stack_info() override {
 		Vector<StackInfo> csi;
-		csi.resize(_call_stack.stack_pos);
-		for (int i = 0; i < _call_stack.stack_pos; i++) {
-			csi.write[_call_stack.stack_pos - i - 1].line = _call_stack.levels[i].line ? *_call_stack.levels[i].line : 0;
-			if (_call_stack.levels[i].function) {
-				csi.write[_call_stack.stack_pos - i - 1].func = _call_stack.levels[i].function->get_name();
-				csi.write[_call_stack.stack_pos - i - 1].file = _call_stack.levels[i].function->get_script()->get_script_path();
+		csi.resize(_call_stack_size);
+		CallLevel *cl = _call_stack;
+		uint32_t idx = 0;
+		while (cl) {
+			csi.write[idx].line = *cl->line;
+			if (cl->function) {
+				csi.write[idx].func = cl->function->get_name();
+				csi.write[idx].file = cl->function->get_script()->get_script_path();
 			}
+			idx++;
+			cl = cl->prev;
 		}
 		return csi;
 	}

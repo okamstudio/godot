@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="Logger" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Custom logger to receive messages from the internal error/warning stream.
+	</brief_description>
+	<description>
+		Custom logger to receive messages from the internal error/warning stream. Loggers are registered via [method OS.add_logger].
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="_log_error" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="function" type="String" />
+			<param index="1" name="file" type="String" />
+			<param index="2" name="line" type="int" />
+			<param index="3" name="code" type="String" />
+			<param index="4" name="rationale" type="String" />
+			<param index="5" name="editor_notify" type="bool" />
+			<param index="6" name="error_type" type="int" />
+			<param index="7" name="script_backtrace" type="String" />
+			<description>
+				Log an error. The error contains the function, file and line it originated from as well as either the [param code] that generate it or the [param rationale].
+				The type of error is described in the [param error_type] enumeration.
+				Additionally, in debug builds, the [param script_backtrace] will be made available to this function.
+				Keep in mind that this function may be called from separate threads, so its up to the implementer to do the appropriate locking if required.
+			</description>
+		</method>
+		<method name="_log_message" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="message" type="String" />
+			<param index="1" name="error" type="bool" />
+			<description>
+				Log a generic message. If [param error] is true, then this message was meant to be send to [b]stderr[/b].
+				Keep in mind that this function may be called from separate threads, so its up to the implementer to do the appropriate locking if required.
+			</description>
+		</method>
+	</methods>
+	<constants>
+		<constant name="ERROR_TYPE_ERROR" value="0" enum="ErrorType">
+			The message received is an error.
+		</constant>
+		<constant name="ERROR_TYPE_WARNING" value="1" enum="ErrorType">
+			The message received is a warning.
+		</constant>
+		<constant name="ERROR_TYPE_SCRIPT" value="2" enum="ErrorType">
+			The message received is a script error.
+		</constant>
+		<constant name="ERROR_TYPE_SHADER" value="3" enum="ErrorType">
+			The message received is a shader error.
+		</constant>
+	</constants>
+</class>

@@ -623,9 +623,8 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 
 #ifdef DEBUG_ENABLED
 
-	if (EngineDebugger::is_active()) {
-		GDScriptLanguage::get_singleton()->enter_function(p_instance, this, stack, &ip, &line);
-	}
+	GDScriptLanguage::CallLevel call_level;
+	GDScriptLanguage::get_singleton()->enter_function(&call_level, p_instance, this, stack, &ip, &line);
 
 #define GD_ERR_BREAK(m_cond)                                                                                           \
 	{                                                                                                                  \
@@ -3873,9 +3872,7 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 	// If that is the case then we exit the function as normal. Otherwise we postpone it until the last `await` is completed.
 	// This ensures the call stack can be properly shown when using `await`, showing what resumed the function.
 	if (!p_state || awaited) {
-		if (EngineDebugger::is_active()) {
-			GDScriptLanguage::get_singleton()->exit_function();
-		}
+		GDScriptLanguage::get_singleton()->exit_function();
 #endif
 
 		// Free stack, except reserved addresses.

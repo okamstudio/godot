@@ -2322,8 +2322,6 @@ void GDScriptLanguage::finish() {
 	}
 	finishing = true;
 
-	_call_stack.free();
-
 	// Clear the cache before parsing the script_list
 	GDScriptCache::clear();
 
@@ -2921,7 +2919,19 @@ String GDScriptLanguage::get_global_class_name(const String &p_path, String *r_b
 	return c->identifier != nullptr ? String(c->identifier->name) : String();
 }
 
-thread_local GDScriptLanguage::CallStack GDScriptLanguage::_call_stack;
+thread_local GDScriptLanguage::CallLevel *GDScriptLanguage::_call_stack = nullptr;
+thread_local uint32_t GDScriptLanguage::_call_stack_size = 0;
+
+GDScriptLanguage::CallLevel *GDScriptLanguage::_get_stack_level(uint32_t p_level) {
+	ERR_FAIL_UNSIGNED_INDEX_V(p_level, _call_stack_size, nullptr);
+	CallLevel *level = _call_stack; // Start from top
+	uint32_t level_index = 0;
+	while (p_level > level_index) {
+		level_index++;
+		level = level->prev;
+	}
+	return level;
+}
 
 GDScriptLanguage::GDScriptLanguage() {
 	ERR_FAIL_COND(singleton);
@@ -2946,14 +2956,7 @@ GDScriptLanguage::GDScriptLanguage() {
 #endif
 
 	int dmcs = GLOBAL_DEF(PropertyInfo(Variant::INT, "debug/settings/gdscript/max_call_stack", PROPERTY_HINT_RANGE, "512," + itos(GDScriptFunction::MAX_CALL_DEPTH - 1) + ",1"), 1024);
-
-	if (EngineDebugger::is_active()) {
-		//debugging enabled!
-
-		_debug_max_call_stack = dmcs;
-	} else {
-		_debug_max_call_stack = 0;
-	}
+	_debug_max_call_stack = dmcs;
 
 #ifdef DEBUG_ENABLED
 	GLOBAL_DEF("debug/gdscript/warnings/enable", true);

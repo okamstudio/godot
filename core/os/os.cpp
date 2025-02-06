@@ -84,13 +84,13 @@ String OS::get_identifier() const {
 	return get_name().to_lower();
 }
 
-void OS::print_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify, Logger::ErrorType p_type) {
+void OS::print_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify, Logger::ErrorType p_type, const char *p_script_backtrace) {
 	if (!_stderr_enabled) {
 		return;
 	}
 
 	if (_logger) {
-		_logger->log_error(p_function, p_file, p_line, p_code, p_rationale, p_editor_notify, p_type);
+		_logger->log_error(p_function, p_file, p_line, p_code, p_rationale, p_editor_notify, p_type, p_script_backtrace);
 	}
 }
 

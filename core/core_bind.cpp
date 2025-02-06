@@ -210,7 +210,54 @@ void ResourceSaver::_bind_methods() {
 	BIND_BITFIELD_FLAG(FLAG_REPLACE_SUBRESOURCE_PATHS);
 }
 
+////// LOGGER ///////
+
+void Logger::_bind_methods() {
+	GDVIRTUAL_BIND(_log_error, "function", "file", "line", "code", "rationale", "editor_notify", "error_type", "script_backtrace");
+	GDVIRTUAL_BIND(_log_message, "message", "error");
+	BIND_ENUM_CONSTANT(ERROR_TYPE_ERROR);
+	BIND_ENUM_CONSTANT(ERROR_TYPE_WARNING);
+	BIND_ENUM_CONSTANT(ERROR_TYPE_SCRIPT);
+	BIND_ENUM_CONSTANT(ERROR_TYPE_SHADER);
+}
+
+void Logger::log_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify, ErrorType p_type, const char *p_script_backtrace) {
+	GDVIRTUAL_CALL(_log_error, p_function, p_file, p_line, p_code, p_rationale, p_editor_notify, p_type, p_script_backtrace);
+}
+
+void Logger::log_message(const String &p_text, bool p_error) {
+	GDVIRTUAL_CALL(_log_message, p_text, p_error);
+}
+
 ////// OS //////
+
+void OS::LoggerBind::logv(const char *p_format, va_list p_list, bool p_err) {
+	if (!should_log(p_err)) {
+		return;
+	}
+
+	const int static_buf_size = 1024;
+	char static_buf[static_buf_size];
+	char *buf = static_buf;
+	va_list list_copy;
+	va_copy(list_copy, p_list);
+	int len = vsnprintf(buf, static_buf_size, p_format, p_list);
+	if (len >= static_buf_size) {
+		buf = (char *)Memory::alloc_static(len + 1);
+		vsnprintf(buf, len + 1, p_format, list_copy);
+	}
+	va_end(list_copy);
+
+	String str;
+	str.parse_utf8(buf, len);
+	for (uint32_t i = 0; i < loggers.size(); i++) {
+		loggers[i]->log_message(str, p_err);
+	}
+
+	if (len >= static_buf_size) {
+		Memory::free_static(buf);
+	}
+}
 
 PackedByteArray OS::get_entropy(int p_bytes) {
 	PackedByteArray pba;
@@ -628,6 +675,22 @@ String OS::get_unique_id() const {
 	return ::OS::get_singleton()->get_unique_id();
 }
 
+void OS::add_logger(Ref<Logger> p_logger) {
+	ERR_FAIL_COND(p_logger.is_null());
+	if (!logger_bind) {
+		logger_bind = memnew(LoggerBind);
+		::OS::get_singleton()->add_logger(logger_bind);
+	}
+
+	ERR_FAIL_COND(logger_bind->loggers.find(p_logger) != -1);
+	logger_bind->loggers.push_back(p_logger);
+}
+
+void OS::remove_logger(Ref<Logger> p_logger) {
+	ERR_FAIL_COND(p_logger.is_null());
+	logger_bind->loggers.erase(p_logger);
+}
+
 OS *OS::singleton = nullptr;
 
 void OS::_bind_methods() {
@@ -734,6 +797,9 @@ void OS::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_granted_permissions"), &OS::get_granted_permissions);
 	ClassDB::bind_method(D_METHOD("revoke_granted_permissions"), &OS::revoke_granted_permissions);
 
+	ClassDB::bind_method(D_METHOD("add_logger", "logger"), &OS::add_logger);
+	ClassDB::bind_method(D_METHOD("remove_logger", "logger"), &OS::remove_logger);
+
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "low_processor_usage_mode"), "set_low_processor_usage_mode", "is_in_low_processor_usage_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "low_processor_usage_mode_sleep_usec"), "set_low_processor_usage_mode_sleep_usec", "get_low_processor_usage_mode_sleep_usec");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "delta_smoothing"), "set_delta_smoothing", "is_delta_smoothing_enabled");
@@ -762,6 +828,16 @@ void OS::_bind_methods() {
 	BIND_ENUM_CONSTANT(STD_HANDLE_FILE);
 	BIND_ENUM_CONSTANT(STD_HANDLE_PIPE);
 	BIND_ENUM_CONSTANT(STD_HANDLE_UNKNOWN);
+}
+
+OS::OS() {
+	singleton = this;
+}
+
+OS::~OS() {
+	if (logger_bind) {
+		logger_bind->clear();
+	}
 }
 
 ////// Geometry2D //////

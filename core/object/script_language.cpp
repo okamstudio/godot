@@ -535,6 +535,21 @@ void ScriptServer::save_global_classes() {
 	ProjectSettings::get_singleton()->store_global_class_list(gcarr);
 }
 
+String ScriptServer::get_current_script_backtrace() {
+	String trace;
+	for (int si = 0; si < get_language_count(); si++) {
+		ScriptLanguage *sl = get_language(si);
+		Vector<ScriptLanguage::StackInfo> stack = sl->debug_get_current_stack_info();
+		if (stack.size()) {
+			trace += "stack_language: " + sl->get_name();
+			for (int i = 0; i < stack.size(); i++) {
+				trace += "\n" + itos(i) + ": " + stack[i].func + " (" + stack[i].file + " : " + itos(stack[i].line) + ")";
+			}
+		}
+	}
+	return trace;
+}
+
 ////////////////////
 
 ScriptCodeCompletionCache *ScriptCodeCompletionCache::singleton = nullptr;

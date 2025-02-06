@@ -102,6 +102,8 @@ public:
 	static void get_inheriters_list(const StringName &p_base_type, List<StringName> *r_classes);
 	static void save_global_classes();
 
+	static String get_current_script_backtrace();
+
 	static void init_languages();
 	static void finish_languages();
 	static bool are_languages_initialized();

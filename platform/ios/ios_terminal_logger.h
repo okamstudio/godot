@@ -37,7 +37,7 @@
 
 class IOSTerminalLogger : public StdLogger {
 public:
-	virtual void log_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify = false, ErrorType p_type = ERR_ERROR) override;
+	virtual void log_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify = false, ErrorType p_type = ERR_ERROR, const char *p_script_backtrace = nullptr) override;
 };
 
 #endif // IOS_ENABLED

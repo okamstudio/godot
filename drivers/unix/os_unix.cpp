@@ -1031,7 +1031,7 @@ String OS_Unix::get_executable_path() const {
 #endif
 }
 
-void UnixTerminalLogger::log_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify, ErrorType p_type) {
+void UnixTerminalLogger::log_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify, ErrorType p_type, const char *p_script_backtrace) {
 	if (!should_log(true)) {
 		return;
 	}
@@ -1056,6 +1056,8 @@ void UnixTerminalLogger::log_error(const char *p_function, const char *p_file, i
 	const char *magenta_bold = tty ? "\E[1;35m" : "";
 	const char *cyan = tty ? "\E[0;96m" : "";
 	const char *cyan_bold = tty ? "\E[1;36m" : "";
+	const char *blue = tty ? "\E[0;94m" : "";
+	//const char *blue_bold = tty ? "\E[1;34m" : "";
 	const char *reset = tty ? "\E[0m" : "";
 
 	switch (p_type) {
@@ -1076,6 +1078,10 @@ void UnixTerminalLogger::log_error(const char *p_function, const char *p_file, i
 			logf_error("%sERROR:%s %s\n", red_bold, red, err_details);
 			logf_error("%s   at: %s (%s:%i)%s\n", gray, p_function, p_file, p_line, reset);
 			break;
+	}
+
+	if (p_script_backtrace && p_script_backtrace[0] != 0) {
+		logf_error("%s%s\n", blue, p_script_backtrace);
 	}
 }
 
