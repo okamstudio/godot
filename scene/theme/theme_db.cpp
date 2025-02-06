@@ -43,24 +43,38 @@
 
 // Default engine theme creation and configuration.
 
-void ThemeDB::initialize_theme() {
+void ThemeDB::initialize_theme_settings() {
 	// Default theme-related project settings.
 
 	// Allow creating the default theme at a different scale to suit higher/lower base resolutions.
-	float default_theme_scale = GLOBAL_DEF(PropertyInfo(Variant::FLOAT, "gui/theme/default_theme_scale", PROPERTY_HINT_RANGE, "0.5,8,0.01", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), 1.0);
+	GLOBAL_DEF(PropertyInfo(Variant::FLOAT, "gui/theme/default_theme_scale", PROPERTY_HINT_RANGE, "0.5,8,0.01", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), 1.0);
 
-	String project_theme_path = GLOBAL_DEF_RST_BASIC(PropertyInfo(Variant::STRING, "gui/theme/custom", PROPERTY_HINT_FILE, "*.tres,*.res,*.theme", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), "");
-	String project_font_path = GLOBAL_DEF_RST_BASIC(PropertyInfo(Variant::STRING, "gui/theme/custom_font", PROPERTY_HINT_FILE, "*.tres,*.res,*.otf,*.ttf,*.woff,*.woff2,*.fnt,*.font,*.pfb,*.pfm", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), "");
+	GLOBAL_DEF_RST_BASIC(PropertyInfo(Variant::STRING, "gui/theme/custom", PROPERTY_HINT_FILE, "*.tres,*.res,*.theme", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), "");
+	GLOBAL_DEF_RST_BASIC(PropertyInfo(Variant::STRING, "gui/theme/custom_font", PROPERTY_HINT_FILE, "*.tres,*.res,*.otf,*.ttf,*.woff,*.woff2,*.fnt,*.font,*.pfb,*.pfm", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), "");
 
-	TextServer::FontAntialiasing font_antialiasing = (TextServer::FontAntialiasing)(int)GLOBAL_DEF_RST(PropertyInfo(Variant::INT, "gui/theme/default_font_antialiasing", PROPERTY_HINT_ENUM, "None,Grayscale,LCD Subpixel", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), 1);
-	TextServer::Hinting font_hinting = (TextServer::Hinting)(int)GLOBAL_DEF_RST(PropertyInfo(Variant::INT, "gui/theme/default_font_hinting", PROPERTY_HINT_ENUM, "None,Light,Normal", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), TextServer::HINTING_LIGHT);
-	TextServer::SubpixelPositioning font_subpixel_positioning = (TextServer::SubpixelPositioning)(int)GLOBAL_DEF_RST(PropertyInfo(Variant::INT, "gui/theme/default_font_subpixel_positioning", PROPERTY_HINT_ENUM, "Disabled,Auto,One Half of a Pixel,One Quarter of a Pixel", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), TextServer::SUBPIXEL_POSITIONING_AUTO);
+	GLOBAL_DEF_RST(PropertyInfo(Variant::INT, "gui/theme/default_font_antialiasing", PROPERTY_HINT_ENUM, "None,Grayscale,LCD Subpixel", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), 1);
+	GLOBAL_DEF_RST(PropertyInfo(Variant::INT, "gui/theme/default_font_hinting", PROPERTY_HINT_ENUM, "None,Light,Normal", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), TextServer::HINTING_LIGHT);
+	GLOBAL_DEF_RST(PropertyInfo(Variant::INT, "gui/theme/default_font_subpixel_positioning", PROPERTY_HINT_ENUM, "Disabled,Auto,One Half of a Pixel,One Quarter of a Pixel", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), TextServer::SUBPIXEL_POSITIONING_AUTO);
 
-	const bool font_msdf = GLOBAL_DEF_RST("gui/theme/default_font_multichannel_signed_distance_field", false);
-	const bool font_generate_mipmaps = GLOBAL_DEF_RST("gui/theme/default_font_generate_mipmaps", false);
+	GLOBAL_DEF_RST("gui/theme/default_font_multichannel_signed_distance_field", false);
+	GLOBAL_DEF_RST("gui/theme/default_font_generate_mipmaps", false);
 
 	GLOBAL_DEF_RST(PropertyInfo(Variant::INT, "gui/theme/lcd_subpixel_layout", PROPERTY_HINT_ENUM, "Disabled,Horizontal RGB,Horizontal BGR,Vertical RGB,Vertical BGR"), 1);
 	ProjectSettings::get_singleton()->set_restart_if_changed("gui/theme/lcd_subpixel_layout", false);
+}
+
+void ThemeDB::initialize_theme() {
+	float default_theme_scale = GLOBAL_GET("gui/theme/default_theme_scale");
+
+	String project_theme_path = GLOBAL_GET("gui/theme/custom");
+	String project_font_path = GLOBAL_GET("gui/theme/custom_font");
+
+	TextServer::FontAntialiasing font_antialiasing = (TextServer::FontAntialiasing)(int)GLOBAL_GET("gui/theme/default_font_antialiasing");
+	TextServer::Hinting font_hinting = (TextServer::Hinting)(int)GLOBAL_GET("gui/theme/default_font_hinting");
+	TextServer::SubpixelPositioning font_subpixel_positioning = (TextServer::SubpixelPositioning)(int)GLOBAL_GET("gui/theme/default_font_subpixel_positioning");
+
+	const bool font_msdf = GLOBAL_GET("gui/theme/default_font_multichannel_signed_distance_field");
+	const bool font_generate_mipmaps = GLOBAL_GET("gui/theme/default_font_generate_mipmaps");
 
 	// Attempt to load custom project theme and font.
 

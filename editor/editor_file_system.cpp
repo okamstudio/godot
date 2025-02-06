@@ -46,6 +46,7 @@
 #include "editor/plugins/script_editor_plugin.h"
 #include "editor/project_settings_editor.h"
 #include "scene/resources/packed_scene.h"
+#include "scene/theme/theme_db.h"
 
 EditorFileSystem *EditorFileSystem::singleton = nullptr;
 //the name is the version, to keep compatibility with different versions of Godot
@@ -777,6 +778,29 @@ bool EditorFileSystem::_scan_import_support(const Vector<String> &reimports) {
 
 bool EditorFileSystem::_update_scan_actions() {
 	sources_changed.clear();
+
+	if (first_scan) {
+		// Reimport project theme / base font and load proper project theme first.
+		String project_theme_path = GLOBAL_GET("gui/theme/custom");
+		String project_font_path = GLOBAL_GET("gui/theme/custom_font");
+		Vector<String> reimports;
+
+		if (!project_font_path.is_empty()) {
+			bool need_reimport = _test_for_reimport(project_font_path, false);
+			if (need_reimport) {
+				reimports.push_back(project_font_path);
+			}
+		}
+		if (!project_theme_path.is_empty()) {
+			bool need_reimport = _test_for_reimport(project_theme_path, false);
+			if (need_reimport) {
+				reimports.push_back(project_theme_path);
+			}
+		}
+		reimport_files(reimports);
+
+		ThemeDB::get_singleton()->initialize_theme();
+	}
 
 	// We need to update the script global class names before the reimports to be sure that
 	// all the importer classes that depends on class names will work.

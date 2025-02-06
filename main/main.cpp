@@ -3444,7 +3444,12 @@ Error Main::setup2(bool p_show_boot_logo) {
 	// This loads global classes, so it must happen before custom loaders and savers are registered
 	ScriptServer::init_languages();
 
-	theme_db->initialize_theme();
+	theme_db->initialize_theme_settings();
+	if (!project_manager && !editor) {
+		theme_db->initialize_theme();
+	} else {
+		theme_db->initialize_theme_noproject();
+	}
 	audio_server->load_default_bus_layout();
 
 #if defined(MODULE_MONO_ENABLED) && defined(TOOLS_ENABLED)

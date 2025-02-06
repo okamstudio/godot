@@ -127,6 +127,7 @@ protected:
 	static void _bind_methods();
 
 public:
+	void initialize_theme_settings();
 	void initialize_theme();
 	void initialize_theme_noproject();
 	void finalize_theme();
