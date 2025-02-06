@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  resource_importer_image.cpp                                           */
+/*  image_loader_dds.h                                                    */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,70 +28,65 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "resource_importer_image.h"
+#ifndef IMAGE_LOADER_DDS_H
+#define IMAGE_LOADER_DDS_H
 
-#include "core/io/file_access.h"
 #include "core/io/image_loader.h"
 
-String ResourceImporterImage::get_importer_name() const {
-	return "image";
-}
+class ImageLoaderDDS : public ImageFormatLoader {
+public:
+	// The legacy bitmasked format names here represent the actual data layout in the files,
+	// while their official names are flipped (e.g. RGBA8 layout is officially called ABGR8).
+	enum DDSFormat {
+		DDS_DXT1,
+		DDS_DXT3,
+		DDS_DXT5,
+		DDS_ATI1,
+		DDS_ATI2,
+		DDS_BC6U,
+		DDS_BC6S,
+		DDS_BC7,
+		DDS_R16F,
+		DDS_RG16F,
+		DDS_RGBA16F,
+		DDS_R32F,
+		DDS_RG32F,
+		DDS_RGB32F,
+		DDS_RGBA32F,
+		DDS_RGB9E5,
+		DDS_RGB8,
+		DDS_RGBA8,
+		DDS_BGR8,
+		DDS_BGRA8,
+		DDS_BGR5A1,
+		DDS_BGR565,
+		DDS_B2GR3,
+		DDS_B2GR3A8,
+		DDS_BGR10A2,
+		DDS_RGB10A2,
+		DDS_BGRA4,
+		DDS_LUMINANCE,
+		DDS_LUMINANCE_ALPHA,
+		DDS_LUMINANCE_ALPHA_4,
+		DDS_MAX
+	};
 
-String ResourceImporterImage::get_visible_name() const {
-	return "Image";
-}
+	enum DDSType {
+		DDST_2D = 1,
+		DDST_CUBEMAP,
+		DDST_3D,
 
-void ResourceImporterImage::get_recognized_extensions(List<String> *p_extensions) const {
-	ImageLoader::get_recognized_extensions(p_extensions, get_resource_type());
-}
+		DDST_TYPE_MASK = 0x7F,
+		DDST_ARRAY = 0x80,
+	};
 
-String ResourceImporterImage::get_save_extension() const {
-	return "image";
-}
+	static Error load_layer(Ref<Image> p_layer, Ref<FileAccess> p_file, DDSFormat p_dds_format, uint32_t p_width, uint32_t p_height, uint32_t p_mipmaps, uint32_t p_pitch, uint32_t p_flags, Vector<uint8_t> &r_src_data);
+	static Error load_image_layers(Vector<Ref<Image>> &p_layers, Ref<FileAccess> p_file, uint32_t *r_dds_type = nullptr);
 
-String ResourceImporterImage::get_resource_type() const {
-	return "Image";
-}
+	virtual Error load_image(Ref<Image> p_image, Ref<FileAccess> f, BitField<ImageFormatLoader::LoaderFlags> p_flags, float p_scale);
+	virtual void get_recognized_extensions(List<String> *p_extensions) const;
+	virtual bool should_import(const String &p_resource_type) const;
+	ImageLoaderDDS();
+};
 
-bool ResourceImporterImage::get_option_visibility(const String &p_path, const String &p_option, const HashMap<StringName, Variant> &p_options) const {
-	return true;
-}
-
-int ResourceImporterImage::get_preset_count() const {
-	return 0;
-}
-
-String ResourceImporterImage::get_preset_name(int p_idx) const {
-	return String();
-}
-
-void ResourceImporterImage::get_import_options(const String &p_path, List<ImportOption> *r_options, int p_preset) const {
-}
-
-Error ResourceImporterImage::import(ResourceUID::ID p_source_id, const String &p_source_file, const String &p_save_path, const HashMap<StringName, Variant> &p_options, List<String> *r_platform_variants, List<String> *r_gen_files, Variant *r_metadata) {
-	Ref<FileAccess> f = FileAccess::open(p_source_file, FileAccess::READ);
-
-	ERR_FAIL_COND_V_MSG(f.is_null(), ERR_CANT_OPEN, "Cannot open file from path '" + p_source_file + "'.");
-	uint64_t len = f->get_length();
-
-	Vector<uint8_t> data;
-	data.resize(len);
-
-	f->get_buffer(data.ptrw(), len);
-
-	f = FileAccess::open(p_save_path + ".image", FileAccess::WRITE);
-	ERR_FAIL_COND_V_MSG(f.is_null(), ERR_CANT_CREATE, "Cannot create file in path '" + p_save_path + ".image'.");
-
-	//save the header GDIM
-	const uint8_t header[4] = { 'G', 'D', 'I', 'M' };
-	f->store_buffer(header, 4);
-	//SAVE the extension (so it can be recognized by the loader later
-	f->store_pascal_string(p_source_file.get_extension().to_lower());
-	//SAVE the actual image
-	f->store_buffer(data.ptr(), len);
-
-	return OK;
-}
-
-ResourceImporterImage::ResourceImporterImage() {
-}
+#endif // IMAGE_LOADER_DDS_H

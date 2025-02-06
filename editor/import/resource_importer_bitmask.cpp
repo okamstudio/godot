@@ -44,7 +44,7 @@ String ResourceImporterBitMap::get_visible_name() const {
 }
 
 void ResourceImporterBitMap::get_recognized_extensions(List<String> *p_extensions) const {
-	ImageLoader::get_recognized_extensions(p_extensions);
+	ImageLoader::get_recognized_extensions(p_extensions, get_resource_type());
 }
 
 String ResourceImporterBitMap::get_save_extension() const {

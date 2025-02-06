@@ -43,7 +43,7 @@ String ResourceImporterImageFont::get_visible_name() const {
 
 void ResourceImporterImageFont::get_recognized_extensions(List<String> *p_extensions) const {
 	if (p_extensions) {
-		ImageLoader::get_recognized_extensions(p_extensions);
+		ImageLoader::get_recognized_extensions(p_extensions, get_resource_type());
 	}
 }
 
