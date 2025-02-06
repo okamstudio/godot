@@ -286,9 +286,11 @@ void EditorHelpSearch::popup_dialog() {
 
 void EditorHelpSearch::popup_dialog(const String &p_term) {
 	// Restore valid window bounds or pop up at default size.
-	Rect2 saved_size = EditorSettings::get_singleton()->get_project_metadata("dialog_bounds", "search_help", Rect2());
-	if (saved_size != Rect2()) {
-		popup(saved_size);
+	Rect2 saved_rect = EditorSettings::get_singleton()->get_project_metadata("dialog_bounds", "search_help", Rect2());
+	Rect2 screen_rect = DisplayServer::get_singleton()->screen_get_usable_rect(get_window()->get_current_screen());
+
+	if (saved_rect != Rect2() && screen_rect.encloses(saved_rect)) {
+		popup(saved_rect);
 	} else {
 		popup_centered_ratio(0.5F);
 	}
