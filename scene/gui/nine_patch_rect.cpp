@@ -30,6 +30,7 @@
 
 #include "nine_patch_rect.h"
 
+#include "scene/resources/atlas_texture.h"
 #include "servers/rendering_server.h"
 
 void NinePatchRect::_notification(int p_what) {
@@ -43,6 +44,12 @@ void NinePatchRect::_notification(int p_what) {
 			Rect2 src_rect = region_rect;
 
 			texture->get_rect_region(rect, src_rect, rect, src_rect);
+
+			Ref<AtlasTexture> atlas = texture;
+			while (atlas.is_valid() && atlas->get_atlas().is_valid()) {
+				atlas->get_atlas()->get_rect_region(rect, src_rect, rect, src_rect);
+				atlas = atlas->get_atlas();
+			}
 
 			RID ci = get_canvas_item();
 			RS::get_singleton()->canvas_item_add_nine_patch(ci, rect, src_rect, texture->get_rid(), Vector2(margin[SIDE_LEFT], margin[SIDE_TOP]), Vector2(margin[SIDE_RIGHT], margin[SIDE_BOTTOM]), RS::NinePatchAxisMode(axis_h), RS::NinePatchAxisMode(axis_v), draw_center);

@@ -30,6 +30,8 @@
 
 #include "style_box_texture.h"
 
+#include "scene/resources/atlas_texture.h"
+
 float StyleBoxTexture::get_style_margin(Side p_side) const {
 	ERR_FAIL_INDEX_V((int)p_side, 4, 0.0);
 
@@ -169,6 +171,12 @@ void StyleBoxTexture::draw(RID p_canvas_item, const Rect2 &p_rect) const {
 	Rect2 src_rect = region_rect;
 
 	texture->get_rect_region(rect, src_rect, rect, src_rect);
+
+	Ref<AtlasTexture> atlas = texture;
+	while (atlas.is_valid() && atlas->get_atlas().is_valid()) {
+		atlas->get_atlas()->get_rect_region(rect, src_rect, rect, src_rect);
+		atlas = atlas->get_atlas();
+	}
 
 	rect.position.x -= expand_margin[SIDE_LEFT];
 	rect.position.y -= expand_margin[SIDE_TOP];

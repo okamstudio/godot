@@ -30,6 +30,8 @@
 
 #include "texture_progress_bar.h"
 
+#include "scene/resources/atlas_texture.h"
+
 void TextureProgressBar::set_under_texture(const Ref<Texture2D> &p_texture) {
 	_set_texture(&under, p_texture);
 }
@@ -422,6 +424,12 @@ void TextureProgressBar::draw_nine_patch_stretched(const Ref<Texture2D> &p_textu
 		dst_rect.position += progress_offset;
 	}
 	p_texture->get_rect_region(dst_rect, src_rect, dst_rect, src_rect);
+
+	Ref<AtlasTexture> atlas = p_texture;
+	while (atlas.is_valid() && atlas->get_atlas().is_valid()) {
+		atlas->get_atlas()->get_rect_region(dst_rect, src_rect, dst_rect, src_rect);
+		atlas = atlas->get_atlas();
+	}
 
 	RID ci = get_canvas_item();
 	RS::get_singleton()->canvas_item_add_nine_patch(ci, dst_rect, src_rect, p_texture->get_rid(), topleft, bottomright, RS::NINE_PATCH_STRETCH, RS::NINE_PATCH_STRETCH, true, p_modulate);
