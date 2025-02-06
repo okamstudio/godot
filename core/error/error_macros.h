@@ -391,6 +391,84 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
 	} else                                                                                                           \
 		((void)0)
 
+// Required pointer error macros.
+
+/**
+ * Try using `ERR_FAIL_REQUIRED_PTR_MSG`.
+ * Only use this macro if there is no sensible error message.
+ *
+ * Ensures a pointer `m_param` is not null and assigns to a local variable named `m_name`.
+ * If it is null, the current function returns.
+ */
+#define ERR_FAIL_REQUIRED_PTR(m_name, m_param)                                                          \
+	std::remove_reference_t<decltype(m_param)>::type m_name = m_param._internal_ptr();                  \
+	if (unlikely(m_name == nullptr)) {                                                                  \
+		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Parameter \"" _STR(m_param) "\" is null."); \
+		return;                                                                                         \
+	} else                                                                                              \
+		((void)0)
+
+/**
+ * Ensures a pointer `m_param` is not null and assigns to a local variable named `m_name`.
+ * If it is null, prints `m_msg` and the current function returns.
+ */
+#define ERR_FAIL_REQUIRED_PTR_MSG(m_name, m_param, m_msg)                                                       \
+	std::remove_reference_t<decltype(m_param)>::type m_name = m_param._internal_ptr();                          \
+	if (unlikely(m_name == nullptr) {                                                                         \
+		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Parameter \"" _STR(m_param) "\" is null.", m_msg); \
+		return;                                                                                                \
+	} else                                                                                                     \
+		((void)0)
+
+/**
+ * Same as `ERR_FAIL_REQUIRED_PTR_MSG` but also notifies the editor.
+ */
+#define ERR_FAIL_REQUIRED_PTR_EDMSG(m_name, m_param, m_msg)                                                           \
+	std::remove_reference_t<decltype(m_param)>::type m_name = m_param._internal_ptr();                                \
+	if (unlikely(m_name == nullptr) {                                                                               \
+		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Parameter \"" _STR(m_param) "\" is null.", m_msg, true); \
+		return;                                                                                                      \
+	} else                                                                                                           \
+		((void)0)
+
+/**
+ * Try using `ERR_FAIL_REQUIRED_PTR_V_MSG`.
+ * Only use this macro if there is no sensible error message.
+ *
+ * Ensures a pointer `m_param` is not null and assigns a local variable named `m_name`.
+ * If it is null, the current function returns `m_retval`.
+ */
+#define ERR_FAIL_REQUIRED_PTR_V(m_name, m_param, m_retval)                                               \
+	std::remove_reference_t<decltype(m_param)>::type m_name = m_param._internal_ptr();                   \
+	if (unlikely(m_name == nullptr) {                                                                  \
+		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Parameter \"" _STR(m_param) "\" is null."); \
+		return m_retval;                                                                                \
+	} else                                                                                              \
+		((void)0)
+
+/**
+ * Ensures a pointer `m_param` is not null and assigns a local variable named `m_name`.
+ * If it is null, prints `m_msg` and the current function returns `m_retval`.
+ */
+#define ERR_FAIL_REQUIRED_PTR_V_MSG(m_name, m_param, m_retval, m_msg)                                           \
+	std::remove_reference_t<decltype(m_param)>::type m_name = m_param._internal_ptr();                          \
+	if (unlikely(m_name == nullptr) {                                                                         \
+		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Parameter \"" _STR(m_param) "\" is null.", m_msg); \
+		return m_retval;                                                                                       \
+	} else                                                                                                     \
+		((void)0)
+
+/**
+ * Same as `ERR_FAIL_REQUIRED_PTR_V_MSG` but also notifies the editor.
+ */
+#define ERR_FAIL_REQUIRED_PTR_V_EDMSG(m_name, m_param, m_retval, m_msg)                                              \
+	std::remove_reference_t<decltype(m_param)>::type m_name = m_param._internal_ptr();                               \
+	if (unlikely(m_name == nullptr)) {                                                                               \
+		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Parameter \"" _STR(m_param) "\" is null.", m_msg, true); \
+		return m_retval;                                                                                             \
+	} else                                                                                                           \
+		((void)0)
+
 /**
  * Try using `ERR_FAIL_COND_MSG`.
  * Only use this macro if there is no sensible error message.

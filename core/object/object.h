@@ -42,6 +42,7 @@
 #include "core/templates/rb_map.h"
 #include "core/templates/safe_refcount.h"
 #include "core/variant/callable_bind.h"
+#include "core/variant/required_ptr.h"
 #include "core/variant/variant.h"
 
 template <typename T>

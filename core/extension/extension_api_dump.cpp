@@ -88,7 +88,7 @@ static String get_property_info_type_name(const PropertyInfo &p_info) {
 }
 
 static String get_type_meta_name(const GodotTypeInfo::Metadata metadata) {
-	static const char *argmeta[13] = { "none", "int8", "int16", "int32", "int64", "uint8", "uint16", "uint32", "uint64", "float", "double", "char16", "char32" };
+	static const char *argmeta[14] = { "none", "int8", "int16", "int32", "int64", "uint8", "uint16", "uint32", "uint64", "float", "double", "char16", "char32", "required" };
 	return argmeta[metadata];
 }
 

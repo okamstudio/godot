@@ -1644,28 +1644,28 @@ void Node::_add_child_nocheck(Node *p_child, const StringName &p_name, InternalM
 	emit_signal(SNAME("child_order_changed"));
 }
 
-void Node::add_child(Node *p_child, bool p_force_readable_name, InternalMode p_internal) {
+void Node::add_child(const RequiredPtr<Node> &p_child, bool p_force_readable_name, InternalMode p_internal) {
 	ERR_FAIL_COND_MSG(data.inside_tree && !Thread::is_main_thread(), "Adding children to a node inside the SceneTree is only allowed from the main thread. Use call_deferred(\"add_child\",node).");
 
 	ERR_THREAD_GUARD
-	ERR_FAIL_NULL(p_child);
-	ERR_FAIL_COND_MSG(p_child == this, vformat("Can't add child '%s' to itself.", p_child->get_name())); // adding to itself!
-	ERR_FAIL_COND_MSG(p_child->data.parent, vformat("Can't add child '%s' to '%s', already has a parent '%s'.", p_child->get_name(), get_name(), p_child->data.parent->get_name())); //Fail if node has a parent
+	ERR_FAIL_REQUIRED_PTR(child, p_child);
+	ERR_FAIL_COND_MSG(child == this, vformat("Can't add child '%s' to itself.", child->get_name())); // adding to itself!
+	ERR_FAIL_COND_MSG(child->data.parent, vformat("Can't add child '%s' to '%s', already has a parent '%s'.", child->get_name(), get_name(), child->data.parent->get_name())); //Fail if node has a parent
 #ifdef DEBUG_ENABLED
-	ERR_FAIL_COND_MSG(p_child->is_ancestor_of(this), vformat("Can't add child '%s' to '%s' as it would result in a cyclic dependency since '%s' is already a parent of '%s'.", p_child->get_name(), get_name(), p_child->get_name(), get_name()));
+	ERR_FAIL_COND_MSG(child->is_ancestor_of(this), vformat("Can't add child '%s' to '%s' as it would result in a cyclic dependency since '%s' is already a parent of '%s'.", child->get_name(), get_name(), child->get_name(), get_name()));
 #endif
 	ERR_FAIL_COND_MSG(data.blocked > 0, "Parent node is busy setting up children, `add_child()` failed. Consider using `add_child.call_deferred(child)` instead.");
 
-	_validate_child_name(p_child, p_force_readable_name);
+	_validate_child_name(child, p_force_readable_name);
 
 #ifdef DEBUG_ENABLED
-	if (p_child->data.owner && !p_child->data.owner->is_ancestor_of(p_child)) {
-		// Owner of p_child should be ancestor of p_child.
-		WARN_PRINT(vformat("Adding '%s' as child to '%s' will make owner '%s' inconsistent. Consider unsetting the owner beforehand.", p_child->get_name(), get_name(), p_child->data.owner->get_name()));
+	if (child->data.owner && !child->data.owner->is_ancestor_of(child)) {
+		// Owner of child should be ancestor of child.
+		WARN_PRINT(vformat("Adding '%s' as child to '%s' will make owner '%s' inconsistent. Consider unsetting the owner beforehand.", child->get_name(), get_name(), child->data.owner->get_name()));
 	}
 #endif // DEBUG_ENABLED
 
-	_add_child_nocheck(p_child, p_child->data.name, p_internal);
+	_add_child_nocheck(child, child->data.name, p_internal);
 }
 
 void Node::add_sibling(Node *p_sibling, bool p_force_readable_name) {

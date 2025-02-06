@@ -37,6 +37,7 @@
 #include "core/templates/simple_type.h"
 #include "core/typedefs.h"
 #include "core/variant/method_ptrcall.h"
+#include "core/variant/required_ptr.h"
 #include "core/variant/type_info.h"
 #include "core/variant/variant.h"
 #include "core/variant/variant_internal.h"

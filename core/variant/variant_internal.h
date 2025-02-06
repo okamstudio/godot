@@ -1097,6 +1097,18 @@ struct VariantInternalAccessor<Object *> {
 	static _FORCE_INLINE_ void set(Variant *v, const Object *p_value) { VariantInternal::object_assign(v, p_value); }
 };
 
+template <class T>
+struct VariantInternalAccessor<RequiredPtr<T>> {
+	static _FORCE_INLINE_ RequiredPtr<T> get(const Variant *v) { return RequiredPtr<T>(Object::cast_to<T>(const_cast<Object *>(*VariantInternal::get_object(v)))); }
+	static _FORCE_INLINE_ void set(Variant *v, const RequiredPtr<T> &p_value) { VariantInternal::object_assign(v, p_value.ptr()); }
+};
+
+template <class T>
+struct VariantInternalAccessor<const RequiredPtr<T> &> {
+	static _FORCE_INLINE_ RequiredPtr<T> get(const Variant *v) { return RequiredPtr<T>(Object::cast_to<T>(*VariantInternal::get_object(v))); }
+	static _FORCE_INLINE_ void set(Variant *v, const RequiredPtr<T> &p_value) { VariantInternal::object_assign(v, p_value.ptr()); }
+};
+
 template <>
 struct VariantInternalAccessor<Variant> {
 	static _FORCE_INLINE_ Variant &get(Variant *v) { return *v; }
