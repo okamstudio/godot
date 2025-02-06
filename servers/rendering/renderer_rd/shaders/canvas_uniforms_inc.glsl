@@ -4,8 +4,6 @@
 
 #define SDF_MAX_LENGTH 16384.0
 
-#define INSTANCE_FLAGS_LIGHT_COUNT_SHIFT 0 // 4 bits.
-
 #define INSTANCE_FLAGS_CLIP_RECT_UV (1 << 4)
 #define INSTANCE_FLAGS_TRANSPOSE_RECT (1 << 5)
 #define INSTANCE_FLAGS_USE_MSDF (1 << 6)
@@ -78,8 +76,12 @@ uint sc_packed_0() {
 
 #endif
 
-bool sc_use_lighting() {
+bool sc_use_directional_lighting() {
 	return ((sc_packed_0() >> 0) & 1U) != 0;
+}
+
+uint sc_light_count() {
+	return (sc_packed_0() >> 1) & 15U;
 }
 
 // In vulkan, sets should always be ordered using the following logic:

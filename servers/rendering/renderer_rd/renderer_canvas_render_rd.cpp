@@ -2370,15 +2370,12 @@ void RendererCanvasRenderRD::_record_item_commands(const Item *p_item, RenderTar
 			light = light->next_ptr;
 		}
 
-		base_flags |= light_count << INSTANCE_FLAGS_LIGHT_COUNT_SHIFT;
 		base_flags |= shadow_mask << INSTANCE_FLAGS_SHADOW_MASKED_SHIFT;
 	}
 
-	bool use_lighting = (light_count > 0 || using_directional_lights);
-
-	if (use_lighting != r_current_batch->use_lighting) {
+	if (light_count != r_current_batch->positional_light_count) {
 		r_current_batch = _new_batch(r_batch_broken);
-		r_current_batch->use_lighting = use_lighting;
+		r_current_batch->positional_light_count = light_count;
 	}
 
 	const Item::Command *c = p_item->commands;
@@ -2890,9 +2887,9 @@ void RendererCanvasRenderRD::_record_item_commands(const Item *p_item, RenderTar
 		}
 
 		// 2: If the current batch has lighting, start a new batch.
-		if (r_current_batch->use_lighting) {
+		if (r_current_batch->positional_light_count) {
 			r_current_batch = _new_batch(r_batch_broken);
-			r_current_batch->use_lighting = false;
+			r_current_batch->positional_light_count = 0;
 		}
 
 		// 3: If the current batch has blend, start a new batch.
@@ -3037,7 +3034,8 @@ void RendererCanvasRenderRD::_render_batch(RD::DrawListID p_draw_list, CanvasSha
 	pipeline_key.framebuffer_format_id = p_framebuffer_format;
 	pipeline_key.variant = p_batch->shader_variant;
 	pipeline_key.render_primitive = p_batch->render_primitive;
-	pipeline_key.shader_specialization.use_lighting = p_batch->use_lighting;
+	pipeline_key.shader_specialization.use_directional_lighting = using_directional_lights;
+	pipeline_key.shader_specialization.positional_light_count = p_batch->positional_light_count;
 	pipeline_key.lcd_blend = p_batch->has_blend;
 
 	switch (p_batch->command_type) {
