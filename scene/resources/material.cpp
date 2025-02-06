@@ -1382,6 +1382,18 @@ vec4 triplanar_texture(sampler2D p_sampler, vec3 p_weights, vec3 p_triplanar_pos
 )";
 	}
 
+	if (features[FEATURE_HEIGHT_MAPPING]) {
+		code += R"(
+vec4 height_texture(sampler2D p_sampler, vec2 uv) {
+)";
+		if (flags[FLAG_INVERT_HEIGHTMAP]) {
+			code += "	return texture(p_sampler, uv);\n";
+		} else {
+			code += "	return 1.0 - texture(p_sampler, uv);\n";
+		}
+		code += "}\n";
+	}
+
 	// Generate fragment shader.
 	code += R"(
 void fragment() {)";
@@ -1429,51 +1441,113 @@ void fragment() {)";
 			// Multiply the heightmap scale by 0.01 to improve heightmap scale usability.
 			code += R"(
 		// Height Deep Parallax: Enabled
-		float num_layers = mix(float(heightmap_max_layers), float(heightmap_min_layers), abs(dot(vec3(0.0, 0.0, 1.0), view_dir)));
-		float layer_depth = 1.0 / num_layers;
-		float current_layer_depth = 0.0;
-		vec2 p = view_dir.xy * heightmap_scale * 0.01;
-		vec2 delta = p / num_layers;
+
+		vec3 view_direction = normalize(VIEW);
+		mat3 tangent_basis = mat3(
+				TANGENT,
+				-BINORMAL,
+				NORMAL);
+
+		vec3 tangent_view_dir = transpose(tangent_basis) * view_direction;
+
 		vec2 ofs = base_uv;
-)";
-			if (flags[FLAG_INVERT_HEIGHTMAP]) {
-				code += "		float depth = texture(texture_heightmap, ofs).r;\n";
-			} else {
-				code += "		float depth = 1.0 - texture(texture_heightmap, ofs).r;\n";
+		vec2 final_tex_coords;
+		float offset;
+		{
+			const float HEIGHT_SCALE_FACTOR = 0.01;
+
+			float num_layers = mix(float(heightmap_max_layers), float(heightmap_min_layers), abs(dot(vec3(0.0, 0.0, 1.0), tangent_view_dir)));
+			// Calculate the size of each layer.
+			float layer_depth = 1.0 / num_layers;
+			// Depth of current layer.
+			float current_layer_depth = 0.0;
+			// The amount to shift the texture coordinates per layer (from vector P).
+			vec2 P = tangent_view_dir.xy / tangent_view_dir.z * heightmap_scale * HEIGHT_SCALE_FACTOR;
+			vec2 delta_tex_coords = P / num_layers * 0.5;
+
+			// Get initial values.
+			vec2 current_tex_coords = ofs;
+			float current_depth_map_value = height_texture(texture_heightmap, current_tex_coords).r;
+
+			while (current_layer_depth < current_depth_map_value) {
+				// Shift texture coordinates along direction of P.
+				current_tex_coords -= delta_tex_coords;
+				// Get depthmap value at current texture coordinates.
+				current_depth_map_value = height_texture(texture_heightmap, current_tex_coords).r;
+				// Get depth of next layer.
+				current_layer_depth += layer_depth;
 			}
-			code += R"(
-		float current_depth = 0.0;
-		while (current_depth < depth) {
-			ofs -= delta;
-)";
-			if (flags[FLAG_INVERT_HEIGHTMAP]) {
-				code += "			depth = texture(texture_heightmap, ofs).r;\n";
-			} else {
-				code += "			depth = 1.0 - texture(texture_heightmap, ofs).r;\n";
-			}
-			code += R"(
-			current_depth += layer_depth;
+
+			// Get texture coordinates before collision (reverse operations).
+			vec2 prev_tex_coords = current_tex_coords + delta_tex_coords;
+
+			// Get depth after and before collision for linear interpolation.
+			float after_depth = current_depth_map_value - current_layer_depth;
+			float before_depth = height_texture(texture_heightmap, prev_tex_coords).r - current_layer_depth + layer_depth;
+
+			// Interpolate texture coordinates to make low layer counts look smoother.
+			float weight = after_depth / (after_depth - before_depth);
+
+			offset = current_layer_depth / abs(dot(vec3(0.0, 0.0, 1.0), tangent_view_dir)) * heightmap_scale * HEIGHT_SCALE_FACTOR;
+			ofs = prev_tex_coords * weight + current_tex_coords * (1.0 - weight);
 		}
-
-		vec2 prev_ofs = ofs + delta;
-		float after_depth = depth - current_depth;
 )";
-			if (flags[FLAG_INVERT_HEIGHTMAP]) {
-				code += "		float before_depth = texture(texture_heightmap, prev_ofs).r - current_depth + layer_depth;\n";
-			} else {
-				code += "		float before_depth = (1.0 - texture(texture_heightmap, prev_ofs).r) - current_depth + layer_depth;\n";
+			if (heightmap_parallax_trim_edges) {
+				code += R"(
+
+		// Height Deep Parallax Trim Edges: Enabled
+		// Discard if outside UV bounds to make depth visible on the mesh's edges.
+		// We undo the UV1 scale/offset here so that texture repeat can work.
+		vec2 ofs_unscaled = ofs / uv1_scale.xy - uv1_offset.xy;
+		if (ofs_unscaled.x > 1.0 || ofs_unscaled.y > 1.0 || ofs_unscaled.x < 0.0 || ofs_unscaled.y < 0.0) {
+			discard;
+		})";
 			}
+
 			code += R"(
-		float weight = after_depth / (after_depth - before_depth);
-		ofs = mix(ofs, prev_ofs, weight);
+#if CURRENT_RENDERER == RENDERER_COMPATIBILITY
+		vec4 view_position = INV_PROJECTION_MATRIX * vec4(SCREEN_UV * 2.0 - 1.0, FRAGCOORD.z * 2.0 - 1.0, 1.0);
+#else
+		vec4 view_position = INV_PROJECTION_MATRIX * vec4(SCREEN_UV * 2.0 - 1.0, FRAGCOORD.z, 1.0);
+#endif
+		view_position.xyz /= view_position.w;
+		view_position.xyz -= offset * view_direction;
+
+		vec4 ndc_position = PROJECTION_MATRIX * vec4(view_position.xyz, 1.0);
+		ndc_position.xyz /= ndc_position.w;
 )";
 
-		} else {
-			if (flags[FLAG_INVERT_HEIGHTMAP]) {
-				code += "		float depth = texture(texture_heightmap, base_uv).r;\n";
-			} else {
-				code += "		float depth = 1.0 - texture(texture_heightmap, base_uv).r;\n";
+			if (heightmap_parallax_correct_shadow_receive) {
+				code += R"(
+		// Height Deep Parallax Correct Shadow Receive: Enabled
+		LIGHT_VERTEX -= offset * view_direction;
+)";
 			}
+
+			if (heightmap_parallax_write_depth) {
+				code += R"(
+		// Height Deep Parallax Write Depth: Enabled
+)";
+				if (!heightmap_parallax_trim_edges) {
+					code += R"(
+		if (false) {
+			// Calling `discard` anywhere prevents the depth prepass from running,
+			// as it breaks writing to depth.
+			discard;
+		}
+)";
+				}
+
+				code += R"(
+#if CURRENT_RENDERER == RENDERER_COMPATIBILITY
+		DEPTH = ndc_position.z * 0.5 + 0.5;
+#else
+		DEPTH = ndc_position.z;
+#endif
+)";
+			}
+		} else {
+			code += "		float depth = height_texture(texture_heightmap, base_uv).r;\n";
 			// Use offset limiting to improve the appearance of non-deep parallax.
 			// This reduces the impression of depth, but avoids visible warping in the distance.
 			// Multiply the heightmap scale by 0.01 to improve heightmap scale usability.
@@ -2488,7 +2562,12 @@ void BaseMaterial3D::_validate_property(PropertyInfo &p_property) const {
 		p_property.usage = PROPERTY_USAGE_NONE;
 	}
 
-	if ((p_property.name == "heightmap_min_layers" || p_property.name == "heightmap_max_layers") && !deep_parallax) {
+	if ((p_property.name == "heightmap_min_layers" ||
+				p_property.name == "heightmap_max_layers" ||
+				p_property.name == "heightmap_correct_shadow_receive" ||
+				p_property.name == "heightmap_write_depth" ||
+				p_property.name == "heightmap_trim_edges") &&
+			!deep_parallax) {
 		p_property.usage = PROPERTY_USAGE_NONE;
 	}
 
@@ -2706,6 +2785,45 @@ void BaseMaterial3D::set_heightmap_deep_parallax_flip_binormal(bool p_flip) {
 
 bool BaseMaterial3D::get_heightmap_deep_parallax_flip_binormal() const {
 	return heightmap_parallax_flip_binormal;
+}
+
+void BaseMaterial3D::set_heightmap_deep_parallax_correct_shadow_receive(bool p_enable) {
+	if (heightmap_parallax_correct_shadow_receive == p_enable) {
+		return;
+	}
+
+	heightmap_parallax_correct_shadow_receive = p_enable;
+	_queue_shader_change();
+}
+
+bool BaseMaterial3D::is_heightmap_deep_parallax_correcting_shadow_receive() const {
+	return heightmap_parallax_correct_shadow_receive;
+}
+
+void BaseMaterial3D::set_heightmap_deep_parallax_write_depth(bool p_enable) {
+	if (heightmap_parallax_write_depth == p_enable) {
+		return;
+	}
+
+	heightmap_parallax_write_depth = p_enable;
+	_queue_shader_change();
+}
+
+bool BaseMaterial3D::is_heightmap_deep_parallax_writing_depth() const {
+	return heightmap_parallax_write_depth;
+}
+
+void BaseMaterial3D::set_heightmap_deep_parallax_trim_edges(bool p_enable) {
+	if (heightmap_parallax_trim_edges == p_enable) {
+		return;
+	}
+
+	heightmap_parallax_trim_edges = p_enable;
+	_queue_shader_change();
+}
+
+bool BaseMaterial3D::is_heightmap_deep_parallax_trimming_edges() const {
+	return heightmap_parallax_trim_edges;
 }
 
 void BaseMaterial3D::set_grow_enabled(bool p_enable) {
@@ -3107,6 +3225,15 @@ void BaseMaterial3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_heightmap_deep_parallax_flip_binormal", "flip"), &BaseMaterial3D::set_heightmap_deep_parallax_flip_binormal);
 	ClassDB::bind_method(D_METHOD("get_heightmap_deep_parallax_flip_binormal"), &BaseMaterial3D::get_heightmap_deep_parallax_flip_binormal);
 
+	ClassDB::bind_method(D_METHOD("set_heightmap_deep_parallax_correct_shadow_receive", "enable"), &BaseMaterial3D::set_heightmap_deep_parallax_correct_shadow_receive);
+	ClassDB::bind_method(D_METHOD("is_heightmap_deep_parallax_correcting_shadow_receive"), &BaseMaterial3D::is_heightmap_deep_parallax_correcting_shadow_receive);
+
+	ClassDB::bind_method(D_METHOD("set_heightmap_deep_parallax_write_depth", "enable"), &BaseMaterial3D::set_heightmap_deep_parallax_write_depth);
+	ClassDB::bind_method(D_METHOD("is_heightmap_deep_parallax_writing_depth"), &BaseMaterial3D::is_heightmap_deep_parallax_writing_depth);
+
+	ClassDB::bind_method(D_METHOD("set_heightmap_deep_parallax_trim_edges", "enable"), &BaseMaterial3D::set_heightmap_deep_parallax_trim_edges);
+	ClassDB::bind_method(D_METHOD("is_heightmap_deep_parallax_trimming_edges"), &BaseMaterial3D::is_heightmap_deep_parallax_trimming_edges);
+
 	ClassDB::bind_method(D_METHOD("set_grow", "amount"), &BaseMaterial3D::set_grow);
 	ClassDB::bind_method(D_METHOD("get_grow"), &BaseMaterial3D::get_grow);
 
@@ -3247,6 +3374,9 @@ void BaseMaterial3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "heightmap_max_layers", PROPERTY_HINT_RANGE, "1,64,1"), "set_heightmap_deep_parallax_max_layers", "get_heightmap_deep_parallax_max_layers");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "heightmap_flip_tangent"), "set_heightmap_deep_parallax_flip_tangent", "get_heightmap_deep_parallax_flip_tangent");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "heightmap_flip_binormal"), "set_heightmap_deep_parallax_flip_binormal", "get_heightmap_deep_parallax_flip_binormal");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "heightmap_correct_shadow_receive"), "set_heightmap_deep_parallax_correct_shadow_receive", "is_heightmap_deep_parallax_correcting_shadow_receive");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "heightmap_write_depth"), "set_heightmap_deep_parallax_write_depth", "is_heightmap_deep_parallax_writing_depth");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "heightmap_trim_edges"), "set_heightmap_deep_parallax_trim_edges", "is_heightmap_deep_parallax_trimming_edges");
 	ADD_PROPERTYI(PropertyInfo(Variant::OBJECT, "heightmap_texture", PROPERTY_HINT_RESOURCE_TYPE, "Texture2D"), "set_texture", "get_texture", TEXTURE_HEIGHTMAP);
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "heightmap_flip_texture"), "set_flag", "get_flag", FLAG_INVERT_HEIGHTMAP);
 
@@ -3522,6 +3652,9 @@ BaseMaterial3D::BaseMaterial3D(bool p_orm) :
 	set_heightmap_deep_parallax_min_layers(8);
 	set_heightmap_deep_parallax_max_layers(32);
 	set_heightmap_deep_parallax_flip_tangent(false); //also sets binormal
+	set_heightmap_deep_parallax_correct_shadow_receive(true);
+	set_heightmap_deep_parallax_write_depth(false);
+	set_heightmap_deep_parallax_trim_edges(false);
 
 	flags[FLAG_ALBEDO_TEXTURE_MSDF] = false;
 	flags[FLAG_USE_TEXTURE_REPEAT] = true;

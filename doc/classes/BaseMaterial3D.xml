@@ -224,6 +224,10 @@
 		<member name="grow_amount" type="float" setter="set_grow" getter="get_grow" default="0.0">
 			Grows object vertices in the direction of their normals. Only effective if [member grow] is [code]true[/code].
 		</member>
+		<member name="heightmap_correct_shadow_receive" type="bool" setter="set_heightmap_deep_parallax_correct_shadow_receive" getter="is_heightmap_deep_parallax_correcting_shadow_receive">
+			If [code]true[/code], makes the material receive shadows at the correct height according to the deep parallax effect. This means the silhouette from the received shadows will match the material's shape. This also allows the material to receive self-shadowing from lights, which can be visible at grazing angles if the shadow is sharp enough (this works best with [OmniLight3D] and [SpotLight3D]). This internally makes the deep parallax effect write to [code]LIGHT_VERTEX[/code] in the shader. Enabling this has a small performance impact.
+			[b]Note:[/b] Enabling this can result in self-shadowing artifacts if the lights have a shadow bias that is too low, or if the material has a [member heightmap_scale] that is too high. Enabling [member heightmap_write_depth] at the same time can alleviate those self-shadowing artifacts, with the associated performance cost of that feature.
+		</member>
 		<member name="heightmap_deep_parallax" type="bool" setter="set_heightmap_deep_parallax" getter="is_heightmap_deep_parallax_enabled" default="false">
 			If [code]true[/code], uses parallax occlusion mapping to represent depth in the material instead of simple offset mapping (see [member heightmap_enabled]). This results in a more convincing depth effect, but is much more expensive on the GPU. Only enable this on materials where it makes a significant visual difference.
 		</member>
@@ -257,6 +261,15 @@
 			The texture to use as a height map. See also [member heightmap_enabled].
 			For best results, the texture should be normalized (with [member heightmap_scale] reduced to compensate). In [url=https://gimp.org]GIMP[/url], this can be done using [b]Colors &gt; Auto &gt; Equalize[/b]. If the texture only uses a small part of its available range, the parallax effect may look strange, especially when the camera moves.
 			[b]Note:[/b] To reduce memory usage and improve loading times, you may be able to use a lower-resolution heightmap texture as most heightmaps are only comprised of low-frequency data.
+		</member>
+		<member name="heightmap_trim_edges" type="bool" setter="set_heightmap_deep_parallax_trim_edges" getter="is_heightmap_deep_parallax_trimming_edges">
+			If [code]true[/code], makes the material able to change its silhouette according to the deep parallax effect. shadows at the correct height according to the deep parallax effect. This means the silhouette from the received shadows will match the material's shape. This internally makes the deep parallax effect write to [code]LIGHT_VERTEX[/code] in the shader. See also [member heightmap_write_depth].
+			[b]Note:[/b] Enabling this can result in artifacts depending on the mesh's UV layout. This effect may not look correct on all meshes as a result.
+			[b]Note:[/b] Enabling this prevents the depth prepass from working, which has a moderate performance impact.
+		</member>
+		<member name="heightmap_write_depth" type="bool" setter="set_heightmap_deep_parallax_write_depth" getter="is_heightmap_deep_parallax_writing_depth">
+			If [code]true[/code], makes the material's silhouette able to correctly interact with other meshes in the scene according to the deep parallax effect. This allows the material to better blend in with other materials in the scene, regardless of whether the other material has deep parallax enabled. This internally makes the deep parallax effect write to [code]DEPTH[/code] in the shader. See also [member heightmap_trim_edges].
+			[b]Note:[/b] Enabling this enables depth writing and prevents the depth prepass from working, which has a significant performance impact
 		</member>
 		<member name="metallic" type="float" setter="set_metallic" getter="get_metallic" default="0.0">
 			A high value makes the material appear more like a metal. Non-metals use their albedo as the diffuse color and add diffuse to the specular reflection. With non-metals, the reflection appears on top of the albedo color. Metals use their albedo as a multiplier to the specular reflection and set the diffuse color to black resulting in a tinted reflection. Materials work better when fully metal or fully non-metal, values between [code]0[/code] and [code]1[/code] should only be used for blending between metal and non-metal sections. To alter the amount of reflection use [member roughness].

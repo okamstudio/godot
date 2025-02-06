@@ -338,6 +338,9 @@ private:
 		// booleans
 		uint64_t invalid_key : 1;
 		uint64_t deep_parallax : 1;
+		uint64_t heightmap_parallax_correct_shadow_receive : 1;
+		uint64_t heightmap_parallax_write_depth : 1;
+		uint64_t heightmap_parallax_trim_edges : 1;
 		uint64_t grow : 1;
 		uint64_t proximity_fade : 1;
 		uint64_t orm : 1;
@@ -388,6 +391,9 @@ private:
 		mk.specular_mode = specular_mode;
 		mk.billboard_mode = billboard_mode;
 		mk.deep_parallax = deep_parallax;
+		mk.heightmap_parallax_correct_shadow_receive = heightmap_parallax_correct_shadow_receive;
+		mk.heightmap_parallax_write_depth = heightmap_parallax_write_depth;
+		mk.heightmap_parallax_trim_edges = heightmap_parallax_trim_edges;
 		mk.grow = grow_enabled;
 		mk.proximity_fade = proximity_fade_enabled;
 		mk.distance_fade = distance_fade;
@@ -534,6 +540,9 @@ private:
 	int deep_parallax_max_layers = 0;
 	bool heightmap_parallax_flip_tangent = false;
 	bool heightmap_parallax_flip_binormal = false;
+	bool heightmap_parallax_correct_shadow_receive = true;
+	bool heightmap_parallax_write_depth = false;
+	bool heightmap_parallax_trim_edges = false;
 
 	bool proximity_fade_enabled = false;
 	float proximity_fade_distance = 0.0f;
@@ -636,6 +645,15 @@ public:
 
 	void set_heightmap_deep_parallax_flip_binormal(bool p_flip);
 	bool get_heightmap_deep_parallax_flip_binormal() const;
+
+	void set_heightmap_deep_parallax_correct_shadow_receive(bool p_enable);
+	bool is_heightmap_deep_parallax_correcting_shadow_receive() const;
+
+	void set_heightmap_deep_parallax_write_depth(bool p_enable);
+	bool is_heightmap_deep_parallax_writing_depth() const;
+
+	void set_heightmap_deep_parallax_trim_edges(bool p_enable);
+	bool is_heightmap_deep_parallax_trimming_edges() const;
 
 	void set_subsurface_scattering_strength(float p_subsurface_scattering_strength);
 	float get_subsurface_scattering_strength() const;
