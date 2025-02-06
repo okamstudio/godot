@@ -1316,7 +1316,7 @@
 			Disables physics interpolation for this node and for children set to [constant PHYSICS_INTERPOLATION_MODE_INHERIT].
 		</constant>
 		<constant name="DUPLICATE_SIGNALS" value="1" enum="DuplicateFlags">
-			Duplicate the node's signal connections.
+			Duplicate the node's signal connections that are connected with the [constant Object.CONNECT_PERSIST] flag.
 		</constant>
 		<constant name="DUPLICATE_GROUPS" value="2" enum="DuplicateFlags">
 			Duplicate the node's groups.
