@@ -9716,7 +9716,11 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 							completion_line = tk.line;
 
 							if (!is_token_hint(tk.type)) {
-								_set_error(RTR("Expected valid type hint after ':'."));
+								if (tk.text == "hint_color") {
+									_set_error(vformat(RTR("`%s` is no longer supported, use `%s` instead."), "hint_color", "source_color"));
+								} else {
+									_set_error(RTR("Expected valid type hint after ':'."));
+								}
 								return ERR_PARSE_ERROR;
 							}
 
