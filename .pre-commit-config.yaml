@@ -100,6 +100,7 @@ repos:
           - --config
           - platform/web/eslint.config.cjs
         additional_dependencies:
+          - 'https://github.com/adamscott/eslint-plugin-ignore-c-preprocessors/releases/download/0.1.1/godotengine-eslint-plugin-ignore-c-preprocessors-0.1.1.tgz'
           - "@eslint/js@^9.3.0"
           - "@html-eslint/eslint-plugin@^0.24.1"
           - "@html-eslint/parser@^0.24.1"

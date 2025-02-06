@@ -115,8 +115,11 @@ def get_template_zip_path(env):
     return "#bin/.web_zip"
 
 
-def add_js_libraries(env, libraries):
-    env.Append(JS_LIBS=env.File(libraries))
+def add_js_libraries(env, libraries, prepend=False):
+    if prepend:
+        env.Prepend(JS_LIBS=env.File(libraries))
+    else:
+        env.Append(JS_LIBS=env.File(libraries))
 
 
 def add_js_pre(env, js_pre):

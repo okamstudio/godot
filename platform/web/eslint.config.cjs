@@ -5,6 +5,7 @@ const htmlPlugin = require('@html-eslint/eslint-plugin');
 const pluginJs = require('@eslint/js');
 const pluginReference = require('eslint-plugin-html');
 const stylistic = require('@stylistic/eslint-plugin');
+const pluginIgnoreCPreprocessors = require("@godotengine/eslint-plugin-ignore-c-preprocessors").default;
 
 if (process && process.env && process.env.npm_command && !fs.existsSync('./platform/web/eslint.config.cjs')) {
 	throw Error('eslint must be run from the Godot project root folder');
@@ -21,6 +22,7 @@ const emscriptenGlobals = {
 	'HEAPU8': true,
 	'IDBFS': true,
 	'LibraryManager': true,
+	'MainLoop': true,
 	'Module': true,
 	'UTF8ToString': true,
 	'_emscripten_webgl_get_current_context': true,
@@ -139,6 +141,10 @@ module.exports = [
 	// libraries and modules (browser)
 	{
 		files: ['js/libs/**/*.js', 'platform/web/js/libs/**/*.js', 'modules/**/*.js'],
+		plugins: {
+			"ignore-c-preprocessors": pluginIgnoreCPreprocessors
+		},
+		processor: "ignore-c-preprocessors/ignore-c-preprocessors",
 		languageOptions: {
 			globals: {
 				...globals.browser,

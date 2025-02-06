@@ -36,6 +36,7 @@ if env["target"] == "editor":
     env.add_source_files(web_files, "editor/*.cpp")
 
 sys_env = env.Clone()
+sys_env.AddJSLibraries(["js/libs/library_godot_macros.js"], prepend=True)
 sys_env.AddJSLibraries(
     [
         "js/libs/library_godot_audio.js",
