@@ -1,6 +1,8 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using Godot.NativeInterop;
+using BitFaster.Caching;
+using BitFaster.Caching.Lru;
 
 #nullable enable
 
@@ -18,6 +20,11 @@ namespace Godot
         internal godot_string_name.movable NativeValue;
 
         private WeakReference<IDisposable>? _weakReferenceToSelf;
+
+        private static readonly ICache<string, StringName> _stringNameCache = new ConcurrentLruBuilder<string, StringName>()
+            .WithCapacity(1_000)
+            .WithExpireAfterAccess(TimeSpan.FromSeconds(30))
+            .Build();
 
         ~StringName()
         {
@@ -75,17 +82,29 @@ namespace Godot
         }
 
         /// <summary>
-        /// Converts a string to a <see cref="StringName"/>.
+        /// Converts a <see cref="string"/> to a <see cref="StringName"/>.<br/>
+        /// The resulting <see cref="StringName"/> is temporarily cached for future casts.
         /// </summary>
         /// <param name="from">The string to convert.</param>
-        public static implicit operator StringName(string from) => new StringName(from);
+        [return: NotNullIfNotNull(nameof(from))]
+        public static implicit operator StringName?(string? from)
+        {
+            if (from is null)
+            {
+                return null;
+            }
+            return _stringNameCache.GetOrAdd(from, static (string from) => new StringName(from));
+        }
 
         /// <summary>
-        /// Converts a <see cref="StringName"/> to a string.
+        /// Converts a <see cref="StringName"/> to a <see cref="string"/>.
         /// </summary>
         /// <param name="from">The <see cref="StringName"/> to convert.</param>
-        [return: NotNullIfNotNull("from")]
-        public static implicit operator string?(StringName? from) => from?.ToString();
+        [return: NotNullIfNotNull(nameof(from))]
+        public static implicit operator string?(StringName? from)
+        {
+            return from?.ToString();
+        }
 
         /// <summary>
         /// Converts this <see cref="StringName"/> to a string.
