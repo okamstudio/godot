@@ -127,7 +127,7 @@ void EngineDebugger::iteration(uint64_t p_frame_ticks, uint64_t p_process_ticks,
 	singleton->poll_events(true);
 }
 
-void EngineDebugger::initialize(const String &p_uri, bool p_skip_breakpoints, const Vector<String> &p_breakpoints, void (*p_allow_focus_steal_fn)()) {
+void EngineDebugger::initialize(const String &p_uri, bool p_skip_breakpoints, bool p_ignore_error_breaks, const Vector<String> &p_breakpoints, void (*p_allow_focus_steal_fn)()) {
 	register_uri_handler("tcp://", RemoteDebuggerPeerTCP::create); // TCP is the default protocol. Platforms/modules can add more.
 	if (p_uri.is_empty()) {
 		return;
@@ -160,6 +160,7 @@ void EngineDebugger::initialize(const String &p_uri, bool p_skip_breakpoints, co
 	// There is a debugger, parse breakpoints.
 	ScriptDebugger *singleton_script_debugger = singleton->get_script_debugger();
 	singleton_script_debugger->set_skip_breakpoints(p_skip_breakpoints);
+	singleton_script_debugger->set_ignore_error_breaks(p_ignore_error_breaks);
 
 	for (int i = 0; i < p_breakpoints.size(); i++) {
 		const String &bp = p_breakpoints[i];

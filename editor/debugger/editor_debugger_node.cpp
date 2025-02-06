@@ -587,6 +587,10 @@ bool EditorDebuggerNode::is_skip_breakpoints() const {
 	return get_current_debugger()->is_skip_breakpoints();
 }
 
+bool EditorDebuggerNode::is_ignore_error_breaks() const {
+	return get_default_debugger()->is_ignore_error_breaks();
+}
+
 void EditorDebuggerNode::set_breakpoint(const String &p_path, int p_line, bool p_enabled) {
 	breakpoints[Breakpoint(p_path, p_line)] = p_enabled;
 	_for_all(tabs, [&](ScriptEditorDebugger *dbg) {

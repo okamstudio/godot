@@ -40,6 +40,7 @@ class ScriptDebugger {
 	typedef ScriptLanguage::StackInfo StackInfo;
 
 	bool skip_breakpoints = false;
+	bool ignore_error_breaks = false;
 
 	HashMap<int, HashSet<StringName>> breakpoints;
 
@@ -64,6 +65,8 @@ public:
 	ScriptLanguage *get_break_language() { return break_lang; }
 	void set_skip_breakpoints(bool p_skip_breakpoints);
 	bool is_skipping_breakpoints();
+	void set_ignore_error_breaks(bool p_ignore);
+	bool is_ignoring_error_breaks();
 	void insert_breakpoint(int p_line, const StringName &p_source);
 	void remove_breakpoint(int p_line, const StringName &p_source);
 	_ALWAYS_INLINE_ bool is_breakpoint(int p_line, const StringName &p_source) const {
