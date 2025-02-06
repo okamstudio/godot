@@ -1345,8 +1345,18 @@ GDScriptCodeGenerator::Address GDScriptCompiler::_parse_expression(CodeGen &code
 				bool has_operation = assignment->operation != GDScriptParser::AssignmentNode::OP_NONE;
 				if (has_operation) {
 					// Perform operation.
-					GDScriptCodeGenerator::Address op_result = codegen.add_temporary(_gdtype_from_datatype(assignment->get_datatype(), codegen.script));
 					GDScriptCodeGenerator::Address og_value = _parse_expression(codegen, r_error, assignment->assignee);
+					GDScriptDataType assignment_type = _gdtype_from_datatype(assignment->get_datatype(), codegen.script);
+					if (!has_setter && !assignment->use_conversion_assign && assignment_type.kind == GDScriptDataType::BUILTIN && og_value.type.kind == GDScriptDataType::BUILTIN && assignment_type.builtin_type == og_value.type.builtin_type) {
+						// If there's nothing special about the assignment, perform the assignment as part of the operator
+						gen->write_binary_operator(target, assignment->variant_op, og_value, assigned_value);
+						if (assigned_value.mode == GDScriptCodeGenerator::Address::TEMPORARY) {
+							gen->pop_temporary(); // Pop assigned value if not done before.
+						}
+						return GDScriptCodeGenerator::Address();
+					}
+
+					GDScriptCodeGenerator::Address op_result = codegen.add_temporary(assignment_type);
 					gen->write_binary_operator(op_result, assignment->variant_op, og_value, assigned_value);
 					to_assign = op_result;
 

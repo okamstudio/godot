@@ -839,14 +839,28 @@ public:
 	static void evaluate(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid) {
 		const Array &array_a = *VariantGetInternalPtr<Array>::get_ptr(&p_left);
 		const Array &array_b = *VariantGetInternalPtr<Array>::get_ptr(&p_right);
+		if (r_ret == &p_left) {
+			Array &array_ret = *VariantGetInternalPtr<Array>::get_ptr(r_ret);
+			array_ret.append_array(array_b);
+			r_valid = true;
+			return;
+		}
+
 		Array sum;
 		_add_arrays(sum, array_a, array_b);
 		*r_ret = sum;
 		r_valid = true;
 	}
 	static inline void validated_evaluate(const Variant *left, const Variant *right, Variant *r_ret) {
-		*r_ret = Array();
-		_add_arrays(*VariantGetInternalPtr<Array>::get_ptr(r_ret), *VariantGetInternalPtr<Array>::get_ptr(left), *VariantGetInternalPtr<Array>::get_ptr(right));
+		if (r_ret == left) {
+			Array &array_ret = *VariantGetInternalPtr<Array>::get_ptr(r_ret);
+			array_ret.append_array(*VariantGetInternalPtr<Array>::get_ptr(right));
+			return;
+		}
+
+		Array sum;
+		_add_arrays(sum, *VariantGetInternalPtr<Array>::get_ptr(left), *VariantGetInternalPtr<Array>::get_ptr(right));
+		*r_ret = sum;
 	}
 	static void ptr_evaluate(const void *left, const void *right, void *r_ret) {
 		Array ret;
