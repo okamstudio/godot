@@ -161,8 +161,8 @@ RID ShaderGLES3::version_create() {
 
 void ShaderGLES3::_build_variant_code(StringBuilder &builder, uint32_t p_variant, const Version *p_version, StageType p_stage_type, uint64_t p_specialization) {
 	if (RasterizerGLES3::is_gles_over_gl()) {
-		builder.append("#version 330\n");
-		builder.append("#define USE_GLES_OVER_GL\n");
+		builder.append("#version 330\n"
+					   "#define USE_GLES_OVER_GL\n");
 	} else {
 		builder.append("#version 300 es\n");
 	}
@@ -194,38 +194,37 @@ void ShaderGLES3::_build_variant_code(StringBuilder &builder, uint32_t p_variant
 
 	// Optional support for external textures.
 	if (GLES3::Config::get_singleton()->external_texture_supported) {
-		builder.append("#extension GL_OES_EGL_image_external : enable\n");
-		builder.append("#extension GL_OES_EGL_image_external_essl3 : enable\n");
+		builder.append("#extension GL_OES_EGL_image_external : enable\n"
+					   "#extension GL_OES_EGL_image_external_essl3 : enable\n");
 	} else {
 		builder.append("#define samplerExternalOES sampler2D\n");
 	}
 
 	// Insert multiview extension loading, because it needs to appear before
 	// any non-preprocessor code (like the "precision highp..." lines below).
-	builder.append("#ifdef USE_MULTIVIEW\n");
-	builder.append("#if defined(GL_OVR_multiview2)\n");
-	builder.append("#extension GL_OVR_multiview2 : require\n");
-	builder.append("#elif defined(GL_OVR_multiview)\n");
-	builder.append("#extension GL_OVR_multiview : require\n");
-	builder.append("#endif\n");
+	builder.append("#ifdef USE_MULTIVIEW\n"
+				   "#if defined(GL_OVR_multiview2)\n"
+				   "#extension GL_OVR_multiview2 : require\n"
+				   "#elif defined(GL_OVR_multiview)\n"
+				   "#extension GL_OVR_multiview : require\n"
+				   "#endif\n");
 	if (p_stage_type == StageType::STAGE_TYPE_VERTEX) {
 		builder.append("layout(num_views=2) in;\n");
 	}
-	builder.append("#define ViewIndex gl_ViewID_OVR\n");
-	builder.append("#define MAX_VIEWS 2\n");
-	builder.append("#else\n");
-	builder.append("#define ViewIndex uint(0)\n");
-	builder.append("#define MAX_VIEWS 1\n");
-	builder.append("#endif\n");
-
-	// Default to highp precision unless specified otherwise.
-	builder.append("precision highp float;\n");
-	builder.append("precision highp int;\n");
+	builder.append("#define ViewIndex gl_ViewID_OVR\n"
+				   "#define MAX_VIEWS 2\n"
+				   "#else\n"
+				   "#define ViewIndex uint(0)\n"
+				   "#define MAX_VIEWS 1\n"
+				   "#endif\n"
+				   // Default to highp precision unless specified otherwise.
+				   "precision highp float;\n"
+				   "precision highp int;\n");
 	if (!RasterizerGLES3::is_gles_over_gl()) {
-		builder.append("precision highp sampler2D;\n");
-		builder.append("precision highp samplerCube;\n");
-		builder.append("precision highp sampler2DArray;\n");
-		builder.append("precision highp sampler3D;\n");
+		builder.append("precision highp sampler2D;\n"
+					   "precision highp samplerCube;\n"
+					   "precision highp sampler2DArray;\n"
+					   "precision highp sampler3D;\n");
 	}
 
 	const StageTemplate &stage_template = stage_templates[p_stage_type];
