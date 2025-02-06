@@ -309,3 +309,10 @@ Validate extension JSON: API was removed: classes/EditorSceneFormatImporter/meth
 
 This virtual method, and the internal public `get_import_flags`, were never used by the engine, since it was open sourced.
 So we're removing it despite the compat breakage as there's no way for users to rely on this affecting engine behavior.
+
+
+GH-100913
+---------
+Validate extension JSON: Error: Field 'classes/TextEdit/methods/get_line_column_at_pos/arguments': size changed value in new API, from 2 to 3.
+
+Added optional argument to disallow positions that are outside the column range of the line. Compatibility method registered.

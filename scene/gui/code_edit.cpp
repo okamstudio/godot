@@ -420,7 +420,7 @@ void CodeEdit::gui_input(const Ref<InputEvent> &p_gui_input) {
 						mpos.x = get_size().x - mpos.x;
 					}
 
-					Point2i pos = get_line_column_at_pos(mpos, false);
+					Point2i pos = get_line_column_at_pos(mpos, false, false);
 					int line = pos.y;
 					int col = pos.x;
 
@@ -442,18 +442,18 @@ void CodeEdit::gui_input(const Ref<InputEvent> &p_gui_input) {
 
 		if (symbol_lookup_on_click_enabled) {
 			if (mm->is_command_or_control_pressed() && mm->get_button_mask().is_empty()) {
-				symbol_lookup_pos = get_line_column_at_pos(mpos);
+				symbol_lookup_pos = get_line_column_at_pos(mpos, false, false);
 				symbol_lookup_new_word = get_word_at_pos(mpos);
 				if (symbol_lookup_new_word != symbol_lookup_word) {
 					emit_signal(SNAME("symbol_validate"), symbol_lookup_new_word);
 				}
-			} else if (!mm->is_command_or_control_pressed() || (!mm->get_button_mask().is_empty() && symbol_lookup_pos != get_line_column_at_pos(mpos))) {
+			} else if (!mm->is_command_or_control_pressed() || (!mm->get_button_mask().is_empty() && symbol_lookup_pos != get_line_column_at_pos(mpos, false, false))) {
 				set_symbol_lookup_word_as_valid(false);
 			}
 		}
 
 		if (symbol_tooltip_on_hover_enabled) {
-			symbol_tooltip_pos = get_line_column_at_pos(mpos, false);
+			symbol_tooltip_pos = get_line_column_at_pos(mpos, false, false);
 			symbol_tooltip_word = get_word_at_pos(mpos);
 			symbol_tooltip_timer->start();
 		}
@@ -2387,7 +2387,7 @@ bool CodeEdit::is_symbol_lookup_on_click_enabled() const {
 
 String CodeEdit::get_text_for_symbol_lookup() const {
 	Point2i mp = get_local_mouse_pos();
-	Point2i pos = get_line_column_at_pos(mp, false);
+	Point2i pos = get_line_column_at_pos(mp, false, false);
 	int line = pos.y;
 	int col = pos.x;
 

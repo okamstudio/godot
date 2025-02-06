@@ -34,8 +34,13 @@ void TextEdit::_set_selection_mode_compat_86978(SelectionMode p_mode, int p_line
 	set_selection_mode(p_mode);
 }
 
+Point2i TextEdit::_get_line_column_at_pos_bind_compat_100913(const Point2i &p_pos, bool p_allow_out_of_bounds) const {
+	return get_line_column_at_pos(p_pos, p_allow_out_of_bounds, true);
+}
+
 void TextEdit::_bind_compatibility_methods() {
 	ClassDB::bind_compatibility_method(D_METHOD("set_selection_mode", "mode", "line", "column", "caret_index"), &TextEdit::_set_selection_mode_compat_86978, DEFVAL(-1), DEFVAL(-1), DEFVAL(0));
+	ClassDB::bind_compatibility_method(D_METHOD("get_line_column_at_pos", "position", "allow_out_of_bounds"), &TextEdit::_get_line_column_at_pos_bind_compat_100913, DEFVAL(true));
 }
 
 #endif

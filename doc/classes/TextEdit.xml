@@ -349,9 +349,12 @@
 		<method name="get_line_column_at_pos" qualifiers="const">
 			<return type="Vector2i" />
 			<param index="0" name="position" type="Vector2i" />
-			<param index="1" name="allow_out_of_bounds" type="bool" default="true" />
+			<param index="1" name="clamp_line" type="bool" default="true" />
+			<param index="2" name="clamp_column" type="bool" default="true" />
 			<description>
-				Returns the line and column at the given position. In the returned vector, [code]x[/code] is the column, [code]y[/code] is the line. If [param allow_out_of_bounds] is [code]false[/code] and the position is not over the text, both vector values will be set to [code]-1[/code].
+				Returns the line and column at the given position. In the returned vector, [code]x[/code] is the column and [code]y[/code] is the line.
+				If [param clamp_line] is [code]false[/code] and [param position] is below the last line, [code]Vector2i(-1, -1)[/code] is returned.
+				If [param clamp_column] is [code]false[/code] and [param position] is outside the column range of the line, [code]Vector2i(-1, -1)[/code] is returned.
 			</description>
 		</method>
 		<method name="get_line_count" qualifiers="const">
