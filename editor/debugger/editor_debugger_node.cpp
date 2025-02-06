@@ -82,7 +82,8 @@ EditorDebuggerNode::EditorDebuggerNode() {
 
 	// Remote scene tree
 	remote_scene_tree = memnew(EditorDebuggerTree);
-	remote_scene_tree->connect("object_selected", callable_mp(this, &EditorDebuggerNode::_remote_object_requested));
+	remote_scene_tree->connect("objects_selected", callable_mp(this, &EditorDebuggerNode::_remote_objects_requested));
+	remote_scene_tree->connect("selection_cleared", callable_mp(this, &EditorDebuggerNode::_remote_selection_cleared));
 	remote_scene_tree->connect("save_node", callable_mp(this, &EditorDebuggerNode::_save_node_requested));
 	remote_scene_tree->connect("button_clicked", callable_mp(this, &EditorDebuggerNode::_remote_tree_button_pressed));
 	SceneTreeDock::get_singleton()->add_remote_tree_editor(remote_scene_tree);
@@ -109,11 +110,12 @@ ScriptEditorDebugger *EditorDebuggerNode::_add_debugger() {
 	node->connect("breakpoint_selected", callable_mp(this, &EditorDebuggerNode::_error_selected).bind(id));
 	node->connect("clear_execution", callable_mp(this, &EditorDebuggerNode::_clear_execution));
 	node->connect("breaked", callable_mp(this, &EditorDebuggerNode::_breaked).bind(id));
+	node->connect("debug_data", callable_mp(this, &EditorDebuggerNode::_debug_data).bind(id));
 	node->connect("remote_tree_select_requested", callable_mp(this, &EditorDebuggerNode::_remote_tree_select_requested).bind(id));
+	node->connect("remote_tree_clear_selection_requested", callable_mp(this, &EditorDebuggerNode::_remote_tree_clear_selection_requested).bind(id));
 	node->connect("remote_tree_updated", callable_mp(this, &EditorDebuggerNode::_remote_tree_updated).bind(id));
-	node->connect("remote_object_updated", callable_mp(this, &EditorDebuggerNode::_remote_object_updated).bind(id));
+	node->connect("remote_objects_updated", callable_mp(this, &EditorDebuggerNode::_remote_objects_updated).bind(id));
 	node->connect("remote_object_property_updated", callable_mp(this, &EditorDebuggerNode::_remote_object_property_updated).bind(id));
-	node->connect("remote_object_requested", callable_mp(this, &EditorDebuggerNode::_remote_object_requested).bind(id));
 	node->connect("set_breakpoint", callable_mp(this, &EditorDebuggerNode::_breakpoint_set_in_tree).bind(id));
 	node->connect("clear_breakpoints", callable_mp(this, &EditorDebuggerNode::_breakpoints_cleared_in_tree).bind(id));
 	node->connect("errors_cleared", callable_mp(this, &EditorDebuggerNode::_update_errors));
@@ -222,10 +224,6 @@ void EditorDebuggerNode::register_undo_redo(UndoRedo *p_undo_redo) {
 	p_undo_redo->set_property_notify_callback(_properties_changed, this);
 }
 
-EditorDebuggerRemoteObject *EditorDebuggerNode::get_inspected_remote_object() {
-	return Object::cast_to<EditorDebuggerRemoteObject>(ObjectDB::get_instance(EditorNode::get_singleton()->get_editor_selection_history()->get_current()));
-}
-
 ScriptEditorDebugger *EditorDebuggerNode::get_debugger(int p_id) const {
 	return Object::cast_to<ScriptEditorDebugger>(tabs->get_tab_control(p_id));
 }
@@ -292,6 +290,10 @@ void EditorDebuggerNode::stop(bool p_force) {
 	if (keep_open && !p_force) {
 		return;
 	}
+
+	remote_scene_tree_wait = false;
+	inspect_edited_object_wait = false;
+
 	current_uri.clear();
 	if (server.is_valid()) {
 		server->stop();
@@ -304,6 +306,7 @@ void EditorDebuggerNode::stop(bool p_force) {
 
 		server.unref();
 	}
+
 	// Also close all debugging sessions.
 	_for_all(tabs, [&](ScriptEditorDebugger *dbg) {
 		if (dbg->is_session_active()) {
@@ -351,21 +354,29 @@ void EditorDebuggerNode::_notification(int p_what) {
 
 			_update_errors();
 
-			// Remote scene tree update
-			remote_scene_tree_timeout -= get_process_delta_time();
-			if (remote_scene_tree_timeout < 0) {
-				remote_scene_tree_timeout = EDITOR_GET("debugger/remote_scene_tree_refresh_interval");
-				if (remote_scene_tree->is_visible_in_tree()) {
-					get_current_debugger()->request_remote_tree();
+			// Remote scene tree update.
+			if (!remote_scene_tree_wait) {
+				remote_scene_tree_timeout -= get_process_delta_time();
+				if (remote_scene_tree_timeout < 0) {
+					remote_scene_tree_timeout = EDITOR_GET("debugger/remote_scene_tree_refresh_interval");
+
+					if (remote_scene_tree->is_visible_in_tree()) {
+						remote_scene_tree_wait = true;
+						get_current_debugger()->request_remote_tree();
+					}
 				}
 			}
 
-			// Remote inspector update
-			inspect_edited_object_timeout -= get_process_delta_time();
-			if (inspect_edited_object_timeout < 0) {
-				inspect_edited_object_timeout = EDITOR_GET("debugger/remote_inspect_refresh_interval");
-				if (EditorDebuggerRemoteObject *obj = get_inspected_remote_object()) {
-					get_current_debugger()->request_remote_object(obj->remote_object_id);
+			// Remote inspector update.
+			if (!inspect_edited_object_wait) {
+				inspect_edited_object_timeout -= get_process_delta_time();
+				if (inspect_edited_object_timeout < 0) {
+					inspect_edited_object_timeout = EDITOR_GET("debugger/remote_inspect_refresh_interval");
+
+					if (EditorDebuggerRemoteObjects *robjs = Object::cast_to<EditorDebuggerRemoteObjects>(InspectorDock::get_inspector_singleton()->get_edited_object())) {
+						inspect_edited_object_wait = true;
+						get_current_debugger()->request_remote_objects(robjs->remote_object_ids, false);
+					}
 				}
 			}
 
@@ -467,21 +478,26 @@ void EditorDebuggerNode::_debugger_stopped(int p_id) {
 
 void EditorDebuggerNode::_debugger_wants_stop(int p_id) {
 	// Ask editor to kill PID.
-	int pid = get_debugger(p_id)->get_remote_pid();
-	if (pid) {
+	if (int pid = get_debugger(p_id)->get_remote_pid()) {
 		callable_mp(EditorNode::get_singleton(), &EditorNode::stop_child_process).call_deferred(pid);
 	}
 }
 
 void EditorDebuggerNode::_debugger_changed(int p_tab) {
-	if (get_inspected_remote_object()) {
-		// Clear inspected object, you can only inspect objects in selected debugger.
-		// Hopefully, in the future, we will have one inspector per debugger.
-		EditorNode::get_singleton()->push_item(nullptr);
+	remote_scene_tree_wait = false;
+	inspect_edited_object_wait = false;
+
+	if (Object *robjs = InspectorDock::get_inspector_singleton()->get_edited_object()) {
+		if (Object::cast_to<EditorDebuggerRemoteObjects>(robjs)) {
+			// Clear inspected object, you can only inspect objects in selected debugger.
+			// Hopefully, in the future, we will have one inspector per debugger.
+			EditorNode::get_singleton()->push_item(nullptr);
+		}
 	}
 
-	if (get_previous_debugger()) {
-		_text_editor_stack_clear(get_previous_debugger());
+	if (ScriptEditorDebugger *prev_debug = get_previous_debugger()) {
+		prev_debug->clear_inspector();
+		_text_editor_stack_clear(prev_debug);
 	}
 	if (remote_scene_tree->is_visible_in_tree()) {
 		get_current_debugger()->request_remote_tree();
@@ -491,6 +507,18 @@ void EditorDebuggerNode::_debugger_changed(int p_tab) {
 	}
 
 	_break_state_changed();
+}
+
+void EditorDebuggerNode::_debug_data(const String &p_msg, const Array &p_data, int p_debugger) {
+	if (p_debugger != tabs->get_current_tab()) {
+		return;
+	}
+
+	if (p_msg == "scene:scene_tree") {
+		remote_scene_tree_wait = false;
+	} else if (p_msg == "scene:inspect_objects") {
+		inspect_edited_object_wait = false;
+	}
 }
 
 void EditorDebuggerNode::set_script_debug_button(MenuButton *p_button) {
@@ -646,11 +674,41 @@ void EditorDebuggerNode::request_remote_tree() {
 	get_current_debugger()->request_remote_tree();
 }
 
-void EditorDebuggerNode::_remote_tree_select_requested(ObjectID p_id, int p_debugger) {
+void EditorDebuggerNode::set_remote_selection(const TypedArray<int64_t> &p_ids) {
+	remote_scene_tree->select_nodes(p_ids);
+
+	stop_waiting_inspection();
+	get_current_debugger()->request_remote_objects(p_ids);
+}
+
+void EditorDebuggerNode::clear_remote_tree_selection() {
+	remote_scene_tree->clear_selection();
+	get_current_debugger()->clear_inspector(remote_scene_tree_clear_msg);
+}
+
+void EditorDebuggerNode::stop_waiting_inspection() {
+	inspect_edited_object_timeout = EDITOR_GET("debugger/remote_inspect_refresh_interval");
+	inspect_edited_object_wait = false;
+}
+
+bool EditorDebuggerNode::match_remote_selection(const TypedArray<uint64_t> &p_ids) const {
+	return p_ids == remote_scene_tree->get_selection();
+}
+
+void EditorDebuggerNode::_remote_tree_select_requested(const TypedArray<int64_t> &p_ids, int p_debugger) {
+	if (p_debugger == tabs->get_current_tab()) {
+		remote_scene_tree->select_nodes(p_ids);
+	}
+}
+
+void EditorDebuggerNode::_remote_tree_clear_selection_requested(int p_debugger) {
 	if (p_debugger != tabs->get_current_tab()) {
 		return;
 	}
-	remote_scene_tree->select_node(p_id);
+	remote_scene_tree->clear_selection();
+	remote_scene_tree_clear_msg = false;
+	get_current_debugger()->clear_inspector(false);
+	remote_scene_tree_clear_msg = true;
 }
 
 void EditorDebuggerNode::_remote_tree_updated(int p_debugger) {
@@ -679,37 +737,37 @@ void EditorDebuggerNode::_remote_tree_button_pressed(Object *p_item, int p_colum
 	}
 }
 
-void EditorDebuggerNode::_remote_object_updated(ObjectID p_id, int p_debugger) {
-	if (p_debugger != tabs->get_current_tab()) {
-		return;
+void EditorDebuggerNode::_remote_objects_updated(EditorDebuggerRemoteObjects *p_objs, int p_debugger) {
+	if (p_debugger == tabs->get_current_tab() && p_objs != InspectorDock::get_inspector_singleton()->get_edited_object()) {
+		EditorNode::get_singleton()->push_item(p_objs);
 	}
-	if (EditorDebuggerRemoteObject *obj = get_inspected_remote_object()) {
-		if (obj->remote_object_id == p_id) {
-			return; // Already being edited
-		}
-	}
-
-	EditorNode::get_singleton()->push_item(get_current_debugger()->get_remote_object(p_id));
 }
 
 void EditorDebuggerNode::_remote_object_property_updated(ObjectID p_id, const String &p_property, int p_debugger) {
 	if (p_debugger != tabs->get_current_tab()) {
 		return;
 	}
-	if (EditorDebuggerRemoteObject *obj = get_inspected_remote_object()) {
-		if (obj->remote_object_id != p_id) {
-			return;
-		}
+
+	Object *obj = InspectorDock::get_inspector_singleton()->get_edited_object();
+	if (obj && obj->get_instance_id() == p_id) {
 		InspectorDock::get_inspector_singleton()->update_property(p_property);
 	}
 }
 
-void EditorDebuggerNode::_remote_object_requested(ObjectID p_id, int p_debugger) {
+void EditorDebuggerNode::_remote_objects_requested(const TypedArray<uint64_t> &p_ids, int p_debugger) {
 	if (p_debugger != tabs->get_current_tab()) {
 		return;
 	}
-	inspect_edited_object_timeout = 0.7; // Temporarily disable timeout to avoid multiple requests.
-	get_current_debugger()->request_remote_object(p_id);
+	stop_waiting_inspection();
+	get_current_debugger()->request_remote_objects(p_ids);
+}
+
+void EditorDebuggerNode::_remote_selection_cleared(int p_debugger) {
+	if (p_debugger != tabs->get_current_tab()) {
+		return;
+	}
+	stop_waiting_inspection();
+	get_current_debugger()->clear_inspector();
 }
 
 void EditorDebuggerNode::_save_node_requested(ObjectID p_id, const String &p_file, int p_debugger) {

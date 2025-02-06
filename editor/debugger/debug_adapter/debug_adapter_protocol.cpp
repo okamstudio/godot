@@ -843,7 +843,9 @@ bool DebugAdapterProtocol::request_remote_object(const ObjectID &p_object_id) {
 		return false;
 	}
 
-	EditorDebuggerNode::get_singleton()->get_default_debugger()->request_remote_object(p_object_id);
+	TypedArray<uint64_t> arr;
+	arr.append(p_object_id);
+	EditorDebuggerNode::get_singleton()->get_default_debugger()->request_remote_objects(arr);
 	object_pending_set.insert(p_object_id);
 
 	return true;
