@@ -40,6 +40,8 @@
 #include "scene/resources/environment.h"
 #include "scene/resources/image_texture.h"
 #include "scene/resources/sky.h"
+#include "scene/3d/physics_body_3d.h"
+#include "servers/physics_server_3d.h"
 
 #include "modules/modules_enabled.gen.h" // For lightmapper_rd.
 
@@ -791,6 +793,33 @@ void LightmapGI::_gen_new_positions_from_octree(const GenProbesOctree *p_cell, f
 				if (pp[j].distance_to(real_pos) < (p_cell_size * 0.5f)) {
 					exists = true;
 					break;
+				}
+			}
+
+			// check for collision with static geo, unless we're ignoring all layers
+			if (probes_ignore_layer != -1) {
+				auto space_state = get_world_3d()->get_direct_space_state();
+				auto point_params = PhysicsDirectSpaceState3D::PointParameters();
+				point_params.position = real_pos;
+				point_params.collide_with_areas = false;
+				PhysicsDirectSpaceState3D::ShapeResult results[10];
+				int intersect_count = space_state->intersect_point(point_params, results, 10);
+				if (intersect_count > 0) {
+					for (int j = 0; j < intersect_count; j++) {
+						auto shape_result = results[j];
+						StaticBody3D *static_body = cast_to<StaticBody3D>(shape_result.collider);
+						if (static_body) {
+							// if there are is no ignore layer, just continue
+							if (probes_ignore_layer == 0) {
+								exists = true;
+							} else {
+								CollisionObject3D *collision_obj = cast_to<CollisionObject3D>(static_body);
+								if ((collision_obj->get_collision_layer() & (1 << (probes_ignore_layer - 1))) == 0) {
+									exists = true;
+								}
+							}
+						}
+					}
 				}
 			}
 
@@ -1751,6 +1780,16 @@ LightmapGI::GenerateProbes LightmapGI::get_generate_probes() const {
 	return gen_probes;
 }
 
+void LightmapGI::set_probes_ignore_layer(int p_layer) {
+	ERR_FAIL_COND_MSG(p_layer < -1, "Layer number must be between -1 and 32 inclusive.");
+	ERR_FAIL_COND_MSG(p_layer > 32, "Layer number must be between -1 and 32 inclusive.");
+	probes_ignore_layer = p_layer;
+}
+
+int LightmapGI::get_probes_ignore_layer() const {
+	return probes_ignore_layer;
+}
+
 void LightmapGI::set_camera_attributes(const Ref<CameraAttributes> &p_camera_attributes) {
 	camera_attributes = p_camera_attributes;
 }
@@ -1869,6 +1908,9 @@ void LightmapGI::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_camera_attributes", "camera_attributes"), &LightmapGI::set_camera_attributes);
 	ClassDB::bind_method(D_METHOD("get_camera_attributes"), &LightmapGI::get_camera_attributes);
 
+	ClassDB::bind_method(D_METHOD("set_probes_ignore_layer", "ignore_layers"), &LightmapGI::set_probes_ignore_layer);
+	ClassDB::bind_method(D_METHOD("get_probes_ignore_layer"), &LightmapGI::get_probes_ignore_layer);
+
 	//	ClassDB::bind_method(D_METHOD("bake", "from_node"), &LightmapGI::bake, DEFVAL(Variant()));
 
 	ADD_GROUP("Tweaks", "");
@@ -1895,6 +1937,7 @@ void LightmapGI::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "camera_attributes", PROPERTY_HINT_RESOURCE_TYPE, "CameraAttributesPractical,CameraAttributesPhysical"), "set_camera_attributes", "get_camera_attributes");
 	ADD_GROUP("Gen Probes", "generate_probes_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "generate_probes_subdiv", PROPERTY_HINT_ENUM, "Disabled,4,8,16,32"), "set_generate_probes", "get_generate_probes");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "generate_probes_ignore_layer", PROPERTY_HINT_RANGE, "-1,32,1"), "set_probes_ignore_layer", "get_probes_ignore_layer");
 	ADD_GROUP("Data", "");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "light_data", PROPERTY_HINT_RESOURCE_TYPE, "LightmapGIData"), "set_light_data", "get_light_data");
 

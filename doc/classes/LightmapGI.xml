@@ -56,6 +56,10 @@
 			[b]Note:[/b] Automatically generated [LightmapProbe]s are not visible as nodes in the Scene tree dock, and cannot be modified this way after they are generated.
 			[b]Note:[/b] Regardless of [member generate_probes_subdiv], direct lighting on dynamic objects is always applied using [Light3D] nodes in real-time.
 		</member>
+		<member name="generate_probes_ignore_layer" type="int" setter="set_probes_ignore_layer" getter="get_probes_ignore_layer" default="0">
+			By default, generated [LightmapProbe]s will not be placed inside of [StaticBody3D]s. If a layer is specified here, any [StaticBody3D]s in that layer will be ignored and generated [LightmapProbe]s will be placed inside of it. This is useful for things like invisible walls. If set to -1, all layers will be ignored and generated [LightmapProbe]s will not avoid [StaticBody3D]s at all.
+			[b]Note:[/b] This does not affect manually placed [LightmapProbe]s.
+		</member>
 		<member name="interior" type="bool" setter="set_interior" getter="is_interior" default="false">
 			If [code]true[/code], ignore environment lighting when baking lightmaps.
 		</member>

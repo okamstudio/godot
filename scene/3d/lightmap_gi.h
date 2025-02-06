@@ -203,6 +203,7 @@ private:
 	bool use_texture_for_bounces = true;
 	LightmapGIData::ShadowmaskMode shadowmask_mode = LightmapGIData::SHADOWMASK_MODE_NONE;
 	GenerateProbes gen_probes = GENERATE_PROBES_SUBDIV_8;
+	int probes_ignore_layer = 0;
 	Ref<CameraAttributes> camera_attributes;
 
 	Ref<LightmapGIData> light_data;
@@ -343,6 +344,9 @@ public:
 
 	void set_generate_probes(GenerateProbes p_generate_probes);
 	GenerateProbes get_generate_probes() const;
+
+	void set_probes_ignore_layer(int p_layer);
+	int get_probes_ignore_layer() const;
 
 	void set_camera_attributes(const Ref<CameraAttributes> &p_camera_attributes);
 	Ref<CameraAttributes> get_camera_attributes() const;
