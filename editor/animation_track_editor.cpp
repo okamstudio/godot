@@ -2154,7 +2154,7 @@ void AnimationTrackEdit::_notification(int p_what) {
 
 				Vector2 string_pos = Point2(ofs, (get_size().height - font->get_height(font_size)) / 2 + font->get_ascent(font_size));
 				string_pos = string_pos.floor();
-				draw_string(font, string_pos, text, HORIZONTAL_ALIGNMENT_LEFT, limit - ofs - h_separation, font_size, text_color);
+				draw_string(font, string_pos, text, HORIZONTAL_ALIGNMENT_RIGHT, limit - ofs - h_separation, font_size, text_color, TextServer::JUSTIFICATION_WORD_BOUND, TextServer::DIRECTION_RTL);
 
 				draw_line(Point2(limit, 0), Point2(limit, get_size().height), h_line_color, Math::round(EDSCALE));
 			}
