@@ -99,6 +99,7 @@ void Texture2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_height"), &Texture2D::get_height);
 	ClassDB::bind_method(D_METHOD("get_size"), &Texture2D::get_size);
 	ClassDB::bind_method(D_METHOD("has_alpha"), &Texture2D::has_alpha);
+	ClassDB::bind_method(D_METHOD("is_pixel_opaque", "x", "y"), &Texture2D::is_pixel_opaque);
 	ClassDB::bind_method(D_METHOD("draw", "canvas_item", "position", "modulate", "transpose"), &Texture2D::draw, DEFVAL(Color(1, 1, 1)), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("draw_rect", "canvas_item", "rect", "tile", "modulate", "transpose"), &Texture2D::draw_rect, DEFVAL(Color(1, 1, 1)), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("draw_rect_region", "canvas_item", "rect", "src_rect", "modulate", "transpose", "clip_uv"), &Texture2D::draw_rect_region, DEFVAL(Color(1, 1, 1)), DEFVAL(false), DEFVAL(true));
