@@ -103,7 +103,38 @@ class GDScriptByteCodeGenerator : public GDScriptCodeGenerator {
 	List<int> temp_stack;
 #endif
 
-	HashMap<Variant, int, VariantHasher, VariantComparator> constant_map;
+	// The default hash_compare is not suitable for storing consts in a HashMap.
+	struct ConstVariantComparator {
+		static _FORCE_INLINE_ bool compare(const Variant &p_lhs, const Variant &p_rhs) {
+			if (p_lhs.get_type() != p_rhs.get_type()) {
+				return false;
+			}
+			const Variant::Type &type = p_lhs.get_type();
+			if (type == Variant::Type::ARRAY) {
+				return VariantGetInternalPtr<Array>::get_ptr(&p_lhs)->id() == VariantGetInternalPtr<Array>::get_ptr(&p_rhs)->id();
+			} else if (type == Variant::Type::DICTIONARY) {
+				return VariantGetInternalPtr<Dictionary>::get_ptr(&p_lhs)->id() == VariantGetInternalPtr<Dictionary>::get_ptr(&p_rhs)->id();
+			} else if (type >= Variant::Type::PACKED_BYTE_ARRAY) {
+				// Just in case (since they are passed by reference now, but at the moment they are not allowed as const)
+				ERR_PRINT("Did not expect a packed array as const value.");
+			} else if (type == Variant::Type::FLOAT) {
+				if (Math::is_nan(*VariantGetInternalPtr<double>::get_ptr(&p_lhs)) && Math::is_nan(*VariantGetInternalPtr<double>::get_ptr(&p_rhs))) {
+					return true;
+				} else if (*VariantGetInternalPtr<double>::get_ptr(&p_lhs) != *VariantGetInternalPtr<double>::get_ptr(&p_rhs)) {
+					return false;
+				} else if (signbit(*VariantGetInternalPtr<double>::get_ptr(&p_lhs)) != signbit(*VariantGetInternalPtr<double>::get_ptr(&p_rhs))) {
+					return false; // 0.0 and -0.0
+				} else {
+					return true;
+				}
+			}
+			// At the moment, hash_compare for Objects already does id check
+			// For the rest, it's OK to do the default comparison
+			return p_lhs.hash_compare(p_rhs);
+		}
+	};
+
+	HashMap<Variant, int, VariantHasher, ConstVariantComparator> constant_map;
 	RBMap<StringName, int> name_map;
 #ifdef TOOLS_ENABLED
 	Vector<StringName> named_globals;
