@@ -3981,17 +3981,6 @@ int EditorNode::new_scene() {
 	int idx = editor_data.add_edited_scene(-1);
 	_set_current_scene(idx); // Before trying to remove an empty scene, set the current tab index to the newly added tab index.
 
-	// Remove placeholder empty scene.
-	if (editor_data.get_edited_scene_count() > 1) {
-		for (int i = 0; i < editor_data.get_edited_scene_count() - 1; i++) {
-			bool unsaved = EditorUndoRedoManager::get_singleton()->is_history_unsaved(editor_data.get_scene_history_id(i));
-			if (!unsaved && editor_data.get_scene_path(i).is_empty() && editor_data.get_edited_scene_root(i) == nullptr) {
-				editor_data.remove_scene(i);
-				idx--;
-			}
-		}
-	}
-
 	editor_data.clear_editor_states();
 	scene_tabs->update_scene_tabs();
 	return idx;

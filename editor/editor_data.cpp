@@ -628,6 +628,18 @@ int EditorData::add_edited_scene(int p_at_pos) {
 	if (current_edited_scene < 0) {
 		current_edited_scene = 0;
 	}
+
+	// Remove placeholder empty scene.
+	if (get_edited_scene_count() > 1) {
+		for (int i = 0; i < get_edited_scene_count() - 1; i++) {
+			bool unsaved = EditorUndoRedoManager::get_singleton()->is_history_unsaved(get_scene_history_id(i));
+			if (!unsaved && get_scene_path(i).is_empty() && get_edited_scene_root(i) == nullptr) {
+				remove_scene(i);
+				p_at_pos--;
+			}
+		}
+	}
+
 	return p_at_pos;
 }
 
