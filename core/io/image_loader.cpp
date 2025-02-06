@@ -36,7 +36,15 @@ void ImageFormatLoader::_bind_methods() {
 	BIND_BITFIELD_FLAG(FLAG_CONVERT_COLORS);
 }
 
-bool ImageFormatLoader::recognize(const String &p_extension) const {
+bool ImageFormatLoader::should_import(const String &p_resource_type) const {
+	return true;
+}
+
+bool ImageFormatLoader::recognize(const String &p_extension, const String &p_resource_type) const {
+	if (!should_import(p_resource_type)) {
+		return false;
+	}
+
 	List<String> extensions;
 	get_recognized_extensions(&extensions);
 	for (const String &E : extensions) {
@@ -63,6 +71,12 @@ void ImageFormatLoaderExtension::get_recognized_extensions(List<String> *p_exten
 	}
 }
 
+bool ImageFormatLoaderExtension::should_import(const String &p_resource_type) const {
+	bool should_import = true;
+	GDVIRTUAL_CALL(_should_import, p_resource_type, should_import);
+	return should_import;
+}
+
 void ImageFormatLoaderExtension::add_format_loader() {
 	ImageLoader::add_image_format_loader(this);
 }
@@ -73,6 +87,7 @@ void ImageFormatLoaderExtension::remove_format_loader() {
 
 void ImageFormatLoaderExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_get_recognized_extensions);
+	GDVIRTUAL_BIND(_should_import, "resource_type");
 	GDVIRTUAL_BIND(_load_image, "image", "fileaccess", "flags", "scale");
 	ClassDB::bind_method(D_METHOD("add_format_loader"), &ImageFormatLoaderExtension::add_format_loader);
 	ClassDB::bind_method(D_METHOD("remove_format_loader"), &ImageFormatLoaderExtension::remove_format_loader);
@@ -108,15 +123,18 @@ Error ImageLoader::load_image(const String &p_file, Ref<Image> p_image, Ref<File
 	return ERR_FILE_UNRECOGNIZED;
 }
 
-void ImageLoader::get_recognized_extensions(List<String> *p_extensions) {
+void ImageLoader::get_recognized_extensions(List<String> *p_extensions, const String &p_resource_type) {
 	for (int i = 0; i < loader.size(); i++) {
+		if (!loader[i]->should_import(p_resource_type)) {
+			continue;
+		}
 		loader[i]->get_recognized_extensions(p_extensions);
 	}
 }
 
-Ref<ImageFormatLoader> ImageLoader::recognize(const String &p_extension) {
+Ref<ImageFormatLoader> ImageLoader::recognize(const String &p_extension, const String &p_resource_type) {
 	for (int i = 0; i < loader.size(); i++) {
-		if (loader[i]->recognize(p_extension)) {
+		if (loader[i]->recognize(p_extension, p_resource_type)) {
 			return loader[i];
 		}
 	}
@@ -167,7 +185,7 @@ Ref<Resource> ResourceFormatLoaderImage::load(const String &p_path, const String
 	int idx = -1;
 
 	for (int i = 0; i < ImageLoader::loader.size(); i++) {
-		if (ImageLoader::loader[i]->recognize(extension)) {
+		if (ImageLoader::loader[i]->recognize(extension, "Image")) {
 			idx = i;
 			break;
 		}

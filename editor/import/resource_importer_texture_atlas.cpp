@@ -51,7 +51,7 @@ String ResourceImporterTextureAtlas::get_visible_name() const {
 }
 
 void ResourceImporterTextureAtlas::get_recognized_extensions(List<String> *p_extensions) const {
-	ImageLoader::get_recognized_extensions(p_extensions);
+	ImageLoader::get_recognized_extensions(p_extensions, get_resource_type());
 }
 
 String ResourceImporterTextureAtlas::get_save_extension() const {
