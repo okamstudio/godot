@@ -2116,6 +2116,10 @@
 		<member name="memory/limits/message_queue/max_size_mb" type="int" setter="" getter="" default="32">
 			Godot uses a message queue to defer some function calls. If you run out of space on it (you will see an error), you can increase the size here.
 		</member>
+		<member name="memory/limits/rid/max_rid_allocate" type="int" setter="" getter="" default="262144">
+			Maximum number of RIDs per allocator. Generally there is one allocator for each type of resource.
+			[b]Note:[/b] If you find yourself needing more than the default value, consider using other methods of batching work.
+		</member>
 		<member name="navigation/2d/default_cell_size" type="float" setter="" getter="" default="1.0">
 			Default cell size for 2D navigation maps. See [method NavigationServer2D.map_set_cell_size].
 		</member>
