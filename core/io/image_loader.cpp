@@ -54,6 +54,12 @@ Error ImageFormatLoaderExtension::load_image(Ref<Image> p_image, Ref<FileAccess>
 	return err;
 }
 
+bool ImageFormatLoaderExtension::should_import() const {
+	bool import = true;
+	GDVIRTUAL_CALL(_should_import, import);
+	return import;
+}
+
 void ImageFormatLoaderExtension::get_recognized_extensions(List<String> *p_extension) const {
 	PackedStringArray ext;
 	if (GDVIRTUAL_CALL(_get_recognized_extensions, ext)) {
@@ -74,6 +80,7 @@ void ImageFormatLoaderExtension::remove_format_loader() {
 void ImageFormatLoaderExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_get_recognized_extensions);
 	GDVIRTUAL_BIND(_load_image, "image", "fileaccess", "flags", "scale");
+	GDVIRTUAL_BIND(_should_import);
 	ClassDB::bind_method(D_METHOD("add_format_loader"), &ImageFormatLoaderExtension::add_format_loader);
 	ClassDB::bind_method(D_METHOD("remove_format_loader"), &ImageFormatLoaderExtension::remove_format_loader);
 }
@@ -108,8 +115,11 @@ Error ImageLoader::load_image(const String &p_file, Ref<Image> p_image, Ref<File
 	return ERR_FILE_UNRECOGNIZED;
 }
 
-void ImageLoader::get_recognized_extensions(List<String> *p_extensions) {
+void ImageLoader::get_recognized_extensions(List<String> *p_extensions, bool p_is_import) {
 	for (int i = 0; i < loader.size(); i++) {
+		if (p_is_import && !loader[i]->should_import()) {
+			continue;
+		}
 		loader[i]->get_recognized_extensions(p_extensions);
 	}
 }

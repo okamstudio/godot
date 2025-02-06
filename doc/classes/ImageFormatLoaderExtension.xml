@@ -26,6 +26,12 @@
 				Loads the content of [param fileaccess] into the provided [param image].
 			</description>
 		</method>
+		<method name="_should_import" qualifiers="virtual const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if image file importing should be performed for this image format's extensions, else returns [code]false[/code].
+			</description>
+		</method>
 		<method name="add_format_loader">
 			<return type="void" />
 			<description>

@@ -60,6 +60,7 @@ protected:
 
 	virtual Error load_image(Ref<Image> p_image, Ref<FileAccess> p_fileaccess, BitField<ImageFormatLoader::LoaderFlags> p_flags = FLAG_NONE, float p_scale = 1.0) = 0;
 	virtual void get_recognized_extensions(List<String> *p_extensions) const = 0;
+	virtual bool should_import() const { return true; }
 	bool recognize(const String &p_extension) const;
 
 public:
@@ -76,6 +77,7 @@ protected:
 
 public:
 	virtual Error load_image(Ref<Image> p_image, Ref<FileAccess> p_fileaccess, BitField<ImageFormatLoader::LoaderFlags> p_flags = FLAG_NONE, float p_scale = 1.0) override;
+	virtual bool should_import() const override;
 	virtual void get_recognized_extensions(List<String> *p_extensions) const override;
 
 	void add_format_loader();
@@ -83,6 +85,7 @@ public:
 
 	GDVIRTUAL0RC(PackedStringArray, _get_recognized_extensions);
 	GDVIRTUAL4R(Error, _load_image, Ref<Image>, Ref<FileAccess>, BitField<ImageFormatLoader::LoaderFlags>, float);
+	GDVIRTUAL0RC(bool, _should_import);
 };
 
 class ImageLoader {
@@ -92,7 +95,7 @@ class ImageLoader {
 protected:
 public:
 	static Error load_image(const String &p_file, Ref<Image> p_image, Ref<FileAccess> p_custom = Ref<FileAccess>(), BitField<ImageFormatLoader::LoaderFlags> p_flags = ImageFormatLoader::FLAG_NONE, float p_scale = 1.0);
-	static void get_recognized_extensions(List<String> *p_extensions);
+	static void get_recognized_extensions(List<String> *p_extensions, bool p_is_import = true);
 	static Ref<ImageFormatLoader> recognize(const String &p_extension);
 
 	static void add_image_format_loader(Ref<ImageFormatLoader> p_loader);
