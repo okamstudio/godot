@@ -31,19 +31,19 @@
 #ifndef NAV_REGION_ITERATION_3D_H
 #define NAV_REGION_ITERATION_3D_H
 
-#include "../nav_utils.h"
+#include "../nav_utils_3d.h"
 #include "nav_base_iteration_3d.h"
 
 #include "core/math/aabb.h"
 
-struct NavRegionIteration : NavBaseIteration {
+struct NavRegionIteration3D : NavBaseIteration3D {
 	Transform3D transform;
-	LocalVector<gd::Polygon> navmesh_polygons;
+	LocalVector<nav_3d::Polygon> navmesh_polygons;
 	real_t surface_area = 0.0;
 	AABB bounds;
 
 	const Transform3D &get_transform() const { return transform; }
-	const LocalVector<gd::Polygon> &get_navmesh_polygons() const { return navmesh_polygons; }
+	const LocalVector<nav_3d::Polygon> &get_navmesh_polygons() const { return navmesh_polygons; }
 	real_t get_surface_area() const { return surface_area; }
 	AABB get_bounds() const { return bounds; }
 };

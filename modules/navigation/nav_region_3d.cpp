@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  nav_region.cpp                                                        */
+/*  nav_region_3d.cpp                                                     */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,15 +28,17 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "nav_region.h"
+#include "nav_region_3d.h"
 
-#include "nav_map.h"
+#include "nav_map_3d.h"
 
 #include "3d/nav_map_builder_3d.h"
 #include "3d/nav_mesh_queries_3d.h"
 #include "3d/nav_region_iteration_3d.h"
 
-void NavRegion::set_map(NavMap *p_map) {
+using namespace nav_3d;
+
+void NavRegion3D::set_map(NavMap3D *p_map) {
 	if (map == p_map) {
 		return;
 	}
@@ -56,7 +58,7 @@ void NavRegion::set_map(NavMap *p_map) {
 	}
 }
 
-void NavRegion::set_enabled(bool p_enabled) {
+void NavRegion3D::set_enabled(bool p_enabled) {
 	if (enabled == p_enabled) {
 		return;
 	}
@@ -68,7 +70,7 @@ void NavRegion::set_enabled(bool p_enabled) {
 	request_sync();
 }
 
-void NavRegion::set_use_edge_connections(bool p_enabled) {
+void NavRegion3D::set_use_edge_connections(bool p_enabled) {
 	if (use_edge_connections != p_enabled) {
 		use_edge_connections = p_enabled;
 		polygons_dirty = true;
@@ -77,7 +79,7 @@ void NavRegion::set_use_edge_connections(bool p_enabled) {
 	request_sync();
 }
 
-void NavRegion::set_transform(Transform3D p_transform) {
+void NavRegion3D::set_transform(Transform3D p_transform) {
 	if (transform == p_transform) {
 		return;
 	}
@@ -93,7 +95,7 @@ void NavRegion::set_transform(Transform3D p_transform) {
 #endif // DEBUG_ENABLED
 }
 
-void NavRegion::set_navigation_mesh(Ref<NavigationMesh> p_navigation_mesh) {
+void NavRegion3D::set_navigation_mesh(Ref<NavigationMesh> p_navigation_mesh) {
 #ifdef DEBUG_ENABLED
 	if (map && p_navigation_mesh.is_valid() && !Math::is_equal_approx(double(map->get_cell_size()), double(p_navigation_mesh->get_cell_size()))) {
 		ERR_PRINT_ONCE(vformat("Attempted to update a navigation region with a navigation mesh that uses a `cell_size` of %s while assigned to a navigation map set to a `cell_size` of %s. The cell size for navigation maps can be changed by using the NavigationServer map_set_cell_size() function. The cell size for default navigation maps can also be changed in the ProjectSettings.", double(p_navigation_mesh->get_cell_size()), double(map->get_cell_size())));
@@ -118,20 +120,20 @@ void NavRegion::set_navigation_mesh(Ref<NavigationMesh> p_navigation_mesh) {
 	request_sync();
 }
 
-Vector3 NavRegion::get_closest_point_to_segment(const Vector3 &p_from, const Vector3 &p_to, bool p_use_collision) const {
+Vector3 NavRegion3D::get_closest_point_to_segment(const Vector3 &p_from, const Vector3 &p_to, bool p_use_collision) const {
 	RWLockRead read_lock(region_rwlock);
 
 	return NavMeshQueries3D::polygons_get_closest_point_to_segment(
 			get_polygons(), p_from, p_to, p_use_collision);
 }
 
-gd::ClosestPointQueryResult NavRegion::get_closest_point_info(const Vector3 &p_point) const {
+ClosestPointQueryResult NavRegion3D::get_closest_point_info(const Vector3 &p_point) const {
 	RWLockRead read_lock(region_rwlock);
 
 	return NavMeshQueries3D::polygons_get_closest_point_info(get_polygons(), p_point);
 }
 
-Vector3 NavRegion::get_random_point(uint32_t p_navigation_layers, bool p_uniformly) const {
+Vector3 NavRegion3D::get_random_point(uint32_t p_navigation_layers, bool p_uniformly) const {
 	RWLockRead read_lock(region_rwlock);
 
 	if (!get_enabled()) {
@@ -141,7 +143,7 @@ Vector3 NavRegion::get_random_point(uint32_t p_navigation_layers, bool p_uniform
 	return NavMeshQueries3D::polygons_get_random_point(get_polygons(), p_navigation_layers, p_uniformly);
 }
 
-bool NavRegion::sync() {
+bool NavRegion3D::sync() {
 	RWLockWrite write_lock(region_rwlock);
 
 	bool something_changed = polygons_dirty /* || something_dirty? */;
@@ -151,7 +153,7 @@ bool NavRegion::sync() {
 	return something_changed;
 }
 
-void NavRegion::update_polygons() {
+void NavRegion3D::update_polygons() {
 	if (!polygons_dirty) {
 		return;
 	}
@@ -185,7 +187,7 @@ void NavRegion::update_polygons() {
 	bool first_vertex = true;
 	int navigation_mesh_polygon_index = 0;
 
-	for (gd::Polygon &polygon : navmesh_polygons) {
+	for (Polygon &polygon : navmesh_polygons) {
 		polygon.surface_area = 0.0;
 
 		Vector<int> navigation_mesh_polygon = pending_navmesh_polygons[navigation_mesh_polygon_index];
@@ -244,7 +246,7 @@ void NavRegion::update_polygons() {
 	bounds = _new_bounds;
 }
 
-void NavRegion::get_iteration_update(NavRegionIteration &r_iteration) {
+void NavRegion3D::get_iteration_update(NavRegionIteration3D &r_iteration) {
 	r_iteration.navigation_layers = get_navigation_layers();
 	r_iteration.enter_cost = get_enter_cost();
 	r_iteration.travel_cost = get_travel_cost();
@@ -261,29 +263,29 @@ void NavRegion::get_iteration_update(NavRegionIteration &r_iteration) {
 	r_iteration.navmesh_polygons.clear();
 	r_iteration.navmesh_polygons.resize(navmesh_polygons.size());
 	for (uint32_t i = 0; i < navmesh_polygons.size(); i++) {
-		gd::Polygon &navmesh_polygon = navmesh_polygons[i];
+		Polygon &navmesh_polygon = navmesh_polygons[i];
 		navmesh_polygon.owner = &r_iteration;
 		r_iteration.navmesh_polygons[i] = navmesh_polygon;
 	}
 }
 
-void NavRegion::request_sync() {
+void NavRegion3D::request_sync() {
 	if (map && !sync_dirty_request_list_element.in_list()) {
 		map->add_region_sync_dirty_request(&sync_dirty_request_list_element);
 	}
 }
 
-void NavRegion::cancel_sync_request() {
+void NavRegion3D::cancel_sync_request() {
 	if (map && sync_dirty_request_list_element.in_list()) {
 		map->remove_region_sync_dirty_request(&sync_dirty_request_list_element);
 	}
 }
 
-NavRegion::NavRegion() :
+NavRegion3D::NavRegion3D() :
 		sync_dirty_request_list_element(this) {
 	type = NavigationUtilities::PathSegmentType::PATH_SEGMENT_TYPE_REGION;
 }
 
-NavRegion::~NavRegion() {
+NavRegion3D::~NavRegion3D() {
 	cancel_sync_request();
 }

@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  nav_rid.h                                                             */
+/*  nav_rid_3d.h                                                          */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,12 +28,12 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef NAV_RID_H
-#define NAV_RID_H
+#ifndef NAV_RID_3D_H
+#define NAV_RID_3D_H
 
 #include "core/templates/rid.h"
 
-class NavRid {
+class NavRid3D {
 	RID self;
 
 public:
@@ -41,4 +41,4 @@ public:
 	_FORCE_INLINE_ RID get_self() const { return self; }
 };
 
-#endif // NAV_RID_H
+#endif // NAV_RID_3D_H

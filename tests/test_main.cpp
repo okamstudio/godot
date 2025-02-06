@@ -95,6 +95,7 @@
 #include "tests/core/templates/test_command_queue.h"
 #include "tests/core/templates/test_hash_map.h"
 #include "tests/core/templates/test_hash_set.h"
+#include "tests/core/templates/test_heap.h"
 #include "tests/core/templates/test_list.h"
 #include "tests/core/templates/test_local_vector.h"
 #include "tests/core/templates/test_lru.h"

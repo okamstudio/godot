@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  nav_obstacle.cpp                                                      */
+/*  nav_obstacle_3d.cpp                                                   */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,12 +28,12 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "nav_obstacle.h"
+#include "nav_obstacle_3d.h"
 
-#include "nav_agent.h"
-#include "nav_map.h"
+#include "nav_agent_3d.h"
+#include "nav_map_3d.h"
 
-void NavObstacle::set_agent(NavAgent *p_agent) {
+void NavObstacle3D::set_agent(NavAgent3D *p_agent) {
 	if (agent == p_agent) {
 		return;
 	}
@@ -45,7 +45,7 @@ void NavObstacle::set_agent(NavAgent *p_agent) {
 	request_sync();
 }
 
-void NavObstacle::set_avoidance_enabled(bool p_enabled) {
+void NavObstacle3D::set_avoidance_enabled(bool p_enabled) {
 	if (avoidance_enabled == p_enabled) {
 		return;
 	}
@@ -58,7 +58,7 @@ void NavObstacle::set_avoidance_enabled(bool p_enabled) {
 	request_sync();
 }
 
-void NavObstacle::set_use_3d_avoidance(bool p_enabled) {
+void NavObstacle3D::set_use_3d_avoidance(bool p_enabled) {
 	if (use_3d_avoidance == p_enabled) {
 		return;
 	}
@@ -73,7 +73,7 @@ void NavObstacle::set_use_3d_avoidance(bool p_enabled) {
 	request_sync();
 }
 
-void NavObstacle::set_map(NavMap *p_map) {
+void NavObstacle3D::set_map(NavMap3D *p_map) {
 	if (map == p_map) {
 		return;
 	}
@@ -98,7 +98,7 @@ void NavObstacle::set_map(NavMap *p_map) {
 	}
 }
 
-void NavObstacle::set_position(const Vector3 p_position) {
+void NavObstacle3D::set_position(const Vector3 p_position) {
 	if (position == p_position) {
 		return;
 	}
@@ -113,7 +113,7 @@ void NavObstacle::set_position(const Vector3 p_position) {
 	request_sync();
 }
 
-void NavObstacle::set_radius(real_t p_radius) {
+void NavObstacle3D::set_radius(real_t p_radius) {
 	if (radius == p_radius) {
 		return;
 	}
@@ -125,7 +125,7 @@ void NavObstacle::set_radius(real_t p_radius) {
 	}
 }
 
-void NavObstacle::set_height(const real_t p_height) {
+void NavObstacle3D::set_height(const real_t p_height) {
 	if (height == p_height) {
 		return;
 	}
@@ -140,7 +140,7 @@ void NavObstacle::set_height(const real_t p_height) {
 	request_sync();
 }
 
-void NavObstacle::set_velocity(const Vector3 p_velocity) {
+void NavObstacle3D::set_velocity(const Vector3 p_velocity) {
 	velocity = p_velocity;
 
 	if (agent) {
@@ -148,7 +148,7 @@ void NavObstacle::set_velocity(const Vector3 p_velocity) {
 	}
 }
 
-void NavObstacle::set_vertices(const Vector<Vector3> &p_vertices) {
+void NavObstacle3D::set_vertices(const Vector<Vector3> &p_vertices) {
 	if (vertices == p_vertices) {
 		return;
 	}
@@ -159,7 +159,7 @@ void NavObstacle::set_vertices(const Vector<Vector3> &p_vertices) {
 	request_sync();
 }
 
-bool NavObstacle::is_map_changed() {
+bool NavObstacle3D::is_map_changed() {
 	if (map) {
 		bool is_changed = map->get_iteration_id() != last_map_iteration_id;
 		last_map_iteration_id = map->get_iteration_id();
@@ -169,7 +169,7 @@ bool NavObstacle::is_map_changed() {
 	}
 }
 
-void NavObstacle::set_avoidance_layers(uint32_t p_layers) {
+void NavObstacle3D::set_avoidance_layers(uint32_t p_layers) {
 	if (avoidance_layers == p_layers) {
 		return;
 	}
@@ -184,15 +184,15 @@ void NavObstacle::set_avoidance_layers(uint32_t p_layers) {
 	request_sync();
 }
 
-bool NavObstacle::is_dirty() const {
+bool NavObstacle3D::is_dirty() const {
 	return obstacle_dirty;
 }
 
-void NavObstacle::sync() {
+void NavObstacle3D::sync() {
 	obstacle_dirty = false;
 }
 
-void NavObstacle::internal_update_agent() {
+void NavObstacle3D::internal_update_agent() {
 	if (agent) {
 		agent->set_neighbor_distance(0.0);
 		agent->set_max_neighbors(0.0);
@@ -212,7 +212,7 @@ void NavObstacle::internal_update_agent() {
 	}
 }
 
-void NavObstacle::set_paused(bool p_paused) {
+void NavObstacle3D::set_paused(bool p_paused) {
 	if (paused == p_paused) {
 		return;
 	}
@@ -229,26 +229,26 @@ void NavObstacle::set_paused(bool p_paused) {
 	internal_update_agent();
 }
 
-bool NavObstacle::get_paused() const {
+bool NavObstacle3D::get_paused() const {
 	return paused;
 }
 
-void NavObstacle::request_sync() {
+void NavObstacle3D::request_sync() {
 	if (map && !sync_dirty_request_list_element.in_list()) {
 		map->add_obstacle_sync_dirty_request(&sync_dirty_request_list_element);
 	}
 }
 
-void NavObstacle::cancel_sync_request() {
+void NavObstacle3D::cancel_sync_request() {
 	if (map && sync_dirty_request_list_element.in_list()) {
 		map->remove_obstacle_sync_dirty_request(&sync_dirty_request_list_element);
 	}
 }
 
-NavObstacle::NavObstacle() :
+NavObstacle3D::NavObstacle3D() :
 		sync_dirty_request_list_element(this) {
 }
 
-NavObstacle::~NavObstacle() {
+NavObstacle3D::~NavObstacle3D() {
 	cancel_sync_request();
 }

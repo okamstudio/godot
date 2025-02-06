@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  nav_link.cpp                                                          */
+/*  nav_link_3d.cpp                                                       */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,11 +28,11 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "nav_link.h"
+#include "nav_link_3d.h"
 
-#include "nav_map.h"
+#include "nav_map_3d.h"
 
-void NavLink::set_map(NavMap *p_map) {
+void NavLink3D::set_map(NavMap3D *p_map) {
 	if (map == p_map) {
 		return;
 	}
@@ -52,7 +52,7 @@ void NavLink::set_map(NavMap *p_map) {
 	}
 }
 
-void NavLink::set_enabled(bool p_enabled) {
+void NavLink3D::set_enabled(bool p_enabled) {
 	if (enabled == p_enabled) {
 		return;
 	}
@@ -64,7 +64,7 @@ void NavLink::set_enabled(bool p_enabled) {
 	request_sync();
 }
 
-void NavLink::set_bidirectional(bool p_bidirectional) {
+void NavLink3D::set_bidirectional(bool p_bidirectional) {
 	if (bidirectional == p_bidirectional) {
 		return;
 	}
@@ -74,7 +74,7 @@ void NavLink::set_bidirectional(bool p_bidirectional) {
 	request_sync();
 }
 
-void NavLink::set_start_position(const Vector3 p_position) {
+void NavLink3D::set_start_position(const Vector3 p_position) {
 	if (start_position == p_position) {
 		return;
 	}
@@ -84,7 +84,7 @@ void NavLink::set_start_position(const Vector3 p_position) {
 	request_sync();
 }
 
-void NavLink::set_end_position(const Vector3 p_position) {
+void NavLink3D::set_end_position(const Vector3 p_position) {
 	if (end_position == p_position) {
 		return;
 	}
@@ -94,36 +94,36 @@ void NavLink::set_end_position(const Vector3 p_position) {
 	request_sync();
 }
 
-bool NavLink::is_dirty() const {
+bool NavLink3D::is_dirty() const {
 	return link_dirty;
 }
 
-void NavLink::sync() {
+void NavLink3D::sync() {
 	link_dirty = false;
 }
 
-void NavLink::request_sync() {
+void NavLink3D::request_sync() {
 	if (map && !sync_dirty_request_list_element.in_list()) {
 		map->add_link_sync_dirty_request(&sync_dirty_request_list_element);
 	}
 }
 
-void NavLink::cancel_sync_request() {
+void NavLink3D::cancel_sync_request() {
 	if (map && sync_dirty_request_list_element.in_list()) {
 		map->remove_link_sync_dirty_request(&sync_dirty_request_list_element);
 	}
 }
 
-NavLink::NavLink() :
+NavLink3D::NavLink3D() :
 		sync_dirty_request_list_element(this) {
 	type = NavigationUtilities::PathSegmentType::PATH_SEGMENT_TYPE_LINK;
 }
 
-NavLink::~NavLink() {
+NavLink3D::~NavLink3D() {
 	cancel_sync_request();
 }
 
-void NavLink::get_iteration_update(NavLinkIteration &r_iteration) {
+void NavLink3D::get_iteration_update(NavLinkIteration3D &r_iteration) {
 	r_iteration.navigation_layers = get_navigation_layers();
 	r_iteration.enter_cost = get_enter_cost();
 	r_iteration.travel_cost = get_travel_cost();
