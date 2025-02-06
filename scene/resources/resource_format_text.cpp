@@ -1643,17 +1643,8 @@ void ResourceFormatSaverTextInstance::_find_resources(const Variant &p_variant, 
 						npk.base = res;
 						npk.property = pi.name;
 						non_persistent_map[npk] = v;
-
-						Ref<Resource> sres = v;
-						if (sres.is_valid()) {
-							resource_set.insert(sres);
-							saved_resources.push_back(sres);
-						} else {
-							_find_resources(v);
-						}
-					} else {
-						_find_resources(v);
 					}
+					_find_resources(v);
 				}
 
 				I = I->next();
