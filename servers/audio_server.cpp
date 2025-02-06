@@ -1221,6 +1221,7 @@ void AudioServer::start_playback_stream(Ref<AudioStreamPlayback> p_playback, con
 
 void AudioServer::start_playback_stream(Ref<AudioStreamPlayback> p_playback, const HashMap<StringName, Vector<AudioFrame>> &p_bus_volumes, float p_start_time, float p_pitch_scale, float p_highshelf_gain, float p_attenuation_cutoff_hz) {
 	ERR_FAIL_COND(p_playback.is_null());
+	ERR_FAIL_COND(p_start_time < 0);
 
 	AudioStreamPlaybackListNode *playback_node = new AudioStreamPlaybackListNode();
 	playback_node->stream_playback = p_playback;
