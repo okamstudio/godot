@@ -1,0 +1,2 @@
+GDTEST_PARSER_ERROR
+Expected ":" at end of variable declaration when using "set" or "get"

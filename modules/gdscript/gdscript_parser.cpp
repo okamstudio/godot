@@ -1166,7 +1166,33 @@ GDScriptParser::VariableNode *GDScriptParser::parse_variable(bool p_is_static, b
 	}
 
 	complete_extents(variable);
+
+	bool malformed_setget_found = false;
+
+	if (p_allow_property && check(GDScriptTokenizer::Token::IDENTIFIER)) {
+		StringName identifier_name = current.get_identifier();
+		if (identifier_name == SNAME("set") || identifier_name == SNAME("get")) {
+			push_error(vformat(R"(Expected ":" before "%s".)", identifier_name));
+			malformed_setget_found = true;
+		}
+	}
+
 	end_statement("variable declaration");
+
+	if (p_allow_property && !malformed_setget_found && match(GDScriptTokenizer::Token::INDENT)) {
+		if (check(GDScriptTokenizer::Token::IDENTIFIER)) {
+			StringName identifier_name = current.get_identifier();
+			if (identifier_name == SNAME("set") || identifier_name == SNAME("get")) {
+				malformed_setget_found = true;
+			}
+		}
+
+		if (malformed_setget_found) {
+			push_error(vformat(R"(Expected ":" at end of variable declaration when using "set" or "get")"), variable);
+		} else {
+			push_error(R"(Unexpected "Indent" after variable declaration.)");
+		}
+	}
 
 	return variable;
 }
