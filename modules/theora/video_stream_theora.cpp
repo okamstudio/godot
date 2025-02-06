@@ -576,6 +576,15 @@ double VideoStreamPlaybackTheora::get_length() const {
 	return 0;
 }
 
+double VideoStreamPlaybackTheora::get_playback_speed() const {
+	WARN_PRINT_ONCE("Video speed option in Theora videos is not implemented yet (it's only supported for GDExtension-provided video streams).");
+	return 1;
+}
+
+void VideoStreamPlaybackTheora::set_playback_speed(double p_speed) {
+	WARN_PRINT_ONCE("Video speed option in Theora videos is not implemented yet (it's only supported for GDExtension-provided video streams).");
+}
+
 double VideoStreamPlaybackTheora::get_playback_position() const {
 	return get_time();
 }

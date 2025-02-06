@@ -33,6 +33,12 @@
 				Return the current playback timestamp. Called in response to the [member VideoStreamPlayer.stream_position] getter.
 			</description>
 		</method>
+		<method name="_get_playback_speed" qualifiers="virtual const">
+			<return type="float" />
+			<description>
+				Return the current playback speed.
+			</description>
+		</method>
 		<method name="_get_texture" qualifiers="virtual const">
 			<return type="Texture2D" />
 			<description>
@@ -76,6 +82,13 @@
 			<param index="0" name="paused" type="bool" />
 			<description>
 				Set the paused status of video playback. [method _is_paused] must return [param paused]. Called in response to the [member VideoStreamPlayer.paused] setter.
+			</description>
+		</method>
+		<method name="_set_playback_speed" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="speed" type="float" />
+			<description>
+				Set playback speed.
 			</description>
 		</method>
 		<method name="_stop" qualifiers="virtual">

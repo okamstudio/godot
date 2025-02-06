@@ -81,6 +81,10 @@
 			The current position of the stream, in seconds.
 			[b]Note:[/b] Changing this value won't have any effect as seeking is not implemented yet, except in video formats implemented by a GDExtension add-on.
 		</member>
+		<member name="stream_speed" type="float" setter="set_stream_speed" getter="get_stream_speed">
+			The current speed of the stream. 1.0 means the normal speed.
+			[b]Note:[/b] Changing this value won't have any effect as there is no speed feature implemented yet, except in video formats implemented by a GDExtension add-on.
+		</member>
 		<member name="volume" type="float" setter="set_volume" getter="get_volume">
 			Audio volume as a linear value.
 		</member>

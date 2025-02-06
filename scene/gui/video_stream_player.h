@@ -106,6 +106,9 @@ public:
 	void set_volume_db(float p_db);
 	float get_volume_db() const;
 
+	void set_stream_speed(float p_speed);
+	float get_stream_speed() const;
+
 	String get_stream_name() const;
 	double get_stream_length() const;
 	double get_stream_position() const;

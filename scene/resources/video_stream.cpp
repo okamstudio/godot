@@ -40,6 +40,8 @@ void VideoStreamPlayback::_bind_methods() {
 	GDVIRTUAL_BIND(_set_paused, "paused");
 	GDVIRTUAL_BIND(_is_paused);
 	GDVIRTUAL_BIND(_get_length);
+	GDVIRTUAL_BIND(_get_playback_speed);
+	GDVIRTUAL_BIND(_set_playback_speed, "speed");
 	GDVIRTUAL_BIND(_get_playback_position);
 	GDVIRTUAL_BIND(_seek, "time");
 	GDVIRTUAL_BIND(_set_audio_track, "idx");
@@ -89,6 +91,18 @@ double VideoStreamPlayback::get_length() const {
 		return ret;
 	}
 	return 0;
+}
+
+double VideoStreamPlayback::get_playback_speed() const {
+	double ret;
+	if (GDVIRTUAL_CALL(_get_playback_speed, ret)) {
+		return ret;
+	}
+	return 1;
+}
+
+void VideoStreamPlayback::set_playback_speed(double p_speed) {
+	GDVIRTUAL_CALL(_set_playback_speed, p_speed);
 }
 
 double VideoStreamPlayback::get_playback_position() const {

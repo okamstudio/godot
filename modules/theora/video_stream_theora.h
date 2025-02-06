@@ -131,6 +131,9 @@ public:
 
 	virtual double get_length() const override;
 
+	virtual double get_playback_speed() const override;
+	virtual void set_playback_speed(double p_speed) override;
+
 	virtual double get_playback_position() const override;
 	virtual void seek(double p_time) override;
 
