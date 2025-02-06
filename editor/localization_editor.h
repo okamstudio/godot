@@ -61,6 +61,10 @@ class LocalizationEditor : public VBoxContainer {
 	bool updating_translations = false;
 	String localization_changed;
 
+	LocalVector<Tree *> trees;
+	HashMap<Tree *, String> tree_data_types;
+	HashMap<Tree *, StringName> tree_settings;
+
 	void _translation_file_open();
 	void _translation_add(const PackedStringArray &p_paths);
 	void _translation_delete(Object *p_item, int p_column, int p_button, MouseButton p_mouse_button);
@@ -86,6 +90,10 @@ class LocalizationEditor : public VBoxContainer {
 
 	void _filesystem_files_moved(const String &p_old_file, const String &p_new_file);
 	void _filesystem_file_removed(const String &p_file);
+
+	Variant get_drag_data_fw(const Point2 &p_point, Control *p_from);
+	bool can_drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from) const;
+	void drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from);
 
 protected:
 	void _notification(int p_what);

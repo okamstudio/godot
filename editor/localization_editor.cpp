@@ -64,6 +64,12 @@ void LocalizationEditor::_notification(int p_what) {
 			_update_pot_file_extensions();
 			pot_generate_dialog->add_filter("*.pot");
 		} break;
+
+		case NOTIFICATION_DRAG_END: {
+			for (Tree *tree : trees) {
+				tree->set_drop_mode_flags(Tree::DROP_MODE_DISABLED);
+			}
+		} break;
 	}
 }
 
@@ -501,6 +507,89 @@ void LocalizationEditor::_filesystem_file_removed(const String &p_file) {
 	}
 }
 
+Variant LocalizationEditor::get_drag_data_fw(const Point2 &p_point, Control *p_from) {
+	Tree *tree = Object::cast_to<Tree>(p_from);
+	ERR_FAIL_COND_V(trees.find(tree) == -1, Variant());
+
+	if (tree->get_button_id_at_position(p_point) != -1) {
+		return Variant();
+	}
+
+	TreeItem *selected = tree->get_next_selected(nullptr);
+	if (!selected) {
+		return Variant();
+	}
+	tree->set_drop_mode_flags(Tree::DROP_MODE_INBETWEEN);
+
+	Label *preview = memnew(Label);
+	preview->set_text(selected->get_text(0));
+	set_drag_preview(preview);
+
+	Dictionary drag_data;
+	drag_data["type"] = tree_data_types[tree];
+	drag_data["item"] = selected;
+
+	return drag_data;
+}
+
+bool LocalizationEditor::can_drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from) const {
+	Tree *tree = Object::cast_to<Tree>(p_from);
+	ERR_FAIL_COND_V(trees.find(tree) == -1, false);
+
+	Dictionary drop_data = p_data;
+	return drop_data.get("type", "") == tree_data_types[tree];
+}
+
+void LocalizationEditor::drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from) {
+	Tree *tree = Object::cast_to<Tree>(p_from);
+	ERR_FAIL_COND(trees.find(tree) == -1);
+
+	if (!can_drop_data_fw(p_point, p_data, p_from)) {
+		return;
+	}
+
+	TreeItem *item = tree->get_item_at_position(p_point);
+	if (!item) {
+		return;
+	}
+	int section = MAX(tree->get_drop_section_at_position(p_point), 0);
+	Dictionary drop_data = p_data;
+
+	TreeItem *from = Object::cast_to<TreeItem>(drop_data["item"]);
+	if (item == from) {
+		return;
+	}
+
+	const StringName &setting = tree_settings[tree];
+	PackedStringArray setting_value = GLOBAL_GET(setting);
+	const PackedStringArray original_setting_value = setting_value;
+	const int index_from = from->get_metadata(0);
+	const String path = setting_value[index_from];
+
+	int target_index = item->get_metadata(0);
+	target_index = MAX(target_index + section, 0);
+	if (target_index > index_from) {
+		target_index -= 1; // Account for item being removed.
+	}
+
+	if (target_index == index_from) {
+		return;
+	}
+
+	setting_value.remove_at(index_from);
+	setting_value.insert(target_index, path);
+
+	EditorUndoRedoManager *ur_man = EditorUndoRedoManager::get_singleton();
+	ur_man->create_action(TTR("Rearrange Localization Items"));
+	ur_man->add_do_method(ProjectSettings::get_singleton(), "set", setting, setting_value);
+	ur_man->add_do_method(ProjectSettings::get_singleton(), "save");
+	ur_man->add_do_method(this, "update_translations");
+	ur_man->add_undo_method(ProjectSettings::get_singleton(), "set", setting, original_setting_value);
+	ur_man->add_undo_method(ProjectSettings::get_singleton(), "save");
+	ur_man->add_undo_method(this, "update_translations");
+	ur_man->commit_action();
+}
+
 void LocalizationEditor::update_translations() {
 	if (updating_translations) {
 		return;
@@ -652,6 +741,9 @@ LocalizationEditor::LocalizationEditor() {
 		translation_list = memnew(Tree);
 		translation_list->set_v_size_flags(Control::SIZE_EXPAND_FILL);
 		tmc->add_child(translation_list);
+		trees.push_back(translation_list);
+		tree_data_types[translation_list] = "localization_editor_translation_item";
+		tree_settings[translation_list] = "internationalization/locale/translations";
 
 		locale_select = memnew(EditorLocaleDialog);
 		locale_select->connect("locale_selected", callable_mp(this, &LocalizationEditor::_translation_res_option_selected));
@@ -755,6 +847,9 @@ LocalizationEditor::LocalizationEditor() {
 		translation_pot_list = memnew(Tree);
 		translation_pot_list->set_v_size_flags(Control::SIZE_EXPAND_FILL);
 		tvb->add_child(translation_pot_list);
+		trees.push_back(translation_pot_list);
+		tree_data_types[translation_pot_list] = "localization_editor_pot_item";
+		tree_settings[translation_pot_list] = "internationalization/locale/translations_pot_files";
 
 		translation_pot_add_builtin = memnew(CheckBox(TTR("Add Built-in Strings to POT")));
 		translation_pot_add_builtin->set_tooltip_text(TTR("Add strings from built-in components such as certain Control nodes."));
@@ -770,5 +865,9 @@ LocalizationEditor::LocalizationEditor() {
 		pot_file_open_dialog->set_file_mode(EditorFileDialog::FILE_MODE_OPEN_FILES);
 		pot_file_open_dialog->connect("files_selected", callable_mp(this, &LocalizationEditor::_pot_add));
 		add_child(pot_file_open_dialog);
+	}
+
+	for (Tree *tree : trees) {
+		SET_DRAG_FORWARDING_GCD(tree, LocalizationEditor);
 	}
 }
