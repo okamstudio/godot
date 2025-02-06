@@ -44,6 +44,7 @@ struct ContainerType;
 
 class Array {
 	mutable ArrayPrivate *_p;
+	void _ref(const Array &p_from) const;
 	void _unref() const;
 
 public:
@@ -110,8 +111,6 @@ public:
 
 	ConstIterator begin() const;
 	ConstIterator end() const;
-
-	void _ref(const Array &p_from) const;
 
 	Variant &operator[](int p_idx);
 	const Variant &operator[](int p_idx) const;

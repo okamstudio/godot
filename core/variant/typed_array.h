@@ -43,7 +43,7 @@ class TypedArray : public Array {
 public:
 	_FORCE_INLINE_ void operator=(const Array &p_array) {
 		ERR_FAIL_COND_MSG(!is_same_typed(p_array), "Cannot assign an array with a different element type.");
-		_ref(p_array);
+		Array::operator=(p_array);
 	}
 	_FORCE_INLINE_ TypedArray(const Variant &p_variant) :
 			TypedArray(Array(p_variant)) {
@@ -51,7 +51,7 @@ public:
 	_FORCE_INLINE_ TypedArray(const Array &p_array) {
 		set_typed(Variant::OBJECT, T::get_class_static(), Variant());
 		if (is_same_typed(p_array)) {
-			_ref(p_array);
+			Array::operator=(p_array);
 		} else {
 			assign(p_array);
 		}
@@ -80,7 +80,7 @@ struct VariantInternalAccessor<const TypedArray<T> &> {
 	public:                                                                                                      \
 		_FORCE_INLINE_ void operator=(const Array &p_array) {                                                    \
 			ERR_FAIL_COND_MSG(!is_same_typed(p_array), "Cannot assign an array with a different element type."); \
-			_ref(p_array);                                                                                       \
+			Array::operator=(p_array);                                                                           \
 		}                                                                                                        \
 		_FORCE_INLINE_ TypedArray(const Variant &p_variant) :                                                    \
 				TypedArray(Array(p_variant)) {                                                                   \
@@ -88,7 +88,7 @@ struct VariantInternalAccessor<const TypedArray<T> &> {
 		_FORCE_INLINE_ TypedArray(const Array &p_array) {                                                        \
 			set_typed(m_variant_type, StringName(), Variant());                                                  \
 			if (is_same_typed(p_array)) {                                                                        \
-				_ref(p_array);                                                                                   \
+				Array::operator=(p_array);                                                                       \
 			} else {                                                                                             \
 				assign(p_array);                                                                                 \
 			}                                                                                                    \
