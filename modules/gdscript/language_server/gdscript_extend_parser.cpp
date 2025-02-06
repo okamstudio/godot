@@ -32,6 +32,7 @@
 
 #include "../gdscript.h"
 #include "../gdscript_analyzer.h"
+#include "../gdscript_editor.h"
 #include "editor/editor_settings.h"
 #include "gdscript_language_protocol.h"
 #include "gdscript_workspace.h"
@@ -482,7 +483,15 @@ void ExtendGDScriptParser::parse_function_symbol(const GDScriptParser::FunctionN
 	if (is_named) {
 		r_symbol.detail += " " + String(p_func->identifier->name);
 	}
-	r_symbol.detail += "(";
+	r_symbol.detail += make_arguments_hint(p_func, -1, true);
+	if (p_func->get_datatype().is_hard_type()) {
+		if (p_func->get_datatype().builtin_type == Variant::NIL) {
+			r_symbol.detail += " -> void";
+		} else {
+			r_symbol.detail += " -> " + p_func->get_datatype().to_string();
+		}
+	}
+
 	r_symbol.deprecated = false;
 	r_symbol.range = range_of_node(p_func);
 	if (is_named) {
@@ -493,25 +502,6 @@ void ExtendGDScriptParser::parse_function_symbol(const GDScriptParser::FunctionN
 	r_symbol.documentation = p_func->doc_data.description;
 	r_symbol.uri = uri;
 	r_symbol.script_path = path;
-
-	String parameters;
-	for (int i = 0; i < p_func->parameters.size(); i++) {
-		const ParameterNode *parameter = p_func->parameters[i];
-		if (i > 0) {
-			parameters += ", ";
-		}
-		parameters += String(parameter->identifier->name);
-		if (parameter->get_datatype().is_hard_type()) {
-			parameters += ": " + parameter->get_datatype().to_string();
-		}
-		if (parameter->initializer != nullptr) {
-			parameters += " = " + parameter->initializer->reduced_value.to_json_string();
-		}
-	}
-	r_symbol.detail += parameters + ")";
-	if (p_func->get_datatype().is_hard_type()) {
-		r_symbol.detail += " -> " + p_func->get_datatype().to_string();
-	}
 
 	List<GDScriptParser::SuiteNode *> function_nodes;
 

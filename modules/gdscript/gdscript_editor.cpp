@@ -28,10 +28,11 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
+#include "gdscript_editor.h"
+
 #include "gdscript.h"
 
 #include "gdscript_analyzer.h"
-#include "gdscript_parser.h"
 #include "gdscript_tokenizer.h"
 #include "gdscript_utility_functions.h"
 
@@ -736,7 +737,7 @@ static String _get_visual_datatype(const PropertyInfo &p_info, bool p_is_arg, co
 	return Variant::get_type_name(p_info.type);
 }
 
-static String _make_arguments_hint(const MethodInfo &p_info, int p_arg_idx, bool p_is_annotation = false) {
+String make_arguments_hint(const MethodInfo &p_info, int p_arg_idx, bool p_is_annotation) {
 	String arghint;
 	if (!p_is_annotation) {
 		arghint += _get_visual_datatype(p_info.return_val, false) + " ";
@@ -784,7 +785,7 @@ static String _make_arguments_hint(const MethodInfo &p_info, int p_arg_idx, bool
 	return arghint;
 }
 
-static String _make_arguments_hint(const GDScriptParser::FunctionNode *p_function, int p_arg_idx, bool p_just_args = false) {
+String make_arguments_hint(const GDScriptParser::FunctionNode *p_function, int p_arg_idx, bool p_just_args) {
 	String arghint;
 
 	if (p_just_args) {
@@ -889,7 +890,7 @@ static void _get_directory_contents(EditorFileSystemDirectory *p_dir, HashMap<St
 }
 
 static void _find_annotation_arguments(const GDScriptParser::AnnotationNode *p_annotation, int p_argument, const String p_quote_style, HashMap<String, ScriptLanguage::CodeCompletionOption> &r_result, String &r_arghint) {
-	r_arghint = _make_arguments_hint(p_annotation->info->info, p_argument, true);
+	r_arghint = make_arguments_hint(p_annotation->info->info, p_argument, true);
 	if (p_annotation->name == SNAME("@export_range")) {
 		if (p_argument == 3 || p_argument == 4 || p_argument == 5) {
 			// Slider hint.
@@ -2779,7 +2780,7 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 							const GDScriptParser::ClassNode::Member &member = current->get_member("_init");
 
 							if (member.type == GDScriptParser::ClassNode::Member::FUNCTION) {
-								r_arghint = base_type.class_type->get_datatype().to_string() + " new" + _make_arguments_hint(member.function, p_argidx, true);
+								r_arghint = base_type.class_type->get_datatype().to_string() + " new" + make_arguments_hint(member.function, p_argidx, true);
 								return;
 							}
 						}
@@ -2794,7 +2795,7 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 					const GDScriptParser::ClassNode::Member &member = base_type.class_type->get_member(p_method);
 
 					if (member.type == GDScriptParser::ClassNode::Member::FUNCTION) {
-						r_arghint = _make_arguments_hint(member.function, p_argidx);
+						r_arghint = make_arguments_hint(member.function, p_argidx);
 						return;
 					}
 				}
@@ -2803,7 +2804,7 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 			} break;
 			case GDScriptParser::DataType::SCRIPT: {
 				if (base_type.script_type->is_valid() && base_type.script_type->has_method(p_method)) {
-					r_arghint = _make_arguments_hint(base_type.script_type->get_method_info(p_method), p_argidx);
+					r_arghint = make_arguments_hint(base_type.script_type->get_method_info(p_method), p_argidx);
 					return;
 				}
 				Ref<Script> base_script = base_type.script_type->get_base_script();
@@ -2855,7 +2856,7 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 						}
 					}
 
-					r_arghint = _make_arguments_hint(info, p_argidx);
+					r_arghint = make_arguments_hint(info, p_argidx);
 				}
 
 				if (p_argidx == 1 && p_context.node && p_context.node->type == GDScriptParser::Node::CALL && ClassDB::is_parent_class(class_name, SNAME("Tween")) && p_method == SNAME("tween_property")) {
@@ -2999,7 +3000,7 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 				base.get_method_list(&methods);
 				for (const MethodInfo &E : methods) {
 					if (E.name == p_method) {
-						r_arghint = _make_arguments_hint(E, p_argidx);
+						r_arghint = make_arguments_hint(E, p_argidx);
 						return;
 					}
 				}
@@ -3101,7 +3102,7 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 		}
 
 		MethodInfo mi(PropertyInfo(Variant::OBJECT, "resource", PROPERTY_HINT_RESOURCE_TYPE, "Resource"), "preload", PropertyInfo(Variant::STRING, "path"));
-		r_arghint = _make_arguments_hint(mi, p_argidx);
+		r_arghint = make_arguments_hint(mi, p_argidx);
 		return;
 	} else if (p_call->type != GDScriptParser::Node::CALL) {
 		return;
@@ -3135,7 +3136,7 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 						continue;
 					}
 					if (E.name == call->function_name) {
-						r_arghint += _make_arguments_hint(E, p_argidx);
+						r_arghint += make_arguments_hint(E, p_argidx);
 						return;
 					}
 				}
@@ -3159,11 +3160,11 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 		}
 	} else if (Variant::has_utility_function(call->function_name)) {
 		MethodInfo info = Variant::get_utility_function_info(call->function_name);
-		r_arghint = _make_arguments_hint(info, p_argidx);
+		r_arghint = make_arguments_hint(info, p_argidx);
 		return;
 	} else if (GDScriptUtilityFunctions::function_exists(call->function_name)) {
 		MethodInfo info = GDScriptUtilityFunctions::get_function_info(call->function_name);
-		r_arghint = _make_arguments_hint(info, p_argidx);
+		r_arghint = make_arguments_hint(info, p_argidx);
 		return;
 	} else if (GDScriptParser::get_builtin_type(call->function_name) < Variant::VARIANT_MAX) {
 		// Complete constructor.
@@ -3178,7 +3179,7 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 			if (i > 0) {
 				r_arghint += "\n";
 			}
-			r_arghint += _make_arguments_hint(E, p_argidx);
+			r_arghint += make_arguments_hint(E, p_argidx);
 			i++;
 		}
 		return;
