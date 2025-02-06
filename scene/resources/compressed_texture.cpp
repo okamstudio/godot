@@ -313,8 +313,6 @@ Ref<Image> CompressedTexture2D::load_image_from_file(Ref<FileAccess> f, int p_si
 		Vector<Ref<Image>> mipmap_images;
 		uint64_t total_size = 0;
 
-		bool first = true;
-
 		for (uint32_t i = 0; i < mipmaps + 1; i++) {
 			uint32_t size = f->get_32();
 
@@ -339,18 +337,20 @@ Ref<Image> CompressedTexture2D::load_image_from_file(Ref<FileAccess> f, int p_si
 			} else if (data_format == DATA_FORMAT_WEBP && Image::webp_unpacker) {
 				img = Image::webp_unpacker(pv);
 			}
-
 			if (img.is_null() || img->is_empty()) {
 				ERR_FAIL_COND_V(img.is_null() || img->is_empty(), Ref<Image>());
 			}
+			// If the image is compressed and its format doesn't match the desired format, return an empty reference.
+			// This is done to avoid recompressing the image on load.
+			ERR_FAIL_COND_V(img->is_compressed() && format != img->get_format(), Ref<Image>());
 
-			if (first) {
-				//format will actually be the format of the first image,
-				//as it may have changed on compression
-				format = img->get_format();
-				first = false;
-			} else if (img->get_format() != format) {
-				img->convert(format); //all needs to be the same format
+			// The format will actually be the format of the header,
+			// as it may have changed on compression.
+			if (!img->is_compressed() && format != img->get_format()) {
+				// Convert the image to the desired format.
+				// Note: We are not decompressing the image here, just changing its format.
+				// It's important that all images in the texture array share the same format for correct rendering.
+				img->convert(format);
 			}
 
 			total_size += img->get_data().size();

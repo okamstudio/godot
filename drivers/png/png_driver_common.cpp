@@ -153,7 +153,7 @@ Error image_to_png(const Ref<Image> &p_image, Vector<uint8_t> &p_buffer) {
 			png_img.format = PNG_FORMAT_RGBA;
 			break;
 		default:
-			if (source_image->detect_alpha()) {
+			if (source_image->detect_alpha() != Image::ALPHA_NONE) {
 				source_image->convert(Image::FORMAT_RGBA8);
 				png_img.format = PNG_FORMAT_RGBA;
 			} else {
