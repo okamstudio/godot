@@ -23,6 +23,12 @@
 				Starts a debug break in script execution, optionally specifying whether the program can continue based on [param can_continue] and whether the break was due to a breakpoint.
 			</description>
 		</method>
+		<method name="get_breakpoints" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+				Gets all breakpoints in the debugging session. Returns a [Dictionary] mapping [int] line numbers to [Array]s of [StringName] representing the paths to the scripts where the breakpoints are set.
+			</description>
+		</method>
 		<method name="get_depth" qualifiers="const" experimental="">
 			<return type="int" />
 			<description>

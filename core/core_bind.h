@@ -644,6 +644,7 @@ public:
 
 	bool is_breakpoint(int p_line, const StringName &p_source) const;
 	bool is_skipping_breakpoints() const;
+	Dictionary get_breakpoints() const;
 	void insert_breakpoint(int p_line, const StringName &p_source);
 	void remove_breakpoint(int p_line, const StringName &p_source);
 	void clear_breakpoints();

@@ -2131,6 +2131,22 @@ bool EngineDebugger::is_skipping_breakpoints() const {
 	return ::EngineDebugger::get_script_debugger()->is_skipping_breakpoints();
 }
 
+Dictionary EngineDebugger::get_breakpoints() const {
+	ERR_FAIL_COND_V_MSG(!::EngineDebugger::get_script_debugger(), Dictionary(), "Can't get breakpoints. No active debugger");
+
+	Dictionary d;
+	for (const KeyValue<int, HashSet<StringName>> &E : ::EngineDebugger::get_script_debugger()->get_breakpoints()) {
+		Array a;
+		for (const StringName &F : E.value) {
+			a.push_back(F);
+		}
+
+		d[E.key] = a;
+	}
+
+	return d;
+}
+
 void EngineDebugger::insert_breakpoint(int p_line, const StringName &p_source) {
 	ERR_FAIL_COND_MSG(!::EngineDebugger::get_script_debugger(), "Can't insert breakpoint. No active debugger");
 	::EngineDebugger::get_script_debugger()->insert_breakpoint(p_line, p_source);
@@ -2185,6 +2201,7 @@ void EngineDebugger::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("is_breakpoint", "line", "source"), &EngineDebugger::is_breakpoint);
 	ClassDB::bind_method(D_METHOD("is_skipping_breakpoints"), &EngineDebugger::is_skipping_breakpoints);
+	ClassDB::bind_method(D_METHOD("get_breakpoints"), &EngineDebugger::get_breakpoints);
 	ClassDB::bind_method(D_METHOD("insert_breakpoint", "line", "source"), &EngineDebugger::insert_breakpoint);
 	ClassDB::bind_method(D_METHOD("remove_breakpoint", "line", "source"), &EngineDebugger::remove_breakpoint);
 	ClassDB::bind_method(D_METHOD("clear_breakpoints"), &EngineDebugger::clear_breakpoints);
