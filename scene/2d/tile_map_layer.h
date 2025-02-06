@@ -434,6 +434,11 @@ public:
 	void fix_invalid_tiles();
 	void clear();
 
+    // Area cells manipulations [from to can be changed to Rect2i].
+	void fill_area(const Vector2i &p_from, const Vector2i &p_to, int p_source_id = TileSet::INVALID_SOURCE, const Vector2i &p_atlas_coords = TileSetSource::INVALID_ATLAS_COORDS, int p_alternative_tile = 0);
+    void erase_area(const Vector2i &p_from, const Vector2i &p_to);
+	// End area cells manipulations
+
 	int get_cell_source_id(const Vector2i &p_coords) const;
 	Vector2i get_cell_atlas_coords(const Vector2i &p_coords) const;
 	int get_cell_alternative_tile(const Vector2i &p_coords) const;
@@ -446,6 +451,9 @@ public:
 	bool is_cell_flipped_h(const Vector2i &p_coords) const;
 	bool is_cell_flipped_v(const Vector2i &p_coords) const;
 	bool is_cell_transposed(const Vector2i &p_coords) const;
+
+    // get the rotation flags for a cell
+	int get_cell_transform_flags(const Vector2i &p_coords, int p_alternative_tile = 0) const;
 
 	// Patterns.
 	Ref<TileMapPattern> get_pattern(TypedArray<Vector2i> p_coords_array);

@@ -1811,6 +1811,11 @@ void TileMapLayer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("fix_invalid_tiles"), &TileMapLayer::fix_invalid_tiles);
 	ClassDB::bind_method(D_METHOD("clear"), &TileMapLayer::clear);
 
+	// Area cells manipulations [from to can be changed to Rect2i].
+	ClassDB::bind_method(D_METHOD("fill_area", "from", "to", "source_id", "atlas_coords", "alternative_tile"), &TileMapLayer::fill_area, DEFVAL(TileSet::INVALID_SOURCE), DEFVAL(TileSetSource::INVALID_ATLAS_COORDS), DEFVAL(0));
+    ClassDB::bind_method(D_METHOD("erase_area", "from", "to"), &TileMapLayer::erase_area);
+	// End area cells manipulations
+
 	ClassDB::bind_method(D_METHOD("get_cell_source_id", "coords"), &TileMapLayer::get_cell_source_id);
 	ClassDB::bind_method(D_METHOD("get_cell_atlas_coords", "coords"), &TileMapLayer::get_cell_atlas_coords);
 	ClassDB::bind_method(D_METHOD("get_cell_alternative_tile", "coords"), &TileMapLayer::get_cell_alternative_tile);
@@ -1819,6 +1824,9 @@ void TileMapLayer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_cell_flipped_h", "coords"), &TileMapLayer::is_cell_flipped_h);
 	ClassDB::bind_method(D_METHOD("is_cell_flipped_v", "coords"), &TileMapLayer::is_cell_flipped_v);
 	ClassDB::bind_method(D_METHOD("is_cell_transposed", "coords"), &TileMapLayer::is_cell_transposed);
+
+	// get the rotation flags for a cell
+	ClassDB::bind_method(D_METHOD("get_cell_transform_flags", "coords", "alternative_tile"), &TileMapLayer::get_cell_transform_flags, DEFVAL(0));
 
 	ClassDB::bind_method(D_METHOD("get_used_cells"), &TileMapLayer::get_used_cells);
 	ClassDB::bind_method(D_METHOD("get_used_cells_by_id", "source_id", "atlas_coords", "alternative_tile"), &TileMapLayer::get_used_cells_by_id, DEFVAL(TileSet::INVALID_SOURCE), DEFVAL(TileSetSource::INVALID_ATLAS_COORDS), DEFVAL(TileSetSource::INVALID_TILE_ALTERNATIVE));
@@ -2411,6 +2419,24 @@ void TileMapLayer::erase_cell(const Vector2i &p_coords) {
 	set_cell(p_coords, TileSet::INVALID_SOURCE, TileSetSource::INVALID_ATLAS_COORDS, TileSetSource::INVALID_TILE_ALTERNATIVE);
 }
 
+// Fill an area with a tile type
+void TileMapLayer::fill_area(const Vector2i &p_from, const Vector2i &p_to, int p_source_id, const Vector2i &p_atlas_coords, int p_alternative_tile) {
+	for (int x = p_from.x; x < p_to.x; x++) {
+		for (int y = p_from.y; y < p_to.y; y++) {
+			set_cell(Vector2i(x, y), p_source_id, p_atlas_coords, p_alternative_tile);
+		}
+	}
+}
+
+// Erase an area
+void TileMapLayer::erase_area(const Vector2i &p_from, const Vector2i &p_to) {
+	for (int x = p_from.x; x < p_to.x; x++) {
+		for (int y = p_from.y; y < p_to.y; y++) {
+			erase_cell(Vector2i(x, y));
+		}
+	}
+}
+
 void TileMapLayer::fix_invalid_tiles() {
 	ERR_FAIL_COND_MSG(tile_set.is_null(), "Cannot call fix_invalid_tiles() on a TileMapLayer without a valid TileSet.");
 
@@ -2552,6 +2578,24 @@ bool TileMapLayer::is_cell_flipped_v(const Vector2i &p_coords) const {
 
 bool TileMapLayer::is_cell_transposed(const Vector2i &p_coords) const {
 	return get_cell_alternative_tile(p_coords) & TileSetAtlasSource::TRANSFORM_TRANSPOSE;
+}
+
+// Get the rotation flags of a cell.
+int TileMapLayer::get_cell_transform_flags(const Vector2i &p_coords, int p_alternative_tile) const {
+    int alternative_tile = p_alternative_tile;
+    int rotation_flags = alternative_tile;
+
+    if (is_cell_flipped_h(p_coords)) {
+        rotation_flags |= TileSetAtlasSource::TRANSFORM_FLIP_H;
+    }
+    if (is_cell_flipped_v(p_coords)) {
+        rotation_flags |= TileSetAtlasSource::TRANSFORM_FLIP_V;
+    }
+    if (is_cell_transposed(p_coords)) {
+        rotation_flags |= TileSetAtlasSource::TRANSFORM_TRANSPOSE;
+    }
+
+    return rotation_flags;
 }
 
 Ref<TileMapPattern> TileMapLayer::get_pattern(TypedArray<Vector2i> p_coords_array) {
