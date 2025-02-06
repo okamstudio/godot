@@ -832,6 +832,7 @@ void TextEdit::_notification(int p_what) {
 					minimap_line -= (minimap_line > 0 && smooth_scroll_enabled ? 1 : 0);
 				}
 				int minimap_draw_amount = minimap_visible_lines + get_line_wrap_count(minimap_line + 1);
+				int minimap_start_line = minimap_line;
 
 				// Draw the minimap.
 
@@ -991,6 +992,49 @@ void TextEdit::_notification(int p_what) {
 								// Out of bounds.
 								break;
 							}
+						}
+					}
+				}
+
+				if (draw_minimap_markers) {
+					int last_marker_y = 0;
+					minimap_line = minimap_start_line;
+					for (int i = 0; i < minimap_draw_amount; i++) {
+						minimap_line++;
+
+						if (minimap_line < 0 || minimap_line >= (int)text.size()) {
+							break;
+						}
+
+						while (_is_line_hidden(minimap_line)) {
+							minimap_line++;
+							if (minimap_line < 0 || minimap_line >= (int)text.size()) {
+								break;
+							}
+						}
+
+						if (minimap_line < 0 || minimap_line >= (int)text.size()) {
+							break;
+						}
+
+						String marker = _line_marker(minimap_line);
+						if (!marker.is_empty()) {
+							int marker_y = MAX(minimap_line_height * i, MIN(minimap_line_height * (i + 4), last_marker_y)); // Try to avoid overlap, but do not move marker too far.
+
+							Ref<TextLine> tl;
+							tl.instantiate();
+							tl->add_string(marker, theme_cache.font, theme_cache.marker_font_size);
+							tl->set_width(minimap_width - 4);
+							tl->set_text_overrun_behavior(TextServer::OVERRUN_TRIM_ELLIPSIS);
+
+							RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(Point2(xmargin_end + 2, marker_y), tl->get_size()), theme_cache.marker_background_color);
+
+							if (theme_cache.marker_outline_size > 0 && theme_cache.marker_outline_color.a > 0) {
+								tl->draw_outline(ci, Point2(xmargin_end + 2, marker_y), theme_cache.marker_outline_size, theme_cache.marker_outline_color);
+							}
+							tl->draw(ci, Point2(xmargin_end + 2, marker_y), theme_cache.marker_color);
+
+							last_marker_y = marker_y + tl->get_size().y;
 						}
 					}
 				}
@@ -6065,6 +6109,19 @@ bool TextEdit::is_drawing_minimap() const {
 	return draw_minimap;
 }
 
+void TextEdit::set_draw_minimap_markers(bool p_enabled) {
+	if (draw_minimap_markers == p_enabled) {
+		return;
+	}
+
+	draw_minimap_markers = p_enabled;
+	queue_redraw();
+}
+
+bool TextEdit::is_drawing_minimap_markers() const {
+	return draw_minimap_markers;
+}
+
 void TextEdit::set_minimap_width(int p_minimap_width) {
 	if (minimap_width == p_minimap_width) {
 		return;
@@ -6824,6 +6881,9 @@ void TextEdit::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_draw_minimap", "enabled"), &TextEdit::set_draw_minimap);
 	ClassDB::bind_method(D_METHOD("is_drawing_minimap"), &TextEdit::is_drawing_minimap);
 
+	ClassDB::bind_method(D_METHOD("set_draw_minimap_markers", "enabled"), &TextEdit::set_draw_minimap_markers);
+	ClassDB::bind_method(D_METHOD("is_drawing_minimap_markers"), &TextEdit::is_drawing_minimap_markers);
+
 	ClassDB::bind_method(D_METHOD("set_minimap_width", "width"), &TextEdit::set_minimap_width);
 	ClassDB::bind_method(D_METHOD("get_minimap_width"), &TextEdit::get_minimap_width);
 
@@ -6930,6 +6990,7 @@ void TextEdit::_bind_methods() {
 
 	ADD_GROUP("Minimap", "minimap_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "minimap_draw"), "set_draw_minimap", "is_drawing_minimap");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "minimap_draw_markers"), "set_draw_minimap_markers", "is_drawing_minimap_markers");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "minimap_width", PROPERTY_HINT_NONE, "suffix:px"), "set_minimap_width", "get_minimap_width");
 
 	ADD_GROUP("Caret", "caret_");
@@ -7007,6 +7068,12 @@ void TextEdit::_bind_methods() {
 	BIND_THEME_ITEM_CUSTOM(Theme::DATA_TYPE_COLOR, TextEdit, outline_color, "font_outline_color");
 
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, TextEdit, line_spacing);
+
+	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, TextEdit, marker_color);
+	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, TextEdit, marker_outline_color);
+	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, TextEdit, marker_background_color);
+	BIND_THEME_ITEM(Theme::DATA_TYPE_FONT_SIZE, TextEdit, marker_font_size);
+	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, TextEdit, marker_outline_size);
 
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, TextEdit, background_color);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, TextEdit, current_line_color);

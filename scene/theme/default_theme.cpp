@@ -484,6 +484,12 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_color("search_result_color", "TextEdit", Color(0.3, 0.3, 0.3));
 	theme->set_color("search_result_border_color", "TextEdit", Color(0.3, 0.3, 0.3, 0.4));
 
+	theme->set_color("marker_color", "TextEdit", control_font_color);
+	theme->set_color("marker_outline_color", "TextEdit", Color(0, 0, 0));
+	theme->set_color("marker_background_color", "TextEdit", Color(0, 0, 0));
+	theme->set_font_size("marker_font_size", "TextEdit", 8);
+	theme->set_constant("marker_outline_size", "TextEdit", 1);
+
 	theme->set_constant("line_spacing", "TextEdit", Math::round(4 * scale));
 	theme->set_constant("outline_size", "TextEdit", 0);
 	theme->set_constant("caret_width", "TextEdit", 1);

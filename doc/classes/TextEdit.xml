@@ -1325,6 +1325,9 @@
 		<member name="minimap_draw" type="bool" setter="set_draw_minimap" getter="is_drawing_minimap" default="false">
 			If [code]true[/code], a minimap is shown, providing an outline of your source code. The minimap uses a fixed-width text size.
 		</member>
+		<member name="minimap_draw_markers" type="bool" setter="set_draw_minimap_markers" getter="is_drawing_minimap_markers" default="false">
+			If [code]true[/code], region name markers are shown on the minimap.
+		</member>
 		<member name="minimap_width" type="int" setter="set_minimap_width" getter="get_minimap_width" default="80">
 			The width, in pixels, of the minimap.
 		</member>
@@ -1614,6 +1617,12 @@
 		<theme_item name="font_selected_color" data_type="color" type="Color" default="Color(0, 0, 0, 0)">
 			Sets the [Color] of the selected text. If equal to [code]Color(0, 0, 0, 0)[/code], it will be ignored.
 		</theme_item>
+		<theme_item name="marker_background_color" data_type="color" type="Color" default="Color(0, 0, 0, 1)">
+		</theme_item>
+		<theme_item name="marker_color" data_type="color" type="Color" default="Color(0.875, 0.875, 0.875, 1)">
+		</theme_item>
+		<theme_item name="marker_outline_color" data_type="color" type="Color" default="Color(0, 0, 0, 1)">
+		</theme_item>
 		<theme_item name="search_result_border_color" data_type="color" type="Color" default="Color(0.3, 0.3, 0.3, 0.4)">
 			[Color] of the border around text that matches the search query.
 		</theme_item>
@@ -1632,6 +1641,8 @@
 		<theme_item name="line_spacing" data_type="constant" type="int" default="4">
 			Additional vertical spacing between lines (in pixels), spacing is added to line descent. This value can be negative.
 		</theme_item>
+		<theme_item name="marker_outline_size" data_type="constant" type="int" default="1">
+		</theme_item>
 		<theme_item name="outline_size" data_type="constant" type="int" default="0">
 			The size of the text outline.
 			[b]Note:[/b] If using a font with [member FontFile.multichannel_signed_distance_field] enabled, its [member FontFile.msdf_pixel_range] must be set to at least [i]twice[/i] the value of [theme_item outline_size] for outline rendering to look correct. Otherwise, the outline may appear to be cut off earlier than intended.
@@ -1641,6 +1652,8 @@
 		</theme_item>
 		<theme_item name="font_size" data_type="font_size" type="int">
 			Sets default font size.
+		</theme_item>
+		<theme_item name="marker_font_size" data_type="font_size" type="int">
 		</theme_item>
 		<theme_item name="space" data_type="icon" type="Texture2D">
 			Sets a custom [Texture2D] for space text characters.

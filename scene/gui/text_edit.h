@@ -538,6 +538,7 @@ private:
 
 	// Minimap.
 	bool draw_minimap = false;
+	bool draw_minimap_markers = false;
 
 	int minimap_width = 80;
 	Point2 minimap_char_size = Point2(1, 2);
@@ -611,6 +612,12 @@ private:
 		Color background_color = Color(1, 1, 1);
 		Color current_line_color = Color(1, 1, 1);
 		Color word_highlighted_color = Color(1, 1, 1);
+
+		Color marker_color = Color(1, 1, 1);
+		Color marker_outline_color = Color(0, 0, 0);
+		Color marker_background_color = Color(0.3, 0.3, 0.3, 0.8);
+		int marker_font_size = 8;
+		int marker_outline_size = 1;
 	} theme_cache;
 
 	bool window_has_focus = true;
@@ -708,6 +715,8 @@ protected:
 	virtual void _copy_internal(int p_caret);
 	virtual void _paste_internal(int p_caret);
 	virtual void _paste_primary_clipboard_internal(int p_caret);
+
+	virtual String _line_marker(int p_line) const { return String(); };
 
 	GDVIRTUAL2(_handle_unicode_input, int, int)
 	GDVIRTUAL1(_backspace, int)
@@ -1022,6 +1031,9 @@ public:
 	// Minimap
 	void set_draw_minimap(bool p_enabled);
 	bool is_drawing_minimap() const;
+
+	void set_draw_minimap_markers(bool p_enabled);
+	bool is_drawing_minimap_markers() const;
 
 	void set_minimap_width(int p_minimap_width);
 	int get_minimap_width() const;

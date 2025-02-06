@@ -675,7 +675,10 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 
 	// Appearance: Minimap
 	_initial_set("text_editor/appearance/minimap/show_minimap", true, true);
+	_initial_set("text_editor/appearance/minimap/minimap_draw_markers", true, true);
 	EDITOR_SETTING(Variant::INT, PROPERTY_HINT_RANGE, "text_editor/appearance/minimap/minimap_width", 80, "50,250,1")
+	EDITOR_SETTING(Variant::INT, PROPERTY_HINT_RANGE, "text_editor/appearance/minimap/marker_font_size", 14, "0,64,1")
+	EDITOR_SETTING(Variant::INT, PROPERTY_HINT_RANGE, "text_editor/appearance/minimap_marker_outline_size", 1, "0,20,1")
 
 	// Appearance: Lines
 	_initial_set("text_editor/appearance/lines/code_folding", true, true);
@@ -1082,6 +1085,9 @@ void EditorSettings::_load_godot2_text_editor_theme() {
 	_initial_set("text_editor/theme/highlighting/folded_code_region_color", Color(0.68, 0.46, 0.77, 0.2));
 	_initial_set("text_editor/theme/highlighting/search_result_color", Color(0.05, 0.25, 0.05, 1));
 	_initial_set("text_editor/theme/highlighting/search_result_border_color", Color(0.41, 0.61, 0.91, 0.38));
+	_initial_set("text_editor/theme/highlighting/marker_color", Color(0.67, 0.67, 0.67));
+	_initial_set("text_editor/theme/highlighting/marker_outline_color", Color(0, 0, 0));
+	_initial_set("text_editor/theme/highlighting/marker_background_color", Color(0.13, 0.12, 0.15, 0.85));
 }
 
 void EditorSettings::_load_default_visual_shader_editor_theme() {

@@ -331,6 +331,8 @@ protected:
 	virtual void _backspace_internal(int p_caret) override;
 	virtual void _cut_internal(int p_caret) override;
 
+	virtual String _line_marker(int p_line) const override;
+
 	GDVIRTUAL1(_confirm_code_completion, bool)
 	GDVIRTUAL1(_request_code_completion, bool)
 	GDVIRTUAL1RC(TypedArray<Dictionary>, _filter_code_completion_candidates, TypedArray<Dictionary>)

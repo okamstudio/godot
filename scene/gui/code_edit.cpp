@@ -860,6 +860,21 @@ void CodeEdit::_cut_internal(int p_caret) {
 	}
 }
 
+String CodeEdit::_line_marker(int p_line) const {
+	ERR_FAIL_INDEX_V(p_line, get_line_count(), String());
+	if (code_region_start_string.is_empty()) {
+		return String();
+	}
+	if (is_in_string(p_line) != -1) {
+		return String();
+	}
+	String line_text = get_line(p_line).strip_edges();
+	if (!line_text.begins_with(code_region_start_string)) {
+		return String();
+	}
+	return line_text.lstrip(code_region_start_string).strip_edges();
+}
+
 /* Indent management */
 void CodeEdit::set_indent_size(const int p_size) {
 	ERR_FAIL_COND_MSG(p_size <= 0, "Indend size must be greater than 0.");

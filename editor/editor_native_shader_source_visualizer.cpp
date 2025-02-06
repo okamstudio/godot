@@ -113,7 +113,10 @@ void EditorNativeShaderSourceVisualizer::_inspect_shader(RID p_shader) {
 
 			// Appearance: Minimap
 			code_edit->set_draw_minimap(EDITOR_GET("text_editor/appearance/minimap/show_minimap"));
+			code_edit->set_draw_minimap_markers(EDITOR_GET("text_editor/appearance/minimap/minimap_draw_markers"));
 			code_edit->set_minimap_width((int)EDITOR_GET("text_editor/appearance/minimap/minimap_width") * EDSCALE);
+			code_edit->add_theme_font_size_override("marker_font_size", EDITOR_GET("text_editor/appearance/minimap/marker_font_size"));
+			code_edit->add_theme_constant_override("marker_outline_size", EDITOR_GET("text_editor/appearance/minimap_marker_outline_size"));
 
 			// Appearance: Lines
 			code_edit->set_line_folding_enabled(EDITOR_GET("text_editor/appearance/lines/code_folding"));

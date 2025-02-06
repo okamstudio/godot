@@ -1115,7 +1115,10 @@ void CodeTextEditor::update_editor_settings() {
 
 	// Appearance: Minimap
 	text_editor->set_draw_minimap(EDITOR_GET("text_editor/appearance/minimap/show_minimap"));
+	text_editor->set_draw_minimap_markers(EDITOR_GET("text_editor/appearance/minimap/minimap_draw_markers"));
 	text_editor->set_minimap_width((int)EDITOR_GET("text_editor/appearance/minimap/minimap_width") * EDSCALE);
+	text_editor->add_theme_font_size_override("marker_font_size", EDITOR_GET("text_editor/appearance/minimap/marker_font_size"));
+	text_editor->add_theme_constant_override("marker_outline_size", EDITOR_GET("text_editor/appearance/minimap_marker_outline_size"));
 
 	// Appearance: Lines
 	text_editor->set_line_folding_enabled(EDITOR_GET("text_editor/appearance/lines/code_folding"));

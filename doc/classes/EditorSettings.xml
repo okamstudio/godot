@@ -1202,11 +1202,20 @@
 		<member name="text_editor/appearance/lines/word_wrap" type="int" setter="" getter="">
 			If [code]true[/code], wraps long lines over multiple lines to avoid horizontal scrolling. This is a display-only feature; it does not actually insert line breaks in your scripts.
 		</member>
+		<member name="text_editor/appearance/minimap/marker_font_size" type="int" setter="" getter="">
+			Minimap region name marker font size.
+		</member>
+		<member name="text_editor/appearance/minimap/minimap_draw_markers" type="bool" setter="" getter="">
+			If [code]true[/code], region name markers are shown on the minimap.
+		</member>
 		<member name="text_editor/appearance/minimap/minimap_width" type="int" setter="" getter="">
 			The width of the minimap in the script editor (in pixels).
 		</member>
 		<member name="text_editor/appearance/minimap/show_minimap" type="bool" setter="" getter="">
 			If [code]true[/code], draws an overview of the script near the scroll bar. The minimap can be left-clicked to scroll directly to a location in an "absolute" manner.
+		</member>
+		<member name="text_editor/appearance/minimap_marker_outline_size" type="int" setter="" getter="">
+			Minimap region name marker font outline size.
 		</member>
 		<member name="text_editor/appearance/whitespace/draw_spaces" type="bool" setter="" getter="">
 			If [code]true[/code], draws space characters as centered points.
@@ -1462,6 +1471,15 @@
 		</member>
 		<member name="text_editor/theme/highlighting/mark_color" type="Color" setter="" getter="">
 			The script editor's background color for lines with errors. This should be set to a translucent color so that it can display on top of other line color modifiers such as [member text_editor/theme/highlighting/current_line_color].
+		</member>
+		<member name="text_editor/theme/highlighting/marker_background_color" type="Color" setter="" getter="">
+			Minimap region name marker background color.
+		</member>
+		<member name="text_editor/theme/highlighting/marker_color" type="Color" setter="" getter="">
+			Minimap region name marker text color.
+		</member>
+		<member name="text_editor/theme/highlighting/marker_outline_color" type="Color" setter="" getter="">
+			Minimap region name marker text outline color.
 		</member>
 		<member name="text_editor/theme/highlighting/member_variable_color" type="Color" setter="" getter="">
 			The script editor's color for member variables on objects (e.g. [code]self.some_property[/code]).

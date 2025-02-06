@@ -1246,6 +1246,12 @@ void EditorThemeManager::_populate_standard_styles(const Ref<EditorTheme> &p_the
 		p_theme->set_color("selection_color", "TextEdit", p_config.selection_color);
 		p_theme->set_color("background_color", "TextEdit", Color(0, 0, 0, 0));
 
+		p_theme->set_color("marker_color", "TextEdit", p_config.font_color);
+		p_theme->set_color("marker_outline_color", "TextEdit", Color(0, 0, 0));
+		p_theme->set_color("marker_background_color", "TextEdit", Color(0, 0, 0, 0));
+		p_theme->set_font_size("marker_font_size", "TextEdit", 14);
+		p_theme->set_constant("marker_outline_size", "TextEdit", 1);
+
 		p_theme->set_constant("line_spacing", "TextEdit", 4 * EDSCALE);
 		p_theme->set_constant("outline_size", "TextEdit", 0);
 		p_theme->set_constant("caret_width", "TextEdit", 1);
@@ -2586,6 +2592,7 @@ void EditorThemeManager::_generate_text_editor_defaults(ThemeConfiguration &p_co
 
 	// Use the brightest background color on a light theme (which generally uses a negative contrast rate).
 	const Color te_background_color =             p_config.dark_theme ? p_config.dark_color_2 : p_config.dark_color_3;
+	const Color m_background_color =              Color(te_background_color.r, te_background_color.g, te_background_color.b, 0.85);
 	const Color completion_background_color =     p_config.dark_theme ? p_config.base_color : p_config.dark_color_2;
 	const Color completion_selected_color =       alpha1;
 	const Color completion_existing_color =       alpha2;
@@ -2594,6 +2601,7 @@ void EditorThemeManager::_generate_text_editor_defaults(ThemeConfiguration &p_co
 	const Color completion_scroll_hovered_color = Color(mono_value, mono_value, mono_value, 0.4);
 	const Color completion_font_color =           p_config.font_color;
 	const Color text_color =                      p_config.font_color;
+	const Color text_outline_color =              Color(0, 0, 0);
 	const Color line_number_color =               dim_color;
 	const Color safe_line_number_color =          p_config.dark_theme ? (dim_color * Color(1, 1.2, 1, 1.5)) : Color(0, 0.4, 0, 0.75);
 	const Color caret_color =                     p_config.mono_color;
@@ -2658,6 +2666,9 @@ void EditorThemeManager::_generate_text_editor_defaults(ThemeConfiguration &p_co
 	setting->set_initial_value("text_editor/theme/highlighting/folded_code_region_color",        folded_code_region_color, true);
 	setting->set_initial_value("text_editor/theme/highlighting/search_result_color",             search_result_color, true);
 	setting->set_initial_value("text_editor/theme/highlighting/search_result_border_color",      search_result_border_color, true);
+	setting->set_initial_value("text_editor/theme/highlighting/marker_color",                    text_color, true);
+	setting->set_initial_value("text_editor/theme/highlighting/marker_outline_color",            text_outline_color, true);
+	setting->set_initial_value("text_editor/theme/highlighting/marker_background_color",         m_background_color, true);
 	/* clang-format on */
 }
 
@@ -2685,6 +2696,8 @@ void EditorThemeManager::_populate_text_editor_styles(const Ref<EditorTheme> &p_
 	/* clang-format on */
 
 	p_theme->set_constant("line_spacing", "CodeEdit", EDITOR_GET("text_editor/appearance/whitespace/line_spacing"));
+	p_theme->set_font_size("marker_font_size", "CodeEdit", EDITOR_GET("text_editor/appearance/minimap/marker_font_size"));
+	p_theme->set_constant("marker_outline_size", "CodeEdit", EDITOR_GET("text_editor/appearance/minimap_marker_outline_size"));
 
 	const Color background_color = EDITOR_GET("text_editor/theme/highlighting/background_color");
 	Ref<StyleBoxFlat> code_edit_stylebox = make_flat_stylebox(background_color, p_config.widget_margin.x, p_config.widget_margin.y, p_config.widget_margin.x, p_config.widget_margin.y, p_config.corner_radius);
@@ -2716,6 +2729,9 @@ void EditorThemeManager::_populate_text_editor_styles(const Ref<EditorTheme> &p_
 	p_theme->set_color("folded_code_region_color",        "CodeEdit", EDITOR_GET("text_editor/theme/highlighting/folded_code_region_color"));
 	p_theme->set_color("search_result_color",             "CodeEdit", EDITOR_GET("text_editor/theme/highlighting/search_result_color"));
 	p_theme->set_color("search_result_border_color",      "CodeEdit", EDITOR_GET("text_editor/theme/highlighting/search_result_border_color"));
+	p_theme->set_color("marker_color",                    "CodeEdit", EDITOR_GET("text_editor/theme/highlighting/marker_color"));
+	p_theme->set_color("marker_outline_color",            "CodeEdit", EDITOR_GET("text_editor/theme/highlighting/marker_outline_color"));
+	p_theme->set_color("marker_background_color",         "CodeEdit", EDITOR_GET("text_editor/theme/highlighting/marker_background_color"));
 	/* clang-format on */
 }
 
@@ -2814,6 +2830,7 @@ bool EditorThemeManager::is_generated_theme_outdated() {
 				EditorSettings::get_singleton()->check_changed_settings_in_group("interface/editor/code_font") ||
 				EditorSettings::get_singleton()->check_changed_settings_in_group("editors/visual_editors") ||
 				EditorSettings::get_singleton()->check_changed_settings_in_group("text_editor/theme") ||
+				EditorSettings::get_singleton()->check_changed_settings_in_group("text_editor/appearance") ||
 				EditorSettings::get_singleton()->check_changed_settings_in_group("text_editor/help/help") ||
 				EditorSettings::get_singleton()->check_changed_settings_in_group("docks/property_editor/subresource_hue_tint") ||
 				EditorSettings::get_singleton()->check_changed_settings_in_group("filesystem/file_dialog/thumbnail_size") ||
