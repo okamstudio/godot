@@ -4803,6 +4803,7 @@ SceneTreeDock::SceneTreeDock(Node *p_scene_root, EditorSelection *p_editor_selec
 	set_process_shortcut_input(true);
 
 	delete_dialog = memnew(ConfirmationDialog);
+	delete_dialog->set_ok_button_text(TTR("Delete"));
 	add_child(delete_dialog);
 	delete_dialog->connect(SceneStringName(confirmed), callable_mp(this, &SceneTreeDock::_delete_confirm).bind(false));
 
