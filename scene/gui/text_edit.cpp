@@ -4371,15 +4371,16 @@ Point2 TextEdit::get_local_mouse_pos() const {
 
 String TextEdit::get_word_at_pos(const Vector2 &p_pos) const {
 	Point2i pos = get_line_column_at_pos(p_pos);
-	int row = pos.y;
-	int col = pos.x;
+	return get_word_at_line_column(pos.y, pos.x);
+}
 
-	String s = text[row];
+String TextEdit::get_word_at_line_column(int p_line, int p_column) const {
+	String s = text[p_line];
 	if (s.length() == 0) {
 		return "";
 	}
 	int beg, end;
-	if (select_word(s, col, beg, end)) {
+	if (select_word(s, p_column, beg, end)) {
 		bool inside_quotes = false;
 		char32_t selected_quote = '\0';
 		int qbegin = 0, qend = 0;
@@ -4390,7 +4391,7 @@ String TextEdit::get_word_at_pos(const Vector2 &p_pos) const {
 						qend = i;
 						inside_quotes = false;
 						selected_quote = '\0';
-						if (col >= qbegin && col <= qend) {
+						if (p_column >= qbegin && p_column <= qend) {
 							return s.substr(qbegin, qend - qbegin);
 						}
 					} else if (!inside_quotes) {
@@ -4406,6 +4407,20 @@ String TextEdit::get_word_at_pos(const Vector2 &p_pos) const {
 	}
 
 	return String();
+}
+
+Point2i TextEdit::get_word_start_at_line_column(int p_line, int p_column) const {
+	String s = text[p_line];
+	if (s.length() == 0) {
+		return Point2i(0, 0);
+	}
+	int beg;
+	int end;
+	if (!select_word(s, p_column, beg, end)) {
+		return Point2i(0, 0);
+	}
+
+	return Point2i(beg + 1, p_line);
 }
 
 Point2i TextEdit::get_line_column_at_pos(const Point2i &p_pos, bool p_allow_out_of_bounds) const {
@@ -6641,6 +6656,7 @@ void TextEdit::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_local_mouse_pos"), &TextEdit::get_local_mouse_pos);
 
 	ClassDB::bind_method(D_METHOD("get_word_at_pos", "position"), &TextEdit::get_word_at_pos);
+	ClassDB::bind_method(D_METHOD("get_word_at_line_column", "line", "column"), &TextEdit::get_word_at_line_column);
 
 	ClassDB::bind_method(D_METHOD("get_line_column_at_pos", "position", "allow_out_of_bounds"), &TextEdit::get_line_column_at_pos, DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("get_pos_at_line_column", "line", "column"), &TextEdit::get_pos_at_line_column);

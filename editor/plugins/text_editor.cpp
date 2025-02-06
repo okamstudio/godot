@@ -188,6 +188,11 @@ void TextEditor::reload_text() {
 	_validate_script();
 }
 
+String TextEditor::get_text() {
+	CodeEdit *text_editor = code_editor->get_text_editor();
+	return text_editor->get_text();
+}
+
 void TextEditor::_validate_script() {
 	emit_signal(SNAME("name_changed"));
 	emit_signal(SNAME("edited_script_changed"));

@@ -591,6 +591,7 @@ public:
 	virtual String make_function(const String &p_class, const String &p_name, const PackedStringArray &p_args) const override;
 	virtual Error complete_code(const String &p_code, const String &p_path, Object *p_owner, List<ScriptLanguage::CodeCompletionOption> *r_options, bool &r_forced, String &r_call_hint) override;
 #ifdef TOOLS_ENABLED
+	virtual Error refactor_rename_symbol_code(const String &p_code, const String &p_symbol, const String &p_path, Object *p_owner, const HashMap<String, String> &p_unsaved_scripts_source_code, RefactorRenameSymbolResult &r_result) override;
 	virtual Error lookup_code(const String &p_code, const String &p_symbol, const String &p_path, Object *p_owner, LookupResult &r_result) override;
 #endif
 	virtual String _get_indentation() const;
@@ -598,6 +599,8 @@ public:
 	virtual void add_global_constant(const StringName &p_variable, const Variant &p_value) override;
 	virtual void add_named_global_constant(const StringName &p_name, const Variant &p_value) override;
 	virtual void remove_named_global_constant(const StringName &p_name) override;
+
+	virtual void get_script_list(LocalVector<Ref<GDScript>> &r_script_list) const;
 
 	/* DEBUGGER FUNCTIONS */
 

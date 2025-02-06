@@ -59,7 +59,7 @@ Error GDScriptEditorTranslationParserPlugin::parse_file(const String &p_path, Ve
 	String source_code = gdscript->get_source_code();
 
 	GDScriptParser parser;
-	err = parser.parse(source_code, p_path, false);
+	err = parser.parse(source_code, p_path);
 	ERR_FAIL_COND_V_MSG(err, err, "Failed to parse GDScript with GDScriptParser.");
 
 	GDScriptAnalyzer analyzer(&parser);

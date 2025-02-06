@@ -1026,7 +1026,7 @@ Error ExtendGDScriptParser::parse(const String &p_code, const String &p_path) {
 	path = p_path;
 	lines = p_code.split("\n");
 
-	Error err = GDScriptParser::parse(p_code, p_path, false);
+	Error err = GDScriptParser::parse(p_code, p_path);
 	GDScriptAnalyzer analyzer(this);
 
 	if (err == OK) {

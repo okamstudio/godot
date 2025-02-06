@@ -30,6 +30,7 @@
 
 #include "gdscript.h"
 
+#include "core/templates/local_vector.h"
 #include "gdscript_analyzer.h"
 #include "gdscript_cache.h"
 #include "gdscript_compiler.h"
@@ -530,7 +531,7 @@ bool GDScript::_update_exports(bool *r_err, bool p_recursive_call, PlaceHolderSc
 
 		GDScriptParser parser;
 		GDScriptAnalyzer analyzer(&parser);
-		Error err = parser.parse(source, path, false);
+		Error err = parser.parse(source, path);
 
 		if (err == OK && analyzer.analyze() == OK) {
 			const GDScriptParser::ClassNode *c = parser.get_tree();
@@ -819,7 +820,7 @@ Error GDScript::reload(bool p_keep_state) {
 	if (!binary_tokens.is_empty()) {
 		err = parser.parse_binary(binary_tokens, path);
 	} else {
-		err = parser.parse(source, path, false);
+		err = parser.parse(source, path);
 	}
 	if (err) {
 		if (EngineDebugger::is_active()) {
@@ -2242,6 +2243,17 @@ void GDScriptLanguage::remove_named_global_constant(const StringName &p_name) {
 	named_globals.erase(p_name);
 }
 
+void GDScriptLanguage::get_script_list(LocalVector<Ref<GDScript>> &r_script_list) const {
+	MutexLock lock(mutex);
+
+	const SelfList<GDScript> *elem = script_list.first();
+	while (elem) {
+		Ref<GDScript> scr = elem->self();
+		r_script_list.push_back(scr);
+		elem = elem->next();
+	}
+}
+
 void GDScriptLanguage::init() {
 	//populate global constants
 	int gcc = CoreConstants::get_global_constant_count();
@@ -2821,7 +2833,7 @@ String GDScriptLanguage::get_global_class_name(const String &p_path, String *r_b
 	String source = f->get_as_utf8_string();
 
 	GDScriptParser parser;
-	err = parser.parse(source, p_path, false, false);
+	err = parser.parse(source, p_path);
 
 	const GDScriptParser::ClassNode *c = parser.get_tree();
 	if (!c) {
@@ -2870,7 +2882,7 @@ String GDScriptLanguage::get_global_class_name(const String &p_path, String *r_b
 							subpath = path.get_base_dir().path_join(subpath).simplify_path();
 						}
 
-						if (OK != subparser.parse(subsource, subpath, false)) {
+						if (OK != subparser.parse(subsource, subpath)) {
 							break;
 						}
 						path = subpath;
@@ -3057,7 +3069,7 @@ void ResourceFormatLoaderGDScript::get_dependencies(const String &p_path, List<S
 	}
 
 	GDScriptParser parser;
-	if (OK != parser.parse(source, p_path, false)) {
+	if (OK != parser.parse(source, p_path)) {
 		return;
 	}
 

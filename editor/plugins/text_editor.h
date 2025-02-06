@@ -121,6 +121,7 @@ public:
 	virtual void set_edited_resource(const Ref<Resource> &p_res) override;
 	virtual void enable_editor(Control *p_shortcut_context = nullptr) override;
 	virtual void reload_text() override;
+	virtual String get_text() override;
 	virtual void apply_code() override;
 	virtual bool is_unsaved() override;
 	virtual Variant get_edit_state() override;
