@@ -32,9 +32,8 @@
 #define JOLT_QUERY_COLLECTORS_H
 
 #include "../jolt_project_settings.h"
+#include "../misc/jolt_inline_vector.h"
 #include "jolt_space_3d.h"
-
-#include "core/templates/local_vector.h"
 
 #include "Jolt/Jolt.h"
 
@@ -47,7 +46,7 @@ public:
 	typedef typename TBase::ResultType Hit;
 
 private:
-	JPH::Array<Hit> hits;
+	JoltInlineVector<Hit, TDefaultCapacity> hits;
 
 public:
 	bool had_hit() const {
@@ -111,7 +110,7 @@ public:
 	typedef typename TBase::ResultType Hit;
 
 private:
-	JPH::Array<Hit> hits;
+	JoltInlineVector<Hit, TDefaultCapacity> hits;
 	int max_hits = 0;
 
 public:
@@ -140,11 +139,11 @@ public:
 	}
 
 	virtual void AddHit(const Hit &p_hit) override {
-		if ((int)hits.size() < max_hits) {
+		if (hits.size() < max_hits) {
 			hits.push_back(p_hit);
 		}
 
-		if ((int)hits.size() == max_hits) {
+		if (hits.size() == max_hits) {
 			TBase::ForceEarlyOut();
 		}
 	}
@@ -191,7 +190,7 @@ public:
 	typedef typename TBase::ResultType Hit;
 
 private:
-	JPH::Array<Hit> hits;
+	JoltInlineVector<Hit, TDefaultCapacity + 1> hits;
 	int max_hits = 0;
 
 public:
@@ -220,16 +219,16 @@ public:
 	}
 
 	virtual void AddHit(const Hit &p_hit) override {
-		typename JPH::Array<Hit>::const_iterator E = hits.cbegin();
-		for (; E != hits.cend(); ++E) {
-			if (p_hit.GetEarlyOutFraction() < E->GetEarlyOutFraction()) {
+		int i = 0;
+		for (; i < hits.size(); ++i) {
+			if (p_hit.GetEarlyOutFraction() < hits[i].GetEarlyOutFraction()) {
 				break;
 			}
 		}
 
-		hits.insert(E, p_hit);
+		hits.insert(i, p_hit);
 
-		if ((int)hits.size() > max_hits) {
+		if (hits.size() > max_hits) {
 			hits.resize(max_hits);
 		}
 	}
