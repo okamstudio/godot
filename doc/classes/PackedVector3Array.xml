@@ -51,7 +51,7 @@
 				Appends a [PackedVector3Array] at the end of this array.
 			</description>
 		</method>
-		<method name="bsearch">
+		<method name="bsearch" qualifiers="const">
 			<return type="int" />
 			<param index="0" name="value" type="Vector3" />
 			<param index="1" name="before" type="bool" default="true" />
