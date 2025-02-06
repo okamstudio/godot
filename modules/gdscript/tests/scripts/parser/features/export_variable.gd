@@ -48,6 +48,13 @@ const PreloadedUnnamedClass = preload("./export_variable_unnamed.notest.gd")
 @export_custom(PROPERTY_HINT_ENUM, "A,B,C") var test_export_custom_weak_int = 5
 @export_custom(PROPERTY_HINT_ENUM, "A,B,C") var test_export_custom_hard_int: int = 6
 
+# `@no_storage`.
+@export @no_storage var test_no_storage_int = 1
+@export_range(0, 10) @no_storage var test_no_storage_range = 1
+@export_enum("A", "B", "C") @no_storage var test_range_no_storage_enum = "A"
+@export @no_storage var test_no_storage_array = []
+@export @no_storage var test_no_storage_dictionary = {}
+
 # `@export_tool_button`.
 @export_tool_button("Click me!") var test_tool_button_1: Callable
 @export_tool_button("Click me!", "ColorRect") var test_tool_button_2: Callable

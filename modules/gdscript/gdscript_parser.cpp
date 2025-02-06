@@ -121,6 +121,7 @@ GDScriptParser::GDScriptParser() {
 		register_annotation(MethodInfo("@export_flags_avoidance"), AnnotationInfo::VARIABLE, &GDScriptParser::export_annotations<PROPERTY_HINT_LAYERS_AVOIDANCE, Variant::INT>);
 		register_annotation(MethodInfo("@export_storage"), AnnotationInfo::VARIABLE, &GDScriptParser::export_storage_annotation);
 		register_annotation(MethodInfo("@export_custom", PropertyInfo(Variant::INT, "hint", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_CLASS_IS_ENUM, "PropertyHint"), PropertyInfo(Variant::STRING, "hint_string"), PropertyInfo(Variant::INT, "usage", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_CLASS_IS_BITFIELD, "PropertyUsageFlags")), AnnotationInfo::VARIABLE, &GDScriptParser::export_custom_annotation, varray(PROPERTY_USAGE_DEFAULT));
+		register_annotation(MethodInfo("@no_storage"), AnnotationInfo::VARIABLE, &GDScriptParser::no_storage_annotation);
 		register_annotation(MethodInfo("@export_tool_button", PropertyInfo(Variant::STRING, "text"), PropertyInfo(Variant::STRING, "icon")), AnnotationInfo::VARIABLE, &GDScriptParser::export_tool_button_annotation, varray(""));
 		// Export grouping annotations.
 		register_annotation(MethodInfo("@export_category", PropertyInfo(Variant::STRING, "name")), AnnotationInfo::STANDALONE, &GDScriptParser::export_group_annotations<PROPERTY_USAGE_CATEGORY>);
@@ -4404,7 +4405,7 @@ bool GDScriptParser::export_annotations(AnnotationNode *p_annotation, Node *p_ta
 		return false;
 	}
 	if (variable->exported) {
-		push_error(vformat(R"(Annotation "%s" cannot be used with another "@export" annotation.)", p_annotation->name), p_annotation);
+		push_error(vformat(R"(Annotation "%s" cannot be used with another export annotation.)", p_annotation->name), p_annotation);
 		return false;
 	}
 
@@ -4739,7 +4740,7 @@ bool GDScriptParser::export_storage_annotation(AnnotationNode *p_annotation, Nod
 		return false;
 	}
 	if (variable->exported) {
-		push_error(vformat(R"(Annotation "%s" cannot be used with another "@export" annotation.)", p_annotation->name), p_annotation);
+		push_error(vformat(R"(Annotation "%s" cannot be used with another export annotation.)", p_annotation->name), p_annotation);
 		return false;
 	}
 
@@ -4762,7 +4763,7 @@ bool GDScriptParser::export_custom_annotation(AnnotationNode *p_annotation, Node
 		return false;
 	}
 	if (variable->exported) {
-		push_error(vformat(R"(Annotation "%s" cannot be used with another "@export" annotation.)", p_annotation->name), p_annotation);
+		push_error(vformat(R"(Annotation "%s" cannot be used with another export annotation.)", p_annotation->name), p_annotation);
 		return false;
 	}
 
@@ -4777,6 +4778,31 @@ bool GDScriptParser::export_custom_annotation(AnnotationNode *p_annotation, Node
 	if (p_annotation->resolved_arguments.size() >= 3) {
 		variable->export_info.usage = p_annotation->resolved_arguments[2].operator int64_t();
 	}
+	return true;
+}
+
+bool GDScriptParser::no_storage_annotation(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class) {
+	ERR_FAIL_COND_V_MSG(p_target->type != Node::VARIABLE, false, vformat(R"("%s" annotation can only be applied to variables.)", p_annotation->name));
+
+	VariableNode *variable = static_cast<VariableNode *>(p_target);
+	for (const AnnotationNode *annotation_node : variable->annotations) {
+		if (annotation_node->name == SNAME("@export_storage") || annotation_node->name == SNAME("@export_custom") || annotation_node->name == SNAME("@export_tool_button")) {
+			push_error(vformat(R"(Annotation "%s" cannot be used with "%s".)", p_annotation->name, annotation_node->name), p_annotation);
+			return false;
+		}
+	}
+	if (!variable->exported) {
+		push_error(vformat(R"(Annotation "%s" must be placed after an export annotation.)", p_annotation->name), p_annotation);
+		return false;
+	}
+	if (variable->exported_no_storage) {
+		push_error(vformat(R"(Annotation "%s" should only be used once.)", p_annotation->name), p_annotation);
+		return false;
+	}
+
+	// Set variable to only show in editor and keep the previous annotation's export_info changes.
+	variable->export_info.usage &= ~PROPERTY_USAGE_STORAGE;
+	variable->exported_no_storage = true;
 	return true;
 }
 

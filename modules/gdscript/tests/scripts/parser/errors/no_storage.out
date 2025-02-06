@@ -1,0 +1,7 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 3: Annotation "@no_storage" cannot be used with "@export_storage".
+>> ERROR at line 4: Annotation "@no_storage" cannot be used with "@export_custom".
+>> ERROR at line 5: Annotation "@no_storage" cannot be used with "@export_tool_button".
+>> ERROR at line 6: Annotation "@no_storage" must be placed after an export annotation.
+>> ERROR at line 7: Annotation "@no_storage" must be placed after an export annotation.
+>> ERROR at line 8: Annotation "@no_storage" should only be used once.

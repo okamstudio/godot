@@ -55,6 +55,16 @@ var test_export_custom_weak_int: int = 5
   hint=ENUM hint_string="A,B,C" usage=DEFAULT|SCRIPT_VARIABLE class_name=&""
 var test_export_custom_hard_int: int = 6
   hint=ENUM hint_string="A,B,C" usage=DEFAULT|SCRIPT_VARIABLE class_name=&""
+var test_no_storage_int: int = 1
+  hint=NONE hint_string="" usage=EDITOR|SCRIPT_VARIABLE class_name=&""
+var test_no_storage_range: int = 1
+  hint=RANGE hint_string="0.0,10.0" usage=EDITOR|SCRIPT_VARIABLE class_name=&""
+var test_range_no_storage_enum: String = "A"
+  hint=ENUM hint_string="A,B,C" usage=EDITOR|SCRIPT_VARIABLE class_name=&""
+var test_no_storage_array: Array = []
+  hint=NONE hint_string="" usage=EDITOR|SCRIPT_VARIABLE class_name=&""
+var test_no_storage_dictionary: Dictionary = {}
+  hint=NONE hint_string="" usage=EDITOR|SCRIPT_VARIABLE class_name=&""
 var test_tool_button_1: Callable = Callable()
   hint=TOOL_BUTTON hint_string="Click me!" usage=EDITOR|SCRIPT_VARIABLE class_name=&""
 var test_tool_button_2: Callable = Callable()

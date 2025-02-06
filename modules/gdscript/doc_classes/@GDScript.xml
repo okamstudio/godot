@@ -644,10 +644,12 @@
 			<return type="void" />
 			<description>
 				Export a property with [constant PROPERTY_USAGE_STORAGE] flag. The property is not displayed in the editor, but it is serialized and stored in the scene or resource file. This can be useful for [annotation @tool] scripts. Also the property value is copied when [method Resource.duplicate] or [method Node.duplicate] is called, unlike non-exported variables.
+				See also [annotation @no_storage].
 				[codeblock]
 				var a # Not stored in the file, not displayed in the editor.
 				@export_storage var b # Stored in the file, not displayed in the editor.
-				@export var c: int # Stored in the file, displayed in the editor.
+				@export @no_storage var c: int # Not stored in the file, displayed in the editor.
+				@export var d: int # Stored in the file, displayed in the editor.
 				[/codeblock]
 			</description>
 		</annotation>
@@ -728,6 +730,24 @@
 				[b]Note:[/b] Only the script can have a custom icon. Inner classes are not supported.
 				[b]Note:[/b] As annotations describe their subject, the [annotation @icon] annotation must be placed before the class definition and inheritance.
 				[b]Note:[/b] Unlike most other annotations, the argument of the [annotation @icon] annotation must be a string literal (constant expressions are not supported).
+			</description>
+		</annotation>
+		<annotation name="@no_storage">
+			<return type="void" />
+			<description>
+				Marks the exported property as editor-only (not saved to disk). Can be applied to a variable with a regular export annotation applied. The property value will also not be copied when [method Resource.duplicate] or [method Node.duplicate] is called, unlike serialized variables. This can be useful for [annotation @tool] scripts.
+				See also [annotation @export_storage].
+				[codeblock]
+				@tool
+
+				@export var string = ""
+				# This variable can be used to edit "string" in the Inspector.
+				@export_range(0, 10) @no_storage var int_to_string: int:
+				    set(value):
+				        string = str(value)
+				    get:
+				        return string.to_int()
+				[/codeblock]
 			</description>
 		</annotation>
 		<annotation name="@onready">

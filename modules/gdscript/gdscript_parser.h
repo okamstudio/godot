@@ -1262,6 +1262,7 @@ public:
 		};
 
 		bool exported = false;
+		bool exported_no_storage = false;
 		bool onready = false;
 		PropertyInfo export_info;
 		int assignments = 0;
@@ -1513,6 +1514,7 @@ private:
 	bool export_annotations(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class);
 	bool export_storage_annotation(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class);
 	bool export_custom_annotation(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class);
+	bool no_storage_annotation(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class);
 	bool export_tool_button_annotation(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class);
 	template <PropertyUsageFlags t_usage>
 	bool export_group_annotations(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class);
