@@ -63,20 +63,39 @@ void SpinBox::_update_text(bool p_only_update_if_value_changed) {
 			value += " " + suffix;
 		}
 	}
+
+	if (!accepted && update_on_text_changed && !line_edit->get_text().replace(",", ".").contains_char('.')) {
+		value = String::num(get_value(), 0);
+	}
+
 	line_edit->set_text_with_selection(value);
 }
 
 void SpinBox::_text_submitted(const String &p_string) {
 	if (p_string.is_empty()) {
-		_update_text();
 		return;
+	}
+
+	String text = p_string;
+
+	if (update_on_text_changed) {
+		// Convert commas ',' to dots '.' for French/German etc. keyboard layouts.
+		text = p_string.replace(",", ".");
+
+		if (!text.begins_with(".") && p_string.ends_with(".")) {
+			return;
+		}
+
+		if (text.begins_with(".")) {
+			line_edit->set_text("0.");
+			line_edit->set_caret_column(line_edit->get_text().length());
+			return;
+		}
 	}
 
 	Ref<Expression> expr;
 	expr.instantiate();
 
-	// Convert commas ',' to dots '.' for French/German etc. keyboard layouts.
-	String text = p_string.replace(",", ".");
 	text = text.replace(";", ",");
 	text = TS->parse_number(text);
 	// Ignore the prefix and suffix in the expression.
@@ -107,12 +126,17 @@ void SpinBox::_text_submitted(const String &p_string) {
 }
 
 void SpinBox::_text_changed(const String &p_string) {
+	accepted = false;
 	int cursor_pos = line_edit->get_caret_column();
 
 	_text_submitted(p_string);
 
+	String text = p_string.replace(",", ".");
+
 	// Line edit 'set_text' method resets the cursor position so we need to undo that.
-	line_edit->set_caret_column(cursor_pos);
+	if (update_on_text_changed && !text.begins_with(".")) {
+		line_edit->set_caret_column(cursor_pos);
+	}
 }
 
 LineEdit *SpinBox::get_line_edit() {
@@ -192,6 +216,7 @@ void SpinBox::gui_input(const Ref<InputEvent> &p_event) {
 	if (mb.is_valid() && mb->is_pressed()) {
 		switch (mb->get_button_index()) {
 			case MouseButton::LEFT: {
+				accepted = true;
 				line_edit->grab_focus();
 
 				if (mouse_on_up_button || mouse_on_down_button) {
@@ -291,9 +316,12 @@ void SpinBox::_line_edit_editing_toggled(bool p_toggled_on) {
 			line_edit->select_all();
 		}
 	} else {
+		accepted = true;
+
 		if (Input::get_singleton()->is_action_pressed("ui_cancel") || line_edit->get_text().is_empty()) {
 			_update_text(); // Revert text if editing was canceled.
 		} else {
+			line_edit->set_text(line_edit->get_text().trim_suffix(".").trim_suffix(","));
 			_update_text(true); // Update text in case value was changed this frame (e.g. on `focus_exited`).
 			_text_submitted(line_edit->get_text());
 		}
