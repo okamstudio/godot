@@ -69,6 +69,7 @@ void Slider::gui_input(const Ref<InputEvent> &p_event) {
 				double grab_width = theme_cache.center_grabber ? 0.0 : (double)grabber->get_width();
 				double grab_height = theme_cache.center_grabber ? 0.0 : (double)grabber->get_height();
 				double max = orientation == VERTICAL ? get_size().height - grab_height : get_size().width - grab_width;
+				bool block_original = is_blocking_signals();
 				set_block_signals(true);
 				if (orientation == VERTICAL) {
 					set_as_ratio(1 - (((double)grab.pos - (grab_height / 2.0)) / max));
@@ -76,7 +77,7 @@ void Slider::gui_input(const Ref<InputEvent> &p_event) {
 					double v = ((double)grab.pos - (grab_width / 2.0)) / max;
 					set_as_ratio(is_layout_rtl() ? 1 - v : v);
 				}
-				set_block_signals(false);
+				set_block_signals(block_original);
 				grab.active = true;
 				grab.uvalue = get_as_ratio();
 
