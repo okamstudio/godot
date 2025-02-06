@@ -826,7 +826,7 @@ ObjectID Node3DEditorViewport::_select_ray(const Point2 &p_pos) const {
 	Node *item = nullptr;
 	float closest_dist = 1e20;
 
-	Vector<Node3D *> nodes_with_gizmos = Node3DEditor::get_singleton()->gizmo_bvh_ray_query(pos, pos + ray * camera->get_far());
+	Vector<Node3D *> nodes_with_gizmos = Node3DEditor::get_singleton()->gizmo_bvh_ray_query(pos, ray, camera->get_far());
 
 	for (Node3D *spat : nodes_with_gizmos) {
 		if (!spat || _is_node_locked(spat)) {
@@ -881,7 +881,7 @@ void Node3DEditorViewport::_find_items_at_pos(const Point2 &p_pos, Vector<_RayRe
 	Vector3 ray = get_ray(p_pos);
 	Vector3 pos = get_ray_pos(p_pos);
 
-	Vector<Node3D *> nodes_with_gizmos = Node3DEditor::get_singleton()->gizmo_bvh_ray_query(pos, pos + ray * camera->get_far());
+	Vector<Node3D *> nodes_with_gizmos = Node3DEditor::get_singleton()->gizmo_bvh_ray_query(pos, ray, camera->get_far());
 
 	HashSet<Node3D *> found_nodes;
 
@@ -9576,7 +9576,7 @@ void Node3DEditor::remove_gizmo_bvh_node(DynamicBVH::ID p_id) {
 	gizmo_bvh.remove(p_id);
 }
 
-Vector<Node3D *> Node3DEditor::gizmo_bvh_ray_query(const Vector3 &p_ray_start, const Vector3 &p_ray_end) {
+Vector<Node3D *> Node3DEditor::gizmo_bvh_ray_query(const Vector3 &p_ray_start, const Vector3 &p_ray_dir, real_t ray_length) {
 	struct Result {
 		Vector<Node3D *> nodes;
 		bool operator()(void *p_data) {
@@ -9585,7 +9585,7 @@ Vector<Node3D *> Node3DEditor::gizmo_bvh_ray_query(const Vector3 &p_ray_start, c
 		}
 	} result;
 
-	gizmo_bvh.ray_query(p_ray_start, p_ray_end, result);
+	gizmo_bvh.ray_query(p_ray_start, p_ray_dir, ray_length, result);
 
 	return result.nodes;
 }

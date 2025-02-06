@@ -997,7 +997,7 @@ public:
 	DynamicBVH::ID insert_gizmo_bvh_node(Node3D *p_node, const AABB &p_aabb);
 	void update_gizmo_bvh_node(DynamicBVH::ID p_id, const AABB &p_aabb);
 	void remove_gizmo_bvh_node(DynamicBVH::ID p_id);
-	Vector<Node3D *> gizmo_bvh_ray_query(const Vector3 &p_ray_start, const Vector3 &p_ray_end);
+	Vector<Node3D *> gizmo_bvh_ray_query(const Vector3 &p_ray_start, const Vector3 &p_ray_dir, real_t ray_length);
 	Vector<Node3D *> gizmo_bvh_frustum_query(const Vector<Plane> &p_frustum);
 
 	void edit(Node3D *p_spatial);

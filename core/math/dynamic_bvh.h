@@ -310,7 +310,7 @@ public:
 	template <typename QueryResult>
 	_FORCE_INLINE_ void convex_query(const Plane *p_planes, int p_plane_count, const Vector3 *p_points, int p_point_count, QueryResult &r_result);
 	template <typename QueryResult>
-	_FORCE_INLINE_ void ray_query(const Vector3 &p_from, const Vector3 &p_to, QueryResult &r_result);
+	_FORCE_INLINE_ void ray_query(const Vector3 &p_from, const Vector3 &p_dir, real_t p_length, QueryResult &r_result);
 
 	void set_index(uint32_t p_index);
 	uint32_t get_index() const;
@@ -416,13 +416,12 @@ void DynamicBVH::convex_query(const Plane *p_planes, int p_plane_count, const Ve
 	} while (depth > 0);
 }
 template <typename QueryResult>
-void DynamicBVH::ray_query(const Vector3 &p_from, const Vector3 &p_to, QueryResult &r_result) {
+void DynamicBVH::ray_query(const Vector3 &p_from, const Vector3 &p_dir, real_t p_length, QueryResult &r_result) {
 	if (!bvh_root) {
 		return;
 	}
 
-	Vector3 ray_dir = (p_to - p_from);
-	ray_dir.normalize();
+	Vector3 ray_dir = p_dir;
 
 	///what about division by zero? --> just set rayDirection[i] to INF/B3_LARGE_FLOAT
 	Vector3 inv_dir;
@@ -431,7 +430,7 @@ void DynamicBVH::ray_query(const Vector3 &p_from, const Vector3 &p_to, QueryResu
 	inv_dir[2] = ray_dir[2] == real_t(0.0) ? real_t(1e20) : real_t(1.0) / ray_dir[2];
 	unsigned int signs[3] = { inv_dir[0] < 0.0, inv_dir[1] < 0.0, inv_dir[2] < 0.0 };
 
-	real_t lambda_max = ray_dir.dot(p_to - p_from);
+	real_t lambda_max = p_length;
 
 	Vector3 bounds[2];
 
