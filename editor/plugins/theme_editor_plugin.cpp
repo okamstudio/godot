@@ -3336,6 +3336,9 @@ void ThemeTypeEditor::_update_stylebox_from_leading() {
 }
 
 void ThemeTypeEditor::_type_variation_changed(const String p_value) {
+	//TODO: fix it so that when you clear type variation, you remove the old docs
+	_update_docs_from_type_variation(p_value);
+
 	EditorUndoRedoManager *ur = EditorUndoRedoManager::get_singleton();
 	ur->create_action(TTR("Set Theme Type Variation"));
 
@@ -3352,6 +3355,31 @@ void ThemeTypeEditor::_type_variation_changed(const String p_value) {
 	}
 
 	ur->commit_action();
+}
+
+void ThemeTypeEditor::_update_docs_from_type_variation(const String &p_value) {
+	if(p_value.is_empty()) {
+		if(EditorHelp::get_doc_data()->has_doc(edited_type)) {
+			EditorHelp::get_doc_data()->remove_doc(edited_type);
+		}
+		return;
+	}
+
+	const DocTools *dd = EditorHelp::get_doc_data();
+	HashMap<String, DocData::ClassDoc>::ConstIterator E = dd->class_list.find(p_value);
+
+	if(E) {
+		if(EditorHelp::get_doc_data()->has_doc(edited_type)) {
+			EditorHelp::get_doc_data()->remove_doc(edited_type);
+		}
+
+		DocData::ClassDoc newDoc = E->value;
+		newDoc.script_path = "";
+		newDoc.name = edited_type;
+
+		EditorHelp::get_doc_data()->add_doc(newDoc);
+	}
+	
 }
 
 void ThemeTypeEditor::_add_type_variation_cbk() {

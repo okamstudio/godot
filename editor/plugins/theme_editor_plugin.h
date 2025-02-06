@@ -412,6 +412,8 @@ class ThemeTypeEditor : public MarginContainer {
 
 	void _add_type_dialog_selected(const String p_type_name);
 
+	void _update_docs_from_type_variation(const String &p_value);
+
 protected:
 	void _notification(int p_what);
 	static void _bind_methods();
