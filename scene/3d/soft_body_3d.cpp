@@ -186,7 +186,7 @@ void SoftBody3D::_get_property_list(List<PropertyInfo> *p_list) const {
 bool SoftBody3D::_set_property_pinned_points_indices(const Array &p_indices) {
 	const int p_indices_size = p_indices.size();
 
-	{ // Remove the pined points on physics server that will be removed by resize
+	{ // Remove the pinned points on physics server that will be removed by resize
 		const PinnedPoint *r = pinned_points.ptr();
 		if (p_indices_size < pinned_points.size()) {
 			for (int i = pinned_points.size() - 1; i >= p_indices_size; --i) {
@@ -202,16 +202,20 @@ bool SoftBody3D::_set_property_pinned_points_indices(const Array &p_indices) {
 	for (int i = 0; i < p_indices_size; ++i) {
 		point_index = p_indices.get(i);
 		if (w[i].point_index != point_index || pinned_points.size() < p_indices_size) {
-			bool insert = false;
-			if (w[i].point_index != -1 && p_indices.find(w[i].point_index) == -1) {
-				pin_point(w[i].point_index, false);
-				insert = true;
+			if (point_index < -1) {
+				// Ignore point_indices under -1 so we dont go the whole call stack for this to fail
+				w[i].point_index = point_index;
+				continue;
 			}
-			w[i].point_index = point_index;
-			if (insert) {
-				pin_point(w[i].point_index, true, NodePath(), i);
+			if (w[i].point_index == -1) {
+				w[i].point_index = point_index;
+				pin_point(point_index, true);
 			} else {
-				pin_point(w[i].point_index, true);
+				if (p_indices.find(w[i].point_index) == -1) {
+					_pin_point_on_physics_server(w[i].point_index, false);
+				}
+				w[i].point_index = point_index;
+				pin_point(point_index, true, NodePath(), i);
 			}
 		}
 	}
