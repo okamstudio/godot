@@ -475,11 +475,11 @@
 			</description>
 		</signal>
 		<signal name="graph_elements_linked_to_frame_request">
-			<param index="0" name="elements" type="Array" />
+			<param index="0" name="elements" type="StringName[]" />
 			<param index="1" name="frame" type="StringName" />
 			<description>
 				Emitted when one or more [GraphElement]s are dropped onto the [GraphFrame] named [param frame], when they were not previously attached to any other one.
-				[param elements] is an array of [GraphElement]s to be attached.
+				[param elements] contains the names of the [GraphElement]s to be attached.
 			</description>
 		</signal>
 		<signal name="node_deselected">
