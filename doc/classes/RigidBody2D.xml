@@ -11,6 +11,8 @@
 		[b]Note:[/b] Changing the 2D transform or [member linear_velocity] of a [RigidBody2D] very often may lead to some unpredictable behaviors. If you need to directly affect the body, prefer [method _integrate_forces] as it allows you to directly access the physics state.
 	</description>
 	<tutorials>
+		<link title="Physics introduction">$DOCS_URL/tutorials/physics/physics_introduction.html</link>
+		<link title="Troubleshooting physics issues">$DOCS_URL/tutorials/physics/troubleshooting_physics_issues.html</link>
 		<link title="2D Physics Platformer Demo">https://godotengine.org/asset-library/asset/2725</link>
 		<link title="Instancing Demo">https://godotengine.org/asset-library/asset/2716</link>
 	</tutorials>

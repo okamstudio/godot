@@ -12,6 +12,7 @@
 	</description>
 	<tutorials>
 		<link title="Physics introduction">$DOCS_URL/tutorials/physics/physics_introduction.html</link>
+		<link title="Troubleshooting physics issues">$DOCS_URL/tutorials/physics/troubleshooting_physics_issues.html</link>
 		<link title="3D Truck Town Demo">https://godotengine.org/asset-library/asset/2752</link>
 		<link title="3D Physics Tests Demo">https://godotengine.org/asset-library/asset/2747</link>
 	</tutorials>

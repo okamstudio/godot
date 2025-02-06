@@ -9,6 +9,8 @@
 		[StaticBody2D] is useful for completely static objects like floors and walls, as well as moving surfaces like conveyor belts and circular revolving platforms (by using [member constant_linear_velocity] and [member constant_angular_velocity]).
 	</description>
 	<tutorials>
+		<link title="Physics introduction">$DOCS_URL/tutorials/physics/physics_introduction.html</link>
+		<link title="Troubleshooting physics issues">$DOCS_URL/tutorials/physics/troubleshooting_physics_issues.html</link>
 	</tutorials>
 	<members>
 		<member name="constant_angular_velocity" type="float" setter="set_constant_angular_velocity" getter="get_constant_angular_velocity" default="0.0">

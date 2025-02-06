@@ -8,6 +8,8 @@
 		For game objects that don't require complex movement or collision detection, such as moving platforms, [AnimatableBody2D] is simpler to configure.
 	</description>
 	<tutorials>
+		<link title="Physics introduction">$DOCS_URL/tutorials/physics/physics_introduction.html</link>
+		<link title="Troubleshooting physics issues">$DOCS_URL/tutorials/physics/troubleshooting_physics_issues.html</link>
 		<link title="Kinematic character (2D)">$DOCS_URL/tutorials/physics/kinematic_character_2d.html</link>
 		<link title="Using CharacterBody2D">$DOCS_URL/tutorials/physics/using_character_body_2d.html</link>
 		<link title="2D Kinematic Character Demo">https://godotengine.org/asset-library/asset/2719</link>
