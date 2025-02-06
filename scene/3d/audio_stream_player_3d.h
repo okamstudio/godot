@@ -79,9 +79,9 @@ private:
 	uint64_t last_mix_count = -1;
 	bool force_update_panning = false;
 
-	static void _calc_output_vol(const Vector3 &source_dir, real_t tightness, Vector<AudioFrame> &output);
+	static void _calc_output_vol(const Vector3 &p_source_dir, real_t p_tightness, LocalVector<AudioFrame> &p_output);
 
-	void _calc_reverb_vol(Area3D *area, Vector3 listener_area_pos, Vector<AudioFrame> direct_path_vol, Vector<AudioFrame> &reverb_vol);
+	void _calc_reverb_vol(Area3D *p_area, Vector3 p_listener_area_pos, const LocalVector<AudioFrame> &p_direct_path_vol, LocalVector<AudioFrame> &p_reverb_vol);
 
 	static void _listener_changed_cb(void *self) { reinterpret_cast<AudioStreamPlayer3D *>(self)->force_update_panning = true; }
 
@@ -89,7 +89,7 @@ private:
 	bool _is_active() const;
 	StringName _get_actual_bus();
 	Area3D *_get_overriding_area();
-	Vector<AudioFrame> _update_panning();
+	LocalVector<AudioFrame> _update_panning();
 
 	uint32_t area_mask = 1;
 

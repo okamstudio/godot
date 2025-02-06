@@ -61,13 +61,13 @@ void AudioStreamPlayerInternal::_update_stream_parameters() {
 }
 
 void AudioStreamPlayerInternal::process() {
-	Vector<Ref<AudioStreamPlayback>> playbacks_to_remove;
+	LocalVector<Ref<AudioStreamPlayback>> playbacks_to_remove;
 	for (Ref<AudioStreamPlayback> &playback : stream_playbacks) {
 		if (playback.is_valid() && !AudioServer::get_singleton()->is_playback_active(playback) && !AudioServer::get_singleton()->is_playback_paused(playback)) {
 			playbacks_to_remove.push_back(playback);
 		}
 	}
-	// Now go through and remove playbacks that have finished. Removing elements from a Vector in a range based for is asking for trouble.
+	// Now go through and remove playbacks that have finished. Removing elements from a LocalVector in a range based for is asking for trouble.
 	for (Ref<AudioStreamPlayback> &playback : playbacks_to_remove) {
 		stream_playbacks.erase(playback);
 	}
@@ -82,7 +82,7 @@ void AudioStreamPlayerInternal::process() {
 }
 
 void AudioStreamPlayerInternal::ensure_playback_limit() {
-	while (stream_playbacks.size() > max_polyphony) {
+	while (stream_playbacks.size() > (uint)MAX(max_polyphony, 0)) {
 		AudioServer::get_singleton()->stop_playback_stream(stream_playbacks[0]);
 		stream_playbacks.remove_at(0);
 	}

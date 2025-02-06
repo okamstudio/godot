@@ -123,10 +123,10 @@ void AudioStreamPlayer2D::_update_panning() {
 	HashSet<Viewport *> viewports = world_2d->get_viewports();
 
 	volume_vector.resize(4);
-	volume_vector.write[0] = AudioFrame(0, 0);
-	volume_vector.write[1] = AudioFrame(0, 0);
-	volume_vector.write[2] = AudioFrame(0, 0);
-	volume_vector.write[3] = AudioFrame(0, 0);
+	volume_vector[0] = AudioFrame(0, 0);
+	volume_vector[1] = AudioFrame(0, 0);
+	volume_vector[2] = AudioFrame(0, 0);
+	volume_vector[3] = AudioFrame(0, 0);
 
 	StringName actual_bus = _get_actual_bus();
 
@@ -175,7 +175,7 @@ void AudioStreamPlayer2D::_update_panning() {
 		const AudioFrame &prev_sample = volume_vector[0];
 		AudioFrame new_sample = AudioFrame(l, r) * multiplier;
 
-		volume_vector.write[0] = AudioFrame(MAX(prev_sample[0], new_sample[0]), MAX(prev_sample[1], new_sample[1]));
+		volume_vector[0] = AudioFrame(MAX(prev_sample[0], new_sample[0]), MAX(prev_sample[1], new_sample[1]));
 	}
 
 	for (const Ref<AudioStreamPlayback> &playback : internal->stream_playbacks) {

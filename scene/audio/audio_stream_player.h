@@ -57,7 +57,7 @@ private:
 	void _set_playing(bool p_enable);
 	bool _is_active() const;
 
-	Vector<AudioFrame> _get_volume_vector();
+	LocalVector<AudioFrame> _get_volume_vector();
 
 protected:
 	void _validate_property(PropertyInfo &p_property) const;

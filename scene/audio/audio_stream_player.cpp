@@ -62,7 +62,7 @@ void AudioStreamPlayer::set_volume_db(float p_volume) {
 	ERR_FAIL_COND_MSG(Math::is_nan(p_volume), "Volume can't be set to NaN.");
 	internal->volume_db = p_volume;
 
-	Vector<AudioFrame> volume_vector = _get_volume_vector();
+	LocalVector<AudioFrame> volume_vector = _get_volume_vector();
 	for (Ref<AudioStreamPlayback> &playback : internal->stream_playbacks) {
 		AudioServer::get_singleton()->set_playback_all_bus_volumes_linear(playback, volume_vector);
 	}
@@ -170,8 +170,8 @@ bool AudioStreamPlayer::get_stream_paused() const {
 	return internal->get_stream_paused();
 }
 
-Vector<AudioFrame> AudioStreamPlayer::_get_volume_vector() {
-	Vector<AudioFrame> volume_vector;
+LocalVector<AudioFrame> AudioStreamPlayer::_get_volume_vector() {
+	LocalVector<AudioFrame> volume_vector;
 	// We need at most four stereo pairs (for 7.1 systems).
 	volume_vector.resize(4);
 
@@ -185,22 +185,22 @@ Vector<AudioFrame> AudioStreamPlayer::_get_volume_vector() {
 	// Set the volume vector up according to the speaker mode and mix target.
 	// TODO do we need to scale the volume down when we output to more channels?
 	if (AudioServer::get_singleton()->get_speaker_mode() == AudioServer::SPEAKER_MODE_STEREO) {
-		volume_vector.write[0] = AudioFrame(volume_linear, volume_linear);
+		volume_vector[0] = AudioFrame(volume_linear, volume_linear);
 	} else {
 		switch (mix_target) {
 			case MIX_TARGET_STEREO: {
-				volume_vector.write[0] = AudioFrame(volume_linear, volume_linear);
+				volume_vector[0] = AudioFrame(volume_linear, volume_linear);
 			} break;
 			case MIX_TARGET_SURROUND: {
 				// TODO Make sure this is right.
-				volume_vector.write[0] = AudioFrame(volume_linear, volume_linear);
-				volume_vector.write[1] = AudioFrame(volume_linear, /* LFE= */ 1.0f);
-				volume_vector.write[2] = AudioFrame(volume_linear, volume_linear);
-				volume_vector.write[3] = AudioFrame(volume_linear, volume_linear);
+				volume_vector[0] = AudioFrame(volume_linear, volume_linear);
+				volume_vector[1] = AudioFrame(volume_linear, /* LFE= */ 1.0f);
+				volume_vector[2] = AudioFrame(volume_linear, volume_linear);
+				volume_vector[3] = AudioFrame(volume_linear, volume_linear);
 			} break;
 			case MIX_TARGET_CENTER: {
 				// TODO Make sure this is right.
-				volume_vector.write[1] = AudioFrame(volume_linear, /* LFE= */ 1.0f);
+				volume_vector[1] = AudioFrame(volume_linear, /* LFE= */ 1.0f);
 			} break;
 		}
 	}
