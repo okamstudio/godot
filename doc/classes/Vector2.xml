@@ -364,6 +364,17 @@
 				[b]Note:[/b] [method reflect] differs from what other engines and frameworks call [code skip-lint]reflect()[/code]. In other engines, [code skip-lint]reflect()[/code] takes a normal direction which is a direction perpendicular to the line. In Godot, you specify the direction of the line directly. See also [method bounce] which does what most engines call [code skip-lint]reflect()[/code].
 			</description>
 		</method>
+		<method name="rotate_toward" qualifiers="const">
+			<return type="Vector2" />
+			<param index="0" name="to" type="Vector2" />
+			<param index="1" name="delta" type="float" />
+			<param index="2" name="keep_length" type="bool" default="false" />
+			<description>
+				Returns the result of rotating toward [param to] by [param delta], in radians. This method behaves similar to [method slerp].
+				Passing a negative [param delta] will rotate away from [param to]. Negative [param delta] is not supported when both this vector and [param to] are parallel.
+				[param delta] preserves the length of the input vector.
+			</description>
+		</method>
 		<method name="rotated" qualifiers="const">
 			<return type="Vector2" />
 			<param index="0" name="angle" type="float" />

@@ -127,6 +127,18 @@ TEST_CASE("[Vector2] Interpolation methods") {
 	CHECK_MESSAGE(
 			Vector2(1, 0).move_toward(Vector2(10, 0), 3) == Vector2(4, 0),
 			"Vector2 move_toward should work as expected.");
+	//	CHECK_MESSAGE( Needs to be updated after the method update
+	//			Vector2(0, 1).rotate_toward(Vector2(0, -1), Math_PI * 0.5).is_equal_approx(Vector2(1, 0)),
+	//			"Vector2 rotate_toward should work as expected.");
+	//	CHECK_MESSAGE(
+	//			Vector2(1, 0).rotate_toward(Vector2(0, 1), -Math_PI * 0.5).is_equal_approx(Vector2(0, -1)),
+	//			"Vector2 rotate_toward with negative delta should behave as expected.");
+	//	CHECK_MESSAGE(
+	//			Vector2(1, 1).rotate_toward(Vector2(10, 10), 0.5).is_equal_approx(Vector2(6, 6)),
+	//			"Vector2 rotate_toward with colinear inputs should behave as expected.");
+	//	CHECK_MESSAGE(
+	//			Vector2(10, 10).rotate_toward(Vector2(0, 0), 0.5).is_equal_approx(Vector2(5, 5)),
+	//			"Vector2 rotate_toward with second input as zero should behave as expected.");
 }
 
 TEST_CASE("[Vector2] Length methods") {

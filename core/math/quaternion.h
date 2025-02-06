@@ -31,6 +31,7 @@
 #ifndef QUATERNION_H
 #define QUATERNION_H
 
+#include "core/math/basis.h"
 #include "core/math/math_funcs.h"
 #include "core/math/vector3.h"
 #include "core/string/ustring.h"
@@ -82,6 +83,22 @@ struct [[nodiscard]] Quaternion {
 		r_axis.x = x * r;
 		r_axis.y = y * r;
 		r_axis.z = z * r;
+	}
+
+	_FORCE_INLINE_ Quaternion rotate_toward(const Quaternion &p_to, real_t p_delta) const {
+#ifdef MATH_CHECKS
+		ERR_FAIL_COND_V_MSG(*this == p_to && p_delta < 0.0, *this, "Inputs can't be equal when using negative delta."); // Specifies "Inputs" and not "Quaternions" because this is also used in Basis
+#endif
+		Quaternion from = *this;
+
+		if (p_delta < 0.0) {
+			from = -Basis(from).get_rotation_quaternion();
+		}
+		real_t angle = angle_to(p_to);
+		if (angle <= p_delta) {
+			return p_to;
+		}
+		return from.slerp(p_to, p_delta / angle);
 	}
 
 	void operator*=(const Quaternion &p_q);

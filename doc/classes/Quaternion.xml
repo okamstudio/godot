@@ -169,6 +169,16 @@
 				Returns a copy of this quaternion, normalized so that its length is [code]1.0[/code]. See also [method is_normalized].
 			</description>
 		</method>
+		<method name="rotate_toward" qualifiers="const">
+			<return type="Quaternion" />
+			<param index="0" name="to" type="Quaternion" />
+			<param index="1" name="delta" type="float" />
+			<description>
+				Returns the result of rotating toward [param to] by [param delta], in radians.
+				Passing a negative [param delta] will rotate away from [param to]. Negative [param delta] is not supported when both this quaternion and [param to] are equal.
+				[b]Note:[/b] Both quaternions must be normalized.
+			</description>
+		</method>
 		<method name="slerp" qualifiers="const" keywords="interpolate">
 			<return type="Quaternion" />
 			<param index="0" name="to" type="Quaternion" />

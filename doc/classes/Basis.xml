@@ -244,6 +244,15 @@
 				[/codeblocks]
 			</description>
 		</method>
+		<method name="rotate_toward" qualifiers="const">
+			<return type="Basis" />
+			<param index="0" name="to" type="Basis" />
+			<param index="1" name="delta" type="float" />
+			<description>
+				Assuming that the matrix is a proper rotation matrix, returns the result of rotating toward [param to] by [param delta], in radians.
+				Passing a negative [param delta] will rotate away from [param to]. Negative [param delta] is not supported when both this basis and [param to] are equal.
+			</description>
+		</method>
 		<method name="rotated" qualifiers="const">
 			<return type="Basis" />
 			<param index="0" name="axis" type="Vector3" />

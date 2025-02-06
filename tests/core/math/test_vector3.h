@@ -144,6 +144,18 @@ TEST_CASE("[Vector3] Interpolation methods") {
 	CHECK_MESSAGE(
 			Vector3(1, 0, 0).move_toward(Vector3(10, 0, 0), 3) == Vector3(4, 0, 0),
 			"Vector3 move_toward should work as expected.");
+	//	CHECK_MESSAGE(
+	//			Vector3(1, 0, 0).rotate_toward(Vector3(0, 1, 0), Math_TAU / 8.0).is_equal_approx(Vector3(Math_SQRT12, Math_SQRT12, 0)),
+	//			"Vector3 rotate_toward should work as expected.");
+	//	CHECK_MESSAGE(
+	//			Vector3(1, 0, 0).rotate_toward(Vector3(0, 1, 0), -Math_TAU / 8.0).is_equal_approx(Vector3(Math_SQRT12, -Math_SQRT12, 0)),
+	//			"Vector3 rotate_toward with negative delta should behave as expected.");
+	//	CHECK_MESSAGE(
+	//			Vector3(1, 1, 1).rotate_toward(Vector3(10, 10, 10), 0.5).is_equal_approx(Vector3(6, 6, 6)),
+	//			"Vector3 rotate_toward with colinear inputs should behave as expected.");
+	//	CHECK_MESSAGE(
+	//			Vector3(10, 10, 10).rotate_toward(Vector3(0, 0, 0), 0.5).is_equal_approx(Vector3(5, 5, 5)),
+	//			"Vector3 rotate_toward with second input as zero should behave as expected.");
 }
 
 TEST_CASE("[Vector3] Length methods") {

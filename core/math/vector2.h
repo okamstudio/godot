@@ -122,6 +122,25 @@ struct [[nodiscard]] Vector2 {
 	_FORCE_INLINE_ Vector2 bezier_interpolate(const Vector2 &p_control_1, const Vector2 &p_control_2, const Vector2 &p_end, real_t p_t) const;
 	_FORCE_INLINE_ Vector2 bezier_derivative(const Vector2 &p_control_1, const Vector2 &p_control_2, const Vector2 &p_end, real_t p_t) const;
 
+	_FORCE_INLINE_ Vector2 rotate_toward(const Vector2 p_to, const real_t p_delta, const bool p_keep_length = false) const {
+#ifdef MATH_CHECKS
+		ERR_FAIL_COND_V_MSG(normalized() == p_to.normalized(), *this, "Vectors can't be parallel when using negative delta.");
+#endif
+		real_t angle = Math::abs(angle_to(p_to));
+
+		if (p_keep_length) {
+			if (angle < p_delta) {
+				return p_to.normalized() * p_to.length();
+			}
+			return normalized().slerp(p_to.normalized(), p_delta / angle) * length();
+		}
+
+		if (angle <= p_delta) {
+			return p_to;
+		}
+		return slerp(p_to, p_delta / angle);
+	}
+
 	Vector2 move_toward(const Vector2 &p_to, real_t p_delta) const;
 
 	Vector2 slide(const Vector2 &p_normal) const;

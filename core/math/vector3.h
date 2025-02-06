@@ -92,6 +92,25 @@ struct [[nodiscard]] Vector3 {
 		return Vector3(MAX(x, p_scalar), MAX(y, p_scalar), MAX(z, p_scalar));
 	}
 
+	_FORCE_INLINE_ Vector3 rotate_toward(const Vector3 p_to, const real_t p_delta, const bool p_keep_length = false) const {
+#ifdef MATH_CHECKS
+		ERR_FAIL_COND_V_MSG(normalized() == p_to.normalized() && p_delta < 0.0, *this, "Vectors can't be parallel when using negative delta.");
+#endif
+		real_t angle = Math::abs(angle_to(p_to));
+
+		if (p_keep_length) {
+			if (angle < p_delta) {
+				return p_to.normalized() * p_to.length();
+			}
+			return normalized().slerp(p_to.normalized(), p_delta / angle) * length();
+		}
+
+		if (angle <= p_delta) {
+			return p_to;
+		}
+		return slerp(p_to, p_delta / angle);
+	}
+
 	_FORCE_INLINE_ real_t length() const;
 	_FORCE_INLINE_ real_t length_squared() const;
 

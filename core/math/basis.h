@@ -192,6 +192,10 @@ struct [[nodiscard]] Basis {
 		rows[2].zero();
 	}
 
+	_FORCE_INLINE_ Basis rotate_toward(const Basis &p_to_basis, real_t p_delta) const {
+		return Basis(get_rotation_quaternion().rotate_toward(p_to_basis.get_rotation_quaternion(), p_delta));
+	}
+
 	_FORCE_INLINE_ Basis transpose_xform(const Basis &p_m) const {
 		return Basis(
 				rows[0].x * p_m[0].x + rows[1].x * p_m[1].x + rows[2].x * p_m[2].x,
