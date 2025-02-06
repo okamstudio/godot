@@ -400,7 +400,8 @@ void JoypadWindows::process_joypads() {
 		xinput_get_state(i, &joy.state);
 		if (joy.state.dwPacketNumber != joy.last_packet) {
 			int button_mask = XINPUT_GAMEPAD_DPAD_UP;
-			for (int j = 0; j <= 16; j++) {
+			// DirectX supports only 14 buttons: https://learn.microsoft.com/en-us/windows/win32/api/xinput/ns-xinput-xinput_gamepad#members.
+			for (int j = 0; j <= 13; j++) {
 				input->joy_button(joy.id, (JoyButton)j, joy.state.Gamepad.wButtons & button_mask);
 				button_mask = button_mask * 2;
 			}
