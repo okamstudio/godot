@@ -418,7 +418,17 @@
 			<description>
 				Sets the mouse position to the specified vector, provided in pixels and relative to an origin at the upper left corner of the currently focused Window Manager game window.
 				Mouse position is clipped to the limits of the screen resolution, or to the limits of the game window if [enum MouseMode] is set to [constant MOUSE_MODE_CONFINED] or [constant MOUSE_MODE_CONFINED_HIDDEN].
-				[b]Note:[/b] [method warp_mouse] is only supported on Windows, macOS and Linux. It has no effect on Android, iOS and Web.
+				[b]Note:[/b] [method warp_mouse] is only supported on Windows, macOS, and Linux. It has no effect on Android, iOS, and Web.
+			</description>
+		</method>
+		<method name="warp_mouse_motion">
+			<return type="Vector2" />
+			<param index="0" name="motion" type="InputEventMouseMotion" />
+			<param index="1" name="rect" type="Rect2" />
+			<description>
+				When the given mouse [param motion] moves the mouse past the boundary defined by the global [param rect], this method warps the mouse to the opposite side of the boundary. For example, this function is used by the 3D editor when orbiting to prevent the mouse getting stuck at the edge, instead the mouse is teleported to the other side of the 3D editor viewport and can continue moving freely in all directions.
+				This function is wrapper around [method warp_mouse], which will be called when the mouse needs to be warped. The returned value is the corrected relative mouse motion that should be used instead of the original [param motion]'s relative motion.
+				[b]Note:[/b] Like [method warp_mouse], [method warp_mouse_motion] is only supported on Windows, macOS, and Linux. It has no effect on Android, iOS, and Web.
 			</description>
 		</method>
 	</methods>
