@@ -181,10 +181,15 @@ public:
 		// do a lot of referencing on references and stuff
 		// mutexes will avoid more crashes?
 
-		if (reference && reference->unreference()) {
-			memdelete(reference);
+		if (reference) {
+			// NOTE: `reinterpret_cast` is "safe" here, as the only way to achieve a non-null
+			// reference is after `ref_pointer` validates the type. This allows for passing
+			// forward-declared types without cascading dependency-chains.
+			if (reinterpret_cast<RefCounted *>(reference)->unreference()) {
+				memdelete(reinterpret_cast<RefCounted *>(reference));
+			}
+			reference = nullptr;
 		}
-		reference = nullptr;
 	}
 
 	template <typename... VarArgs>
