@@ -289,6 +289,9 @@ Ref<PackedScene> ResourceLoaderText::_parse_node_tag(VariantParser::ResourcePars
 
 				if (!assign.is_empty()) {
 					StringName assign_name = assign;
+					if (parent == -1 && assign.begins_with("metadata/")) {
+						packed_scene->set(assign, value);
+					}
 					int nameidx = packed_scene->get_state()->add_name(assign_name);
 					int valueidx = packed_scene->get_state()->add_value(value);
 					packed_scene->get_state()->add_node_property(node_id, nameidx, valueidx, path_properties.has(assign_name));
@@ -2026,11 +2029,32 @@ Error ResourceFormatSaverTextInstance::save(const String &p_path, const Ref<Reso
 
 			f->store_line("]");
 
+			HashSet<String> stored_metadatas;
+			if (i == 0) {
+				// Store scene metadata as the first node's metadata.
+				List<PropertyInfo> property_list;
+				packed_scene->get_property_list(&property_list);
+				for (List<PropertyInfo>::Element *PE = property_list.front(); PE; PE = PE->next()) {
+					String property_name = PE->get().name;
+					if ((PE->get().usage & PROPERTY_USAGE_STORAGE) && property_name.begins_with("metadata/")) {
+						Variant value = packed_scene->get(property_name);
+						String vars;
+						VariantWriter::write_to_string(value, vars, _write_resources, this);
+						f->store_string(property_name.property_name_encode() + " = " + vars + "\n");
+						stored_metadatas.insert(property_name);
+					}
+				}
+			}
+
 			for (int j = 0; j < state->get_node_property_count(i); j++) {
+				String property_name = String(state->get_node_property_name(i, j)).property_name_encode();
+				if (i == 0 && stored_metadatas.has(property_name)) {
+					continue;
+				}
 				String vars;
 				VariantWriter::write_to_string(state->get_node_property_value(i, j), vars, _write_resources, this, use_compat);
 
-				f->store_string(String(state->get_node_property_name(i, j)).property_name_encode() + " = " + vars + "\n");
+				f->store_string(property_name + " = " + vars + "\n");
 			}
 
 			if (i < state->get_node_count() - 1) {
