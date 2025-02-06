@@ -317,6 +317,13 @@ public:
 		DISTANCE_FADE_MAX
 	};
 
+	enum LayersCullMode {
+		LAYERS_CULL_DISABLED,
+		LAYERS_CULL_VERTEX,
+		LAYERS_CULL_FRAGMENT,
+		LAYERS_CULL_MAX
+	};
+
 private:
 	struct MaterialKey {
 		// enum values
@@ -335,6 +342,7 @@ private:
 		uint64_t roughness_channel : get_num_bits(TEXTURE_CHANNEL_MAX - 1);
 		uint64_t emission_op : get_num_bits(EMISSION_OP_MAX - 1);
 		uint64_t distance_fade : get_num_bits(DISTANCE_FADE_MAX - 1);
+		uint64_t layers_cull_mode : get_num_bits(LAYERS_CULL_MAX - 1);
 		// booleans
 		uint64_t invalid_key : 1;
 		uint64_t deep_parallax : 1;
@@ -394,6 +402,7 @@ private:
 		mk.emission_op = emission_op;
 		mk.alpha_antialiasing_mode = alpha_antialiasing_mode;
 		mk.orm = orm;
+		mk.layers_cull_mode = layers_cull_mode;
 
 		for (int i = 0; i < FEATURE_MAX; i++) {
 			if (features[i]) {
@@ -465,6 +474,8 @@ private:
 
 		StringName alpha_antialiasing_edge;
 		StringName albedo_texture_size;
+
+		StringName layers;
 	};
 
 	static Mutex material_mutex;
@@ -561,6 +572,9 @@ private:
 	TextureChannel refraction_texture_channel;
 
 	AlphaAntiAliasing alpha_antialiasing_mode = ALPHA_ANTIALIASING_OFF;
+
+	LayersCullMode layers_cull_mode;
+	uint32_t layers = 1;
 
 	bool features[FEATURE_MAX] = {};
 
@@ -781,6 +795,13 @@ public:
 	void set_refraction_texture_channel(TextureChannel p_channel);
 	TextureChannel get_refraction_texture_channel() const;
 
+	void set_layers_cull_mode(LayersCullMode p_mode);
+	LayersCullMode get_layers_cull_mode() const;
+	void set_layer_mask(uint32_t p_mask);
+	uint32_t get_layer_mask() const;
+	void set_layer_mask_value(int p_layer_number, bool p_value);
+	bool get_layer_mask_value(int p_layer_number) const;
+
 	static void init_shaders();
 	static void finish_shaders();
 	static void flush_changes();
@@ -813,6 +834,7 @@ VARIANT_ENUM_CAST(BaseMaterial3D::BillboardMode)
 VARIANT_ENUM_CAST(BaseMaterial3D::TextureChannel)
 VARIANT_ENUM_CAST(BaseMaterial3D::EmissionOperator)
 VARIANT_ENUM_CAST(BaseMaterial3D::DistanceFadeMode)
+VARIANT_ENUM_CAST(BaseMaterial3D::LayersCullMode)
 
 class StandardMaterial3D : public BaseMaterial3D {
 	GDCLASS(StandardMaterial3D, BaseMaterial3D)

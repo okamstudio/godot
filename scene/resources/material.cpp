@@ -665,6 +665,8 @@ void BaseMaterial3D::init_shaders() {
 
 	shader_names->alpha_antialiasing_edge = "alpha_antialiasing_edge";
 	shader_names->albedo_texture_size = "albedo_texture_size";
+
+	shader_names->layers = "layers";
 }
 
 HashMap<uint64_t, Ref<StandardMaterial3D>> BaseMaterial3D::materials_for_2d;
@@ -981,6 +983,12 @@ uniform bool particles_anim_loop;
 )";
 	}
 
+	if (layers_cull_mode != LAYERS_CULL_DISABLED) {
+		code += R"(
+uniform uint layers = 1u;
+)";
+	}
+
 	if (features[FEATURE_EMISSION]) {
 		code += vformat(R"(
 uniform sampler2D texture_emission : source_color, hint_default_black, %s;
@@ -1120,6 +1128,14 @@ uniform vec3 uv2_offset;
 	// Generate vertex shader.
 	code += R"(
 void vertex() {)";
+
+	if (layers_cull_mode == LAYERS_CULL_VERTEX) {
+		code += R"(
+	if ((CAMERA_VISIBLE_LAYERS & layers) == 0u) { // Begin vertex cull mode
+		POSITION = vec4(vec3(2.0), 1.0);
+	} else {
+)";
+	}
 
 	if (flags[FLAG_SRGB_VERTEX_COLOR]) {
 		code += R"(
@@ -1360,6 +1376,13 @@ void vertex() {)";
 )";
 	}
 
+	if (layers_cull_mode == LAYERS_CULL_VERTEX) {
+		code += R"(
+	POSITION = PROJECTION_MATRIX * MODELVIEW_MATRIX * vec4(VERTEX, 1.0);
+	} // End vertex cull mode
+)";
+	}
+
 	code += "}\n";
 
 	if (flags[FLAG_ALBEDO_TEXTURE_MSDF] && !flags[FLAG_UV1_USE_TRIPLANAR]) {
@@ -1385,6 +1408,14 @@ vec4 triplanar_texture(sampler2D p_sampler, vec3 p_weights, vec3 p_triplanar_pos
 	// Generate fragment shader.
 	code += R"(
 void fragment() {)";
+
+	if (layers_cull_mode == LAYERS_CULL_FRAGMENT) {
+		code += R"(
+	if ((CAMERA_VISIBLE_LAYERS & layers) == 0u) {
+		discard;
+	}
+)";
+	}
 
 	if (!flags[FLAG_UV1_USE_TRIPLANAR]) {
 		code += R"(
@@ -2397,6 +2428,47 @@ BaseMaterial3D::TextureFilter BaseMaterial3D::get_texture_filter() const {
 	return texture_filter;
 }
 
+void BaseMaterial3D::set_layers_cull_mode(LayersCullMode p_mode) {
+	if (layers_cull_mode == p_mode) {
+		return;
+	}
+
+	layers_cull_mode = p_mode;
+	notify_property_list_changed();
+	_queue_shader_change();
+}
+
+BaseMaterial3D::LayersCullMode BaseMaterial3D::get_layers_cull_mode() const {
+	return layers_cull_mode;
+}
+
+void BaseMaterial3D::set_layer_mask(uint32_t p_mask) {
+	layers = p_mask;
+	_material_set_param(shader_names->layers, layers);
+}
+
+uint32_t BaseMaterial3D::get_layer_mask() const {
+	return layers;
+}
+
+void BaseMaterial3D::set_layer_mask_value(int p_layer_number, bool p_value) {
+	ERR_FAIL_COND_MSG(p_layer_number < 1, "Render layer number must be between 1 and 20 inclusive.");
+	ERR_FAIL_COND_MSG(p_layer_number > 20, "Render layer number must be between 1 and 20 inclusive.");
+	uint32_t mask = get_layer_mask();
+	if (p_value) {
+		mask |= 1 << (p_layer_number - 1);
+	} else {
+		mask &= ~(1 << (p_layer_number - 1));
+	}
+	set_layer_mask(mask);
+}
+
+bool BaseMaterial3D::get_layer_mask_value(int p_layer_number) const {
+	ERR_FAIL_COND_V_MSG(p_layer_number < 1, false, "Render layer number must be between 1 and 20 inclusive.");
+	ERR_FAIL_COND_V_MSG(p_layer_number > 20, false, "Render layer number must be between 1 and 20 inclusive.");
+	return layers & (1 << (p_layer_number - 1));
+}
+
 void BaseMaterial3D::_validate_feature(const String &text, Feature feature, PropertyInfo &property) const {
 	if (property.name.begins_with(text) && property.name != text + "_enabled" && !features[feature]) {
 		property.usage = PROPERTY_USAGE_NO_EDITOR;
@@ -2557,6 +2629,10 @@ void BaseMaterial3D::_validate_property(PropertyInfo &p_property) const {
 		if (p_property.name.begins_with("transmittance")) {
 			p_property.usage = PROPERTY_USAGE_NONE;
 		}
+	}
+
+	if (p_property.name == "layers" && layers_cull_mode == LAYERS_CULL_DISABLED) {
+		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 }
 
@@ -3158,6 +3234,14 @@ void BaseMaterial3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_distance_fade_min_distance", "distance"), &BaseMaterial3D::set_distance_fade_min_distance);
 	ClassDB::bind_method(D_METHOD("get_distance_fade_min_distance"), &BaseMaterial3D::get_distance_fade_min_distance);
 
+	ClassDB::bind_method(D_METHOD("set_layers_cull_mode", "mode"), &BaseMaterial3D::set_layers_cull_mode);
+	ClassDB::bind_method(D_METHOD("get_layers_cull_mode"), &BaseMaterial3D::get_layers_cull_mode);
+
+	ClassDB::bind_method(D_METHOD("set_layer_mask", "mask"), &BaseMaterial3D::set_layer_mask);
+	ClassDB::bind_method(D_METHOD("get_layer_mask"), &BaseMaterial3D::get_layer_mask);
+	ClassDB::bind_method(D_METHOD("set_layer_mask_value", "layer_number", "value"), &BaseMaterial3D::set_layer_mask_value);
+	ClassDB::bind_method(D_METHOD("get_layer_mask_value", "layer_number"), &BaseMaterial3D::get_layer_mask_value);
+
 	ADD_GROUP("Transparency", "");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "transparency", PROPERTY_HINT_ENUM, "Disabled,Alpha,Alpha Scissor,Alpha Hash,Depth Pre-Pass"), "set_transparency", "get_transparency");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "alpha_scissor_threshold", PROPERTY_HINT_RANGE, "0,1,0.001"), "set_alpha_scissor_threshold", "get_alpha_scissor_threshold");
@@ -3331,6 +3415,9 @@ void BaseMaterial3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "distance_fade_mode", PROPERTY_HINT_ENUM, "Disabled,PixelAlpha,PixelDither,ObjectDither"), "set_distance_fade", "get_distance_fade");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "distance_fade_min_distance", PROPERTY_HINT_RANGE, "0,4096,0.01,suffix:m"), "set_distance_fade_min_distance", "get_distance_fade_min_distance");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "distance_fade_max_distance", PROPERTY_HINT_RANGE, "0,4096,0.01,suffix:m"), "set_distance_fade_max_distance", "get_distance_fade_max_distance");
+	ADD_GROUP("Layers", "");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "layers_cull_mode", PROPERTY_HINT_ENUM, "Disabled,Vertex,Fragment"), "set_layers_cull_mode", "get_layers_cull_mode");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "layers", PROPERTY_HINT_LAYERS_3D_RENDER), "set_layer_mask", "get_layer_mask");
 
 	BIND_ENUM_CONSTANT(TEXTURE_ALBEDO);
 	BIND_ENUM_CONSTANT(TEXTURE_METALLIC);
@@ -3458,6 +3545,10 @@ void BaseMaterial3D::_bind_methods() {
 	BIND_ENUM_CONSTANT(DISTANCE_FADE_PIXEL_ALPHA);
 	BIND_ENUM_CONSTANT(DISTANCE_FADE_PIXEL_DITHER);
 	BIND_ENUM_CONSTANT(DISTANCE_FADE_OBJECT_DITHER);
+
+	BIND_ENUM_CONSTANT(LAYERS_CULL_DISABLED);
+	BIND_ENUM_CONSTANT(LAYERS_CULL_VERTEX);
+	BIND_ENUM_CONSTANT(LAYERS_CULL_FRAGMENT);
 }
 
 BaseMaterial3D::BaseMaterial3D(bool p_orm) :
@@ -3522,6 +3613,8 @@ BaseMaterial3D::BaseMaterial3D(bool p_orm) :
 	set_heightmap_deep_parallax_min_layers(8);
 	set_heightmap_deep_parallax_max_layers(32);
 	set_heightmap_deep_parallax_flip_tangent(false); //also sets binormal
+
+	set_layers_cull_mode(LAYERS_CULL_DISABLED);
 
 	flags[FLAG_ALBEDO_TEXTURE_MSDF] = false;
 	flags[FLAG_USE_TEXTURE_REPEAT] = true;

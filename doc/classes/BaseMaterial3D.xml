@@ -24,6 +24,13 @@
 				Returns [code]true[/code], if the specified flag is enabled. See [enum Flags] enumerator for options.
 			</description>
 		</method>
+		<method name="get_layer_mask_value" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="layer_number" type="int" />
+			<description>
+				Returns whether or not the specified layer of the [member layers] is enabled, given a [param layer_number] between 1 and 20.
+			</description>
+		</method>
 		<method name="get_texture" qualifiers="const">
 			<return type="Texture2D" />
 			<param index="0" name="param" type="int" enum="BaseMaterial3D.TextureParam" />
@@ -45,6 +52,14 @@
 			<param index="1" name="enable" type="bool" />
 			<description>
 				If [code]true[/code], enables the specified flag. Flags are optional behavior that can be turned on and off. Only one flag can be enabled at a time with this function, the flag enumerators cannot be bit-masked together to enable or disable multiple flags at once. Flags can also be enabled by setting the corresponding member to [code]true[/code]. See [enum Flags] enumerator for options.
+			</description>
+		</method>
+		<method name="set_layer_mask_value">
+			<return type="void" />
+			<param index="0" name="layer_number" type="int" />
+			<param index="1" name="value" type="bool" />
+			<description>
+				Based on [param value], enables or disables the specified layer in the [member layers], given a [param layer_number] between 1 and 20.
 			</description>
 		</method>
 		<method name="set_texture">
@@ -257,6 +272,14 @@
 			The texture to use as a height map. See also [member heightmap_enabled].
 			For best results, the texture should be normalized (with [member heightmap_scale] reduced to compensate). In [url=https://gimp.org]GIMP[/url], this can be done using [b]Colors &gt; Auto &gt; Equalize[/b]. If the texture only uses a small part of its available range, the parallax effect may look strange, especially when the camera moves.
 			[b]Note:[/b] To reduce memory usage and improve loading times, you may be able to use a lower-resolution heightmap texture as most heightmaps are only comprised of low-frequency data.
+		</member>
+		<member name="layers" type="int" setter="set_layer_mask" getter="get_layer_mask" default="1">
+			The render layer(s) this [BaseMaterial3D] will render to. Only applies when [member layers_cull_mode] is not [constant LAYERS_CULL_DISABLED].
+			This material will only be visible for [Camera3D]s whose cull mask includes any of the render layers this [BaseMaterial3D] is set to.
+		</member>
+		<member name="layers_cull_mode" type="int" setter="set_layers_cull_mode" getter="get_layers_cull_mode" enum="BaseMaterial3D.LayersCullMode" default="0">
+			Controls how the material is culled when there are no shared layers between a [Camera3D] and this [BaseMaterial3D]. See [enum LayersCullMode].
+			[b]Note:[/b] Enabling this feature will incur some performance penalty. Only use it if you need to hide this [i]material[/i] on certain layers. If you are instead looking to hide an entire [i]object[/i] on certain layers, use [member VisualInstance3D.layers] instead.
 		</member>
 		<member name="metallic" type="float" setter="set_metallic" getter="get_metallic" default="0.0">
 			A high value makes the material appear more like a metal. Non-metals use their albedo as the diffuse color and add diffuse to the specular reflection. With non-metals, the reflection appears on top of the albedo color. Metals use their albedo as a multiplier to the specular reflection and set the diffuse color to black resulting in a tinted reflection. Materials work better when fully metal or fully non-metal, values between [code]0[/code] and [code]1[/code] should only be used for blending between metal and non-metal sections. To alter the amount of reflection use [member roughness].
@@ -775,6 +798,15 @@
 		</constant>
 		<constant name="DISTANCE_FADE_OBJECT_DITHER" value="3" enum="DistanceFadeMode">
 			Smoothly fades the object out based on the object's distance from the camera using a dithering approach. Dithering discards pixels based on a set pattern to smoothly fade without enabling transparency. On certain hardware, this can be faster than [constant DISTANCE_FADE_PIXEL_ALPHA] and [constant DISTANCE_FADE_PIXEL_DITHER].
+		</constant>
+		<constant name="LAYERS_CULL_DISABLED" value="0" enum="LayersCullMode">
+			No layer-based culling will occur for this [BaseMaterial3D].
+		</constant>
+		<constant name="LAYERS_CULL_VERTEX" value="1" enum="LayersCullMode">
+			Layer-based culling for this [BaseMaterial3D] will occur in the vertex shader. This has the potential to be more performant than [constant LAYERS_CULL_FRAGMENT], but the method that is used is less well-defined and may not work on all systems.
+		</constant>
+		<constant name="LAYERS_CULL_FRAGMENT" value="2" enum="LayersCullMode">
+			Layer-based culling for this [BaseMaterial3D] will occur in the fragment shader. This should work on all systems but may not be as performant [constant LAYERS_CULL_VERTEX].
 		</constant>
 	</constants>
 </class>
