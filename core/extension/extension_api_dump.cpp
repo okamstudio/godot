@@ -1420,25 +1420,25 @@ static bool compare_dict_array(const Dictionary &p_old_api, const Dictionary &p_
 			bool optional = field.begins_with("*");
 			if (optional) {
 				// This is an optional field, but if exists it has to exist in both.
-				field = field.substr(1, field.length());
+				field = field.substr(1);
 			}
 
 			bool added = field.begins_with("+");
 			if (added) {
 				// Meaning this field must either exist or contents may not exist.
-				field = field.substr(1, field.length());
+				field = field.substr(1);
 			}
 
 			bool enum_values = field.begins_with("$");
 			if (enum_values) {
 				// Meaning this field is a list of enum values.
-				field = field.substr(1, field.length());
+				field = field.substr(1);
 			}
 
 			bool allow_name_change = field.begins_with("@");
 			if (allow_name_change) {
 				// Meaning that when structurally comparing the old and new value, the dictionary entry 'name' may change.
-				field = field.substr(1, field.length());
+				field = field.substr(1);
 			}
 
 			Variant old_value;

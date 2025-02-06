@@ -53,9 +53,9 @@ Error FileAccessAndroid::open_internal(const String &p_path, int p_mode_flags) {
 	String path = fix_path(p_path).simplify_path();
 	absolute_path = path;
 	if (path.begins_with("/")) {
-		path = path.substr(1, path.length());
+		path = path.substr(1);
 	} else if (path.begins_with("res://")) {
-		path = path.substr(6, path.length());
+		path = path.substr(6);
 	}
 
 	ERR_FAIL_COND_V(p_mode_flags & FileAccess::WRITE, ERR_UNAVAILABLE); //can't write on android..
@@ -147,9 +147,9 @@ bool FileAccessAndroid::store_buffer(const uint8_t *p_src, uint64_t p_length) {
 bool FileAccessAndroid::file_exists(const String &p_path) {
 	String path = fix_path(p_path).simplify_path();
 	if (path.begins_with("/")) {
-		path = path.substr(1, path.length());
+		path = path.substr(1);
 	} else if (path.begins_with("res://")) {
-		path = path.substr(6, path.length());
+		path = path.substr(6);
 	}
 
 	AAsset *at = AAssetManager_open(asset_manager, path.utf8().get_data(), AASSET_MODE_STREAMING);

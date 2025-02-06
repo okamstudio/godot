@@ -435,7 +435,7 @@ static String _fixstr(const String &p_what, const String &p_str) {
 		what = what.substr(0, what.length() - 1);
 	}
 
-	String end = p_what.substr(what.length(), p_what.length() - what.length());
+	String end = p_what.substr(what.length());
 
 	if (what.containsn("$" + p_str)) { // Blender and other stuff.
 		return what.replace("$" + p_str, "") + end;

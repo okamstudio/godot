@@ -570,7 +570,7 @@ void LocalizationEditor::update_translations() {
 					const String &s2 = selected[j];
 					int qp = s2.rfind_char(':');
 					String path = s2.substr(0, qp);
-					String locale = s2.substr(qp + 1, s2.length());
+					String locale = s2.substr(qp + 1);
 
 					TreeItem *t2 = translation_remap_options->create_item(root2);
 					t2->set_editable(0, false);

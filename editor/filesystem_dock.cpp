@@ -1567,7 +1567,7 @@ void FileSystemDock::_update_resource_paths_after_move(const HashMap<String, Str
 		String extra_path;
 		int sep_pos = r->get_path().find("::");
 		if (sep_pos >= 0) {
-			extra_path = base_path.substr(sep_pos, base_path.length());
+			extra_path = base_path.substr(sep_pos);
 			base_path = base_path.substr(0, sep_pos);
 		}
 
@@ -1634,7 +1634,7 @@ void FileSystemDock::_update_project_settings_after_move(const HashMap<String, S
 			// If the autoload resource paths has a leading "*", it indicates that it is a Singleton,
 			// so we have to handle both cases when updating.
 			String autoload = GLOBAL_GET(E.name);
-			String autoload_singleton = autoload.substr(1, autoload.length());
+			String autoload_singleton = autoload.substr(1);
 			if (p_renames.has(autoload)) {
 				ProjectSettings::get_singleton()->set_setting(E.name, p_renames[autoload]);
 			} else if (autoload.begins_with("*") && p_renames.has(autoload_singleton)) {
@@ -3701,7 +3701,7 @@ void FileSystemDock::_file_list_gui_input(Ref<InputEvent> p_event) {
 			if (fpath.size() > String("res://").size()) {
 				fpath = fpath.left(fpath.size() - 2); // Remove last '/'.
 				const int slash_idx = fpath.rfind_char('/');
-				fpath = fpath.substr(slash_idx + 1, fpath.size() - slash_idx - 1);
+				fpath = fpath.substr(slash_idx + 1);
 			}
 
 			tree_item = tree->get_item_with_text(fpath);

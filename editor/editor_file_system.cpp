@@ -1783,7 +1783,7 @@ bool EditorFileSystem::_find_file(const String &p_file, EditorFileSystemDirector
 	if (!f.begins_with("res://")) {
 		return false;
 	}
-	f = f.substr(6, f.length());
+	f = f.substr(6);
 	f = f.replace("\\", "/");
 
 	Vector<String> path = f.split("/");
@@ -1899,7 +1899,7 @@ EditorFileSystemDirectory *EditorFileSystem::get_filesystem_path(const String &p
 		return nullptr;
 	}
 
-	f = f.substr(6, f.length());
+	f = f.substr(6);
 	f = f.replace("\\", "/");
 	if (f.is_empty()) {
 		return filesystem;

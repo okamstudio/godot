@@ -1678,7 +1678,7 @@ template <typename T>
 static void register_utility_function(const String &p_name, const Vector<String> &argnames) {
 	String name = p_name;
 	if (name.begins_with("_")) {
-		name = name.substr(1, name.length() - 1);
+		name = name.substr(1);
 	}
 	StringName sname = name;
 	ERR_FAIL_COND(utility_function_table.has(sname));

@@ -116,7 +116,7 @@ PackedStringArray get_code_completion(CompletionKind p_kind, const String &p_scr
 					continue;
 				}
 
-				String name = prop.name.substr(prop.name.find_char('/') + 1, prop.name.length());
+				String name = prop.name.substr(prop.name.find_char('/') + 1);
 				suggestions.push_back(quoted(name));
 			}
 		} break;

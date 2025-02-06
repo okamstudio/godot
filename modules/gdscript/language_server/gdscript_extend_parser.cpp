@@ -636,7 +636,7 @@ String ExtendGDScriptParser::get_text_for_completion(const lsp::Position &p_curs
 		if (i == p_cursor.line) {
 			longthing += lines[i].substr(0, p_cursor.character);
 			longthing += String::chr(0xFFFF); // Not unicode, represents the cursor.
-			longthing += lines[i].substr(p_cursor.character, lines[i].size());
+			longthing += lines[i].substr(p_cursor.character);
 		} else {
 			longthing += lines[i];
 		}

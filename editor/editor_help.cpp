@@ -2516,7 +2516,7 @@ static void _add_text_to_rt(const String &p_bbcode, RichTextLabel *p_rt, const C
 		int brk_end = bbcode.find_char(']', brk_pos + 1);
 
 		if (brk_end == -1) {
-			p_rt->add_text(bbcode.substr(brk_pos, bbcode.length() - brk_pos).replace("\n", "\n\n"));
+			p_rt->add_text(bbcode.substr(brk_pos).replace("\n", "\n\n"));
 			break;
 		}
 

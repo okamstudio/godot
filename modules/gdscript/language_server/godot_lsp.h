@@ -1917,7 +1917,7 @@ static String marked_documentation(const String &p_bbcode) {
 			in_code_block = true;
 			line = "\n";
 		} else if (in_code_block) {
-			line = "\t" + line.substr(code_block_indent, line.length());
+			line = "\t" + line.substr(code_block_indent);
 		}
 
 		if (in_code_block && line.contains("[/codeblock]")) {

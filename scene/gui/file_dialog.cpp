@@ -172,7 +172,7 @@ void FileDialog::_native_dialog_cb_with_options(bool p_ok, const Vector<String> 
 
 					if (!valid && filter_slice_count > 0) {
 						String str = (flt.get_slice(",", 0).strip_edges());
-						f += str.substr(1, str.length() - 1);
+						f += str.substr(1);
 					}
 				}
 			}
@@ -535,7 +535,7 @@ void FileDialog::_action_pressed() {
 
 				if (!valid && filter_slice_count > 0) {
 					String str = (flt.get_slice(",", 0).strip_edges());
-					f += str.substr(1, str.length() - 1);
+					f += str.substr(1);
 					file->set_text(f.get_file());
 					valid = true;
 				}
@@ -1150,7 +1150,7 @@ void FileDialog::set_current_path(const String &p_path) {
 		set_current_file(p_path);
 	} else {
 		String path_dir = p_path.substr(0, pos);
-		String path_file = p_path.substr(pos + 1, p_path.length());
+		String path_file = p_path.substr(pos + 1);
 		set_current_dir(path_dir);
 		set_current_file(path_file);
 	}

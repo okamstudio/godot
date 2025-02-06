@@ -166,7 +166,7 @@ void EngineDebugger::initialize(const String &p_uri, bool p_skip_breakpoints, co
 		int sp = bp.rfind_char(':');
 		ERR_CONTINUE_MSG(sp == -1, vformat("Invalid breakpoint: '%s', expected file:line format.", bp));
 
-		singleton_script_debugger->insert_breakpoint(bp.substr(sp + 1, bp.length()).to_int(), bp.substr(0, sp));
+		singleton_script_debugger->insert_breakpoint(bp.substr(sp + 1).to_int(), bp.substr(0, sp));
 	}
 
 	allow_focus_steal_fn = p_allow_focus_steal_fn;

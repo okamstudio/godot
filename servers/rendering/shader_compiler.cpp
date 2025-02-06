@@ -905,7 +905,7 @@ String ShaderCompiler::_dump_node_code(const SL::Node *p_node, int p_level, Gene
 			if (p_default_actions.usage_defines.has(vnode->name) && !used_name_defines.has(vnode->name)) {
 				String define = p_default_actions.usage_defines[vnode->name];
 				if (define.begins_with("@")) {
-					define = p_default_actions.usage_defines[define.substr(1, define.length())];
+					define = p_default_actions.usage_defines[define.substr(1)];
 				}
 				r_gen_code.defines.push_back(define);
 				used_name_defines.insert(vnode->name);
@@ -1022,7 +1022,7 @@ String ShaderCompiler::_dump_node_code(const SL::Node *p_node, int p_level, Gene
 			if (p_default_actions.usage_defines.has(anode->name) && !used_name_defines.has(anode->name)) {
 				String define = p_default_actions.usage_defines[anode->name];
 				if (define.begins_with("@")) {
-					define = p_default_actions.usage_defines[define.substr(1, define.length())];
+					define = p_default_actions.usage_defines[define.substr(1)];
 				}
 				r_gen_code.defines.push_back(define);
 				used_name_defines.insert(anode->name);

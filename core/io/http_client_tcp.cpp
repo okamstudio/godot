@@ -50,13 +50,13 @@ Error HTTPClientTCP::connect_to_host(const String &p_host, int p_port, Ref<TLSOp
 
 	String host_lower = conn_host.to_lower();
 	if (host_lower.begins_with("http://")) {
-		conn_host = conn_host.substr(7, conn_host.length() - 7);
+		conn_host = conn_host.substr(7);
 		tls_options.unref();
 	} else if (host_lower.begins_with("https://")) {
 		if (tls_options.is_null()) {
 			tls_options = TLSOptions::client();
 		}
-		conn_host = conn_host.substr(8, conn_host.length() - 8);
+		conn_host = conn_host.substr(8);
 	}
 
 	ERR_FAIL_COND_V(tls_options.is_valid() && tls_options->is_server(), ERR_INVALID_PARAMETER);
@@ -508,11 +508,11 @@ Error HTTPClientTCP::poll() {
 							continue;
 						}
 						if (s.begins_with("content-length:")) {
-							body_size = s.substr(s.find_char(':') + 1, s.length()).strip_edges().to_int();
+							body_size = s.substr(s.find_char(':') + 1).strip_edges().to_int();
 							body_left = body_size;
 
 						} else if (s.begins_with("transfer-encoding:")) {
-							String encoding = header.substr(header.find_char(':') + 1, header.length()).strip_edges();
+							String encoding = header.substr(header.find_char(':') + 1).strip_edges();
 							if (encoding == "chunked") {
 								chunked = true;
 							}

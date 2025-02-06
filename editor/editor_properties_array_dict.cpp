@@ -807,11 +807,11 @@ void EditorPropertyArray::setup(Variant::Type p_array_type, const String &p_hint
 			String subtype_string = p_hint_string.substr(0, hint_subtype_separator);
 			int slash_pos = subtype_string.find_char('/');
 			if (slash_pos >= 0) {
-				subtype_hint = PropertyHint(subtype_string.substr(slash_pos + 1, subtype_string.size() - slash_pos - 1).to_int());
+				subtype_hint = PropertyHint(subtype_string.substr(slash_pos + 1).to_int());
 				subtype_string = subtype_string.substr(0, slash_pos);
 			}
 
-			subtype_hint_string = p_hint_string.substr(hint_subtype_separator + 1, p_hint_string.size() - hint_subtype_separator - 1);
+			subtype_hint_string = p_hint_string.substr(hint_subtype_separator + 1);
 			subtype = Variant::Type(subtype_string.to_int());
 		}
 	}
@@ -1090,11 +1090,11 @@ void EditorPropertyDictionary::setup(PropertyHint p_hint, const String &p_hint_s
 			String key_subtype_string = key.substr(0, hint_key_subtype_separator);
 			int slash_pos = key_subtype_string.find_char('/');
 			if (slash_pos >= 0) {
-				key_subtype_hint = PropertyHint(key_subtype_string.substr(slash_pos + 1, key_subtype_string.size() - slash_pos - 1).to_int());
+				key_subtype_hint = PropertyHint(key_subtype_string.substr(slash_pos + 1).to_int());
 				key_subtype_string = key_subtype_string.substr(0, slash_pos);
 			}
 
-			key_subtype_hint_string = key.substr(hint_key_subtype_separator + 1, key.size() - hint_key_subtype_separator - 1);
+			key_subtype_hint_string = key.substr(hint_key_subtype_separator + 1);
 			key_subtype = Variant::Type(key_subtype_string.to_int());
 
 			Variant new_key = object->get_new_item_key();
@@ -1109,11 +1109,11 @@ void EditorPropertyDictionary::setup(PropertyHint p_hint, const String &p_hint_s
 			String value_subtype_string = value.substr(0, hint_value_subtype_separator);
 			int slash_pos = value_subtype_string.find_char('/');
 			if (slash_pos >= 0) {
-				value_subtype_hint = PropertyHint(value_subtype_string.substr(slash_pos + 1, value_subtype_string.size() - slash_pos - 1).to_int());
+				value_subtype_hint = PropertyHint(value_subtype_string.substr(slash_pos + 1).to_int());
 				value_subtype_string = value_subtype_string.substr(0, slash_pos);
 			}
 
-			value_subtype_hint_string = value.substr(hint_value_subtype_separator + 1, value.size() - hint_value_subtype_separator - 1);
+			value_subtype_hint_string = value.substr(hint_value_subtype_separator + 1);
 			value_subtype = Variant::Type(value_subtype_string.to_int());
 
 			Variant new_value = object->get_new_item_value();

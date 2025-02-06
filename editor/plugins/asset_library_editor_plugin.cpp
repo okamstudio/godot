@@ -907,7 +907,7 @@ void EditorAssetLibrary::_image_request_completed(int p_status, int p_code, cons
 			for (int i = 0; i < headers.size(); i++) {
 				if (headers[i].findn("ETag:") == 0) { // Save etag
 					String cache_filename_base = EditorPaths::get_singleton()->get_cache_dir().path_join("assetimage_" + image_queue[p_queue_id].image_url.md5_text());
-					String new_etag = headers[i].substr(headers[i].find_char(':') + 1, headers[i].length()).strip_edges();
+					String new_etag = headers[i].substr(headers[i].find_char(':') + 1).strip_edges();
 					Ref<FileAccess> file = FileAccess::open(cache_filename_base + ".etag", FileAccess::WRITE);
 					if (file.is_valid()) {
 						file->store_line(new_etag);
