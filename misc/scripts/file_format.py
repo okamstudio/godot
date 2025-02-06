@@ -1,51 +1,69 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
+if __name__ != "__main__":
+    raise ImportError(f"{__name__} should not be used as a module.")
+
+import argparse
+import os
 import sys
 
-if len(sys.argv) < 2:
-    print("Invalid usage of file_format.py, it should be called with a path to one or multiple files.")
-    sys.exit(1)
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../"))
 
-BOM = b"\xef\xbb\xbf"
+from methods import print_error, print_warning, toggle_color
 
-changed = []
-invalid = []
 
-for file in sys.argv[1:]:
+def evaluate_formatting(path: str) -> int:
     try:
-        with open(file, "rt", encoding="utf-8") as f:
-            original = f.read()
+        with open(path, "rb") as file:
+            raw = file.read()
+
+        if not raw:
+            return 0
+
+        # TODO: Replace hardcoded choices by parsing relevant `.gitattributes`/`.editorconfig`.
+        EOL = "\r\n" if path.endswith((".csproj", ".sln", ".bat")) or path.startswith("misc/msvs") else "\n"
+        WANTS_BOM = path.endswith((".csproj", ".sln"))
+
+        reformat_decode = EOL.join([line.rstrip() for line in raw.decode("utf-8-sig").splitlines()]).rstrip() + EOL
+        reformat_encode = reformat_decode.encode("utf-8-sig" if WANTS_BOM else "utf-8")
+
+        if raw == reformat_encode:
+            return 0
+
+        with open(path, "wb") as file:
+            file.write(reformat_encode)
+
+        print_warning(f'File "{path}" had improper formatting. Fixed!')
+        return 1
+    except OSError:
+        print_error(f'Failed to open file "{path}", skipping format.')
+        return 1
     except UnicodeDecodeError:
-        invalid.append(file)
-        continue
+        print_error(f'File at "{path}" is not UTF-8, requires manual changes.')
+        return 1
 
-    if original == "":
-        continue
 
-    EOL = "\r\n" if file.endswith((".csproj", ".sln", ".bat")) or file.startswith("misc/msvs") else "\n"
-    WANTS_BOM = file.endswith((".csproj", ".sln"))
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        prog="file-format", description="Ensure files have proper formatting (newlines, encoding, etc)."
+    )
+    parser.add_argument("files", nargs="+", help="Paths to files for formatting.")
+    parser.add_argument("-c", "--color", action="store_true", help="If passed, force colored output.")
+    args = parser.parse_args()
 
-    revamp = EOL.join([line.rstrip("\n\r\t ") for line in original.splitlines(True)]).rstrip(EOL) + EOL
+    if args.color:
+        toggle_color(True)
 
-    new_raw = revamp.encode(encoding="utf-8")
-    if not WANTS_BOM and new_raw.startswith(BOM):
-        new_raw = new_raw[len(BOM) :]
-    elif WANTS_BOM and not new_raw.startswith(BOM):
-        new_raw = BOM + new_raw
+    ret = 0
+    for file in args.files:
+        ret += evaluate_formatting(file)
+    return ret
 
-    with open(file, "rb") as f:
-        old_raw = f.read()
 
-    if old_raw != new_raw:
-        changed.append(file)
-        with open(file, "wb") as f:
-            f.write(new_raw)
+try:
+    sys.exit(main())
+except KeyboardInterrupt:
+    import signal
 
-if changed:
-    for file in changed:
-        print(f"FIXED: {file}")
-if invalid:
-    for file in invalid:
-        print(f"REQUIRES MANUAL CHANGES: {file}")
-    sys.exit(1)
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    os.kill(os.getpid(), signal.SIGINT)

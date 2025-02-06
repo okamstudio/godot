@@ -1441,10 +1441,17 @@ def generate_copyright_header(filename: str) -> str:
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 """
-    filename = filename.split("/")[-1].ljust(MARGIN)
+    filename = os.path.basename(filename).ljust(MARGIN)
     if len(filename) > MARGIN:
         print_warning(f'Filename "{filename}" too large for copyright header.')
     return TEMPLATE % filename
+
+
+def generate_header_guard(filename: str, prefix: str = "", suffix: str = "") -> str:
+    base, extension = os.path.basename(filename).split(".", 1)
+    header_guard = "_".join([prefix, base, suffix, extension]).upper()
+    header_guard = re.sub(r"[_\-\.\s]+", "_", header_guard)
+    return header_guard.strip("_")
 
 
 @contextlib.contextmanager
@@ -1488,15 +1495,7 @@ def generated_wrapper(
     if not guard and (prefix or suffix):
         print_warning(f'Trying to assign header guard prefix/suffix while `guard` is disabled: "{path}".')
 
-    header_guard = ""
-    if guard:
-        if prefix:
-            prefix += "_"
-        if suffix:
-            suffix = f"_{suffix}"
-        split = path.split("/")[-1].split(".")
-        header_guard = (f"{prefix}{split[0]}{suffix}.{'.'.join(split[1:])}".upper()
-                .replace(".", "_").replace("-", "_").replace(" ", "_").replace("__", "_"))  # fmt: skip
+    header_guard = generate_header_guard(path, prefix, suffix) if guard else ""
 
     with open(path, "wt", encoding="utf-8", newline="\n") as file:
         file.write(generate_copyright_header(path))
