@@ -594,6 +594,10 @@ public:
 		return abs(s) < (float)CMP_EPSILON;
 	}
 
+	static _ALWAYS_INLINE_ bool is_same(float a, float b) {
+		return (a == b) || (is_nan(a) && is_nan(b));
+	}
+
 	static _ALWAYS_INLINE_ bool is_equal_approx(double a, double b) {
 		// Check for exact equality first, required to handle "infinity" values.
 		if (a == b) {
@@ -618,6 +622,10 @@ public:
 
 	static _ALWAYS_INLINE_ bool is_zero_approx(double s) {
 		return abs(s) < CMP_EPSILON;
+	}
+
+	static _ALWAYS_INLINE_ bool is_same(double a, double b) {
+		return (a == b) || (is_nan(a) && is_nan(b));
 	}
 
 	static _ALWAYS_INLINE_ float absf(float g) {

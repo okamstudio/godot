@@ -156,6 +156,7 @@ struct [[nodiscard]] Vector3 {
 	_FORCE_INLINE_ Vector3 reflect(const Vector3 &p_normal) const;
 
 	bool is_equal_approx(const Vector3 &p_v) const;
+	bool is_same(const Vector3 &p_v) const;
 	bool is_zero_approx() const;
 	bool is_finite() const;
 

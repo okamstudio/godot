@@ -180,6 +180,10 @@ bool Transform2D::is_equal_approx(const Transform2D &p_transform) const {
 	return columns[0].is_equal_approx(p_transform.columns[0]) && columns[1].is_equal_approx(p_transform.columns[1]) && columns[2].is_equal_approx(p_transform.columns[2]);
 }
 
+bool Transform2D::is_same(const Transform2D &p_transform) const {
+	return columns[0].is_same(p_transform.columns[0]) && columns[1].is_same(p_transform.columns[1]) && columns[2].is_same(p_transform.columns[2]);
+}
+
 bool Transform2D::is_finite() const {
 	return columns[0].is_finite() && columns[1].is_finite() && columns[2].is_finite();
 }

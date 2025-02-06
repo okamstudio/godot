@@ -203,6 +203,7 @@ struct [[nodiscard]] Rect2 {
 	}
 
 	bool is_equal_approx(const Rect2 &p_rect) const;
+	bool is_same(const Rect2 &p_rect) const;
 	bool is_finite() const;
 
 	bool operator==(const Rect2 &p_rect) const { return position == p_rect.position && size == p_rect.size; }

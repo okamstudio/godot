@@ -76,6 +76,10 @@ bool AABB::is_equal_approx(const AABB &p_aabb) const {
 	return position.is_equal_approx(p_aabb.position) && size.is_equal_approx(p_aabb.size);
 }
 
+bool AABB::is_same(const AABB &p_aabb) const {
+	return position.is_same(p_aabb.position) && size.is_same(p_aabb.size);
+}
+
 bool AABB::is_finite() const {
 	return position.is_finite() && size.is_finite();
 }

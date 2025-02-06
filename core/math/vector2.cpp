@@ -194,6 +194,10 @@ bool Vector2::is_equal_approx(const Vector2 &p_v) const {
 	return Math::is_equal_approx(x, p_v.x) && Math::is_equal_approx(y, p_v.y);
 }
 
+bool Vector2::is_same(const Vector2 &p_v) const {
+	return Math::is_same(x, p_v.x) && Math::is_same(y, p_v.y);
+}
+
 bool Vector2::is_zero_approx() const {
 	return Math::is_zero_approx(x) && Math::is_zero_approx(y);
 }

@@ -89,6 +89,7 @@ struct [[nodiscard]] Vector4 {
 	_FORCE_INLINE_ real_t length_squared() const;
 	bool is_equal_approx(const Vector4 &p_vec4) const;
 	bool is_zero_approx() const;
+	bool is_same(const Vector4 &p_vec4) const;
 	bool is_finite() const;
 	real_t length() const;
 	void normalize();

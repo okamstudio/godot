@@ -73,6 +73,7 @@ struct [[nodiscard]] Plane {
 
 	Plane operator-() const { return Plane(-normal, -d); }
 	bool is_equal_approx(const Plane &p_plane) const;
+	bool is_same(const Plane &p_plane) const;
 	bool is_equal_approx_any_side(const Plane &p_plane) const;
 	bool is_finite() const;
 

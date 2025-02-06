@@ -54,6 +54,7 @@ struct [[nodiscard]] Quaternion {
 	}
 	_FORCE_INLINE_ real_t length_squared() const;
 	bool is_equal_approx(const Quaternion &p_quaternion) const;
+	bool is_same(const Quaternion &p_quaternion) const;
 	bool is_finite() const;
 	real_t length() const;
 	void normalize();

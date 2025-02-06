@@ -133,6 +133,8 @@ struct [[nodiscard]] Projection {
 
 	void flip_y();
 
+	bool is_same(const Projection &p_cam) const;
+
 	bool operator==(const Projection &p_cam) const {
 		for (uint32_t i = 0; i < 4; i++) {
 			for (uint32_t j = 0; j < 4; j++) {
