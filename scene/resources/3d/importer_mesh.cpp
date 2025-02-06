@@ -91,9 +91,7 @@ void ImporterMesh::add_surface(Mesh::PrimitiveType p_primitive, const Array &p_a
 		s.blend_shape_data.push_back(bs);
 	}
 
-	List<Variant> lods;
-	p_lods.get_key_list(&lods);
-	for (const Variant &E : lods) {
+	for (const Variant &E : p_lods.get_key_list()) {
 		ERR_CONTINUE(!E.is_num());
 		Surface::LOD lod;
 		lod.distance = E;

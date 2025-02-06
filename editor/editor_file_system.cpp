@@ -2751,10 +2751,8 @@ Error EditorFileSystem::_reimport_file(const String &p_file, const HashMap<Strin
 	if (load_default && ProjectSettings::get_singleton()->has_setting("importer_defaults/" + importer->get_importer_name())) {
 		//use defaults if exist
 		Dictionary d = GLOBAL_GET("importer_defaults/" + importer->get_importer_name());
-		List<Variant> v;
-		d.get_key_list(&v);
 
-		for (const Variant &E : v) {
+		for (const Variant &E : d.get_key_list()) {
 			params[E] = d[E];
 		}
 	}

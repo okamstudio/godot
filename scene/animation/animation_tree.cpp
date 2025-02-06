@@ -121,9 +121,7 @@ AnimationNode::NodeTimeInfo AnimationNode::get_node_time_info() const {
 void AnimationNode::get_child_nodes(List<ChildNode> *r_child_nodes) {
 	Dictionary cn;
 	if (GDVIRTUAL_CALL(_get_child_nodes, cn)) {
-		List<Variant> keys;
-		cn.get_key_list(&keys);
-		for (const Variant &E : keys) {
+		for (const Variant &E : cn.get_key_list()) {
 			ChildNode child;
 			child.name = E;
 			child.node = cn[E];

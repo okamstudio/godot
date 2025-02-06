@@ -122,8 +122,7 @@ String JSON::_stringify(const Variant &p_var, const String &p_indent, int p_cur_
 			ERR_FAIL_COND_V_MSG(p_markers.has(d.id()), "\"{...}\"", "Converting circular structure to JSON.");
 			p_markers.insert(d.id());
 
-			List<Variant> keys;
-			d.get_key_list(&keys);
+			LocalVector<Variant> keys = d.get_key_list();
 
 			if (p_sort_keys) {
 				keys.sort_custom<StringLikeVariantOrder>();
@@ -922,10 +921,7 @@ Variant JSON::_from_native(const Variant &p_variant, bool p_full_objects, int p_
 
 			ERR_FAIL_COND_V_MSG(p_depth > Variant::MAX_RECURSION_DEPTH, ret, "Variant is too deep. Bailing.");
 
-			List<Variant> keys;
-			dict.get_key_list(&keys);
-
-			for (const Variant &key : keys) {
+			for (const Variant &key : dict.get_key_list()) {
 				args.push_back(_from_native(key, p_full_objects, p_depth + 1));
 				args.push_back(_from_native(dict[key], p_full_objects, p_depth + 1));
 			}

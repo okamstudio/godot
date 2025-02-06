@@ -216,15 +216,15 @@ String GDScriptDocGen::_docvalue_from_variant(const Variant &p_variant, int p_re
 			} else {
 				result += "{";
 
-				List<Variant> keys;
-				dict.get_key_list(&keys);
+				LocalVector<Variant> keys = dict.get_key_list();
 				keys.sort_custom<StringLikeVariantOrder>();
 
-				for (List<Variant>::Element *E = keys.front(); E; E = E->next()) {
-					if (E->prev()) {
+				for (uint32_t i = 0; i < keys.size(); i++) {
+					const Variant &key = keys[i];
+					if (i > 0) {
 						result += ", ";
 					}
-					result += _docvalue_from_variant(E->get(), p_recursion_level + 1) + ": " + _docvalue_from_variant(dict[E->get()], p_recursion_level + 1);
+					result += _docvalue_from_variant(key, p_recursion_level + 1) + ": " + _docvalue_from_variant(dict[key], p_recursion_level + 1);
 				}
 
 				result += "}";

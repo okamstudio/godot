@@ -1640,10 +1640,8 @@ void Object::_clear_internal_resource_paths(const Variant &p_var) {
 		} break;
 		case Variant::DICTIONARY: {
 			Dictionary d = p_var;
-			List<Variant> keys;
-			d.get_key_list(&keys);
 
-			for (const Variant &E : keys) {
+			for (const Variant &E : d.get_key_list()) {
 				_clear_internal_resource_paths(E);
 				_clear_internal_resource_paths(d[E]);
 			}

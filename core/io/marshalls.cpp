@@ -1849,10 +1849,7 @@ Error encode_variant(const Variant &p_variant, uint8_t *r_buffer, int &r_len, bo
 			}
 			r_len += 4;
 
-			List<Variant> keys;
-			dict.get_key_list(&keys);
-
-			for (const Variant &key : keys) {
+			for (const Variant &key : dict.get_key_list()) {
 				int len;
 				Error err = encode_variant(key, buf, len, p_full_objects, p_depth + 1);
 				ERR_FAIL_COND_V(err, err);

@@ -134,9 +134,7 @@ void AnimationLibrary::_set_data(const Dictionary &p_data) {
 		K.value->disconnect_changed(callable_mp(this, &AnimationLibrary::_animation_changed));
 	}
 	animations.clear();
-	List<Variant> keys;
-	p_data.get_key_list(&keys);
-	for (const Variant &K : keys) {
+	for (const Variant &K : p_data.get_key_list()) {
 		add_animation(K, p_data[K]);
 	}
 }

@@ -6557,15 +6557,13 @@ void Node3DEditor::set_state(const Dictionary &p_state) {
 
 	if (d.has("gizmos_status")) {
 		Dictionary gizmos_status = d["gizmos_status"];
-		List<Variant> keys;
-		gizmos_status.get_key_list(&keys);
 
 		for (int j = 0; j < gizmo_plugins_by_name.size(); ++j) {
 			if (!gizmo_plugins_by_name[j]->can_be_hidden()) {
 				continue;
 			}
 			int state = EditorNode3DGizmoPlugin::VISIBLE;
-			for (const Variant &key : keys) {
+			for (const Variant &key : gizmos_status.get_key_list()) {
 				if (gizmo_plugins_by_name.write[j]->get_gizmo_name() == String(key)) {
 					state = gizmos_status[key];
 					break;

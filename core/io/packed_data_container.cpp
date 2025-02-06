@@ -268,11 +268,9 @@ uint32_t PackedDataContainer::_pack(const Variant &p_data, Vector<uint8_t> &tmpd
 			encode_uint32(TYPE_DICT, &tmpdata.write[pos + 0]);
 			encode_uint32(len, &tmpdata.write[pos + 4]);
 
-			List<Variant> keys;
-			d.get_key_list(&keys);
 			List<DictKey> sortk;
 
-			for (const Variant &key : keys) {
+			for (const Variant &key : d.get_key_list()) {
 				DictKey dk;
 				dk.hash = key.hash();
 				dk.key = key;

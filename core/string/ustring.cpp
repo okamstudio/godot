@@ -3867,10 +3867,8 @@ String String::format(const Variant &values, const String &placeholder) const {
 		}
 	} else if (values.get_type() == Variant::DICTIONARY) {
 		Dictionary d = values;
-		List<Variant> keys;
-		d.get_key_list(&keys);
 
-		for (const Variant &key : keys) {
+		for (const Variant &key : d.get_key_list()) {
 			new_string = new_string.replace(placeholder.replace("_", key), d[key]);
 		}
 	} else if (values.get_type() == Variant::OBJECT) {

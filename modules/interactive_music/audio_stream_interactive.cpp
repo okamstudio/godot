@@ -173,9 +173,7 @@ int AudioStreamInteractive::get_clip_auto_advance_next_clip(int p_clip) const {
 // TRANSITIONS
 
 void AudioStreamInteractive::_set_transitions(const Dictionary &p_transitions) {
-	List<Variant> keys;
-	p_transitions.get_key_list(&keys);
-	for (const Variant &K : keys) {
+	for (const Variant &K : p_transitions.get_key_list()) {
 		Vector2i k = K;
 		Dictionary data = p_transitions[K];
 		ERR_CONTINUE(!data.has("from_time"));
