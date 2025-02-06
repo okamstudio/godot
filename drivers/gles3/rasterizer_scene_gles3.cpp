@@ -1673,6 +1673,11 @@ void RasterizerSceneGLES3::_setup_lights(const RenderDataGLES3 *p_render_data, b
 				float sign = light_storage->light_is_negative(base) ? -1 : 1;
 
 				light_data.energy = sign * light_storage->light_get_param(base, RS::LIGHT_PARAM_ENERGY);
+				if (has_shadow) {
+					// Multiply by user-specified factor to let the user compensate for the sRGB blending
+					// used for lights with shadows enabled.
+					light_data.energy *= light_storage->light_get_param(base, RS::LIGHT_PARAM_SHADOW_LIGHT_ENERGY_COMPATIBILITY);
+				}
 
 				if (is_using_physical_light_units()) {
 					light_data.energy *= light_storage->light_get_param(base, RS::LIGHT_PARAM_INTENSITY);
@@ -1861,6 +1866,11 @@ void RasterizerSceneGLES3::_setup_lights(const RenderDataGLES3 *p_render_data, b
 		}
 
 		float energy = sign * light_storage->light_get_param(base, RS::LIGHT_PARAM_ENERGY) * fade;
+		if (light_storage->light_has_shadow(base)) {
+			// Multiply by user-specified factor to let the user compensate for the sRGB blending
+			// used for lights with shadows enabled.
+			energy *= light_storage->light_get_param(base, RS::LIGHT_PARAM_SHADOW_LIGHT_ENERGY_COMPATIBILITY);
+		}
 
 		if (is_using_physical_light_units()) {
 			energy *= light_storage->light_get_param(base, RS::LIGHT_PARAM_INTENSITY);

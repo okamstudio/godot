@@ -71,6 +71,7 @@
 		</member>
 		<member name="light_energy" type="float" setter="set_param" getter="get_param" default="1.0">
 			The light's strength multiplier (this is not a physical unit). For [OmniLight3D] and [SpotLight3D], changing this value will only change the light color's intensity, not the light's radius.
+			[b]Note:[/b] When using the Compatibility rendering method and [member shadow_enabled] is [code]true[/code], the light will use sRGB blending instead of linear blending for performance reasons. This may make the light too bright compared to the intended appearance. You can compensate for this by decreasing [member shadow_light_energy_compatibility], so that the scene's overall brightness is not affected when using other rendering methods or when shadows are disabled.
 		</member>
 		<member name="light_indirect_energy" type="float" setter="set_param" getter="get_param" default="1.0">
 			Secondary multiplier used with indirect light (light bounces). Used with [VoxelGI] and SDFGI (see [member Environment.sdfgi_enabled]).
@@ -120,6 +121,9 @@
 		</member>
 		<member name="shadow_enabled" type="bool" setter="set_shadow" getter="has_shadow" default="false">
 			If [code]true[/code], the light will cast real-time shadows. This has a significant performance cost. Only enable shadow rendering when it makes a noticeable difference in the scene's appearance, and consider using [member distance_fade_enabled] to hide the light when far away from the [Camera3D].
+		</member>
+		<member name="shadow_light_energy_compatibility" type="float" setter="set_param" getter="get_param" default="1.0">
+			Multiplies the [member light_energy] by this factor if [member shadow_enabled] is [code]true[/code] and the current rendering method is [code]gl_compatibility[/code] (see [member ProjectSettings.rendering/renderer/rendering_method]). This can be used to compensate for lights appearing brighter in this scenario, since lights with shadows enabled use sRGB blending instead of linear blending when using the Compatibility rendering method. Typically, a factor between [code]0.2[/code] and [code]0.4[/code] yields a result close to Forward+/Mobile.
 		</member>
 		<member name="shadow_normal_bias" type="float" setter="set_param" getter="get_param" default="2.0">
 			Offsets the lookup into the shadow map by the object's normal. This can be used to reduce self-shadowing artifacts without using [member shadow_bias]. In practice, this value should be tweaked along with [member shadow_bias] to reduce artifacts as much as possible.
@@ -197,7 +201,10 @@
 		<constant name="PARAM_INTENSITY" value="20" enum="Param">
 			Constant for accessing [member light_intensity_lumens] and [member light_intensity_lux]. Only used when [member ProjectSettings.rendering/lights_and_shadows/use_physical_light_units] is [code]true[/code].
 		</constant>
-		<constant name="PARAM_MAX" value="21" enum="Param">
+		<constant name="PARAM_SHADOW_LIGHT_ENERGY_COMPATIBILITY" value="21" enum="Param">
+			Constant for accessing [member shadow_light_energy_compatibility].
+		</constant>
+		<constant name="PARAM_MAX" value="22" enum="Param">
 			Represents the size of the [enum Param] enum.
 		</constant>
 		<constant name="BAKE_DISABLED" value="0" enum="BakeMode">

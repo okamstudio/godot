@@ -4822,7 +4822,10 @@
 		<constant name="LIGHT_PARAM_INTENSITY" value="20" enum="LightParam">
 			Constant representing the intensity of the light, measured in Lumens when dealing with a [SpotLight3D] or [OmniLight3D], or measured in Lux with a [DirectionalLight3D]. Only used when [member ProjectSettings.rendering/lights_and_shadows/use_physical_light_units] is [code]true[/code].
 		</constant>
-		<constant name="LIGHT_PARAM_MAX" value="21" enum="LightParam">
+		<constant name="LIGHT_PARAM_SHADOW_LIGHT_ENERGY_COMPATIBILITY" value="21" enum="LightParam">
+			The light's energy multiplier when using the Compatibility rendering method and the light has shadows enabled. This is applied on top of [constant LIGHT_PARAM_ENERGY].
+		</constant>
+		<constant name="LIGHT_PARAM_MAX" value="22" enum="LightParam">
 			Represents the size of the [enum LightParam] enum.
 		</constant>
 		<constant name="LIGHT_BAKE_DISABLED" value="0" enum="LightBakeMode">
