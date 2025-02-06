@@ -95,6 +95,7 @@ class GDScriptAnalyzer {
 	void resolve_match_branch(GDScriptParser::MatchBranchNode *p_match_branch, GDScriptParser::ExpressionNode *p_match_test);
 	void resolve_match_pattern(GDScriptParser::PatternNode *p_match_pattern, GDScriptParser::ExpressionNode *p_match_test);
 	void resolve_return(GDScriptParser::ReturnNode *p_return);
+	inline void resolve_incomplete(GDScriptParser::Node *p_node);
 
 	// Reduction functions.
 	void reduce_expression(GDScriptParser::ExpressionNode *p_expression, bool p_is_root = false);
