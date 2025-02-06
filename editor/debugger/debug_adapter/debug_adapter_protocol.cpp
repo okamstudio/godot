@@ -1058,14 +1058,14 @@ void DebugAdapterProtocol::on_debug_breaked(const bool &p_reallydid, const bool 
 	_processing_stackdump = p_has_stackdump;
 }
 
-void DebugAdapterProtocol::on_debug_breakpoint_toggled(const String &p_path, const int &p_line, const bool &p_enabled) {
+void DebugAdapterProtocol::on_debug_breakpoint_toggled(const String &p_path, const int &p_line, const bool &p_breakpointed) {
 	DAP::Breakpoint breakpoint;
 	breakpoint.verified = true;
 	breakpoint.source.path = ProjectSettings::get_singleton()->globalize_path(p_path);
 	breakpoint.source.compute_checksums();
 	breakpoint.line = p_line;
 
-	if (p_enabled) {
+	if (p_breakpointed) {
 		// Add the breakpoint
 		breakpoint.id = breakpoint_id++;
 		breakpoint_list.push_back(breakpoint);
@@ -1078,7 +1078,7 @@ void DebugAdapterProtocol::on_debug_breakpoint_toggled(const String &p_path, con
 		}
 	}
 
-	notify_breakpoint(breakpoint, p_enabled);
+	notify_breakpoint(breakpoint, p_breakpointed);
 }
 
 void DebugAdapterProtocol::on_debug_stack_dump(const Array &p_stack_dump) {

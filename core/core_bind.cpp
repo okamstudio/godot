@@ -2131,9 +2131,14 @@ bool EngineDebugger::is_skipping_breakpoints() const {
 	return ::EngineDebugger::get_script_debugger()->is_skipping_breakpoints();
 }
 
-void EngineDebugger::insert_breakpoint(int p_line, const StringName &p_source) {
+void EngineDebugger::insert_breakpoint(int p_line, const StringName &p_source, bool p_enabled, bool p_suspend, const String &p_condition, const String &p_print) {
 	ERR_FAIL_COND_MSG(!::EngineDebugger::get_script_debugger(), "Can't insert breakpoint. No active debugger");
-	::EngineDebugger::get_script_debugger()->insert_breakpoint(p_line, p_source);
+	Breakpoint bp = Breakpoint(p_source, p_line);
+	bp.enabled = p_enabled;
+	bp.suspend = p_suspend;
+	bp.condition = p_condition;
+	bp.print = p_print;
+	::EngineDebugger::get_script_debugger()->insert_breakpoint(p_line, p_source, bp);
 }
 
 void EngineDebugger::remove_breakpoint(int p_line, const StringName &p_source) {
@@ -2185,7 +2190,7 @@ void EngineDebugger::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("is_breakpoint", "line", "source"), &EngineDebugger::is_breakpoint);
 	ClassDB::bind_method(D_METHOD("is_skipping_breakpoints"), &EngineDebugger::is_skipping_breakpoints);
-	ClassDB::bind_method(D_METHOD("insert_breakpoint", "line", "source"), &EngineDebugger::insert_breakpoint);
+	ClassDB::bind_method(D_METHOD("insert_breakpoint", "line", "source", "enabled", "suspend", "condition", "print"), &EngineDebugger::insert_breakpoint, DEFVAL(true), DEFVAL(true), DEFVAL(String()), DEFVAL(String()));
 	ClassDB::bind_method(D_METHOD("remove_breakpoint", "line", "source"), &EngineDebugger::remove_breakpoint);
 	ClassDB::bind_method(D_METHOD("clear_breakpoints"), &EngineDebugger::clear_breakpoints);
 }

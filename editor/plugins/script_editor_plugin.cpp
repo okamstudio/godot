@@ -35,6 +35,7 @@
 #include "core/io/file_access.h"
 #include "core/io/json.h"
 #include "core/io/resource_loader.h"
+#include "core/math/expression.h"
 #include "core/os/keyboard.h"
 #include "core/os/os.h"
 #include "core/version.h"
@@ -328,6 +329,7 @@ void ScriptEditorBase::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("search_in_files_requested", PropertyInfo(Variant::STRING, "text")));
 	ADD_SIGNAL(MethodInfo("replace_in_files_requested", PropertyInfo(Variant::STRING, "text")));
 	ADD_SIGNAL(MethodInfo("go_to_method", PropertyInfo(Variant::OBJECT, "script"), PropertyInfo(Variant::STRING, "method")));
+	ADD_SIGNAL(MethodInfo("breakpoint_edit_requested", PropertyInfo(Variant::STRING_NAME, "source"), PropertyInfo(Variant::INT, "line")));
 }
 
 class EditorScriptCodeCompletionCache : public ScriptCodeCompletionCache {
@@ -493,6 +495,106 @@ ScriptEditorQuickOpen::ScriptEditorQuickOpen() {
 
 /////////////////////////////////
 
+void BreakpointDialog::popup_dialog(const StringName &p_source, const int &p_row) {
+	ERR_FAIL_COND(p_source.is_empty());
+
+	const Breakpoint &bp = EditorDebuggerNode::get_singleton()->get_breakpoint(p_source, p_row + 1);
+
+	source = p_source;
+	line = p_row + 1;
+	enabled->set_pressed(bp.enabled);
+	suspend->set_pressed(bp.suspend);
+	condition_expression->set_text(bp.condition);
+	print_expression->set_text(bp.print);
+	_validate_condition(bp.condition);
+
+	set_title(vformat("%s %s:%s", TTR("Edit Breakpoint"), p_source, bp.line));
+	popup_centered_clamped(Size2(500, 0) * EDSCALE, 0.8f);
+}
+
+void BreakpointDialog::ok_pressed() {
+	Ref<Resource> scr = ResourceLoader::load(source);
+	Dictionary dict;
+	dict["enabled"] = enabled->is_pressed();
+	dict["suspend"] = suspend->is_pressed();
+	dict["condition"] = condition_expression->get_text();
+	dict["print"] = print_expression->get_text();
+	emit_signal(SNAME("edition_confirmed"), scr, line, dict);
+}
+
+void BreakpointDialog::_validate_condition(const String &p_new_text) {
+	if (p_new_text.is_empty()) {
+		return;
+	}
+
+	Expression expression;
+	if (expression.parse(p_new_text) != OK) {
+		String text = TTR("Invalid condition:") + " " + expression.get_error_text();
+		error->set_text(text);
+	} else {
+		error->set_text("");
+	}
+}
+
+void BreakpointDialog::_bind_methods() {
+	ADD_SIGNAL(MethodInfo("edition_confirmed", PropertyInfo(Variant::OBJECT, "script", PROPERTY_HINT_RESOURCE_TYPE, "Script"), PropertyInfo(Variant::INT, "line"), PropertyInfo(Variant::DICTIONARY, "data")));
+}
+
+BreakpointDialog::BreakpointDialog() {
+	set_title(TTR("Edit Breakpoint"));
+
+	VBoxContainer *vbc = memnew(VBoxContainer);
+	vbc->set_anchor_and_offset(SIDE_LEFT, Control::ANCHOR_BEGIN, 8 * EDSCALE);
+	vbc->set_anchor_and_offset(SIDE_TOP, Control::ANCHOR_BEGIN, 8 * EDSCALE);
+	vbc->set_anchor_and_offset(SIDE_RIGHT, Control::ANCHOR_END, -8 * EDSCALE);
+	vbc->set_anchor_and_offset(SIDE_BOTTOM, Control::ANCHOR_END, -8 * EDSCALE);
+	add_child(vbc);
+
+	enabled = memnew(CheckBox);
+	enabled->set_text(TTR("Enabled"));
+	enabled->set_tooltip_text(TTR("If unchecked, the breakpoint will not hit or print."));
+	vbc->add_child(enabled);
+
+	suspend = memnew(CheckBox);
+	suspend->set_pressed(true);
+	suspend->set_text(TTR("Suspend Execution"));
+	suspend->set_tooltip_text(TTR("If unchecked, the breakpoint will not suspend the runtime's execution if the condition is met. This is useful for print-only breakpoints."));
+	vbc->add_child(suspend);
+
+	HBoxContainer *hbc = memnew(HBoxContainer);
+	vbc->add_child(hbc);
+
+	VBoxContainer *label_vbc = memnew(VBoxContainer);
+	label_vbc->set_alignment(VBoxContainer::ALIGNMENT_CENTER);
+	hbc->add_child(label_vbc);
+
+	Label *condition_label = memnew(Label);
+	condition_label->set_text(TTR("Condition:"));
+	label_vbc->add_child(condition_label);
+
+	Label *print_label = memnew(Label);
+	print_label->set_text(TTR("Print:"));
+	label_vbc->add_child(print_label);
+
+	VBoxContainer *expression_vbc = memnew(VBoxContainer);
+	expression_vbc->set_alignment(VBoxContainer::ALIGNMENT_CENTER);
+	expression_vbc->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	hbc->add_child(expression_vbc);
+
+	condition_expression = memnew(LineEdit);
+	condition_expression->set_placeholder(TTR("Break when expression evaluates to true."));
+	condition_expression->connect(SceneStringName(text_changed), callable_mp(this, &BreakpointDialog::_validate_condition));
+	expression_vbc->add_child(condition_expression);
+
+	print_expression = memnew(LineEdit);
+	print_expression->set_placeholder(TTR("Supports {var_name} string interpolation."));
+	expression_vbc->add_child(print_expression);
+
+	error = memnew(Label);
+	vbc->add_child(error);
+	error->add_theme_color_override(SceneStringName(font_color), EditorNode::get_singleton()->get_editor_theme()->get_color(SNAME("error_color"), EditorStringName(Editor)));
+}
+
 ScriptEditor *ScriptEditor::script_editor = nullptr;
 
 /*** SCRIPT EDITOR ******/
@@ -573,14 +675,14 @@ void ScriptEditor::_clear_execution(Ref<RefCounted> p_script) {
 	}
 }
 
-void ScriptEditor::_set_breakpoint(Ref<RefCounted> p_script, int p_line, bool p_enabled) {
+void ScriptEditor::_set_breakpoint(Ref<RefCounted> p_script, int p_line, bool p_breakpointed) {
 	Ref<Script> scr = Object::cast_to<Script>(*p_script);
 	if (scr.is_valid() && (scr->has_source_code() || scr->get_path().is_resource_file())) {
 		// Update if open.
 		for (int i = 0; i < tab_container->get_tab_count(); i++) {
 			ScriptEditorBase *se = Object::cast_to<ScriptEditorBase>(tab_container->get_tab_control(i));
 			if (se && se->get_edited_resource()->get_path() == scr->get_path()) {
-				se->set_breakpoint(p_line, p_enabled);
+				se->set_breakpoint(p_line, p_breakpointed);
 				return;
 			}
 		}
@@ -593,16 +695,21 @@ void ScriptEditor::_set_breakpoint(Ref<RefCounted> p_script, int p_line, bool p_
 		}
 
 		if (breakpoints.has(p_line)) {
-			if (!p_enabled) {
+			if (!p_breakpointed) {
 				breakpoints.erase(p_line);
 			}
-		} else if (p_enabled) {
+		} else if (p_breakpointed) {
 			breakpoints.push_back(p_line);
 		}
 		state["breakpoints"] = breakpoints;
 		script_editor_cache->set_value(scr->get_path(), "state", state);
-		EditorDebuggerNode::get_singleton()->set_breakpoint(scr->get_path(), p_line + 1, p_enabled);
+		EditorDebuggerNode::get_singleton()->set_breakpoint(scr->get_path(), p_line + 1, p_breakpointed);
 	}
+}
+
+void ScriptEditor::_change_breakpoint(Ref<RefCounted> p_script, int p_line, const Dictionary &p_data) {
+	Ref<Script> scr = Object::cast_to<Script>(*p_script);
+	EditorDebuggerNode::get_singleton()->set_breakpoint(scr->get_path(), p_line, true, p_data["enabled"], p_data["suspend"], p_data["condition"], p_data["print"]);
 }
 
 void ScriptEditor::_clear_breakpoints() {
@@ -1823,6 +1930,8 @@ void ScriptEditor::_notification(int p_what) {
 			FileSystemDock::get_singleton()->connect("file_removed", callable_mp(this, &ScriptEditor::_file_removed));
 			script_list->connect(SceneStringName(item_selected), callable_mp(this, &ScriptEditor::_script_selected));
 
+			EditorDebuggerNode::get_singleton()->get_current_debugger()->connect("breakpoint_edit_requested", callable_mp(this, &ScriptEditor::_breakpoint_edit_request));
+
 			members_overview->connect(SceneStringName(item_selected), callable_mp(this, &ScriptEditor::_members_overview_selected));
 			help_overview->connect(SceneStringName(item_selected), callable_mp(this, &ScriptEditor::_help_overview_selected));
 			script_split->connect("dragged", callable_mp(this, &ScriptEditor::_split_dragged));
@@ -1945,7 +2054,23 @@ void ScriptEditor::get_breakpoints(List<String> *p_breakpoints) {
 
 		PackedInt32Array bpoints = se->get_breakpoints();
 		for (int32_t bpoint : bpoints) {
-			p_breakpoints->push_back(base + ":" + itos((int)bpoint + 1));
+			const Breakpoint &bp = EditorDebuggerNode::get_singleton()->get_breakpoint(base, bpoint + 1);
+
+			String text = base + ":" + itos(bp.line);
+			if (!bp.enabled) {
+				text += "|enabled=false";
+			}
+			if (!bp.suspend) {
+				text += "|suspend=false";
+			}
+			if (!bp.condition.is_empty()) {
+				text += "|condition=" + bp.condition.uri_encode();
+			}
+			if (!bp.print.is_empty()) {
+				text += "|print=" + bp.print.uri_encode();
+			}
+
+			p_breakpoints->push_back(text);
 		}
 	}
 
@@ -2661,6 +2786,7 @@ bool ScriptEditor::edit(const Ref<Resource> &p_resource, int p_line, int p_col, 
 	se->connect("search_in_files_requested", callable_mp(this, &ScriptEditor::_on_find_in_files_requested));
 	se->connect("replace_in_files_requested", callable_mp(this, &ScriptEditor::_on_replace_in_files_requested));
 	se->connect("go_to_method", callable_mp(this, &ScriptEditor::script_goto_method));
+	se->connect("breakpoint_edit_requested", callable_mp(this, &ScriptEditor::_breakpoint_edit_request));
 
 	CodeTextEditor *cte = se->get_code_editor();
 	if (cte) {
@@ -3556,8 +3682,9 @@ void ScriptEditor::set_window_layout(Ref<ConfigFile> p_layout) {
 		}
 
 		Array breakpoints = _get_cached_breakpoints_for_script(E);
-		for (int breakpoint : breakpoints) {
-			EditorDebuggerNode::get_singleton()->set_breakpoint(E, (int)breakpoint + 1, true);
+		for (const Variant &bp : breakpoints) {
+			Dictionary dict = bp;
+			EditorDebuggerNode::get_singleton()->set_breakpoint(E, dict["line"], true, dict["enabled"], dict["suspend"], dict["condition"], dict["print"]);
 		}
 	}
 
@@ -4094,6 +4221,10 @@ void ScriptEditor::_filter_methods_text_changed(const String &p_newtext) {
 	_update_members_overview();
 }
 
+void ScriptEditor::_breakpoint_edit_request(const String &p_source, const int &p_line) {
+	breakpoint_dialog->popup_dialog(p_source, p_line - 1);
+}
+
 void ScriptEditor::_bind_methods() {
 	ClassDB::bind_method("_help_tab_goto", &ScriptEditor::_help_tab_goto);
 	ClassDB::bind_method("get_current_editor", &ScriptEditor::_get_current_editor);
@@ -4234,6 +4365,14 @@ ScriptEditor::ScriptEditor(WindowWrapper *p_wrapper) {
 	code_editor_container->add_child(find_replace_bar);
 	find_replace_bar->hide();
 
+	breakpoint_dialog = memnew(BreakpointDialog);
+	breakpoint_dialog->connect("edition_confirmed", callable_mp(this, &ScriptEditor::_change_breakpoint));
+	add_child(breakpoint_dialog);
+
+	breakpoint_dialog = memnew(BreakpointDialog);
+	breakpoint_dialog->connect("edition_confirmed", callable_mp(this, &ScriptEditor::_change_breakpoint));
+	add_child(breakpoint_dialog);
+
 	ED_SHORTCUT("script_editor/window_sort", TTRC("Sort"));
 	ED_SHORTCUT("script_editor/window_move_up", TTRC("Move Up"), KeyModifierMask::SHIFT | KeyModifierMask::ALT | Key::UP);
 	ED_SHORTCUT("script_editor/window_move_down", TTRC("Move Down"), KeyModifierMask::SHIFT | KeyModifierMask::ALT | Key::DOWN);
@@ -4328,6 +4467,7 @@ ScriptEditor::ScriptEditor(WindowWrapper *p_wrapper) {
 	debugger->connect("clear_execution", callable_mp(this, &ScriptEditor::_clear_execution));
 	debugger->connect("breaked", callable_mp(this, &ScriptEditor::_breaked));
 	debugger->connect("breakpoint_set_in_tree", callable_mp(this, &ScriptEditor::_set_breakpoint));
+	debugger->connect("breakpoint_changed_in_tree", callable_mp(this, &ScriptEditor::_change_breakpoint));
 	debugger->connect("breakpoints_cleared_in_tree", callable_mp(this, &ScriptEditor::_clear_breakpoints));
 
 	menu_hb->add_spacer();

@@ -35,6 +35,7 @@
 #include "core/debugger/remote_debugger_peer.h"
 #include "core/debugger/script_debugger.h"
 #include "core/os/os.h"
+#include "core/variant/variant_utility.h"
 
 EngineDebugger *EngineDebugger::singleton = nullptr;
 ScriptDebugger *EngineDebugger::script_debugger = nullptr;
@@ -162,11 +163,38 @@ void EngineDebugger::initialize(const String &p_uri, bool p_skip_breakpoints, co
 	singleton_script_debugger->set_skip_breakpoints(p_skip_breakpoints);
 
 	for (int i = 0; i < p_breakpoints.size(); i++) {
-		const String &bp = p_breakpoints[i];
-		int sp = bp.rfind_char(':');
-		ERR_CONTINUE_MSG(sp == -1, vformat("Invalid breakpoint: '%s', expected file:line format.", bp));
+		Breakpoint bp;
 
-		singleton_script_debugger->insert_breakpoint(bp.substr(sp + 1, bp.length()).to_int(), bp.substr(0, sp));
+		const String &bp_arg = p_breakpoints[i];
+		int set_sp = bp_arg.find_char('|');
+		String source_line = bp_arg.substr(0, set_sp == -1 ? bp_arg.length() : set_sp);
+
+		int sp = source_line.rfind_char(':');
+		ERR_CONTINUE_MSG(sp == -1, vformat("Invalid breakpoint: '%s', expected file:line format.", bp_arg));
+
+		bp.source = bp_arg.substr(0, sp);
+		bp.line = bp_arg.substr(sp + 1, source_line.length()).to_int();
+
+		if (set_sp > -1) {
+			const PackedStringArray &bp_settings = bp_arg.substr(set_sp + 1, bp_arg.length()).split("|");
+			for (const String &setting : bp_settings) {
+				String var = setting.get_slice("=", 0);
+				String value = setting.get_slice("=", 1);
+				ERR_CONTINUE_MSG(var.is_empty() || value.is_empty(), vformat("Invalid breakpoint condition: '%s', expected var=value format.", setting));
+
+				if (var == "enabled") {
+					bp.enabled = VariantUtilityFunctions::str_to_var(value);
+				} else if (var == "suspend") {
+					bp.suspend = VariantUtilityFunctions::str_to_var(value);
+				} else if (var == "condition") {
+					bp.condition = value.uri_decode();
+				} else if (var == "print") {
+					bp.print = value.uri_decode();
+				}
+			}
+		}
+
+		singleton_script_debugger->insert_breakpoint(bp.line, bp.source, bp);
 	}
 
 	allow_focus_steal_fn = p_allow_focus_steal_fn;

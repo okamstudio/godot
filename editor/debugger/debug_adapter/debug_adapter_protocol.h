@@ -91,7 +91,7 @@ private:
 	void on_debug_stopped();
 	void on_debug_output(const String &p_message, int p_type);
 	void on_debug_breaked(const bool &p_reallydid, const bool &p_can_debug, const String &p_reason, const bool &p_has_stackdump);
-	void on_debug_breakpoint_toggled(const String &p_path, const int &p_line, const bool &p_enabled);
+	void on_debug_breakpoint_toggled(const String &p_path, const int &p_line, const bool &p_breakpointed);
 	void on_debug_stack_dump(const Array &p_stack_dump);
 	void on_debug_stack_frame_vars(const int &p_size);
 	void on_debug_stack_frame_var(const Array &p_data);

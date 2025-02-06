@@ -1397,6 +1397,12 @@
 		<member name="text_editor/theme/highlighting/breakpoint_color" type="Color" setter="" getter="">
 			The script editor's breakpoint icon color (displayed in the gutter).
 		</member>
+		<member name="text_editor/theme/highlighting/breakpoint_disabled_color" type="Color" setter="" getter="">
+			The script editor's disabled breakpoint icon color (displayed in the gutter).
+		</member>
+		<member name="text_editor/theme/highlighting/breakpoint_print_color" type="Color" setter="" getter="">
+			The script editor's print-only breakpoint icon color (displayed in the gutter).
+		</member>
 		<member name="text_editor/theme/highlighting/caret_background_color" type="Color" setter="" getter="">
 			The script editor's caret background color.
 			[b]Note:[/b] This setting has no effect as it's currently unused.

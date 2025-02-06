@@ -57,6 +57,16 @@ void OS::_bind_compatibility_methods() {
 	ClassDB::bind_compatibility_method(D_METHOD("execute_with_pipe", "path", "arguments"), &OS::_execute_with_pipe_bind_compat_94434);
 }
 
+// Debugger
+
+void EngineDebugger::_insert_breakpoint_bind_compat_100516(int p_line, const StringName &p_source) {
+	insert_breakpoint(p_line, p_source);
+}
+
+void EngineDebugger::_bind_compatibility_methods() {
+	ClassDB::bind_compatibility_method(D_METHOD("insert_breakpoint", "line", "source"), &EngineDebugger::_insert_breakpoint_bind_compat_100516);
+}
+
 } // namespace core_bind
 
 #endif // DISABLE_DEPRECATED

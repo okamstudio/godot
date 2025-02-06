@@ -412,6 +412,98 @@ void RemoteDebugger::debug(bool p_can_continue, bool p_is_error_breakpoint) {
 		}
 	}
 
+	if (!p_is_error_breakpoint) {
+		const int frame = 0;
+		ScriptLanguage *script_lang = script_debugger->get_break_language();
+		const String &source = script_lang->debug_get_stack_level_source(frame);
+		const int &line = script_lang->debug_get_stack_level_line(frame);
+
+		if (EngineDebugger::get_script_debugger()->is_breakpoint(line, source)) {
+			const HashMap<StringName, HashMap<int, Breakpoint>> &breakpoints = EngineDebugger::get_script_debugger()->get_breakpoints();
+			const Breakpoint &breakpoint = breakpoints[source][line];
+
+			if (!breakpoint.enabled) {
+				return;
+			}
+
+			if (!breakpoint.condition.is_empty()) {
+				ScriptInstance *instance = script_lang->debug_get_stack_level_instance(frame);
+				if (instance) {
+					List<String> locals;
+					List<Variant> local_vals;
+					script_lang->debug_get_stack_level_locals(frame, &locals, &local_vals);
+					ERR_FAIL_COND(locals.size() != local_vals.size());
+
+					PackedStringArray locals_vector;
+					for (const String &S : locals) {
+						locals_vector.append(S);
+					}
+
+					Array local_vals_array;
+					for (const Variant &V : local_vals) {
+						local_vals_array.append(V);
+					}
+
+					Expression expression;
+					if (expression.parse(breakpoint.condition, locals_vector) != OK) {
+						ERR_FAIL_MSG(vformat("Breakpoint's condition parse error in \"%s\": %s.", breakpoint.condition, expression.get_error_text()));
+					}
+
+					const Variant return_val = expression.execute(local_vals_array, instance->get_owner(), false);
+					String error = expression.get_error_text();
+					if (!error.is_empty()) {
+						ERR_FAIL_MSG(vformat("Breakpoint's condition execution error in \"%s\": %s.", breakpoint.condition, error));
+					}
+
+					if (!return_val.booleanize()) {
+						return;
+					}
+				}
+			}
+
+			if (!breakpoint.print.is_empty()) {
+				ScriptInstance *instance = script_lang->debug_get_stack_level_instance(frame);
+				if (instance) {
+					String expression_str = vformat("print(\"%s\".format(input_dict))", breakpoint.print);
+
+					Dictionary input_dict;
+					{
+						List<String> locals;
+						List<Variant> local_vals;
+						script_lang->debug_get_stack_level_locals(frame, &locals, &local_vals);
+						ERR_FAIL_COND(locals.size() != local_vals.size());
+
+						const List<Variant>::Element *V = local_vals.front();
+						for (const String &S : locals) {
+							const Variant &value = V->get();
+							input_dict[S] = value;
+							V = V->next();
+						}
+					}
+					{
+						List<String> members;
+						List<Variant> member_vals;
+						script_lang->debug_get_stack_level_members(frame, &members, &member_vals);
+						ERR_FAIL_COND(members.size() != member_vals.size());
+
+						const List<Variant>::Element *V = member_vals.front();
+						for (const String &S : members) {
+							const Variant &value = V->get();
+							input_dict[S] = value;
+							V = V->next();
+						}
+					}
+
+					print_line_rich(breakpoint.print.format(input_dict));
+				}
+			}
+
+			if (!breakpoint.suspend) {
+				return;
+			}
+		}
+	}
+
 	ScriptLanguage *script_lang = script_debugger->get_break_language();
 	const String error_str = script_lang ? script_lang->debug_get_error() : "";
 	Array msg;
@@ -519,12 +611,13 @@ void RemoteDebugger::debug(bool p_can_continue, bool p_is_error_breakpoint) {
 			} else if (command == "reload_all_scripts") {
 				reload_all_scripts = true;
 			} else if (command == "breakpoint") {
-				ERR_FAIL_COND(data.size() < 3);
-				bool set = data[2];
-				if (set) {
-					script_debugger->insert_breakpoint(data[1], data[0]);
+				ERR_FAIL_COND(data.size() < 7);
+				Breakpoint bp = Breakpoint(data[0], data[1], data[3], data[4], data[5], data[6]);
+				bool breakpointed = data[2];
+				if (breakpointed && bp.enabled) {
+					script_debugger->insert_breakpoint(bp.line, bp.source, bp);
 				} else {
-					script_debugger->remove_breakpoint(data[1], data[0]);
+					script_debugger->remove_breakpoint(bp.line, bp.source);
 				}
 
 			} else if (command == "set_skip_breakpoints") {
@@ -658,12 +751,13 @@ Error RemoteDebugger::_core_capture(const String &p_cmd, const Array &p_data, bo
 	} else if (p_cmd == "reload_all_scripts") {
 		reload_all_scripts = true;
 	} else if (p_cmd == "breakpoint") {
-		ERR_FAIL_COND_V(p_data.size() < 3, ERR_INVALID_DATA);
-		bool set = p_data[2];
-		if (set) {
-			script_debugger->insert_breakpoint(p_data[1], p_data[0]);
+		ERR_FAIL_COND_V(p_data.size() < 7, ERR_INVALID_DATA);
+		Breakpoint bp = Breakpoint(p_data[0], p_data[1], p_data[3], p_data[4], p_data[5], p_data[6]);
+		bool breakpointed = p_data[2];
+		if (breakpointed && bp.enabled) {
+			script_debugger->insert_breakpoint(bp.line, bp.source, bp);
 		} else {
-			script_debugger->remove_breakpoint(p_data[1], p_data[0]);
+			script_debugger->remove_breakpoint(bp.line, bp.source);
 		}
 
 	} else if (p_cmd == "set_skip_breakpoints") {

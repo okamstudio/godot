@@ -241,30 +241,32 @@ void LocalDebugger::debug(bool p_can_continue, bool p_is_error_breakpoint) {
 
 		} else if (line.begins_with("br") || line.begins_with("break")) {
 			if (line.get_slice_count(" ") <= 1) {
-				const HashMap<int, HashSet<StringName>> &breakpoints = script_debugger->get_breakpoints();
+				const HashMap<StringName, HashMap<int, Breakpoint>> &breakpoints = script_debugger->get_breakpoints();
 				if (breakpoints.size() == 0) {
 					print_line("No Breakpoints.");
 					continue;
 				}
 
 				print_line("Breakpoint(s): " + itos(breakpoints.size()));
-				for (const KeyValue<int, HashSet<StringName>> &E : breakpoints) {
-					print_line("\t" + String(*E.value.begin()) + ":" + itos(E.key));
+				for (const KeyValue<StringName, HashMap<int, Breakpoint>> &E : breakpoints) {
+					for (const KeyValue<int, Breakpoint> &T : E.value) {
+						print_line("\t" + String(E.key) + ":" + itos(T.value.line));
+					}
 				}
 
 			} else {
 				Pair<String, int> breakpoint = to_breakpoint(line);
 
 				String source = breakpoint.first;
-				int linenr = breakpoint.second;
+				int bp_line = breakpoint.second;
 
 				if (source.is_empty()) {
 					continue;
 				}
 
-				script_debugger->insert_breakpoint(linenr, source);
+				script_debugger->insert_breakpoint(bp_line, source, Breakpoint(source, bp_line));
 
-				print_line("Added breakpoint at " + source + ":" + itos(linenr));
+				print_line("Added breakpoint at " + source + ":" + itos(bp_line));
 			}
 
 		} else if (line == "q" || line == "quit" ||

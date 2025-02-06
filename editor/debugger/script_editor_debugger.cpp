@@ -993,10 +993,47 @@ void ScriptEditorDebugger::_clear_execution() {
 	inspector->clear_stack_variables();
 }
 
-void ScriptEditorDebugger::_set_breakpoint(const String &p_file, const int &p_line, const bool &p_enabled) {
+void ScriptEditorDebugger::_set_breakpoint(const String &p_file, const int &p_line, const bool &p_breakpointed) {
+	TreeItem *parent = breakpoints_tree->get_root()->get_first_child();
+	if (parent) {
+		if (parent->get_meta("source") == p_file) {
+			bool found_checked = false;
+			TreeItem *child = parent->get_first_child();
+			while (child) {
+				if (child->is_checked(0)) {
+					found_checked = true;
+					break;
+				}
+				child = child->get_next();
+			}
+			parent->set_checked(0, found_checked);
+		}
+	}
+
 	Ref<Script> scr = ResourceLoader::load(p_file);
-	emit_signal(SNAME("set_breakpoint"), scr, p_line - 1, p_enabled);
+	emit_signal(SNAME("set_breakpoint"), scr, p_line - 1, p_breakpointed);
 	scr.unref();
+}
+
+void ScriptEditorDebugger::_change_breakpoint(const String &p_file, const int &p_line, const Dictionary &p_data) {
+	TreeItem *parent = breakpoints_tree->get_root()->get_first_child();
+	if (parent) {
+		if (parent->get_meta("source") == p_file) {
+			bool found_checked = false;
+			TreeItem *child = parent->get_first_child();
+			while (child) {
+				if (child->is_checked(0)) {
+					found_checked = true;
+					break;
+				}
+				child = child->get_next();
+			}
+			parent->set_checked(0, found_checked);
+		}
+	}
+
+	Ref<Script> scr = ResourceLoader::load(p_file);
+	emit_signal(SNAME("change_breakpoint"), scr, p_line, p_data);
 }
 
 void ScriptEditorDebugger::_clear_breakpoints() {
@@ -1006,7 +1043,7 @@ void ScriptEditorDebugger::_clear_breakpoints() {
 void ScriptEditorDebugger::_breakpoint_tree_clicked() {
 	TreeItem *selected = breakpoints_tree->get_selected();
 	if (selected->has_meta("line")) {
-		emit_signal(SNAME("breakpoint_selected"), selected->get_parent()->get_text(0), int(selected->get_meta("line")));
+		emit_signal(SNAME("breakpoint_selected"), selected->get_meta("source"), int(selected->get_meta("line")));
 	}
 }
 
@@ -1500,20 +1537,34 @@ void ScriptEditorDebugger::set_camera_override(CameraOverride p_override) {
 	camera_override = p_override;
 }
 
-void ScriptEditorDebugger::set_breakpoint(const String &p_path, int p_line, bool p_enabled) {
+void ScriptEditorDebugger::set_breakpoint(const String &p_path, int p_line, bool p_breakpointed, bool p_enabled, bool p_suspend, const String &p_condition, const String &p_print) {
+	Breakpoint bp = Breakpoint(p_path, p_line);
+	bp.enabled = p_enabled;
+	bp.suspend = p_suspend;
+	bp.condition = p_condition;
+	bp.print = p_print;
+
 	Array msg;
 	msg.push_back(p_path);
 	msg.push_back(p_line);
-	msg.push_back(p_enabled);
+	msg.push_back(p_breakpointed);
+	msg.push_back(bp.enabled);
+	msg.push_back(bp.suspend);
+	msg.push_back(bp.condition);
+	msg.push_back(bp.print);
 	_put_msg("breakpoint", msg, debugging_thread_id != Thread::UNASSIGNED_ID ? debugging_thread_id : Thread::MAIN_ID);
 
 	TreeItem *path_item = breakpoints_tree->search_item_text(p_path);
 	if (path_item == nullptr) {
-		if (!p_enabled) {
+		if (!p_breakpointed) {
 			return;
 		}
 		path_item = breakpoints_tree->create_item();
-		path_item->set_text(0, p_path);
+		path_item->set_cell_mode(0, TreeItem::TreeCellMode::CELL_MODE_CHECK);
+		path_item->set_checked(0, true);
+		path_item->set_editable(0, true);
+		path_item->set_text(1, p_path);
+		path_item->set_meta("source", p_path);
 	}
 
 	int idx = 0;
@@ -1530,21 +1581,73 @@ void ScriptEditorDebugger::set_breakpoint(const String &p_path, int p_line, bool
 	}
 
 	if (breakpoint_item == nullptr) {
-		if (!p_enabled) {
+		if (!p_breakpointed) {
 			return;
 		}
+
 		breakpoint_item = breakpoints_tree->create_item(path_item, idx);
+		breakpoint_item->set_cell_mode(0, TreeItem::TreeCellMode::CELL_MODE_CHECK);
+		breakpoint_item->set_checked(0, bp.enabled);
+		breakpoint_item->set_editable(0, true);
+		breakpoint_item->set_cell_mode(1, TreeItem::TreeCellMode::CELL_MODE_STRING);
+		breakpoint_item->set_text(1, vformat(TTR("Line %d"), p_line));
+
+		Vector<String> tooltips;
+
+		Ref<Texture2D> icon;
+		if (bp.condition.is_empty()) {
+			if (bp.suspend) {
+				icon = get_editor_theme_icon(SNAME("Breakpoint"));
+			} else {
+				icon = get_editor_theme_icon(SNAME("BreakpointNoSuspend"));
+				tooltips.append(TTR("Suspend execution disabled"));
+			}
+		} else {
+			tooltips.append(vformat(TTR("Condition: %s"), bp.condition));
+			if (bp.suspend) {
+				icon = get_editor_theme_icon(SNAME("BreakpointConditional"));
+			} else {
+				icon = get_editor_theme_icon(SNAME("BreakpointConditionalNoSuspend"));
+				tooltips.append(TTR("Execution suspension disabled"));
+			}
+		}
+		breakpoint_item->set_icon(1, icon);
+
+		Color use_color = get_theme_color(SNAME("breakpoint_color"), SNAME("CodeEdit"));
+		if (!bp.enabled) {
+			use_color = get_theme_color(SNAME("breakpoint_disabled_color"), SNAME("CodeEdit"));
+		} else if (!(bp.print.is_empty() && !bp.suspend)) {
+			use_color = get_theme_color(SNAME("breakpoint_print_color"), SNAME("CodeEdit"));
+		}
+		breakpoint_item->set_icon_modulate(1, use_color);
+
+		if (!bp.print.is_empty()) {
+			tooltips.append(vformat(TTR("Print: %s"), bp.print));
+		}
+		if (!tooltips.is_empty()) {
+			breakpoint_item->set_tooltip_text(1, String("\n").join(tooltips));
+		}
+
+		breakpoint_item->set_meta("source", p_path);
 		breakpoint_item->set_meta("line", p_line);
-		breakpoint_item->set_text(0, vformat(TTR("Line %d"), p_line));
+		breakpoint_item->set_meta("enabled", bp.enabled);
+		breakpoint_item->set_meta("suspend", bp.suspend);
+		breakpoint_item->set_meta("condition", bp.condition);
+		breakpoint_item->set_meta("print", bp.print);
+
 		return;
 	}
 
-	if (!p_enabled) {
+	if (!p_breakpointed) {
 		path_item->remove_child(breakpoint_item);
 		if (path_item->get_first_child() == nullptr) {
 			breakpoints_tree->get_root()->remove_child(path_item);
 		}
+
+		return;
 	}
+
+	breakpoint_item->set_checked(0, bp.enabled);
 }
 
 void ScriptEditorDebugger::reload_all_scripts() {
@@ -1636,6 +1739,8 @@ void ScriptEditorDebugger::_breakpoints_item_rmb_selected(const Vector2 &p_pos, 
 	const TreeItem *selected = breakpoints_tree->get_selected();
 	String file = selected->get_text(0);
 	if (selected->has_meta("line")) {
+		breakpoints_menu->add_icon_item(get_editor_theme_icon(SNAME("Reload")), TTR("Edit Breakpoint"), ACTION_EDIT_BREAKPOINT);
+
 		breakpoints_menu->add_icon_item(get_editor_theme_icon(SNAME("Remove")), TTR("Delete Breakpoint"), ACTION_DELETE_BREAKPOINT);
 		file = selected->get_parent()->get_text(0);
 	}
@@ -1644,6 +1749,31 @@ void ScriptEditorDebugger::_breakpoints_item_rmb_selected(const Vector2 &p_pos, 
 
 	breakpoints_menu->set_position(get_screen_position() + get_local_mouse_position());
 	breakpoints_menu->popup();
+}
+
+void ScriptEditorDebugger::_breakpoints_item_edited() {
+	TreeItem *selected = breakpoints_tree->get_selected();
+	if (selected) {
+		StringName source = selected->get_meta("source");
+		const bool &checked = selected->is_checked(0);
+
+		if (selected->has_meta("line")) {
+			const Breakpoint &bp = EditorDebuggerNode::get_singleton()->get_breakpoint(source, selected->get_meta("line"));
+			Dictionary dict = bp.serialize();
+			dict["enabled"] = checked;
+			_change_breakpoint(source, bp.line, dict);
+		} else {
+			TreeItem *child = selected->get_first_child();
+			while (child) {
+				const Breakpoint &bp = EditorDebuggerNode::get_singleton()->get_breakpoint(source, child->get_meta("line"));
+				Dictionary dict = bp.serialize();
+				dict["enabled"] = checked;
+				_change_breakpoint(source, child->get_meta("line"), dict);
+				child = child->get_next();
+			}
+			selected->set_checked(0, checked);
+		}
+	}
 }
 
 // Right click on specific file(s) or folder(s).
@@ -1729,6 +1859,10 @@ void ScriptEditorDebugger::_item_menu_id_pressed(int p_option) {
 			OS::get_singleton()->shell_open(vformat("https://github.com/godotengine/godot/blob/%s/%s#L%d",
 					git_ref, file, line_number));
 		} break;
+		case ACTION_EDIT_BREAKPOINT: {
+			const TreeItem *selected = breakpoints_tree->get_selected();
+			emit_signal(SNAME("breakpoint_edit_requested"), selected->get_meta("source"), selected->get_meta("line"));
+		} break;
 		case ACTION_DELETE_BREAKPOINT: {
 			const TreeItem *selected = breakpoints_tree->get_selected();
 			_set_breakpoint(selected->get_parent()->get_text(0), selected->get_meta("line"), false);
@@ -1779,6 +1913,7 @@ void ScriptEditorDebugger::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("stack_frame_selected", PropertyInfo(Variant::INT, "frame")));
 	ADD_SIGNAL(MethodInfo("error_selected", PropertyInfo(Variant::INT, "error")));
 	ADD_SIGNAL(MethodInfo("breakpoint_selected", PropertyInfo("script"), PropertyInfo(Variant::INT, "line")));
+	ADD_SIGNAL(MethodInfo("breakpoint_edit_requested", PropertyInfo("script"), PropertyInfo(Variant::INT, "line")));
 	ADD_SIGNAL(MethodInfo("set_execution", PropertyInfo("script"), PropertyInfo(Variant::INT, "line")));
 	ADD_SIGNAL(MethodInfo("clear_execution", PropertyInfo("script")));
 	ADD_SIGNAL(MethodInfo("breaked", PropertyInfo(Variant::BOOL, "reallydid"), PropertyInfo(Variant::BOOL, "can_debug"), PropertyInfo(Variant::STRING, "reason"), PropertyInfo(Variant::BOOL, "has_stackdump")));
@@ -1793,7 +1928,8 @@ void ScriptEditorDebugger::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("stack_frame_vars", PropertyInfo(Variant::INT, "num_vars")));
 	ADD_SIGNAL(MethodInfo("stack_frame_var", PropertyInfo(Variant::ARRAY, "data")));
 	ADD_SIGNAL(MethodInfo("debug_data", PropertyInfo(Variant::STRING, "msg"), PropertyInfo(Variant::ARRAY, "data")));
-	ADD_SIGNAL(MethodInfo("set_breakpoint", PropertyInfo("script"), PropertyInfo(Variant::INT, "line"), PropertyInfo(Variant::BOOL, "enabled")));
+	ADD_SIGNAL(MethodInfo("set_breakpoint", PropertyInfo("script"), PropertyInfo(Variant::INT, "line"), PropertyInfo(Variant::BOOL, "breakpointed")));
+	ADD_SIGNAL(MethodInfo("change_breakpoint", PropertyInfo("script"), PropertyInfo(Variant::INT, "line"), PropertyInfo(Variant::BOOL, "breakpointed"), PropertyInfo(Variant::DICTIONARY, "data")));
 	ADD_SIGNAL(MethodInfo("clear_breakpoints"));
 	ADD_SIGNAL(MethodInfo("errors_cleared"));
 }
@@ -1958,19 +2094,34 @@ ScriptEditorDebugger::ScriptEditorDebugger() {
 		inspector->set_use_filter(true);
 		inspector_vbox->add_child(inspector);
 
+		VBoxContainer *breakpoints_vbc = memnew(VBoxContainer);
+
+		Label *breakpoints_title = memnew(Label);
+		breakpoints_title->set_text(TTR("Breakpoints"));
+		breakpoints_title->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_LEFT);
+		breakpoints_title->set_vertical_alignment(VERTICAL_ALIGNMENT_CENTER);
+		breakpoints_vbc->add_child(breakpoints_title);
+
 		breakpoints_tree = memnew(Tree);
-		breakpoints_tree->set_custom_minimum_size(Size2(100, 0) * EDSCALE);
+		breakpoints_tree->set_custom_minimum_size(Size2(300, 0) * EDSCALE);
 		breakpoints_tree->set_h_size_flags(SIZE_EXPAND_FILL);
-		breakpoints_tree->set_column_titles_visible(true);
-		breakpoints_tree->set_column_title(0, TTR("Breakpoints"));
+		breakpoints_tree->set_v_size_flags(SIZE_EXPAND_FILL);
+		breakpoints_tree->set_columns(2);
+		breakpoints_tree->set_column_expand(0, false);
+		breakpoints_tree->set_column_expand(1, true);
+		breakpoints_tree->set_column_title_alignment(0, HORIZONTAL_ALIGNMENT_CENTER);
+		breakpoints_tree->set_column_title_alignment(1, HORIZONTAL_ALIGNMENT_LEFT);
+		// breakpoints_tree->set_column_custom_minimum_width(0, 0);
 		breakpoints_tree->set_allow_reselect(true);
 		breakpoints_tree->set_allow_rmb_select(true);
 		breakpoints_tree->set_hide_root(true);
 		breakpoints_tree->set_theme_type_variation("TreeSecondary");
 		breakpoints_tree->connect("item_mouse_selected", callable_mp(this, &ScriptEditorDebugger::_breakpoints_item_rmb_selected));
+		breakpoints_tree->connect("item_edited", callable_mp(this, &ScriptEditorDebugger::_breakpoints_item_edited));
 		breakpoints_tree->create_item();
+		breakpoints_vbc->add_child(breakpoints_tree);
 
-		parent_sc->add_child(breakpoints_tree);
+		parent_sc->add_child(breakpoints_vbc);
 		tabs->add_child(dbg);
 
 		breakpoints_menu = memnew(PopupMenu);

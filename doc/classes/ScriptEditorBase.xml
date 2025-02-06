@@ -24,6 +24,13 @@
 		</method>
 	</methods>
 	<signals>
+		<signal name="breakpoint_edit_requested">
+			<param index="0" name="source" type="StringName" />
+			<param index="1" name="line" type="int" />
+			<description>
+				Emitted when the user requests an edition of a breakpoint's settings.
+			</description>
+		</signal>
 		<signal name="edited_script_changed">
 			<description>
 				Emitted after script validation.

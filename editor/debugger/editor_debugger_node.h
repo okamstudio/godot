@@ -31,6 +31,7 @@
 #ifndef EDITOR_DEBUGGER_NODE_H
 #define EDITOR_DEBUGGER_NODE_H
 
+#include "core/debugger/script_debugger.h"
 #include "core/object/script_language.h"
 #include "editor/debugger/editor_debugger_server.h"
 #include "scene/gui/margin_container.h"
@@ -64,34 +65,6 @@ private:
 		DEBUG_WITH_EXTERNAL_EDITOR,
 	};
 
-	class Breakpoint {
-	public:
-		String source;
-		int line = 0;
-
-		static uint32_t hash(const Breakpoint &p_val) {
-			uint32_t h = HashMapHasherDefault::hash(p_val.source);
-			return hash_murmur3_one_32(p_val.line, h);
-		}
-		bool operator==(const Breakpoint &p_b) const {
-			return (line == p_b.line && source == p_b.source);
-		}
-
-		bool operator<(const Breakpoint &p_b) const {
-			if (line == p_b.line) {
-				return source < p_b.source;
-			}
-			return line < p_b.line;
-		}
-
-		Breakpoint() {}
-
-		Breakpoint(const String &p_source, int p_line) {
-			line = p_line;
-			source = p_source;
-		}
-	};
-
 	Ref<EditorDebuggerServer> server;
 	TabContainer *tabs = nullptr;
 	Button *debugger_button = nullptr;
@@ -112,7 +85,7 @@ private:
 	String current_uri;
 
 	CameraOverride camera_override = OVERRIDE_NONE;
-	HashMap<Breakpoint, bool, Breakpoint> breakpoints;
+	HashMap<StringName, HashMap<int, Breakpoint>> breakpoints;
 
 	HashSet<Ref<EditorDebuggerPlugin>> debugger_plugins;
 
@@ -137,7 +110,8 @@ protected:
 	void _remote_object_requested(ObjectID p_id, int p_debugger);
 	void _save_node_requested(ObjectID p_id, const String &p_file, int p_debugger);
 
-	void _breakpoint_set_in_tree(Ref<RefCounted> p_script, int p_line, bool p_enabled, int p_debugger);
+	void _breakpoint_set_in_tree(Ref<RefCounted> p_script, int p_line, bool p_breakpointed, int p_debugger = -1);
+	void _breakpoint_changed_in_tree(Ref<RefCounted> p_script, int p_line, const Dictionary &p_data, int p_debugger = -1);
 	void _breakpoints_cleared_in_tree(int p_debugger);
 
 	void _clear_execution(Ref<RefCounted> p_script) {
@@ -184,8 +158,10 @@ public:
 	bool get_debug_with_external_editor() { return debug_with_external_editor; }
 
 	bool is_skip_breakpoints() const;
-	void set_breakpoint(const String &p_path, int p_line, bool p_enabled);
-	void set_breakpoints(const String &p_path, const Array &p_lines);
+	void set_breakpoint(const String &p_path, int p_line, bool p_breakpointed, bool p_enabled = true, bool p_suspend = true, const String &p_conditon = "", const String &p_print = "");
+	bool has_breakpoint(const String &p_path, int p_line);
+	Breakpoint get_breakpoint(const String &p_source, const int &p_line) const;
+	Vector<Breakpoint> get_breakpoints(const String &p_source) const;
 	void reload_all_scripts();
 	void reload_scripts(const Vector<String> &p_script_paths);
 

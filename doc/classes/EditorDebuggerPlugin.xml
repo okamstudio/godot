@@ -71,7 +71,7 @@
 			<return type="void" />
 			<param index="0" name="script" type="Script" />
 			<param index="1" name="line" type="int" />
-			<param index="2" name="enabled" type="bool" />
+			<param index="2" name="breakpointed" type="bool" />
 			<description>
 				Override this method to be notified when a breakpoint is set in the editor.
 			</description>

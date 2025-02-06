@@ -83,6 +83,7 @@ private:
 		ACTION_DELETE_BREAKPOINT,
 		ACTION_DELETE_BREAKPOINTS_IN_FILE,
 		ACTION_DELETE_ALL_BREAKPOINTS,
+		ACTION_EDIT_BREAKPOINT,
 	};
 
 	AcceptDialog *msgdialog = nullptr;
@@ -222,6 +223,7 @@ private:
 	void _clear_errors_list();
 
 	void _breakpoints_item_rmb_selected(const Vector2 &p_pos, MouseButton p_button);
+	void _breakpoints_item_edited();
 	void _error_tree_item_rmb_selected(const Vector2 &p_pos, MouseButton p_button);
 	void _item_menu_id_pressed(int p_option);
 	void _tab_changed(int p_tab);
@@ -232,7 +234,8 @@ private:
 	void _clear_execution();
 	void _stop_and_notify();
 
-	void _set_breakpoint(const String &p_path, const int &p_line, const bool &p_enabled);
+	void _set_breakpoint(const String &p_file, const int &p_line, const bool &p_breakpointed);
+	void _change_breakpoint(const String &p_file, const int &p_line, const Dictionary &p_data);
 	void _clear_breakpoints();
 
 	void _breakpoint_tree_clicked();
@@ -302,7 +305,7 @@ public:
 	EditorDebuggerNode::CameraOverride get_camera_override() const;
 	void set_camera_override(EditorDebuggerNode::CameraOverride p_override);
 
-	void set_breakpoint(const String &p_path, int p_line, bool p_enabled);
+	void set_breakpoint(const String &p_path, int p_line, bool p_breakpointed, bool p_enabled = true, bool p_suspend = true, const String &p_condition = "", const String &print = "");
 
 	void update_live_edit_root();
 

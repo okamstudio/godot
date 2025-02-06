@@ -115,6 +115,7 @@ ScriptEditorDebugger *EditorDebuggerNode::_add_debugger() {
 	node->connect("remote_object_property_updated", callable_mp(this, &EditorDebuggerNode::_remote_object_property_updated).bind(id));
 	node->connect("remote_object_requested", callable_mp(this, &EditorDebuggerNode::_remote_object_requested).bind(id));
 	node->connect("set_breakpoint", callable_mp(this, &EditorDebuggerNode::_breakpoint_set_in_tree).bind(id));
+	node->connect("change_breakpoint", callable_mp(this, &EditorDebuggerNode::_breakpoint_changed_in_tree).bind(id));
 	node->connect("clear_breakpoints", callable_mp(this, &EditorDebuggerNode::_breakpoints_cleared_in_tree).bind(id));
 	node->connect("errors_cleared", callable_mp(this, &EditorDebuggerNode::_update_errors));
 
@@ -212,8 +213,10 @@ void EditorDebuggerNode::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("set_execution", PropertyInfo("script"), PropertyInfo(Variant::INT, "line")));
 	ADD_SIGNAL(MethodInfo("clear_execution", PropertyInfo("script")));
 	ADD_SIGNAL(MethodInfo("breaked", PropertyInfo(Variant::BOOL, "reallydid"), PropertyInfo(Variant::BOOL, "can_debug")));
-	ADD_SIGNAL(MethodInfo("breakpoint_toggled", PropertyInfo(Variant::STRING, "path"), PropertyInfo(Variant::INT, "line"), PropertyInfo(Variant::BOOL, "enabled")));
-	ADD_SIGNAL(MethodInfo("breakpoint_set_in_tree", PropertyInfo("script"), PropertyInfo(Variant::INT, "line"), PropertyInfo(Variant::BOOL, "enabled"), PropertyInfo(Variant::INT, "debugger")));
+	ADD_SIGNAL(MethodInfo("breakpoint_toggled", PropertyInfo(Variant::STRING, "path"), PropertyInfo(Variant::INT, "line"), PropertyInfo(Variant::BOOL, "breakpointed")));
+	ADD_SIGNAL(MethodInfo("breakpoint_changed", PropertyInfo(Variant::STRING, "path"), PropertyInfo(Variant::INT, "line"), PropertyInfo(Variant::BOOL, "breakpointed")));
+	ADD_SIGNAL(MethodInfo("breakpoint_set_in_tree", PropertyInfo("script"), PropertyInfo(Variant::INT, "line"), PropertyInfo(Variant::BOOL, "breakpointed")));
+	ADD_SIGNAL(MethodInfo("breakpoint_changed_in_tree", PropertyInfo("script"), PropertyInfo(Variant::INT, "line"), PropertyInfo(Variant::BOOL, "breakpointed"), PropertyInfo(Variant::INT, "debugger")));
 	ADD_SIGNAL(MethodInfo("breakpoints_cleared_in_tree", PropertyInfo(Variant::INT, "debugger")));
 }
 
@@ -311,7 +314,6 @@ void EditorDebuggerNode::stop(bool p_force) {
 		}
 	});
 	_break_state_changed();
-	breakpoints.clear();
 	EditorUndoRedoManager::get_singleton()->clear_history(EditorUndoRedoManager::REMOTE_HISTORY, false);
 	set_process(false);
 }
@@ -398,10 +400,12 @@ void EditorDebuggerNode::_notification(int p_what) {
 				SceneTreeDock::get_singleton()->show_tab_buttons();
 				debugger->set_editor_remote_tree(remote_scene_tree);
 				debugger->start(server->take_connection());
-				// Send breakpoints.
-				for (const KeyValue<Breakpoint, bool> &E : breakpoints) {
-					const Breakpoint &bp = E.key;
-					debugger->set_breakpoint(bp.source, bp.line, E.value);
+				// Send breakpoints.HashMap<StringName, HashMap<int, Breakpoint>>
+				for (const KeyValue<StringName, HashMap<int, Breakpoint>> &E : breakpoints) {
+					for (const KeyValue<int, Breakpoint> &T : E.value) {
+						const Breakpoint &bp = T.value;
+						debugger->set_breakpoint(bp.source, bp.line, true, bp.enabled, bp.suspend, bp.condition, bp.print);
+					}
 				} // Will arrive too late, how does the regular run work?
 
 				debugger->update_live_edit_root();
@@ -587,26 +591,63 @@ bool EditorDebuggerNode::is_skip_breakpoints() const {
 	return get_current_debugger()->is_skip_breakpoints();
 }
 
-void EditorDebuggerNode::set_breakpoint(const String &p_path, int p_line, bool p_enabled) {
-	breakpoints[Breakpoint(p_path, p_line)] = p_enabled;
-	_for_all(tabs, [&](ScriptEditorDebugger *dbg) {
-		dbg->set_breakpoint(p_path, p_line, p_enabled);
-	});
+void EditorDebuggerNode::set_breakpoint(const String &p_path, int p_line, bool p_breakpointed, bool p_enabled, bool p_suspend, const String &p_conditon, const String &p_print) {
+	Breakpoint bp = Breakpoint(p_path, p_line);
 
-	emit_signal(SNAME("breakpoint_toggled"), p_path, p_line, p_enabled);
-}
-
-void EditorDebuggerNode::set_breakpoints(const String &p_path, const Array &p_lines) {
-	for (int i = 0; i < p_lines.size(); i++) {
-		set_breakpoint(p_path, p_lines[i], true);
+	bool toggled = p_breakpointed != has_breakpoint(p_path, p_line);
+	if (!toggled) {
+		bp = get_breakpoint(p_path, p_line);
 	}
 
-	for (const KeyValue<Breakpoint, bool> &E : breakpoints) {
-		Breakpoint b = E.key;
-		if (b.source == p_path && !p_lines.has(b.line)) {
-			set_breakpoint(p_path, b.line, false);
+	bp.enabled = p_enabled;
+	bp.suspend = p_suspend;
+	bp.condition = p_conditon;
+	bp.print = p_print;
+
+	if (p_breakpointed) {
+		if (!breakpoints.has(p_path)) {
+			breakpoints[p_path] = HashMap<int, Breakpoint>();
+		}
+		breakpoints[p_path].insert(p_line, bp);
+	} else {
+		if (breakpoints.has(p_path) && breakpoints[p_path].has(p_line)) {
+			breakpoints[p_path].erase(p_line);
+			if (breakpoints[p_path].is_empty()) {
+				breakpoints.erase(p_path);
+			}
 		}
 	}
+
+	_for_all(tabs, [&](ScriptEditorDebugger *dbg) {
+		dbg->set_breakpoint(p_path, p_line, p_breakpointed, bp.enabled, bp.suspend, bp.condition, bp.print);
+	});
+
+	if (toggled) {
+		emit_signal(SNAME("breakpoint_toggled"), p_path, p_line, p_breakpointed);
+	} else {
+		emit_signal(SNAME("breakpoint_changed"), p_path, p_line, bp.serialize());
+	}
+}
+
+bool EditorDebuggerNode::has_breakpoint(const String &p_path, int p_line) {
+	return breakpoints.has(p_path) && breakpoints[p_path].has(p_line);
+}
+
+Breakpoint EditorDebuggerNode::get_breakpoint(const String &p_source, const int &p_line) const {
+	ERR_FAIL_COND_V(!breakpoints.has(p_source), Breakpoint());
+	ERR_FAIL_COND_V(!breakpoints[p_source].has(p_line), Breakpoint());
+	return breakpoints[p_source][p_line];
+}
+
+Vector<Breakpoint> EditorDebuggerNode::get_breakpoints(const String &p_source) const {
+	Vector<Breakpoint> result;
+	if (!breakpoints.has(p_source)) {
+		return result;
+	}
+	for (const KeyValue<int, Breakpoint> &E : breakpoints[p_source]) {
+		result.push_back(E.value);
+	}
+	return result;
 }
 
 void EditorDebuggerNode::reload_all_scripts() {
@@ -719,12 +760,23 @@ void EditorDebuggerNode::_save_node_requested(ObjectID p_id, const String &p_fil
 	get_current_debugger()->save_node(p_id, p_file);
 }
 
-void EditorDebuggerNode::_breakpoint_set_in_tree(Ref<RefCounted> p_script, int p_line, bool p_enabled, int p_debugger) {
+void EditorDebuggerNode::_breakpoint_set_in_tree(Ref<RefCounted> p_script, int p_line, bool p_breakpointed, int p_debugger) {
 	if (p_debugger != tabs->get_current_tab()) {
 		return;
 	}
+	Resource *source = Object::cast_to<Resource>(p_script.ptr());
+	ERR_FAIL_COND(!source);
+	String path = source->get_path();
+	ERR_FAIL_COND(!breakpoints.has(path) || !breakpoints[path].has(p_line));
 
-	emit_signal(SNAME("breakpoint_set_in_tree"), p_script, p_line, p_enabled);
+	emit_signal(SNAME("breakpoint_set_in_tree"), p_script, p_line, p_breakpointed);
+}
+
+void EditorDebuggerNode::_breakpoint_changed_in_tree(Ref<RefCounted> p_script, int p_line, const Dictionary &p_data, int p_debugger) {
+	if (p_debugger != tabs->get_current_tab()) {
+		return;
+	}
+	emit_signal(SNAME("breakpoint_changed_in_tree"), p_script, p_line, p_data);
 }
 
 void EditorDebuggerNode::_breakpoints_cleared_in_tree(int p_debugger) {
