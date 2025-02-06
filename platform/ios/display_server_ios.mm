@@ -822,3 +822,11 @@ DisplayServer::VSyncMode DisplayServerIOS::window_get_vsync_mode(WindowID p_wind
 #endif
 	return DisplayServer::VSYNC_ENABLED;
 }
+
+void DisplayServerIOS::set_native_icon(const String &p_filename) {
+	// Not supported on iOS.
+}
+
+void DisplayServerIOS::set_icon(const Ref<Image> &p_icon) {
+	// Not supported on iOS.
+}
