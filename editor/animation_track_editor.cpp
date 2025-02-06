@@ -751,6 +751,7 @@ bool AnimationMultiTrackKeyEdit::_set(const StringName &p_name, const Variant &p
 	bool change_notify_deserved = false;
 	for (const KeyValue<int, List<float>> &E : key_ofs_map) {
 		int track = E.key;
+		PropertyInfo track_hint = hint_map[track];
 		for (const float &key_ofs : E.value) {
 			int key = animation->track_find_key(track, key_ofs, Animation::FIND_MODE_APPROX);
 			ERR_FAIL_COND_V(key == -1, false);
@@ -772,36 +773,56 @@ bool AnimationMultiTrackKeyEdit::_set(const StringName &p_name, const Variant &p
 
 			EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
 			switch (animation->track_get_type(track)) {
-				case Animation::TYPE_POSITION_3D:
-				case Animation::TYPE_ROTATION_3D:
-				case Animation::TYPE_SCALE_3D: {
-					Variant old = animation->track_get_key_value(track, key);
-					if (!setting) {
-						String action_name;
-						switch (animation->track_get_type(track)) {
-							case Animation::TYPE_POSITION_3D:
-								action_name = TTR("Animation Multi Change Position3D");
-								break;
-							case Animation::TYPE_ROTATION_3D:
-								action_name = TTR("Animation Multi Change Rotation3D");
-								break;
-							case Animation::TYPE_SCALE_3D:
-								action_name = TTR("Animation Multi Change Scale3D");
-								break;
-							default: {
-							}
-						}
+				case Animation::TYPE_POSITION_3D: {
+					String track_name = base_map[track].get_name(base_map[track].get_name_count() - 1);
+					if (name == track_name || name == "all_3d_position") {
+						Variant old = animation->track_get_key_value(track, key);
+						if (!setting) {
+							String action_name = TTR("Animation Multi Change Position3D");
 
-						setting = true;
-						undo_redo->create_action(action_name);
+							setting = true;
+							undo_redo->create_action(action_name);
+						}
+						undo_redo->add_do_method(animation.ptr(), "track_set_key_value", track, key, p_value);
+						undo_redo->add_undo_method(animation.ptr(), "track_set_key_value", track, key, old);
+						update_obj = true;
 					}
-					undo_redo->add_do_method(animation.ptr(), "track_set_key_value", track, key, p_value);
-					undo_redo->add_undo_method(animation.ptr(), "track_set_key_value", track, key, old);
-					update_obj = true;
 				} break;
-				case Animation::TYPE_BLEND_SHAPE:
-				case Animation::TYPE_VALUE: {
-					if (name == "value") {
+				case Animation::TYPE_ROTATION_3D: {
+					String track_name = base_map[track].get_name(base_map[track].get_name_count() - 1);
+					if (name == track_name || name == "all_3d_rotation") {
+						Variant old = animation->track_get_key_value(track, key);
+						if (!setting) {
+							String action_name = TTR("Animation Multi Change Rotation3D");
+
+							setting = true;
+							undo_redo->create_action(action_name);
+						}
+						undo_redo->add_do_method(animation.ptr(), "track_set_key_value", track, key, p_value);
+						undo_redo->add_undo_method(animation.ptr(), "track_set_key_value", track, key, old);
+						update_obj = true;
+					}
+				} break;
+				case Animation::TYPE_SCALE_3D: {
+					String track_name = base_map[track].get_name(base_map[track].get_name_count() - 1);
+					if (name == track_name || name == "all_3d_scale") {
+						Variant old = animation->track_get_key_value(track, key);
+						if (!setting) {
+							String action_name = TTR("Animation Multi Change Scale3D");
+
+							setting = true;
+							undo_redo->create_action(action_name);
+						}
+						undo_redo->add_do_method(animation.ptr(), "track_set_key_value", track, key, p_value);
+						undo_redo->add_undo_method(animation.ptr(), "track_set_key_value", track, key, old);
+						update_obj = true;
+					}
+				} break;
+				case Animation::TYPE_BLEND_SHAPE: {
+					Variant prev = animation->track_get_key_value(track, key);
+					String prop_name = track_hint.name;
+
+					if (name == prop_name || name == "all_blend_shape") {
 						Variant value = p_value;
 
 						if (value.get_type() == Variant::NODE_PATH) {
@@ -812,31 +833,59 @@ bool AnimationMultiTrackKeyEdit::_set(const StringName &p_name, const Variant &p
 							setting = true;
 							undo_redo->create_action(TTR("Animation Multi Change Keyframe Value"), UndoRedo::MERGE_ENDS);
 						}
-						Variant prev = animation->track_get_key_value(track, key);
+						undo_redo->add_do_method(animation.ptr(), "track_set_key_value", track, key, value);
+						undo_redo->add_undo_method(animation.ptr(), "track_set_key_value", track, key, prev);
+						update_obj = true;
+					}
+				} break;
+				case Animation::TYPE_VALUE: {
+					Variant prev = animation->track_get_key_value(track, key);
+
+					String type_name = Variant::get_type_name(track_hint.type);
+					if (track_hint.hint == PROPERTY_HINT_RESOURCE_TYPE) {
+						type_name = type_name + " - " + track_hint.hint_string;
+					}
+					String prop_name = "individual_property/" + track_hint.name + " (" + type_name + ")";
+
+					if (name == prop_name || name == "all_property/" + type_name) {
+						Variant value = p_value;
+
+						if (value.get_type() == Variant::NODE_PATH) {
+							_fix_node_path(value, base_map[track]);
+						}
+
+						if (!setting) {
+							setting = true;
+							undo_redo->create_action(TTR("Animation Multi Change Keyframe Value"), UndoRedo::MERGE_ENDS);
+						}
 						undo_redo->add_do_method(animation.ptr(), "track_set_key_value", track, key, value);
 						undo_redo->add_undo_method(animation.ptr(), "track_set_key_value", track, key, prev);
 						update_obj = true;
 					}
 				} break;
 				case Animation::TYPE_METHOD: {
+					if (!name.begins_with("individual_method_call/") && !name.begins_with("all_method_call/")) {
+						break;
+					}
+					String track_name = "individual_method_call/" + base_map[track].get_name(base_map[track].get_name_count() - 1);
 					Dictionary d_old = animation->track_get_key_value(track, key);
 					Dictionary d_new = d_old.duplicate();
 
 					bool mergeable = false;
 
-					if (name == "name") {
+					if (name == track_name + "/name" || name == "all_method_call/name") {
 						d_new["method"] = p_value;
-					} else if (name == "arg_count") {
+					} else if (name == track_name + "/arg_count" || name == "all_method_call/arg_count") {
 						Vector<Variant> args = d_old["args"];
 						args.resize(p_value);
 						d_new["args"] = args;
 						change_notify_deserved = true;
-					} else if (name.begins_with("args/")) {
+					} else if (name.begins_with(track_name + "/args/") || name.begins_with("all_method_call/args/")) {
 						Vector<Variant> args = d_old["args"];
-						int idx = name.get_slice("/", 1).to_int();
+						int idx = name.get_slice("/", name.get_slice_count("/") - 2).to_int();
 						ERR_FAIL_INDEX_V(idx, args.size(), false);
 
-						String what = name.get_slice("/", 2);
+						String what = name.get_slice("/", name.get_slice_count("/") - 1);
 						if (what == "type") {
 							Variant::Type t = Variant::Type(int(p_value));
 
@@ -881,7 +930,8 @@ bool AnimationMultiTrackKeyEdit::_set(const StringName &p_name, const Variant &p
 					update_obj = true;
 				} break;
 				case Animation::TYPE_BEZIER: {
-					if (name == "value") {
+					String prop_name = "individual_bezier_curve/" + track_hint.name;
+					if (name == prop_name + "/value" || name == "all_bezier_curve/value") {
 						const Variant &value = p_value;
 
 						if (!setting) {
@@ -892,7 +942,7 @@ bool AnimationMultiTrackKeyEdit::_set(const StringName &p_name, const Variant &p
 						undo_redo->add_do_method(animation.ptr(), "bezier_track_set_key_value", track, key, value);
 						undo_redo->add_undo_method(animation.ptr(), "bezier_track_set_key_value", track, key, prev);
 						update_obj = true;
-					} else if (name == "in_handle") {
+					} else if (name == prop_name + "/in_handle" || name == "all_bezier_curve/in_handle") {
 						const Variant &value = p_value;
 
 						if (!setting) {
@@ -903,7 +953,7 @@ bool AnimationMultiTrackKeyEdit::_set(const StringName &p_name, const Variant &p
 						undo_redo->add_do_method(animation.ptr(), "bezier_track_set_key_in_handle", track, key, value);
 						undo_redo->add_undo_method(animation.ptr(), "bezier_track_set_key_in_handle", track, key, prev);
 						update_obj = true;
-					} else if (name == "out_handle") {
+					} else if (name == prop_name + "/out_handle" || name == "all_bezier_curve/out_handle") {
 						const Variant &value = p_value;
 
 						if (!setting) {
@@ -914,7 +964,7 @@ bool AnimationMultiTrackKeyEdit::_set(const StringName &p_name, const Variant &p
 						undo_redo->add_do_method(animation.ptr(), "bezier_track_set_key_out_handle", track, key, value);
 						undo_redo->add_undo_method(animation.ptr(), "bezier_track_set_key_out_handle", track, key, prev);
 						update_obj = true;
-					} else if (name == "handle_mode") {
+					} else if (name == prop_name + "/handle_mode" || name == "all_bezier_curve/handle_mode") {
 						const Variant &value = p_value;
 
 						if (!setting) {
@@ -932,7 +982,8 @@ bool AnimationMultiTrackKeyEdit::_set(const StringName &p_name, const Variant &p
 					}
 				} break;
 				case Animation::TYPE_AUDIO: {
-					if (name == "stream") {
+					String track_name = "individual_audio_playback/" + base_map[track].get_name(base_map[track].get_name_count() - 1);
+					if (name == track_name + "/stream" || name == "all_audio_playback/stream") {
 						Ref<AudioStream> stream = p_value;
 
 						if (!setting) {
@@ -943,7 +994,7 @@ bool AnimationMultiTrackKeyEdit::_set(const StringName &p_name, const Variant &p
 						undo_redo->add_do_method(animation.ptr(), "audio_track_set_key_stream", track, key, stream);
 						undo_redo->add_undo_method(animation.ptr(), "audio_track_set_key_stream", track, key, prev);
 						update_obj = true;
-					} else if (name == "start_offset") {
+					} else if (name == track_name + "/start_offset" || name == "all_audio_playback/start_offset") {
 						float value = p_value;
 
 						if (!setting) {
@@ -954,7 +1005,7 @@ bool AnimationMultiTrackKeyEdit::_set(const StringName &p_name, const Variant &p
 						undo_redo->add_do_method(animation.ptr(), "audio_track_set_key_start_offset", track, key, value);
 						undo_redo->add_undo_method(animation.ptr(), "audio_track_set_key_start_offset", track, key, prev);
 						update_obj = true;
-					} else if (name == "end_offset") {
+					} else if (name == track_name + "/end_offset" || name == "all_audio_playback/end_offset") {
 						float value = p_value;
 
 						if (!setting) {
@@ -968,7 +1019,8 @@ bool AnimationMultiTrackKeyEdit::_set(const StringName &p_name, const Variant &p
 					}
 				} break;
 				case Animation::TYPE_ANIMATION: {
-					if (name == "animation") {
+					String track_name = base_map[track].get_name(base_map[track].get_name_count() - 1);
+					if (name == track_name) {
 						StringName anim_name = p_value;
 
 						if (!setting) {
@@ -1008,6 +1060,7 @@ bool AnimationMultiTrackKeyEdit::_set(const StringName &p_name, const Variant &p
 bool AnimationMultiTrackKeyEdit::_get(const StringName &p_name, Variant &r_ret) const {
 	for (const KeyValue<int, List<float>> &E : key_ofs_map) {
 		int track = E.key;
+		PropertyInfo track_hint = hint_map[track];
 		for (const float &key_ofs : E.value) {
 			int key = animation->track_find_key(track, key_ofs, Animation::FIND_MODE_APPROX);
 			ERR_CONTINUE(key == -1);
@@ -1019,27 +1072,51 @@ bool AnimationMultiTrackKeyEdit::_get(const StringName &p_name, Variant &r_ret) 
 			}
 
 			switch (animation->track_get_type(track)) {
-				case Animation::TYPE_POSITION_3D:
-				case Animation::TYPE_ROTATION_3D:
-				case Animation::TYPE_SCALE_3D: {
-					if (name == "position" || name == "rotation" || name == "scale") {
+				case Animation::TYPE_POSITION_3D: {
+					String track_name = base_map[track].get_name(base_map[track].get_name_count() - 1);
+					if (name == track_name || name == "all_3d_position") {
 						r_ret = animation->track_get_key_value(track, key);
 						return true;
 					}
-
 				} break;
-				case Animation::TYPE_BLEND_SHAPE:
-				case Animation::TYPE_VALUE: {
-					if (name == "value") {
+				case Animation::TYPE_ROTATION_3D: {
+					String track_name = base_map[track].get_name(base_map[track].get_name_count() - 1);
+					if (name == track_name || name == "all_3d_rotation") {
 						r_ret = animation->track_get_key_value(track, key);
 						return true;
 					}
+				} break;
+				case Animation::TYPE_SCALE_3D: {
+					String track_name = base_map[track].get_name(base_map[track].get_name_count() - 1);
+					if (name == track_name || name == "all_3d_scale") {
+						r_ret = animation->track_get_key_value(track, key);
+						return true;
+					}
+				} break;
+				case Animation::TYPE_BLEND_SHAPE: {
+					String prop_name = track_hint.name;
+					if (name == prop_name || name == "all_blend_shape") {
+						r_ret = animation->track_get_key_value(track, key);
+						return true;
+					}
+				} break;
+				case Animation::TYPE_VALUE: {
+					String type_name = Variant::get_type_name(track_hint.type);
+					if (track_hint.hint == PROPERTY_HINT_RESOURCE_TYPE) {
+						type_name = type_name + " - " + track_hint.hint_string;
+					}
+					String prop_name = "individual_property/" + track_hint.name + " (" + type_name + ")";
 
+					if (name == prop_name || name == "all_property/" + type_name) {
+						r_ret = animation->track_get_key_value(track, key);
+						return true;
+					}
 				} break;
 				case Animation::TYPE_METHOD: {
+					String track_name = "individual_method_call/" + base_map[track].get_name(base_map[track].get_name_count() - 1);
 					Dictionary d = animation->track_get_key_value(track, key);
 
-					if (name == "name") {
+					if (name == track_name + "/name" || name == "all_method_call/name") {
 						ERR_FAIL_COND_V(!d.has("method"), false);
 						r_ret = d["method"];
 						return true;
@@ -1049,16 +1126,16 @@ bool AnimationMultiTrackKeyEdit::_get(const StringName &p_name, Variant &r_ret) 
 
 					Vector<Variant> args = d["args"];
 
-					if (name == "arg_count") {
+					if (name == track_name + "/arg_count" || name == "all_method_call/arg_count") {
 						r_ret = args.size();
 						return true;
 					}
 
-					if (name.begins_with("args/")) {
-						int idx = name.get_slice("/", 1).to_int();
+					if (name.begins_with(track_name + "/args/") || name.begins_with("all_method_call/args/")) {
+						int idx = name.get_slice("/", name.get_slice_count("/") - 2).to_int();
 						ERR_FAIL_INDEX_V(idx, args.size(), false);
 
-						String what = name.get_slice("/", 2);
+						String what = name.get_slice("/", name.get_slice_count("/") - 1);
 						if (what == "type") {
 							r_ret = args[idx].get_type();
 							return true;
@@ -1072,46 +1149,49 @@ bool AnimationMultiTrackKeyEdit::_get(const StringName &p_name, Variant &r_ret) 
 
 				} break;
 				case Animation::TYPE_BEZIER: {
-					if (name == "value") {
+					String prop_name = "individual_bezier_curve/" + track_hint.name;
+					if (name == prop_name + "/value" || name == "all_bezier_curve/value") {
 						r_ret = animation->bezier_track_get_key_value(track, key);
 						return true;
 					}
 
-					if (name == "in_handle") {
+					if (name == prop_name + "/in_handle" || name == "all_bezier_curve/in_handle") {
 						r_ret = animation->bezier_track_get_key_in_handle(track, key);
 						return true;
 					}
 
-					if (name == "out_handle") {
+					if (name == prop_name + "/out_handle" || name == "all_bezier_curve/out_handle") {
 						r_ret = animation->bezier_track_get_key_out_handle(track, key);
 						return true;
 					}
 
-					if (name == "handle_mode") {
+					if (name == prop_name + "/handle_mode" || name == "all_bezier_curve/handle_mode") {
 						r_ret = animation->bezier_track_get_key_handle_mode(track, key);
 						return true;
 					}
 
 				} break;
 				case Animation::TYPE_AUDIO: {
-					if (name == "stream") {
+					String track_name = "individual_audio_playback/" + base_map[track].get_name(base_map[track].get_name_count() - 1);
+					if (name == track_name + "/stream" || name == "all_audio_playback/stream") {
 						r_ret = animation->audio_track_get_key_stream(track, key);
 						return true;
 					}
 
-					if (name == "start_offset") {
+					if (name == track_name + "/start_offset" || name == "all_audio_playback/start_offset") {
 						r_ret = animation->audio_track_get_key_start_offset(track, key);
 						return true;
 					}
 
-					if (name == "end_offset") {
+					if (name == track_name + "/end_offset" || name == "all_audio_playback/end_offset") {
 						r_ret = animation->audio_track_get_key_end_offset(track, key);
 						return true;
 					}
 
 				} break;
 				case Animation::TYPE_ANIMATION: {
-					if (name == "animation") {
+					String track_name = base_map[track].get_name(base_map[track].get_name_count() - 1);
+					if (name == track_name) {
 						r_ret = animation->animation_track_get_key_animation(track, key);
 						return true;
 					}
@@ -1129,90 +1209,105 @@ void AnimationMultiTrackKeyEdit::_get_property_list(List<PropertyInfo> *p_list) 
 		return;
 	}
 
-	int first_track = -1;
-	float first_key = -1.0;
+	p_list->push_back(PropertyInfo(Variant::FLOAT, "easing", PROPERTY_HINT_EXP_EASING));
 
-	bool same_track_type = true;
-	bool same_key_type = true;
+	RBMap<int, Vector<String>> names_map;
+	RBMap<int, Vector<PropertyInfo>> properties_map;
+	Vector<Variant> first_method_args;
+
 	for (const KeyValue<int, List<float>> &E : key_ofs_map) {
 		int track = E.key;
 		ERR_FAIL_INDEX(track, animation->get_track_count());
 
-		if (first_track < 0) {
-			first_track = track;
+		PropertyInfo track_hint = hint_map[track];
+
+		Animation::TrackType track_type = animation->track_get_type(track);
+
+		if (!properties_map.has(track_type)) {
+			properties_map[track_type] = Vector<PropertyInfo>();
+			names_map[track_type] = Vector<String>();
 		}
 
-		if (same_track_type) {
-			if (animation->track_get_type(first_track) != animation->track_get_type(track)) {
-				same_track_type = false;
-				same_key_type = false;
-			}
-
-			for (const float &F : E.value) {
-				int key = animation->track_find_key(track, F, Animation::FIND_MODE_APPROX);
-				ERR_FAIL_COND(key == -1);
-				if (first_key < 0) {
-					first_key = key;
-				}
-
-				if (animation->track_get_key_value(first_track, first_key).get_type() != animation->track_get_key_value(track, key).get_type()) {
-					same_key_type = false;
-				}
-			}
-		}
-	}
-
-	if (same_track_type) {
-		switch (animation->track_get_type(first_track)) {
-			case Animation::TYPE_POSITION_3D: {
-				p_list->push_back(PropertyInfo(Variant::VECTOR3, "position"));
-			} break;
-			case Animation::TYPE_ROTATION_3D: {
-				p_list->push_back(PropertyInfo(Variant::QUATERNION, "rotation"));
-			} break;
+		switch (track_type) {
+			case Animation::TYPE_POSITION_3D:
+			case Animation::TYPE_ROTATION_3D:
 			case Animation::TYPE_SCALE_3D: {
-				p_list->push_back(PropertyInfo(Variant::VECTOR3, "scale"));
+				String track_name = base_map[track].get_name(base_map[track].get_name_count() - 1);
+				if (names_map[track_type].has(track_name)) {
+					break;
+				}
+				names_map[track_type].append(track_name);
+
+				properties_map[track_type].append(PropertyInfo(Variant::VECTOR3, track_name));
 			} break;
 			case Animation::TYPE_BLEND_SHAPE: {
-				p_list->push_back(PropertyInfo(Variant::FLOAT, "value"));
+				String prop_name = track_hint.name;
+				if (names_map[track_type].has(prop_name)) {
+					continue;
+				}
+				names_map[track_type].append(prop_name);
+
+				properties_map[track_type].append(PropertyInfo(Variant::FLOAT, prop_name));
 			} break;
 			case Animation::TYPE_VALUE: {
-				if (same_key_type) {
-					Variant v = animation->track_get_key_value(first_track, first_key);
+				for (const float &F : E.value) {
+					int key = animation->track_find_key(track, F, Animation::FIND_MODE_APPROX);
+					ERR_FAIL_COND(key == -1);
 
-					if (hint.type != Variant::NIL) {
-						PropertyInfo pi = hint;
-						pi.name = "value";
-						p_list->push_back(pi);
+					Variant value = animation->track_get_key_value(track, key);
+
+					String type_name = Variant::get_type_name(track_hint.type);
+					if (track_hint.hint == PROPERTY_HINT_RESOURCE_TYPE) {
+						type_name = type_name + " - " + track_hint.hint_string;
+					}
+					String prop_name = "individual_property/" + track_hint.name + " (" + type_name + ")";
+
+					if (names_map[track_type].has(prop_name)) {
+						continue;
+					}
+					names_map[track_type].append(prop_name);
+
+					if (track_hint.type != Variant::NIL) {
+						properties_map[track_type].append(PropertyInfo(track_hint.type, prop_name, track_hint.hint, track_hint.hint_string));
 					} else {
 						PropertyHint val_hint = PROPERTY_HINT_NONE;
 						String val_hint_string;
 
-						if (v.get_type() == Variant::OBJECT) {
+						if (value.get_type() == Variant::OBJECT) {
 							// Could actually check the object property if exists..? Yes I will!
-							Ref<Resource> res = v;
+							Ref<Resource> res = value;
 							if (res.is_valid()) {
 								val_hint = PROPERTY_HINT_RESOURCE_TYPE;
 								val_hint_string = res->get_class();
 							}
 						}
 
-						if (v.get_type() != Variant::NIL) {
-							p_list->push_back(PropertyInfo(v.get_type(), "value", val_hint, val_hint_string));
+						if (value.get_type() != Variant::NIL) {
+							properties_map[track_type].append(PropertyInfo(value.get_type(), prop_name, val_hint, val_hint_string));
 						}
 					}
 				}
-
-				p_list->push_back(PropertyInfo(Variant::FLOAT, "easing", PROPERTY_HINT_EXP_EASING));
 			} break;
 			case Animation::TYPE_METHOD: {
-				p_list->push_back(PropertyInfo(Variant::STRING_NAME, "name"));
+				String track_name = "individual_method_call/" + base_map[track].get_name(base_map[track].get_name_count() - 1);
+				if (names_map[track_type].has(track_name)) {
+					break;
+				}
+				names_map[track_type].append(track_name);
 
-				p_list->push_back(PropertyInfo(Variant::INT, "arg_count", PROPERTY_HINT_RANGE, "0,32,1,or_greater"));
+				properties_map[track_type].append(PropertyInfo(Variant::STRING_NAME, track_name + "/name"));
 
-				Dictionary d = animation->track_get_key_value(first_track, first_key);
+				properties_map[track_type].append(PropertyInfo(Variant::INT, track_name + "/arg_count", PROPERTY_HINT_RANGE, "0,32,1,or_greater"));
+
+				int key = animation->track_find_key(track, E.value[0], Animation::FIND_MODE_APPROX);
+				Dictionary d = animation->track_get_key_value(track, key);
 				ERR_FAIL_COND(!d.has("args"));
+
 				Vector<Variant> args = d["args"];
+				if (first_method_args.is_empty()) {
+					first_method_args = args;
+				}
+
 				String vtypes;
 				for (int i = 0; i < Variant::VARIANT_MAX; i++) {
 					if (i > 0) {
@@ -1222,32 +1317,46 @@ void AnimationMultiTrackKeyEdit::_get_property_list(List<PropertyInfo> *p_list) 
 				}
 
 				for (int i = 0; i < args.size(); i++) {
-					p_list->push_back(PropertyInfo(Variant::INT, "args/" + itos(i) + "/type", PROPERTY_HINT_ENUM, vtypes));
+					properties_map[track_type].append(PropertyInfo(Variant::INT, track_name + "/args/" + itos(i) + "/type", PROPERTY_HINT_ENUM, vtypes));
 					if (args[i].get_type() != Variant::NIL) {
-						p_list->push_back(PropertyInfo(args[i].get_type(), "args/" + itos(i) + "/value"));
+						properties_map[track_type].append(PropertyInfo(args[i].get_type(), track_name + "/args/" + itos(i) + "/value"));
 					}
 				}
 			} break;
 			case Animation::TYPE_BEZIER: {
-				p_list->push_back(PropertyInfo(Variant::FLOAT, "value"));
-				p_list->push_back(PropertyInfo(Variant::VECTOR2, "in_handle"));
-				p_list->push_back(PropertyInfo(Variant::VECTOR2, "out_handle"));
-				p_list->push_back(PropertyInfo(Variant::INT, "handle_mode", PROPERTY_HINT_ENUM, "Free,Linear,Balanced,Mirrored"));
-			} break;
-			case Animation::TYPE_AUDIO: {
-				p_list->push_back(PropertyInfo(Variant::OBJECT, "stream", PROPERTY_HINT_RESOURCE_TYPE, "AudioStream"));
-				p_list->push_back(PropertyInfo(Variant::FLOAT, "start_offset", PROPERTY_HINT_RANGE, "0,3600,0.0001,or_greater"));
-				p_list->push_back(PropertyInfo(Variant::FLOAT, "end_offset", PROPERTY_HINT_RANGE, "0,3600,0.0001,or_greater"));
-			} break;
-			case Animation::TYPE_ANIMATION: {
-				if (key_ofs_map.size() > 1) {
+				String prop_name = "individual_bezier_curve/" + track_hint.name;
+				if (names_map[track_type].has(prop_name)) {
 					break;
 				}
+				names_map[track_type].append(prop_name);
+
+				properties_map[track_type].append(PropertyInfo(Variant::FLOAT, prop_name + "/value"));
+				properties_map[track_type].append(PropertyInfo(Variant::VECTOR2, prop_name + "/in_handle"));
+				properties_map[track_type].append(PropertyInfo(Variant::VECTOR2, prop_name + "/out_handle"));
+				properties_map[track_type].append(PropertyInfo(Variant::INT, prop_name + "/handle_mode", PROPERTY_HINT_ENUM, "Free,Linear,Balanced,Mirrored"));
+			} break;
+			case Animation::TYPE_AUDIO: {
+				String track_name = "individual_audio_playback/" + base_map[track].get_name(base_map[track].get_name_count() - 1);
+				if (names_map[track_type].has(track_name)) {
+					break;
+				}
+				names_map[track_type].append(track_name);
+
+				properties_map[track_type].append(PropertyInfo(Variant::OBJECT, track_name + "/stream", PROPERTY_HINT_RESOURCE_TYPE, "AudioStream"));
+				properties_map[track_type].append(PropertyInfo(Variant::FLOAT, track_name + "/start_offset", PROPERTY_HINT_RANGE, "0,3600,0.0001,or_greater"));
+				properties_map[track_type].append(PropertyInfo(Variant::FLOAT, track_name + "/end_offset", PROPERTY_HINT_RANGE, "0,3600,0.0001,or_greater"));
+			} break;
+			case Animation::TYPE_ANIMATION: {
+				String track_name = base_map[track].get_name(base_map[track].get_name_count() - 1);
+				if (names_map[track_type].has(track_name)) {
+					break;
+				}
+				names_map[track_type].append(track_name);
 
 				String animations;
 
 				if (root_path) {
-					AnimationPlayer *ap = Object::cast_to<AnimationPlayer>(root_path->get_node_or_null(animation->track_get_path(first_track)));
+					AnimationPlayer *ap = Object::cast_to<AnimationPlayer>(root_path->get_node_or_null(animation->track_get_path(track)));
 					if (ap) {
 						List<StringName> anims;
 						ap->get_animation_list(&anims);
@@ -1266,8 +1375,89 @@ void AnimationMultiTrackKeyEdit::_get_property_list(List<PropertyInfo> *p_list) 
 				}
 				animations += "[stop]";
 
-				p_list->push_back(PropertyInfo(Variant::STRING_NAME, "animation", PROPERTY_HINT_ENUM, animations));
+				properties_map[track_type].append(PropertyInfo(Variant::STRING_NAME, track_name, PROPERTY_HINT_ENUM, animations));
 			} break;
+		}
+	}
+
+	Vector<String> value_names;
+
+	for (const KeyValue<int, Vector<PropertyInfo>> &E : properties_map) {
+		switch (E.key) {
+			case Animation::TYPE_POSITION_3D: {
+				p_list->push_back(PropertyInfo(Variant::NIL, "3D Position Track", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_CATEGORY));
+				p_list->push_back(PropertyInfo(Variant::VECTOR3, "all_3d_position"));
+			} break;
+			case Animation::TYPE_ROTATION_3D: {
+				p_list->push_back(PropertyInfo(Variant::NIL, "3D Rotation Track", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_CATEGORY));
+				p_list->push_back(PropertyInfo(Variant::VECTOR3, "all_3d_rotation"));
+			} break;
+			case Animation::TYPE_SCALE_3D: {
+				p_list->push_back(PropertyInfo(Variant::NIL, "3D Scale Track", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_CATEGORY));
+				p_list->push_back(PropertyInfo(Variant::VECTOR3, "all_3d_scale"));
+			} break;
+			case Animation::TYPE_BLEND_SHAPE: {
+				p_list->push_back(PropertyInfo(Variant::NIL, "Blend Shape Track", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_CATEGORY));
+				p_list->push_back(PropertyInfo(Variant::FLOAT, "all_blend_shape"));
+			} break;
+			case Animation::TYPE_VALUE: {
+				p_list->push_back(PropertyInfo(Variant::NIL, "Property Track", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_CATEGORY));
+
+				for (PropertyInfo F : E.value) {
+					String type_name = Variant::get_type_name(F.type);
+					if (F.hint == PROPERTY_HINT_RESOURCE_TYPE) {
+						type_name = type_name + " - " + F.hint_string;
+					}
+
+					if (value_names.has(type_name)) {
+						continue;
+					}
+					value_names.append(type_name);
+
+					p_list->push_back(PropertyInfo(F.type, "all_property/" + type_name, F.hint, F.hint_string));
+				}
+			} break;
+			case Animation::TYPE_METHOD: {
+				p_list->push_back(PropertyInfo(Variant::NIL, "Method Call Track", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_CATEGORY));
+
+				p_list->push_back(PropertyInfo(Variant::STRING_NAME, "all_method_call/name"));
+				p_list->push_back(PropertyInfo(Variant::INT, "all_method_call/arg_count", PROPERTY_HINT_RANGE, "0,32,1,or_greater"));
+
+				String vtypes;
+				for (int i = 0; i < Variant::VARIANT_MAX; i++) {
+					if (i > 0) {
+						vtypes += ",";
+					}
+					vtypes += Variant::get_type_name(Variant::Type(i));
+				}
+
+				for (int i = 0; i < first_method_args.size(); i++) {
+					p_list->push_back(PropertyInfo(Variant::INT, "all_method_call/args/" + itos(i) + "/type", PROPERTY_HINT_ENUM, vtypes));
+					if (first_method_args[i].get_type() != Variant::NIL) {
+						p_list->push_back(PropertyInfo(first_method_args[i].get_type(), "all_method_call/args/" + itos(i) + "/value"));
+					}
+				}
+			} break;
+			case Animation::TYPE_BEZIER: {
+				p_list->push_back(PropertyInfo(Variant::NIL, "Bezier Curve Track", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_CATEGORY));
+				p_list->push_back(PropertyInfo(Variant::FLOAT, "all_bezier_curve/value"));
+				p_list->push_back(PropertyInfo(Variant::VECTOR2, "all_bezier_curve/in_handle"));
+				p_list->push_back(PropertyInfo(Variant::VECTOR2, "all_bezier_curve/out_handle"));
+				p_list->push_back(PropertyInfo(Variant::INT, "all_bezier_curve/handle_mode", PROPERTY_HINT_ENUM, "Free,Linear,Balanced,Mirrored"));
+			} break;
+			case Animation::TYPE_AUDIO: {
+				p_list->push_back(PropertyInfo(Variant::NIL, "Audio Playback Track", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_CATEGORY));
+				p_list->push_back(PropertyInfo(Variant::OBJECT, "all_audio_playback/stream", PROPERTY_HINT_RESOURCE_TYPE, "AudioStream"));
+				p_list->push_back(PropertyInfo(Variant::FLOAT, "all_audio_playback/start_offset", PROPERTY_HINT_RANGE, "0,3600,0.0001,or_greater"));
+				p_list->push_back(PropertyInfo(Variant::FLOAT, "all_audio_playback/end_offset", PROPERTY_HINT_RANGE, "0,3600,0.0001,or_greater"));
+			} break;
+			case Animation::TYPE_ANIMATION: {
+				p_list->push_back(PropertyInfo(Variant::NIL, "Animation Playback Track", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_CATEGORY));
+			} break;
+		}
+
+		for (const PropertyInfo &F : E.value) {
+			p_list->push_back(F);
 		}
 	}
 }
@@ -5780,6 +5970,7 @@ void AnimationTrackEditor::_update_key_edit() {
 
 		RBMap<int, List<float>> key_ofs_map;
 		RBMap<int, NodePath> base_map;
+		RBMap<int, PropertyInfo> hint_map;
 		int first_track = -1;
 		for (const KeyValue<SelectedKey, KeyInfo> &E : selection) {
 			int track = E.key.track;
@@ -5790,6 +5981,7 @@ void AnimationTrackEditor::_update_key_edit() {
 			if (!key_ofs_map.has(track)) {
 				key_ofs_map[track] = List<float>();
 				base_map[track] = NodePath();
+				hint_map[track] = _find_hint_for_track(track, base_map[track]);
 			}
 
 			int key_id = E.key.key;
@@ -5801,7 +5993,7 @@ void AnimationTrackEditor::_update_key_edit() {
 		}
 		multi_key_edit->key_ofs_map = key_ofs_map;
 		multi_key_edit->base_map = base_map;
-		multi_key_edit->hint = _find_hint_for_track(first_track, base_map[first_track]);
+		multi_key_edit->hint_map = hint_map;
 		multi_key_edit->use_fps = timeline->is_using_fps();
 		multi_key_edit->root_path = root;
 

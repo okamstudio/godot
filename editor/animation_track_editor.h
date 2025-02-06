@@ -104,7 +104,7 @@ public:
 
 	RBMap<int, List<float>> key_ofs_map;
 	RBMap<int, NodePath> base_map;
-	PropertyInfo hint;
+	RBMap<int, PropertyInfo> hint_map;
 
 	Node *root_path = nullptr;
 
