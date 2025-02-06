@@ -36,7 +36,7 @@
 bool AnimationPlayer::_set(const StringName &p_name, const Variant &p_value) {
 	String name = p_name;
 	if (name.begins_with("playback/play")) { // For backward compatibility.
-		set_current_animation(p_value);
+		_set_current_animation(p_value);
 	} else if (name.begins_with("next/")) {
 		String which = name.get_slicec('/', 1);
 		animation_set_next(which, p_value);
@@ -582,16 +582,10 @@ bool AnimationPlayer::is_playing() const {
 }
 
 void AnimationPlayer::set_current_animation(const String &p_animation) {
-	if (p_animation == "[stop]" || p_animation.is_empty()) {
-		stop();
-	} else if (!is_playing()) {
-		play(p_animation);
-	} else if (playback.assigned != p_animation) {
-		float speed = playback.current.speed_scale;
-		play(p_animation, -1.0, speed, signbit(speed));
-	} else {
-		// Same animation, do not replay from start.
+	if (p_animation.is_empty() || p_animation == "[stop]") {
+		return;
 	}
+	_set_current_animation(p_animation);
 }
 
 String AnimationPlayer::get_current_animation() const {
@@ -947,6 +941,19 @@ void AnimationPlayer::_rename_animation(const StringName &p_from_name, const Str
 
 	if (autoplay == p_from_name) {
 		autoplay = p_to_name;
+	}
+}
+
+void AnimationPlayer::_set_current_animation(const String &p_animation) {
+	if (p_animation.is_empty() || p_animation == "[stop]") {
+		stop();
+	} else if (!is_playing()) {
+		play(p_animation);
+	} else if (playback.assigned != p_animation) {
+		float speed = playback.current.speed_scale;
+		play(p_animation, -1.0, speed, signbit(speed));
+	} else {
+		// Same animation, do not replay from start.
 	}
 }
 
