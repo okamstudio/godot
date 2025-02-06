@@ -845,8 +845,9 @@ public:
 		r_valid = true;
 	}
 	static inline void validated_evaluate(const Variant *left, const Variant *right, Variant *r_ret) {
-		*r_ret = Array();
-		_add_arrays(*VariantGetInternalPtr<Array>::get_ptr(r_ret), *VariantGetInternalPtr<Array>::get_ptr(left), *VariantGetInternalPtr<Array>::get_ptr(right));
+		Array sum;
+		_add_arrays(sum, *VariantGetInternalPtr<Array>::get_ptr(left), *VariantGetInternalPtr<Array>::get_ptr(right));
+		*r_ret = sum;
 	}
 	static void ptr_evaluate(const void *left, const void *right, void *r_ret) {
 		Array ret;
