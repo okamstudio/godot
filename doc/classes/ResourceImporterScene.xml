@@ -59,6 +59,9 @@
 		<member name="nodes/import_as_skeleton_bones" type="bool" setter="" getter="" default="false">
 			Treat all nodes in the imported scene as if they are bones within a single [Skeleton3D]. Can be used to guarantee that imported animations target skeleton bones rather than nodes. May also be used to assign the [code]"Root"[/code] bone in a [BoneMap]. See [url=$DOCS_URL/tutorials/assets_pipeline/retargeting_3d_skeletons.html]Retargeting 3D Skeletons[/url] for more information.
 		</member>
+		<member name="nodes/legacy_attachments_import" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], use the legacy import method creating a bone and a [BoneAttachment3D] for each mesh parented to a bone.
+		</member>
 		<member name="nodes/root_name" type="String" setter="" getter="" default="&quot;&quot;">
 			Override for the root node name. If empty, the root node will use what the scene specifies, or the file name if the scene does not specify a root name.
 		</member>

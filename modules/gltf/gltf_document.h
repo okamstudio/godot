@@ -71,6 +71,7 @@ private:
 	int _naming_version = 1;
 	String _image_format = "PNG";
 	float _lossy_quality = 0.75f;
+	bool _legacy_attachments_import = false;
 	Ref<GLTFDocumentExtension> _image_save_extension;
 	RootNodeMode _root_node_mode = RootNodeMode::ROOT_NODE_MODE_SINGLE_ROOT;
 
@@ -94,6 +95,8 @@ public:
 
 	void set_naming_version(int p_version);
 	int get_naming_version() const;
+	void set_legacy_attachments_import(bool p_legacy_attachments_import);
+	bool get_legacy_attachments_import() const;
 	void set_image_format(const String &p_image_format);
 	String get_image_format() const;
 	void set_lossy_quality(float p_lossy_quality);

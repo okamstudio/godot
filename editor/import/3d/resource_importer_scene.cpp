@@ -2384,6 +2384,7 @@ void ResourceImporterScene::get_import_options(const String &p_path, List<Import
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "nodes/apply_root_scale"), true));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::FLOAT, "nodes/root_scale", PROPERTY_HINT_RANGE, "0.001,1000,0.001"), 1.0));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "nodes/import_as_skeleton_bones"), false));
+	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "nodes/legacy_attachments_import"), true));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "nodes/use_node_type_suffixes"), true));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "meshes/ensure_tangents"), true));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "meshes/generate_lods"), true));

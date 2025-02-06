@@ -575,7 +575,7 @@ Error SkinTool::_create_skeletons(
 				Vector<SkinNodeIndex> child_nodes;
 				for (int i = 0; i < node->children.size(); ++i) {
 					const SkinNodeIndex child_i = node->children[i];
-					if (nodes[child_i]->skeleton == skel_i) {
+					if (nodes[child_i]->skeleton == skel_i && nodes[child_i]->mesh < 0) {
 						child_nodes.push_back(child_i);
 					}
 				}
