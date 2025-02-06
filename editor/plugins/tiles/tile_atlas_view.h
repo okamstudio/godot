@@ -97,6 +97,8 @@ private:
 
 	Control *base_tiles_texture_grid = nullptr;
 	void _draw_base_tiles_texture_grid();
+	Ref<ArrayMesh> grid_line_mesh; // A rectangular mesh of the size of texture_region, to avoid the performance issue with draw_rect.
+	Vector2 grid_line_mesh_size;
 
 	Control *base_tiles_shape_grid = nullptr;
 	void _draw_base_tiles_shape_grid();
