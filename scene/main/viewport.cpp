@@ -1086,8 +1086,8 @@ Rect2 Viewport::get_visible_rect() const {
 	ERR_READ_THREAD_GUARD_V(Rect2());
 	Rect2 r;
 
-	if (size == Size2()) {
-		r = Rect2(Point2(), DisplayServer::get_singleton()->window_get_size());
+	if (is_inside_tree() && get_tree()->get_edited_scene_root() && get_tree()->get_edited_scene_root()->get_parent() == get_viewport()) {
+		r = Rect2(Point2(), Size2(GLOBAL_GET("display/window/size/viewport_width"), GLOBAL_GET("display/window/size/viewport_height")));
 	} else {
 		r = Rect2(Point2(), size);
 	}
