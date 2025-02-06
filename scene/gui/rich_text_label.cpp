@@ -5984,6 +5984,63 @@ void RichTextLabel::selection_copy() {
 	}
 }
 
+void RichTextLabel::select(int p_from, int p_to) {
+	_validate_line_caches();
+
+	if (!selection.enabled) {
+		return;
+	}
+
+	int max_char = get_total_character_count() - 1;
+	p_from = CLAMP(p_from, 0, max_char);
+	p_to = CLAMP(p_to, p_from, max_char);
+	if (p_to < p_from) {
+		return;
+	}
+
+	int from_line = -1;
+	int to_line = -1;
+
+	for (int i = 0; i < main->first_invalid_line.load(); i++) {
+		MutexLock lock(main->lines[i].text_buf->get_mutex());
+		int char_offset = main->lines[i].char_offset;
+		int char_count = main->lines[i].char_count;
+		if (from_line == -1) {
+			if (char_offset <= p_from && p_from <= char_offset + char_count) {
+				from_line = i;
+			}
+		}
+		if (to_line == -1) {
+			if (char_offset <= p_to && p_to <= char_offset + char_count) {
+				to_line = i;
+				break;
+			}
+		}
+	}
+	if (from_line == -1 || to_line == -1) {
+		return;
+	}
+
+	Item *from_item = _get_item_at_pos(main->lines[from_line].from, nullptr, p_from - main->lines[from_line].char_offset);
+	Item *to_item = _get_item_at_pos(main->lines[to_line].from, nullptr, p_to - main->lines[to_line].char_offset);
+	ItemFrame *from_frame;
+	ItemFrame *to_frame;
+	_find_frame(from_item, &from_frame, nullptr);
+	_find_frame(to_item, &to_frame, nullptr);
+
+	selection.from_frame = from_frame;
+	selection.from_line = from_line;
+	selection.from_char = p_from - from_frame->lines[from_line].char_offset;
+	selection.from_item = from_item;
+	selection.to_frame = to_frame;
+	selection.to_line = to_line;
+	selection.to_char = p_to - to_frame->lines[to_line].char_offset + 1;
+	selection.to_item = to_item;
+
+	selection.active = true;
+	queue_redraw();
+}
+
 void RichTextLabel::select_all() {
 	_validate_line_caches();
 
@@ -6526,6 +6583,7 @@ void RichTextLabel::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_selection_to"), &RichTextLabel::get_selection_to);
 	ClassDB::bind_method(D_METHOD("get_selection_line_offset"), &RichTextLabel::get_selection_line_offset);
 
+	ClassDB::bind_method(D_METHOD("select", "from", "to"), &RichTextLabel::select);
 	ClassDB::bind_method(D_METHOD("select_all"), &RichTextLabel::select_all);
 	ClassDB::bind_method(D_METHOD("get_selected_text"), &RichTextLabel::get_selected_text);
 	ClassDB::bind_method(D_METHOD("deselect"), &RichTextLabel::deselect);
@@ -6555,9 +6613,12 @@ void RichTextLabel::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_visible_ratio", "ratio"), &RichTextLabel::set_visible_ratio);
 	ClassDB::bind_method(D_METHOD("get_visible_ratio"), &RichTextLabel::get_visible_ratio);
 
+	ClassDB::bind_method(D_METHOD("get_character_rect", "character"), &RichTextLabel::get_character_rect);
 	ClassDB::bind_method(D_METHOD("get_character_line", "character"), &RichTextLabel::get_character_line);
 	ClassDB::bind_method(D_METHOD("get_character_paragraph", "character"), &RichTextLabel::get_character_paragraph);
 	ClassDB::bind_method(D_METHOD("get_total_character_count"), &RichTextLabel::get_total_character_count);
+
+	ClassDB::bind_method(D_METHOD("hit_test", "coords"), &RichTextLabel::hit_test);
 
 	ClassDB::bind_method(D_METHOD("set_use_bbcode", "enable"), &RichTextLabel::set_use_bbcode);
 	ClassDB::bind_method(D_METHOD("is_using_bbcode"), &RichTextLabel::is_using_bbcode);
@@ -6735,6 +6796,106 @@ int RichTextLabel::get_visible_characters() const {
 	return visible_characters;
 }
 
+Rect2 RichTextLabel::get_character_rect(int p_char) {
+	_validate_line_caches();
+
+	Vector2 offs;
+	int line = -1;
+	int char_index = -1;
+
+	// Find paragraph
+	RID p_line;
+	for (int i = 0; i < main->first_invalid_line.load(); i++) {
+		MutexLock lock(main->lines[i].text_buf->get_mutex());
+		int char_offset = main->lines[i].char_offset;
+		int char_count = main->lines[i].char_count;
+		if (char_offset <= p_char && p_char <= char_offset + char_count) {
+			line = i;
+			break;
+		}
+	}
+	if (line == -1) {
+		return Rect2();
+	}
+
+	Line &l = main->lines[line];
+	offs = l.offset;
+	offs.y -= vscroll->get_value();
+	float line_width = l.text_buf->get_width();
+	float line_length = 0.0;
+	for (int i = 0; i < l.text_buf->get_line_count(); i++) {
+		Vector2i range = l.text_buf->get_line_range(i);
+		Vector2 size = l.text_buf->get_line_size(i);
+		if (l.char_offset + range.x <= p_char && p_char <= l.char_offset + range.y) {
+			p_line = l.text_buf->get_line_rid(i);
+			char_index = p_char - l.char_offset;
+			line_length = l.text_buf->get_line_size(i).x;
+			break;
+		}
+		offs.y += size.y;
+	}
+	if (char_index == -1) {
+		return Rect2();
+	}
+
+	bool rtl = (l.text_buf->get_direction() == TextServer::DIRECTION_RTL);
+	switch (l.text_buf->get_alignment()) {
+		case HORIZONTAL_ALIGNMENT_FILL: {
+			TS->shaped_text_fit_to_width(p_line, line_width);
+		} break;
+		case HORIZONTAL_ALIGNMENT_LEFT: {
+			if (rtl) {
+				offs.x += line_width - line_length;
+			}
+		} break;
+		case HORIZONTAL_ALIGNMENT_CENTER: {
+			offs.x += Math::floor((line_width - line_length) / 2.0);
+		} break;
+		case HORIZONTAL_ALIGNMENT_RIGHT: {
+			if (!rtl) {
+				offs.x += line_width - line_length;
+			}
+		} break;
+	}
+
+	// Handle tables
+	Array objects = TS->shaped_text_get_objects(p_line);
+	for (int i = 0; i < objects.size(); i++) {
+		Item *it = reinterpret_cast<Item *>((uint64_t)objects[i]);
+		if (it == nullptr) {
+			continue;
+		}
+		if (it->type == ITEM_TABLE) {
+			Rect2 table_rect = TS->shaped_text_get_object_rect(p_line, objects[i]);
+			ItemTable *table = static_cast<ItemTable *>(it);
+
+			bool found = false;
+			for (Item *subitem : table->subitems) {
+				ItemFrame *cell = static_cast<ItemFrame *>(subitem);
+				for (int j = 0; j < (int)cell->lines.size(); j++) {
+					if (cell->lines[j].char_offset <= p_char && p_char <= cell->lines[j].char_offset + cell->lines[j].char_count) {
+						found = true;
+						offs.x += table_rect.position.x;
+						offs += cell->padding.position;
+						offs += cell->lines[j].offset;
+						p_line = cell->lines[j].text_buf->get_rid();
+						char_index = p_char - cell->lines[j].char_offset;
+						break;
+					}
+				}
+				if (found) {
+					break;
+				}
+			}
+		}
+	}
+
+	Vector2 bounds = TS->shaped_text_get_grapheme_bounds(p_line, char_index);
+	Vector2 pos = Vector2(offs.x + bounds[0], offs.y);
+	Vector2 size = Vector2(bounds[1] - bounds[0], TS->shaped_text_get_size(p_line).y);
+	return Rect2(pos, size);
+}
+
 int RichTextLabel::get_character_line(int p_char) {
 	_validate_line_caches();
 
@@ -6815,6 +6976,20 @@ int RichTextLabel::get_total_glyph_count() const {
 	}
 
 	return tg;
+}
+
+int RichTextLabel::hit_test(const Point2 &coords) const {
+	ItemFrame *c_frame = nullptr;
+	Item *c_item = nullptr;
+	int c_line = 0;
+	int c_index = 0;
+	bool outside;
+
+	const_cast<RichTextLabel *>(this)->_find_click(main, coords, &c_frame, &c_line, &c_item, &c_index, &outside, false);
+	if (c_item == nullptr) {
+		return -1;
+	}
+	return c_frame->lines[c_line].char_offset + c_index;
 }
 
 Size2 RichTextLabel::get_minimum_size() const {

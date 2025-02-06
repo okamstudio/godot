@@ -82,6 +82,14 @@
 				[b]Note:[/b] If [member threaded] is enabled, this method returns a value for the loaded part of the document. Use [method is_finished] or [signal finished] to determine whether document is fully loaded.
 			</description>
 		</method>
+		<method name="get_character_rect">
+			<return type="Rect2" />
+			<param index="0" name="character" type="int" />
+			<description>
+				Returns the bounding box of the character position provided.
+				[b]Note:[/b] If [member threaded] is enabled, this method returns a value for the loaded part of the document. Use [method is_ready] or [signal finished] to determine whether document is fully loaded.
+			</description>
+		</method>
 		<method name="get_content_height" qualifiers="const">
 			<return type="int" />
 			<description>
@@ -236,6 +244,13 @@
 			<description>
 				Returns the number of visible paragraphs. A paragraph is considered visible if at least one of its lines is visible.
 				[b]Note:[/b] If [member threaded] is enabled, this method returns a value for the loaded part of the document. Use [method is_finished] or [signal finished] to determine whether document is fully loaded.
+			</description>
+		</method>
+		<method name="hit_test" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="coords" type="Vector2" />
+			<description>
+				Returns caret character offset at the specified coordinates.
 			</description>
 		</method>
 		<method name="install_effect">
@@ -553,6 +568,15 @@
 			<return type="void" />
 			<description>
 				Scrolls to the beginning of the current selection.
+			</description>
+		</method>
+		<method name="select">
+			<return type="void" />
+			<param index="0" name="from" type="int" />
+			<param index="1" name="to" type="int" />
+			<description>
+				Selects characters between [param from] and [param to].
+				If [member selection_enabled] is [code]false[/code], no selection will occur.
 			</description>
 		</method>
 		<method name="select_all">

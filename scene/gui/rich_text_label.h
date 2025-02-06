@@ -797,6 +797,7 @@ public:
 	int get_selection_to() const;
 	float get_selection_line_offset() const;
 	String get_selected_text() const;
+	void select(int p_from, int p_to);
 	void select_all();
 	void selection_copy();
 
@@ -866,10 +867,13 @@ public:
 
 	void set_visible_characters(int p_visible);
 	int get_visible_characters() const;
+	Rect2 get_character_rect(int p_char);
 	int get_character_line(int p_char);
 	int get_character_paragraph(int p_char);
 	int get_total_character_count() const;
 	int get_total_glyph_count() const;
+
+	int hit_test(const Point2 &coords) const;
 
 	void set_visible_ratio(float p_ratio);
 	float get_visible_ratio() const;
