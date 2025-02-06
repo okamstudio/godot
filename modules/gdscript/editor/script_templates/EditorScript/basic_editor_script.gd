@@ -1,6 +1,7 @@
 # meta-description: Basic editor script template
 
 @tool
+class_name _CLASS_
 extends _BASE_
 
 

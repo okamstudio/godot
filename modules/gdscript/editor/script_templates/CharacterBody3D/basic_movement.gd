@@ -1,5 +1,6 @@
 # meta-description: Classic movement for gravity games (FPS, TPS, ...)
 
+class_name _CLASS_
 extends _BASE_
 
 

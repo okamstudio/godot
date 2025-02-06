@@ -1,6 +1,7 @@
 # meta-description: Basic import script template (no comments)
 
 @tool
+class_name _CLASS_
 extends _BASE_
 
 

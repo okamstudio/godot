@@ -1,5 +1,6 @@
 # meta-description: Base template for Node with default Godot cycle methods
 
+class_name _CLASS_
 extends _BASE_
 
 

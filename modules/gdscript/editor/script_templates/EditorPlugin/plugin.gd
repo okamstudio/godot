@@ -1,6 +1,7 @@
 # meta-description: Basic plugin template
 
 @tool
+class_name _CLASS_
 extends _BASE_
 
 

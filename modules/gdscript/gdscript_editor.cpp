@@ -80,7 +80,8 @@ Ref<Script> GDScriptLanguage::make_template(const String &p_template, const Stri
 	type_hints = EDITOR_GET("text_editor/completion/add_type_hints");
 #endif
 	if (!type_hints) {
-		processed_template = processed_template.replace(": int", "")
+		processed_template = processed_template.replace("class_name _CLASS_\n", "")
+									 .replace(": int", "")
 									 .replace(": Shader.Mode", "")
 									 .replace(": VisualShader.Type", "")
 									 .replace(": float", "")
