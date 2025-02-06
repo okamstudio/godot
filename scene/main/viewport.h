@@ -367,7 +367,7 @@ private:
 		Control *mouse_focus = nullptr;
 		Control *mouse_click_grabber = nullptr;
 		BitField<MouseButtonMask> mouse_focus_mask;
-		Control *key_focus = nullptr;
+		Control *key_focus[8] = { nullptr };
 		Control *mouse_over = nullptr;
 		LocalVector<Control *> mouse_over_hierarchy;
 		bool sending_mouse_enter_exit_notifications = false;

@@ -1195,6 +1195,12 @@ void EditorPropertyLayers::setup(LayerType p_layer_type) {
 			layer_group_size = 4;
 			layer_count = 32;
 		} break;
+
+		case LAYER_PLAYER_MASK: {
+			basename = "layer_names/player_mask";
+			layer_group_size = 4;
+			layer_count = 8;
+		} break;
 	}
 
 	Vector<String> names;
@@ -3535,7 +3541,8 @@ EditorProperty *EditorInspectorDefaultPlugin::get_editor_for_property(Object *p_
 					p_hint == PROPERTY_HINT_LAYERS_3D_PHYSICS ||
 					p_hint == PROPERTY_HINT_LAYERS_3D_RENDER ||
 					p_hint == PROPERTY_HINT_LAYERS_3D_NAVIGATION ||
-					p_hint == PROPERTY_HINT_LAYERS_AVOIDANCE) {
+					p_hint == PROPERTY_HINT_LAYERS_AVOIDANCE ||
+					p_hint == PROPERTY_HINT_LAYERS_PLAYER_MASK) {
 				EditorPropertyLayers::LayerType lt = EditorPropertyLayers::LAYER_RENDER_2D;
 				switch (p_hint) {
 					case PROPERTY_HINT_LAYERS_2D_RENDER:
@@ -3558,6 +3565,9 @@ EditorProperty *EditorInspectorDefaultPlugin::get_editor_for_property(Object *p_
 						break;
 					case PROPERTY_HINT_LAYERS_AVOIDANCE:
 						lt = EditorPropertyLayers::LAYER_AVOIDANCE;
+						break;
+					case PROPERTY_HINT_LAYERS_PLAYER_MASK:
+						lt = EditorPropertyLayers::LAYER_PLAYER_MASK;
 						break;
 					default: {
 					} //compiler could be smarter here and realize this can't happen

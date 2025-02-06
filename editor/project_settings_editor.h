@@ -33,6 +33,7 @@
 
 #include "core/config/project_settings.h"
 #include "editor/action_map_editor.h"
+#include "editor/device_map_editor.h"
 #include "editor/editor_autoload_settings.h"
 #include "editor/editor_data.h"
 #include "editor/editor_sectioned_inspector.h"
@@ -57,6 +58,7 @@ class ProjectSettingsEditor : public AcceptDialog {
 	TabContainer *tab_container = nullptr;
 	VBoxContainer *general_editor = nullptr;
 	SectionedInspector *general_settings_inspector = nullptr;
+	DeviceMapEditor *device_map_editor = nullptr;
 	ActionMapEditor *action_map_editor = nullptr;
 	LocalizationEditor *localization_editor = nullptr;
 	EditorAutoloadSettings *autoload_settings = nullptr;

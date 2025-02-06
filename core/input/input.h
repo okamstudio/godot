@@ -83,6 +83,19 @@ public:
 		JOYPADS_MAX = 16,
 	};
 
+	enum PlayerMask : uint8_t {
+		PLAYER_NONE = 0U,
+		PLAYER_1 = 1U << 0,
+		PLAYER_2 = 1U << 1,
+		PLAYER_3 = 1U << 2,
+		PLAYER_4 = 1U << 3,
+		PLAYER_5 = 1U << 4,
+		PLAYER_6 = 1U << 5,
+		PLAYER_7 = 1U << 6,
+		PLAYER_8 = 1U << 7,
+		PLAYER_ALL = 0xFFU,
+	};
+
 	typedef void (*EventDispatchFunc)(const Ref<InputEvent> &p_event);
 
 private:
@@ -122,6 +135,8 @@ private:
 		bool api_pressed = false;
 		float api_strength = 0.0;
 		HashMap<int, DeviceState> device_states;
+
+		uint8_t player_mask = 1U << 0;
 
 		// Cache.
 		struct ActionStateCache {
@@ -306,14 +321,14 @@ public:
 	bool is_key_label_pressed(Key p_keycode) const;
 	bool is_mouse_button_pressed(MouseButton p_button) const;
 	bool is_joy_button_pressed(int p_device, JoyButton p_button) const;
-	bool is_action_pressed(const StringName &p_action, bool p_exact = false) const;
-	bool is_action_just_pressed(const StringName &p_action, bool p_exact = false) const;
-	bool is_action_just_released(const StringName &p_action, bool p_exact = false) const;
-	float get_action_strength(const StringName &p_action, bool p_exact = false) const;
-	float get_action_raw_strength(const StringName &p_action, bool p_exact = false) const;
+	bool is_action_pressed(const StringName &p_action, bool p_exact = false, uint8_t p_player_mask = PLAYER_ALL) const;
+	bool is_action_just_pressed(const StringName &p_action, bool p_exact = false, uint8_t p_player_mask = PLAYER_ALL) const;
+	bool is_action_just_released(const StringName &p_action, bool p_exact = false, uint8_t p_player_mask = PLAYER_ALL) const;
+	float get_action_strength(const StringName &p_action, bool p_exact = false, uint8_t p_player_mask = PLAYER_ALL) const;
+	float get_action_raw_strength(const StringName &p_action, bool p_exact = false, uint8_t p_player_mask = PLAYER_ALL) const;
 
-	float get_axis(const StringName &p_negative_action, const StringName &p_positive_action) const;
-	Vector2 get_vector(const StringName &p_negative_x, const StringName &p_positive_x, const StringName &p_negative_y, const StringName &p_positive_y, float p_deadzone = -1.0f) const;
+	float get_axis(const StringName &p_negative_action, const StringName &p_positive_action, uint8_t p_player_mask = PLAYER_ALL) const;
+	Vector2 get_vector(const StringName &p_negative_x, const StringName &p_positive_x, const StringName &p_negative_y, const StringName &p_positive_y, float p_deadzone = -1.0f, uint8_t p_player_mask = PLAYER_ALL) const;
 
 	float get_joy_axis(int p_device, JoyAxis p_axis) const;
 	String get_joy_name(int p_idx);
@@ -350,8 +365,8 @@ public:
 
 	void set_mouse_position(const Point2 &p_posf);
 
-	void action_press(const StringName &p_action, float p_strength = 1.f);
-	void action_release(const StringName &p_action);
+	void action_press(const StringName &p_action, float p_strength = 1.f, uint8_t p_player_mask = 0);
+	void action_release(const StringName &p_action, uint8_t p_player_mask = 0);
 
 	void set_emulate_touch_from_mouse(bool p_emulate);
 	bool is_emulating_touch_from_mouse() const;
@@ -403,5 +418,6 @@ public:
 
 VARIANT_ENUM_CAST(Input::MouseMode);
 VARIANT_ENUM_CAST(Input::CursorShape);
+VARIANT_ENUM_CAST(Input::PlayerMask);
 
 #endif // INPUT_H
