@@ -2380,6 +2380,7 @@ static void _register_variant_builtin_methods_array() {
 	bind_method(Array, all, sarray("method"), varray());
 	bind_method(Array, max, sarray(), varray());
 	bind_method(Array, min, sarray(), varray());
+	bind_method(Array, sum, sarray(), varray());
 	bind_method(Array, is_typed, sarray(), varray());
 	bind_method(Array, is_same_typed, sarray("array"), varray());
 	bind_method(Array, get_typed_builtin, sarray(), varray());

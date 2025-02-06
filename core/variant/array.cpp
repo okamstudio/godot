@@ -830,6 +830,23 @@ Variant Array::max() const {
 	return maxval;
 }
 
+Variant Array::sum() const {
+	Variant sumval;
+	for (int i = 0; i < size(); i++) {
+		if (i == 0) {
+			sumval = get(i);
+		} else {
+			bool valid;
+			Variant term = get(i);
+			Variant::evaluate(Variant::OP_ADD, sumval, term, sumval, valid);
+			if (!valid) {
+				return Variant(); //not a valid operation
+			}
+		}
+	}
+	return sumval;
+}
+
 const void *Array::id() const {
 	return _p;
 }

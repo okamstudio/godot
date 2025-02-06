@@ -795,6 +795,12 @@
 				[b]Note:[/b] You should not randomize the return value of [param func], as the heapsort algorithm expects a consistent result. Randomizing the return value will result in unexpected behavior.
 			</description>
 		</method>
+		<method name="sum" qualifiers="const">
+			<return type="Variant" />
+			<description>
+				Returns the sum of all values contained in the array if all elements are of summable types. If the elements can't be summed, [code]null[/code] is returned.
+			</description>
+		</method>
 	</methods>
 	<operators>
 		<operator name="operator !=">
