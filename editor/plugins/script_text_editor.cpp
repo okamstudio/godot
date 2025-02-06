@@ -555,8 +555,6 @@ void ScriptTextEditor::_validate_script() {
 	} else {
 		code_editor->set_error("");
 		if (!script->is_tool()) {
-			script->set_source_code(text);
-			script->update_exports();
 			te->get_syntax_highlighter()->update_cache();
 		}
 
