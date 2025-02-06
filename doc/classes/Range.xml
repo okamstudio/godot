@@ -63,7 +63,7 @@
 			If [code]true[/code], [member value] will always be rounded to the nearest integer.
 		</member>
 		<member name="size_flags_vertical" type="int" setter="set_v_size_flags" getter="get_v_size_flags" overrides="Control" enum="Control.SizeFlags" is_bitfield="true" default="0" />
-		<member name="step" type="float" setter="set_step" getter="get_step" default="0.01">
+		<member name="step" type="float" setter="set_step" getter="get_step" default="1.0">
 			If greater than 0, [member value] will always be rounded to a multiple of this property's value. If [member rounded] is also [code]true[/code], [member value] will first be rounded to a multiple of this property's value, then rounded to the nearest integer.
 		</member>
 		<member name="value" type="float" setter="set_value" getter="get_value" default="0.0">

@@ -16,7 +16,6 @@
 		<member name="scrollable" type="bool" setter="set_scrollable" getter="is_scrollable" default="true">
 			If [code]true[/code], the value can be changed using the mouse wheel.
 		</member>
-		<member name="step" type="float" setter="set_step" getter="get_step" overrides="Range" default="1.0" />
 		<member name="tick_count" type="int" setter="set_ticks" getter="get_ticks" default="0">
 			Number of ticks displayed on the slider, including border ticks. Ticks are uniformly-distributed value markers.
 		</member>

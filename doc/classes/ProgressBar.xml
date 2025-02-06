@@ -21,6 +21,7 @@
 		<member name="show_percentage" type="bool" setter="set_show_percentage" getter="is_percentage_shown" default="true">
 			If [code]true[/code], the fill percentage is displayed on the bar.
 		</member>
+		<member name="step" type="float" setter="set_step" getter="get_step" overrides="Range" default="0.01" />
 	</members>
 	<constants>
 		<constant name="FILL_BEGIN_TO_END" value="0" enum="FillMode">

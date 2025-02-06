@@ -46,7 +46,6 @@
 			[b]Note:[/b] [member radial_initial_angle] is wrapped between [code]0[/code] and [code]360[/code] degrees (inclusive).
 		</member>
 		<member name="size_flags_vertical" type="int" setter="set_v_size_flags" getter="get_v_size_flags" overrides="Control" enum="Control.SizeFlags" is_bitfield="true" default="1" />
-		<member name="step" type="float" setter="set_step" getter="get_step" overrides="Range" default="1.0" />
 		<member name="stretch_margin_bottom" type="int" setter="set_stretch_margin" getter="get_stretch_margin" default="0">
 			The height of the 9-patch's bottom row. A margin of 16 means the 9-slice's bottom corners and side will have a height of 16 pixels. You can set all 4 margin values individually to create panels with non-uniform borders. Only effective if [member nine_patch_stretch] is [code]true[/code].
 		</member>
