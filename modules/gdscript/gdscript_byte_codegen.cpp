@@ -67,7 +67,7 @@ uint32_t GDScriptByteCodeGenerator::add_or_get_name(const StringName &p_name) {
 
 uint32_t GDScriptByteCodeGenerator::add_temporary(const GDScriptDataType &p_type) {
 	Variant::Type temp_type = Variant::NIL;
-	if (p_type.has_type && p_type.kind == GDScriptDataType::BUILTIN) {
+	if (p_type.kind == GDScriptDataType::BUILTIN) {
 		switch (p_type.builtin_type) {
 			case Variant::NIL:
 			case Variant::BOOL:
@@ -426,10 +426,10 @@ void GDScriptByteCodeGenerator::set_initial_line(int p_line) {
 }
 
 #define HAS_BUILTIN_TYPE(m_var) \
-	(m_var.type.has_type && m_var.type.kind == GDScriptDataType::BUILTIN)
+	(m_var.type.kind == GDScriptDataType::BUILTIN)
 
 #define IS_BUILTIN_TYPE(m_var, m_type) \
-	(m_var.type.has_type && m_var.type.kind == GDScriptDataType::BUILTIN && m_var.type.builtin_type == m_type && m_type != Variant::NIL)
+	(m_var.type.kind == GDScriptDataType::BUILTIN && m_var.type.builtin_type == m_type && m_type != Variant::NIL)
 
 void GDScriptByteCodeGenerator::write_type_adjust(const Address &p_target, Variant::Type p_new_type) {
 	switch (p_new_type) {
@@ -1072,7 +1072,6 @@ GDScriptByteCodeGenerator::CallTarget GDScriptByteCodeGenerator::get_call_target
 	if (p_target.mode == Address::NIL) {
 		GDScriptDataType type;
 		if (p_type != Variant::NIL) {
-			type.has_type = true;
 			type.kind = GDScriptDataType::BUILTIN;
 			type.builtin_type = p_type;
 		}
@@ -1572,7 +1571,7 @@ void GDScriptByteCodeGenerator::write_for(const Address &p_variable, bool p_use_
 	GDScriptFunction::Opcode begin_opcode = GDScriptFunction::OPCODE_ITERATE_BEGIN;
 	GDScriptFunction::Opcode iterate_opcode = GDScriptFunction::OPCODE_ITERATE;
 
-	if (container.type.has_type) {
+	if (container.type.has_type()) {
 		if (container.type.kind == GDScriptDataType::BUILTIN) {
 			switch (container.type.builtin_type) {
 				case Variant::INT:
@@ -1768,11 +1767,11 @@ void GDScriptByteCodeGenerator::write_newline(int p_line) {
 }
 
 void GDScriptByteCodeGenerator::write_return(const Address &p_return_value) {
-	if (!function->return_type.has_type || p_return_value.type.has_type) {
+	if (!function->return_type.has_type() || p_return_value.type.has_type()) {
 		// Either the function is untyped or the return value is also typed.
 
 		// If this is a typed function, then we need to check for potential conversions.
-		if (function->return_type.has_type) {
+		if (function->return_type.has_type()) {
 			if (function->return_type.kind == GDScriptDataType::BUILTIN && function->return_type.builtin_type == Variant::ARRAY && function->return_type.has_container_element_type(0)) {
 				// Typed array.
 				const GDScriptDataType &element_type = function->return_type.get_container_element_type(0);
@@ -1892,7 +1891,7 @@ void GDScriptByteCodeGenerator::clear_address(const Address &p_address) {
 	// Do not check `is_local_dirty()` here! Always clear the address since the codegen doesn't track the compiler.
 	// Also, this method is used to initialize local variables of built-in types, since they cannot be `null`.
 
-	if (p_address.type.has_type && p_address.type.kind == GDScriptDataType::BUILTIN) {
+	if (p_address.type.kind == GDScriptDataType::BUILTIN) {
 		switch (p_address.type.builtin_type) {
 			case Variant::BOOL:
 				write_assign_false(p_address);
