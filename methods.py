@@ -17,6 +17,9 @@ from misc.utility.color import print_error, print_info, print_warning
 base_folder_path = str(os.path.abspath(Path(__file__).parent)) + "/"
 base_folder_only = os.path.basename(os.path.normpath(base_folder_path))
 
+# Cached compiler version
+compiler_version = None
+
 # Listing all the folders we have converted
 # for SCU in scu_builders.py
 _scu_folders = set()
@@ -43,6 +46,10 @@ def add_source_files_orig(self, sources, files, allow_gen=False):
         if obj in sources:
             print_warning('Object "{}" already included in environment sources.'.format(obj))
             continue
+
+        # This creates a dependency between each built file with the compiler version.
+        # This way, if the compiler version changes, we rebuild from scratch.
+        self.Depends(obj, self.Value(get_compiler_version(self)))
         sources.append(obj)
 
 
@@ -635,6 +642,11 @@ def get_compiler_version(env):
     - metadata1, metadata2: Extra information
     - date: Date of the build
     """
+    global compiler_version
+
+    if compiler_version is not None:
+        return compiler_version
+
     import shlex
 
     ret = {
@@ -681,6 +693,8 @@ def get_compiler_version(env):
                     ret["metadata1"] = split[1]
         except (subprocess.CalledProcessError, OSError):
             print_warning("Couldn't find vswhere to determine compiler version.")
+
+        compiler_version = ret
         return ret
 
     # Not using -dumpversion as some GCC distros only return major, and
@@ -691,6 +705,8 @@ def get_compiler_version(env):
         ).strip()
     except (subprocess.CalledProcessError, OSError):
         print_warning("Couldn't parse CXX environment variable to infer compiler version.")
+
+        compiler_version = ret
         return ret
 
     match = re.search(
@@ -734,6 +750,8 @@ def get_compiler_version(env):
         "apple_patch3",
     ]:
         ret[key] = int(ret[key] or -1)
+
+    compiler_version = ret
     return ret
 
 
