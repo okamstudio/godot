@@ -123,12 +123,28 @@ namespace GodotTools.IdeMessaging
             this.messageHandler = messageHandler;
             this.logger = logger;
 
-            string projectMetadataDir = Path.Combine(godotProjectDir, ".godot", "mono", "metadata");
+            // Normalize and validate the godotProjectDir to prevent path traversal
+            string trustedBaseDir = Path.GetFullPath(godotProjectDir);
+
+            string projectMetadataDir = Path.GetFullPath(Path.Combine(trustedBaseDir, ".godot", "mono", "metadata"));
+            if (!projectMetadataDir.StartsWith(trustedBaseDir, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new UnauthorizedAccessException("Path traversal detected in godotProjectDir.");
+            }
+
             // FileSystemWatcher requires an existing directory
             if (!Directory.Exists(projectMetadataDir))
             {
                 // Check if the non hidden version exists
-                string nonHiddenProjectMetadataDir = Path.Combine(godotProjectDir, "godot", "mono", "metadata");
+                string path = Path.Combine(trustedBaseDir, "godot", "mono", "metadata");
+                string nonHiddenProjectMetadataDir = Path.GetFullPath(path);
+
+                if (!nonHiddenProjectMetadataDir.StartsWith(trustedBaseDir, StringComparison.OrdinalIgnoreCase))
+                {
+                    string message = "Path traversal detected in non-hidden project metadata directory.";
+                    throw new UnauthorizedAccessException(message);
+                }
+
                 if (Directory.Exists(nonHiddenProjectMetadataDir))
                 {
                     projectMetadataDir = nonHiddenProjectMetadataDir;

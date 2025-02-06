@@ -41,7 +41,15 @@ namespace GodotTools.IdeMessaging.CLI
                     return 1;
                 }
 
-                string godotProjectDir = args[0];
+                string godotProjectDir = Path.GetFullPath(args[0]);
+
+                // Validate the project directory to prevent path traversal
+                string trustedBaseDir = Directory.GetCurrentDirectory(); // Use a trusted base directory
+                if (!godotProjectDir.StartsWith(trustedBaseDir, StringComparison.OrdinalIgnoreCase))
+                {
+                    Logger.LogError("Path traversal detected in the specified Godot project directory.");
+                    return 1;
+                }
 
                 if (!Directory.Exists(godotProjectDir))
                 {
