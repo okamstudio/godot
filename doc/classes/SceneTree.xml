@@ -190,6 +190,7 @@
 			<description>
 				Reloads the currently active scene, replacing [member current_scene] with a new instance of its original [PackedScene].
 				Returns [constant OK] on success, [constant ERR_UNCONFIGURED] if no [member current_scene] is defined, [constant ERR_CANT_OPEN] if [member current_scene] cannot be loaded into a [PackedScene], or [constant ERR_CANT_CREATE] if the scene cannot be instantiated.
+				[b]Note:[/b] References to external [RefCounted] objects will not decreased during the process. This means that [Resource]s will not be removed from the cache and reloaded unless [member Resource.resource_local_to_scene] is [code]true[/code].
 			</description>
 		</method>
 		<method name="set_group">
