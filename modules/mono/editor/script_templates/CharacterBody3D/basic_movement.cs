@@ -6,6 +6,7 @@ using System;
 public partial class _CLASS_ : _BASE_
 {
     public const float Speed = 5.0f;
+    public const float Deceleration = 12.0f;
     public const float JumpVelocity = 4.5f;
 
     public override void _PhysicsProcess(double delta)
@@ -27,7 +28,7 @@ public partial class _CLASS_ : _BASE_
         // Get the input direction and handle the movement/deceleration.
         // As good practice, you should replace UI actions with custom gameplay actions.
         Vector2 inputDir = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down");
-        Vector3 direction = (Transform.Basis * new Vector3(inputDir.X, 0, inputDir.Y)).Normalized();
+        Vector3 direction = (Transform.Basis * new Vector3(inputDir.X, 0.0f, inputDir.Y)).Normalized();
         if (direction != Vector3.Zero)
         {
             velocity.X = direction.X * Speed;
@@ -35,8 +36,8 @@ public partial class _CLASS_ : _BASE_
         }
         else
         {
-            velocity.X = Mathf.MoveToward(Velocity.X, 0, Speed);
-            velocity.Z = Mathf.MoveToward(Velocity.Z, 0, Speed);
+            velocity.X = Mathf.MoveToward(Velocity.X, 0.0f, Deceleration * (float)delta);
+            velocity.Z = Mathf.MoveToward(Velocity.Z, 0.0f, Deceleration * (float)delta);
         }
 
         Velocity = velocity;

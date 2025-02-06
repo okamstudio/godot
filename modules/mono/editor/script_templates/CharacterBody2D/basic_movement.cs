@@ -6,6 +6,7 @@ using System;
 public partial class _CLASS_ : _BASE_
 {
     public const float Speed = 300.0f;
+    public const float Deceleration = 1000.0f;
     public const float JumpVelocity = -400.0f;
 
     public override void _PhysicsProcess(double delta)
@@ -33,7 +34,7 @@ public partial class _CLASS_ : _BASE_
         }
         else
         {
-            velocity.X = Mathf.MoveToward(Velocity.X, 0, Speed);
+            velocity.X = Mathf.MoveToward(Velocity.X, 0.0f, Deceleration * (float)delta);
         }
 
         Velocity = velocity;
