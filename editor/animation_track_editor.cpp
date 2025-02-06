@@ -2949,6 +2949,12 @@ void AnimationTrackEdit::gui_input(const Ref<InputEvent> &p_event) {
 	if (mb.is_valid() && mb->is_pressed() && mb->get_button_index() == MouseButton::LEFT) {
 		Point2 pos = mb->get_position();
 
+		if (mb->is_double_click()) {
+			int x = pos.x - timeline->get_name_limit();
+			float ofs = x / timeline->get_zoom_scale() + timeline->get_value();
+			emit_signal(SNAME("timeline_changed"), ofs, mb->is_alt_pressed());
+		}
+
 		if (!read_only) {
 			if (check_rect.has_point(pos)) {
 				EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
