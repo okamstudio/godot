@@ -387,6 +387,7 @@ class ScriptEditor : public PanelContainer {
 	void _resave_scripts(const String &p_str);
 
 	bool _test_script_times_on_disk(Ref<Resource> p_for_script = Ref<Resource>());
+	bool _script_exists(const String &p_path) const;
 
 	void _add_recent_script(const String &p_path);
 	void _update_recent_scripts();

@@ -1214,6 +1214,16 @@ bool ScriptEditor::_test_script_times_on_disk(Ref<Resource> p_for_script) {
 	return need_reload;
 }
 
+bool ScriptEditor::_script_exists(const String &p_path) const {
+	if (p_path.is_empty()) {
+		return false;
+	} else if (p_path.is_resource_file()) {
+		return FileAccess::exists(p_path);
+	} else {
+		return FileAccess::exists(p_path.get_slice("::", 0));
+	}
+}
+
 void ScriptEditor::_file_dialog_action(const String &p_file) {
 	switch (file_dialog_option) {
 		case FILE_NEW_TEXTFILE: {
@@ -2961,7 +2971,7 @@ void ScriptEditor::_save_editor_state(ScriptEditorBase *p_editor) {
 	}
 
 	const String &path = p_editor->get_edited_resource()->get_path();
-	if (!path.is_resource_file()) {
+	if (path.is_empty()) {
 		return;
 	}
 
@@ -3478,23 +3488,37 @@ void ScriptEditor::set_window_layout(Ref<ConfigFile> p_layout) {
 	ResourceLoader::get_recognized_extensions_for_type("Script", &extensions);
 	ResourceLoader::get_recognized_extensions_for_type("JSON", &extensions);
 
-	for (int i = 0; i < scripts.size(); i++) {
-		String path = scripts[i];
+	for (const Variant &v : scripts) {
+		String path = v;
 
-		Dictionary script_info = scripts[i];
+		Dictionary script_info = v;
 		if (!script_info.is_empty()) {
 			path = script_info["path"];
 		}
 
-		if (!FileAccess::exists(path)) {
+		if (!_script_exists(path)) {
 			if (script_editor_cache->has_section(path)) {
 				script_editor_cache->erase_section(path);
 			}
 			continue;
+		} else if (!path.is_resource_file() && !EditorNode::get_singleton()->is_scene_open(path.get_slice("::", 0))) {
+			continue;
 		}
 		loaded_scripts.insert(path);
 
-		if (extensions.find(path.get_extension())) {
+		bool is_script = false;
+		if (path.is_resource_file()) {
+			is_script = extensions.find(path.get_extension());
+		} else {
+			Ref<Script> scr = ResourceCache::get_ref(path);
+			if (scr.is_valid()) {
+				is_script = true;
+			} else {
+				continue;
+			}
+		}
+
+		if (is_script) {
 			Ref<Resource> scr = ResourceLoader::load(path);
 			if (scr.is_null()) {
 				continue;
@@ -3550,7 +3574,7 @@ void ScriptEditor::set_window_layout(Ref<ConfigFile> p_layout) {
 			continue;
 		}
 
-		if (!FileAccess::exists(E)) {
+		if (!_script_exists(E)) {
 			script_editor_cache->erase_section(E);
 			continue;
 		}
@@ -3587,8 +3611,8 @@ void ScriptEditor::get_window_layout(Ref<ConfigFile> p_layout) {
 	for (int i = 0; i < tab_container->get_tab_count(); i++) {
 		ScriptEditorBase *se = Object::cast_to<ScriptEditorBase>(tab_container->get_tab_control(i));
 		if (se) {
-			String path = se->get_edited_resource()->get_path();
-			if (!path.is_resource_file()) {
+			const String path = se->get_edited_resource()->get_path();
+			if (path.is_empty()) {
 				continue;
 			}
 
