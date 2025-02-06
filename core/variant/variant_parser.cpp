@@ -1224,7 +1224,7 @@ Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream,
 						r_err_str = String();
 						value_type = Variant::OBJECT;
 						value_class_name = token.value;
-						got_comma_token = true;
+						got_bracket_token = true;
 					} else {
 						return err;
 					}
