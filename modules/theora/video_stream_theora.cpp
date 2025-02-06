@@ -39,31 +39,9 @@
 int VideoStreamPlaybackTheora::buffer_data() {
 	char *buffer = ogg_sync_buffer(&oy, 4096);
 
-#ifdef THEORA_USE_THREAD_STREAMING
-
-	int read;
-
-	do {
-		thread_sem->post();
-		read = MIN(ring_buffer.data_left(), 4096);
-		if (read) {
-			ring_buffer.read((uint8_t *)buffer, read);
-			ogg_sync_wrote(&oy, read);
-		} else {
-			OS::get_singleton()->delay_usec(100);
-		}
-
-	} while (read == 0);
-
-	return read;
-
-#else
-
 	uint64_t bytes = file->get_buffer((uint8_t *)buffer, 4096);
 	ogg_sync_wrote(&oy, bytes);
 	return (bytes);
-
-#endif
 }
 
 int VideoStreamPlaybackTheora::queue_page(ogg_page *page) {
@@ -82,10 +60,7 @@ int VideoStreamPlaybackTheora::queue_page(ogg_page *page) {
 	return 0;
 }
 
-void VideoStreamPlaybackTheora::video_write() {
-	th_ycbcr_buffer yuv;
-	th_decode_ycbcr_out(td, yuv);
-
+void VideoStreamPlaybackTheora::video_write(th_ycbcr_buffer yuv) {
 	int pitch = 4;
 	frame_data.resize(size.x * size.y * pitch);
 	{
@@ -106,10 +81,11 @@ void VideoStreamPlaybackTheora::video_write() {
 	}
 
 	Ref<Image> img = memnew(Image(size.x, size.y, false, Image::FORMAT_RGBA8, frame_data)); //zero copy image creation
+	if (region.size.x != size.x || region.size.y != size.y) {
+		img = img->get_region(region);
+	}
 
 	texture->update(img); //zero copy send to rendering server
-
-	frames_pending = 1;
 }
 
 void VideoStreamPlaybackTheora::clear() {
@@ -136,20 +112,15 @@ void VideoStreamPlaybackTheora::clear() {
 	}
 	ogg_sync_clear(&oy);
 
-#ifdef THEORA_USE_THREAD_STREAMING
-	thread_exit = true;
-	thread_sem->post(); //just in case
-	thread.wait_to_finish();
-	ring_buffer.clear();
-#endif
-
 	theora_p = 0;
 	vorbis_p = 0;
-	videobuf_ready = 0;
-	frames_pending = 0;
-	videobuf_time = 0;
+	next_frame_time = 0;
+	current_frame_time = 0;
 	theora_eos = false;
 	vorbis_eos = false;
+	video_ready = false;
+	video_done = false;
+	audio_done = false;
 
 	file.unref();
 	playing = false;
@@ -163,17 +134,6 @@ void VideoStreamPlaybackTheora::set_file(const String &p_file) {
 	file_name = p_file;
 	file = FileAccess::open(p_file, FileAccess::READ);
 	ERR_FAIL_COND_MSG(file.is_null(), "Cannot open file '" + p_file + "'.");
-
-#ifdef THEORA_USE_THREAD_STREAMING
-	thread_exit = false;
-	thread_eof = false;
-	//pre-fill buffer
-	int to_read = ring_buffer.space_left();
-	uint64_t read = file->get_buffer(read_buffer.ptr(), to_read);
-	ring_buffer.write(read_buffer.ptr(), read);
-
-	thread.start(_streaming_thread, this);
-#endif
 
 	ogg_sync_init(&oy);
 
@@ -327,16 +287,17 @@ void VideoStreamPlaybackTheora::set_file(const String &p_file) {
 		th_decode_ctl(td, TH_DECCTL_SET_PPLEVEL, &pp_level, sizeof(pp_level));
 		pp_inc = 0;
 
-		int w;
-		int h;
-		w = ((ti.pic_x + ti.frame_width + 1) & ~1) - (ti.pic_x & ~1);
-		h = ((ti.pic_y + ti.frame_height + 1) & ~1) - (ti.pic_y & ~1);
-		size.x = w;
-		size.y = h;
+		size.x = ti.frame_width;
+		size.y = ti.frame_height;
+		region.position.x = ti.pic_x;
+		region.position.y = ti.pic_y;
+		region.size.x = ti.pic_width;
+		region.size.y = ti.pic_height;
 
-		Ref<Image> img = Image::create_empty(w, h, false, Image::FORMAT_RGBA8);
+		Ref<Image> img = Image::create_empty(region.size.x, region.size.y, false, Image::FORMAT_RGBA8);
 		texture->set_image(img);
 
+		frame_duration = (double)ti.fps_denominator / ti.fps_numerator;
 	} else {
 		/* tear down the partial theora setup */
 		th_info_clear(&ti);
@@ -358,7 +319,8 @@ void VideoStreamPlaybackTheora::set_file(const String &p_file) {
 	playing = false;
 	buffering = true;
 	time = 0;
-	audio_frames_wrote = 0;
+	video_done = !theora_p;
+	audio_done = !vorbis_p;
 }
 
 double VideoStreamPlaybackTheora::get_time() const {
@@ -378,68 +340,41 @@ void VideoStreamPlaybackTheora::update(double p_delta) {
 	}
 
 	if (!playing || paused) {
-		//printf("not playing\n");
 		return;
 	}
 
-#ifdef THEORA_USE_THREAD_STREAMING
-	thread_sem->post();
-#endif
-
 	time += p_delta;
 
-	if (videobuf_time > get_time()) {
-		return; //no new frames need to be produced
-	}
+	double comp_time = get_time();
+	bool audio_ready = false;
 
-	bool frame_done = false;
-	bool audio_done = !vorbis_p;
-
-	while (!frame_done || (!audio_done && !vorbis_eos)) {
-		//a frame needs to be produced
-
+	// Read data until we fill the audio buffer and get a new video frame.
+	while ((!audio_ready && !audio_done) || (!video_ready && !video_done)) {
 		ogg_packet op;
-		bool no_theora = false;
-		bool buffer_full = false;
 
-		while (vorbis_p && !audio_done && !buffer_full) {
-			int ret;
+		while (!audio_ready && !audio_done) {
 			float **pcm;
-
-			/* if there's pending, decoded audio, grab it */
-			ret = vorbis_synthesis_pcmout(&vd, &pcm);
+			int ret = vorbis_synthesis_pcmout(&vd, &pcm);
 			if (ret > 0) {
 				const int AUXBUF_LEN = 4096;
 				int to_read = ret;
 				float aux_buffer[AUXBUF_LEN];
-
 				while (to_read) {
 					int m = MIN(AUXBUF_LEN / vi.channels, to_read);
-
 					int count = 0;
-
 					for (int j = 0; j < m; j++) {
 						for (int i = 0; i < vi.channels; i++) {
 							aux_buffer[count++] = pcm[i][j];
 						}
 					}
-
-					if (mix_callback) {
-						int mixed = mix_callback(mix_udata, aux_buffer, m);
-						to_read -= mixed;
-						if (mixed != m) { //could mix no more
-							buffer_full = true;
-							break;
-						}
-					} else {
-						to_read -= m; //just pretend we sent the audio
+					int mixed = mix_callback(mix_udata, aux_buffer, m);
+					to_read -= mixed;
+					if (mixed != m) { //could mix no more
+						audio_ready = true;
+						break;
 					}
 				}
-
 				vorbis_synthesis_read(&vd, ret - to_read);
-
-				audio_frames_wrote += ret - to_read;
-
 			} else {
 				/* no pending audio; is there a pending packet to decode? */
 				if (ogg_stream_packetout(&vo, &op) > 0) {
@@ -447,19 +382,13 @@ void VideoStreamPlaybackTheora::update(double p_delta) {
 						vorbis_synthesis_blockin(&vd, &vb);
 					}
 				} else { /* we need more data; break out to suck in another page */
+					audio_done = vorbis_eos;
 					break;
 				}
 			}
-
-			audio_done = videobuf_time < (audio_frames_wrote / float(vi.rate));
-
-			if (buffer_full) {
-				break;
-			}
 		}
 
-		while (theora_p && !frame_done) {
-			/* theora is one in, one out... */
+		while (!video_ready && !video_done) {
 			if (ogg_stream_packetout(&to, &op) > 0) {
 				/*HACK: This should be set after a seek or a gap, but we might not have
 				a granulepos for the first packet (we only have them for the last
@@ -472,62 +401,37 @@ void VideoStreamPlaybackTheora::update(double p_delta) {
 							sizeof(op.granulepos));
 				}
 				ogg_int64_t videobuf_granulepos;
-				if (th_decode_packetin(td, &op, &videobuf_granulepos) == 0) {
-					videobuf_time = th_granule_time(td, videobuf_granulepos);
-
-					//printf("frame time %f, play time %f, ready %i\n", (float)videobuf_time, get_time(), videobuf_ready);
-
-					/* is it already too old to be useful? This is only actually
-					 useful cosmetically after a SIGSTOP. Note that we have to
-					 decode the frame even if we don't show it (for now) due to
-					 keyframing. Soon enough libtheora will be able to deal
-					 with non-keyframe seeks.  */
-
-					if (videobuf_time >= get_time()) {
-						frame_done = true;
+				int ret = th_decode_packetin(td, &op, &videobuf_granulepos);
+				if (ret == 0 || ret == TH_DUPFRAME) {
+					next_frame_time = th_granule_time(td, videobuf_granulepos);
+					if (next_frame_time > comp_time) {
+						dup_frame = (ret == TH_DUPFRAME);
+						video_ready = true;
 					} else {
 						/*If we are too slow, reduce the pp level.*/
 						pp_inc = pp_level > 0 ? -1 : 0;
 					}
 				}
-
-			} else {
-				no_theora = true;
+			} else { /* we need more data; break out to suck in another page */
+				video_done = theora_eos;
 				break;
 			}
 		}
 
-#ifdef THEORA_USE_THREAD_STREAMING
-		if (file.is_valid() && thread_eof && no_theora && theora_eos && ring_buffer.data_left() == 0) {
-#else
-		if (file.is_valid() && /*!videobuf_ready && */ no_theora && theora_eos) {
-#endif
-			//printf("video done, stopping\n");
-			stop();
-			return;
-		}
-
-		if (!frame_done || !audio_done) {
-			//what's the point of waiting for audio to grab a page?
-
-			buffer_data();
-			while (ogg_sync_pageout(&oy, &og) > 0) {
-				queue_page(&og);
+		if (!video_ready || !audio_ready) {
+			int ret = buffer_data();
+			if (ret > 0) {
+				while (ogg_sync_pageout(&oy, &og) > 0) {
+					queue_page(&og);
+				}
+			} else {
+				vorbis_eos = true;
+				theora_eos = true;
+				break;
 			}
 		}
 
-		/* If playback has begun, top audio buffer off immediately. */
-		//if(stateflag) audio_write_nonblocking();
-
-		/* are we at or past time for this video frame? */
-		if (videobuf_ready && videobuf_time <= get_time()) {
-			//video_write();
-			//videobuf_ready=0;
-		} else {
-			//printf("frame at %f not ready (time %f), ready %i\n", (float)videobuf_time, get_time(), videobuf_ready);
-		}
-
-		double tdiff = videobuf_time - get_time();
+		double tdiff = next_frame_time - comp_time;
 		/*If we have lots of extra time, increase the post-processing level.*/
 		if (tdiff > ti.fps_denominator * 0.25 / ti.fps_numerator) {
 			pp_inc = pp_level < pp_level_max ? 1 : 0;
@@ -536,7 +440,22 @@ void VideoStreamPlaybackTheora::update(double p_delta) {
 		}
 	}
 
-	video_write();
+	if (!video_ready && video_done && audio_done) {
+		stop();
+		return;
+	}
+
+	// Wait for the last frame to end before rendering the next one.
+	if (video_ready && comp_time >= current_frame_time) {
+		if (!dup_frame) {
+			th_ycbcr_buffer yuv;
+			th_decode_ycbcr_out(td, yuv);
+			video_write(yuv);
+		}
+		dup_frame = false;
+		video_ready = false;
+		current_frame_time = next_frame_time;
+	}
 }
 
 void VideoStreamPlaybackTheora::play() {
@@ -596,44 +515,11 @@ int VideoStreamPlaybackTheora::get_mix_rate() const {
 	return vi.rate;
 }
 
-#ifdef THEORA_USE_THREAD_STREAMING
-
-void VideoStreamPlaybackTheora::_streaming_thread(void *ud) {
-	VideoStreamPlaybackTheora *vs = static_cast<VideoStreamPlaybackTheora *>(ud);
-
-	while (!vs->thread_exit) {
-		//just fill back the buffer
-		if (!vs->thread_eof) {
-			int to_read = vs->ring_buffer.space_left();
-			if (to_read > 0) {
-				uint64_t read = vs->file->get_buffer(vs->read_buffer.ptr(), to_read);
-				vs->ring_buffer.write(vs->read_buffer.ptr(), read);
-				vs->thread_eof = vs->file->eof_reached();
-			}
-		}
-
-		vs->thread_sem->wait();
-	}
-}
-
-#endif
-
 VideoStreamPlaybackTheora::VideoStreamPlaybackTheora() {
 	texture.instantiate();
-
-#ifdef THEORA_USE_THREAD_STREAMING
-	int rb_power = nearest_shift(RB_SIZE_KB * 1024);
-	ring_buffer.resize(rb_power);
-	read_buffer.resize(RB_SIZE_KB * 1024);
-	thread_sem = Semaphore::create();
-
-#endif
 }
 
 VideoStreamPlaybackTheora::~VideoStreamPlaybackTheora() {
-#ifdef THEORA_USE_THREAD_STREAMING
-	memdelete(thread_sem);
-#endif
 	clear();
 }
 
