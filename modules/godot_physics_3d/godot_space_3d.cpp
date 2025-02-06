@@ -571,6 +571,83 @@ bool GodotPhysicsDirectSpaceState3D::rest_info(const ShapeParameters &p_paramete
 	return true;
 }
 
+int GodotPhysicsDirectSpaceState3D::complete_rest_info(const ShapeParameters &p_parameters, ShapeRestInfo *r_infos, int p_result_max) {
+	if (p_result_max <= 0) {
+		return false;
+	}
+
+	GodotShape3D *shape = GodotPhysicsServer3D::godot_singleton->shape_owner.get_or_null(p_parameters.shape_rid);
+	ERR_FAIL_NULL_V(shape, false);
+
+	real_t margin = MAX(p_parameters.margin, TEST_MOTION_MARGIN_MIN_VALUE);
+
+	AABB aabb = p_parameters.transform.xform(shape->get_aabb());
+	aabb = aabb.grow(margin);
+
+	int amount = space->broadphase->cull_aabb(aabb, space->intersection_query_results, GodotSpace3D::INTERSECTION_QUERY_MAX, space->intersection_query_subindex_results);
+
+	Vector<_RestResultData> results;
+	results.resize(p_result_max);
+
+	_RestCallbackData rcd;
+	if (p_result_max > 1) {
+		rcd.max_results = p_result_max;
+		rcd.other_results = results.ptrw();
+	}
+
+	// Allowed depth can't be lower than motion length, in order to handle contacts at low speed.
+	real_t motion_length = p_parameters.motion.length();
+	real_t min_contact_depth = margin * TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR;
+	rcd.min_allowed_depth = MIN(motion_length, min_contact_depth);
+
+	for (int i = 0; i < amount; i++) {
+		if (!_can_collide_with(space->intersection_query_results[i], p_parameters.collision_mask, p_parameters.collide_with_bodies, p_parameters.collide_with_areas)) {
+			continue;
+		}
+
+		const GodotCollisionObject3D *col_obj = space->intersection_query_results[i];
+
+		if (p_parameters.exclude.has(col_obj->get_self())) {
+			continue;
+		}
+
+		int shape_idx = space->intersection_query_subindex_results[i];
+
+		rcd.object = col_obj;
+		rcd.shape = shape_idx;
+		bool sc = GodotCollisionSolver3D::solve_static(shape, p_parameters.transform, col_obj->get_shape(shape_idx), col_obj->get_transform() * col_obj->get_shape_transform(shape_idx), _rest_cbk_result, &rcd, nullptr, margin);
+		if (!sc) {
+			continue;
+		}
+	}
+
+	if (rcd.best_result.len == 0 || !rcd.best_result.object) {
+		return 0;
+	}
+
+	for (int collision_index = 0; collision_index < rcd.result_count; ++collision_index) {
+		const _RestResultData &result = (collision_index > 0) ? rcd.other_results[collision_index - 1] : rcd.best_result;
+
+		ShapeRestInfo &sri = r_infos[collision_index];
+
+		sri.collider_id = result.object->get_instance_id();
+		sri.shape = result.shape;
+		sri.normal = result.normal;
+		sri.point = result.contact;
+		sri.rid = result.object->get_self();
+		if (result.object->get_type() == GodotCollisionObject3D::TYPE_BODY) {
+			const GodotBody3D *body = static_cast<const GodotBody3D *>(result.object);
+			Vector3 rel_vec = result.contact - (body->get_transform().origin + body->get_center_of_mass());
+			sri.linear_velocity = body->get_linear_velocity() + (body->get_angular_velocity()).cross(rel_vec);
+
+		} else {
+			sri.linear_velocity = Vector3();
+		}
+	}
+
+	return rcd.result_count;
+}
+
 Vector3 GodotPhysicsDirectSpaceState3D::get_closest_point_to_object_volume(RID p_object, const Vector3 p_point) const {
 	GodotCollisionObject3D *obj = GodotPhysicsServer3D::godot_singleton->area_owner.get_or_null(p_object);
 	if (!obj) {

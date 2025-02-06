@@ -475,6 +475,30 @@ Dictionary PhysicsDirectSpaceState3D::_get_rest_info(const Ref<PhysicsShapeQuery
 	return r;
 }
 
+TypedArray<Dictionary> PhysicsDirectSpaceState3D::_get_complete_rest_info(const Ref<PhysicsShapeQueryParameters3D> &p_shape_query, int p_max_results) {
+	ERR_FAIL_COND_V(p_shape_query.is_null(), TypedArray<Dictionary>());
+
+	Vector<ShapeRestInfo> shape_rest_infos;
+	shape_rest_infos.resize(p_max_results);
+	int rc = complete_rest_info(p_shape_query->get_parameters(), shape_rest_infos.ptrw(), p_max_results);
+	TypedArray<Dictionary> ret;
+	ret.resize(rc);
+	for (int i = 0; i < rc; i++) {
+		Dictionary d;
+		ShapeRestInfo sri = shape_rest_infos[i];
+		d["point"] = sri.point;
+		d["normal"] = sri.normal;
+		d["rid"] = sri.rid;
+		d["collider_id"] = sri.collider_id;
+		d["shape"] = sri.shape;
+		d["linear_velocity"] = sri.linear_velocity;
+
+		ret[i] = d;
+	}
+
+	return ret;
+}
+
 PhysicsDirectSpaceState3D::PhysicsDirectSpaceState3D() {
 }
 
@@ -485,6 +509,7 @@ void PhysicsDirectSpaceState3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("cast_motion", "parameters"), &PhysicsDirectSpaceState3D::_cast_motion);
 	ClassDB::bind_method(D_METHOD("collide_shape", "parameters", "max_results"), &PhysicsDirectSpaceState3D::_collide_shape, DEFVAL(32));
 	ClassDB::bind_method(D_METHOD("get_rest_info", "parameters"), &PhysicsDirectSpaceState3D::_get_rest_info);
+	ClassDB::bind_method(D_METHOD("get_complete_rest_info", "parameters", "max_results"), &PhysicsDirectSpaceState3D::_get_complete_rest_info, DEFVAL(32));
 }
 
 ///////////////////////////////
