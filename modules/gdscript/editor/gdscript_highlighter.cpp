@@ -414,7 +414,10 @@ Dictionary GDScriptSyntaxHighlighter::_get_line_syntax_highlighting_impl(int p_l
 					}
 				}
 			} else if (class_names.has(word)) {
-				col = class_names[word];
+				if (in_declaration_params != 1 && prev_type != SIGNAL && prev_text != GDScriptTokenizer::get_token_name(GDScriptTokenizer::Token::FUNC)) {
+					// Avoid highlighting untyped parameters that might shadow global class names inside function, signal, and lambda declarations.
+					col = class_names[word];
+				}
 			} else if (reserved_keywords.has(word)) {
 				col = reserved_keywords[word];
 				// Don't highlight `list` as a type in `for elem: Type in list`.
@@ -440,10 +443,15 @@ Dictionary GDScriptSyntaxHighlighter::_get_line_syntax_highlighting_impl(int p_l
 			}
 		}
 
-		if (!in_function_name && in_word && !in_keyword) {
+		if (!in_function_name) {
 			if (prev_text == GDScriptTokenizer::get_token_name(GDScriptTokenizer::Token::SIGNAL)) {
 				in_signal_declaration = true;
-			} else {
+			} else if (is_char && prev_text == GDScriptTokenizer::get_token_name(GDScriptTokenizer::Token::FUNC) && str[j - 1] == '(') {
+				// Lambda created without a space next to "func".
+				in_function_declaration = true;
+				in_lambda = true;
+				in_declaration_params = 1;
+			} else if (in_word && !in_keyword) {
 				int k = j;
 				while (k < line_length && !is_symbol(str[k]) && !is_whitespace(str[k])) {
 					k++;
