@@ -1221,10 +1221,8 @@ void Window::_update_viewport_size() {
 			offset.x = Math::round(margin.x * viewport_size.y / screen_size.y);
 		}
 
-		if (screen_size.y < video_mode.y) {
-			margin.y = Math::round((video_mode.y - screen_size.y) / 2.0);
-			offset.y = Math::round(margin.y * viewport_size.x / screen_size.x);
-		}
+		margin.y = Math::round((video_mode.y - screen_size.y) / 2.0);
+		offset.y = Math::round(margin.y * viewport_size.x / screen_size.x);
 
 		switch (content_scale_mode) {
 			case CONTENT_SCALE_MODE_DISABLED: {
