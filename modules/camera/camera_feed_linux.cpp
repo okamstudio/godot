@@ -290,8 +290,8 @@ void CameraFeedLinux::deactivate_feed() {
 	emit_signal(SNAME("format_changed"));
 }
 
-Array CameraFeedLinux::get_formats() const {
-	Array result;
+TypedArray<Dictionary> CameraFeedLinux::get_formats() const {
+	TypedArray<Dictionary> result;
 	for (const FeedFormat &format : formats) {
 		Dictionary dictionary;
 		dictionary["width"] = format.width;
@@ -304,7 +304,7 @@ Array CameraFeedLinux::get_formats() const {
 	return result;
 }
 
-CameraFeed::FeedFormat CameraFeedLinux::get_format() const {
+CameraFeedLinux::FeedFormat CameraFeedLinux::get_format() const {
 	FeedFormat feed_format = {};
 	return selected_format == -1 ? feed_format : formats[selected_format];
 }

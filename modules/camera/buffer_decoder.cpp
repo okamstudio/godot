@@ -30,18 +30,18 @@
 
 #include "buffer_decoder.h"
 
-#include "servers/camera/camera_feed.h"
+#include "camera_feed_linux.h"
 
 #include <linux/videodev2.h>
 
-BufferDecoder::BufferDecoder(CameraFeed *p_camera_feed) {
+BufferDecoder::BufferDecoder(CameraFeedLinux *p_camera_feed) {
 	camera_feed = p_camera_feed;
 	width = camera_feed->get_format().width;
 	height = camera_feed->get_format().height;
 	image.instantiate();
 }
 
-AbstractYuyvBufferDecoder::AbstractYuyvBufferDecoder(CameraFeed *p_camera_feed) :
+AbstractYuyvBufferDecoder::AbstractYuyvBufferDecoder(CameraFeedLinux *p_camera_feed) :
 		BufferDecoder(p_camera_feed) {
 	switch (camera_feed->get_format().pixel_format) {
 		case V4L2_PIX_FMT_YYUV:
@@ -65,7 +65,7 @@ AbstractYuyvBufferDecoder::~AbstractYuyvBufferDecoder() {
 	delete[] component_indexes;
 }
 
-SeparateYuyvBufferDecoder::SeparateYuyvBufferDecoder(CameraFeed *p_camera_feed) :
+SeparateYuyvBufferDecoder::SeparateYuyvBufferDecoder(CameraFeedLinux *p_camera_feed) :
 		AbstractYuyvBufferDecoder(p_camera_feed) {
 	y_image_data.resize(width * height);
 	cbcr_image_data.resize(width * height);
@@ -108,7 +108,7 @@ void SeparateYuyvBufferDecoder::decode(StreamingBuffer p_buffer) {
 	camera_feed->set_ycbcr_images(y_image, cbcr_image);
 }
 
-YuyvToGrayscaleBufferDecoder::YuyvToGrayscaleBufferDecoder(CameraFeed *p_camera_feed) :
+YuyvToGrayscaleBufferDecoder::YuyvToGrayscaleBufferDecoder(CameraFeedLinux *p_camera_feed) :
 		AbstractYuyvBufferDecoder(p_camera_feed) {
 	image_data.resize(width * height);
 }
@@ -136,7 +136,7 @@ void YuyvToGrayscaleBufferDecoder::decode(StreamingBuffer p_buffer) {
 	camera_feed->set_rgb_image(image);
 }
 
-YuyvToRgbBufferDecoder::YuyvToRgbBufferDecoder(CameraFeed *p_camera_feed) :
+YuyvToRgbBufferDecoder::YuyvToRgbBufferDecoder(CameraFeedLinux *p_camera_feed) :
 		AbstractYuyvBufferDecoder(p_camera_feed) {
 	image_data.resize(width * height * 3);
 }
@@ -179,7 +179,7 @@ void YuyvToRgbBufferDecoder::decode(StreamingBuffer p_buffer) {
 	camera_feed->set_rgb_image(image);
 }
 
-CopyBufferDecoder::CopyBufferDecoder(CameraFeed *p_camera_feed, bool p_rgba) :
+CopyBufferDecoder::CopyBufferDecoder(CameraFeedLinux *p_camera_feed, bool p_rgba) :
 		BufferDecoder(p_camera_feed) {
 	rgba = p_rgba;
 	image_data.resize(width * height * (rgba ? 4 : 2));
@@ -198,7 +198,7 @@ void CopyBufferDecoder::decode(StreamingBuffer p_buffer) {
 	camera_feed->set_rgb_image(image);
 }
 
-JpegBufferDecoder::JpegBufferDecoder(CameraFeed *p_camera_feed) :
+JpegBufferDecoder::JpegBufferDecoder(CameraFeedLinux *p_camera_feed) :
 		BufferDecoder(p_camera_feed) {
 }
 

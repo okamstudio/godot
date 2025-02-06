@@ -23,6 +23,20 @@
 				Called when the camera feed is deactivated.
 			</description>
 		</method>
+		<method name="_get_formats" qualifiers="virtual const">
+			<return type="Dictionary[]" />
+			<description>
+				Override this method to define supported formats of the camera feed.
+			</description>
+		</method>
+		<method name="_set_format" qualifiers="virtual">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="parameters" type="Dictionary" />
+			<description>
+				Override this method to set the format of the camera feed.
+			</description>
+		</method>
 		<method name="get_datatype" qualifiers="const">
 			<return type="int" enum="CameraFeed.FeedDataType" />
 			<description>
@@ -109,7 +123,7 @@
 		<member name="feed_transform" type="Transform2D" setter="set_transform" getter="get_transform" default="Transform2D(1, 0, 0, -1, 0, 1)">
 			The transform applied to the camera's image.
 		</member>
-		<member name="formats" type="Array" setter="" getter="get_formats" default="[]">
+		<member name="formats" type="Dictionary[]" setter="" getter="get_formats" default="[]">
 			Formats supported by the feed. Each entry is a [Dictionary] describing format parameters.
 		</member>
 	</members>

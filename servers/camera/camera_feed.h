@@ -33,6 +33,8 @@
 
 #include "core/io/image.h"
 #include "core/math/transform_2d.h"
+#include "core/variant/dictionary.h"
+#include "core/variant/typed_array.h"
 #include "servers/camera_server.h"
 
 /**
@@ -62,22 +64,12 @@ private:
 	int id; // unique id for this, for internal use in case feeds are removed
 
 protected:
-	struct FeedFormat {
-		int width = 0;
-		int height = 0;
-		String format;
-		int frame_numerator = 0;
-		int frame_denominator = 0;
-		uint32_t pixel_format = 0;
-	};
-
 	String name; // name of our camera feed
 	FeedDataType datatype; // type of texture data stored
 	FeedPosition position; // position of camera on the device
 	Transform2D transform; // display transform
 	int base_width = 0;
 	int base_height = 0;
-	Vector<FeedFormat> formats;
 	Dictionary parameters;
 	int selected_format = -1;
 
@@ -117,12 +109,13 @@ public:
 	void set_external(int p_width, int p_height);
 
 	virtual bool set_format(int p_index, const Dictionary &p_parameters);
-	virtual Array get_formats() const;
-	virtual FeedFormat get_format() const;
+	virtual TypedArray<Dictionary> get_formats() const;
 
 	virtual bool activate_feed();
 	virtual void deactivate_feed();
 
+	GDVIRTUAL2R(bool, _set_format, int, const Dictionary &);
+	GDVIRTUAL0RC(TypedArray<Dictionary>, _get_formats);
 	GDVIRTUAL0R(bool, _activate_feed)
 	GDVIRTUAL0(_deactivate_feed)
 };

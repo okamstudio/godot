@@ -60,6 +60,8 @@ void CameraFeed::_bind_methods() {
 
 	GDVIRTUAL_BIND(_activate_feed);
 	GDVIRTUAL_BIND(_deactivate_feed);
+	GDVIRTUAL_BIND(_set_format, "index", "parameters");
+	GDVIRTUAL_BIND(_get_formats);
 
 	ADD_SIGNAL(MethodInfo("frame_changed"));
 	ADD_SIGNAL(MethodInfo("format_changed"));
@@ -286,14 +288,13 @@ void CameraFeed::deactivate_feed() {
 }
 
 bool CameraFeed::set_format(int p_index, const Dictionary &p_parameters) {
-	return false;
+	bool ret = false;
+	GDVIRTUAL_CALL(_set_format, p_index, p_parameters, ret);
+	return ret;
 }
 
-Array CameraFeed::get_formats() const {
-	return Array();
-}
-
-CameraFeed::FeedFormat CameraFeed::get_format() const {
-	FeedFormat feed_format = {};
-	return feed_format;
+TypedArray<Dictionary> CameraFeed::get_formats() const {
+	TypedArray<Dictionary> ret;
+	GDVIRTUAL_CALL(_get_formats, ret);
+	return ret;
 }

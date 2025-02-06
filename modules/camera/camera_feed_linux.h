@@ -42,10 +42,20 @@ struct StreamingBuffer;
 
 class CameraFeedLinux : public CameraFeed {
 private:
+	struct FeedFormat {
+		int width = 0;
+		int height = 0;
+		String format;
+		int frame_numerator = 0;
+		int frame_denominator = 0;
+		uint32_t pixel_format = 0;
+	};
+
 	SafeFlag exit_flag;
 	Thread *thread = nullptr;
 	String device_name;
 	int file_descriptor = -1;
+	Vector<FeedFormat> formats;
 	StreamingBuffer *buffers = nullptr;
 	unsigned int buffer_count = 0;
 	BufferDecoder *buffer_decoder = nullptr;
@@ -68,7 +78,7 @@ public:
 	bool activate_feed();
 	void deactivate_feed();
 	bool set_format(int p_index, const Dictionary &p_parameters);
-	Array get_formats() const;
+	TypedArray<Dictionary> get_formats() const;
 	FeedFormat get_format() const;
 
 	CameraFeedLinux(const String &p_device_name);
