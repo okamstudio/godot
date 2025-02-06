@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="TransformContainer" inherits="Container" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Applies transform (offset, rotation, scale) to child controls.
+	</brief_description>
+	<description>
+		[TransformContainer] will transform all its child [Control] nodes according to the specified transform parameters. The control is first stretched to full rect (like in [MarginContainer]) and then the transform is applied on top. You can freely offset, scale and rotate the node, making it useful for animations.
+		Note that the transform is applied only visually, it does not affect the child's layout rectangle. Thus you can't e.g. click on the control moved out of its bounds with the transform.
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="visual_offset" type="Vector2" setter="set_visual_offset" getter="get_visual_offset" default="Vector2(0, 0)">
+			Position offset applied to child controls. If [member visual_offset_relative_to_size] is [code]true[/code], the offset is relative to the node's [member Control.size].
+		</member>
+		<member name="visual_offset_relative_to_size" type="bool" setter="set_visual_offset_relative_to_size" getter="is_visual_offset_relative_to_size" default="true">
+			If [code]true[/code], [member visual_offset] is relative to the child node's [member Control.size], otherwise it is absolute pixel values.
+		</member>
+		<member name="visual_pivot" type="Vector2" setter="set_visual_pivot" getter="get_visual_pivot" default="Vector2(0, 0)">
+			Pivot used for [member visual_rotation] and [member visual_scale]. If [member visual_pivot_relative_to_size] is [code]true[/code], the pivot is relative to the node's size, otherwise it represents absolute pixel values.
+		</member>
+		<member name="visual_pivot_relative_to_size" type="bool" setter="set_visual_pivot_relative_to_size" getter="is_visual_pivot_relative_to_size" default="true">
+			If [code]true[/code], [member visual_pivot] is relative to the node's [member Control.size], otherwise it is absolute pixel values.
+		</member>
+		<member name="visual_rotation" type="float" setter="set_visual_rotation" getter="get_visual_rotation" default="0.0">
+			Rotation applied to child controls. The rotation pivot is defined by [member visual_pivot].
+		</member>
+		<member name="visual_scale" type="Vector2" setter="set_visual_scale" getter="get_visual_scale" default="Vector2(1, 1)">
+			Scale applied to child controls. The scale pivot is defined by [member visual_pivot].
+		</member>
+	</members>
+</class>
