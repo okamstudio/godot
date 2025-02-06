@@ -2654,7 +2654,7 @@ void GI::VoxelGIInstance::update(bool p_update_light_instances, const Vector<RID
 
 			{
 				uint32_t dynamic_map_size = MAX(MAX(octree_size.x, octree_size.y), octree_size.z);
-				uint32_t oversample = nearest_power_of_2_templated(4);
+				uint32_t oversample = gi->voxel_gi_dynamic_oversampling;
 				int mipmap_index = 0;
 
 				while (mipmap_index < mipmaps.size()) {
@@ -3381,6 +3381,7 @@ void GI::init(SkyRD *p_sky) {
 		voxel_gi_lights = memnew_arr(VoxelGILight, voxel_gi_max_lights);
 		voxel_gi_lights_uniform = RD::get_singleton()->uniform_buffer_create(voxel_gi_max_lights * sizeof(VoxelGILight));
 		voxel_gi_quality = RS::VoxelGIQuality(CLAMP(int(GLOBAL_GET("rendering/global_illumination/voxel_gi/quality")), 0, 1));
+		voxel_gi_dynamic_oversampling = RS::VoxelGIDynamicOversampling(CLAMP(int(GLOBAL_GET("rendering/global_illumination/voxel_gi/dynamic_oversampling")), 0, 4));
 
 		String defines = "\n#define MAX_LIGHTS " + itos(voxel_gi_max_lights) + "\n";
 

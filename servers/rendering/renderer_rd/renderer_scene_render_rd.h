@@ -227,6 +227,7 @@ public:
 	virtual bool voxel_gi_needs_update(RID p_probe) const override;
 	virtual void voxel_gi_update(RID p_probe, bool p_update_light_instances, const Vector<RID> &p_light_instances, const PagedArray<RenderGeometryInstance *> &p_dynamic_objects) override;
 	virtual void voxel_gi_set_quality(RS::VoxelGIQuality p_quality) override { gi.voxel_gi_quality = p_quality; }
+	virtual void voxel_gi_set_dynamic_oversampling(RS::VoxelGIDynamicOversampling p_dynamic_oversampling) override { gi.voxel_gi_dynamic_oversampling = p_dynamic_oversampling; }
 
 	/* render buffers */
 

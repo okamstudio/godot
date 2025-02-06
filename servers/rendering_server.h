@@ -713,7 +713,17 @@ public:
 		VOXEL_GI_QUALITY_HIGH,
 	};
 
-	virtual void voxel_gi_set_quality(VoxelGIQuality) = 0;
+	enum VoxelGIDynamicOversampling {
+		VOXEL_GI_DYNAMIC_OVERSAMPLING_DISABLED,
+		VOXEL_GI_DYNAMIC_OVERSAMPLING_2X,
+		VOXEL_GI_DYNAMIC_OVERSAMPLING_4X,
+		VOXEL_GI_DYNAMIC_OVERSAMPLING_8X,
+		VOXEL_GI_DYNAMIC_OVERSAMPLING_16X,
+		VOXEL_GI_DYNAMIC_OVERSAMPLING_MAX,
+	};
+
+	virtual void voxel_gi_set_quality(VoxelGIQuality p_quality) = 0;
+	virtual void voxel_gi_set_dynamic_oversampling(VoxelGIDynamicOversampling p_dynamic_oversampling) = 0;
 
 	virtual void sdfgi_reset() = 0;
 
@@ -1911,6 +1921,7 @@ VARIANT_ENUM_CAST(RenderingServer::LightProjectorFilter);
 VARIANT_ENUM_CAST(RenderingServer::ReflectionProbeUpdateMode);
 VARIANT_ENUM_CAST(RenderingServer::ReflectionProbeAmbientMode);
 VARIANT_ENUM_CAST(RenderingServer::VoxelGIQuality);
+VARIANT_ENUM_CAST(RenderingServer::VoxelGIDynamicOversampling);
 VARIANT_ENUM_CAST(RenderingServer::DecalTexture);
 VARIANT_ENUM_CAST(RenderingServer::DecalFilter);
 VARIANT_ENUM_CAST(RenderingServer::ParticlesMode);

@@ -2731,6 +2731,10 @@
 			The number of rays to throw per frame when computing signed distance field global illumination. Higher values lead to a less noisy result, at the cost of performance. See also [member rendering/global_illumination/sdfgi/frames_to_converge] and [member rendering/global_illumination/sdfgi/frames_to_update_lights].
 			[b]Note:[/b] This property is only read when the project starts. To control SDFGI quality at runtime, call [method RenderingServer.environment_set_sdfgi_ray_count] instead.
 		</member>
+		<member name="rendering/global_illumination/voxel_gi/dynamic_oversampling" type="int" setter="" getter="" default="0">
+			The [VoxelGI] oversampling to perform for [GeometryInstance3D]s that use [constant GeometryInstance3D.GI_MODE_DYNAMIC]. Higher values improve the appearance of lighting emitted by [i]moving[/i] dynamic objects and their appearance in reflections. The difference is most noticeable in small and slow-moving dynamic objects. Enabling oversampling has a significant performance cost, so it's recommended to keep it disabled until it's needed.
+			[b]Note:[/b] This setting is only read when the project starts. It currently cannot be changed at run-time.
+		</member>
 		<member name="rendering/global_illumination/voxel_gi/quality" type="int" setter="" getter="" default="0">
 			The VoxelGI quality to use. High quality leads to more precise lighting and better reflections, but is slower to render. This setting does not affect the baked data and doesn't require baking the [VoxelGI] again to apply.
 			[b]Note:[/b] This property is only read when the project starts. To control VoxelGI quality at runtime, call [method RenderingServer.voxel_gi_set_quality] instead.

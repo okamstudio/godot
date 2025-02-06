@@ -338,6 +338,7 @@ public:
 
 	virtual TypedArray<Image> bake_render_uv2(RID p_base, const TypedArray<RID> &p_material_overrides, const Size2i &p_image_size) = 0;
 	virtual void voxel_gi_set_quality(RS::VoxelGIQuality) = 0;
+	virtual void voxel_gi_set_dynamic_oversampling(RS::VoxelGIDynamicOversampling p_dynamic_oversampling) = 0;
 
 	virtual void sdfgi_set_debug_probe_select(const Vector3 &p_position, const Vector3 &p_dir) = 0;
 

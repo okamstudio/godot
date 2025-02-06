@@ -2652,9 +2652,17 @@ void RenderingServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("voxel_gi_set_use_two_bounces", "voxel_gi", "enable"), &RenderingServer::voxel_gi_set_use_two_bounces);
 
 	ClassDB::bind_method(D_METHOD("voxel_gi_set_quality", "quality"), &RenderingServer::voxel_gi_set_quality);
+	ClassDB::bind_method(D_METHOD("voxel_gi_set_dynamic_oversampling", "dynamic_oversampling"), &RenderingServer::voxel_gi_set_dynamic_oversampling);
 
 	BIND_ENUM_CONSTANT(VOXEL_GI_QUALITY_LOW);
 	BIND_ENUM_CONSTANT(VOXEL_GI_QUALITY_HIGH);
+
+	BIND_ENUM_CONSTANT(VOXEL_GI_DYNAMIC_OVERSAMPLING_DISABLED);
+	BIND_ENUM_CONSTANT(VOXEL_GI_DYNAMIC_OVERSAMPLING_2X);
+	BIND_ENUM_CONSTANT(VOXEL_GI_DYNAMIC_OVERSAMPLING_4X);
+	BIND_ENUM_CONSTANT(VOXEL_GI_DYNAMIC_OVERSAMPLING_8X);
+	BIND_ENUM_CONSTANT(VOXEL_GI_DYNAMIC_OVERSAMPLING_16X);
+	BIND_ENUM_CONSTANT(VOXEL_GI_DYNAMIC_OVERSAMPLING_MAX);
 
 	/* LIGHTMAP */
 
@@ -3635,6 +3643,7 @@ void RenderingServer::init() {
 	GLOBAL_DEF("rendering/global_illumination/gi/use_half_resolution", false);
 
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/global_illumination/voxel_gi/quality", PROPERTY_HINT_ENUM, "Low (4 Cones - Fast),High (6 Cones - Slow)"), 0);
+	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/global_illumination/voxel_gi/dynamic_oversampling", PROPERTY_HINT_ENUM, String::utf8("Disabled (Fast),2× (Average),4× (Slow),8× (Slower),16× (Slowest)")), 0);
 
 	GLOBAL_DEF_RST("rendering/shading/overrides/force_vertex_shading", false);
 	GLOBAL_DEF("rendering/shading/overrides/force_lambert_over_burley", false);

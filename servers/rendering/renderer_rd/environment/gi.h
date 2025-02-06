@@ -540,6 +540,7 @@ public:
 	void voxel_gi_instance_free(RID p_rid);
 
 	RS::VoxelGIQuality voxel_gi_quality = RS::VOXEL_GI_QUALITY_LOW;
+	RS::VoxelGIDynamicOversampling voxel_gi_dynamic_oversampling = RS::VOXEL_GI_DYNAMIC_OVERSAMPLING_DISABLED;
 
 	/* SDFGI */
 

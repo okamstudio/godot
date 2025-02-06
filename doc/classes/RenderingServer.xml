@@ -4358,7 +4358,7 @@
 			<param index="0" name="voxel_gi" type="RID" />
 			<param index="1" name="baked_exposure" type="float" />
 			<description>
-				Used to inform the renderer what exposure normalization value was used while baking the voxel gi. This value will be used and modulated at run time to ensure that the voxel gi maintains a consistent level of exposure even if the scene-wide exposure normalization is changed at run time. For more information see [method camera_attributes_set_exposure].
+				Used to inform the renderer what exposure normalization value was used while baking a [VoxelGI]. This value will be used and modulated at run time to ensure that the [VoxelGI] maintains a consistent level of exposure even if the scene-wide exposure normalization is changed at run time. For more information see [method camera_attributes_set_exposure].
 			</description>
 		</method>
 		<method name="voxel_gi_set_bias">
@@ -4367,6 +4367,14 @@
 			<param index="1" name="bias" type="float" />
 			<description>
 				Sets the [member VoxelGIData.bias] value to use on the specified [param voxel_gi]'s [RID].
+			</description>
+		</method>
+		<method name="voxel_gi_set_dynamic_oversampling">
+			<return type="void" />
+			<param index="0" name="dynamic_oversampling" type="int" enum="RenderingServer.VoxelGIDynamicOversampling" />
+			<description>
+				Sets the [VoxelGI] oversampling to perform for [GeometryInstance3D]s that use [constant GeometryInstance3D.GI_MODE_DYNAMIC]. Higher values improve the temporal stability of lighting emitted by [i]moving[/i] dynamic objects and their appearance in reflections. The difference is most noticeable in small and slow-moving dynamic objects. Enabling oversampling has a significant performance cost, so it's recommended to keep it disabled until it's needed.
+				[b]Note:[/b] This method currently has no effect when called at run-time.
 			</description>
 		</method>
 		<method name="voxel_gi_set_dynamic_range">
@@ -4933,6 +4941,24 @@
 		</constant>
 		<constant name="VOXEL_GI_QUALITY_HIGH" value="1" enum="VoxelGIQuality">
 			High [VoxelGI] rendering quality using 6 cones.
+		</constant>
+		<constant name="VOXEL_GI_DYNAMIC_OVERSAMPLING_DISABLED" value="0" enum="VoxelGIDynamicOversampling">
+			[VoxelGI] oversampling for dynamic objects is disabled.
+		</constant>
+		<constant name="VOXEL_GI_DYNAMIC_OVERSAMPLING_2X" value="1" enum="VoxelGIDynamicOversampling">
+			[VoxelGI] oversampling for dynamic objects is enabled at 2× quality (moderate performance cost).
+		</constant>
+		<constant name="VOXEL_GI_DYNAMIC_OVERSAMPLING_4X" value="2" enum="VoxelGIDynamicOversampling">
+			[VoxelGI] oversampling for dynamic objects is enabled at 4× quality (high performance cost).
+		</constant>
+		<constant name="VOXEL_GI_DYNAMIC_OVERSAMPLING_8X" value="3" enum="VoxelGIDynamicOversampling">
+			[VoxelGI] oversampling for dynamic objects is enabled at 8× quality (very high performance cost).
+		</constant>
+		<constant name="VOXEL_GI_DYNAMIC_OVERSAMPLING_16X" value="4" enum="VoxelGIDynamicOversampling">
+			[VoxelGI] oversampling for dynamic objects is enabled at 16× quality (extreme performance cost).
+		</constant>
+		<constant name="VOXEL_GI_DYNAMIC_OVERSAMPLING_MAX" value="5" enum="VoxelGIDynamicOversampling">
+			Represents the size of the [enum VoxelGIDynamicOversampling] enum.
 		</constant>
 		<constant name="PARTICLES_MODE_2D" value="0" enum="ParticlesMode">
 			2D particles.
