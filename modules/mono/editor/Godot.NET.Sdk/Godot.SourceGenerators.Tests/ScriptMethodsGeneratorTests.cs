@@ -1,9 +1,21 @@
+using System;
 using Xunit;
 
 namespace Godot.SourceGenerators.Tests;
 
 public class ScriptMethodsGeneratorTests
 {
+    [Fact]
+    public async void DisableGenerator()
+    {
+        var verifier = CSharpSourceGeneratorVerifier<ScriptMethodsGenerator>.MakeVerifier(
+            new string[] { "ScriptBoilerplate.cs" },
+            Array.Empty<string>()
+        );
+        verifier.TestState.AddGlobalConfig(Utils.DisabledGenerators("ScriptMethods"));
+        await verifier.RunAsync();
+    }
+
     [Fact]
     public async void Methods()
     {

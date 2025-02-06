@@ -6,6 +6,8 @@ namespace Godot.SourceGenerators.Tests;
 
 public static class Constants
 {
+    public const string GlobalConfigPath = "/.globalconfig";
+
     public static Assembly GodotSharpAssembly => typeof(GodotObject).Assembly;
 
     // Can't find what needs updating to be able to access ReferenceAssemblies.Net.Net80, so we're making our own one.

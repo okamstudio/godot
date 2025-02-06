@@ -22,6 +22,29 @@ public class ScriptPathAttributeGeneratorTests
     }
 
     [Fact]
+    private async void DisableGenerator()
+    {
+        var verifier = CSharpSourceGeneratorVerifier<ScriptPathAttributeGenerator>.MakeVerifier(
+            new string[] { "ScriptBoilerplate.cs" },
+            Array.Empty<string>()
+        );
+        verifier.TestState.AddGlobalConfig(Utils.DisabledGenerators("ScriptPathAttribute"));
+        await verifier.RunAsync();
+    }
+
+    // TODO: Remove the skip when the upstream issue is resolved, https://github.com/dotnet/roslyn/pull/51625
+    [Fact(Skip = "This is currently failing due to an upstream issue with ';' in the editorconfig file format.")]
+    private async void DisableGeneratorButNotFirst()
+    {
+        var verifier = CSharpSourceGeneratorVerifier<ScriptPathAttributeGenerator>.MakeVerifier(
+            new string[] { "ScriptBoilerplate.cs" },
+            Array.Empty<string>()
+        );
+        verifier.TestState.AddGlobalConfig(Utils.DisabledGenerators("SomePlaceholder", "ScriptPathAttribute"));
+        await verifier.RunAsync();
+    }
+
+    [Fact]
     public async void ScriptBoilerplate()
     {
         var verifier = CSharpSourceGeneratorVerifier<ScriptPathAttributeGenerator>.MakeVerifier(

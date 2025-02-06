@@ -1,9 +1,21 @@
+using System;
 using Xunit;
 
 namespace Godot.SourceGenerators.Tests;
 
 public class ScriptPropertyDefValGeneratorTests
 {
+    [Fact]
+    public async void DisableGenerator()
+    {
+        var verifier = CSharpSourceGeneratorVerifier<ScriptPropertyDefValGenerator>.MakeVerifier(
+            new string[] { "ExportedFields.cs", "ExportedProperties.cs" },
+            Array.Empty<string>()
+        );
+        verifier.TestState.AddGlobalConfig(Utils.DisabledGenerators("ScriptPropertyDefVal"));
+        await verifier.RunAsync();
+    }
+
     [Fact]
     public async void ExportedFields()
     {

@@ -1,9 +1,21 @@
+using System;
 using Xunit;
 
 namespace Godot.SourceGenerators.Tests;
 
 public class ScriptPropertiesGeneratorTests
 {
+    [Fact]
+    public async void DisableGenerator()
+    {
+        var verifier = CSharpSourceGeneratorVerifier<ScriptPropertiesGenerator>.MakeVerifier(
+            new string[] { "ScriptBoilerplate.cs" },
+            Array.Empty<string>()
+        );
+        verifier.TestState.AddGlobalConfig(Utils.DisabledGenerators("ScriptProperties"));
+        await verifier.RunAsync();
+    }
+
     [Fact]
     public async void ExportedFields()
     {
