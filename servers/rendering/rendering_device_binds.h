@@ -416,6 +416,15 @@ public:
 	Error parse_versions_from_text(const String &p_text, const String p_defines = String(), OpenIncludeFunction p_include_func = nullptr, void *p_include_func_userdata = nullptr);
 
 protected:
+	static const char *_stage_str[RD::SHADER_STAGE_MAX];
+	Error _parse_sectioned_text(const Vector<String> &p_lines, const String p_defines, OpenIncludeFunction p_include_func, void *p_include_func_userdata);
+	Error _parse_pragma_text(const Vector<String> &p_lines, const String p_defines, OpenIncludeFunction p_include_func, void *p_include_func_userdata);
+	RD::ShaderStage _str_to_stage(const String &s);
+	String _stage_to_str(const RD::ShaderStage s);
+	bool _compile_shader(const RD::ShaderStage p_stage, const String &p_code, Ref<RDShaderSPIRV> p_bytecode);
+	String _expand_include(const String &p_line, OpenIncludeFunction p_include_func, void *p_include_func_userdata);
+	Error _parse_godot_pragma(const String &p_line, String *r_pragma_name, Vector<String> *r_pragma_vals);
+
 	Dictionary _get_versions() const {
 		TypedArray<StringName> vnames = get_version_list();
 		Dictionary ret;
