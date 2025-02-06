@@ -40,6 +40,7 @@
 #include "core/math/geometry_3d.h"
 #include "core/os/keyboard.h"
 #include "core/os/thread_safe.h"
+#include "core/templates/container_converters.h"
 #include "core/variant/typed_array.h"
 
 namespace core_bind {
@@ -80,12 +81,7 @@ Ref<Resource> ResourceLoader::load(const String &p_path, const String &p_type_hi
 Vector<String> ResourceLoader::get_recognized_extensions_for_type(const String &p_type) {
 	List<String> exts;
 	::ResourceLoader::get_recognized_extensions_for_type(p_type, &exts);
-	Vector<String> ret;
-	for (const String &E : exts) {
-		ret.push_back(E);
-	}
-
-	return ret;
+	return converters::list_to_vector(exts);
 }
 
 void ResourceLoader::add_resource_format_loader(Ref<ResourceFormatLoader> p_format_loader, bool p_at_front) {
@@ -103,13 +99,7 @@ void ResourceLoader::set_abort_on_missing_resources(bool p_abort) {
 PackedStringArray ResourceLoader::get_dependencies(const String &p_path) {
 	List<String> deps;
 	::ResourceLoader::get_dependencies(p_path, &deps);
-
-	PackedStringArray ret;
-	for (const String &E : deps) {
-		ret.push_back(E);
-	}
-
-	return ret;
+	return converters::list_to_vector(deps);
 }
 
 bool ResourceLoader::has_cached(const String &p_path) {
@@ -172,11 +162,7 @@ Error ResourceSaver::save(const Ref<Resource> &p_resource, const String &p_path,
 Vector<String> ResourceSaver::get_recognized_extensions(const Ref<Resource> &p_resource) {
 	List<String> exts;
 	::ResourceSaver::get_recognized_extensions(p_resource, &exts);
-	Vector<String> ret;
-	for (const String &E : exts) {
-		ret.push_back(E);
-	}
-	return ret;
+	return converters::list_to_vector(exts);
 }
 
 void ResourceSaver::add_resource_format_saver(Ref<ResourceFormatSaver> p_format_saver, bool p_at_front) {
@@ -327,10 +313,7 @@ OS::StdHandleType OS::get_stderr_type() const {
 }
 
 int OS::execute(const String &p_path, const Vector<String> &p_arguments, Array r_output, bool p_read_stderr, bool p_open_console) {
-	List<String> args;
-	for (const String &arg : p_arguments) {
-		args.push_back(arg);
-	}
+	List<String> args = converters::vector_to_list(p_arguments);
 	String pipe;
 	int exitcode = 0;
 	Error err = ::OS::get_singleton()->execute(p_path, args, &pipe, &exitcode, p_read_stderr, nullptr, p_open_console);
@@ -345,18 +328,12 @@ int OS::execute(const String &p_path, const Vector<String> &p_arguments, Array r
 }
 
 Dictionary OS::execute_with_pipe(const String &p_path, const Vector<String> &p_arguments, bool p_blocking) {
-	List<String> args;
-	for (const String &arg : p_arguments) {
-		args.push_back(arg);
-	}
+	List<String> args = converters::vector_to_list(p_arguments);
 	return ::OS::get_singleton()->execute_with_pipe(p_path, args, p_blocking);
 }
 
 int OS::create_instance(const Vector<String> &p_arguments) {
-	List<String> args;
-	for (const String &arg : p_arguments) {
-		args.push_back(arg);
-	}
+	List<String> args = converters::vector_to_list(p_arguments);
 	::OS::ProcessID pid = 0;
 	Error err = ::OS::get_singleton()->create_instance(args, &pid);
 	if (err != OK) {
@@ -366,10 +343,7 @@ int OS::create_instance(const Vector<String> &p_arguments) {
 }
 
 int OS::create_process(const String &p_path, const Vector<String> &p_arguments, bool p_open_console) {
-	List<String> args;
-	for (const String &arg : p_arguments) {
-		args.push_back(arg);
-	}
+	List<String> args = converters::vector_to_list(p_arguments);
 	::OS::ProcessID pid = 0;
 	Error err = ::OS::get_singleton()->create_process(p_path, args, &pid, p_open_console);
 	if (err != OK) {
@@ -432,30 +406,16 @@ Vector<String> OS::get_video_adapter_driver_info() const {
 
 Vector<String> OS::get_cmdline_args() {
 	List<String> cmdline = ::OS::get_singleton()->get_cmdline_args();
-	Vector<String> cmdlinev;
-	for (const String &E : cmdline) {
-		cmdlinev.push_back(E);
-	}
-
-	return cmdlinev;
+	return converters::list_to_vector(cmdline);
 }
 
 Vector<String> OS::get_cmdline_user_args() {
 	List<String> cmdline = ::OS::get_singleton()->get_cmdline_user_args();
-	Vector<String> cmdlinev;
-	for (const String &E : cmdline) {
-		cmdlinev.push_back(E);
-	}
-
-	return cmdlinev;
+	return converters::list_to_vector(cmdline);
 }
 
 void OS::set_restart_on_exit(bool p_restart, const Vector<String> &p_restart_arguments) {
-	List<String> args_list;
-	for (const String &restart_argument : p_restart_arguments) {
-		args_list.push_back(restart_argument);
-	}
-
+	List<String> args_list = converters::vector_to_list(p_restart_arguments);
 	::OS::get_singleton()->set_restart_on_exit(p_restart, args_list);
 }
 
@@ -465,12 +425,7 @@ bool OS::is_restart_on_exit_set() const {
 
 Vector<String> OS::get_restart_on_exit_arguments() const {
 	List<String> args = ::OS::get_singleton()->get_restart_on_exit_arguments();
-	Vector<String> args_vector;
-	for (List<String>::Element *E = args.front(); E; E = E->next()) {
-		args_vector.push_back(E->get());
-	}
-
-	return args_vector;
+	return converters::list_to_vector(args);
 }
 
 String OS::get_locale() const {
@@ -840,123 +795,61 @@ Vector<Point2> Geometry2D::convex_hull(const Vector<Point2> &p_points) {
 }
 
 TypedArray<PackedVector2Array> Geometry2D::decompose_polygon_in_convex(const Vector<Vector2> &p_polygon) {
-	Vector<Vector<Point2>> decomp = ::Geometry2D::decompose_polygon_in_convex(p_polygon);
-
-	TypedArray<PackedVector2Array> ret;
-
-	for (int i = 0; i < decomp.size(); ++i) {
-		ret.push_back(decomp[i]);
-	}
-	return ret;
+	Vector<Vector<Point2>> polys = ::Geometry2D::decompose_polygon_in_convex(p_polygon);
+	return converters::vector_to_typed_array(polys);
 }
 
 TypedArray<PackedVector2Array> Geometry2D::merge_polygons(const Vector<Vector2> &p_polygon_a, const Vector<Vector2> &p_polygon_b) {
 	Vector<Vector<Point2>> polys = ::Geometry2D::merge_polygons(p_polygon_a, p_polygon_b);
-
-	TypedArray<PackedVector2Array> ret;
-
-	for (int i = 0; i < polys.size(); ++i) {
-		ret.push_back(polys[i]);
-	}
-	return ret;
+	return converters::vector_to_typed_array(polys);
 }
 
 TypedArray<PackedVector2Array> Geometry2D::clip_polygons(const Vector<Vector2> &p_polygon_a, const Vector<Vector2> &p_polygon_b) {
 	Vector<Vector<Point2>> polys = ::Geometry2D::clip_polygons(p_polygon_a, p_polygon_b);
-
-	TypedArray<PackedVector2Array> ret;
-
-	for (int i = 0; i < polys.size(); ++i) {
-		ret.push_back(polys[i]);
-	}
-	return ret;
+	return converters::vector_to_typed_array(polys);
 }
 
 TypedArray<PackedVector2Array> Geometry2D::intersect_polygons(const Vector<Vector2> &p_polygon_a, const Vector<Vector2> &p_polygon_b) {
 	Vector<Vector<Point2>> polys = ::Geometry2D::intersect_polygons(p_polygon_a, p_polygon_b);
-
-	TypedArray<PackedVector2Array> ret;
-
-	for (int i = 0; i < polys.size(); ++i) {
-		ret.push_back(polys[i]);
-	}
-	return ret;
+	return converters::vector_to_typed_array(polys);
 }
 
 TypedArray<PackedVector2Array> Geometry2D::exclude_polygons(const Vector<Vector2> &p_polygon_a, const Vector<Vector2> &p_polygon_b) {
 	Vector<Vector<Point2>> polys = ::Geometry2D::exclude_polygons(p_polygon_a, p_polygon_b);
-
-	TypedArray<PackedVector2Array> ret;
-
-	for (int i = 0; i < polys.size(); ++i) {
-		ret.push_back(polys[i]);
-	}
-	return ret;
+	return converters::vector_to_typed_array(polys);
 }
 
 TypedArray<PackedVector2Array> Geometry2D::clip_polyline_with_polygon(const Vector<Vector2> &p_polyline, const Vector<Vector2> &p_polygon) {
 	Vector<Vector<Point2>> polys = ::Geometry2D::clip_polyline_with_polygon(p_polyline, p_polygon);
-
-	TypedArray<PackedVector2Array> ret;
-
-	for (int i = 0; i < polys.size(); ++i) {
-		ret.push_back(polys[i]);
-	}
-	return ret;
+	return converters::vector_to_typed_array(polys);
 }
 
 TypedArray<PackedVector2Array> Geometry2D::intersect_polyline_with_polygon(const Vector<Vector2> &p_polyline, const Vector<Vector2> &p_polygon) {
 	Vector<Vector<Point2>> polys = ::Geometry2D::intersect_polyline_with_polygon(p_polyline, p_polygon);
-
-	TypedArray<PackedVector2Array> ret;
-
-	for (int i = 0; i < polys.size(); ++i) {
-		ret.push_back(polys[i]);
-	}
-	return ret;
+	return converters::vector_to_typed_array(polys);
 }
 
 TypedArray<PackedVector2Array> Geometry2D::offset_polygon(const Vector<Vector2> &p_polygon, real_t p_delta, PolyJoinType p_join_type) {
 	Vector<Vector<Point2>> polys = ::Geometry2D::offset_polygon(p_polygon, p_delta, ::Geometry2D::PolyJoinType(p_join_type));
-
-	TypedArray<PackedVector2Array> ret;
-
-	for (int i = 0; i < polys.size(); ++i) {
-		ret.push_back(polys[i]);
-	}
-	return ret;
+	return converters::vector_to_typed_array(polys);
 }
 
 TypedArray<PackedVector2Array> Geometry2D::offset_polyline(const Vector<Vector2> &p_polygon, real_t p_delta, PolyJoinType p_join_type, PolyEndType p_end_type) {
 	Vector<Vector<Point2>> polys = ::Geometry2D::offset_polyline(p_polygon, p_delta, ::Geometry2D::PolyJoinType(p_join_type), ::Geometry2D::PolyEndType(p_end_type));
-
-	TypedArray<PackedVector2Array> ret;
-
-	for (int i = 0; i < polys.size(); ++i) {
-		ret.push_back(polys[i]);
-	}
-	return ret;
+	return converters::vector_to_typed_array(polys);
 }
 
 Dictionary Geometry2D::make_atlas(const Vector<Size2> &p_rects) {
 	Dictionary ret;
 
-	Vector<Size2i> rects;
-	for (int i = 0; i < p_rects.size(); i++) {
-		rects.push_back(p_rects[i]);
-	}
+	Vector<Size2i> rects = converters::vector_to_vector<Size2i>(p_rects);
 
 	Vector<Point2i> result;
 	Size2i size;
 
 	::Geometry2D::make_atlas(rects, result, size);
 
-	Vector<Point2> r_result;
-	for (int i = 0; i < result.size(); i++) {
-		r_result.push_back(result[i]);
-	}
-
-	ret["points"] = r_result;
+	ret["points"] = converters::vector_to_vector<Point2>(result);
 	ret["size"] = size;
 
 	return ret;
@@ -1502,24 +1395,13 @@ Dictionary ClassDB::class_get_signal(const StringName &p_class, const StringName
 TypedArray<Dictionary> ClassDB::class_get_signal_list(const StringName &p_class, bool p_no_inheritance) const {
 	List<MethodInfo> signals;
 	::ClassDB::get_signal_list(p_class, &signals, p_no_inheritance);
-	TypedArray<Dictionary> ret;
-
-	for (const MethodInfo &E : signals) {
-		ret.push_back(E.operator Dictionary());
-	}
-
-	return ret;
+	return converters::list_to_typed_array<Dictionary>(signals);
 }
 
 TypedArray<Dictionary> ClassDB::class_get_property_list(const StringName &p_class, bool p_no_inheritance) const {
 	List<PropertyInfo> plist;
 	::ClassDB::get_property_list(p_class, &plist, p_no_inheritance);
-	TypedArray<Dictionary> ret;
-	for (const PropertyInfo &E : plist) {
-		ret.push_back(E.operator Dictionary());
-	}
-
-	return ret;
+	return converters::list_to_typed_array<Dictionary>(plist);
 }
 
 StringName ClassDB::class_get_property_getter(const StringName &p_class, const StringName &p_property) {
