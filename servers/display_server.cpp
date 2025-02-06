@@ -568,6 +568,24 @@ float DisplayServer::screen_get_scale(int p_screen) const {
 	return 1.0f;
 }
 
+DisplayServer::UIGestureState DisplayServer::get_gesture_state() const {
+	WARN_PRINT("iOS UI not supported by this display server.");
+	return IOS_DEFAULT_GESTURE_STATE;
+}
+
+void DisplayServer::set_gesture_state(UIGestureState p_ios_gesture_set) {
+	WARN_PRINT("iOS UI not supported by this display server.");
+}
+
+bool DisplayServer::get_status_bar_appearance() const {
+	WARN_PRINT("iOS UI not supported by this display server.");
+	return false;
+}
+
+void DisplayServer::set_status_bar_appearance(bool p_hide_status_bar, float p_status_bar_fade_time) {
+	WARN_PRINT("iOS UI not supported by this display server.");
+}
+
 bool DisplayServer::is_touchscreen_available() const {
 	return Input::get_singleton() && Input::get_singleton()->is_emulating_touch_from_mouse();
 }
@@ -935,6 +953,12 @@ void DisplayServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("screen_get_scale", "screen"), &DisplayServer::screen_get_scale, DEFVAL(SCREEN_OF_MAIN_WINDOW));
 	ClassDB::bind_method(D_METHOD("is_touchscreen_available"), &DisplayServer::is_touchscreen_available);
 	ClassDB::bind_method(D_METHOD("screen_get_max_scale"), &DisplayServer::screen_get_max_scale);
+
+	ClassDB::bind_method(D_METHOD("set_gesture_state", "ios_gesture_set"), &DisplayServer::set_gesture_state);
+	ClassDB::bind_method(D_METHOD("get_gesture_state"), &DisplayServer::get_gesture_state);
+	ClassDB::bind_method(D_METHOD("set_status_bar_appearance", "hide_status_bar", "status_bar_fade_time"), &DisplayServer::set_status_bar_appearance, DEFVAL(false), DEFVAL(0.2));
+	ClassDB::bind_method(D_METHOD("get_status_bar_appearance"), &DisplayServer::get_status_bar_appearance);
+
 	ClassDB::bind_method(D_METHOD("screen_get_refresh_rate", "screen"), &DisplayServer::screen_get_refresh_rate, DEFVAL(SCREEN_OF_MAIN_WINDOW));
 	ClassDB::bind_method(D_METHOD("screen_get_pixel", "position"), &DisplayServer::screen_get_pixel);
 	ClassDB::bind_method(D_METHOD("screen_get_image", "screen"), &DisplayServer::screen_get_image, DEFVAL(SCREEN_OF_MAIN_WINDOW));
@@ -1124,6 +1148,13 @@ void DisplayServer::_bind_methods() {
 	BIND_CONSTANT(MAIN_WINDOW_ID);
 	BIND_CONSTANT(INVALID_WINDOW_ID);
 	BIND_CONSTANT(INVALID_INDICATOR_ID);
+
+	BIND_ENUM_CONSTANT(IOS_DEFAULT_GESTURE_STATE);
+	BIND_ENUM_CONSTANT(IOS_SUPPRESS_GESTURE_ALL);
+	BIND_ENUM_CONSTANT(IOS_HIDE_GESTURE_INDICATOR);
+	BIND_ENUM_CONSTANT(IOS_SUPPRESS_GESTURE_HOME_ONLY);
+	BIND_ENUM_CONSTANT(IOS_SUPPRESS_GESTURE_STATUS_ONLY);
+	BIND_ENUM_CONSTANT(IOS_SUPPRESS_GESTURE_STATUS_ONLY_HIDE_GESTURE_INDICATOR);
 
 	BIND_ENUM_CONSTANT(SCREEN_LANDSCAPE);
 	BIND_ENUM_CONSTANT(SCREEN_PORTRAIT);

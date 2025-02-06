@@ -2617,9 +2617,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	}
 
 	GLOBAL_DEF("display/window/ios/allow_high_refresh_rate", true);
-	GLOBAL_DEF("display/window/ios/hide_home_indicator", true);
-	GLOBAL_DEF("display/window/ios/hide_status_bar", true);
-	GLOBAL_DEF("display/window/ios/suppress_ui_gesture", true);
+	GLOBAL_DEF_BASIC(PropertyInfo(Variant::INT, "display/window/ios/ui_gesture_state", PROPERTY_HINT_ENUM, "Allow All,Suppress All,Hide Home Indicator,Suppress Home Only,Suppress Status Only,Suppress Status Only and Hide Home"), 0);
+	GLOBAL_DEF_BASIC("display/window/ios/hide_status_bar", true);
 
 #ifndef _3D_DISABLED
 	// XR project settings.

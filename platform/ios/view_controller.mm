@@ -166,6 +166,7 @@
 	[self displayLoadingOverlay];
 
 	[self setNeedsUpdateOfScreenEdgesDeferringSystemGestures];
+	[self setNeedsStatusBarAppearanceUpdate];
 }
 
 - (void)observeKeyboard {
@@ -224,15 +225,31 @@
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
-// MARK: Orientation
-
 - (UIRectEdge)preferredScreenEdgesDeferringSystemGestures {
-	if (GLOBAL_GET("display/window/ios/suppress_ui_gesture")) {
-		return UIRectEdgeAll;
+	int ui_gesture_state;
+	if (!DisplayServerIOS::get_singleton()) {
+		ui_gesture_state = GLOBAL_GET("display/window/ios/ui_gesture_state");
 	} else {
-		return UIRectEdgeNone;
+		ui_gesture_state = DisplayServerIOS::get_singleton()->get_gesture_state();
 	}
+
+	switch (ui_gesture_state) {
+		case DisplayServer::IOS_DEFAULT_GESTURE_STATE:
+		case DisplayServer::IOS_HIDE_GESTURE_INDICATOR:
+			return UIRectEdgeNone;
+		case DisplayServer::IOS_SUPPRESS_GESTURE_ALL:
+			return UIRectEdgeAll;
+		case DisplayServer::IOS_SUPPRESS_GESTURE_HOME_ONLY:
+			return UIRectEdgeBottom;
+		case DisplayServer::IOS_SUPPRESS_GESTURE_STATUS_ONLY:
+		case DisplayServer::IOS_SUPPRESS_GESTURE_STATUS_ONLY_HIDE_GESTURE_INDICATOR:
+			return UIRectEdgeTop;
+	}
+
+	return UIRectEdgeNone;
 }
+
+// MARK: Orientation
 
 - (BOOL)shouldAutorotate {
 	if (!DisplayServerIOS::get_singleton()) {
@@ -281,7 +298,14 @@
 }
 
 - (BOOL)prefersStatusBarHidden {
-	if (GLOBAL_GET("display/window/ios/hide_status_bar")) {
+	bool prefers_hidden;
+	if (!DisplayServerIOS::get_singleton()) {
+		prefers_hidden = GLOBAL_GET("display/window/ios/hide_status_bar");
+	} else {
+		prefers_hidden = DisplayServerIOS::get_singleton()->get_status_bar_appearance();
+	}
+
+	if (prefers_hidden) {
 		return YES;
 	} else {
 		return NO;
@@ -289,10 +313,19 @@
 }
 
 - (BOOL)prefersHomeIndicatorAutoHidden {
-	if (GLOBAL_GET("display/window/ios/hide_home_indicator")) {
-		return YES;
+	int ui_gesture_state;
+	if (!DisplayServerIOS::get_singleton()) {
+		ui_gesture_state = GLOBAL_GET("display/window/ios/ui_gesture_state");
 	} else {
-		return NO;
+		ui_gesture_state = DisplayServerIOS::get_singleton()->get_gesture_state();
+	}
+
+	switch (ui_gesture_state) {
+		case DisplayServer::IOS_HIDE_GESTURE_INDICATOR:
+		case DisplayServer::IOS_SUPPRESS_GESTURE_STATUS_ONLY_HIDE_GESTURE_INDICATOR:
+			return YES;
+		default:
+			return NO;
 	}
 }
 

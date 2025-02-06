@@ -82,6 +82,9 @@ class DisplayServerIOS : public DisplayServer {
 
 	int virtual_keyboard_height = 0;
 
+	UIGestureState ui_gesture_state = IOS_DEFAULT_GESTURE_STATE;
+	bool status_bar_hidden = false;
+
 	void perform_event(const Ref<InputEvent> &p_event);
 
 	DisplayServerIOS(const String &p_rendering_driver, DisplayServer::WindowMode p_mode, DisplayServer::VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error);
@@ -161,6 +164,13 @@ public:
 	virtual Rect2i screen_get_usable_rect(int p_screen = SCREEN_OF_MAIN_WINDOW) const override;
 	virtual int screen_get_dpi(int p_screen = SCREEN_OF_MAIN_WINDOW) const override;
 	virtual float screen_get_scale(int p_screen = SCREEN_OF_MAIN_WINDOW) const override;
+
+	virtual UIGestureState get_gesture_state() const override;
+	virtual void set_gesture_state(UIGestureState p_ios_gesture_set) override;
+
+	virtual bool get_status_bar_appearance() const override;
+	virtual void set_status_bar_appearance(bool p_hide_status_bar = false, float p_status_bar_fade_time = 0.2) override;
+
 	virtual float screen_get_refresh_rate(int p_screen = SCREEN_OF_MAIN_WINDOW) const override;
 
 	virtual Vector<DisplayServer::WindowID> get_window_list() const override;

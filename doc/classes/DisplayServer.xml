@@ -217,6 +217,13 @@
 				[b]Note:[/b] Currently only implemented on Android and iOS. On other platforms, [code]screen_get_usable_rect(SCREEN_OF_MAIN_WINDOW)[/code] will be returned as a fallback. See also [method screen_get_usable_rect].
 			</description>
 		</method>
+		<method name="get_gesture_state" qualifiers="const">
+			<return type="int" enum="DisplayServer.UIGestureState" />
+			<description>
+				Returns the state of the UI gestures currently in effect.
+				[b]Note:[/b] This method is only implemented on iOS.
+			</description>
+		</method>
 		<method name="get_keyboard_focus_screen" qualifiers="const">
 			<return type="int" />
 			<description>
@@ -247,6 +254,13 @@
 			<param index="0" name="rect" type="Rect2" />
 			<description>
 				Returns the index of the screen that overlaps the most with the given rectangle. Returns [code]-1[/code] if the rectangle doesn't overlap with any screen or has no area.
+			</description>
+		</method>
+		<method name="get_status_bar_appearance" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns if the status bar is currently hidden. This can be used to modify [code]display/window/ios/hide_status_bar[/code] at runtime.
+				[b]Note:[/b] This method is only implemented on iOS.
 			</description>
 		</method>
 		<method name="get_swap_cancel_ok">
@@ -1192,6 +1206,14 @@
 				[b]Note:[/b] On iOS, this method has no effect if [member ProjectSettings.display/window/handheld/orientation] is not set to [constant SCREEN_SENSOR].
 			</description>
 		</method>
+		<method name="set_gesture_state">
+			<return type="void" />
+			<param index="0" name="ios_gesture_set" type="int" enum="DisplayServer.UIGestureState" />
+			<description>
+				Sets the UI gesture state. This can be used to modify [code]display/window/ios/ui_gesture_state[/code] at runtime.
+				[b]Note:[/b] This method is only implemented on iOS.
+			</description>
+		</method>
 		<method name="set_icon">
 			<return type="void" />
 			<param index="0" name="image" type="Image" />
@@ -1206,6 +1228,15 @@
 			<description>
 				Sets the window icon (usually displayed in the top-left corner) in the operating system's [i]native[/i] format. The file at [param filename] must be in [code].ico[/code] format on Windows or [code].icns[/code] on macOS. By using specially crafted [code].ico[/code] or [code].icns[/code] icons, [method set_native_icon] allows specifying different icons depending on the size the icon is displayed at. This size is determined by the operating system and user preferences (including the display scale factor). To use icons in other formats, use [method set_icon] instead.
 				[b]Note:[/b] Requires support for [constant FEATURE_NATIVE_ICON].
+			</description>
+		</method>
+		<method name="set_status_bar_appearance">
+			<return type="void" />
+			<param index="0" name="hide_status_bar" type="bool" default="false" />
+			<param index="1" name="status_bar_fade_time" type="float" default="0.2" />
+			<description>
+				Sets the appearance of the status bar. [param status_bar_fade_time] allows changing speed at which it appears or disappears, [code]0[/code] is instant.
+				[b]Note:[/b] This method is only implemented on iOS.
 			</description>
 		</method>
 		<method name="set_system_theme_change_callback">
@@ -1995,6 +2026,24 @@
 		</constant>
 		<constant name="INVALID_INDICATOR_ID" value="-1">
 			The ID that refers to a nonexistent application status indicator.
+		</constant>
+		<constant name="IOS_DEFAULT_GESTURE_STATE" value="0" enum="UIGestureState">
+			Shows home indicator and a single swipe closes the app. Control Center and Notification Center only require a single swipe to open.
+		</constant>
+		<constant name="IOS_SUPPRESS_GESTURE_ALL" value="1" enum="UIGestureState">
+			Shows the home indicator and two swipes are required to close to app. Control Center and Notification Center also require two swipes.
+		</constant>
+		<constant name="IOS_HIDE_GESTURE_INDICATOR" value="2" enum="UIGestureState">
+			Hides the home indicator and a single swipe closes the app. Control Center and Notification Center only requires a single swipe to open.
+		</constant>
+		<constant name="IOS_SUPPRESS_GESTURE_HOME_ONLY" value="3" enum="UIGestureState">
+			Shows the home indicator and two swipes are required to close to app. Control Center and Notification Center only require a single swipe to open.
+		</constant>
+		<constant name="IOS_SUPPRESS_GESTURE_STATUS_ONLY" value="4" enum="UIGestureState">
+			Shows the home indicator and a single swipe closes the app. Control Center and Notification Center require two swipes.
+		</constant>
+		<constant name="IOS_SUPPRESS_GESTURE_STATUS_ONLY_HIDE_GESTURE_INDICATOR" value="5" enum="UIGestureState">
+			Hides the home indicator and a single swipe closes the app. Control Center and Notification Center require two swipes.
 		</constant>
 		<constant name="SCREEN_LANDSCAPE" value="0" enum="ScreenOrientation">
 			Default landscape orientation.

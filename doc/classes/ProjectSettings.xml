@@ -837,15 +837,13 @@
 		<member name="display/window/ios/allow_high_refresh_rate" type="bool" setter="" getter="" default="true">
 			If [code]true[/code], iOS devices that support high refresh rate/"ProMotion" will be allowed to render at up to 120 frames per second.
 		</member>
-		<member name="display/window/ios/hide_home_indicator" type="bool" setter="" getter="" default="true">
-			If [code]true[/code], the home indicator is hidden automatically. This only affects iOS devices without a physical home button.
-		</member>
 		<member name="display/window/ios/hide_status_bar" type="bool" setter="" getter="" default="true">
-			If [code]true[/code], the status bar is hidden while the app is running.
+			If [code]true[/code], the status bar is hidden while the app is running. This can be changed at runtime with [method DisplayServer.set_status_bar_appearance].
 		</member>
-		<member name="display/window/ios/suppress_ui_gesture" type="bool" setter="" getter="" default="true">
-			If [code]true[/code], it will require two swipes to access iOS UI that uses gestures.
-			[b]Note:[/b] This setting has no effect on the home indicator if [code]hide_home_indicator[/code] is [code]true[/code].
+		<member name="display/window/ios/ui_gesture_state" type="int" setter="" getter="" default="0">
+			Sets which gestures require a swipe, double swipe, or hiding home indicator on iOS.
+			See [enum DisplayServer.UIGestureState] for possible values and how they affect the behavior of your application.
+			This can be changed at runtime with [method DisplayServer.set_gesture_state].
 		</member>
 		<member name="display/window/per_pixel_transparency/allowed" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], allows per-pixel transparency for the window background. This affects performance, so leave it on [code]false[/code] unless you need it. See also [member display/window/size/transparent] and [member rendering/viewport/transparent_background].

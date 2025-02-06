@@ -356,6 +356,22 @@ public:
 		}
 		return scale;
 	}
+
+	enum UIGestureState {
+		IOS_DEFAULT_GESTURE_STATE,
+		IOS_SUPPRESS_GESTURE_ALL,
+		IOS_HIDE_GESTURE_INDICATOR,
+		IOS_SUPPRESS_GESTURE_HOME_ONLY,
+		IOS_SUPPRESS_GESTURE_STATUS_ONLY,
+		IOS_SUPPRESS_GESTURE_STATUS_ONLY_HIDE_GESTURE_INDICATOR,
+	};
+
+	virtual UIGestureState get_gesture_state() const;
+	virtual void set_gesture_state(UIGestureState p_ios_gesture_set);
+
+	virtual bool get_status_bar_appearance() const;
+	virtual void set_status_bar_appearance(bool p_hide_status_bar = false, float p_status_bar_fade_time = 0.2);
+
 	virtual float screen_get_refresh_rate(int p_screen = SCREEN_OF_MAIN_WINDOW) const = 0;
 	virtual Color screen_get_pixel(const Point2i &p_position) const { return Color(); }
 	virtual Ref<Image> screen_get_image(int p_screen = SCREEN_OF_MAIN_WINDOW) const { return Ref<Image>(); }
@@ -661,6 +677,7 @@ public:
 VARIANT_ENUM_CAST(DisplayServer::WindowEvent)
 VARIANT_ENUM_CAST(DisplayServer::Feature)
 VARIANT_ENUM_CAST(DisplayServer::MouseMode)
+VARIANT_ENUM_CAST(DisplayServer::UIGestureState)
 VARIANT_ENUM_CAST(DisplayServer::ScreenOrientation)
 VARIANT_ENUM_CAST(DisplayServer::WindowMode)
 VARIANT_ENUM_CAST(DisplayServer::WindowFlags)

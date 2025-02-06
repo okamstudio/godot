@@ -59,5 +59,6 @@
 	$additional_plist_content
 	$plist_launch_screen_name
 	<key>CADisableMinimumFrameDurationOnPhone</key><true/>
+	<key>UIViewControllerBasedStatusBarApperance</key><true/>
 </dict>
 </plist>

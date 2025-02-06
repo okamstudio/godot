@@ -65,6 +65,9 @@ DisplayServerIOS::DisplayServerIOS(const String &p_rendering_driver, WindowMode 
 	}
 	native_menu = memnew(NativeMenu);
 
+	status_bar_hidden = GLOBAL_GET("display/window/ios/hide_status_bar");
+	ui_gesture_state = static_cast<UIGestureState>((int)GLOBAL_GET("display/window/ios/ui_gesture_state"));
+
 #if defined(RD_ENABLED)
 	rendering_context = nullptr;
 	rendering_device = nullptr;
@@ -528,6 +531,35 @@ int DisplayServerIOS::screen_get_dpi(int p_screen) const {
 		}
 		default:
 			return 72;
+	}
+}
+
+DisplayServerIOS::UIGestureState DisplayServerIOS::get_gesture_state() const {
+	return ui_gesture_state;
+}
+
+void DisplayServerIOS::set_gesture_state(UIGestureState p_ios_gesture_set) {
+	if (ui_gesture_state == p_ios_gesture_set) {
+		return;
+	}
+	ui_gesture_state = p_ios_gesture_set;
+	[AppDelegate.viewController setNeedsUpdateOfHomeIndicatorAutoHidden];
+	[AppDelegate.viewController setNeedsUpdateOfScreenEdgesDeferringSystemGestures];
+}
+
+bool DisplayServerIOS::get_status_bar_appearance() const {
+	return status_bar_hidden;
+}
+
+void DisplayServerIOS::set_status_bar_appearance(bool p_hide_status_bar, float p_status_bar_fade_time) {
+	status_bar_hidden = p_hide_status_bar;
+	if (p_status_bar_fade_time > 0) {
+		[UIView animateWithDuration:p_status_bar_fade_time
+						 animations:^{
+							 [AppDelegate.viewController setNeedsStatusBarAppearanceUpdate];
+						 }];
+	} else {
+		[AppDelegate.viewController setNeedsStatusBarAppearanceUpdate];
 	}
 }
 
