@@ -1320,17 +1320,30 @@ void EditorPropertyInteger::_value_changed(int64_t val) {
 }
 
 void EditorPropertyInteger::update_property() {
-	int64_t val = get_edited_property_value();
-	spin->set_value_no_signal(val);
+	if (display_unsigned) {
+		// Fix range to handle casting.
+		uint64_t val = (uint64_t)get_edited_property_value() % ((uint64_t)spin->get_max() + 1);
+		spin->set_value_no_signal(val);
 #ifdef DEBUG_ENABLED
-	// If spin (currently EditorSplinSlider : Range) is changed so that it can use int64_t, then the below warning wouldn't be a problem.
-	if (val != (int64_t)(double)(val)) {
-		WARN_PRINT("Cannot reliably represent '" + itos(val) + "' in the inspector, value is too large.");
-	}
+		// If spin (currently EditorSplinSlider : Range) is changed so that it can use uint64_t, then the below warning wouldn't be a problem.
+		if (val != (uint64_t)(double)(val)) {
+			WARN_PRINT("Cannot reliably represent '" + uitos(val) + "' in the inspector, value is too large.");
+		}
 #endif
+	} else {
+		int64_t val = get_edited_property_value();
+		spin->set_value_no_signal(val);
+#ifdef DEBUG_ENABLED
+		// If spin (currently EditorSplinSlider : Range) is changed so that it can use int64_t, then the below warning wouldn't be a problem.
+		if (val != (int64_t)(double)(val)) {
+			WARN_PRINT("Cannot reliably represent '" + itos(val) + "' in the inspector, value is too large.");
+		}
+#endif
+	}
 }
 
-void EditorPropertyInteger::setup(int64_t p_min, int64_t p_max, int64_t p_step, bool p_hide_slider, bool p_allow_greater, bool p_allow_lesser, const String &p_suffix) {
+void EditorPropertyInteger::setup(int64_t p_min, int64_t p_max, int64_t p_step, bool p_hide_slider, bool p_allow_greater, bool p_allow_lesser, const String &p_suffix, bool p_display_unsigned) {
+	display_unsigned = p_display_unsigned;
 	spin->set_min(p_min);
 	spin->set_max(p_max);
 	spin->set_step(p_step);
@@ -3440,6 +3453,7 @@ struct EditorPropertyRangeHint {
 	bool exp_range = false;
 	bool hide_slider = true;
 	bool radians_as_degrees = false;
+	bool display_unsigned = false;
 };
 
 static EditorPropertyRangeHint _parse_range_hint(PropertyHint p_hint, const String &p_hint_text, double p_default_step, bool is_int = false) {
@@ -3474,8 +3488,18 @@ static EditorPropertyRangeHint _parse_range_hint(PropertyHint p_hint, const Stri
 				hint.hide_slider = true;
 			} else if (slice == "exp") {
 				hint.exp_range = true;
+			} else if (slice == "display_unsigned") {
+				hint.display_unsigned = true;
 			}
 		}
+
+		// display_unsigned requires a non-negative min and no or_less/or_greater.
+		ERR_FAIL_COND_V_MSG(hint.display_unsigned && hint.or_less, hint,
+				vformat("Invalid PROPERTY_HINT_RANGE with hint \"%s\": display_unsigned cannot be combined with or_less.", p_hint_text));
+		ERR_FAIL_COND_V_MSG(hint.display_unsigned && hint.or_greater, hint,
+				vformat("Invalid PROPERTY_HINT_RANGE with hint \"%s\": display_unsigned cannot be combined with or_greater.", p_hint_text));
+		ERR_FAIL_COND_V_MSG(hint.display_unsigned && hint.min < 0, hint,
+				vformat("Invalid PROPERTY_HINT_RANGE with hint \"%s\": display_unsigned requires a non-negative minimum value.", p_hint_text));
 	}
 	bool degrees = false;
 	for (int i = 0; i < slices.size(); i++) {
@@ -3574,7 +3598,7 @@ EditorProperty *EditorInspectorDefaultPlugin::get_editor_for_property(Object *p_
 				EditorPropertyInteger *editor = memnew(EditorPropertyInteger);
 
 				EditorPropertyRangeHint hint = _parse_range_hint(p_hint, p_hint_text, 1, true);
-				editor->setup(hint.min, hint.max, hint.step, hint.hide_slider, hint.or_greater, hint.or_less, hint.suffix);
+				editor->setup(hint.min, hint.max, hint.step, hint.hide_slider, hint.or_greater, hint.or_less, hint.suffix, hint.display_unsigned);
 
 				return editor;
 			}
@@ -3656,14 +3680,14 @@ EditorProperty *EditorInspectorDefaultPlugin::get_editor_for_property(Object *p_
 			EditorPropertyVector2 *editor = memnew(EditorPropertyVector2(p_wide));
 
 			EditorPropertyRangeHint hint = _parse_range_hint(p_hint, p_hint_text, default_float_step);
-			editor->setup(hint.min, hint.max, hint.step, hint.hide_slider, p_hint == PROPERTY_HINT_LINK, hint.suffix);
+			editor->setup(hint.min, hint.max, hint.step, hint.hide_slider, p_hint == PROPERTY_HINT_LINK, hint.suffix, false, hint.or_greater, hint.or_less);
 			return editor;
 
 		} break;
 		case Variant::VECTOR2I: {
 			EditorPropertyVector2i *editor = memnew(EditorPropertyVector2i(p_wide));
 			EditorPropertyRangeHint hint = _parse_range_hint(p_hint, p_hint_text, 1, true);
-			editor->setup(hint.min, hint.max, 1, false, p_hint == PROPERTY_HINT_LINK, hint.suffix);
+			editor->setup(hint.min, hint.max, 1, false, p_hint == PROPERTY_HINT_LINK, hint.suffix, false, hint.or_greater, hint.or_less, hint.display_unsigned);
 			return editor;
 
 		} break;
@@ -3683,28 +3707,28 @@ EditorProperty *EditorInspectorDefaultPlugin::get_editor_for_property(Object *p_
 		case Variant::VECTOR3: {
 			EditorPropertyVector3 *editor = memnew(EditorPropertyVector3(p_wide));
 			EditorPropertyRangeHint hint = _parse_range_hint(p_hint, p_hint_text, default_float_step);
-			editor->setup(hint.min, hint.max, hint.step, hint.hide_slider, p_hint == PROPERTY_HINT_LINK, hint.suffix, hint.radians_as_degrees);
+			editor->setup(hint.min, hint.max, hint.step, hint.hide_slider, p_hint == PROPERTY_HINT_LINK, hint.suffix, hint.radians_as_degrees, hint.or_greater, hint.or_less);
 			return editor;
 
 		} break;
 		case Variant::VECTOR3I: {
 			EditorPropertyVector3i *editor = memnew(EditorPropertyVector3i(p_wide));
 			EditorPropertyRangeHint hint = _parse_range_hint(p_hint, p_hint_text, 1, true);
-			editor->setup(hint.min, hint.max, 1, false, p_hint == PROPERTY_HINT_LINK, hint.suffix);
+			editor->setup(hint.min, hint.max, 1, false, p_hint == PROPERTY_HINT_LINK, hint.suffix, false, hint.or_greater, hint.or_less, hint.display_unsigned);
 			return editor;
 
 		} break;
 		case Variant::VECTOR4: {
 			EditorPropertyVector4 *editor = memnew(EditorPropertyVector4);
 			EditorPropertyRangeHint hint = _parse_range_hint(p_hint, p_hint_text, default_float_step);
-			editor->setup(hint.min, hint.max, hint.step, hint.hide_slider, p_hint == PROPERTY_HINT_LINK, hint.suffix);
+			editor->setup(hint.min, hint.max, hint.step, hint.hide_slider, p_hint == PROPERTY_HINT_LINK, hint.suffix, false, hint.or_greater, hint.or_less);
 			return editor;
 
 		} break;
 		case Variant::VECTOR4I: {
 			EditorPropertyVector4i *editor = memnew(EditorPropertyVector4i);
 			EditorPropertyRangeHint hint = _parse_range_hint(p_hint, p_hint_text, 1, true);
-			editor->setup(hint.min, hint.max, 1, false, p_hint == PROPERTY_HINT_LINK, hint.suffix);
+			editor->setup(hint.min, hint.max, 1, false, p_hint == PROPERTY_HINT_LINK, hint.suffix, false, hint.or_greater, hint.or_less, hint.display_unsigned);
 			return editor;
 
 		} break;

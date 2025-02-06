@@ -334,12 +334,14 @@ class EditorPropertyInteger : public EditorProperty {
 	EditorSpinSlider *spin = nullptr;
 	void _value_changed(int64_t p_val);
 
+	bool display_unsigned = false;
+
 protected:
 	virtual void _set_read_only(bool p_read_only) override;
 
 public:
 	virtual void update_property() override;
-	void setup(int64_t p_min, int64_t p_max, int64_t p_step, bool p_hide_slider, bool p_allow_greater, bool p_allow_lesser, const String &p_suffix = String());
+	void setup(int64_t p_min, int64_t p_max, int64_t p_step, bool p_hide_slider, bool p_allow_greater, bool p_allow_lesser, const String &p_suffix = String(), bool p_display_unsigned = false);
 	EditorPropertyInteger();
 };
 
