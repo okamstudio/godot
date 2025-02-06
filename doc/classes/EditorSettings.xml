@@ -288,6 +288,10 @@
 		<member name="editors/2d/zoom_speed_factor" type="float" setter="" getter="">
 			The factor to use when zooming in or out in the 2D editor. For example, [code]1.1[/code] will zoom in by 10% with every step. If set to [code]2.0[/code], zooming will only cycle through powers of two.
 		</member>
+		<member name="editors/3d/alt_gizmo_transform" type="bool" setter="" getter="">
+			If [code]true[/code], enables selection of nodes with any gizmo mode, even if a node is already selected.
+			To enable manipulations of nodes outside the gizmo handles [kbd]Alt[/kbd] can be used.
+		</member>
 		<member name="editors/3d/default_fov" type="float" setter="" getter="">
 			The default camera vertical field of view to use in the 3D editor (in degrees). The camera field of view can be adjusted on a per-scene basis using the [b]View[/b] menu at the top of the 3D editor. If a scene had its camera field of view adjusted using the [b]View[/b] menu, this setting is ignored in the scene in question. This setting is also ignored while a [Camera3D] node is being previewed in the editor.
 			[b]Note:[/b] The editor camera always uses the [b]Keep Height[/b] aspect mode.
