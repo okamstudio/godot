@@ -827,7 +827,7 @@ void TextEdit::_notification(int p_what) {
 				// Calculate the first line.
 				int num_lines_before = round((viewport_offset_y) / minimap_line_height);
 				int minimap_line = (v_scroll->get_max() <= minimap_visible_lines) ? -1 : first_vis_line;
-				if (minimap_line >= 0) {
+				if (minimap_line > 0) {
 					minimap_line -= get_next_visible_line_index_offset_from(first_vis_line, 0, -num_lines_before).x;
 					minimap_line -= (minimap_line > 0 && smooth_scroll_enabled ? 1 : 0);
 				}
