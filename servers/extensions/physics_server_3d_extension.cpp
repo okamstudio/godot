@@ -214,6 +214,8 @@ void PhysicsServer3DExtension::_bind_methods() {
 
 	GDVIRTUAL_BIND(_body_create);
 
+	GDVIRTUAL_BIND(_body_is_valid, "body");
+
 	GDVIRTUAL_BIND(_body_set_space, "body", "space");
 	GDVIRTUAL_BIND(_body_get_space, "body");
 
@@ -306,6 +308,8 @@ void PhysicsServer3DExtension::_bind_methods() {
 	/* SOFT BODY API */
 
 	GDVIRTUAL_BIND(_soft_body_create);
+
+	GDVIRTUAL_BIND(_soft_body_is_valid, "body");
 
 	GDVIRTUAL_BIND(_soft_body_update_rendering_server, "body", "rendering_server_handler");
 

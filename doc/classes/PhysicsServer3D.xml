@@ -488,6 +488,13 @@
 				Returns [code]true[/code] if the body is omitting the standard force integration. See [method body_set_omit_force_integration].
 			</description>
 		</method>
+		<method name="body_is_valid" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="body" type="RID" />
+			<description>
+				Returns [code]true[/code] if the body is still valid (i.e. has not been freed and the RID is a body).
+			</description>
+		</method>
 		<method name="body_remove_collision_exception">
 			<return type="void" />
 			<param index="0" name="body" type="RID" />
@@ -1157,6 +1164,13 @@
 			<param index="1" name="point_index" type="int" />
 			<description>
 				Returns whether the given soft body point is pinned.
+			</description>
+		</method>
+		<method name="soft_body_is_valid" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="body" type="RID" />
+			<description>
+				Returns [code]true[/code] if the soft body is still valid (i.e. has not been freed and the RID is a soft body).
 			</description>
 		</method>
 		<method name="soft_body_move_point">

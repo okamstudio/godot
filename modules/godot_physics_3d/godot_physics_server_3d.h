@@ -164,6 +164,8 @@ public:
 	// create a body of a given type
 	virtual RID body_create() override;
 
+	virtual bool body_is_valid(RID p_body) const override;
+
 	virtual void body_set_space(RID p_body, RID p_space) override;
 	virtual RID body_get_space(RID p_body) const override;
 
@@ -258,6 +260,8 @@ public:
 	/* SOFT BODY */
 
 	virtual RID soft_body_create() override;
+
+	virtual bool soft_body_is_valid(RID p_body) const override;
 
 	virtual void soft_body_update_rendering_server(RID p_body, PhysicsServer3DRenderingServerHandler *p_rendering_server_handler) override;
 

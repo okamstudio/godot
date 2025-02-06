@@ -169,6 +169,8 @@ public:
 	//FUNC2RID(body,BodyMode,bool);
 	FUNCRID(body)
 
+	FUNC1RC(bool, body_is_valid, RID);
+
 	FUNC2(body_set_space, RID, RID);
 	FUNC1RC(RID, body_get_space, RID);
 

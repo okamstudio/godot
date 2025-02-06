@@ -61,10 +61,14 @@ TypedArray<PhysicsBody3D> PhysicsBody3D::get_collision_exceptions() {
 	PhysicsServer3D::get_singleton()->body_get_collision_exceptions(get_rid(), &exceptions);
 	Array ret;
 	for (const RID &body : exceptions) {
-		ObjectID instance_id = PhysicsServer3D::get_singleton()->body_get_object_instance_id(body);
-		Object *obj = ObjectDB::get_instance(instance_id);
-		PhysicsBody3D *physics_body = Object::cast_to<PhysicsBody3D>(obj);
-		ret.append(physics_body);
+		if (PhysicsServer3D::get_singleton()->body_is_valid(body)) {
+			ObjectID instance_id = PhysicsServer3D::get_singleton()->body_get_object_instance_id(body);
+			Object *obj = ObjectDB::get_instance(instance_id);
+			PhysicsBody3D *physics_body = Object::cast_to<PhysicsBody3D>(obj);
+			ret.append(physics_body);
+		} else {
+			PhysicsServer3D::get_singleton()->body_remove_collision_exception(get_rid(), body);
+		}
 	}
 	return ret;
 }

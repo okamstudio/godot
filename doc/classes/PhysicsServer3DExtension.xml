@@ -420,6 +420,12 @@
 			<description>
 			</description>
 		</method>
+		<method name="_body_is_valid" qualifiers="virtual const">
+			<return type="bool" />
+			<param index="0" name="body" type="RID" />
+			<description>
+			</description>
+		</method>
 		<method name="_body_remove_collision_exception" qualifiers="virtual">
 			<return type="void" />
 			<param index="0" name="body" type="RID" />
@@ -1078,6 +1084,12 @@
 			<return type="bool" />
 			<param index="0" name="body" type="RID" />
 			<param index="1" name="point_index" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="_soft_body_is_valid" qualifiers="virtual const">
+			<return type="bool" />
+			<param index="0" name="body" type="RID" />
 			<description>
 			</description>
 		</method>

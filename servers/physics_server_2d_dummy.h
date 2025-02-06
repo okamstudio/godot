@@ -207,6 +207,8 @@ public:
 
 	virtual RID body_create() override { return RID(); }
 
+	virtual bool body_is_valid(RID p_body) const override { return false; }
+
 	virtual void body_set_space(RID p_body, RID p_space) override {}
 	virtual RID body_get_space(RID p_body) const override { return RID(); }
 

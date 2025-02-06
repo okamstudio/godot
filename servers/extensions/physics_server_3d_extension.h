@@ -288,6 +288,8 @@ public:
 	//EXBIND2RID(body,BodyMode,bool);
 	EXBIND0R(RID, body_create)
 
+	EXBIND1RC(bool, body_is_valid, RID)
+
 	EXBIND2(body_set_space, RID, RID)
 	EXBIND1RC(RID, body_get_space, RID)
 
@@ -405,6 +407,8 @@ public:
 	/* SOFT BODY API */
 
 	EXBIND0R(RID, soft_body_create)
+
+	EXBIND1RC(bool, soft_body_is_valid, RID)
 
 	EXBIND2(soft_body_update_rendering_server, RID, PhysicsServer3DRenderingServerHandler *)
 

@@ -446,6 +446,10 @@ RID GodotPhysicsServer3D::body_create() {
 	return rid;
 }
 
+bool GodotPhysicsServer3D::body_is_valid(RID p_body) const {
+	return body_owner.owns(p_body);
+}
+
 void GodotPhysicsServer3D::body_set_space(RID p_body, RID p_space) {
 	GodotBody3D *body = body_owner.get_or_null(p_body);
 	ERR_FAIL_NULL(body);
@@ -946,6 +950,10 @@ RID GodotPhysicsServer3D::soft_body_create() {
 	RID rid = soft_body_owner.make_rid(soft_body);
 	soft_body->set_self(rid);
 	return rid;
+}
+
+bool GodotPhysicsServer3D::soft_body_is_valid(RID p_body) const {
+	return soft_body_owner.owns(p_body);
 }
 
 void GodotPhysicsServer3D::soft_body_update_rendering_server(RID p_body, PhysicsServer3DRenderingServerHandler *p_rendering_server_handler) {

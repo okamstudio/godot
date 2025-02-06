@@ -536,6 +536,10 @@ RID GodotPhysicsServer2D::body_create() {
 	return rid;
 }
 
+bool GodotPhysicsServer2D::body_is_valid(RID p_body) const {
+	return body_owner.owns(p_body);
+}
+
 void GodotPhysicsServer2D::body_set_space(RID p_body, RID p_space) {
 	GodotBody2D *body = body_owner.get_or_null(p_body);
 	ERR_FAIL_NULL(body);

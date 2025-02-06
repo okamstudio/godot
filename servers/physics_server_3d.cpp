@@ -755,6 +755,8 @@ void PhysicsServer3D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("body_create"), &PhysicsServer3D::body_create);
 
+	ClassDB::bind_method(D_METHOD("body_is_valid", "body"), &PhysicsServer3D::body_is_valid);
+
 	ClassDB::bind_method(D_METHOD("body_set_space", "body", "space"), &PhysicsServer3D::body_set_space);
 	ClassDB::bind_method(D_METHOD("body_get_space", "body"), &PhysicsServer3D::body_get_space);
 
@@ -841,6 +843,8 @@ void PhysicsServer3D::_bind_methods() {
 	/* SOFT BODY API */
 
 	ClassDB::bind_method(D_METHOD("soft_body_create"), &PhysicsServer3D::soft_body_create);
+
+	ClassDB::bind_method(D_METHOD("soft_body_is_valid", "body"), &PhysicsServer3D::soft_body_is_valid);
 
 	ClassDB::bind_method(D_METHOD("soft_body_update_rendering_server", "body", "rendering_server_handler"), &PhysicsServer3D::soft_body_update_rendering_server);
 

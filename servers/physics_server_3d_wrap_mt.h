@@ -173,6 +173,8 @@ public:
 	//FUNC2RID(body,BodyMode,bool);
 	FUNCRID(body)
 
+	FUNC1RC(bool, body_is_valid, RID);
+
 	FUNC2(body_set_space, RID, RID);
 	FUNC1RC(RID, body_get_space, RID);
 
@@ -273,6 +275,8 @@ public:
 	/* SOFT BODY API */
 
 	FUNCRID(soft_body)
+
+	FUNC1RC(bool, soft_body_is_valid, RID)
 
 	FUNC2(soft_body_update_rendering_server, RID, PhysicsServer3DRenderingServerHandler *)
 

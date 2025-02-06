@@ -358,6 +358,8 @@ public:
 
 	virtual RID body_create() = 0;
 
+	virtual bool body_is_valid(RID p_body) const = 0;
+
 	virtual void body_set_space(RID p_body, RID p_space) = 0;
 	virtual RID body_get_space(RID p_body) const = 0;
 

@@ -514,6 +514,13 @@
 				Overridable version of [method PhysicsServer2D.body_is_omitting_force_integration].
 			</description>
 		</method>
+		<method name="_body_is_valid" qualifiers="virtual const">
+			<return type="bool" />
+			<param index="0" name="body" type="RID" />
+			<description>
+				Overridable version of [method PhysicsServer2D.body_is_valid].
+			</description>
+		</method>
 		<method name="_body_remove_collision_exception" qualifiers="virtual">
 			<return type="void" />
 			<param index="0" name="body" type="RID" />

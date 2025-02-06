@@ -678,6 +678,8 @@ void PhysicsServer2D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("body_create"), &PhysicsServer2D::body_create);
 
+	ClassDB::bind_method(D_METHOD("body_is_valid", "body"), &PhysicsServer2D::body_is_valid);
+
 	ClassDB::bind_method(D_METHOD("body_set_space", "body", "space"), &PhysicsServer2D::body_set_space);
 	ClassDB::bind_method(D_METHOD("body_get_space", "body"), &PhysicsServer2D::body_get_space);
 

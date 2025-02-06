@@ -506,6 +506,10 @@ RID JoltPhysicsServer3D::body_create() {
 	return rid;
 }
 
+bool JoltPhysicsServer3D::body_is_valid(RID p_body) const {
+	return body_owner.owns(p_body);
+}
+
 void JoltPhysicsServer3D::body_set_space(RID p_body, RID p_space) {
 	JoltBody3D *body = body_owner.get_or_null(p_body);
 	ERR_FAIL_NULL(body);
@@ -955,6 +959,10 @@ RID JoltPhysicsServer3D::soft_body_create() {
 	RID rid = soft_body_owner.make_rid(body);
 	body->set_rid(rid);
 	return rid;
+}
+
+bool JoltPhysicsServer3D::soft_body_is_valid(RID p_body) const {
+	return soft_body_owner.owns(p_body);
 }
 
 void JoltPhysicsServer3D::soft_body_update_rendering_server(RID p_body, PhysicsServer3DRenderingServerHandler *p_rendering_server_handler) {
