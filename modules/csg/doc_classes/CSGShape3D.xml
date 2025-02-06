@@ -42,6 +42,12 @@
 				Returns whether or not the specified layer of the [member collision_mask] is enabled, given a [param layer_number] between 1 and 32.
 			</description>
 		</method>
+		<method name="get_collision_rid" qualifiers="const">
+			<return type="RID" />
+			<description>
+				Returns the collision object's [RID] if [member use_collision] is enabled.
+			</description>
+		</method>
 		<method name="get_meshes" qualifiers="const">
 			<return type="Array" />
 			<description>

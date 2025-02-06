@@ -108,6 +108,10 @@ bool CSGShape3D::is_using_collision() const {
 	return use_collision;
 }
 
+RID CSGShape3D::get_collision_rid() const {
+	return root_collision_instance;
+}
+
 void CSGShape3D::set_collision_layer(uint32_t p_layer) {
 	collision_layer = p_layer;
 	if (root_collision_instance.is_valid()) {
@@ -972,6 +976,7 @@ void CSGShape3D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_use_collision", "operation"), &CSGShape3D::set_use_collision);
 	ClassDB::bind_method(D_METHOD("is_using_collision"), &CSGShape3D::is_using_collision);
+	ClassDB::bind_method(D_METHOD("get_collision_rid"), &CSGShape3D::get_collision_rid);
 
 	ClassDB::bind_method(D_METHOD("set_collision_layer", "layer"), &CSGShape3D::set_collision_layer);
 	ClassDB::bind_method(D_METHOD("get_collision_layer"), &CSGShape3D::get_collision_layer);

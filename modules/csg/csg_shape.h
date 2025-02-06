@@ -143,6 +143,7 @@ public:
 
 	void set_use_collision(bool p_enable);
 	bool is_using_collision() const;
+	RID get_collision_rid() const;
 
 	void set_collision_layer(uint32_t p_layer);
 	uint32_t get_collision_layer() const;
