@@ -489,14 +489,17 @@ class EditorPropertyQuaternion : public EditorProperty {
 	AcceptDialog *warning_dialog = nullptr;
 
 	Label *euler_label = nullptr;
+	VBoxContainer *normalize_quaternion = nullptr;
 	VBoxContainer *edit_custom_bc = nullptr;
 	EditorSpinSlider *euler[3];
 	Button *edit_button = nullptr;
+	Button *normalize_quaternion_bttn = nullptr;
 
 	Vector3 edit_euler;
 
 	void _value_changed(double p_val, const String &p_name);
 	void _edit_custom_value();
+	void _edit_normalize_quaternion_value();
 	void _custom_value_changed(double p_val);
 	void _warning_pressed();
 

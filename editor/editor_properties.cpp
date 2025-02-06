@@ -1968,6 +1968,30 @@ void EditorPropertyQuaternion::_set_read_only(bool p_read_only) {
 	}
 }
 
+void EditorPropertyQuaternion::_edit_normalize_quaternion_value() {
+	if (normalize_quaternion_bttn->is_pressed()) {
+		EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+		undo_redo->create_action("Quaternion Normalized");
+
+		Quaternion temp;
+		for (int i = 0; i < 4; i++) {
+			temp[i] = (real_t)spin[i]->get_value();
+
+			//undo_redo->add_undo_property(spin[i], "Un-Normalize Quaternion", spin[i]);
+			undo_redo->add_undo_property(get_edited_object(), get_edited_property(), spin[i]);
+		}
+		temp = temp.normalized();
+		for (int i = 0; i < 4; i++) {
+			spin[i]->set_value_no_signal((double)temp[i]);
+
+			undo_redo->add_undo_property(get_edited_object(), get_edited_property(), temp[i]);
+			//undo_redo->add_do_property(spin[i], "Re-Normalize Quaternion", temp[i]);
+		}
+		_value_changed(-1, "");
+		undo_redo->commit_action();
+	}
+}
+
 void EditorPropertyQuaternion::_edit_custom_value() {
 	if (edit_button->is_pressed()) {
 		edit_custom_bc->show();
@@ -2092,6 +2116,7 @@ EditorPropertyQuaternion::EditorPropertyQuaternion() {
 
 	VBoxContainer *bc = memnew(VBoxContainer);
 	edit_custom_bc = memnew(VBoxContainer);
+	normalize_quaternion = memnew(VBoxContainer);
 	BoxContainer *edit_custom_layout;
 	if (horizontal) {
 		default_layout = memnew(HBoxContainer);
@@ -2103,10 +2128,12 @@ EditorPropertyQuaternion::EditorPropertyQuaternion() {
 	}
 	edit_custom_bc->hide();
 	add_child(bc);
+	normalize_quaternion->set_h_size_flags(SIZE_EXPAND_FILL);
 	edit_custom_bc->set_h_size_flags(SIZE_EXPAND_FILL);
 	default_layout->set_h_size_flags(SIZE_EXPAND_FILL);
 	edit_custom_layout->set_h_size_flags(SIZE_EXPAND_FILL);
 	bc->add_child(default_layout);
+	bc->add_child(normalize_quaternion);
 	bc->add_child(edit_custom_bc);
 
 	static const char *desc[4] = { "x", "y", "z", "w" };
@@ -2121,6 +2148,12 @@ EditorPropertyQuaternion::EditorPropertyQuaternion() {
 			spin[i]->set_h_size_flags(SIZE_EXPAND_FILL);
 		}
 	}
+
+	normalize_quaternion_bttn = memnew(Button);
+	normalize_quaternion_bttn->set_text("Normalize");
+	normalize_quaternion_bttn->connect(SceneStringName(pressed), callable_mp(this, &EditorPropertyQuaternion::_edit_normalize_quaternion_value));
+	add_focusable(normalize_quaternion_bttn);
+	normalize_quaternion->add_child(normalize_quaternion_bttn);
 
 	warning = memnew(Button);
 	warning->set_text(TTR("Temporary Euler may be changed implicitly!"));
