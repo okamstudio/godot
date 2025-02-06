@@ -40,6 +40,7 @@ class VisibleOnScreenNotifier2D : public Node2D {
 	HashSet<Viewport *> viewports;
 
 	Rect2 rect;
+	bool show_rect = true;
 
 private:
 	bool on_screen = false;
@@ -55,12 +56,22 @@ protected:
 
 public:
 #ifdef DEBUG_ENABLED
+	virtual Dictionary _edit_get_state() const override;
+	virtual void _edit_set_state(const Dictionary &p_state) override;
+
+	virtual Vector2 _edit_get_minimum_size() const override { return Vector2(); }
+
+	virtual void _edit_set_rect(const Rect2 &p_edit_rect) override;
 	virtual Rect2 _edit_get_rect() const override;
+
 	virtual bool _edit_use_rect() const override;
 #endif // DEBUG_ENABLED
 
 	void set_rect(const Rect2 &p_rect);
 	Rect2 get_rect() const;
+
+	void set_show_rect(bool p_show_rect);
+	bool is_showing_rect() const;
 
 	bool is_on_screen() const;
 

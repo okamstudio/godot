@@ -24,6 +24,9 @@
 		<member name="rect" type="Rect2" setter="set_rect" getter="get_rect" default="Rect2(-10, -10, 20, 20)">
 			The VisibleOnScreenNotifier2D's bounding rectangle.
 		</member>
+		<member name="show_rect" type="bool" setter="set_show_rect" getter="is_showing_rect" default="true">
+			If [code]true[/code], shows the rectangle area of [member rect] in the editor with a translucent magenta fill. Unlike changing the visibility of the VisibleOnScreenNotifier2D, this does not affect the screen culling detection.
+		</member>
 	</members>
 	<signals>
 		<signal name="screen_entered">
