@@ -63,6 +63,7 @@
 #include "scene/gui/line_edit.h"
 #include "scene/gui/progress_bar.h"
 #include "scene/resources/packed_scene.h"
+#include "scene/resources/style_box_flat.h"
 #include "servers/display_server.h"
 
 Control *FileSystemTree::make_custom_tooltip(const String &p_text) const {
@@ -101,34 +102,77 @@ bool FileSystemList::edit_selected() {
 	ERR_FAIL_COND_V_MSG(!is_anything_selected(), false, "No item selected.");
 	int s = get_current();
 	ERR_FAIL_COND_V_MSG(s < 0, false, "No current item selected.");
-	ensure_current_is_visible();
 
-	Rect2 rect;
+	const Rect2 rect = get_item_rect(s, get_icon_mode() == ItemList::ICON_MODE_LEFT);
+	const Ref<StyleBoxFlat> focus_style = get_theme_stylebox(SNAME("focus"), SNAME("ItemList"));
+
+	// Ensure current item is visible.
+	VScrollBar *v_scroll = get_v_scroll_bar();
+	if (v_scroll->is_visible()) {
+		int from = v_scroll->get_value();
+		int to = from + v_scroll->get_page();
+		if (rect.position.y < from) {
+			const int panel_offset = get_theme_stylebox(SNAME("panel"), SNAME("ItemList"))->get_offset().y;
+			const int border_width_top = focus_style->get_border_width(Side::SIDE_TOP);
+			v_scroll->set_value(rect.position.y - panel_offset - border_width_top);
+		} else if (rect.position.y + rect.size.y > to) {
+			v_scroll->set_value(rect.position.y + rect.size.y - (to - from));
+		}
+	}
+
 	Rect2 popup_rect;
 	Vector2 ofs;
-
-	Vector2 icon_size = get_item_icon(s)->get_size();
+	const Vector2 icon_size = get_item_icon(s)->get_size();
+	const bool rtl = is_layout_rtl();
 
 	// Handles the different icon modes (TOP/LEFT).
 	switch (get_icon_mode()) {
 		case ItemList::ICON_MODE_LEFT:
-			rect = get_item_rect(s, true);
 			ofs = Vector2(0, Math::floor((MAX(line_editor->get_minimum_size().height, rect.size.height) - rect.size.height) / 2));
-			popup_rect.position = get_screen_position() + rect.position - ofs;
+			popup_rect.position = get_screen_position() + (rtl ? Vector2(0, rect.position.y) : rect.position) - ofs;
 			popup_rect.size = rect.size;
 
 			// Adjust for icon position and size.
 			popup_rect.size.x -= icon_size.x;
-			popup_rect.position.x += icon_size.x;
+			if (!rtl) {
+				popup_rect.position.x += icon_size.x;
+			}
+
+			// Adjust for scrollbar position, size, and focus border width.
+			if (v_scroll->is_visible()) {
+				const real_t min_scroll_width = v_scroll->get_minimum_size().width;
+				popup_rect.size.x -= min_scroll_width;
+				if (rtl) {
+					popup_rect.position.x += min_scroll_width;
+				}
+				popup_rect.position.y -= v_scroll->get_value();
+			} else {
+				const int focus_border_width = focus_style->get_border_width(rtl ? Side::SIDE_LEFT : Side::SIDE_RIGHT);
+				popup_rect.size.x -= focus_border_width;
+				if (rtl) {
+					popup_rect.position.x += focus_border_width;
+				}
+			}
 			break;
 		case ItemList::ICON_MODE_TOP:
-			rect = get_item_rect(s, false);
-			popup_rect.position = get_screen_position() + rect.position;
+			popup_rect.position = get_screen_position();
 			popup_rect.size = rect.size;
+
+			// Adjust for layout direction.
+			if (rtl) {
+				popup_rect.position += Vector2((get_size().x - rect.size.x) - rect.position.x, rect.position.y);
+			} else {
+				popup_rect.position += rect.position;
+			}
 
 			// Adjust for icon position and size.
 			popup_rect.size.y -= icon_size.y;
 			popup_rect.position.y += icon_size.y;
+
+			// Adjust for scrollbar position.
+			if (v_scroll->is_visible()) {
+				popup_rect.position.y -= v_scroll->get_value();
+			}
 			break;
 	}
 
