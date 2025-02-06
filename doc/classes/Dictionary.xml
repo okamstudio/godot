@@ -5,8 +5,9 @@
 	</brief_description>
 	<description>
 		Dictionaries are associative containers that contain values referenced by unique keys. Dictionaries will preserve the insertion order when adding new entries. In other programming languages, this data structure is often referred to as a hash map or an associative array.
-		You can define a dictionary by placing a comma-separated list of [code]key: value[/code] pairs inside curly braces [code]{}[/code].
-		Creating a dictionary:
+		You can define a dictionary by placing a comma-separated list of [code]key: value[/code] pairs inside curly braces [code]{}[/code]. Duplicate keys are not allowed.
+		Dictionaries can be declared using two syntaxes: the standard Python-style syntax, and the alternative Lua-style syntax. This alternative syntax doesn't require quotes around keys, but only string constants can be used as key names. Additionally, for key names to be usable without quotes, they must start with a letter or an underscore and must not be reserved identifiers (such as [code]class[/code] or [code]while[/code]). It is still possible to use reserved identifiers, or key names that start with a digit, but they must be quoted. Note that while you can mix dictionary syntaxes in a single file, you can only use one dictionary syntax in a single dictionary declaration.
+		[b]Creating a dictionary:[/b]
 		[codeblocks]
 		[gdscript]
 		var my_dict = {} # Creates an empty dictionary.
@@ -21,11 +22,11 @@
 		var points_dict = {"White": 50, "Yellow": 75, "Orange": 100}
 
 		# Alternative Lua-style syntax.
-		# Doesn't require quotes around keys, but only string constants can be used as key names.
-		# Additionally, key names must start with a letter or an underscore.
 		# Here, `some_key` is a string literal, not a variable!
 		another_dict = {
 		    some_key = 42,
+		    "class" = "wizard", # The key name must be quoted here.
+		    "2test" = 100, # The key name must be quoted here.
 		}
 		[/gdscript]
 		[csharp]
