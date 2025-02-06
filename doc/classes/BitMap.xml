@@ -5,6 +5,7 @@
 	</brief_description>
 	<description>
 		A two-dimensional array of boolean values, can be used to efficiently store a binary matrix (every matrix element takes only one bit) and query the values using natural cartesian coordinates.
+		[b]Note:[/b] The maximum size of a [BitMap] is [code]2^31 - 8[/code] values (inclusive). For a square bitmap, the maximum size is therefore [code]46340×46340[/code]. For a 1 value-wide or tall bitmap, the maximum size is [code]2147483640×1[/code] or [code]1×2147483640[/code]. Writing the [BitMap] to an image has stricter size restrictions; see [method convert_to_image].
 	</description>
 	<tutorials>
 	</tutorials>
@@ -13,6 +14,8 @@
 			<return type="Image" />
 			<description>
 				Returns an image of the same size as the bitmap and with a [enum Image.Format] of type [constant Image.FORMAT_L8]. [code]true[/code] bits of the bitmap are being converted into white pixels, and [code]false[/code] bits into black.
+				[b]Note:[/b] For technical reasons, only bitmaps that have [code]2^28[/code] values or fewer can be converted to an [Image]. For a square bitmap, the maximum convertible size is therefore [code]16384×16384[/code]. For a 1 value-wide or tall bitmap, the maximum size is [code]268435456×1[/code] or [code]1×268435456[/code].
+				[b]Note:[/b] If saving the resulting [Image] to a file, keep in mind each file format's limitations. PNG is generally most suited for saving [BitMap]s, as it uses lossless compression and supports images up to 1,000,000 pixels wide or tall.
 			</description>
 		</method>
 		<method name="create">

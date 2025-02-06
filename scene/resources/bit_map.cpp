@@ -33,10 +33,12 @@
 #include "core/variant/typed_array.h"
 
 void BitMap::create(const Size2i &p_size) {
-	ERR_FAIL_COND(p_size.width < 1);
-	ERR_FAIL_COND(p_size.height < 1);
+	ERR_FAIL_COND_MSG(p_size.width < 1, vformat("The requested BitMap width (%d values) must be at least 1 value.", p_size.width));
+	ERR_FAIL_COND_MSG(p_size.height < 1, vformat("The requested BitMap height (%d values) must be at least 1 value.", p_size.height));
 
-	ERR_FAIL_COND(static_cast<int64_t>(p_size.width) * static_cast<int64_t>(p_size.height) > INT32_MAX);
+	// The maximum BitMap size is `INT32_MAX - 8` because of the bitmask implementation (see `Math::division_round_up()` call below).
+	ERR_FAIL_COND_MSG(static_cast<int64_t>(p_size.width) * static_cast<int64_t>(p_size.height) > (INT32_MAX - 7),
+			vformat(U"The requested BitMap size (%d×%d = %d values) is too large. The total value count must be `2^31 - 8` (2147483640) values or lower.", p_size.width, p_size.height, static_cast<int64_t>(p_size.width) * static_cast<int64_t>(p_size.height)));
 
 	Error err = bitmask.resize(Math::division_round_up(p_size.width * p_size.height, 8));
 	ERR_FAIL_COND(err != OK);
@@ -641,7 +643,8 @@ TypedArray<PackedVector2Array> BitMap::_opaque_to_polygons_bind(const Rect2i &p_
 }
 
 void BitMap::resize(const Size2i &p_new_size) {
-	ERR_FAIL_COND(p_new_size.width < 0 || p_new_size.height < 0);
+	ERR_FAIL_COND_MSG(p_new_size.width < 0, vformat("The requested BitMap width (%d values) must be at least 1 value.", p_new_size.width));
+	ERR_FAIL_COND_MSG(p_new_size.height < 0, vformat("The requested BitMap width (%d values) must be at least 1 value.", p_new_size.height));
 	if (p_new_size == get_size()) {
 		return;
 	}
