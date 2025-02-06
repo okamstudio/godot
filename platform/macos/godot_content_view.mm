@@ -882,4 +882,23 @@
 	}
 }
 
+- (void)rotateWithEvent:(NSEvent *)event {
+	DisplayServerMacOS *ds = (DisplayServerMacOS *)DisplayServer::get_singleton();
+	if (!ds || !ds->has_window(window_id)) {
+		return;
+	}
+
+	DisplayServerMacOS::WindowData &wd = ds->get_window(window_id);
+	ds->update_mouse_pos(wd, [event locationInWindow]);
+
+	Ref<InputEventRotateGesture> ev;
+	ev.instantiate();
+	ds->get_key_modifier_state([event modifierFlags], ev);
+	ev->set_position(wd.mouse_pos);
+	// Convert from degrees to radians and invert direction to match standard rotation direction
+	ev->set_rotation(-[event rotation] * (Math_PI / 180.0));
+
+	Input::get_singleton()->parse_input_event(ev);
+}
+
 @end

@@ -1719,7 +1719,7 @@ Ref<InputEvent> InputEventMagnifyGesture::xformed_by(const Transform2D &p_xform,
 }
 
 String InputEventMagnifyGesture::as_text() const {
-	return vformat(RTR("Magnify Gesture at (%s) with factor %s"), String(get_position()), rtos(get_factor()));
+	return vformat(RTR("Magnify Gesture at (%s) with factor %s"), get_position(), rtos(get_factor()));
 }
 
 String InputEventMagnifyGesture::to_string() {
@@ -1761,7 +1761,7 @@ Ref<InputEvent> InputEventPanGesture::xformed_by(const Transform2D &p_xform, con
 }
 
 String InputEventPanGesture::as_text() const {
-	return vformat(RTR("Pan Gesture at (%s) with delta (%s)"), String(get_position()), String(get_delta()));
+	return vformat(RTR("Pan Gesture at (%s) with delta (%s)"), get_position(), get_delta());
 }
 
 String InputEventPanGesture::to_string() {
@@ -1773,6 +1773,46 @@ void InputEventPanGesture::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_delta"), &InputEventPanGesture::get_delta);
 
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "delta"), "set_delta", "get_delta");
+}
+
+///////////////////////////////////
+
+void InputEventRotateGesture::set_rotation(real_t p_rotation) {
+	rotation = p_rotation;
+}
+
+real_t InputEventRotateGesture::get_rotation() const {
+	return rotation;
+}
+
+void InputEventRotateGesture::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("set_rotation", "rotation"), &InputEventRotateGesture::set_rotation);
+	ClassDB::bind_method(D_METHOD("get_rotation"), &InputEventRotateGesture::get_rotation);
+
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "rotation"), "set_rotation", "get_rotation");
+}
+
+Ref<InputEvent> InputEventRotateGesture::xformed_by(const Transform2D &p_xform, const Vector2 &p_local_ofs) const {
+	Ref<InputEventRotateGesture> ev;
+	ev.instantiate();
+
+	ev->set_device(get_device());
+	ev->set_window_id(get_window_id());
+
+	ev->set_modifiers_from_event(this);
+
+	ev->set_position(p_xform.xform(get_position() + p_local_ofs));
+	ev->set_rotation(rotation);
+
+	return ev;
+}
+
+String InputEventRotateGesture::as_text() const {
+	return vformat(RTR("Rotate Gesture at (%s) rotation=%.2f"), get_position(), rotation);
+}
+
+String InputEventRotateGesture::to_string() {
+	return vformat("InputEventRotateGesture: rotation=%.2f, position=(%s)", rotation, String(get_position()));
 }
 
 ///////////////////////////////////

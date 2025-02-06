@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InputEventRotateGesture" inherits="InputEventGesture" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Represents a rotation touch gesture.
+	</brief_description>
+	<description>
+		Stores information about rotation gestures. A rotation gesture is performed when the user moves two fingers in a circular motion over the touch screen. It's typically used for rotating the camera.
+		[b]Note:[/b] Only working on MacOS.
+	</description>
+	<tutorials>
+		<link title="Using InputEvent">$DOCS_URL/tutorials/inputs/inputevent.html</link>
+	</tutorials>
+	<members>
+		<member name="rotation" type="float" setter="set_rotation" getter="get_rotation" default="0.0">
+			Rotation amount since last rotation event (in radians).
+		</member>
+	</members>
+</class>
