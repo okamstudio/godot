@@ -6018,11 +6018,16 @@ bool GDScriptAnalyzer::is_type_compatible(const GDScriptParser::DataType &p_targ
 			if (p_source.kind == GDScriptParser::DataType::BUILTIN && p_source.builtin_type == Variant::INT) {
 				parser->push_warning(p_source_node, GDScriptWarning::INT_AS_ENUM_WITHOUT_CAST);
 			}
+
+			if (p_source.kind == GDScriptParser::DataType::BUILTIN && p_source.builtin_type == Variant::BOOL) {
+				parser->push_warning(p_source_node, GDScriptWarning::BOOL_AS_ENUM_WITHOUT_CAST);
+			}
 		}
 	}
 #endif
 	return check_type_compatibility(p_target, p_source, p_allow_implicit_conversion, p_source_node);
 }
+
 
 // TODO: Add safe/unsafe return variable (for variant cases)
 bool GDScriptAnalyzer::check_type_compatibility(const GDScriptParser::DataType &p_target, const GDScriptParser::DataType &p_source, bool p_allow_implicit_conversion, const GDScriptParser::Node *p_source_node) {
@@ -6068,16 +6073,26 @@ bool GDScriptAnalyzer::check_type_compatibility(const GDScriptParser::DataType &
 	}
 
 	if (p_target.kind == GDScriptParser::DataType::ENUM) {
-		if (p_source.kind == GDScriptParser::DataType::BUILTIN && p_source.builtin_type == Variant::INT) {
-			return true;
-		}
-		if (p_source.kind == GDScriptParser::DataType::ENUM) {
-			if (p_source.native_type == p_target.native_type) {
-				return true;
-			}
-		}
-		return false;
-	}
+    // Allow int to enum.
+    if (p_source.kind == GDScriptParser::DataType::BUILTIN && p_source.builtin_type == Variant::INT) {
+        return true;
+    }
+
+    // New addition: Allow bool to enum.
+    if (p_source.kind == GDScriptParser::DataType::BUILTIN && p_source.builtin_type == Variant::BOOL) {
+        return true; // Accept bool for enum assignment.
+    }
+
+    // Check if the source is an enum with the same native type.
+    if (p_source.kind == GDScriptParser::DataType::ENUM) {
+        if (p_source.native_type == p_target.native_type) {
+            return true;
+        }
+    }
+
+    return false; // Return false if none of the above conditions are met.
+}
+
 
 	// From here on the target type is an object, so we have to test polymorphism.
 

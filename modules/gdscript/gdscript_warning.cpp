@@ -128,6 +128,8 @@ String GDScriptWarning::get_message() const {
 			return "Narrowing conversion (float is converted to int and loses precision).";
 		case INT_AS_ENUM_WITHOUT_CAST:
 			return "Integer used when an enum value is expected. If this is intended cast the integer to the enum type.";
+		case BOOL_AS_ENUM_WITHOUT_CAST:
+    		return "Boolean used when an enum value is expected. If this is intended, cast the boolean to the enum type.";
 		case INT_AS_ENUM_WITHOUT_MATCH:
 			CHECK_SYMBOLS(3);
 			return vformat(R"(Cannot %s %s as Enum "%s": no enum member has matching value.)", symbols[0], symbols[1], symbols[2]);
@@ -226,6 +228,7 @@ String GDScriptWarning::get_name_from_code(Code p_code) {
 		"INTEGER_DIVISION",
 		"NARROWING_CONVERSION",
 		"INT_AS_ENUM_WITHOUT_CAST",
+		"BOOL_AS_ENUM_WITHOUT_CAST",
 		"INT_AS_ENUM_WITHOUT_MATCH",
 		"ENUM_VARIABLE_WITHOUT_DEFAULT",
 		"EMPTY_FILE",

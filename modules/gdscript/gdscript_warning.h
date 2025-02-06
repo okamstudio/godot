@@ -78,6 +78,7 @@ public:
 		INTEGER_DIVISION, // Integer divide by integer, decimal part is discarded.
 		NARROWING_CONVERSION, // Float value into an integer slot, precision is lost.
 		INT_AS_ENUM_WITHOUT_CAST, // An integer value was used as an enum value without casting.
+		BOOL_AS_ENUM_WITHOUT_CAST, // A bool value was used as an enum value without casting.
 		INT_AS_ENUM_WITHOUT_MATCH, // An integer value was used as an enum value without matching enum member.
 		ENUM_VARIABLE_WITHOUT_DEFAULT, // A variable with an enum type does not have a default value. The default will be set to `0` instead of the first enum value.
 		EMPTY_FILE, // A script file is empty.
@@ -135,6 +136,7 @@ public:
 		WARN, // INTEGER_DIVISION
 		WARN, // NARROWING_CONVERSION
 		WARN, // INT_AS_ENUM_WITHOUT_CAST
+		WARN, // BOOL_AS_ENUM_WITHOUT_CAST
 		WARN, // INT_AS_ENUM_WITHOUT_MATCH
 		WARN, // ENUM_VARIABLE_WITHOUT_DEFAULT
 		WARN, // EMPTY_FILE
