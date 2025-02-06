@@ -486,20 +486,44 @@ RID RenderForwardMobile::_setup_render_pass_uniform_set(RenderListType p_render_
 		u.uniform_type = RD::UNIFORM_TYPE_TEXTURE;
 
 		RID default_tex = texture_storage->texture_rd_get_default(RendererRD::TextureStorage::DEFAULT_RD_TEXTURE_2D_ARRAY_WHITE);
-		for (uint32_t i = 0; i < scene_state.max_lightmaps * 2; i++) {
-			uint32_t current_lightmap_index = i < scene_state.max_lightmaps ? i : i - scene_state.max_lightmaps;
 
-			if (p_render_data && current_lightmap_index < p_render_data->lightmaps->size()) {
-				RID base = light_storage->lightmap_instance_get_lightmap((*p_render_data->lightmaps)[current_lightmap_index]);
-				RID texture;
+		// Lightmaps
+		for (uint32_t i = 0; i < scene_state.max_lightmaps; i++) {
+			if (p_render_data && i < p_render_data->lightmaps->size()) {
+				RID base = light_storage->lightmap_instance_get_lightmap((*p_render_data->lightmaps)[i]);
+				RID texture = light_storage->lightmap_get_texture(base);
 
-				if (i < scene_state.max_lightmaps) {
-					// Lightmap
-					texture = light_storage->lightmap_get_texture(base);
-				} else {
-					// Shadowmask
-					texture = light_storage->shadowmask_get_texture(base);
+				if (texture.is_valid()) {
+					RID rd_texture = texture_storage->texture_get_rd_texture(texture);
+					u.append_id(rd_texture);
+					continue;
 				}
+			}
+
+			u.append_id(default_tex);
+		}
+
+		// Shadowmasks
+		for (uint32_t i = 0; i < scene_state.max_lightmaps; i++) {
+			if (p_render_data && i < p_render_data->lightmaps->size()) {
+				RID base = light_storage->lightmap_instance_get_lightmap((*p_render_data->lightmaps)[i]);
+				RID texture = light_storage->lightmap_get_shadow_texture(base);
+
+				if (texture.is_valid()) {
+					RID rd_texture = texture_storage->texture_get_rd_texture(texture);
+					u.append_id(rd_texture);
+					continue;
+				}
+			}
+
+			u.append_id(default_tex);
+		}
+
+		// Directional
+		for (uint32_t i = 0; i < scene_state.max_lightmaps; i++) {
+			if (p_render_data && i < p_render_data->lightmaps->size()) {
+				RID base = light_storage->lightmap_instance_get_lightmap((*p_render_data->lightmaps)[i]);
+				RID texture = light_storage->lightmap_get_directional_texture(base);
 
 				if (texture.is_valid()) {
 					RID rd_texture = texture_storage->texture_get_rd_texture(texture);

@@ -1067,6 +1067,7 @@ LightmapperRD::BakeError LightmapperRD::bake(BakeQuality p_quality, bool p_use_d
 	}
 	lightmap_textures.clear();
 	shadowmask_textures.clear();
+	directional_textures.clear();
 	int grid_size = 128;
 
 	/* STEP 1: Fetch material textures and compute the bounds */
@@ -2101,7 +2102,6 @@ LightmapperRD::BakeError LightmapperRD::bake(BakeQuality p_quality, bool p_use_d
 	}
 
 #ifdef DEBUG_TEXTURES
-
 	for (int i = 0; i < atlas_slices * (p_bake_sh ? 4 : 1); i++) {
 		Vector<uint8_t> s = rd->texture_get_data(light_accum_tex, i);
 		Ref<Image> img = Image::create_from_data(atlas_size.width, atlas_size.height, false, Image::FORMAT_RGBAH, s);
@@ -2267,7 +2267,6 @@ LightmapperRD::BakeError LightmapperRD::bake(BakeQuality p_quality, bool p_use_d
 	}
 
 #ifdef DEBUG_TEXTURES
-
 	for (int i = 0; i < atlas_slices * (p_bake_sh ? 4 : 1); i++) {
 		Vector<uint8_t> s = rd->texture_get_data(light_accum_tex, i);
 		Ref<Image> img = Image::create_from_data(atlas_size.width, atlas_size.height, false, Image::FORMAT_RGBAH, s);
@@ -2279,19 +2278,33 @@ LightmapperRD::BakeError LightmapperRD::bake(BakeQuality p_quality, bool p_use_d
 		p_step_function(0.9, RTR("Retrieving textures"), p_bake_userdata, true);
 	}
 
-	for (int i = 0; i < atlas_slices * (p_bake_sh ? 4 : 1); i++) {
-		Vector<uint8_t> s = rd->texture_get_data(light_accum_tex, i);
+	// Retrieve lightmaps.
+	for (int i = 0; i < atlas_slices; i++) {
+		Vector<uint8_t> s = rd->texture_get_data(light_accum_tex, p_bake_sh ? i * 4 : i);
 		Ref<Image> img = Image::create_from_data(atlas_size.width, atlas_size.height, false, Image::FORMAT_RGBAH, s);
-		img->convert(Image::FORMAT_RGBH); //remove alpha
+		img->convert(Image::FORMAT_RGBH); // Remove alpha.
 		lightmap_textures.push_back(img);
 	}
 
 	if (p_bake_shadowmask) {
+		// Retrieve shadowmasks.
 		for (int i = 0; i < atlas_slices; i++) {
 			Vector<uint8_t> s = rd->texture_get_data(shadowmask_tex, i);
 			Ref<Image> img = Image::create_from_data(atlas_size.width, atlas_size.height, false, Image::FORMAT_RGBA8, s);
 			img->convert(Image::FORMAT_R8);
 			shadowmask_textures.push_back(img);
+		}
+	}
+
+	if (p_bake_sh) {
+		// Retrieve directional.
+		for (int i = 0; i < atlas_slices; i++) {
+			for (int j = 1; j < 4; j++) {
+				Vector<uint8_t> s = rd->texture_get_data(light_accum_tex, i * 4 + j);
+				Ref<Image> img = Image::create_from_data(atlas_size.width, atlas_size.height, false, Image::FORMAT_RGBAH, s);
+				img->convert(Image::FORMAT_RGB8);
+				directional_textures.push_back(img);
+			}
 		}
 	}
 
@@ -2340,6 +2353,15 @@ int LightmapperRD::get_shadowmask_texture_count() const {
 Ref<Image> LightmapperRD::get_shadowmask_texture(int p_index) const {
 	ERR_FAIL_INDEX_V(p_index, shadowmask_textures.size(), Ref<Image>());
 	return shadowmask_textures[p_index];
+}
+
+int LightmapperRD::get_directional_texture_count() const {
+	return directional_textures.size();
+}
+
+Ref<Image> LightmapperRD::get_directional_texture(int p_index) const {
+	ERR_FAIL_INDEX_V(p_index, directional_textures.size(), Ref<Image>());
+	return directional_textures[p_index];
 }
 
 int LightmapperRD::get_bake_mesh_count() const {

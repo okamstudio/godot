@@ -335,6 +335,7 @@ private:
 	struct Lightmap {
 		RID light_texture;
 		RID shadow_texture;
+		RID directional_texture;
 		RS::ShadowmaskMode shadowmask_mode = RS::SHADOWMASK_MODE_NONE;
 		bool uses_spherical_harmonics = false;
 		bool interior = false;
@@ -364,6 +365,7 @@ private:
 	mutable RID_Owner<Lightmap, true> lightmap_owner;
 
 	Vector<RID> shadowmask_textures;
+	Vector<RID> directional_textures;
 
 	/* LIGHTMAP INSTANCE */
 
@@ -1000,6 +1002,8 @@ public:
 	virtual RS::ShadowmaskMode lightmap_get_shadowmask_mode(RID p_lightmap) override;
 	virtual void lightmap_set_shadowmask_mode(RID p_lightmap, RS::ShadowmaskMode p_mode) override;
 
+	virtual void lightmap_set_directional_textures(RID p_lightmap, RID p_directional) override;
+
 	virtual float lightmap_get_probe_capture_update_speed() const override {
 		return lightmap_probe_capture_update_speed;
 	}
@@ -1042,10 +1046,16 @@ public:
 		return lightmap_textures;
 	}
 
-	_FORCE_INLINE_ RID shadowmask_get_texture(RID p_lightmap) const {
+	_FORCE_INLINE_ RID lightmap_get_shadow_texture(RID p_lightmap) const {
 		const Lightmap *lm = lightmap_owner.get_or_null(p_lightmap);
 		ERR_FAIL_NULL_V(lm, RID());
 		return lm->shadow_texture;
+	}
+
+	_FORCE_INLINE_ RID lightmap_get_directional_texture(RID p_lightmap) const {
+		const Lightmap *lm = lightmap_owner.get_or_null(p_lightmap);
+		ERR_FAIL_NULL_V(lm, RID());
+		return lm->directional_texture;
 	}
 
 	/* LIGHTMAP INSTANCE */

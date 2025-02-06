@@ -258,6 +258,7 @@ class LightmapperRD : public Lightmapper {
 
 	Vector<Ref<Image>> lightmap_textures;
 	Vector<Ref<Image>> shadowmask_textures;
+	Vector<Ref<Image>> directional_textures;
 	Vector<Color> probe_values;
 
 	struct DilateParams {
@@ -300,6 +301,9 @@ public:
 	Ref<Image> get_bake_texture(int p_index) const override;
 	int get_shadowmask_texture_count() const override;
 	Ref<Image> get_shadowmask_texture(int p_index) const override;
+	int get_directional_texture_count() const override;
+	Ref<Image> get_directional_texture(int p_index) const override;
+
 	int get_bake_mesh_count() const override;
 	Variant get_bake_mesh_userdata(int p_index) const override;
 	Rect2 get_bake_mesh_uv_scale(int p_index) const override;

@@ -813,10 +813,11 @@ void main() {
 3-shadow
 4-lightmap textures
 5-shadowmask textures
-6-screen
-7-depth
-8-reflection probe 1
-9-reflection probe 2
+6-directional textures
+7-screen
+8-depth
+9-reflection probe 1
+10-reflection probe 2
 
 */
 
@@ -892,7 +893,7 @@ uniform float refprobe1_blend_distance;
 uniform int refprobe1_ambient_mode;
 uniform vec4 refprobe1_ambient_color;
 
-uniform samplerCube refprobe1_texture; // texunit:-8
+uniform samplerCube refprobe1_texture; // texunit:-9
 
 #ifdef SECOND_REFLECTION_PROBE
 
@@ -906,7 +907,7 @@ uniform float refprobe2_blend_distance;
 uniform int refprobe2_ambient_mode;
 uniform vec4 refprobe2_ambient_color;
 
-uniform samplerCube refprobe2_texture; // texunit:-9
+uniform samplerCube refprobe2_texture; // texunit:-10
 
 #endif // SECOND_REFLECTION_PROBE
 
@@ -1181,6 +1182,7 @@ float sample_shadow(highp sampler2DShadow shadow, float shadow_pixel_size, vec4 
 #ifdef USE_LIGHTMAP
 uniform mediump sampler2DArray lightmap_textures; //texunit:-4
 uniform lowp sampler2DArray shadowmask_textures; //texunit:-5
+uniform mediump sampler2DArray directional_textures; //texunit:-6
 uniform lowp uint lightmap_slice;
 uniform highp vec4 lightmap_uv_scale;
 uniform float lightmap_exposure_normalization;
@@ -1206,8 +1208,8 @@ uniform mediump vec4[9] lightmap_captures;
 #endif // !DISABLE_LIGHTMAP
 
 #ifdef USE_MULTIVIEW
-uniform highp sampler2DArray depth_buffer; // texunit:-7
-uniform highp sampler2DArray color_buffer; // texunit:-6
+uniform highp sampler2DArray depth_buffer; // texunit:-8
+uniform highp sampler2DArray color_buffer; // texunit:-7
 vec3 multiview_uv(vec2 uv) {
 	return vec3(uv, ViewIndex);
 }
@@ -1215,8 +1217,8 @@ ivec3 multiview_uv(ivec2 uv) {
 	return ivec3(uv, int(ViewIndex));
 }
 #else
-uniform highp sampler2D depth_buffer; // texunit:-7
-uniform highp sampler2D color_buffer; // texunit:-6
+uniform highp sampler2D depth_buffer; // texunit:-8
+uniform highp sampler2D color_buffer; // texunit:-7
 vec2 multiview_uv(vec2 uv) {
 	return uv;
 }
@@ -2073,23 +2075,19 @@ void main() {
 #else
 #ifdef USE_LIGHTMAP
 	{
-		vec3 uvw;
-		uvw.xy = uv2 * lightmap_uv_scale.zw + lightmap_uv_scale.xy;
-		uvw.z = float(lightmap_slice);
+		vec3 uvw = vec3(uv2 * lightmap_uv_scale.zw + lightmap_uv_scale.xy, float(lightmap_slice));
 
 #ifdef USE_SH_LIGHTMAP
-		uvw.z *= 4.0; // SH textures use 4 times more data.
-
 #ifdef LIGHTMAP_BICUBIC_FILTER
-		vec3 lm_light_l0 = textureArray_bicubic(lightmap_textures, uvw + vec3(0.0, 0.0, 0.0), lightmap_texture_size).rgb;
-		vec3 lm_light_l1n1 = (textureArray_bicubic(lightmap_textures, uvw + vec3(0.0, 0.0, 1.0), lightmap_texture_size).rgb - vec3(0.5)) * 2.0;
-		vec3 lm_light_l1_0 = (textureArray_bicubic(lightmap_textures, uvw + vec3(0.0, 0.0, 2.0), lightmap_texture_size).rgb - vec3(0.5)) * 2.0;
-		vec3 lm_light_l1p1 = (textureArray_bicubic(lightmap_textures, uvw + vec3(0.0, 0.0, 3.0), lightmap_texture_size).rgb - vec3(0.5)) * 2.0;
+		vec3 lm_light_l0 = textureArray_bicubic(lightmap_textures, uvw, lightmap_texture_size).rgb;
+		vec3 lm_light_l1n1 = (textureArray_bicubic(directional_textures, vec3(uvw.xy, uvw.z * 3 + 0.0), lightmap_texture_size).rgb - vec3(0.5)) * 2.0;
+		vec3 lm_light_l1_0 = (textureArray_bicubic(directional_textures, vec3(uvw.xy, uvw.z * 3 + 1.0), lightmap_texture_size).rgb - vec3(0.5)) * 2.0;
+		vec3 lm_light_l1p1 = (textureArray_bicubic(directional_textures, vec3(uvw.xy, uvw.z * 3 + 2.0), lightmap_texture_size).rgb - vec3(0.5)) * 2.0;
 #else
-		vec3 lm_light_l0 = textureLod(lightmap_textures, uvw + vec3(0.0, 0.0, 0.0), 0.0).rgb;
-		vec3 lm_light_l1n1 = (textureLod(lightmap_textures, uvw + vec3(0.0, 0.0, 1.0), 0.0).rgb - vec3(0.5)) * 2.0;
-		vec3 lm_light_l1_0 = (textureLod(lightmap_textures, uvw + vec3(0.0, 0.0, 2.0), 0.0).rgb - vec3(0.5)) * 2.0;
-		vec3 lm_light_l1p1 = (textureLod(lightmap_textures, uvw + vec3(0.0, 0.0, 3.0), 0.0).rgb - vec3(0.5)) * 2.0;
+		vec3 lm_light_l0 = textureLod(lightmap_textures, uvw, 0.0).rgb;
+		vec3 lm_light_l1n1 = (textureLod(directional_textures, vec3(uvw.xy, uvw.z * 3 + 0.0), 0.0).rgb - vec3(0.5)) * 2.0;
+		vec3 lm_light_l1_0 = (textureLod(directional_textures, vec3(uvw.xy, uvw.z * 3 + 1.0), 0.0).rgb - vec3(0.5)) * 2.0;
+		vec3 lm_light_l1p1 = (textureLod(directional_textures, vec3(uvw.xy, uvw.z * 3 + 2.0), 0.0).rgb - vec3(0.5)) * 2.0;
 #endif
 
 		vec3 n = normalize(lightmap_normal_xform * normal);
