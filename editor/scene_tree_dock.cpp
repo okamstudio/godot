@@ -1723,6 +1723,60 @@ void SceneTreeDock::_notification(int p_what) {
 					scene_tree->show();
 				}
 			}
+
+			if (get_viewport()->gui_is_dragging()) {
+				bool mouse_inside = get_screen_rect().has_point(Input::get_singleton()->get_mouse_position());
+				if (mouse_inside && drag_preview_extension_handled) {
+					return;
+				} else if (!mouse_inside && drag_preview_extension_handled) {
+					drag_preview_extension_handled = false;
+					if (drag_preview_extension.is_valid()) {
+						Control *control = Object::cast_to<Control>(ObjectDB::get_instance(drag_preview_extension));
+						if (control) {
+							memdelete(control);
+						}
+						drag_preview_extension = ObjectID();
+					}
+				} else if (mouse_inside && !drag_preview_extension_handled) {
+					drag_preview_extension_handled = true;
+					Label *extension_label = nullptr;
+					Dictionary drag_data = get_viewport()->gui_get_drag_data();
+
+					bool is_data_script = false;
+					String data_type = drag_data.get("type", "");
+					if (data_type == "nodes") {
+						extension_label = memnew(Label(TTR("Hold Shift to keep local transform when reparenting.")));
+					} else if (data_type == "files") {
+						Array files = drag_data.get("files", Array());
+						if (!files.is_empty()) {
+							String file_path = files[0];
+							if (ClassDB::is_parent_class(ResourceLoader::get_resource_type(file_path), "Script")) {
+								is_data_script = true;
+							}
+						}
+					} else if (data_type == "script_list_element") {
+						is_data_script = true;
+					}
+
+					if (is_data_script) {
+						extension_label = memnew(Label(TTR("Hold Control to instantiate the script as a child node.")));
+					}
+
+					if (extension_label) {
+						extension_label->add_theme_style_override(SNAME("normal"), get_theme_stylebox(SNAME("panel"), SNAME("TooltipPanel")));
+						drag_preview_extension = extension_label->get_instance_id();
+
+						Control *current_drag = get_viewport()->gui_get_drag_preview();
+						if (current_drag) {
+							current_drag->add_child(extension_label);
+						} else {
+							get_viewport()->gui_set_drag_preview(this, extension_label);
+						}
+					}
+				}
+			} else {
+				drag_preview_extension_handled = false;
+			}
 		} break;
 
 		case NOTIFICATION_DRAG_END: {

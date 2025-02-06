@@ -444,8 +444,6 @@ private:
 	void _gui_update_mouse_over();
 
 	void _gui_force_drag(Control *p_base, const Variant &p_data, Control *p_control);
-	void _gui_set_drag_preview(Control *p_base, Control *p_control);
-	Control *_gui_get_drag_preview();
 
 	void _gui_remove_focus_for_window(Node *p_window);
 	void _gui_unfocus_control(Control *p_control);
@@ -617,6 +615,8 @@ public:
 	bool get_physics_object_picking_first_only();
 
 	Variant gui_get_drag_data() const;
+	void gui_set_drag_preview(Control *p_base, Control *p_control);
+	Control *gui_get_drag_preview();
 
 	void gui_reset_canvas_sort_index();
 	int gui_get_canvas_sort_index();

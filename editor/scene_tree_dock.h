@@ -98,6 +98,8 @@ class SceneTreeDock : public VBoxContainer {
 	Vector<ObjectID> subresources;
 
 	bool reset_create_dialog = false;
+	bool drag_preview_extension_handled = false;
+	ObjectID drag_preview_extension;
 
 	int current_option = 0;
 	CreateDialog *create_dialog = nullptr;
