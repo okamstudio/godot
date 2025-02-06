@@ -28,24 +28,26 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef DISABLE_DEPRECATED
+#define _COMPAT_HEADER_XRServer                                                        \
+	void _add_tracker_bind_compat_90645(const Ref<XRPositionalTracker> &p_tracker);    \
+	void _remove_tracker_bind_compat_90645(const Ref<XRPositionalTracker> &p_tracker); \
+	Ref<XRPositionalTracker> _get_tracker_bind_compat_90645(const StringName &p_name) const;
 
-void XRServer::_add_tracker_bind_compat_90645(const Ref<XRPositionalTracker> &p_tracker) {
-	add_tracker(p_tracker);
-}
-
-void XRServer::_remove_tracker_bind_compat_90645(const Ref<XRPositionalTracker> &p_tracker) {
-	remove_tracker(p_tracker);
-}
-
-Ref<XRPositionalTracker> XRServer::_get_tracker_bind_compat_90645(const StringName &p_name) const {
-	return get_tracker(p_name);
-}
-
-void XRServer::_bind_compatibility_methods() {
-	ClassDB::bind_compatibility_method(D_METHOD("add_tracker", "tracker"), &XRServer::_add_tracker_bind_compat_90645);
-	ClassDB::bind_compatibility_method(D_METHOD("remove_tracker", "tracker"), &XRServer::_remove_tracker_bind_compat_90645);
-	ClassDB::bind_compatibility_method(D_METHOD("get_tracker", "name"), &XRServer::_get_tracker_bind_compat_90645);
-}
-
-#endif // DISABLE_DEPRECATED
+#define _COMPAT_SOURCE_XRServer                                                                                                  \
+	void XRServer::_add_tracker_bind_compat_90645(const Ref<XRPositionalTracker> &p_tracker) {                                   \
+		add_tracker(p_tracker);                                                                                                  \
+	}                                                                                                                            \
+                                                                                                                                 \
+	void XRServer::_remove_tracker_bind_compat_90645(const Ref<XRPositionalTracker> &p_tracker) {                                \
+		remove_tracker(p_tracker);                                                                                               \
+	}                                                                                                                            \
+                                                                                                                                 \
+	Ref<XRPositionalTracker> XRServer::_get_tracker_bind_compat_90645(const StringName &p_name) const {                          \
+		return get_tracker(p_name);                                                                                              \
+	}                                                                                                                            \
+                                                                                                                                 \
+	void XRServer::_bind_compatibility_methods() {                                                                               \
+		ClassDB::bind_compatibility_method(D_METHOD("add_tracker", "tracker"), &XRServer::_add_tracker_bind_compat_90645);       \
+		ClassDB::bind_compatibility_method(D_METHOD("remove_tracker", "tracker"), &XRServer::_remove_tracker_bind_compat_90645); \
+		ClassDB::bind_compatibility_method(D_METHOD("get_tracker", "name"), &XRServer::_get_tracker_bind_compat_90645);          \
+	}

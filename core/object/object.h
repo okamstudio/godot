@@ -573,6 +573,16 @@ public:                                              \
                                                      \
 private:
 
+/* clang-format off */
+#ifndef DISABLE_DEPRECATED
+#define COMPAT_HEADER(m_class) protected: static void _bind_compatibility_methods(); _COMPAT_HEADER_##m_class private:
+#define COMPAT_SOURCE(m_class) _COMPAT_SOURCE_##m_class
+#else
+#define COMPAT_HEADER(m_class)
+#define COMPAT_SOURCE(m_class)
+#endif
+/* clang-format on */
+
 class ScriptInstance;
 
 class Object {

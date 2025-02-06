@@ -36,6 +36,7 @@
 #include "core/templates/rid.h"
 #include "core/variant/native_ptr.h"
 #include "core/variant/variant.h"
+#include "text_server.compat.inc"
 
 template <typename T>
 class TypedArray;
@@ -226,10 +227,7 @@ protected:
 
 	static void _bind_methods();
 
-#ifndef DISABLE_DEPRECATED
-	PackedInt32Array _shaped_text_get_word_breaks_bind_compat_90732(const RID &p_shaped, BitField<TextServer::GraphemeFlag> p_grapheme_flags = GRAPHEME_IS_SPACE | GRAPHEME_IS_PUNCTUATION) const;
-	static void _bind_compatibility_methods();
-#endif
+	COMPAT_HEADER(TextServer)
 
 public:
 	virtual bool has_feature(Feature p_feature) const = 0;

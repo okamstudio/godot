@@ -29,7 +29,6 @@
 /**************************************************************************/
 
 #include "core_bind.h"
-#include "core_bind.compat.inc"
 
 #include "core/config/project_settings.h"
 #include "core/crypto/crypto_core.h"
@@ -211,6 +210,8 @@ void ResourceSaver::_bind_methods() {
 }
 
 ////// OS //////
+
+COMPAT_SOURCE(OS)
 
 PackedByteArray OS::get_entropy(int p_bytes) {
 	PackedByteArray pba;
@@ -1276,6 +1277,8 @@ void Marshalls::_bind_methods() {
 }
 
 ////// Semaphore //////
+
+COMPAT_SOURCE(Semaphore)
 
 void Semaphore::wait() {
 	semaphore.wait();

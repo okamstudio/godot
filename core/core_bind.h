@@ -37,6 +37,7 @@
 #include "core/os/semaphore.h"
 #include "core/os/thread.h"
 #include "core/templates/safe_refcount.h"
+#include "core_bind.compat.inc"
 
 class MainLoop;
 template <typename T>
@@ -129,12 +130,7 @@ protected:
 	static void _bind_methods();
 	static OS *singleton;
 
-#ifndef DISABLE_DEPRECATED
-	Dictionary _execute_with_pipe_bind_compat_94434(const String &p_path, const Vector<String> &p_arguments);
-
-	String _read_string_from_stdin_bind_compat_91201();
-	static void _bind_compatibility_methods();
-#endif
+	COMPAT_HEADER(OS)
 
 public:
 	enum RenderingDriver {
@@ -419,10 +415,8 @@ class Semaphore : public RefCounted {
 
 protected:
 	static void _bind_methods();
-#ifndef DISABLE_DEPRECATED
-	void _post_bind_compat_93605();
-	static void _bind_compatibility_methods();
-#endif // DISABLE_DEPRECATED
+
+	COMPAT_HEADER(Semaphore)
 
 public:
 	void wait();
