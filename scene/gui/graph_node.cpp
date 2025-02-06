@@ -667,7 +667,7 @@ void GraphNode::_port_pos_update() {
 		if (slot_table.has(slot_index)) {
 			if (slot_table[slot_index].enable_left) {
 				PortCache port_cache;
-				port_cache.pos = Point2i(edgeofs, vertical_ofs + size.height / 2);
+				port_cache.pos = Point2(edgeofs, vertical_ofs + size.height / 2).rotated(get_rotation());
 				port_cache.type = slot_table[slot_index].type_left;
 				port_cache.color = slot_table[slot_index].color_left;
 				port_cache.slot_index = slot_index;
@@ -675,7 +675,7 @@ void GraphNode::_port_pos_update() {
 			}
 			if (slot_table[slot_index].enable_right) {
 				PortCache port_cache;
-				port_cache.pos = Point2i(get_size().width - edgeofs, vertical_ofs + size.height / 2);
+				port_cache.pos = Point2(get_size().width - edgeofs, vertical_ofs + size.height / 2).rotated(get_rotation());
 				port_cache.type = slot_table[slot_index].type_right;
 				port_cache.color = slot_table[slot_index].color_right;
 				port_cache.slot_index = slot_index;
