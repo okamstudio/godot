@@ -109,6 +109,8 @@ void AudioStreamPreviewGenerator::_update_emit(ObjectID p_id) {
 }
 
 void AudioStreamPreviewGenerator::_preview_thread(void *p_preview) {
+	Thread::set_name("AudioStreamPreviewGenerator");
+
 	Preview *preview = static_cast<Preview *>(p_preview);
 
 	float muxbuff_chunk_s = 0.25;
@@ -208,7 +210,6 @@ Ref<AudioStreamPreview> AudioStreamPreviewGenerator::generate_preview(const Ref<
 
 	if (preview->playback.is_valid()) {
 		preview->thread = memnew(Thread);
-		preview->thread->set_name("AudioStreamPreviewGenerator");
 		preview->thread->start(_preview_thread, preview);
 	}
 
