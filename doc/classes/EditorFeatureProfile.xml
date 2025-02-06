@@ -110,7 +110,7 @@
 			Scene tree editing. If this feature is disabled, the Scene tree dock will still be visible but will be read-only.
 		</constant>
 		<constant name="FEATURE_NODE_DOCK" value="4" enum="Feature">
-			The Node dock. If this feature is disabled, signals and groups won't be visible and modifiable from the editor.
+			The Node dock (deprecated). If this feature was disabled, signals and groups wouldn't be visible and modifiable from the editor.
 		</constant>
 		<constant name="FEATURE_FILESYSTEM_DOCK" value="5" enum="Feature">
 			The FileSystem dock. If this feature is disabled, the FileSystem dock won't be visible.
@@ -124,7 +124,13 @@
 		<constant name="FEATURE_GAME" value="8" enum="Feature">
 			The Game tab, which allows embedding the game window and selecting nodes by clicking inside of it. If this feature is disabled, the Game tab won't display.
 		</constant>
-		<constant name="FEATURE_MAX" value="9" enum="Feature">
+		<constant name="FEATURE_SIGNALS_DOCK" value="9" enum="Feature">
+			The Signals dock. If this feature is disabled, signals won't be visible and modifiable from the editor.
+		</constant>
+		<constant name="FEATURE_GROUPS_DOCK" value="10" enum="Feature">
+			The Groups dock. If this feature is disabled, groups won't be visible and modifiable from the editor.
+		</constant>
+		<constant name="FEATURE_MAX" value="11" enum="Feature">
 			Represents the size of the [enum Feature] enum.
 		</constant>
 	</constants>

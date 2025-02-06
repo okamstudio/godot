@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  node_dock.cpp                                                         */
+/*  signals_dock.cpp                                                      */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,118 +28,39 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "node_dock.h"
+#include "signals_dock.h"
 
 #include "core/io/config_file.h"
 #include "editor/connections_dialog.h"
 #include "editor/themes/editor_scale.h"
 
-void NodeDock::show_groups() {
-	groups_button->set_pressed(true);
-	connections_button->set_pressed(false);
-	groups->show();
-	connections->hide();
-}
-
-void NodeDock::show_connections() {
-	groups_button->set_pressed(false);
-	connections_button->set_pressed(true);
-	groups->hide();
-	connections->show();
-}
-
-void NodeDock::_save_layout_to_config(Ref<ConfigFile> p_layout, const String &p_section) const {
-	p_layout->set_value(p_section, "dock_node_current_tab", int(groups_button->is_pressed()));
-}
-
-void NodeDock::_load_layout_from_config(Ref<ConfigFile> p_layout, const String &p_section) {
-	const int current_tab = p_layout->get_value(p_section, "dock_node_current_tab", 0);
-	if (current_tab == 0) {
-		show_connections();
-	} else if (current_tab == 1) {
-		show_groups();
-	}
-}
-
-void NodeDock::_notification(int p_what) {
-	switch (p_what) {
-		case NOTIFICATION_THEME_CHANGED: {
-			connections_button->set_button_icon(get_editor_theme_icon(SNAME("Signals")));
-			groups_button->set_button_icon(get_editor_theme_icon(SNAME("Groups")));
-		} break;
-	}
-}
-
-void NodeDock::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("_save_layout_to_config"), &NodeDock::_save_layout_to_config);
-	ClassDB::bind_method(D_METHOD("_load_layout_from_config"), &NodeDock::_load_layout_from_config);
-}
-
-void NodeDock::update_lists() {
+void SignalsDock::update_lists() {
 	connections->update_tree();
 }
 
-void NodeDock::set_node(Node *p_node) {
+void SignalsDock::set_node(Node *p_node) {
 	connections->set_node(p_node);
-	groups->set_current(p_node);
 
 	if (p_node) {
-		if (connections_button->is_pressed()) {
-			connections->show();
-		} else {
-			groups->show();
-		}
-
-		mode_hb->show();
+		connections->show();
 		select_a_node->hide();
 	} else {
 		connections->hide();
-		groups->hide();
-		mode_hb->hide();
 		select_a_node->show();
 	}
 }
 
-NodeDock::NodeDock() {
+SignalsDock::SignalsDock() {
 	singleton = this;
 
-	set_name("Node");
-	mode_hb = memnew(HBoxContainer);
-	add_child(mode_hb);
-	mode_hb->hide();
-
-	connections_button = memnew(Button);
-	connections_button->set_theme_type_variation(SceneStringName(FlatButton));
-	connections_button->set_text(TTR("Signals"));
-	connections_button->set_toggle_mode(true);
-	connections_button->set_pressed(true);
-	connections_button->set_h_size_flags(SIZE_EXPAND_FILL);
-	connections_button->set_clip_text(true);
-	mode_hb->add_child(connections_button);
-	connections_button->connect(SceneStringName(pressed), callable_mp(this, &NodeDock::show_connections));
-
-	groups_button = memnew(Button);
-	groups_button->set_theme_type_variation(SceneStringName(FlatButton));
-	groups_button->set_text(TTR("Groups"));
-	groups_button->set_toggle_mode(true);
-	groups_button->set_pressed(false);
-	groups_button->set_h_size_flags(SIZE_EXPAND_FILL);
-	groups_button->set_clip_text(true);
-	mode_hb->add_child(groups_button);
-	groups_button->connect(SceneStringName(pressed), callable_mp(this, &NodeDock::show_groups));
-
+	set_name("Signals");
 	connections = memnew(ConnectionsDock);
 	add_child(connections);
 	connections->set_v_size_flags(SIZE_EXPAND_FILL);
 	connections->hide();
 
-	groups = memnew(GroupsEditor);
-	add_child(groups);
-	groups->set_v_size_flags(SIZE_EXPAND_FILL);
-	groups->hide();
-
 	select_a_node = memnew(Label);
-	select_a_node->set_text(TTR("Select a single node to edit its signals and groups."));
+	select_a_node->set_text(TTR("Select a single node to access its signals."));
 	select_a_node->set_custom_minimum_size(Size2(100 * EDSCALE, 0));
 	select_a_node->set_v_size_flags(SIZE_EXPAND_FILL);
 	select_a_node->set_vertical_alignment(VERTICAL_ALIGNMENT_CENTER);
@@ -148,6 +69,6 @@ NodeDock::NodeDock() {
 	add_child(select_a_node);
 }
 
-NodeDock::~NodeDock() {
+SignalsDock::~SignalsDock() {
 	singleton = nullptr;
 }
