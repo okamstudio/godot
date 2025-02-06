@@ -38,10 +38,38 @@
 				Returns the [NodePath] of the baked object at index [param user_idx].
 			</description>
 		</method>
+		<method name="is_using_color" qualifiers="const">
+			<return type="bool" />
+			<description>
+				If [code]true[/code], lightmaps were baked with color enabled. See also [member LightmapGI.use_color].
+			</description>
+		</method>
+		<method name="is_using_hdr" qualifiers="const">
+			<return type="bool" />
+			<description>
+				If [code]true[/code], lightmaps were baked with high dynamic range enabled. See also [member LightmapGI.use_hdr].
+			</description>
+		</method>
 		<method name="is_using_spherical_harmonics" qualifiers="const">
 			<return type="bool" />
 			<description>
 				If [code]true[/code], lightmaps were baked with directional information. See also [member LightmapGI.directional].
+			</description>
+		</method>
+		<method name="set_use_color">
+			<return type="void" />
+			<param index="0" name="use_color" type="bool" />
+			<description>
+				If [param use_color] is [code]true[/code], tells the engine to treat the lightmap data as if it was baked with color enabled.
+				[b]Note:[/b] Changing this value on already baked lightmaps will not cause them to be baked again. This means the material appearance will look incorrect until lightmaps are baked again, in which case the value set here is discarded as the entire [LightmapGIData] resource is replaced by the lightmapper.
+			</description>
+		</method>
+		<method name="set_use_hdr">
+			<return type="void" />
+			<param index="0" name="use_hdr" type="bool" />
+			<description>
+				If [param use_hdr] is [code]true[/code], tells the engine to treat the lightmap data as if it was baked with high dynamic range enabled.
+				[b]Note:[/b] Changing this value on already baked lightmaps will not cause them to be baked again. This means the material appearance will look incorrect until lightmaps are baked again, in which case the value set here is discarded as the entire [LightmapGIData] resource is replaced by the lightmapper.
 			</description>
 		</method>
 		<method name="set_uses_spherical_harmonics">

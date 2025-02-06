@@ -88,8 +88,14 @@
 			Scales the lightmap texel density of all meshes for the current bake. This is a multiplier that builds upon the existing lightmap texel size defined in each imported 3D scene, along with the per-mesh density multiplier (which is designed to be used when the same mesh is used at different scales). Lower values will result in faster bake times.
 			For example, doubling [member texel_scale] doubles the lightmap texture resolution for all objects [i]on each axis[/i], so it will [i]quadruple[/i] the texel count.
 		</member>
+		<member name="use_color" type="bool" setter="set_use_color" getter="is_using_color" default="true">
+			Store full color values in the lightmap textures. When disabled, lightmap textures will store a single brightness channel. This can be disabled to reduce file size and memory usage if the scene contains mostly grayscale lights, or if you don't mind losing color information in indirect lighting.
+		</member>
 		<member name="use_denoiser" type="bool" setter="set_use_denoiser" getter="is_using_denoiser" default="true">
 			If [code]true[/code], uses a GPU-based denoising algorithm on the generated lightmap. This eliminates most noise within the generated lightmap at the cost of longer bake times. File sizes are generally not impacted significantly by the use of a denoiser, although lossless compression may do a better job at compressing a denoised image.
+		</member>
+		<member name="use_hdr" type="bool" setter="set_use_hdr" getter="is_using_hdr" default="true">
+			If [code]true[/code], stores the lightmap textures in a high dynamic range format (EXR). If [code]false[/code], stores the lightmap texture in a low dynamic range WebP image. This can be set to [code]false[/code] to reduce file size and memory usage, but light values over 1.0 will be clamped and you may see banding caused by the reduced precision.
 		</member>
 		<member name="use_texture_for_bounces" type="bool" setter="set_use_texture_for_bounces" getter="is_using_texture_for_bounces" default="true">
 			If [code]true[/code], a texture with the lighting information will be generated to speed up the generation of indirect lighting at the cost of some accuracy. The geometry might exhibit extra light leak artifacts when using low resolution lightmaps or UVs that stretch the lightmap significantly across surfaces. Leave [member use_texture_for_bounces] at its default value of [code]true[/code] if unsure.
