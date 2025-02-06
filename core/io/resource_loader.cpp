@@ -607,7 +607,9 @@ Ref<ResourceLoader::LoadToken> ResourceLoader::_load_start(const String &p_path,
 			load_task.use_sub_threads = p_thread_mode == LOAD_THREAD_DISTRIBUTE;
 			if (p_cache_mode == ResourceFormatLoader::CACHE_MODE_REUSE) {
 				Ref<Resource> existing = ResourceCache::get_ref(local_path);
-				if (existing.is_valid()) {
+				if (p_cache_mode == ResourceFormatLoader::CACHE_MODE_REPLACE) {
+					ResourceCache::resources.erase(local_path);
+				} else if (existing.is_valid()) {
 					//referencing is fine
 					load_task.resource = existing;
 					load_task.status = THREAD_LOAD_LOADED;

@@ -141,6 +141,10 @@ void EditorResourcePicker::_file_selected(const String &p_path) {
 	Ref<Resource> loaded_resource = ResourceLoader::load(p_path);
 	ERR_FAIL_COND_MSG(loaded_resource.is_null(), "Cannot load resource from path '" + p_path + "'.");
 
+	if (loaded_resource.ptr()->get_class() == "TextFile") {
+		loaded_resource = ResourceLoader::load(p_path, "", ResourceFormatLoader::CACHE_MODE_IGNORE);
+	}
+
 	if (!base_type.is_empty()) {
 		bool any_type_matches = false;
 
