@@ -230,6 +230,7 @@
 				OS.get_cmdline_user_args() # Returns ["--level=2", "--hardcore"]
 				[/codeblock]
 				To get all passed arguments, use [method get_cmdline_args].
+				[b]Note:[/b] When running the editor with user command line arguments, they are not automatically passed to the project being run from the editor. Use the [b]Debug &gt; Customize Run instances[/b] dialog to customize arguments passed to the running project instead.
 			</description>
 		</method>
 		<method name="get_config_dir" qualifiers="const">
