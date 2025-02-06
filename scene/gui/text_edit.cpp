@@ -1118,9 +1118,10 @@ void TextEdit::_notification(int p_what) {
 										break;
 									}
 
+									const String &lang = language.is_empty() ? TranslationServer::get_singleton()->get_or_add_domain(get_translation_domain())->get_locale() : language;
 									Ref<TextLine> tl;
 									tl.instantiate();
-									tl->add_string(txt, theme_cache.font, theme_cache.font_size);
+									tl->add_string(txt, theme_cache.font, theme_cache.font_size, lang);
 
 									int yofs = ofs_y + (row_height - tl->get_size().y) / 2;
 									if (theme_cache.outline_size > 0 && theme_cache.outline_color.a > 0) {
@@ -2872,7 +2873,8 @@ void TextEdit::_update_placeholder() {
 		placeholder_data_buf->set_direction((TextServer::Direction)text_direction);
 	}
 	placeholder_data_buf->set_preserve_control(draw_control_chars);
-	placeholder_data_buf->add_string(placeholder_translated, theme_cache.font, theme_cache.font_size, language);
+	const String &lang = language.is_empty() ? TranslationServer::get_singleton()->get_or_add_domain(get_translation_domain())->get_locale() : language;
+	placeholder_data_buf->add_string(placeholder_translated, theme_cache.font, theme_cache.font_size, lang);
 
 	placeholder_bidi_override = structured_text_parser(st_parser, st_args, placeholder_translated);
 	if (placeholder_bidi_override.is_empty()) {
@@ -2926,7 +2928,8 @@ void TextEdit::_update_caches() {
 	} else {
 		dir = (TextServer::Direction)text_direction;
 	}
-	text.set_direction_and_language(dir, (!language.is_empty()) ? language : TranslationServer::get_singleton()->get_tool_locale());
+	const String &lang = language.is_empty() ? TranslationServer::get_singleton()->get_or_add_domain(get_translation_domain())->get_locale() : language;
+	text.set_direction_and_language(dir, lang);
 	text.set_draw_control_chars(draw_control_chars);
 	text.set_font(theme_cache.font);
 	text.set_font_size(theme_cache.font_size);
@@ -3211,7 +3214,8 @@ void TextEdit::set_text_direction(Control::TextDirection p_text_direction) {
 		} else {
 			dir = (TextServer::Direction)text_direction;
 		}
-		text.set_direction_and_language(dir, (!language.is_empty()) ? language : TranslationServer::get_singleton()->get_tool_locale());
+		const String &lang = language.is_empty() ? TranslationServer::get_singleton()->get_or_add_domain(get_translation_domain())->get_locale() : language;
+		text.set_direction_and_language(dir, lang);
 		text.invalidate_font();
 		_update_placeholder();
 
@@ -3238,7 +3242,8 @@ void TextEdit::set_language(const String &p_language) {
 		} else {
 			dir = (TextServer::Direction)text_direction;
 		}
-		text.set_direction_and_language(dir, (!language.is_empty()) ? language : TranslationServer::get_singleton()->get_tool_locale());
+		const String &lang = language.is_empty() ? TranslationServer::get_singleton()->get_or_add_domain(get_translation_domain())->get_locale() : language;
+		text.set_direction_and_language(dir, lang);
 		text.invalidate_all();
 		_update_placeholder();
 		queue_redraw();

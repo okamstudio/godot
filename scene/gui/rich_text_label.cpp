@@ -35,6 +35,7 @@
 #include "core/math/math_defs.h"
 #include "core/os/keyboard.h"
 #include "core/os/os.h"
+#include "core/string/translation_server.h"
 #include "scene/gui/label.h"
 #include "scene/gui/rich_text_effect.h"
 #include "scene/resources/atlas_texture.h"
@@ -301,7 +302,7 @@ void RichTextLabel::_update_line_font(ItemFrame *p_frame, int p_line, const Ref<
 					String prefix = _get_prefix(list_l.from, list_index, list_items);
 					list_l.text_prefix.instantiate();
 					list_l.text_prefix->set_direction(_find_direction(list_l.from));
-					list_l.text_prefix->add_string(prefix, font, font_size);
+					list_l.text_prefix->add_string(prefix, font, font_size, _find_language(list_l.from));
 					list_items.write[0]->max_width = MAX(list_items[0]->max_width, list_l.text_prefix->get_size().x);
 				}
 			}
@@ -492,7 +493,7 @@ float RichTextLabel::_shape_line(ItemFrame *p_frame, int p_line, const Ref<Font>
 					String prefix = _get_prefix(list_l.from, list_index, list_items);
 					list_l.text_prefix.instantiate();
 					list_l.text_prefix->set_direction(_find_direction(list_l.from));
-					list_l.text_prefix->add_string(prefix, font, font_size);
+					list_l.text_prefix->add_string(prefix, font, font_size, _find_language(list_l.from));
 					list_items.write[0]->max_width = MAX(list_items[0]->max_width, list_l.text_prefix->get_size().x);
 				}
 			}
@@ -528,7 +529,7 @@ float RichTextLabel::_shape_line(ItemFrame *p_frame, int p_line, const Ref<Font>
 			case ITEM_DROPCAP: {
 				// Add dropcap.
 				const ItemDropcap *dc = static_cast<ItemDropcap *>(it);
-				l.text_buf->set_dropcap(dc->text, dc->font, dc->font_size, dc->dropcap_margins);
+				l.text_buf->set_dropcap(dc->text, dc->font, dc->font_size, dc->dropcap_margins, _find_language(it));
 				l.dc_color = dc->color;
 				l.dc_ol_size = dc->ol_size;
 				l.dc_ol_color = dc->ol_color;
@@ -550,7 +551,7 @@ float RichTextLabel::_shape_line(ItemFrame *p_frame, int p_line, const Ref<Font>
 				if (font_size_it && font_size_it->font_size > 0) {
 					font_size = font_size_it->font_size;
 				}
-				l.text_buf->add_string(String::chr(0x200B), font, font_size, String(), it->rid);
+				l.text_buf->add_string(String::chr(0x200B), font, font_size, _find_language(it), it->rid);
 				txt += "\n";
 				l.char_count++;
 				remaining_characters--;
@@ -573,14 +574,13 @@ float RichTextLabel::_shape_line(ItemFrame *p_frame, int p_line, const Ref<Font>
 				if (font_size_it && font_size_it->font_size > 0) {
 					font_size = font_size_it->font_size;
 				}
-				String lang = _find_language(it);
 				String tx = t->text;
 				if (visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING && visible_characters >= 0 && remaining_characters >= 0) {
 					tx = tx.substr(0, remaining_characters);
 				}
 				remaining_characters -= tx.length();
 
-				l.text_buf->add_string(tx, font, font_size, lang, it->rid);
+				l.text_buf->add_string(tx, font, font_size, _find_language(it), it->rid);
 				txt += tx;
 				l.char_count += tx.length();
 			} break;
@@ -2731,21 +2731,24 @@ TextServer::StructuredTextParser RichTextLabel::_find_stt(Item *p_item) {
 }
 
 String RichTextLabel::_find_language(Item *p_item) {
-	Item *item = p_item;
+	String lang = language;
 
+	Item *item = p_item;
 	while (item) {
 		if (item->type == ITEM_LANGUAGE) {
 			ItemLanguage *p = static_cast<ItemLanguage *>(item);
-			return p->language;
+			lang = p->language;
+			break;
 		} else if (item->type == ITEM_PARAGRAPH) {
 			ItemParagraph *p = static_cast<ItemParagraph *>(item);
-			return p->language;
+			lang = p->language;
+			break;
 		}
 
 		item = item->parent;
 	}
 
-	return language;
+	return lang.is_empty() ? TranslationServer::get_singleton()->get_or_add_domain(get_translation_domain())->get_locale() : lang;
 }
 
 Color RichTextLabel::_find_color(Item *p_item, const Color &p_default_color) {

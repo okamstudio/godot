@@ -31,6 +31,7 @@
 #include "editor_visual_profiler.h"
 
 #include "core/io/image.h"
+#include "core/string/translation_server.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
 #include "editor/gui/editor_run_bar.h"
@@ -124,11 +125,12 @@ void EditorVisualProfiler::clear() {
 
 String EditorVisualProfiler::_get_time_as_text(float p_time) {
 	int dmode = display_mode->get_selected();
+	const String &lang = TranslationServer::get_singleton()->get_editor_domain()->get_locale();
 
 	if (dmode == DISPLAY_FRAME_TIME) {
-		return TS->format_number(String::num(p_time, 2)) + " " + TTR("ms");
+		return TS->format_number(String::num(p_time, 2), lang) + " " + TTR("ms");
 	} else if (dmode == DISPLAY_FRAME_PERCENT) {
-		return TS->format_number(String::num(p_time * 100 / graph_limit, 2)) + " " + TS->percent_sign();
+		return TS->format_number(String::num(p_time * 100 / graph_limit, 2), lang) + " " + TS->percent_sign(lang);
 	}
 
 	return "err";

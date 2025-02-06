@@ -32,6 +32,7 @@
 
 #include "core/input/input.h"
 #include "core/math/expression.h"
+#include "core/string/translation_server.h"
 #include "scene/theme/theme_db.h"
 
 Size2 SpinBox::get_minimum_size() const {
@@ -47,7 +48,8 @@ void SpinBox::_update_text(bool p_only_update_if_value_changed) {
 	}
 	String value = String::num(get_value(), Math::range_step_decimals(step));
 	if (is_localizing_numeral_system()) {
-		value = TS->format_number(value);
+		const String &lang = TranslationServer::get_singleton()->get_or_add_domain(get_translation_domain())->get_locale();
+		value = TS->format_number(value, lang);
 	}
 
 	if (p_only_update_if_value_changed && value == last_text_value) {
@@ -72,13 +74,14 @@ void SpinBox::_text_submitted(const String &p_string) {
 		return;
 	}
 
+	const String &lang = TranslationServer::get_singleton()->get_or_add_domain(get_translation_domain())->get_locale();
 	Ref<Expression> expr;
 	expr.instantiate();
 
 	// Convert commas ',' to dots '.' for French/German etc. keyboard layouts.
 	String text = p_string.replace(",", ".");
 	text = text.replace(";", ",");
-	text = TS->parse_number(text);
+	text = TS->parse_number(text, lang);
 	// Ignore the prefix and suffix in the expression.
 	text = text.trim_prefix(prefix + " ").trim_suffix(" " + suffix);
 
@@ -89,7 +92,7 @@ void SpinBox::_text_submitted(const String &p_string) {
 	if (err != OK) {
 		// If the expression failed try without converting commas to dots - they might have been for parameter separation.
 		text = p_string;
-		text = TS->parse_number(text);
+		text = TS->parse_number(text, lang);
 		text = text.trim_prefix(prefix + " ").trim_suffix(" " + suffix);
 
 		err = expr->parse(text);

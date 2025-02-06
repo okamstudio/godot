@@ -32,6 +32,7 @@
 
 #include "core/config/project_settings.h"
 #include "core/os/os.h"
+#include "core/string/translation_server.h"
 #include "scene/theme/theme_db.h"
 
 void ItemList::_shape_text(int p_idx) {
@@ -43,7 +44,8 @@ void ItemList::_shape_text(int p_idx) {
 	} else {
 		item.text_buf->set_direction((TextServer::Direction)item.text_direction);
 	}
-	item.text_buf->add_string(item.xl_text, theme_cache.font, theme_cache.font_size, item.language);
+	const String &lang = item.language.is_empty() ? TranslationServer::get_singleton()->get_or_add_domain(get_translation_domain())->get_locale() : item.language;
+	item.text_buf->add_string(item.xl_text, theme_cache.font, theme_cache.font_size, lang);
 	if (icon_mode == ICON_MODE_TOP && max_text_lines > 0) {
 		item.text_buf->set_break_flags(TextServer::BREAK_MANDATORY | TextServer::BREAK_WORD_BOUND | TextServer::BREAK_GRAPHEME_BOUND | TextServer::BREAK_TRIM_EDGE_SPACES);
 	} else {

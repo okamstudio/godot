@@ -30,6 +30,7 @@
 
 #include "menu_bar.h"
 
+#include "core/string/translation_server.h"
 #include "scene/main/window.h"
 #include "scene/theme/theme_db.h"
 
@@ -490,13 +491,15 @@ void MenuBar::_draw_menu_item(int p_index) {
 }
 
 void MenuBar::shape(Menu &p_menu) {
+	const String &lang = language.is_empty() ? TranslationServer::get_singleton()->get_or_add_domain(get_translation_domain())->get_locale() : language;
+
 	p_menu.text_buf->clear();
 	if (text_direction == Control::TEXT_DIRECTION_INHERITED) {
 		p_menu.text_buf->set_direction(is_layout_rtl() ? TextServer::DIRECTION_RTL : TextServer::DIRECTION_LTR);
 	} else {
 		p_menu.text_buf->set_direction((TextServer::Direction)text_direction);
 	}
-	p_menu.text_buf->add_string(atr(p_menu.name), theme_cache.font, theme_cache.font_size, language);
+	p_menu.text_buf->add_string(atr(p_menu.name), theme_cache.font, theme_cache.font_size, lang);
 }
 
 void MenuBar::_refresh_menu_names() {

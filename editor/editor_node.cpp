@@ -6834,6 +6834,7 @@ EditorNode::EditorNode() {
 	DEV_ASSERT(!singleton);
 	singleton = this;
 
+	TranslationServer::get_singleton()->get_main_domain()->set_locale_override(TranslationServer::get_singleton()->get_fallback_locale());
 	set_translation_domain("godot.editor");
 
 	Resource::_get_local_scene_func = _resource_get_edited_scene;
@@ -7276,6 +7277,7 @@ EditorNode::EditorNode() {
 	editor_main_screen->set_v_size_flags(Control::SIZE_EXPAND_FILL);
 
 	scene_root = memnew(SubViewport);
+	scene_root->set_translation_domain(StringName());
 	scene_root->set_embedding_subwindows(true);
 	scene_root->set_disable_3d(true);
 	scene_root->set_disable_input(true);

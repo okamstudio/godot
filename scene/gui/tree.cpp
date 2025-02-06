@@ -35,6 +35,7 @@
 #include "core/math/math_funcs.h"
 #include "core/os/keyboard.h"
 #include "core/os/os.h"
+#include "core/string/translation_server.h"
 #include "scene/gui/box_container.h"
 #include "scene/gui/text_edit.h"
 #include "scene/main/window.h"
@@ -2080,7 +2081,8 @@ void Tree::update_item_cell(TreeItem *p_item, int p_col) const {
 	} else {
 		font_size = theme_cache.font_size;
 	}
-	p_item->cells.write[p_col].text_buf->add_string(valtext, font, font_size, p_item->cells[p_col].language);
+	const String &lang = p_item->cells[p_col].language.is_empty() ? TranslationServer::get_singleton()->get_or_add_domain(get_translation_domain())->get_locale() : p_item->cells[p_col].language;
+	p_item->cells.write[p_col].text_buf->add_string(valtext, font, font_size, lang);
 
 	BitField<TextServer::LineBreakFlag> break_flags = TextServer::BREAK_MANDATORY | TextServer::BREAK_TRIM_EDGE_SPACES;
 	switch (p_item->cells.write[p_col].autowrap_mode) {

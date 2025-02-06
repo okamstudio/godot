@@ -33,20 +33,23 @@
 #include "core/input/input.h"
 #include "core/math/expression.h"
 #include "core/os/keyboard.h"
+#include "core/string/translation_server.h"
 #include "editor/editor_settings.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/theme/theme_db.h"
 
 String EditorSpinSlider::get_tooltip(const Point2 &p_pos) const {
+	const String &lang = TranslationServer::get_singleton()->get_editor_domain()->get_locale();
 	if (!read_only && grabber->is_visible()) {
 		Key key = (OS::get_singleton()->has_feature("macos") || OS::get_singleton()->has_feature("web_macos") || OS::get_singleton()->has_feature("web_ios")) ? Key::META : Key::CTRL;
-		return TS->format_number(rtos(get_value())) + "\n\n" + vformat(TTR("Hold %s to round to integers.\nHold Shift for more precise changes."), find_keycode_name(key));
+		return TS->format_number(rtos(get_value()), lang) + "\n\n" + vformat(TTR("Hold %s to round to integers.\nHold Shift for more precise changes."), find_keycode_name(key));
 	}
-	return TS->format_number(rtos(get_value()));
+	return TS->format_number(rtos(get_value()), lang);
 }
 
 String EditorSpinSlider::get_text_value() const {
-	return TS->format_number(String::num(get_value(), Math::range_step_decimals(get_step())));
+	const String &lang = TranslationServer::get_singleton()->get_editor_domain()->get_locale();
+	return TS->format_number(String::num(get_value(), Math::range_step_decimals(get_step())), lang);
 }
 
 void EditorSpinSlider::gui_input(const Ref<InputEvent> &p_event) {
@@ -351,7 +354,8 @@ void EditorSpinSlider::_draw_spin_slider() {
 
 	int suffix_start = numstr.length();
 	RID num_rid = TS->create_shaped_text();
-	TS->shaped_text_add_string(num_rid, numstr + U"\u2009" + suffix, font->get_rids(), font_size, font->get_opentype_features());
+	const String &lang = TranslationServer::get_singleton()->get_editor_domain()->get_locale();
+	TS->shaped_text_add_string(num_rid, numstr + U"\u2009" + suffix, font->get_rids(), font_size, font->get_opentype_features(), lang);
 
 	float text_start = rtl ? Math::round(sb->get_offset().x) : Math::round(sb->get_offset().x + label_width + sep);
 	Vector2 text_ofs = rtl ? Vector2(text_start + (number_width - TS->shaped_text_get_width(num_rid)), vofs) : Vector2(text_start, vofs);
@@ -562,19 +566,21 @@ String EditorSpinSlider::get_suffix() const {
 }
 
 void EditorSpinSlider::_evaluate_input_text() {
+	const String &lang = TranslationServer::get_singleton()->get_editor_domain()->get_locale();
+
 	Ref<Expression> expr;
 	expr.instantiate();
 
 	// Convert commas ',' to dots '.' for French/German etc. keyboard layouts.
 	String text = value_input->get_text().replace(",", ".");
 	text = text.replace(";", ",");
-	text = TS->parse_number(text);
+	text = TS->parse_number(text, lang);
 
 	Error err = expr->parse(text);
 	if (err != OK) {
 		// If the expression failed try without converting commas to dots - they might have been for parameter separation.
 		text = value_input->get_text();
-		text = TS->parse_number(text);
+		text = TS->parse_number(text, lang);
 
 		err = expr->parse(text);
 		if (err != OK) {

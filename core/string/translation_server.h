@@ -98,7 +98,9 @@ class TranslationServer : public Object {
 public:
 	_FORCE_INLINE_ static TranslationServer *get_singleton() { return singleton; }
 
+	// These helpers are meant to be used by engine implementation only.
 	Ref<TranslationDomain> get_editor_domain() const { return editor_domain; }
+	Ref<TranslationDomain> get_main_domain() const { return main_domain; }
 
 	void set_enabled(bool p_enabled) { enabled = p_enabled; }
 	_FORCE_INLINE_ bool is_enabled() const { return enabled; }

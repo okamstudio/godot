@@ -34,6 +34,7 @@
 #include "core/io/config_file.h"
 #include "core/io/dir_access.h"
 #include "core/io/file_access.h"
+#include "core/string/translation_server.h"
 #include "editor/editor_node.h"
 #include "editor/editor_string_names.h"
 #include "editor/themes/editor_scale.h"
@@ -69,6 +70,7 @@ void EditorPluginSettings::update_plugins() {
 	Vector<String> plugins = _get_plugins("res://addons");
 	plugins.sort();
 
+	const String &lang = TranslationServer::get_singleton()->get_editor_domain()->get_locale();
 	for (int i = 0; i < plugins.size(); i++) {
 		Ref<ConfigFile> cfg;
 		cfg.instantiate();
@@ -98,7 +100,7 @@ void EditorPluginSettings::update_plugins() {
 				bool is_enabled = EditorNode::get_singleton()->is_addon_plugin_enabled(path);
 				Color disabled_color = get_theme_color(SNAME("font_disabled_color"), EditorStringName(Editor));
 
-				const PackedInt32Array boundaries = TS->string_get_word_breaks(description, "", 80);
+				const PackedInt32Array boundaries = TS->string_get_word_breaks(description, lang, 80);
 				String wrapped_description;
 
 				for (int j = 0; j < boundaries.size(); j += 2) {

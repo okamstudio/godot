@@ -30,6 +30,7 @@
 
 #include "link_button.h"
 
+#include "core/string/translation_server.h"
 #include "scene/theme/theme_db.h"
 
 void LinkButton::_shape() {
@@ -43,7 +44,8 @@ void LinkButton::_shape() {
 		text_buf->set_direction((TextServer::Direction)text_direction);
 	}
 	TS->shaped_text_set_bidi_override(text_buf->get_rid(), structured_text_parser(st_parser, st_args, xl_text));
-	text_buf->add_string(xl_text, font, font_size, language);
+	const String &lang = language.is_empty() ? TranslationServer::get_singleton()->get_or_add_domain(get_translation_domain())->get_locale() : language;
+	text_buf->add_string(xl_text, font, font_size, lang);
 }
 
 void LinkButton::set_text(const String &p_text) {

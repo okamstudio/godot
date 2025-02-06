@@ -34,6 +34,7 @@
 #include "core/config/project_settings.h"
 #include "core/os/keyboard.h"
 #include "core/string/string_builder.h"
+#include "core/string/translation_server.h"
 #include "core/string/ustring.h"
 #include "scene/theme/theme_db.h"
 
@@ -74,6 +75,7 @@ void CodeEdit::_notification(int p_what) {
 			const bool caret_visible = is_caret_visible();
 			const bool rtl = is_layout_rtl();
 			const int row_height = get_line_height();
+			const String &lang = TranslationServer::get_singleton()->get_or_add_domain(get_translation_domain())->get_locale();
 
 			if (line_length_guideline_columns.size() > 0) {
 				const int xmargin_beg = theme_cache.style_normal->get_margin(SIDE_LEFT) + get_total_gutter_width();
@@ -213,7 +215,7 @@ void CodeEdit::_notification(int p_what) {
 
 						Ref<TextLine> tl;
 						tl.instantiate();
-						tl->add_string(code_completion_options[l].display, theme_cache.font, theme_cache.font_size);
+						tl->add_string(code_completion_options[l].display, theme_cache.font, theme_cache.font_size, lang);
 
 						int yofs = (row_height - tl->get_size().y) / 2;
 						Point2 title_pos(code_completion_rect.position.x, code_completion_rect.position.y + i * row_height + yofs);
@@ -1497,14 +1499,15 @@ void CodeEdit::_line_number_draw_callback(int p_line, int p_gutter, const Rect2 
 	if (E) {
 		text_rid = E->value;
 	} else {
+		const String &lang = TranslationServer::get_singleton()->get_or_add_domain(get_translation_domain())->get_locale();
 		String fc = String::num_int64(p_line + 1).lpad(line_number_digits, line_number_padding);
 		if (is_localizing_numeral_system()) {
-			fc = TS->format_number(fc);
+			fc = TS->format_number(fc, lang);
 		}
 
 		text_rid = TS->create_shaped_text();
 		if (theme_cache.font.is_valid()) {
-			TS->shaped_text_add_string(text_rid, fc, theme_cache.font->get_rids(), theme_cache.font_size, theme_cache.font->get_opentype_features());
+			TS->shaped_text_add_string(text_rid, fc, theme_cache.font->get_rids(), theme_cache.font_size, theme_cache.font->get_opentype_features(), lang);
 		}
 		line_number_text_cache.insert(p_line, text_rid);
 	}

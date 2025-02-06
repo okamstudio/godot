@@ -33,7 +33,7 @@
 #include "core/config/project_settings.h"
 #include "core/debugger/debugger_marshalls.h"
 #include "core/debugger/remote_debugger.h"
-#include "core/io/marshalls.h"
+#include "core/string/translation_server.h"
 #include "core/string/ustring.h"
 #include "core/version.h"
 #include "editor/debugger/debug_adapter/debug_adapter_protocol.h"
@@ -853,7 +853,8 @@ void ScriptEditorDebugger::_set_reason_text(const String &p_reason, MessageType 
 	}
 	reason->set_text(p_reason);
 
-	const PackedInt32Array boundaries = TS->string_get_word_breaks(p_reason, "", 80);
+	const String &lang = TranslationServer::get_singleton()->get_editor_domain()->get_locale();
+	const PackedInt32Array boundaries = TS->string_get_word_breaks(p_reason, lang, 80);
 	PackedStringArray lines;
 	for (int i = 0; i < boundaries.size(); i += 2) {
 		const int start = boundaries[i];

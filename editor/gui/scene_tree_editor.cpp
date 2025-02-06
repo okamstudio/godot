@@ -32,6 +32,7 @@
 
 #include "core/config/project_settings.h"
 #include "core/object/script_language.h"
+#include "core/string/translation_server.h"
 #include "editor/editor_dock_manager.h"
 #include "editor/editor_file_system.h"
 #include "editor/editor_node.h"
@@ -166,7 +167,8 @@ void SceneTreeEditor::_cell_button_pressed(Object *p_item, int p_column, int p_i
 
 		// Limit the line width while keeping some padding.
 		// It is not efficient, but it does not have to be.
-		const PackedInt32Array boundaries = TS->string_get_word_breaks(all_warnings, "", 80);
+		const String &lang = TranslationServer::get_singleton()->get_editor_domain()->get_locale();
+		const PackedInt32Array boundaries = TS->string_get_word_breaks(all_warnings, lang, 80);
 		PackedStringArray lines;
 		for (int i = 0; i < boundaries.size(); i += 2) {
 			const int start = boundaries[i];
@@ -670,7 +672,8 @@ void SceneTreeEditor::_update_node_tooltip(Node *p_node, TreeItem *p_item) {
 	tooltip += "\n" + TTR("Type:") + " " + (custom_type != StringName() ? String(custom_type) : p_node->get_class());
 
 	if (!p_node->get_editor_description().is_empty()) {
-		const PackedInt32Array boundaries = TS->string_get_word_breaks(p_node->get_editor_description(), "", 80);
+		const String &lang = TranslationServer::get_singleton()->get_editor_domain()->get_locale();
+		const PackedInt32Array boundaries = TS->string_get_word_breaks(p_node->get_editor_description(), lang, 80);
 		tooltip += "\n";
 
 		for (int i = 0; i < boundaries.size(); i += 2) {

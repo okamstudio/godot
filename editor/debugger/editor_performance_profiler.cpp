@@ -30,6 +30,7 @@
 
 #include "editor_performance_profiler.h"
 
+#include "core/string/translation_server.h"
 #include "editor/editor_property_name_processor.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
@@ -80,6 +81,7 @@ void EditorPerformanceProfiler::Monitor::reset() {
 }
 
 String EditorPerformanceProfiler::_create_label(float p_value, Performance::MonitorType p_type) {
+	const String &lang = TranslationServer::get_singleton()->get_editor_domain()->get_locale();
 	switch (p_type) {
 		case Performance::MONITOR_TYPE_QUANTITY: {
 			return TS->format_number(itos(p_value));
@@ -88,10 +90,10 @@ String EditorPerformanceProfiler::_create_label(float p_value, Performance::Moni
 			return String::humanize_size(p_value);
 		}
 		case Performance::MONITOR_TYPE_TIME: {
-			return TS->format_number(rtos(p_value * 1000).pad_decimals(2)) + " " + TTR("ms");
+			return TS->format_number(rtos(p_value * 1000).pad_decimals(2), lang) + " " + TTR("ms");
 		}
 		default: {
-			return TS->format_number(rtos(p_value));
+			return TS->format_number(rtos(p_value), lang);
 		}
 	}
 }

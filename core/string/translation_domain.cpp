@@ -287,8 +287,7 @@ void TranslationDomain::clear() {
 }
 
 StringName TranslationDomain::translate(const StringName &p_message, const StringName &p_context) const {
-	const String &locale = TranslationServer::get_singleton()->get_locale();
-	StringName res = get_message_from_translations(locale, p_message, p_context);
+	StringName res = get_message_from_translations(get_locale(), p_message, p_context);
 
 	const String &fallback = TranslationServer::get_singleton()->get_fallback_locale();
 	if (!res && fallback.length() >= 2) {
@@ -302,8 +301,7 @@ StringName TranslationDomain::translate(const StringName &p_message, const Strin
 }
 
 StringName TranslationDomain::translate_plural(const StringName &p_message, const StringName &p_message_plural, int p_n, const StringName &p_context) const {
-	const String &locale = TranslationServer::get_singleton()->get_locale();
-	StringName res = get_message_from_translations(locale, p_message, p_message_plural, p_n, p_context);
+	StringName res = get_message_from_translations(get_locale(), p_message, p_message_plural, p_n, p_context);
 
 	const String &fallback = TranslationServer::get_singleton()->get_fallback_locale();
 	if (!res && fallback.length() >= 2) {
@@ -317,6 +315,14 @@ StringName TranslationDomain::translate_plural(const StringName &p_message, cons
 		return p_message_plural;
 	}
 	return res;
+}
+
+String TranslationDomain::get_locale() const {
+	return locale_override.is_empty() ? TranslationServer::get_singleton()->get_locale() : locale_override;
+}
+
+void TranslationDomain::set_locale_override(const String &p_locale) {
+	locale_override = p_locale.is_empty() ? p_locale : TranslationServer::get_singleton()->standardize_locale(p_locale);
 }
 
 bool TranslationDomain::is_pseudolocalization_enabled() const {

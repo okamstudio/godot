@@ -32,6 +32,7 @@
 
 #include "core/config/project_settings.h"
 #include "core/math/math_funcs.h"
+#include "core/string/translation_server.h"
 #include "scene/resources/theme.h"
 #include "scene/theme/theme_db.h"
 #include "servers/rendering_server.h"
@@ -3147,8 +3148,9 @@ void TextMesh::_create_mesh_array(Array &p_arr) const {
 		TS->shaped_text_clear(text_rid);
 		TS->shaped_text_set_direction(text_rid, text_direction);
 
-		String txt = (uppercase) ? TS->string_to_upper(xl_text, language) : xl_text;
-		TS->shaped_text_add_string(text_rid, txt, font->get_rids(), font_size, font->get_opentype_features(), language);
+		const String &lang = language.is_empty() ? TranslationServer::get_singleton()->get_or_add_domain(get_translation_domain())->get_locale() : language;
+		String txt = (uppercase) ? TS->string_to_upper(xl_text, lang) : xl_text;
+		TS->shaped_text_add_string(text_rid, txt, font->get_rids(), font_size, font->get_opentype_features(), lang);
 
 		TypedArray<Vector3i> stt;
 		if (st_parser == TextServer::STRUCTURED_TEXT_CUSTOM) {

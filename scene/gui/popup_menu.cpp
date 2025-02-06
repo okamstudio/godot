@@ -35,6 +35,7 @@
 #include "core/input/input.h"
 #include "core/os/keyboard.h"
 #include "core/os/os.h"
+#include "core/string/translation_server.h"
 #include "scene/gui/menu_bar.h"
 #include "scene/gui/panel_container.h"
 #include "scene/resources/style_box_flat.h"
@@ -989,17 +990,18 @@ void PopupMenu::_shape_item(int p_idx) const {
 
 		Ref<Font> font = items[p_idx].separator ? theme_cache.font_separator : theme_cache.font;
 		int font_size = items[p_idx].separator ? theme_cache.font_separator_size : theme_cache.font_size;
+		const String &lang = TranslationServer::get_singleton()->get_or_add_domain(get_translation_domain())->get_locale();
 
 		if (items[p_idx].text_direction == Control::TEXT_DIRECTION_INHERITED) {
 			items.write[p_idx].text_buf->set_direction(is_layout_rtl() ? TextServer::DIRECTION_RTL : TextServer::DIRECTION_LTR);
 		} else {
 			items.write[p_idx].text_buf->set_direction((TextServer::Direction)items[p_idx].text_direction);
 		}
-		items.write[p_idx].text_buf->add_string(items.write[p_idx].xl_text, font, font_size, items[p_idx].language);
+		items.write[p_idx].text_buf->add_string(items.write[p_idx].xl_text, font, font_size, items[p_idx].language.is_empty() ? lang : items[p_idx].language);
 
 		items.write[p_idx].accel_text_buf->clear();
 		items.write[p_idx].accel_text_buf->set_direction(is_layout_rtl() ? TextServer::DIRECTION_RTL : TextServer::DIRECTION_LTR);
-		items.write[p_idx].accel_text_buf->add_string(_get_accel_text(items.write[p_idx]), font, font_size);
+		items.write[p_idx].accel_text_buf->add_string(_get_accel_text(items.write[p_idx]), font, font_size, lang);
 		items.write[p_idx].dirty = false;
 	}
 }

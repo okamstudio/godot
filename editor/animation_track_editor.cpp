@@ -33,6 +33,7 @@
 #include "animation_track_editor_plugins.h"
 #include "core/error/error_macros.h"
 #include "core/input/input.h"
+#include "core/string/translation_server.h"
 #include "editor/animation_bezier_editor.h"
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
@@ -2805,7 +2806,8 @@ String AnimationTrackEdit::get_tooltip(const Point2 &p_pos) const {
 		}
 
 		if (key_idx != -1) {
-			String text = TTR("Time (s):") + " " + TS->format_number(rtos(Math::snapped(animation->track_get_key_time(track, key_idx), SECOND_DECIMAL))) + "\n";
+			const String &lang = TranslationServer::get_singleton()->get_editor_domain()->get_locale();
+			String text = TTR("Time (s):") + " " + TS->format_number(rtos(Math::snapped(animation->track_get_key_time(track, key_idx), SECOND_DECIMAL)), lang) + "\n";
 			switch (animation->track_get_type(track)) {
 				case Animation::TYPE_POSITION_3D: {
 					Vector3 t = animation->track_get_key_value(track, key_idx);
@@ -8649,7 +8651,8 @@ String AnimationMarkerEdit::get_tooltip(const Point2 &p_pos) const {
 
 		if (key_idx != -1) {
 			String name = names[key_idx];
-			String text = TTR("Time (s):") + " " + TS->format_number(rtos(Math::snapped(animation->get_marker_time(name), 0.0001))) + "\n";
+			const String &lang = TranslationServer::get_singleton()->get_editor_domain()->get_locale();
+			String text = TTR("Time (s):") + " " + TS->format_number(rtos(Math::snapped(animation->get_marker_time(name), 0.0001)), lang) + "\n";
 			text += TTR("Marker:") + " " + name + "\n";
 			return text;
 		}
