@@ -63,7 +63,7 @@
 		}
 		[/csharp]
 		[/codeblocks]
-		A Variant takes up only 20 bytes and can store almost any engine datatype inside of it. Variants are rarely used to hold information for long periods of time. Instead, they are used mainly for communication, editing, serialization and moving data around.
+		A Variant takes up only 24 bytes (40 bytes in double-precision builds) and can store almost any engine datatype inside of it. Variants are rarely used to hold information for long periods of time. Instead, they are used mainly for communication, editing, serialization and moving data around.
 		Godot has specifically invested in making its Variant class as flexible as possible; so much so that it is used for a multitude of operations to facilitate communication between all of Godot's systems.
 		A Variant:
 		- Can store almost any datatype.
