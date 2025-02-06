@@ -54,5 +54,12 @@
 				Returns [code]true[/code] if your generator supports the resource of type [param type].
 			</description>
 		</method>
+		<method name="request_draw_and_wait" qualifiers="const">
+			<return type="void" />
+			<param index="0" name="viewport" type="RID" />
+			<description>
+				Call from within [method _generate] to request the rendering server draw to the [param viewport].
+			</description>
+		</method>
 	</methods>
 </class>

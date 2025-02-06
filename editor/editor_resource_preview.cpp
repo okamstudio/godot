@@ -91,6 +91,8 @@ void EditorResourcePreviewGenerator::_bind_methods() {
 	GDVIRTUAL_BIND(_generate_from_path, "path", "size", "metadata");
 	GDVIRTUAL_BIND(_generate_small_preview_automatically);
 	GDVIRTUAL_BIND(_can_generate_small_preview);
+
+	ClassDB::bind_method(D_METHOD("request_draw_and_wait", "viewport"), &EditorResourcePreviewGenerator::request_draw_and_wait);
 }
 
 EditorResourcePreviewGenerator::EditorResourcePreviewGenerator() {
@@ -123,6 +125,11 @@ void EditorResourcePreviewGenerator::DrawRequester::abort() {
 	if (EditorResourcePreview::get_singleton()->is_threaded()) {
 		semaphore.post();
 	}
+}
+
+void EditorResourcePreviewGenerator::request_draw_and_wait(RID viewport) const {
+	DrawRequester draw_requester;
+	draw_requester.request_and_wait(viewport);
 }
 
 Variant EditorResourcePreviewGenerator::DrawRequester::_post_semaphore() {
