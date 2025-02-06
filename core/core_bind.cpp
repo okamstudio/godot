@@ -169,6 +169,10 @@ Error ResourceSaver::save(const Ref<Resource> &p_resource, const String &p_path,
 	return ::ResourceSaver::save(p_resource, p_path, p_flags);
 }
 
+Error ResourceSaver::set_uid(const String &p_path, ResourceUID::ID p_uid) {
+	return ::ResourceSaver::set_uid(p_path, p_uid);
+}
+
 Vector<String> ResourceSaver::get_recognized_extensions(const Ref<Resource> &p_resource) {
 	List<String> exts;
 	::ResourceSaver::get_recognized_extensions(p_resource, &exts);
@@ -195,6 +199,7 @@ ResourceSaver *ResourceSaver::singleton = nullptr;
 
 void ResourceSaver::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("save", "resource", "path", "flags"), &ResourceSaver::save, DEFVAL(""), DEFVAL((uint32_t)FLAG_NONE));
+	ClassDB::bind_method(D_METHOD("set_uid", "resource", "uid"), &ResourceSaver::set_uid);
 	ClassDB::bind_method(D_METHOD("get_recognized_extensions", "type"), &ResourceSaver::get_recognized_extensions);
 	ClassDB::bind_method(D_METHOD("add_resource_format_saver", "format_saver", "at_front"), &ResourceSaver::add_resource_format_saver, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("remove_resource_format_saver", "format_saver"), &ResourceSaver::remove_resource_format_saver);

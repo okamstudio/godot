@@ -53,6 +53,15 @@
 				[b]Note:[/b] When the project is running, any generated UID associated with the resource will not be saved as the required code is only executed in editor mode.
 			</description>
 		</method>
+		<method name="set_uid">
+			<return type="int" enum="Error" />
+			<param index="0" name="resource" type="String" />
+			<param index="1" name="uid" type="int" />
+			<description>
+				Sets the UID of the given [param resource] path to [param uid]. You can generate a new UID using [method ResourceUID.create_id].
+				Since resources will normally get a UID automatically, this method is only useful in very specific cases.
+			</description>
+		</method>
 	</methods>
 	<constants>
 		<constant name="FLAG_NONE" value="0" enum="SaverFlags" is_bitfield="true">
