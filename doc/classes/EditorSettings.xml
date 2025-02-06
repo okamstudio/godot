@@ -711,8 +711,28 @@
 			Port used for file server when exporting project with remote file system.
 		</member>
 		<member name="filesystem/import/blender/blender_path" type="String" setter="" getter="">
-			The path to the directory containing the Blender executable used for converting the Blender 3D scene files [code].blend[/code] to glTF 2.0 format during import. Blender 3.0 or later is required.
+			The path to the Blender executable used for converting the Blender 3D scene files [code].blend[/code] to glTF 2.0 format during import. Blender 3.0 or later is required.
 			To enable this feature for your specific project, use [member ProjectSettings.filesystem/import/blender/enabled].
+			If this setting is empty, Blender's default paths will be detected and used automatically if present in this order:
+			[b]Windows:[/b]
+			[codeblock]
+			- C:\Program Files\Blender Foundation\blender.exe
+			- C:\Program Files (x86)\Blender Foundation\blender.exe
+			[/codeblock]
+			[b]macOS:[/b]
+			[codeblock]
+			- /opt/homebrew/bin/blender
+			- /opt/local/bin/blender
+			- /usr/local/bin/blender
+			- /usr/local/opt/blender
+			- /Applications/Blender.app/Contents/MacOS/Blender
+			[/codeblock]
+			[b]Linux/*BSD:[/b]
+			[codeblock]
+			- /usr/bin/blender
+			- /usr/local/bin/blender
+			- /opt/blender/bin/blender
+			[/codeblock]
 		</member>
 		<member name="filesystem/import/blender/rpc_port" type="int" setter="" getter="">
 			The port number used for Remote Procedure Call (RPC) communication with Godot's created process of the blender executable.
