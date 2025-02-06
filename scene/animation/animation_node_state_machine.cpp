@@ -1251,13 +1251,17 @@ bool AnimationNodeStateMachine::is_parameter_read_only(const StringName &p_param
 }
 
 void AnimationNodeStateMachine::add_node(const StringName &p_name, Ref<AnimationNode> p_node, const Vector2 &p_position) {
-	ERR_FAIL_COND(states.has(p_name));
+	ERR_FAIL_COND(states.has(p_name) && states[p_name].node == (p_node));
 	ERR_FAIL_COND(p_node.is_null());
 	ERR_FAIL_COND(String(p_name).contains_char('/'));
 
 	State state_new;
 	state_new.node = p_node;
-	state_new.position = p_position;
+	if (states.has(p_name) && states[p_name].node != (p_node)) { // This is for ensuring same position when using Make Unique (Recursive).
+		state_new.position = states[p_name].position;
+	} else {
+		state_new.position = p_position;
+	}
 
 	states[p_name] = state_new;
 

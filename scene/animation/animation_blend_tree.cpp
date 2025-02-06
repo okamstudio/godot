@@ -1449,15 +1449,21 @@ AnimationNodeOutput::AnimationNodeOutput() {
 
 ///////////////////////////////////////////////////////
 void AnimationNodeBlendTree::add_node(const StringName &p_name, Ref<AnimationNode> p_node, const Vector2 &p_position) {
-	ERR_FAIL_COND(nodes.has(p_name));
+	ERR_FAIL_COND(nodes.has(p_name) && nodes[p_name].node == (p_node));
 	ERR_FAIL_COND(p_node.is_null());
 	ERR_FAIL_COND(p_name == SceneStringName(output));
 	ERR_FAIL_COND(String(p_name).contains_char('/'));
 
 	Node n;
 	n.node = p_node;
-	n.position = p_position;
-	n.connections.resize(n.node->get_input_count());
+	if (nodes.has(p_name) && nodes[p_name].node != (p_node)) { // This is for ensuring same position and connections when using Make Unique (Recursive).
+		n.position = nodes[p_name].position;
+		n.connections = nodes[p_name].connections;
+	} else {
+		n.position = p_position;
+		n.connections.resize(n.node->get_input_count());
+	}
+
 	nodes[p_name] = n;
 
 	emit_changed();
