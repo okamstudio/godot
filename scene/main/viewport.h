@@ -288,6 +288,7 @@ private:
 	StringName shortcut_input_group;
 	StringName unhandled_input_group;
 	StringName unhandled_key_input_group;
+	StringName unhandled_picking_input_group;
 
 	void _update_audio_listener_2d();
 

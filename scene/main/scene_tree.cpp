@@ -1328,6 +1328,9 @@ void SceneTree::_call_input_pause(const StringName &p_group, CallInputType p_cal
 			case CALL_INPUT_TYPE_UNHANDLED_KEY_INPUT:
 				n->_call_unhandled_key_input(p_input);
 				break;
+			case CALL_INPUT_TYPE_UNHANDLED_PICKING_INPUT:
+				n->_call_unhandled_picking_input(p_input);
+				break;
 		}
 	}
 

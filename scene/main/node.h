@@ -218,6 +218,7 @@ private:
 		bool shortcut_input : 1;
 		bool unhandled_input : 1;
 		bool unhandled_key_input : 1;
+		bool unhandled_picking_input : 1;
 
 		// Physics interpolation can be turned on and off on a per node basis.
 		// This only takes effect when the SceneTree (or project setting) physics interpolation
@@ -375,6 +376,7 @@ protected:
 	void _call_shortcut_input(const Ref<InputEvent> &p_event);
 	void _call_unhandled_input(const Ref<InputEvent> &p_event);
 	void _call_unhandled_key_input(const Ref<InputEvent> &p_event);
+	void _call_unhandled_picking_input(const Ref<InputEvent> &p_event);
 
 	void _validate_property(PropertyInfo &p_property) const;
 
@@ -383,6 +385,7 @@ protected:
 	virtual void shortcut_input(const Ref<InputEvent> &p_key_event);
 	virtual void unhandled_input(const Ref<InputEvent> &p_event);
 	virtual void unhandled_key_input(const Ref<InputEvent> &p_key_event);
+	virtual void unhandled_picking_input(const Ref<InputEvent> &p_picking_event);
 
 	GDVIRTUAL1(_process, double)
 	GDVIRTUAL1(_physics_process, double)
@@ -395,6 +398,7 @@ protected:
 	GDVIRTUAL1(_shortcut_input, Ref<InputEvent>)
 	GDVIRTUAL1(_unhandled_input, Ref<InputEvent>)
 	GDVIRTUAL1(_unhandled_key_input, Ref<InputEvent>)
+	GDVIRTUAL1(_unhandled_picking_input, Ref<InputEvent>)
 
 public:
 	enum {
@@ -614,6 +618,9 @@ public:
 
 	void set_process_unhandled_key_input(bool p_enable);
 	bool is_processing_unhandled_key_input() const;
+
+	void set_process_unhandled_picking_input(bool p_enable);
+	bool is_processing_unhandled_picking_input() const;
 
 	_FORCE_INLINE_ bool _is_any_processing() const {
 		return data.process || data.process_internal || data.physics_process || data.physics_process_internal;

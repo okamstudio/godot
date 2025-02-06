@@ -134,6 +134,17 @@
 				[b]Note:[/b] This method is only called if the node is present in the scene tree (i.e. if it's not an orphan).
 			</description>
 		</method>
+		<method name="_unhandled_picking_input" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="event" type="InputEvent" />
+			<description>
+				Called when an [InputEventKey] hasn't been consumed by physics picking. The input event propagates up through the node tree in the current [Viewport] until a node consumes it.
+				It is only called if unhandled picking input processing is enabled, which is done automatically if this method is overridden, and can be toggled with [method set_process_unhandled_picking_input].
+				To consume the input event and stop it propagating further to other nodes, [method Viewport.set_input_as_handled] can be called.
+				This method can be used to handle mouse and touch events that were not set to handled during physics picking.
+				[b]Note:[/b] This method is only called if the node is present in the scene tree (i.e. if it's not an orphan).
+			</description>
+		</method>
 		<method name="add_child">
 			<return type="void" />
 			<param index="0" name="node" type="Node" />
@@ -700,6 +711,12 @@
 				Returns [code]true[/code] if the node is processing unhandled key input (see [method set_process_unhandled_key_input]).
 			</description>
 		</method>
+		<method name="is_processing_unhandled_picking_input" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if the node is processing unhandled physics input (see [method set_process_unhandled_picking_input]).
+			</description>
+		</method>
 		<method name="move_child">
 			<return type="void" />
 			<param index="0" name="child_node" type="Node" />
@@ -962,6 +979,13 @@
 			<description>
 				If set to [code]true[/code], enables unhandled key input processing.
 				[b]Note:[/b] If [method _unhandled_key_input] is overridden, this will be automatically enabled before [method _ready] is called.
+			</description>
+		</method>
+		<method name="set_process_unhandled_picking_input">
+			<return type="void" />
+			<param index="0" name="enable" type="bool" />
+			<description>
+				Enables unhandled picking input processing. Enabled automatically if [method _unhandled_picking_input] is overridden. Any calls to this before [method _ready] will be ignored.
 			</description>
 		</method>
 		<method name="set_scene_instance_load_placeholder">

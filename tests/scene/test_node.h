@@ -671,6 +671,18 @@ TEST_CASE("[Node] Processing checks") {
 		CHECK_FALSE(node->is_processing_unhandled_key_input());
 	}
 
+	SUBCASE("Unhandled picking input processing") {
+		CHECK_FALSE(node->is_processing_unhandled_picking_input());
+
+		node->set_process_unhandled_picking_input(true);
+
+		CHECK(node->is_processing_unhandled_picking_input());
+
+		node->set_process_unhandled_picking_input(false);
+
+		CHECK_FALSE(node->is_processing_unhandled_picking_input());
+	}
+
 	SUBCASE("Shortcut input processing") {
 		CHECK_FALSE(node->is_processing_shortcut_input());
 
