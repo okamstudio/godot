@@ -225,6 +225,7 @@ RID CanvasLayer::get_viewport() const {
 void CanvasLayer::set_custom_viewport(Node *p_viewport) {
 	ERR_FAIL_NULL_MSG(p_viewport, "Cannot set viewport to nullptr.");
 	if (is_inside_tree()) {
+		get_parent()->disconnect(SNAME("child_order_changed"), callable_mp(vp, &Viewport::canvas_parent_mark_dirty).bind(get_parent()));
 		vp->_canvas_layer_remove(this);
 		RenderingServer::get_singleton()->viewport_remove_canvas(viewport, canvas);
 		viewport = RID();
@@ -251,6 +252,8 @@ void CanvasLayer::set_custom_viewport(Node *p_viewport) {
 		RenderingServer::get_singleton()->viewport_attach_canvas(viewport, canvas);
 		RenderingServer::get_singleton()->viewport_set_canvas_stacking(viewport, canvas, layer, get_index());
 		RenderingServer::get_singleton()->viewport_set_canvas_transform(viewport, canvas, transform);
+
+		get_parent()->connect(SNAME("child_order_changed"), callable_mp(vp, &Viewport::canvas_parent_mark_dirty).bind(get_parent()), CONNECT_REFERENCE_COUNTED);
 	}
 }
 
