@@ -93,6 +93,7 @@ private:
 	float alpha_antialiasing_edge = 0.0f;
 	StandardMaterial3D::BillboardMode billboard_mode = StandardMaterial3D::BILLBOARD_DISABLED;
 	StandardMaterial3D::TextureFilter texture_filter = StandardMaterial3D::TEXTURE_FILTER_LINEAR_WITH_MIPMAPS;
+	bool texture_smooth_pixel_filter = false;
 	bool pending_update = false;
 	void _im_update();
 
@@ -167,6 +168,9 @@ public:
 
 	void set_texture_filter(StandardMaterial3D::TextureFilter p_filter);
 	StandardMaterial3D::TextureFilter get_texture_filter() const;
+
+	void set_texture_smooth_pixel_filter(bool p_smooth_pixel_filter);
+	bool get_texture_smooth_pixel_filter() const;
 
 	virtual Rect2 get_item_rect() const = 0;
 

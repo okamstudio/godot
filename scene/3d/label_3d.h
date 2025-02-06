@@ -139,6 +139,7 @@ private:
 	RID base_material;
 	StandardMaterial3D::BillboardMode billboard_mode = StandardMaterial3D::BILLBOARD_DISABLED;
 	StandardMaterial3D::TextureFilter texture_filter = StandardMaterial3D::TEXTURE_FILTER_LINEAR_WITH_MIPMAPS;
+	bool texture_smooth_pixel_filter = false;
 
 	bool pending_update = false;
 
@@ -251,6 +252,9 @@ public:
 
 	void set_texture_filter(StandardMaterial3D::TextureFilter p_filter);
 	StandardMaterial3D::TextureFilter get_texture_filter() const;
+
+	void set_texture_smooth_pixel_filter(bool p_smooth_pixel_filter);
+	bool get_texture_smooth_pixel_filter() const;
 
 	virtual AABB get_aabb() const override;
 	virtual Ref<TriangleMesh> generate_triangle_mesh() const override;

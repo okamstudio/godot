@@ -127,6 +127,10 @@
 		<member name="texture_filter" type="int" setter="set_texture_filter" getter="get_texture_filter" enum="BaseMaterial3D.TextureFilter" default="3">
 			Filter flags for the texture. See [enum BaseMaterial3D.TextureFilter] for options.
 		</member>
+		<member name="texture_smooth_pixel_filter" type="bool" setter="set_texture_smooth_pixel_filter" getter="get_texture_smooth_pixel_filter" default="false">
+			If [code]true[/code], displays the texture with an appearance that mimics nearest-neighbor filtering with a shader to smooth out aliasing between pixels. This can be used for a pixel art look that is still antialiased regardless of the current antialiasing method in use.
+			[b]Note:[/b] This internally forces the texture filter mode to the corresponding Linear filter mode, as the smooth pixel filtering shader relies on linear filtering to work.
+		</member>
 		<member name="uppercase" type="bool" setter="set_uppercase" getter="is_uppercase" default="false">
 			If [code]true[/code], all the text displays as UPPERCASE.
 		</member>

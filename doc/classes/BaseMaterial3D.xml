@@ -392,6 +392,10 @@
 		<member name="texture_repeat" type="bool" setter="set_flag" getter="get_flag" default="true">
 			Repeat flags for the texture. See [enum TextureFilter] for options.
 		</member>
+		<member name="texture_smooth_pixel_filter" type="bool" setter="set_flag" getter="get_flag" default="false">
+			If [code]true[/code], displays the texture with an appearance that mimics nearest-neighbor filtering with a shader to smooth out aliasing between pixels. This can be used for a pixel art look that is still antialiased regardless of the current antialiasing method in use.
+			[b]Note:[/b] This internally forces the texture filter mode to the corresponding Linear filter mode, as the smooth pixel filtering shader relies on linear filtering to work.
+		</member>
 		<member name="transparency" type="int" setter="set_transparency" getter="get_transparency" enum="BaseMaterial3D.Transparency" default="0">
 			The material's transparency mode. Some transparency modes will disable shadow casting. Any transparency mode other than [constant TRANSPARENCY_DISABLED] has a greater performance impact compared to opaque rendering. See also [member blend_mode].
 		</member>
@@ -706,7 +710,10 @@
 		<constant name="FLAG_DISABLE_FOG" value="21" enum="Flags">
 			Disables receiving depth-based or volumetric fog.
 		</constant>
-		<constant name="FLAG_MAX" value="22" enum="Flags">
+		<constant name="FLAG_USE_TEXTURE_SMOOTH_PIXEL_FILTER" value="22" enum="Flags">
+			Enables shader-based smooth pixel filtering (see [member texture_smooth_pixel_filter]).
+		</constant>
+		<constant name="FLAG_MAX" value="23" enum="Flags">
 			Represents the size of the [enum Flags] enum.
 		</constant>
 		<constant name="DIFFUSE_BURLEY" value="0" enum="DiffuseMode">

@@ -101,6 +101,10 @@
 			Filter flags for the texture. See [enum BaseMaterial3D.TextureFilter] for options.
 			[b]Note:[/b] Linear filtering may cause artifacts around the edges, which are especially noticeable on opaque textures. To prevent this, use textures with transparent or identical colors around the edges.
 		</member>
+		<member name="texture_smooth_pixel_filter" type="bool" setter="set_texture_smooth_pixel_filter" getter="get_texture_smooth_pixel_filter" default="false">
+			If [code]true[/code], displays the texture with an appearance that mimics nearest-neighbor filtering with a shader to smooth out aliasing between pixels. This can be used for a pixel art look that is still antialiased regardless of the current antialiasing method in use.
+			[b]Note:[/b] This internally forces the texture filter mode to the corresponding Linear filter mode, as the smooth pixel filtering shader relies on linear filtering to work.
+		</member>
 		<member name="transparent" type="bool" setter="set_draw_flag" getter="get_draw_flag" default="true">
 			If [code]true[/code], the texture's transparency and the opacity are used to make those parts of the sprite invisible.
 		</member>

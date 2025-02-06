@@ -268,7 +268,7 @@ void SpriteBase3D::draw_texture_rect(Ref<Texture2D> p_texture, Rect2 p_dst_rect,
 	}
 
 	RID shader_rid;
-	StandardMaterial3D::get_material_for_2d(get_draw_flag(FLAG_SHADED), mat_transparency, get_draw_flag(FLAG_DOUBLE_SIDED), get_billboard_mode() == StandardMaterial3D::BILLBOARD_ENABLED, get_billboard_mode() == StandardMaterial3D::BILLBOARD_FIXED_Y, false, get_draw_flag(FLAG_DISABLE_DEPTH_TEST), get_draw_flag(FLAG_FIXED_SIZE), get_texture_filter(), alpha_antialiasing_mode, &shader_rid);
+	StandardMaterial3D::get_material_for_2d(get_draw_flag(FLAG_SHADED), mat_transparency, get_draw_flag(FLAG_DOUBLE_SIDED), get_billboard_mode() == StandardMaterial3D::BILLBOARD_ENABLED, get_billboard_mode() == StandardMaterial3D::BILLBOARD_FIXED_Y, false, get_draw_flag(FLAG_DISABLE_DEPTH_TEST), get_draw_flag(FLAG_FIXED_SIZE), get_texture_filter(), texture_smooth_pixel_filter, alpha_antialiasing_mode, &shader_rid);
 
 	if (last_shader != shader_rid) {
 		RS::get_singleton()->material_set_shader(get_material(), shader_rid);
@@ -588,6 +588,19 @@ StandardMaterial3D::TextureFilter SpriteBase3D::get_texture_filter() const {
 	return texture_filter;
 }
 
+void SpriteBase3D::set_texture_smooth_pixel_filter(bool p_smooth_pixel_filter) {
+	if (texture_smooth_pixel_filter == p_smooth_pixel_filter) {
+		return;
+	}
+
+	texture_smooth_pixel_filter = p_smooth_pixel_filter;
+	_queue_redraw();
+}
+
+bool SpriteBase3D::get_texture_smooth_pixel_filter() const {
+	return texture_smooth_pixel_filter;
+}
+
 void SpriteBase3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_centered", "centered"), &SpriteBase3D::set_centered);
 	ClassDB::bind_method(D_METHOD("is_centered"), &SpriteBase3D::is_centered);
@@ -637,6 +650,9 @@ void SpriteBase3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_texture_filter", "mode"), &SpriteBase3D::set_texture_filter);
 	ClassDB::bind_method(D_METHOD("get_texture_filter"), &SpriteBase3D::get_texture_filter);
 
+	ClassDB::bind_method(D_METHOD("set_texture_smooth_pixel_filter", "smooth_pixel_filter"), &SpriteBase3D::set_texture_smooth_pixel_filter);
+	ClassDB::bind_method(D_METHOD("get_texture_smooth_pixel_filter"), &SpriteBase3D::get_texture_smooth_pixel_filter);
+
 	ClassDB::bind_method(D_METHOD("get_item_rect"), &SpriteBase3D::get_item_rect);
 	ClassDB::bind_method(D_METHOD("generate_triangle_mesh"), &SpriteBase3D::generate_triangle_mesh);
 
@@ -660,6 +676,7 @@ void SpriteBase3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "alpha_antialiasing_mode", PROPERTY_HINT_ENUM, "Disabled,Alpha Edge Blend,Alpha Edge Clip"), "set_alpha_antialiasing", "get_alpha_antialiasing");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "alpha_antialiasing_edge", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_alpha_antialiasing_edge", "get_alpha_antialiasing_edge");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "texture_filter", PROPERTY_HINT_ENUM, "Nearest,Linear,Nearest Mipmap,Linear Mipmap,Nearest Mipmap Anisotropic,Linear Mipmap Anisotropic"), "set_texture_filter", "get_texture_filter");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "texture_smooth_pixel_filter"), "set_texture_smooth_pixel_filter", "get_texture_smooth_pixel_filter");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "render_priority", PROPERTY_HINT_RANGE, itos(RS::MATERIAL_RENDER_PRIORITY_MIN) + "," + itos(RS::MATERIAL_RENDER_PRIORITY_MAX) + ",1"), "set_render_priority", "get_render_priority");
 
 	BIND_ENUM_CONSTANT(FLAG_TRANSPARENT);
