@@ -279,6 +279,9 @@ private:
 	Transform3D physics_last_camera_transform;
 	ObjectID physics_last_id;
 
+	uint32_t input_cull_mask_2d = 0xffffffff; // By default, all collision layers are pickable
+	uint32_t input_cull_mask_3d = 0xffffffff;
+
 	bool handle_input_locally = true;
 	bool local_input_handled = false;
 
@@ -615,6 +618,16 @@ public:
 	bool get_physics_object_picking_sort();
 	void set_physics_object_picking_first_only(bool p_enable);
 	bool get_physics_object_picking_first_only();
+
+	void set_input_cull_mask_2d(uint32_t p_mask);
+	uint32_t get_input_cull_mask_2d() const;
+	void set_input_cull_mask_2d_bit(int p_layer_number, bool p_value);
+	bool get_input_cull_mask_2d_bit(int p_layer_number) const;
+
+	void set_input_cull_mask_3d(uint32_t p_mask);
+	uint32_t get_input_cull_mask_3d() const;
+	void set_input_cull_mask_3d_bit(int p_layer_number, bool p_value);
+	bool get_input_cull_mask_3d_bit(int p_layer_number) const;
 
 	Variant gui_get_drag_data() const;
 

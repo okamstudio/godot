@@ -1989,6 +1989,9 @@ SceneTree::SceneTree() {
 
 	root->set_physics_object_picking(GLOBAL_DEF("physics/common/enable_object_picking", true));
 
+	root->set_input_cull_mask_2d(GLOBAL_DEF(PropertyInfo(Variant::INT, "physics/common/object_picking_2d_mask", PROPERTY_HINT_LAYERS_2D_PHYSICS), 0xffffffff));
+	root->set_input_cull_mask_3d(GLOBAL_DEF(PropertyInfo(Variant::INT, "physics/common/object_picking_3d_mask", PROPERTY_HINT_LAYERS_3D_PHYSICS), 0xffffffff));
+
 	root->connect("close_requested", callable_mp(this, &SceneTree::_main_window_close));
 	root->connect("go_back_requested", callable_mp(this, &SceneTree::_main_window_go_back));
 	root->connect(SceneStringName(focus_entered), callable_mp(this, &SceneTree::_main_window_focus_in));

@@ -77,6 +77,20 @@
 				Returns the transform from the viewport's coordinate system to the embedder's coordinate system.
 			</description>
 		</method>
+		<method name="get_input_cull_mask_2d_bit" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="layer_number" type="int" />
+			<description>
+				Returns an individual bit on the 2d input culling layer mask.
+			</description>
+		</method>
+		<method name="get_input_cull_mask_3d_bit" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="layer_number" type="int" />
+			<description>
+				Returns an individual bit on the 3d input culling layer mask.
+			</description>
+		</method>
 		<method name="get_mouse_position" qualifiers="const">
 			<return type="Vector2" />
 			<description>
@@ -258,6 +272,22 @@
 				[b]Note:[/b] This does not affect the methods in [Input], only the way events are propagated.
 			</description>
 		</method>
+		<method name="set_input_cull_mask_2d_bit">
+			<return type="void" />
+			<param index="0" name="layer_number" type="int" />
+			<param index="1" name="value" type="bool" />
+			<description>
+				Set/clear individual bits on the 2D input culling layer mask. This simplifies editing this [Viewport]'s 2D input culling layers.
+			</description>
+		</method>
+		<method name="set_input_cull_mask_3d_bit">
+			<return type="void" />
+			<param index="0" name="layer_number" type="int" />
+			<param index="1" name="value" type="bool" />
+			<description>
+				Set/clear individual bits on the 3D input culling layer mask. This simplifies editing this [Viewport]'s 3D input culling layers.
+			</description>
+		</method>
 		<method name="set_positional_shadow_atlas_quadrant_subdiv">
 			<return type="void" />
 			<param index="0" name="quadrant" type="int" />
@@ -332,6 +362,12 @@
 			If [code]true[/code], this viewport will mark incoming input events as handled by itself. If [code]false[/code], this is instead done by the first parent viewport that is set to handle input locally.
 			A [SubViewportContainer] will automatically set this property to [code]false[/code] for the [Viewport] contained inside of it.
 			See also [method set_input_as_handled] and [method is_input_handled].
+		</member>
+		<member name="input_cull_mask_2d" type="int" setter="set_input_cull_mask_2d" getter="get_input_cull_mask_2d" default="4294967295">
+			The collision layers in which 2D physics objects can receive input events if [member physics_object_picking] is [code]true[/code].
+		</member>
+		<member name="input_cull_mask_3d" type="int" setter="set_input_cull_mask_3d" getter="get_input_cull_mask_3d" default="4294967295">
+			The collision layers in which 3D physics objects can receive input events if [member physics_object_picking] is [code]true[/code].
 		</member>
 		<member name="mesh_lod_threshold" type="float" setter="set_mesh_lod_threshold" getter="get_mesh_lod_threshold" default="1.0">
 			The automatic LOD bias to use for meshes rendered within the [Viewport] (this is analogous to [member ReflectionProbe.mesh_lod_threshold]). Higher values will use less detailed versions of meshes that have LOD variations generated. If set to [code]0.0[/code], automatic LOD is disabled. Increase [member mesh_lod_threshold] to improve performance at the cost of geometry detail.
