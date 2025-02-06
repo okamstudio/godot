@@ -25,8 +25,9 @@
 			<param index="0" name="parameters" type="PhysicsShapeQueryParameters3D" />
 			<param index="1" name="max_results" type="int" default="32" />
 			<description>
-				Checks the intersections of a shape, given through a [PhysicsShapeQueryParameters3D] object, against the space. The resulting array contains a list of points where the shape intersects another. Like with [method intersect_shape], the number of returned results can be limited to save processing time.
+				Checks the intersections of a shape, given through a [PhysicsShapeQueryParameters3D] object, against the space. The resulting array contains a list of points where the shape intersects another.
 				Returned points are a list of pairs of contact points. For each pair the first one is in the shape passed in [PhysicsShapeQueryParameters3D] object, second one is in the collided shape from the physics space.
+				The number of returned results can be limited with the [param max_results] parameter, to reduce the processing time. [param max_results] is clamped to a hard limit of [code]2048[/code].
 				[b]Note:[/b] This method does not take into account the [code]motion[/code] property of the object.
 			</description>
 		</method>
@@ -55,7 +56,7 @@
 				[code]collider_id[/code]: The colliding object's ID.
 				[code]rid[/code]: The intersecting object's [RID].
 				[code]shape[/code]: The shape index of the colliding shape.
-				The number of intersections can be limited with the [param max_results] parameter, to reduce the processing time.
+				The number of intersections can be limited with the [param max_results] parameter, to reduce the processing time. [param max_results] is clamped to a hard limit of [code]2048[/code].
 			</description>
 		</method>
 		<method name="intersect_ray">
@@ -84,7 +85,7 @@
 				[code]collider_id[/code]: The colliding object's ID.
 				[code]rid[/code]: The intersecting object's [RID].
 				[code]shape[/code]: The shape index of the colliding shape.
-				The number of intersections can be limited with the [param max_results] parameter, to reduce the processing time.
+				The number of intersections can be limited with the [param max_results] parameter, to reduce the processing time. [param max_results] is clamped to a hard limit of [code]2048[/code].
 				[b]Note:[/b] This method does not take into account the [code]motion[/code] property of the object.
 			</description>
 		</method>
