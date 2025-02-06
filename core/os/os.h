@@ -356,6 +356,10 @@ public:
 	// This is invoked by the GDExtensionManager after loading GDExtensions specified by the project.
 	virtual void load_platform_gdextensions() const {}
 
+	// Allows the platform to customize the editor theme.
+	// Should return a path to a theme resource that will be merged with the current editor theme.
+	virtual String get_editor_theme_override(const String &p_editor_theme_preset) { return String(); }
+
 	OS();
 	virtual ~OS();
 };

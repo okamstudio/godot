@@ -121,7 +121,7 @@ void CurveEdit::_notification(int p_what) {
 			}
 		} break;
 		case NOTIFICATION_THEME_CHANGED: {
-			float gizmo_scale = EDITOR_GET("interface/touchscreen/scale_gizmo_handles");
+			float gizmo_scale = EDITOR_GET("interface/theme/scale_gizmo_handles");
 			point_radius = Math::round(BASE_POINT_RADIUS * get_theme_default_base_scale() * gizmo_scale);
 			hover_radius = Math::round(BASE_HOVER_RADIUS * get_theme_default_base_scale() * gizmo_scale);
 			tangent_radius = Math::round(BASE_TANGENT_RADIUS * get_theme_default_base_scale() * gizmo_scale);

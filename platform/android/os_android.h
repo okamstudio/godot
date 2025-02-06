@@ -179,6 +179,9 @@ public:
 	virtual void load_platform_gdextensions() const override;
 
 	virtual bool _check_internal_feature_support(const String &p_feature) override;
+
+	virtual String get_editor_theme_override(const String &p_editor_theme_preset) override;
+
 	OS_Android(GodotJavaWrapper *p_godot_java, GodotIOJavaWrapper *p_godot_io_java, bool p_use_apk_expansion);
 	~OS_Android();
 

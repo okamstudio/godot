@@ -830,6 +830,14 @@ bool OS_Android::_check_internal_feature_support(const String &p_feature) {
 	return false;
 }
 
+String OS_Android::get_editor_theme_override(const String &p_editor_theme_preset) {
+	if (p_editor_theme_preset == "Android") {
+		return "assets://themes/minimal_theme.tres";
+	}
+
+	return String();
+}
+
 OS_Android::OS_Android(GodotJavaWrapper *p_godot_java, GodotIOJavaWrapper *p_godot_io_java, bool p_use_apk_expansion) {
 	display_size.width = DEFAULT_WINDOW_WIDTH;
 	display_size.height = DEFAULT_WINDOW_HEIGHT;

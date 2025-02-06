@@ -245,8 +245,8 @@ EditorThemeManager::ThemeConfiguration EditorThemeManager::_create_theme_config(
 	config.relationship_line_opacity = EDITOR_GET("interface/theme/relationship_line_opacity");
 	config.thumb_size = EDITOR_GET("filesystem/file_dialog/thumbnail_size");
 	config.class_icon_size = 16 * EDSCALE;
-	config.increase_scrollbar_touch_area = EDITOR_GET("interface/touchscreen/increase_scrollbar_touch_area");
-	config.gizmo_handle_scale = EDITOR_GET("interface/touchscreen/scale_gizmo_handles");
+	config.increase_scrollbar_touch_area = EDITOR_GET("interface/theme/increase_scrollbar_touch_area");
+	config.gizmo_handle_scale = EDITOR_GET("interface/theme/scale_gizmo_handles");
 	config.color_picker_button_height = 28 * EDSCALE;
 	config.subresource_hue_tint = EDITOR_GET("docks/property_editor/subresource_hue_tint");
 
@@ -282,9 +282,15 @@ EditorThemeManager::ThemeConfiguration EditorThemeManager::_create_theme_config(
 			Color preset_base_color;
 			float preset_contrast = 0;
 			bool preset_draw_extra_borders = false;
+			float preset_icon_saturation = config.icon_saturation;
 
 			// Please use alphabetical order if you're adding a new theme here.
-			if (config.preset == "Breeze Dark") {
+			if (config.preset == "Android") {
+				preset_accent_color = Color(0.34, 0.62, 1.00);
+				preset_base_color = Color(0.15, 0.15, 0.15);
+				preset_contrast = 0.3;
+				preset_icon_saturation = 2;
+			} else if (config.preset == "Breeze Dark") {
 				preset_accent_color = Color(0.26, 0.76, 1.00);
 				preset_base_color = Color(0.24, 0.26, 0.28);
 				preset_contrast = config.default_contrast;
@@ -326,11 +332,13 @@ EditorThemeManager::ThemeConfiguration EditorThemeManager::_create_theme_config(
 			config.base_color = preset_base_color;
 			config.contrast = preset_contrast;
 			config.draw_extra_borders = preset_draw_extra_borders;
+			config.icon_saturation = preset_icon_saturation;
 
 			EditorSettings::get_singleton()->set_initial_value("interface/theme/accent_color", config.accent_color);
 			EditorSettings::get_singleton()->set_initial_value("interface/theme/base_color", config.base_color);
 			EditorSettings::get_singleton()->set_initial_value("interface/theme/contrast", config.contrast);
 			EditorSettings::get_singleton()->set_initial_value("interface/theme/draw_extra_borders", config.draw_extra_borders);
+			EditorSettings::get_singleton()->set_initial_value("interface/theme/icon_saturation", config.icon_saturation);
 		}
 
 		if (follow_system_theme && system_base_color != Color(0, 0, 0, 0)) {
@@ -349,6 +357,7 @@ EditorThemeManager::ThemeConfiguration EditorThemeManager::_create_theme_config(
 		EditorSettings::get_singleton()->set_manually("interface/theme/base_color", config.base_color);
 		EditorSettings::get_singleton()->set_manually("interface/theme/contrast", config.contrast);
 		EditorSettings::get_singleton()->set_manually("interface/theme/draw_extra_borders", config.draw_extra_borders);
+		EditorSettings::get_singleton()->set_manually("interface/theme/icon_saturation", config.icon_saturation);
 	}
 
 	// Handle theme spacing preset.
@@ -2784,6 +2793,14 @@ Ref<EditorTheme> EditorThemeManager::generate_theme(const Ref<EditorTheme> &p_ol
 	Ref<EditorTheme> theme = _create_base_theme(p_old_theme);
 
 	OS::get_singleton()->benchmark_begin_measure(get_benchmark_key(), "Merge Custom Theme");
+
+	const String platform_theme_override_path = OS::get_singleton()->get_editor_theme_override(EDITOR_GET("interface/theme/preset"));
+	if (!platform_theme_override_path.is_empty()) {
+		Ref<Theme> platform_theme_override = ResourceLoader::load(platform_theme_override_path);
+		if (platform_theme_override.is_valid()) {
+			theme->merge_with(platform_theme_override);
+		}
+	}
 
 	const String custom_theme_path = EDITOR_GET("interface/theme/custom_theme");
 	if (!custom_theme_path.is_empty()) {

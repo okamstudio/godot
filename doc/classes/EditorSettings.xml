@@ -1040,11 +1040,19 @@
 			The saturation to use for editor icons. Higher values result in more vibrant colors.
 			[b]Note:[/b] The default editor icon saturation was increased by 30% in Godot 4.0 and later. To get Godot 3.x's icon saturation back, set [member interface/theme/icon_saturation] to [code]0.77[/code].
 		</member>
+		<member name="interface/theme/increase_scrollbar_touch_area" type="bool" setter="" getter="">
+			If [code]true[/code], increases the scrollbar touch area to improve usability on touchscreen devices.
+			[b]Note:[/b] Defaults to [code]true[/code] on touchscreen devices.
+		</member>
 		<member name="interface/theme/preset" type="String" setter="" getter="">
 			The editor theme preset to use.
 		</member>
 		<member name="interface/theme/relationship_line_opacity" type="float" setter="" getter="">
 			The opacity to use when drawing relationship lines in the editor's [Tree]-based GUIs (such as the Scene tree dock).
+		</member>
+		<member name="interface/theme/scale_gizmo_handles" type="float" setter="" getter="">
+			Specify the multiplier to apply to the scale for the editor gizmo handles to improve usability on touchscreen devices.
+			[b]Note:[/b] Defaults to [code]1[/code] on non-touchscreen devices.
 		</member>
 		<member name="interface/theme/spacing_preset" type="String" setter="" getter="">
 			The editor theme spacing preset to use. See also [member interface/theme/base_spacing] and [member interface/theme/additional_spacing].
@@ -1060,14 +1068,6 @@
 		<member name="interface/touchscreen/enable_pan_and_scale_gestures" type="bool" setter="" getter="">
 			If [code]true[/code], enable two finger pan and scale gestures on touchscreen devices.
 			[b]Note:[/b] Defaults to [code]true[/code] on touchscreen devices.
-		</member>
-		<member name="interface/touchscreen/increase_scrollbar_touch_area" type="bool" setter="" getter="">
-			If [code]true[/code], increases the scrollbar touch area to improve usability on touchscreen devices.
-			[b]Note:[/b] Defaults to [code]true[/code] on touchscreen devices.
-		</member>
-		<member name="interface/touchscreen/scale_gizmo_handles" type="float" setter="" getter="">
-			Specify the multiplier to apply to the scale for the editor gizmo handles to improve usability on touchscreen devices.
-			[b]Note:[/b] Defaults to [code]1[/code] on non-touchscreen devices.
 		</member>
 		<member name="network/connection/engine_version_update_mode" type="int" setter="" getter="">
 			Specifies how the engine should check for updates.
