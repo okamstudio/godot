@@ -469,6 +469,13 @@ void ParticleProcessMaterial::_update_shader() {
 		code += "}\n\n";
 	}
 
+	code += "vec3 normalize_or_else(vec3 _in, const vec3 _else) {\n";
+	code += "	if (_in == vec3(0.0)) {\n";
+	code += "		return _else;\n";
+	code += "	}\n";
+	code += "	return normalize(_in);\n";
+	code += "}\n\n";
+
 	code += "vec4 rotate_hue(vec4 current_color, float hue_rot_angle) {\n";
 	code += "	float hue_rot_c = cos(hue_rot_angle);\n";
 	code += "	float hue_rot_s = sin(hue_rot_angle);\n";
@@ -1084,24 +1091,25 @@ void ParticleProcessMaterial::_update_shader() {
 			code += "	TRANSFORM[2] = vec4(0.0, 0.0, 1.0, 0.0);\n";
 		}
 	} else {
+		//TODO Fix so 0 scaling on all axes doesn't break during normalization
 		// Orient particle Y towards velocity.
 		if (particle_flags[PARTICLE_FLAG_ALIGN_Y_TO_VELOCITY]) {
 			code += "	if (length(final_velocity) > 0.0) {\n";
-			code += "		TRANSFORM[1].xyz = normalize(final_velocity);\n";
+			code += "		TRANSFORM[1].xyz = normalize_or_else(final_velocity, vec3(0.0, 1.0, 0.0));\n";
 			code += "	} else {\n";
-			code += "		TRANSFORM[1].xyz = normalize(TRANSFORM[1].xyz);\n";
+			code += "		TRANSFORM[1].xyz = normalize_or_else(TRANSFORM[1].xyz, vec3(0.0, 1.0, 0.0));\n";
 			code += "	}\n";
-			code += "	if (TRANSFORM[1].xyz == normalize(TRANSFORM[0].xyz)) {\n";
-			code += "		TRANSFORM[0].xyz = normalize(cross(normalize(TRANSFORM[1].xyz), normalize(TRANSFORM[2].xyz)));\n";
-			code += "		TRANSFORM[2].xyz = normalize(cross(normalize(TRANSFORM[0].xyz), normalize(TRANSFORM[1].xyz)));\n";
+			code += "	if (TRANSFORM[1].xyz == normalize_or_else(TRANSFORM[0].xyz, vec3(1.0, 0.0, 0.0))) {\n";
+			code += "		TRANSFORM[0].xyz = normalize_or_else(cross(TRANSFORM[1].xyz, TRANSFORM[2].xyz), vec3(1.0, 0.0, 0.0));\n";
+			code += "		TRANSFORM[2].xyz = normalize_or_else(cross(TRANSFORM[0].xyz, TRANSFORM[1].xyz), vec3(0.0, 0.0, 1.0));\n";
 			code += "	} else {\n";
-			code += "		TRANSFORM[2].xyz = normalize(cross(normalize(TRANSFORM[0].xyz), normalize(TRANSFORM[1].xyz)));\n";
-			code += "		TRANSFORM[0].xyz = normalize(cross(normalize(TRANSFORM[1].xyz), normalize(TRANSFORM[2].xyz)));\n";
+			code += "		TRANSFORM[2].xyz = normalize_or_else(cross(TRANSFORM[0].xyz, TRANSFORM[1].xyz), vec3(0.0, 0.0, 1.0));\n";
+			code += "		TRANSFORM[0].xyz = normalize_or_else(cross(TRANSFORM[1].xyz, TRANSFORM[2].xyz), vec3(1.0, 0.0, 0.0));\n";
 			code += "	}\n";
 		} else {
-			code += "	TRANSFORM[0].xyz = normalize(TRANSFORM[0].xyz);\n";
-			code += "	TRANSFORM[1].xyz = normalize(TRANSFORM[1].xyz);\n";
-			code += "	TRANSFORM[2].xyz = normalize(TRANSFORM[2].xyz);\n";
+			code += "	TRANSFORM[0].xyz = normalize_or_else(TRANSFORM[0].xyz, vec3(1.0, 0.0, 0.0));\n";
+			code += "	TRANSFORM[1].xyz = normalize_or_else(TRANSFORM[1].xyz, vec3(0.0, 1.0, 0.0));\n";
+			code += "	TRANSFORM[2].xyz = normalize_or_else(TRANSFORM[2].xyz, vec3(0.0, 0.0, 1.0));\n";
 		}
 		// Turn particle by rotation in Y.
 		if (particle_flags[PARTICLE_FLAG_ROTATE_Y]) {
