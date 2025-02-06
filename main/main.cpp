@@ -575,6 +575,10 @@ void Main::print_help(const char *p_binary) {
 	print_help_option("", "--fixed-fps is forced when enabled, but it can be used to change movie FPS.\n");
 	print_help_option("", "--disable-vsync can speed up movie writing but makes interaction more difficult.\n");
 	print_help_option("", "--quit-after can be used to specify the number of frames to write.\n");
+#if defined(WINDOWS_ENABLED) && !defined(WINDOWS_SUBSYSTEM_CONSOLE)
+	print_help_option("--force-console", "Force creation of console window on Windows.\n");
+	print_help_option("", "Does not spawn a child process, unlike the console executable. Allows for viewing Godot logs when debugging a C# project with Visual Studio.\n");
+#endif
 
 	print_help_title("Display options");
 	print_help_option("-f, --fullscreen", "Request fullscreen mode.\n");
@@ -1705,6 +1709,10 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 				OS::get_singleton()->print("Missing write-movie argument, aborting.\n");
 				goto error;
 			}
+#if defined(WINDOWS_ENABLED) && !defined(WINDOWS_SUBSYSTEM_CONSOLE)
+		} else if (arg == "--force-console") {
+			OS::get_singleton()->_alloc_console();
+#endif
 		} else if (arg == "--disable-vsync") {
 			disable_vsync = true;
 		} else if (arg == "--print-fps") {

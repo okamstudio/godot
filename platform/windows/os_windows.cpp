@@ -2346,6 +2346,10 @@ void OS_Windows::add_frame_delay(bool p_can_draw) {
 	}
 }
 
+void OS_Windows::_alloc_console() {
+	AllocConsole();
+}
+
 OS_Windows::OS_Windows(HINSTANCE _hInstance) {
 	hInstance = _hInstance;
 

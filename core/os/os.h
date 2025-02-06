@@ -356,6 +356,8 @@ public:
 	// This is invoked by the GDExtensionManager after loading GDExtensions specified by the project.
 	virtual void load_platform_gdextensions() const {}
 
+	virtual void _alloc_console() {}
+
 	OS();
 	virtual ~OS();
 };
