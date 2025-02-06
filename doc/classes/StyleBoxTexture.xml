@@ -118,5 +118,8 @@
 		<constant name="AXIS_STRETCH_MODE_TILE_FIT" value="2" enum="AxisStretchMode">
 			Repeats the stylebox's texture to match the stylebox's size according to the nine-patch system. Unlike [constant AXIS_STRETCH_MODE_TILE], the texture may be slightly stretched to make the nine-patch texture tile seamlessly.
 		</constant>
+		<constant name="AXIS_STRETCH_MODE_CENTER" value="3" enum="AxisStretchMode">
+			Keep center slices centered. Useful for tooltips with arrow or controls with handles.
+		</constant>
 	</constants>
 </class>

@@ -551,6 +551,9 @@ float map_ninepatch_axis(float pixel, float draw_size, float tex_pixel_size, flo
 			ratio = mod(ratio * scale, 1.0);
 			// Scale to source texture.
 			return (margin_begin + ratio * dst_area) * tex_pixel_size;
+		} else if (np_repeat == 3) { // Center.
+			const float CMP_EPSILON = 1e-5;
+			return clamp(pixel - (draw_size - tex_size) / 2.0, margin_begin + CMP_EPSILON, tex_size - margin_end - CMP_EPSILON) * tex_pixel_size;
 		} else { // Shouldn't happen, but silences compiler warning.
 			return 0.0;
 		}

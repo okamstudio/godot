@@ -223,8 +223,8 @@ void StyleBoxTexture::_bind_methods() {
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "expand_margin_bottom", PROPERTY_HINT_RANGE, "0,2048,1,suffix:px"), "set_expand_margin", "get_expand_margin", SIDE_BOTTOM);
 
 	ADD_GROUP("Axis Stretch", "axis_stretch_");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "axis_stretch_horizontal", PROPERTY_HINT_ENUM, "Stretch,Tile,Tile Fit"), "set_h_axis_stretch_mode", "get_h_axis_stretch_mode");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "axis_stretch_vertical", PROPERTY_HINT_ENUM, "Stretch,Tile,Tile Fit"), "set_v_axis_stretch_mode", "get_v_axis_stretch_mode");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "axis_stretch_horizontal", PROPERTY_HINT_ENUM, "Stretch,Tile,Tile Fit,Center"), "set_h_axis_stretch_mode", "get_h_axis_stretch_mode");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "axis_stretch_vertical", PROPERTY_HINT_ENUM, "Stretch,Tile,Tile Fit,Center"), "set_v_axis_stretch_mode", "get_v_axis_stretch_mode");
 
 	ADD_GROUP("Sub-Region", "region_");
 	ADD_PROPERTY(PropertyInfo(Variant::RECT2, "region_rect", PROPERTY_HINT_NONE, "suffix:px"), "set_region_rect", "get_region_rect");
@@ -236,6 +236,7 @@ void StyleBoxTexture::_bind_methods() {
 	BIND_ENUM_CONSTANT(AXIS_STRETCH_MODE_STRETCH);
 	BIND_ENUM_CONSTANT(AXIS_STRETCH_MODE_TILE);
 	BIND_ENUM_CONSTANT(AXIS_STRETCH_MODE_TILE_FIT);
+	BIND_ENUM_CONSTANT(AXIS_STRETCH_MODE_CENTER);
 }
 
 StyleBoxTexture::StyleBoxTexture() {}

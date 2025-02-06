@@ -1552,6 +1552,7 @@ public:
 		NINE_PATCH_STRETCH,
 		NINE_PATCH_TILE,
 		NINE_PATCH_TILE_FIT,
+		NINE_PATCH_CENTER,
 	};
 
 	virtual void canvas_item_add_line(RID p_item, const Point2 &p_from, const Point2 &p_to, const Color &p_color, float p_width = -1.0, bool p_antialiased = false) = 0;

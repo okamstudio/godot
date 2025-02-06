@@ -5666,6 +5666,9 @@
 		<constant name="NINE_PATCH_TILE_FIT" value="2" enum="NinePatchAxisMode">
 			The nine patch gets filled with tiles where needed and stretches them a bit if needed.
 		</constant>
+		<constant name="NINE_PATCH_CENTER" value="3" enum="NinePatchAxisMode">
+			The nine patch gets stretched where needed, keeping the middle centered at its original size.
+		</constant>
 		<constant name="CANVAS_ITEM_TEXTURE_FILTER_DEFAULT" value="0" enum="CanvasItemTextureFilter">
 			Uses the default filter mode for this [Viewport].
 		</constant>
