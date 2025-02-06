@@ -5512,6 +5512,7 @@ Node3DEditorViewport::Node3DEditorViewport(Node3DEditor *p_spatial_editor, int p
 	c->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
 	viewport = memnew(SubViewport);
 	viewport->set_disable_input(true);
+	viewport->set_tonemap_to_window(true);
 
 	c->add_child(viewport);
 	surface = memnew(Control);

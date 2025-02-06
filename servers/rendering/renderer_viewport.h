@@ -87,6 +87,7 @@ public:
 		DisplayServer::WindowID viewport_to_screen;
 		Rect2 viewport_to_screen_rect;
 		bool viewport_render_direct_to_screen;
+		bool tonemap_to_screen;
 
 		bool disable_2d = false;
 		RS::ViewportEnvironmentMode disable_environment = RS::VIEWPORT_ENVIRONMENT_INHERIT;
@@ -211,6 +212,7 @@ private:
 	void _configure_3d_render_buffers(Viewport *p_viewport);
 	void _draw_3d(Viewport *p_viewport);
 	void _draw_viewport(Viewport *p_viewport);
+	DisplayServer::WindowID _get_containing_window(Viewport *p_viewport);
 
 	int occlusion_rays_per_thread = 512;
 
@@ -226,6 +228,7 @@ public:
 
 	void viewport_attach_to_screen(RID p_viewport, const Rect2 &p_rect = Rect2(), DisplayServer::WindowID p_screen = DisplayServer::MAIN_WINDOW_ID);
 	void viewport_set_render_direct_to_screen(RID p_viewport, bool p_enable);
+	void viewport_set_tonemap_to_screen(RID p_viewport, bool p_enable);
 
 	void viewport_set_active(RID p_viewport, bool p_active);
 	void viewport_set_parent_viewport(RID p_viewport, RID p_parent_viewport);

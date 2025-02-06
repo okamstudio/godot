@@ -211,6 +211,14 @@ void RendererEnvironmentStorage::environment_set_tonemap(RID p_env, RS::Environm
 	env->white = p_white;
 }
 
+void RendererEnvironmentStorage::environment_set_tonemap_range(RID p_env, float p_min_value, float p_max_value) {
+	Environment *env = environment_owner.get_or_null(p_env);
+	ERR_FAIL_NULL(env);
+	ERR_FAIL_COND(p_min_value >= p_max_value);
+	env->min_value = p_min_value;
+	env->max_value = p_max_value;
+}
+
 RS::EnvironmentToneMapper RendererEnvironmentStorage::environment_get_tone_mapper(RID p_env) const {
 	Environment *env = environment_owner.get_or_null(p_env);
 	ERR_FAIL_NULL_V(env, RS::ENV_TONE_MAPPER_LINEAR);
@@ -227,6 +235,18 @@ float RendererEnvironmentStorage::environment_get_white(RID p_env) const {
 	Environment *env = environment_owner.get_or_null(p_env);
 	ERR_FAIL_NULL_V(env, 1.0);
 	return env->white;
+}
+
+float RendererEnvironmentStorage::environment_get_min_value(RID p_env) const {
+	Environment *env = environment_owner.get_or_null(p_env);
+	ERR_FAIL_NULL_V(env, 0.0);
+	return env->min_value;
+}
+
+float RendererEnvironmentStorage::environment_get_max_value(RID p_env) const {
+	Environment *env = environment_owner.get_or_null(p_env);
+	ERR_FAIL_NULL_V(env, 1.0);
+	return env->max_value;
 }
 
 // Fog

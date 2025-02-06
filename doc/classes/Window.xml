@@ -614,6 +614,26 @@
 		<member name="force_native" type="bool" setter="set_force_native" getter="get_force_native" default="false">
 			If [code]true[/code], native window will be used regardless of parent viewport and project settings.
 		</member>
+		<member name="hdr_output_enabled" type="bool" setter="set_hdr_output_enabled" getter="is_hdr_output_enabled" default="false">
+			If [code]true[/code], the [Window] will output in HDR.
+			Only available on platforms that support HDR output, have HDR enabled in the system settings, and have a compatible display connected.
+		</member>
+		<member name="hdr_output_max_luminance" type="float" setter="set_hdr_output_max_luminance" getter="get_hdr_output_max_luminance" default="1000.0">
+			The maximum luminance in nits (cd/m²) when HDR is enabled.
+		</member>
+		<member name="hdr_output_min_luminance" type="float" setter="set_hdr_output_min_luminance" getter="get_hdr_output_min_luminance" default="0.0">
+			The minimum luminance in nits (cd/m²) when HDR is enabled.
+		</member>
+		<member name="hdr_output_prefer_high_precision" type="bool" setter="set_hdr_output_prefer_high_precision" getter="is_hdr_output_preferring_high_precision" default="false">
+			If [code]true[/code], the [Window] will prefer high-precision (16-bit per color) framebuffer when available and HDR is enabled.
+		</member>
+		<member name="hdr_output_reference_luminance" type="float" setter="set_hdr_output_reference_luminance" getter="get_hdr_output_reference_luminance" default="80.0">
+			The SDR reference luminance in nits (cd/m²) when HDR is enabled.
+			This controls the brightness of SDR content (such as UI) when HDR is enabled.
+		</member>
+		<member name="hdr_output_use_screen_luminance" type="bool" setter="set_hdr_output_use_screen_luminance" getter="is_hdr_output_using_screen_luminance" default="false">
+			If [code]true[/code], the [Window] will use the screen's luminance to adjust the HDR output.
+		</member>
 		<member name="initial_position" type="int" setter="set_initial_position" getter="get_initial_position" enum="Window.WindowInitialPosition" default="0">
 			Specifies the initial type of position for the [Window]. See [enum WindowInitialPosition] constants.
 		</member>
@@ -693,6 +713,7 @@
 		<member name="title" type="String" setter="set_title" getter="get_title" default="&quot;&quot;">
 			The window's title. If the [Window] is native, title styles set in [Theme] will have no effect.
 		</member>
+		<member name="tonemap_to_window" type="bool" setter="set_tonemap_to_window" getter="is_tonemapping_to_window" overrides="Viewport" default="true" />
 		<member name="transient" type="bool" setter="set_transient" getter="is_transient" default="false">
 			If [code]true[/code], the [Window] is transient, i.e. it's considered a child of another [Window]. The transient window will be destroyed with its transient parent and will return focus to their parent when closed. The transient window is displayed on top of a non-exclusive full-screen parent window. Transient windows can't enter full-screen mode.
 			Note that behavior might be different depending on the platform.

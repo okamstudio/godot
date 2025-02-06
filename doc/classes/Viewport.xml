@@ -415,6 +415,10 @@
 			[b]Note:[/b] If [member scaling_3d_scale] is lower than [code]1.0[/code] (exclusive), [member texture_mipmap_bias] is used to adjust the automatic mipmap bias which is calculated internally based on the scale factor. The formula for this is [code]log2(scaling_3d_scale) + mipmap_bias[/code].
 			To control this property on the root viewport, set the [member ProjectSettings.rendering/textures/default_filters/texture_mipmap_bias] project setting.
 		</member>
+		<member name="tonemap_to_window" type="bool" setter="set_tonemap_to_window" getter="is_tonemapping_to_window" default="false">
+			If [code]true[/code], the viewport will tonemap its content to the window's HDR output luminance range, if HDR output is enabled.
+			This is useful for viewports that are not the root of the window, but still need their content to adjust to the capabilities of the display.
+		</member>
 		<member name="transparent_bg" type="bool" setter="set_transparent_background" getter="has_transparent_background" default="false">
 			If [code]true[/code], the viewport should render its background as transparent.
 		</member>

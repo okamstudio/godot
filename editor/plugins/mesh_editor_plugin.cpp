@@ -109,6 +109,7 @@ MeshEditor::MeshEditor() {
 	add_child(viewport);
 	viewport->set_disable_input(true);
 	viewport->set_msaa_3d(Viewport::MSAA_4X);
+	viewport->set_tonemap_to_window(true);
 	set_stretch(true);
 	camera = memnew(Camera3D);
 	camera->set_transform(Transform3D(Basis(), Vector3(0, 0, 1.1)));

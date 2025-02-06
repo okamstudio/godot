@@ -76,6 +76,16 @@ public:
 	void surface_set_size(SurfaceID p_surface, uint32_t p_width, uint32_t p_height) final override;
 	void surface_set_vsync_mode(SurfaceID p_surface, DisplayServer::VSyncMode p_vsync_mode) final override;
 	DisplayServer::VSyncMode surface_get_vsync_mode(SurfaceID p_surface) const final override;
+	virtual void surface_set_hdr_output_enabled(SurfaceID p_surface, bool p_enabled) final override;
+	virtual bool surface_get_hdr_output_enabled(SurfaceID p_surface) const final override;
+	virtual void surface_set_hdr_output_prefer_high_precision(SurfaceID p_surface, bool p_enabled) override;
+	virtual bool surface_get_hdr_output_prefer_high_precision(SurfaceID p_surface) const override;
+	virtual void surface_set_hdr_output_reference_luminance(SurfaceID p_surface, float p_reference_luminance) final override;
+	virtual float surface_get_hdr_output_reference_luminance(SurfaceID p_surface) const final override;
+	virtual void surface_set_hdr_output_min_luminance(SurfaceID p_surface, float p_min_luminance) final override;
+	virtual float surface_get_hdr_output_min_luminance(SurfaceID p_surface) const final override;
+	virtual void surface_set_hdr_output_max_luminance(SurfaceID p_surface, float p_max_luminance) final override;
+	virtual float surface_get_hdr_output_max_luminance(SurfaceID p_surface) const final override;
 	uint32_t surface_get_width(SurfaceID p_surface) const final override;
 	uint32_t surface_get_height(SurfaceID p_surface) const final override;
 	void surface_set_needs_resize(SurfaceID p_surface, bool p_needs_resize) final override;
@@ -108,6 +118,12 @@ public:
 		DisplayServer::VSyncMode vsync_mode = DisplayServer::VSYNC_ENABLED;
 		bool needs_resize = false;
 		double present_minimum_duration = 0.0;
+
+		bool hdr_output = false;
+		bool hdr_prefer_high_precision = false;
+		float hdr_reference_luminance = 0.0f;
+		float hdr_min_luminance = 0.0f;
+		float hdr_max_luminance = 0.0f;
 
 		Surface(
 #ifdef __OBJC__

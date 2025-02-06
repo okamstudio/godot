@@ -48,6 +48,16 @@ public:
 	void window_set_size(DisplayServer::WindowID p_window, uint32_t p_width, uint32_t p_height);
 	void window_set_vsync_mode(DisplayServer::WindowID p_window, DisplayServer::VSyncMode p_vsync_mode);
 	DisplayServer::VSyncMode window_get_vsync_mode(DisplayServer::WindowID p_window) const;
+	void window_set_hdr_output_enabled(DisplayServer::WindowID p_window, bool p_enabled);
+	bool window_get_hdr_output_enabled(DisplayServer::WindowID p_window) const;
+	void window_set_hdr_output_prefer_high_precision(DisplayServer::WindowID p_window, bool p_enabled);
+	bool window_get_hdr_output_prefer_high_precision(DisplayServer::WindowID p_window) const;
+	void window_set_hdr_output_reference_luminance(DisplayServer::WindowID p_window, float p_reference_luminance);
+	float window_get_hdr_output_reference_luminance(DisplayServer::WindowID p_window) const;
+	void window_set_hdr_output_min_luminance(DisplayServer::WindowID p_window, float p_min_luminance);
+	float window_get_hdr_output_min_luminance(DisplayServer::WindowID p_window) const;
+	void window_set_hdr_output_max_luminance(DisplayServer::WindowID p_window, float p_max_luminance);
+	float window_get_hdr_output_max_luminance(DisplayServer::WindowID p_window) const;
 	void window_destroy(DisplayServer::WindowID p_window);
 
 public:
@@ -98,6 +108,16 @@ public:
 	virtual void surface_set_size(SurfaceID p_surface, uint32_t p_width, uint32_t p_height) = 0;
 	virtual void surface_set_vsync_mode(SurfaceID p_surface, DisplayServer::VSyncMode p_vsync_mode) = 0;
 	virtual DisplayServer::VSyncMode surface_get_vsync_mode(SurfaceID p_surface) const = 0;
+	virtual void surface_set_hdr_output_enabled(SurfaceID p_surface, bool p_enabled) = 0;
+	virtual bool surface_get_hdr_output_enabled(SurfaceID p_surface) const = 0;
+	virtual void surface_set_hdr_output_prefer_high_precision(SurfaceID p_surface, bool p_enabled) = 0;
+	virtual bool surface_get_hdr_output_prefer_high_precision(SurfaceID p_surface) const = 0;
+	virtual void surface_set_hdr_output_reference_luminance(SurfaceID p_surface, float p_reference_luminance) = 0;
+	virtual float surface_get_hdr_output_reference_luminance(SurfaceID p_surface) const = 0;
+	virtual void surface_set_hdr_output_min_luminance(SurfaceID p_surface, float p_min_luminance) = 0;
+	virtual float surface_get_hdr_output_min_luminance(SurfaceID p_surface) const = 0;
+	virtual void surface_set_hdr_output_max_luminance(SurfaceID p_surface, float p_max_luminance) = 0;
+	virtual float surface_get_hdr_output_max_luminance(SurfaceID p_surface) const = 0;
 	virtual uint32_t surface_get_width(SurfaceID p_surface) const = 0;
 	virtual uint32_t surface_get_height(SurfaceID p_surface) const = 0;
 	virtual void surface_set_needs_resize(SurfaceID p_surface, bool p_needs_resize) = 0;

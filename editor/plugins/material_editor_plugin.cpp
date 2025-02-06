@@ -213,6 +213,7 @@ MaterialEditor::MaterialEditor() {
 	vc_2d->add_child(viewport_2d);
 	viewport_2d->set_disable_input(true);
 	viewport_2d->set_transparent_background(true);
+	viewport_2d->set_tonemap_to_window(true);
 
 	layout_2d = memnew(HBoxContainer);
 	layout_2d->set_alignment(BoxContainer::ALIGNMENT_CENTER);
@@ -253,6 +254,7 @@ MaterialEditor::MaterialEditor() {
 	viewport->set_disable_input(true);
 	viewport->set_transparent_background(true);
 	viewport->set_msaa_3d(Viewport::MSAA_4X);
+	viewport->set_tonemap_to_window(true);
 
 	camera = memnew(Camera3D);
 	camera->set_transform(Transform3D(Basis(), Vector3(0, 0, 1.1)));

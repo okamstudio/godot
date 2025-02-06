@@ -120,6 +120,13 @@ void ToneMapper::tonemapper(RID p_source_color, RID p_dst_framebuffer, const Ton
 	tonemap.push_constant.auto_exposure_scale = p_settings.auto_exposure_scale;
 	tonemap.push_constant.luminance_multiplier = p_settings.luminance_multiplier;
 
+	// Static values that work well in most cases
+	// Consider reading from the scene itself in the future.
+	tonemap.push_constant.source_min_value = 0.0f;
+	tonemap.push_constant.source_max_value = 16.0f;
+	tonemap.push_constant.dest_min_value = p_settings.min_value;
+	tonemap.push_constant.dest_max_value = p_settings.max_value;
+
 	tonemap.push_constant.flags |= p_settings.use_color_correction ? TONEMAP_FLAG_USE_COLOR_CORRECTION : 0;
 
 	tonemap.push_constant.flags |= p_settings.use_fxaa ? TONEMAP_FLAG_USE_FXAA : 0;
@@ -205,6 +212,13 @@ void ToneMapper::tonemapper(RD::DrawListID p_subpass_draw_list, RID p_source_col
 	tonemap.push_constant.exposure = p_settings.exposure;
 	tonemap.push_constant.white = p_settings.white;
 	tonemap.push_constant.auto_exposure_scale = p_settings.auto_exposure_scale;
+
+	// Static values that work well in most cases
+	// Consider reading from the scene itself in the future.
+	tonemap.push_constant.source_min_value = 0.0f;
+	tonemap.push_constant.source_max_value = 16.0f;
+	tonemap.push_constant.dest_min_value = p_settings.min_value;
+	tonemap.push_constant.dest_max_value = p_settings.max_value;
 
 	tonemap.push_constant.flags |= p_settings.use_color_correction ? TONEMAP_FLAG_USE_COLOR_CORRECTION : 0;
 

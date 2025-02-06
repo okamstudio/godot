@@ -473,6 +473,9 @@ public:
 	// Android uses this with Swappy library. Some implementations or platforms may ignore this hint.
 	virtual void swap_chain_set_max_fps(SwapChainID p_swap_chain, int p_max_fps) {}
 
+	// Retrieve the color space used by the swap chain's framebuffers.
+	virtual ColorSpace swap_chain_get_color_space(SwapChainID p_swap_chain) = 0;
+
 	// Wait until all rendering associated to the swap chain is finished before deleting it.
 	virtual void swap_chain_free(SwapChainID p_swap_chain) = 0;
 
