@@ -56,8 +56,12 @@ void BoneAttachment3D::_validate_property(PropertyInfo &p_property) const {
 bool BoneAttachment3D::_set(const StringName &p_path, const Variant &p_value) {
 	if (p_path == SNAME("use_external_skeleton")) {
 		set_use_external_skeleton(p_value);
+#ifndef DISABLE_DEPRECATED
 	} else if (p_path == SNAME("external_skeleton")) {
-		set_external_skeleton(p_value);
+		set_external_skeleton_path(p_value);
+#endif // DISABLE_DEPRECATED
+	} else if (p_path == SNAME("external_skeleton_path")) {
+		set_external_skeleton_path(p_value);
 	}
 
 	return true;
@@ -66,8 +70,12 @@ bool BoneAttachment3D::_set(const StringName &p_path, const Variant &p_value) {
 bool BoneAttachment3D::_get(const StringName &p_path, Variant &r_ret) const {
 	if (p_path == SNAME("use_external_skeleton")) {
 		r_ret = get_use_external_skeleton();
+#ifndef DISABLE_DEPRECATED
 	} else if (p_path == SNAME("external_skeleton")) {
-		r_ret = get_external_skeleton();
+		r_ret = get_external_skeleton_path();
+#endif // DISABLE_DEPRECATED
+	} else if (p_path == SNAME("external_skeleton_path")) {
+		r_ret = get_external_skeleton_path();
 	}
 
 	return true;
@@ -76,7 +84,10 @@ bool BoneAttachment3D::_get(const StringName &p_path, Variant &r_ret) const {
 void BoneAttachment3D::_get_property_list(List<PropertyInfo> *p_list) const {
 	p_list->push_back(PropertyInfo(Variant::BOOL, "use_external_skeleton", PROPERTY_HINT_NONE, ""));
 	if (use_external_skeleton) {
+#ifndef DISABLE_DEPRECATED
 		p_list->push_back(PropertyInfo(Variant::NODE_PATH, "external_skeleton", PROPERTY_HINT_NODE_PATH_VALID_TYPES, "Skeleton3D"));
+#endif
+		p_list->push_back(PropertyInfo(Variant::NODE_PATH, "external_skeleton_path", PROPERTY_HINT_NODE_PATH_VALID_TYPES, "Skeleton3D"));
 	}
 }
 
@@ -277,13 +288,13 @@ bool BoneAttachment3D::get_use_external_skeleton() const {
 	return use_external_skeleton;
 }
 
-void BoneAttachment3D::set_external_skeleton(NodePath p_path) {
+void BoneAttachment3D::set_external_skeleton_path(NodePath p_path) {
 	external_skeleton_node = p_path;
 	_update_external_skeleton_cache();
 	notify_property_list_changed();
 }
 
-NodePath BoneAttachment3D::get_external_skeleton() const {
+NodePath BoneAttachment3D::get_external_skeleton_path() const {
 	return external_skeleton_node;
 }
 
@@ -384,8 +395,9 @@ void BoneAttachment3D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_use_external_skeleton", "use_external_skeleton"), &BoneAttachment3D::set_use_external_skeleton);
 	ClassDB::bind_method(D_METHOD("get_use_external_skeleton"), &BoneAttachment3D::get_use_external_skeleton);
-	ClassDB::bind_method(D_METHOD("set_external_skeleton", "external_skeleton"), &BoneAttachment3D::set_external_skeleton);
-	ClassDB::bind_method(D_METHOD("get_external_skeleton"), &BoneAttachment3D::get_external_skeleton);
+
+	ClassDB::bind_method(D_METHOD("set_external_skeleton_path", "external_skeleton_path"), &BoneAttachment3D::set_external_skeleton_path);
+	ClassDB::bind_method(D_METHOD("get_external_skeleton_path"), &BoneAttachment3D::get_external_skeleton_path);
 
 	ADD_PROPERTY(PropertyInfo(Variant::STRING_NAME, "bone_name"), "set_bone_name", "get_bone_name");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "bone_idx"), "set_bone_idx", "get_bone_idx");

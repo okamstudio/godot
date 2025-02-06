@@ -38,6 +38,9 @@ void BoneAttachment3D::_on_bone_pose_update_bind_compat_90575(int p_bone_index) 
 
 void BoneAttachment3D::_bind_compatibility_methods() {
 	ClassDB::bind_compatibility_method(D_METHOD("on_bone_pose_update", "bone_index"), &BoneAttachment3D::_on_bone_pose_update_bind_compat_90575);
+
+	ClassDB::bind_method(D_METHOD("set_external_skeleton", "external_skeleton"), &BoneAttachment3D::set_external_skeleton_path);
+	ClassDB::bind_method(D_METHOD("get_external_skeleton"), &BoneAttachment3D::get_external_skeleton_path);
 }
 
 #endif // DISABLE_DEPRECATED

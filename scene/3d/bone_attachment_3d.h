@@ -88,8 +88,8 @@ public:
 
 	void set_use_external_skeleton(bool p_external_skeleton);
 	bool get_use_external_skeleton() const;
-	void set_external_skeleton(NodePath p_skeleton);
-	NodePath get_external_skeleton() const;
+	void set_external_skeleton_path(NodePath p_skeleton);
+	NodePath get_external_skeleton_path() const;
 
 	virtual void on_skeleton_update();
 
