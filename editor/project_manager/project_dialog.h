@@ -134,6 +134,8 @@ private:
 
 	void ok_pressed() override;
 
+	bool _is_path_home_or_doc_dir(const String &p_path);
+
 protected:
 	static void _bind_methods();
 	void _notification(int p_what);

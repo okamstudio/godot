@@ -186,14 +186,7 @@ void ProjectDialog::_validate_path() {
 		return;
 	}
 
-	// TODO: The following 5 lines could be simplified if OS.get_user_home_dir() or SYSTEM_DIR_HOME is implemented. See: https://github.com/godotengine/godot-proposals/issues/4851.
-#ifdef WINDOWS_ENABLED
-	String home_dir = OS::get_singleton()->get_environment("USERPROFILE");
-#else
-	String home_dir = OS::get_singleton()->get_environment("HOME");
-#endif
-	String documents_dir = OS::get_singleton()->get_system_dir(OS::SYSTEM_DIR_DOCUMENTS);
-	if (target_path == home_dir || target_path == documents_dir) {
+	if (_is_path_home_or_doc_dir(target_path)) {
 		_set_message(TTR("You cannot save a project at the selected path. Please create a subfolder or choose a new path."), MESSAGE_ERROR, target_path_input_type);
 		return;
 	}
@@ -324,13 +317,18 @@ void ProjectDialog::_create_dir_toggled(bool p_pressed) {
 	} else {
 		// Strip any trailing slash.
 		target_path = target_path.rstrip("/\\");
+
 		// Save and remove target dir name.
-		if (target_path.get_file() == auto_dir) {
+		if (_is_path_home_or_doc_dir(target_path)) {
 			last_custom_target_dir = "";
 		} else {
-			last_custom_target_dir = target_path.get_file();
+			if (target_path.get_file() == auto_dir) {
+				last_custom_target_dir = "";
+			} else {
+				last_custom_target_dir = target_path.get_file();
+			}
+			target_path = target_path.get_base_dir();
 		}
-		target_path = target_path.get_base_dir();
 	}
 
 	_set_target_path(target_path);
@@ -729,6 +727,23 @@ void ProjectDialog::ok_pressed() {
 	} else if (mode == MODE_RENAME) {
 		emit_signal(SNAME("projects_updated"));
 	}
+}
+
+bool ProjectDialog::_is_path_home_or_doc_dir(const String &p_path) {
+	String target_path = p_path;
+
+	// TODO: The following 5 lines could be simplified if OS.get_user_home_dir() or SYSTEM_DIR_HOME is implemented. See: https://github.com/godotengine/godot-proposals/issues/4851.
+#ifdef WINDOWS_ENABLED
+	String home_dir = OS::get_singleton()->get_environment("USERPROFILE");
+#else
+	String home_dir = OS::get_singleton()->get_environment("HOME");
+#endif
+	String documents_dir = OS::get_singleton()->get_system_dir(OS::SYSTEM_DIR_DOCUMENTS);
+
+	if (target_path == home_dir || target_path == documents_dir) {
+		return true;
+	}
+	return false;
 }
 
 void ProjectDialog::set_zip_path(const String &p_path) {
