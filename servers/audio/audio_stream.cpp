@@ -792,7 +792,7 @@ void AudioStreamPlaybackRandomizer::start(double p_from_pos) {
 		float range_from = 1.0 / randomizer->random_pitch_scale;
 		float range_to = randomizer->random_pitch_scale;
 
-		pitch_scale = range_from + Math::randf() * (range_to - range_from);
+		pitch_scale = range_from * Math::exp(Math::randf() * Math::log(range_to / range_from)); // Makes it not bias towards higher pitch.
 	}
 	{
 		float range_from = -randomizer->random_volume_offset_db;
