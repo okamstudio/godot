@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SaveloadSynchronizer" inherits="Node" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="root_path" type="NodePath" setter="set_root_path" getter="get_root_path" default="NodePath(&quot;..&quot;)">
+		</member>
+		<member name="saveload_config" type="SceneSaveloadConfig" setter="set_saveload_config" getter="get_saveload_config">
+		</member>
+	</members>
+	<signals>
+		<signal name="synchronized">
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

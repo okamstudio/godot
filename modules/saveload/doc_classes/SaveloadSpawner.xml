@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SaveloadSpawner" inherits="Node" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="add_spawnable_scene">
+			<return type="void" />
+			<param index="0" name="path" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="clear_spawnable_scenes">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="get_spawnable_scene" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="index" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_spawnable_scene_count" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="spawn">
+			<return type="Node" />
+			<param index="0" name="data" type="Variant" default="null" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="spawn_function" type="Callable" setter="set_spawn_function" getter="get_spawn_function" default="Callable()">
+		</member>
+		<member name="spawn_limit" type="int" setter="set_spawn_limit" getter="get_spawn_limit" default="0">
+		</member>
+		<member name="spawn_path" type="NodePath" setter="set_spawn_path" getter="get_spawn_path" default="NodePath(&quot;&quot;)">
+		</member>
+	</members>
+	<signals>
+		<signal name="despawned">
+			<param index="0" name="node" type="Node" />
+			<description>
+			</description>
+		</signal>
+		<signal name="spawned">
+			<param index="0" name="node" type="Node" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SceneSaveloadConfig" inherits="Resource" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="add_property">
+			<return type="void" />
+			<param index="0" name="path" type="NodePath" />
+			<param index="1" name="index" type="int" default="-1" />
+			<description>
+			</description>
+		</method>
+		<method name="get_properties" qualifiers="const">
+			<return type="NodePath[]" />
+			<description>
+			</description>
+		</method>
+		<method name="has_property" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="path" type="NodePath" />
+			<description>
+			</description>
+		</method>
+		<method name="property_get_index" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="path" type="NodePath" />
+			<description>
+			</description>
+		</method>
+		<method name="property_get_sync">
+			<return type="bool" />
+			<param index="0" name="path" type="NodePath" />
+			<description>
+			</description>
+		</method>
+		<method name="property_set_sync">
+			<return type="void" />
+			<param index="0" name="path" type="NodePath" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="remove_property">
+			<return type="void" />
+			<param index="0" name="path" type="NodePath" />
+			<description>
+			</description>
+		</method>
+	</methods>
+</class>
