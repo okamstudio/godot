@@ -734,7 +734,13 @@ void TileSetAtlasSourceEditor::_update_tile_data_editors() {
 	// --- Physics ---
 	ADD_TILE_DATA_EDITOR_GROUP(TTR("Physics"));
 	for (int i = 0; i < tile_set->get_physics_layers_count(); i++) {
-		ADD_TILE_DATA_EDITOR(group, vformat(TTR("Physics Layer %d"), i), vformat("physics_layer_%d", i));
+		String name = tile_set->get_physics_layer_name(i);
+		if (name.is_empty()) {
+			ADD_TILE_DATA_EDITOR(group, vformat(TTR("Physics Layer %d"), i), vformat("physics_layer_%d", i));
+		} else {
+			ADD_TILE_DATA_EDITOR(group, name, vformat("physics_layer_%d", i));
+		}
+
 		if (!tile_data_editors.has(vformat("physics_layer_%d", i))) {
 			TileDataCollisionEditor *tile_data_collision_editor = memnew(TileDataCollisionEditor());
 			tile_data_collision_editor->hide();
