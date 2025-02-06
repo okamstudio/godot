@@ -1182,7 +1182,7 @@ TEST_CASE("[String] sprintf") {
 	args.push_back("cheese");
 	output = format.sprintf(args, &error);
 	REQUIRE(error);
-	CHECK(output == "not enough arguments for format string");
+	CHECK(output == "[%s] Not enough arguments for string formatting (1 provided, but more were expected). Check for extraneous % placeholders or missing arguments.");
 
 	// More arguments than formats.
 	format = "fish %s frog";
@@ -1191,7 +1191,7 @@ TEST_CASE("[String] sprintf") {
 	args.push_back("cheese");
 	output = format.sprintf(args, &error);
 	REQUIRE(error);
-	CHECK(output == "not all arguments converted during string formatting");
+	CHECK(output == "Not all arguments were converted during string formatting (2 provided, but 1 were expected). Check for missing % placeholders or extraneous arguments.");
 
 	// Incomplete format.
 	format = "fish %10";
@@ -1199,7 +1199,7 @@ TEST_CASE("[String] sprintf") {
 	args.push_back("cheese");
 	output = format.sprintf(args, &error);
 	REQUIRE(error);
-	CHECK(output == "incomplete format");
+	CHECK(output == "Incomplete format string. Check that all % placeholders use the correct syntax and are terminated correctly.");
 
 	// Bad character in format string.
 	format = "fish %&f frog";
@@ -1207,7 +1207,7 @@ TEST_CASE("[String] sprintf") {
 	args.push_back("cheese");
 	output = format.sprintf(args, &error);
 	REQUIRE(error);
-	CHECK(output == "unsupported format character");
+	CHECK(output == "Unsupported format character \"%&\".");
 
 	// Too many decimals.
 	format = "fish %2.2.2f frog";
@@ -1215,7 +1215,7 @@ TEST_CASE("[String] sprintf") {
 	args.push_back(99.99);
 	output = format.sprintf(args, &error);
 	REQUIRE(error);
-	CHECK(output == "too many decimal points in format");
+	CHECK(output == "[%.]: Too many decimal points in format (only 1 point is allowed).");
 
 	// * not a number or vector.
 	format = "fish %*f frog";
@@ -1224,7 +1224,7 @@ TEST_CASE("[String] sprintf") {
 	args.push_back(99.99);
 	output = format.sprintf(args, &error);
 	REQUIRE(error);
-	CHECK(output == "* wants number or vector");
+	CHECK(output == "[%*]: A number (int/float) or a vector type (Vector2/3/4/2i/3i/4i) is required, but a String was provided.");
 
 	// Character too long.
 	format = "fish %c frog";
@@ -1232,7 +1232,7 @@ TEST_CASE("[String] sprintf") {
 	args.push_back("sc");
 	output = format.sprintf(args, &error);
 	REQUIRE(error);
-	CHECK(output == "%c requires number or single-character string");
+	CHECK(output == "[%c]: A number or a single-character string is required, but a string of 2 characters was provided.");
 
 	// Character bad type.
 	format = "fish %c frog";
@@ -1240,7 +1240,7 @@ TEST_CASE("[String] sprintf") {
 	args.push_back(Array());
 	output = format.sprintf(args, &error);
 	REQUIRE(error);
-	CHECK(output == "%c requires number or single-character string");
+	CHECK(output == "[%c]: A number or a single-character string is required, but a Array was provided.");
 }
 
 TEST_CASE("[String] is_numeric") {
