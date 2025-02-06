@@ -161,7 +161,7 @@
 			<param index="0" name="track_idx" type="int" />
 			<param index="1" name="key_idx" type="int" />
 			<description>
-				Returns the in handle of the key identified by [param key_idx]. The [param track_idx] must be the index of a Bezier Track.
+				Returns the in handle of the key identified by [param key_idx]. The [param track_idx] must be the index of a Bézier Track.
 			</description>
 		</method>
 		<method name="bezier_track_get_key_out_handle" qualifiers="const">
@@ -169,7 +169,7 @@
 			<param index="0" name="track_idx" type="int" />
 			<param index="1" name="key_idx" type="int" />
 			<description>
-				Returns the out handle of the key identified by [param key_idx]. The [param track_idx] must be the index of a Bezier Track.
+				Returns the out handle of the key identified by [param key_idx]. The [param track_idx] must be the index of a Bézier Track.
 			</description>
 		</method>
 		<method name="bezier_track_get_key_value" qualifiers="const">
@@ -177,7 +177,7 @@
 			<param index="0" name="track_idx" type="int" />
 			<param index="1" name="key_idx" type="int" />
 			<description>
-				Returns the value of the key identified by [param key_idx]. The [param track_idx] must be the index of a Bezier Track.
+				Returns the value of the key identified by [param key_idx]. The [param track_idx] must be the index of a Bézier Track.
 			</description>
 		</method>
 		<method name="bezier_track_insert_key">
@@ -188,8 +188,8 @@
 			<param index="3" name="in_handle" type="Vector2" default="Vector2(0, 0)" />
 			<param index="4" name="out_handle" type="Vector2" default="Vector2(0, 0)" />
 			<description>
-				Inserts a Bezier Track key at the given [param time] in seconds. The [param track_idx] must be the index of a Bezier Track.
-				[param in_handle] is the left-side weight of the added Bezier curve point, [param out_handle] is the right-side one, while [param value] is the actual value at this point.
+				Inserts a Bézier Track key at the given [param time] in seconds. The [param track_idx] must be the index of a Bézier Track.
+				[param in_handle] is the left-side weight of the added Bézier curve point, [param out_handle] is the right-side one, while [param value] is the actual value at this point.
 			</description>
 		</method>
 		<method name="bezier_track_interpolate" qualifiers="const">
@@ -197,7 +197,7 @@
 			<param index="0" name="track_idx" type="int" />
 			<param index="1" name="time" type="float" />
 			<description>
-				Returns the interpolated value at the given [param time] (in seconds). The [param track_idx] must be the index of a Bezier Track.
+				Returns the interpolated value at the given [param time] (in seconds). The [param track_idx] must be the index of a Bézier Track.
 			</description>
 		</method>
 		<method name="bezier_track_set_key_in_handle">
@@ -207,7 +207,7 @@
 			<param index="2" name="in_handle" type="Vector2" />
 			<param index="3" name="balanced_value_time_ratio" type="float" default="1.0" />
 			<description>
-				Sets the in handle of the key identified by [param key_idx] to value [param in_handle]. The [param track_idx] must be the index of a Bezier Track.
+				Sets the in handle of the key identified by [param key_idx] to value [param in_handle]. The [param track_idx] must be the index of a Bézier Track.
 			</description>
 		</method>
 		<method name="bezier_track_set_key_out_handle">
@@ -217,7 +217,7 @@
 			<param index="2" name="out_handle" type="Vector2" />
 			<param index="3" name="balanced_value_time_ratio" type="float" default="1.0" />
 			<description>
-				Sets the out handle of the key identified by [param key_idx] to value [param out_handle]. The [param track_idx] must be the index of a Bezier Track.
+				Sets the out handle of the key identified by [param key_idx] to value [param out_handle]. The [param track_idx] must be the index of a Bézier Track.
 			</description>
 		</method>
 		<method name="bezier_track_set_key_value">
@@ -226,7 +226,7 @@
 			<param index="1" name="key_idx" type="int" />
 			<param index="2" name="value" type="float" />
 			<description>
-				Sets the value of the key identified by [param key_idx] to the given value. The [param track_idx] must be the index of a Bezier Track.
+				Sets the value of the key identified by [param key_idx] to the given value. The [param track_idx] must be the index of a Bézier Track.
 			</description>
 		</method>
 		<method name="blend_shape_track_insert_key">
@@ -713,7 +713,7 @@
 			Method tracks call functions with given arguments per key.
 		</constant>
 		<constant name="TYPE_BEZIER" value="6" enum="TrackType">
-			Bezier tracks are used to interpolate a value using custom curves. They can also be used to animate sub-properties of vectors and colors (e.g. alpha value of a [Color]).
+			Bézier tracks are used to interpolate a value using custom curves. They can also be used to animate sub-properties of vectors and colors (e.g. alpha value of a [Color]).
 		</constant>
 		<constant name="TYPE_AUDIO" value="7" enum="TrackType">
 			Audio tracks are used to play an audio stream with either type of [AudioStreamPlayer]. The stream can be trimmed and previewed in the animation.

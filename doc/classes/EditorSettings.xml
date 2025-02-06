@@ -515,7 +515,7 @@
 			If [code]false[/code], the behavior is reversed, i.e. the dialog only appears when Shift is held.
 		</member>
 		<member name="editors/animation/default_create_bezier_tracks" type="bool" setter="" getter="">
-			If [code]true[/code], create a Bezier track instead of a standard track when pressing the "key" icon next to a property. Bezier tracks provide more control over animation curves, but are more difficult to adjust quickly.
+			If [code]true[/code], create a Bézier track instead of a standard track when pressing the "key" icon next to a property. Bézier tracks provide more control over animation curves, but are more difficult to adjust quickly.
 		</member>
 		<member name="editors/animation/default_create_reset_tracks" type="bool" setter="" getter="">
 			If [code]true[/code], create a [code]RESET[/code] track when creating a new animation track. This track can be used to restore the animation to a "default" state.
@@ -550,7 +550,7 @@
 			Controls whether the mouse wheel scroll zooms or pans in the 2D editor. See also [member editors/panning/sub_editors_panning_scheme] and [member editors/panning/animation_editors_panning_scheme].
 		</member>
 		<member name="editors/panning/animation_editors_panning_scheme" type="int" setter="" getter="">
-			Controls whether the mouse wheel scroll zooms or pans in the animation track and Bezier editors. See also [member editors/panning/2d_editor_panning_scheme] and [member editors/panning/sub_editors_panning_scheme] (which controls the animation blend tree editor's pan behavior).
+			Controls whether the mouse wheel scroll zooms or pans in the animation track and Bézier editors. See also [member editors/panning/2d_editor_panning_scheme] and [member editors/panning/sub_editors_panning_scheme] (which controls the animation blend tree editor's pan behavior).
 		</member>
 		<member name="editors/panning/simple_panning" type="bool" setter="" getter="">
 			If [code]true[/code], allows panning by holding down [kbd]Space[/kbd] in the 2D editor viewport (in addition to panning with the middle or right mouse buttons). If [code]false[/code], the left mouse button must be held down while holding down [kbd]Space[/kbd] to pan in the 2D editor viewport.
