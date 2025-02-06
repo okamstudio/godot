@@ -16,9 +16,9 @@
 		    # Expensive logic...
 
 		func _process(delta):
-		    var task_id = WorkerThreadPool.add_group_task(process_enemy_ai, enemies.size())
+		    var group_task_id = WorkerThreadPool.add_group_task(process_enemy_ai, enemies.size())
 		    # Other code...
-		    WorkerThreadPool.wait_for_group_task_completion(task_id)
+		    WorkerThreadPool.wait_for_group_task_completion(group_task_id)
 		    # Other code that depends on the enemy AI already being processed.
 		[/gdscript]
 		[csharp]
@@ -74,7 +74,7 @@
 		</method>
 		<method name="get_group_processed_element_count" qualifiers="const">
 			<return type="int" />
-			<param index="0" name="group_id" type="int" />
+			<param index="0" name="group_task_id" type="int" />
 			<description>
 				Returns how many times the [Callable] of the group task with the given ID has already been executed by the worker threads.
 				[b]Note:[/b] If a thread has started executing the [Callable] but is yet to finish, it won't be counted.
@@ -82,7 +82,7 @@
 		</method>
 		<method name="is_group_task_completed" qualifiers="const">
 			<return type="bool" />
-			<param index="0" name="group_id" type="int" />
+			<param index="0" name="group_task_id" type="int" />
 			<description>
 				Returns [code]true[/code] if the group task with the given ID is completed.
 				[b]Note:[/b] You should only call this method between adding the group task and awaiting its completion.
@@ -98,7 +98,7 @@
 		</method>
 		<method name="wait_for_group_task_completion">
 			<return type="void" />
-			<param index="0" name="group_id" type="int" />
+			<param index="0" name="group_task_id" type="int" />
 			<description>
 				Pauses the thread that calls this method until the group task with the given ID is completed.
 			</description>
