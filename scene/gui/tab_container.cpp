@@ -32,6 +32,13 @@
 
 #include "scene/theme/theme_db.h"
 
+TabContainer::CachedTab &TabContainer::get_pending_tab(int p_idx) const {
+	if (p_idx >= pending_tabs.size()) {
+		pending_tabs.resize(p_idx + 1);
+	}
+	return pending_tabs.write[p_idx];
+}
+
 int TabContainer::_get_tab_height() const {
 	int height = 0;
 	if (tabs_visible && get_tab_count() > 0) {
@@ -140,6 +147,19 @@ void TabContainer::gui_input(const Ref<InputEvent> &p_event) {
 	}
 }
 
+bool TabContainer::_property_get_revert(const StringName &p_name, Variant &r_property) const {
+	const String sname = p_name;
+
+	int index;
+	if (sname.ends_with("title") && property_helper.is_property_valid(sname, &index)) {
+		Vector<Control *> controls = _get_tab_controls();
+		ERR_FAIL_INDEX_V(index, controls.size(), false);
+		r_property = String(controls[index]->get_name());
+		return true;
+	}
+	return property_helper.property_get_revert(p_name, r_property);
+}
+
 void TabContainer::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_ENTER_TREE: {
@@ -154,7 +174,19 @@ void TabContainer::_notification(int p_what) {
 			}
 		} break;
 
-		case NOTIFICATION_READY:
+		case NOTIFICATION_READY: {
+			for (int i = 0; i < pending_tabs.size(); i++) {
+				const CachedTab &tab = pending_tabs[i];
+				set_tab_title(i, tab.title);
+				set_tab_icon(i, tab.icon);
+				set_tab_disabled(i, tab.disabled);
+				set_tab_hidden(i, tab.hidden);
+			}
+			pending_tabs.clear();
+
+			[[fallthrough]];
+		}
+
 		case NOTIFICATION_RESIZED: {
 			_update_margins();
 		} break;
@@ -563,6 +595,7 @@ void TabContainer::add_child_notify(Node *p_child) {
 	if (!is_inside_tree()) {
 		callable_mp(this, &TabContainer::_repaint).call_deferred();
 	}
+	notify_property_list_changed();
 }
 
 void TabContainer::move_child_notify(Node *p_child) {
@@ -578,6 +611,7 @@ void TabContainer::move_child_notify(Node *p_child) {
 	}
 
 	_refresh_tab_indices();
+	notify_property_list_changed();
 }
 
 void TabContainer::remove_child_notify(Node *p_child) {
@@ -616,6 +650,7 @@ void TabContainer::remove_child_notify(Node *p_child) {
 	if (!is_inside_tree()) {
 		callable_mp(this, &TabContainer::_repaint).call_deferred();
 	}
+	notify_property_list_changed();
 }
 
 TabBar *TabContainer::get_tab_bar() const {
@@ -769,6 +804,10 @@ bool TabContainer::is_all_tabs_in_front() const {
 
 void TabContainer::set_tab_title(int p_tab, const String &p_title) {
 	Control *child = get_tab_control(p_tab);
+	if (!child && !is_ready()) {
+		get_pending_tab(p_tab).title = p_title;
+		return;
+	}
 	ERR_FAIL_NULL(child);
 
 	if (tab_bar->get_tab_title(p_tab) == p_title) {
@@ -791,6 +830,12 @@ String TabContainer::get_tab_title(int p_tab) const {
 	return tab_bar->get_tab_title(p_tab);
 }
 
+bool TabContainer::tab_has_title(int p_tab) const {
+	Control *child = get_tab_control(p_tab);
+	ERR_FAIL_COND_V(!child, false);
+	return child->has_meta("_tab_name");
+}
+
 void TabContainer::set_tab_tooltip(int p_tab, const String &p_tooltip) {
 	tab_bar->set_tab_tooltip(p_tab, p_tooltip);
 }
@@ -800,6 +845,12 @@ String TabContainer::get_tab_tooltip(int p_tab) const {
 }
 
 void TabContainer::set_tab_icon(int p_tab, const Ref<Texture2D> &p_icon) {
+	Control *child = get_tab_control(p_tab);
+	if (!child && !is_ready()) {
+		get_pending_tab(p_tab).icon = p_icon;
+		return;
+	}
+
 	if (tab_bar->get_tab_icon(p_tab) == p_icon) {
 		return;
 	}
@@ -832,6 +883,12 @@ int TabContainer::get_tab_icon_max_width(int p_tab) const {
 }
 
 void TabContainer::set_tab_disabled(int p_tab, bool p_disabled) {
+	Control *child = get_tab_control(p_tab);
+	if (!child && !is_ready()) {
+		get_pending_tab(p_tab).disabled = p_disabled;
+		return;
+	}
+
 	if (tab_bar->is_tab_disabled(p_tab) == p_disabled) {
 		return;
 	}
@@ -850,6 +907,10 @@ bool TabContainer::is_tab_disabled(int p_tab) const {
 
 void TabContainer::set_tab_hidden(int p_tab, bool p_hidden) {
 	Control *child = get_tab_control(p_tab);
+	if (!child && !is_ready()) {
+		get_pending_tab(p_tab).hidden = p_hidden;
+		return;
+	}
 	ERR_FAIL_NULL(child);
 
 	if (tab_bar->is_tab_hidden(p_tab) == p_hidden) {
@@ -1021,6 +1082,7 @@ void TabContainer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("are_tabs_visible"), &TabContainer::are_tabs_visible);
 	ClassDB::bind_method(D_METHOD("set_all_tabs_in_front", "is_front"), &TabContainer::set_all_tabs_in_front);
 	ClassDB::bind_method(D_METHOD("is_all_tabs_in_front"), &TabContainer::is_all_tabs_in_front);
+
 	ClassDB::bind_method(D_METHOD("set_tab_title", "tab_idx", "title"), &TabContainer::set_tab_title);
 	ClassDB::bind_method(D_METHOD("get_tab_title", "tab_idx"), &TabContainer::get_tab_title);
 	ClassDB::bind_method(D_METHOD("set_tab_tooltip", "tab_idx", "tooltip"), &TabContainer::set_tab_tooltip);
@@ -1037,6 +1099,7 @@ void TabContainer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_tab_metadata", "tab_idx"), &TabContainer::get_tab_metadata);
 	ClassDB::bind_method(D_METHOD("set_tab_button_icon", "tab_idx", "icon"), &TabContainer::set_tab_button_icon);
 	ClassDB::bind_method(D_METHOD("get_tab_button_icon", "tab_idx"), &TabContainer::get_tab_button_icon);
+
 	ClassDB::bind_method(D_METHOD("get_tab_idx_at_point", "point"), &TabContainer::get_tab_idx_at_point);
 	ClassDB::bind_method(D_METHOD("get_tab_idx_from_control", "control"), &TabContainer::get_tab_idx_from_control);
 	ClassDB::bind_method(D_METHOD("set_popup", "popup"), &TabContainer::set_popup);
@@ -1110,6 +1173,15 @@ void TabContainer::_bind_methods() {
 	BIND_THEME_ITEM_CUSTOM(Theme::DATA_TYPE_FONT, TabContainer, tab_font, "font");
 	BIND_THEME_ITEM_CUSTOM(Theme::DATA_TYPE_FONT_SIZE, TabContainer, tab_font_size, "font_size");
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, TabContainer, outline_size);
+
+	CachedTab defaults;
+
+	base_property_helper.set_prefix("tab_");
+	base_property_helper.set_array_length_getter(&TabContainer::get_tab_count);
+	base_property_helper.register_property(PropertyInfo(Variant::STRING, "title"), defaults.title, &TabContainer::set_tab_title, &TabContainer::get_tab_title);
+	base_property_helper.register_property(PropertyInfo(Variant::OBJECT, "icon", PROPERTY_HINT_RESOURCE_TYPE, "Texture2D"), defaults.icon, &TabContainer::set_tab_icon, &TabContainer::get_tab_icon);
+	base_property_helper.register_property(PropertyInfo(Variant::BOOL, "disabled"), defaults.disabled, &TabContainer::set_tab_disabled, &TabContainer::is_tab_disabled);
+	base_property_helper.register_property(PropertyInfo(Variant::BOOL, "hidden"), defaults.hidden, &TabContainer::set_tab_hidden, &TabContainer::is_tab_hidden);
 }
 
 TabContainer::TabContainer() {
@@ -1123,6 +1195,7 @@ TabContainer::TabContainer() {
 	tab_bar->connect("tab_selected", callable_mp(this, &TabContainer::_on_tab_selected));
 	tab_bar->connect("tab_button_pressed", callable_mp(this, &TabContainer::_on_tab_button_pressed));
 	tab_bar->connect("active_tab_rearranged", callable_mp(this, &TabContainer::_on_active_tab_rearranged));
-
 	connect(SceneStringName(mouse_exited), callable_mp(this, &TabContainer::_on_mouse_exited));
+
+	property_helper.setup_for_instance(base_property_helper, this);
 }
