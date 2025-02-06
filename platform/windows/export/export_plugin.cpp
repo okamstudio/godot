@@ -43,6 +43,29 @@
 
 #include "modules/svg/image_loader_svg.h"
 
+#ifdef WINDOWS_ENABLED
+#include "shlobj.h"
+
+// Converts long path to Windows UNC format.
+static String fix_path(const String &p_path) {
+	String path = p_path;
+	if (p_path.is_relative_path()) {
+		Char16String current_dir_name;
+		size_t str_len = GetCurrentDirectoryW(0, nullptr);
+		current_dir_name.resize(str_len + 1);
+		GetCurrentDirectoryW(current_dir_name.size(), (LPWSTR)current_dir_name.ptrw());
+		path = String::utf16((const char16_t *)current_dir_name.get_data()).trim_prefix(R"(\\?\)").replace("\\", "/").path_join(path);
+	}
+	path = path.simplify_path();
+	path = path.replace("/", "\\");
+	if (path.size() >= MAX_PATH && !path.is_network_share_path() && !path.begins_with(R"(\\?\)")) {
+		path = R"(\\?\)" + path;
+	}
+	return path;
+}
+
+#endif
+
 Error EditorExportPlatformWindows::_process_icon(const Ref<EditorExportPreset> &p_preset, const String &p_src_path, const String &p_dst_path) {
 	static const uint8_t icon_size[] = { 16, 32, 48, 64, 128, 0 /*256*/ };
 
@@ -316,6 +339,23 @@ Error EditorExportPlatformWindows::export_project(const Ref<EditorExportPreset> 
 			tmp_app_dir->change_dir("..");
 			tmp_app_dir->remove(pkg_name);
 		}
+#ifdef WINDOWS_ENABLED
+	} else {
+		// Update Windows icon cache.
+		String w_path = fix_path(path);
+		SHChangeNotify(SHCNE_UPDATEITEM, SHCNF_PATH, (LPCWSTR)w_path.utf16().get_data(), nullptr);
+
+		String wrapper_path = path.get_basename() + ".console.exe";
+		if (FileAccess::exists(wrapper_path)) {
+			String w_wrapper_path = fix_path(wrapper_path);
+			SHChangeNotify(SHCNE_UPDATEITEM, SHCNF_PATH, (LPCWSTR)w_wrapper_path.utf16().get_data(), nullptr);
+		}
+
+		w_path = fix_path(path.get_base_dir());
+		SHChangeNotify(SHCNE_UPDATEITEM, SHCNF_PATH, (LPCWSTR)w_path.utf16().get_data(), nullptr);
+
+		SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
+#endif
 	}
 
 	return err;
