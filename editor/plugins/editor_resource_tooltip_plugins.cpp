@@ -107,7 +107,9 @@ Control *EditorTextureTooltipPlugin::make_tooltip_for_path(const String &p_resou
 	vb->set_alignment(BoxContainer::ALIGNMENT_CENTER);
 
 	Vector2 dimensions = p_metadata.get("dimensions", Vector2());
-	Label *label = memnew(Label(vformat(TTR(U"Dimensions: %d × %d"), dimensions.x, dimensions.y)));
+	// StringName has no UTF-32 constructor, so we need to use a temporary String to translate the text.
+	static constexpr char32_t dimensions_label_text_key[] = TTRC(U"Dimensions: %d × %d");
+	Label *label = memnew(Label(vformat(TTRGET(String(dimensions_label_text_key)), dimensions.x, dimensions.y)));
 	vb->add_child(label);
 
 	TextureRect *tr = memnew(TextureRect);
