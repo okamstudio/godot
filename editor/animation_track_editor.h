@@ -803,6 +803,9 @@ class AnimationTrackEditor : public VBoxContainer {
 
 	void _anim_paste_keys(float p_ofs, bool p_ofs_valid, int p_track);
 
+	void _toggle_function_names();
+	Button *function_name_toggler = nullptr;
+
 	void _view_group_toggle();
 	Button *view_group = nullptr;
 	Button *selected_filter = nullptr;
@@ -947,6 +950,7 @@ public:
 	bool is_marker_selected(const StringName &p_marker) const;
 	bool is_marker_moving_selection() const;
 	float get_marker_moving_selection_offset() const;
+	bool is_function_name_pressed();
 
 	/** If `p_from_mouse_event` is `true`, handle Shift key presses for precise snapping. */
 	void goto_prev_step(bool p_from_mouse_event);
