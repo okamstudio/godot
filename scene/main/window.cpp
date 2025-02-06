@@ -593,13 +593,6 @@ void Window::request_attention() {
 	}
 }
 
-#ifndef DISABLE_DEPRECATED
-void Window::move_to_foreground() {
-	WARN_DEPRECATED_MSG(R"*(The "move_to_foreground()" method is deprecated, use "grab_focus()" instead.)*");
-	grab_focus();
-}
-#endif // DISABLE_DEPRECATED
-
 bool Window::can_draw() const {
 	ERR_READ_THREAD_GUARD_V(false);
 	if (!is_inside_tree()) {
@@ -2919,10 +2912,6 @@ void Window::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_maximize_allowed"), &Window::is_maximize_allowed);
 
 	ClassDB::bind_method(D_METHOD("request_attention"), &Window::request_attention);
-
-#ifndef DISABLE_DEPRECATED
-	ClassDB::bind_method(D_METHOD("move_to_foreground"), &Window::move_to_foreground);
-#endif // DISABLE_DEPRECATED
 
 	ClassDB::bind_method(D_METHOD("set_visible", "visible"), &Window::set_visible);
 	ClassDB::bind_method(D_METHOD("is_visible"), &Window::is_visible);

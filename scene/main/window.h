@@ -314,9 +314,6 @@ public:
 	bool is_maximize_allowed() const;
 
 	void request_attention();
-#ifndef DISABLE_DEPRECATED
-	void move_to_foreground();
-#endif // DISABLE_DEPRECATED
 
 	virtual void set_visible(bool p_visible);
 	bool is_visible() const;

@@ -359,12 +359,6 @@
 				Centers a native window on the current screen and an embedded window on its embedder [Viewport].
 			</description>
 		</method>
-		<method name="move_to_foreground" deprecated="Use [method Window.grab_focus] instead.">
-			<return type="void" />
-			<description>
-				Causes the window to grab focus, allowing it to receive user input.
-			</description>
-		</method>
 		<method name="popup">
 			<return type="void" />
 			<param index="0" name="rect" type="Rect2i" default="Rect2i(0, 0, 0, 0)" />
