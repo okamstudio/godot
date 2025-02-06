@@ -191,7 +191,6 @@ void EditorObjectSelector::_id_pressed(int p_idx) {
 
 void EditorObjectSelector::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_ENTER_TREE:
 		case NOTIFICATION_THEME_CHANGED: {
 			update_path();
 

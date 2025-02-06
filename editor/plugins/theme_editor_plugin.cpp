@@ -3372,7 +3372,6 @@ void ThemeTypeEditor::_add_type_dialog_selected(const String p_type_name) {
 
 void ThemeTypeEditor::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_ENTER_TREE:
 		case NOTIFICATION_THEME_CHANGED: {
 			add_type_button->set_button_icon(get_editor_theme_icon(SNAME("Add")));
 

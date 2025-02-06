@@ -71,7 +71,6 @@ void EditorAudioBus::_update_visible_channels() {
 
 void EditorAudioBus::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_ENTER_TREE:
 		case NOTIFICATION_THEME_CHANGED: {
 			Ref<Texture2D> active_bus_texture = get_editor_theme_icon(SNAME("BusVuActive"));
 			for (int i = 0; i < CHANNELS_MAX; i++) {
@@ -1088,7 +1087,6 @@ EditorAudioBuses *EditorAudioBuses::register_editor() {
 
 void EditorAudioBuses::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_ENTER_TREE:
 		case NOTIFICATION_THEME_CHANGED: {
 			bus_scroll->add_theme_style_override(SceneStringName(panel), get_theme_stylebox(SceneStringName(panel), SNAME("Tree")));
 		} break;

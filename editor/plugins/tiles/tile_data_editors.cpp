@@ -1359,7 +1359,6 @@ void TileDataDefaultEditor::setup_property_editor(Variant::Type p_type, const St
 
 void TileDataDefaultEditor::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_ENTER_TREE:
 		case NOTIFICATION_THEME_CHANGED: {
 			picker_button->set_button_icon(get_editor_theme_icon(SNAME("ColorPick")));
 			tile_bool_checked = get_editor_theme_icon(SNAME("TileChecked"));
@@ -2865,7 +2864,6 @@ void TileDataTerrainsEditor::draw_over_tile(CanvasItem *p_canvas_item, Transform
 
 void TileDataTerrainsEditor::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_ENTER_TREE:
 		case NOTIFICATION_THEME_CHANGED: {
 			picker_button->set_button_icon(get_editor_theme_icon(SNAME("ColorPick")));
 		} break;

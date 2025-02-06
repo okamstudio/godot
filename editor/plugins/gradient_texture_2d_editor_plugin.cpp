@@ -258,7 +258,6 @@ void GradientTexture2DEditor::set_texture(Ref<GradientTexture2D> &p_texture) {
 
 void GradientTexture2DEditor::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_ENTER_TREE:
 		case NOTIFICATION_THEME_CHANGED: {
 			reverse_button->set_button_icon(get_editor_theme_icon(SNAME("ReverseGradient")));
 			snap_button->set_button_icon(get_editor_theme_icon(SNAME("SnapGrid")));

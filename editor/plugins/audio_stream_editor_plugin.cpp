@@ -43,8 +43,7 @@ void AudioStreamEditor::_notification(int p_what) {
 		case NOTIFICATION_READY: {
 			AudioStreamPreviewGenerator::get_singleton()->connect(SNAME("preview_updated"), callable_mp(this, &AudioStreamEditor::_preview_changed));
 		} break;
-		case NOTIFICATION_THEME_CHANGED:
-		case NOTIFICATION_ENTER_TREE: {
+		case NOTIFICATION_THEME_CHANGED: {
 			Ref<Font> font = get_theme_font(SNAME("status_source"), EditorStringName(EditorFonts));
 
 			_current_label->add_theme_font_override(SceneStringName(font), font);

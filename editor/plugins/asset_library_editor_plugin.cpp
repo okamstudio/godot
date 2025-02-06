@@ -239,7 +239,6 @@ void EditorAssetLibraryItemDescription::set_image(int p_type, int p_index, const
 
 void EditorAssetLibraryItemDescription::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_ENTER_TREE:
 		case NOTIFICATION_THEME_CHANGED: {
 			previews_bg->add_theme_style_override(SceneStringName(panel), previews->get_theme_stylebox(CoreStringName(normal), SNAME("TextEdit")));
 		} break;
@@ -636,7 +635,6 @@ void EditorAssetLibrary::_notification(int p_what) {
 			error_label->move_to_front();
 		} break;
 
-		case NOTIFICATION_ENTER_TREE:
 		case NOTIFICATION_THEME_CHANGED: {
 			error_tr->set_texture(get_editor_theme_icon(SNAME("Error")));
 			filter->set_right_icon(get_editor_theme_icon(SNAME("Search")));

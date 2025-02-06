@@ -160,7 +160,6 @@ void EditorZoomWidget::set_zoom_by_increments(int p_increment_count, bool p_inte
 
 void EditorZoomWidget::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_ENTER_TREE:
 		case NOTIFICATION_THEME_CHANGED: {
 			zoom_minus->set_button_icon(get_editor_theme_icon(SNAME("ZoomLess")));
 			zoom_plus->set_button_icon(get_editor_theme_icon(SNAME("ZoomMore")));

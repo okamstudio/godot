@@ -46,7 +46,6 @@ void OpenXRActionEditor::_theme_changed() {
 
 void OpenXRActionEditor::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_ENTER_TREE:
 		case NOTIFICATION_THEME_CHANGED: {
 			_theme_changed();
 		} break;

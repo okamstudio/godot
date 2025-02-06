@@ -1372,7 +1372,6 @@ void ConnectionsDock::_connect_pressed() {
 
 void ConnectionsDock::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_ENTER_TREE:
 		case NOTIFICATION_THEME_CHANGED: {
 			search_box->set_right_icon(get_editor_theme_icon(SNAME("Search")));
 

@@ -79,7 +79,6 @@ TextureRect *TexturePreview::get_texture_display() {
 
 void TexturePreview::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_ENTER_TREE:
 		case NOTIFICATION_THEME_CHANGED: {
 			if (!is_inside_tree()) {
 				// TODO: This is a workaround because `NOTIFICATION_THEME_CHANGED`

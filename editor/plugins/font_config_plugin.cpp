@@ -146,7 +146,6 @@ bool EditorPropertyFontOTObject::_property_get_revert(const StringName &p_name, 
 
 void EditorPropertyFontMetaOverride::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_ENTER_TREE:
 		case NOTIFICATION_THEME_CHANGED: {
 			if (button_add) {
 				button_add->set_button_icon(get_editor_theme_icon(SNAME("Add")));
@@ -549,7 +548,6 @@ EditorPropertyOTVariation::EditorPropertyOTVariation() {
 
 void EditorPropertyOTFeatures::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_ENTER_TREE:
 		case NOTIFICATION_THEME_CHANGED: {
 			if (button_add) {
 				button_add->set_button_icon(get_editor_theme_icon(SNAME("Add")));

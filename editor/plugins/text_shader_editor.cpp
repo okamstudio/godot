@@ -747,7 +747,6 @@ void TextShaderEditor::_prepare_edit_menu() {
 
 void TextShaderEditor::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_ENTER_TREE:
 		case NOTIFICATION_THEME_CHANGED: {
 			PopupMenu *popup = help_menu->get_popup();
 			popup->set_item_icon(popup->get_item_index(HELP_DOCS), get_editor_theme_icon(SNAME("ExternalLink")));
