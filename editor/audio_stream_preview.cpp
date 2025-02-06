@@ -241,7 +241,7 @@ void AudioStreamPreviewGenerator::_notification(int p_what) {
 			}
 
 			while (to_erase.front()) {
-				previews.erase(to_erase.front()->get());
+				previews.erase(to_erase.get_front());
 				to_erase.pop_front();
 			}
 		} break;

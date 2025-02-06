@@ -410,7 +410,7 @@ Rect2 AnimationTrackEditSpriteFrame::get_key_rect(int p_index, float p_pixels_se
 		int frame = get_animation()->track_get_key_value(get_track(), p_index);
 		String animation_name;
 		if (animations.size() == 1) {
-			animation_name = animations.front()->get();
+			animation_name = animations.get_front();
 		} else {
 			// Go through other track to find if animation is set
 			String animation_path = get_animation()->track_get_path(get_track());
@@ -502,7 +502,7 @@ void AnimationTrackEditSpriteFrame::draw_key(int p_index, float p_pixels_sec, in
 		int frame = get_animation()->track_get_key_value(get_track(), p_index);
 		String animation_name;
 		if (animations.size() == 1) {
-			animation_name = animations.front()->get();
+			animation_name = animations.get_front();
 		} else {
 			// Go through other track to find if animation is set
 			String animation_path = get_animation()->track_get_path(get_track());

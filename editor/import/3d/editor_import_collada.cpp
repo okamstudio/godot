@@ -1634,7 +1634,7 @@ void ColladaImport::create_animation(int p_clip, bool p_import_value_tracks) {
 
 		if (nm.anim_tracks.size() == 1) {
 			//use snapshot keys from anim track instead, because this was most likely exported baked
-			const Collada::AnimationTrack &at = collada.state.animation_tracks[nm.anim_tracks.front()->get()];
+			const Collada::AnimationTrack &at = collada.state.animation_tracks[nm.anim_tracks.get_front()];
 			snapshots.clear();
 			for (int i = 0; i < at.keys.size(); i++) {
 				snapshots.push_back(at.keys[i].time);

@@ -1459,7 +1459,7 @@ void SceneTree::_flush_delete_queue() {
 	_THREAD_SAFE_METHOD_
 
 	while (delete_queue.size()) {
-		Object *obj = ObjectDB::get_instance(delete_queue.front()->get());
+		Object *obj = ObjectDB::get_instance(delete_queue.get_front());
 		if (obj) {
 			memdelete(obj);
 		}

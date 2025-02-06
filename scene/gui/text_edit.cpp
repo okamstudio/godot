@@ -4076,13 +4076,13 @@ void TextEdit::end_complex_operation() {
 		return;
 	}
 
-	undo_stack.back()->get().end_carets = carets;
-	if (undo_stack.back()->get().chain_forward) {
-		undo_stack.back()->get().chain_forward = false;
+	undo_stack.get_back().end_carets = carets;
+	if (undo_stack.get_back().chain_forward) {
+		undo_stack.get_back().chain_forward = false;
 		return;
 	}
 
-	undo_stack.back()->get().chain_backward = true;
+	undo_stack.get_back().chain_backward = true;
 }
 
 bool TextEdit::has_undo() const {

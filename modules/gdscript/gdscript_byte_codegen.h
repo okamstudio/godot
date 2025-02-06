@@ -185,9 +185,9 @@ class GDScriptByteCodeGenerator : public GDScriptCodeGenerator {
 	}
 
 	void pop_stack_identifiers() {
-		int current_locals = stack_identifiers_counts.back()->get();
+		int current_locals = stack_identifiers_counts.get_back();
 		stack_identifiers_counts.pop_back();
-		stack_identifiers = stack_id_stack.back()->get();
+		stack_identifiers = stack_id_stack.get_back();
 		stack_id_stack.pop_back();
 #ifdef DEBUG_ENABLED
 		if (!used_temporaries.is_empty()) {
@@ -207,7 +207,7 @@ class GDScriptByteCodeGenerator : public GDScriptCodeGenerator {
 				sd.pos = E.value;
 				stack_debug.push_back(sd);
 			}
-			block_identifiers = block_identifier_stack.back()->get();
+			block_identifiers = block_identifier_stack.get_back();
 			block_identifier_stack.pop_back();
 		}
 	}

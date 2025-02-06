@@ -90,7 +90,7 @@ void GDScriptFunction::debug_get_stack_member_state(int p_line, List<Pair<String
 		_GDFKCS spp;
 		spp.id = E.key;
 		spp.order = E.value.order;
-		spp.pos = E.value.pos.back()->get();
+		spp.pos = E.value.pos.get_back();
 		stackpositions.push_back(spp);
 	}
 

@@ -1087,7 +1087,7 @@ void EditorFileDialog::update_file_list() {
 	}
 
 	while (!dirs.is_empty()) {
-		const String &dir_name = dirs.front()->get();
+		const String &dir_name = dirs.get_front();
 
 		bool bundle = dir_access->is_bundle(dir_name);
 		bool found = true;
@@ -1127,7 +1127,7 @@ void EditorFileDialog::update_file_list() {
 	while (!file_infos.is_empty()) {
 		bool match = patterns.is_empty();
 
-		FileInfo file_info = file_infos.front()->get();
+		FileInfo file_info = file_infos.get_front();
 		for (const String &E : patterns) {
 			if (file_info.name.matchn(E)) {
 				match = true;

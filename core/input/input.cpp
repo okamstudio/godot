@@ -1152,7 +1152,7 @@ void Input::parse_input_event(const Ref<InputEvent> &p_event) {
 #endif
 
 	if (use_accumulated_input) {
-		if (buffered_events.is_empty() || !buffered_events.back()->get()->accumulate(p_event)) {
+		if (buffered_events.is_empty() || !buffered_events.get_back()->accumulate(p_event)) {
 			buffered_events.push_back(p_event);
 		}
 	} else if (agile_input_event_flushing) {

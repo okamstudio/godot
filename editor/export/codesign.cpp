@@ -767,7 +767,7 @@ Vector<String> CodeSignRequirements::parse_requirements() const {
 		}
 
 		if (tokens.size() == 1) {
-			list.push_back(out + tokens.front()->get());
+			list.push_back(out + tokens.get_front());
 		} else {
 			ERR_FAIL_V_MSG(list, "CodeSign/Requirements: Invalid token sequence.");
 		}

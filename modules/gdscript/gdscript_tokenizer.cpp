@@ -294,7 +294,7 @@ void GDScriptTokenizerText::push_expression_indented_block() {
 
 void GDScriptTokenizerText::pop_expression_indented_block() {
 	ERR_FAIL_COND(indent_stack_stack.is_empty());
-	indent_stack = indent_stack_stack.back()->get();
+	indent_stack = indent_stack_stack.get_back();
 	indent_stack_stack.pop_back();
 }
 
@@ -346,14 +346,14 @@ bool GDScriptTokenizerText::pop_paren(char32_t p_expected) {
 	if (paren_stack.is_empty()) {
 		return false;
 	}
-	char32_t actual = paren_stack.back()->get();
+	char32_t actual = paren_stack.get_back();
 	paren_stack.pop_back();
 
 	return actual == p_expected;
 }
 
 GDScriptTokenizer::Token GDScriptTokenizerText::pop_error() {
-	Token error = error_stack.back()->get();
+	Token error = error_stack.get_back();
 	error_stack.pop_back();
 	return error;
 }
@@ -449,7 +449,7 @@ GDScriptTokenizer::Token GDScriptTokenizerText::make_paren_error(char32_t p_pare
 	if (paren_stack.is_empty()) {
 		return make_error(vformat("Closing \"%c\" doesn't have an opening counterpart.", p_paren));
 	}
-	Token error = make_error(vformat("Closing \"%c\" doesn't match the opening \"%c\".", p_paren, paren_stack.back()->get()));
+	Token error = make_error(vformat("Closing \"%c\" doesn't match the opening \"%c\".", p_paren, paren_stack.get_back()));
 	paren_stack.pop_back(); // Remove opening one anyway.
 	return error;
 }
@@ -1299,7 +1299,7 @@ void GDScriptTokenizerText::check_indent() {
 		// Check if indent or dedent.
 		int previous_indent = 0;
 		if (indent_level() > 0) {
-			previous_indent = indent_stack.back()->get();
+			previous_indent = indent_stack.get_back();
 		}
 		if (indent_count == previous_indent) {
 			// No change in indentation.
@@ -1315,11 +1315,11 @@ void GDScriptTokenizerText::check_indent() {
 				push_error("Tokenizer bug: trying to dedent without previous indent.");
 				return;
 			}
-			while (indent_level() > 0 && indent_stack.back()->get() > indent_count) {
+			while (indent_level() > 0 && indent_stack.get_back() > indent_count) {
 				indent_stack.pop_back();
 				pending_indents--;
 			}
-			if ((indent_level() > 0 && indent_stack.back()->get() != indent_count) || (indent_level() == 0 && indent_count != 0)) {
+			if ((indent_level() > 0 && indent_stack.get_back() != indent_count) || (indent_level() == 0 && indent_count != 0)) {
 				// Mismatched indentation alignment.
 				Token error = make_error("Unindent doesn't match the previous indentation level.");
 				error.start_line = line;

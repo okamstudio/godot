@@ -354,7 +354,7 @@ public:
 		}
 
 		while (to_clean.front()) {
-			cached.erase(to_clean.front()->get());
+			cached.erase(to_clean.get_front());
 			to_clean.pop_front();
 		}
 	}
@@ -1014,7 +1014,7 @@ void ScriptEditor::_close_all_tabs() {
 
 void ScriptEditor::_queue_close_tabs() {
 	while (!script_close_queue.is_empty()) {
-		int idx = script_close_queue.front()->get();
+		int idx = script_close_queue.get_front();
 		script_close_queue.pop_front();
 
 		tab_container->set_current_tab(idx);
@@ -1347,7 +1347,7 @@ void ScriptEditor::_menu_option(int p_option) {
 				return;
 			}
 
-			String path = previous_scripts.back()->get();
+			String path = previous_scripts.get_back();
 			previous_scripts.pop_back();
 
 			List<String> extensions;

@@ -165,7 +165,7 @@ void EditorDebuggerTree::update_scene_tree(const SceneDebuggerTree *p_tree, int 
 		TreeItem *parent = nullptr;
 		Pair<TreeItem *, TreeItem *> move_from_to;
 		if (parents.size()) { // Find last parent.
-			ParentItem &p = parents.front()->get();
+			ParentItem &p = parents.get_front();
 			parent = p.tree_item;
 			if (!(--p.child_count)) { // If no child left, remove it.
 				parents.pop_front();
@@ -413,7 +413,7 @@ void EditorDebuggerTree::_item_menu_id_pressed(int p_option) {
 				file_dialog->add_filter("*." + extension, extension.to_upper());
 			}
 
-			String filename = get_selected_path().get_file() + "." + extensions.front()->get().to_lower();
+			String filename = get_selected_path().get_file() + "." + extensions.get_front().to_lower();
 			file_dialog->set_current_path(filename);
 			file_dialog->popup_file_dialog();
 		} break;

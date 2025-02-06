@@ -571,7 +571,7 @@ GDScriptTest::TestResult GDScriptTest::execute_test_code(bool p_is_generating) {
 		const List<GDScriptParser::ParserError> &errors = parser.get_errors();
 		if (!errors.is_empty()) {
 			// Only the first error since the following might be cascading.
-			result.output += errors.front()->get().message + "\n"; // TODO: line, column?
+			result.output += errors.get_front().message + "\n"; // TODO: line, column?
 		}
 		if (!p_is_generating) {
 			result.passed = check_output(result.output);

@@ -358,7 +358,7 @@ void validate_property(const Context &p_context, const ExposedClass &p_class, co
 	}
 
 	if (getter && setter) {
-		const ArgumentData &setter_first_arg = setter->arguments.back()->get();
+		const ArgumentData &setter_first_arg = setter->arguments.get_back();
 		if (getter->return_type.name != setter_first_arg.type.name) {
 			// Special case for Node::set_name
 			bool whitelisted = getter->return_type.name == p_context.names_cache.string_name_type &&
@@ -369,7 +369,7 @@ void validate_property(const Context &p_context, const ExposedClass &p_class, co
 		}
 	}
 
-	const TypeReference &prop_type_ref = getter ? getter->return_type : setter->arguments.back()->get().type;
+	const TypeReference &prop_type_ref = getter ? getter->return_type : setter->arguments.get_back().type;
 
 	const ExposedClass *prop_class = p_context.find_exposed_class(prop_type_ref);
 	if (prop_class) {
@@ -389,7 +389,7 @@ void validate_property(const Context &p_context, const ExposedClass &p_class, co
 
 	if (getter) {
 		if (p_prop.index != -1) {
-			const ArgumentData &idx_arg = getter->arguments.front()->get();
+			const ArgumentData &idx_arg = getter->arguments.get_front();
 			if (idx_arg.type.name != p_context.names_cache.int_type) {
 				// If not an int, it can be an enum
 				TEST_COND(!p_context.enum_types.has(idx_arg.type.name),
@@ -400,7 +400,7 @@ void validate_property(const Context &p_context, const ExposedClass &p_class, co
 
 	if (setter) {
 		if (p_prop.index != -1) {
-			const ArgumentData &idx_arg = setter->arguments.front()->get();
+			const ArgumentData &idx_arg = setter->arguments.get_front();
 			if (idx_arg.type.name != p_context.names_cache.int_type) {
 				// Assume the index parameter is an enum
 				// If not an int, it can be an enum
@@ -523,7 +523,7 @@ void add_exposed_classes(Context &r_context) {
 	class_list.sort_custom<StringName::AlphCompare>();
 
 	while (class_list.size()) {
-		StringName class_name = class_list.front()->get();
+		StringName class_name = class_list.get_front();
 
 		ClassDB::APIType api_type = ClassDB::get_api_type(class_name);
 

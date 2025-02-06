@@ -61,7 +61,7 @@ RichTextLabel::ItemCustomFX::~ItemCustomFX() {
 RichTextLabel::Item *RichTextLabel::_get_next_item(Item *p_item, bool p_free) const {
 	if (p_free) {
 		if (p_item->subitems.size()) {
-			return p_item->subitems.front()->get();
+			return p_item->subitems.get_front();
 		} else if (!p_item->parent) {
 			return nullptr;
 		} else if (p_item->E->next()) {
@@ -81,7 +81,7 @@ RichTextLabel::Item *RichTextLabel::_get_next_item(Item *p_item, bool p_free) co
 
 	} else {
 		if (p_item->subitems.size() && p_item->type != ITEM_TABLE) {
-			return p_item->subitems.front()->get();
+			return p_item->subitems.get_front();
 		} else if (p_item->type == ITEM_FRAME) {
 			return nullptr;
 		} else if (p_item->E->next()) {
@@ -104,7 +104,7 @@ RichTextLabel::Item *RichTextLabel::_get_next_item(Item *p_item, bool p_free) co
 RichTextLabel::Item *RichTextLabel::_get_prev_item(Item *p_item, bool p_free) const {
 	if (p_free) {
 		if (p_item->subitems.size()) {
-			return p_item->subitems.back()->get();
+			return p_item->subitems.get_back();
 		} else if (!p_item->parent) {
 			return nullptr;
 		} else if (p_item->E->prev()) {
@@ -124,7 +124,7 @@ RichTextLabel::Item *RichTextLabel::_get_prev_item(Item *p_item, bool p_free) co
 
 	} else {
 		if (p_item->subitems.size() && p_item->type != ITEM_TABLE) {
-			return p_item->subitems.back()->get();
+			return p_item->subitems.get_back();
 		} else if (p_item->type == ITEM_FRAME) {
 			return nullptr;
 		} else if (p_item->E->prev()) {
@@ -3211,9 +3211,9 @@ void RichTextLabel::add_text(const String &p_text) {
 		}
 
 		if (line.length() > 0) {
-			if (current->subitems.size() && current->subitems.back()->get()->type == ITEM_TEXT) {
+			if (current->subitems.size() && current->subitems.get_back()->type == ITEM_TEXT) {
 				//append text condition!
-				ItemText *ti = static_cast<ItemText *>(current->subitems.back()->get());
+				ItemText *ti = static_cast<ItemText *>(current->subitems.get_back());
 				ti->text += line;
 				_invalidate_current_line(main);
 
@@ -4440,15 +4440,15 @@ void RichTextLabel::append_text(const String &p_bbcode) {
 		}
 
 		if (tag.begins_with("/") && tag_stack.size()) {
-			bool tag_ok = tag_stack.size() && tag_stack.front()->get() == tag.substr(1, tag.length());
+			bool tag_ok = tag_stack.size() && tag_stack.get_front() == tag.substr(1, tag.length());
 
-			if (tag_stack.front()->get() == "b") {
+			if (tag_stack.get_front() == "b") {
 				in_bold = false;
 			}
-			if (tag_stack.front()->get() == "i") {
+			if (tag_stack.get_front() == "i") {
 				in_italics = false;
 			}
-			if ((tag_stack.front()->get() == "indent") || (tag_stack.front()->get() == "ol") || (tag_stack.front()->get() == "ul")) {
+			if ((tag_stack.get_front() == "indent") || (tag_stack.get_front() == "ol") || (tag_stack.get_front() == "ul")) {
 				current_frame->indent_level--;
 			}
 

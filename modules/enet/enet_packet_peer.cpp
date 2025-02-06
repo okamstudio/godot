@@ -95,7 +95,7 @@ Error ENetPacketPeer::get_packet(const uint8_t **r_buffer, int &r_buffer_size) {
 		enet_packet_destroy(last_packet);
 		last_packet = nullptr;
 	}
-	last_packet = packet_queue.front()->get();
+	last_packet = packet_queue.get_front();
 	packet_queue.pop_front();
 	*r_buffer = (const uint8_t *)(last_packet->data);
 	r_buffer_size = last_packet->dataLength;
@@ -177,7 +177,7 @@ int ENetPacketPeer::get_channels() const {
 
 int ENetPacketPeer::get_packet_flags() const {
 	ERR_FAIL_COND_V(packet_queue.is_empty(), 0);
-	return packet_queue.front()->get()->flags;
+	return packet_queue.get_front()->flags;
 }
 
 void ENetPacketPeer::_on_disconnect() {

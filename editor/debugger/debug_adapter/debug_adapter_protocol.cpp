@@ -114,7 +114,7 @@ Error DAPeer::handle_data() {
 
 Error DAPeer::send_data() {
 	while (res_queue.size()) {
-		Dictionary data = res_queue.front()->get();
+		Dictionary data = res_queue.get_front();
 		if (!data.has("seq")) {
 			data["seq"] = ++seq;
 		}

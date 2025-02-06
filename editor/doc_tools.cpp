@@ -418,7 +418,7 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 
 		// Populate documentation data for each exposed class.
 		while (classes.size()) {
-			const String &name = classes.front()->get();
+			const String &name = classes.get_front();
 			if (!ClassDB::is_class_exposed(name)) {
 				print_verbose(vformat("Class '%s' is not exposed, skipping.", name));
 				classes.pop_front();
@@ -1270,7 +1270,7 @@ Error DocTools::erase_classes(const String &p_dir) {
 	da->list_dir_end();
 
 	while (to_erase.size()) {
-		da->remove(to_erase.front()->get());
+		da->remove(to_erase.get_front());
 		to_erase.pop_front();
 	}
 

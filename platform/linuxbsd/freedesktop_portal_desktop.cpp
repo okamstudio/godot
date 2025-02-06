@@ -595,7 +595,7 @@ Error FreeDesktopPortalDesktop::file_dialog_show(DisplayServer::WindowID p_windo
 void FreeDesktopPortalDesktop::process_file_dialog_callbacks() {
 	MutexLock lock(file_dialog_mutex);
 	while (!pending_cbs.is_empty()) {
-		FileDialogCallback cb = pending_cbs.front()->get();
+		FileDialogCallback cb = pending_cbs.get_front();
 		pending_cbs.pop_front();
 
 		if (cb.opt_in_cb) {

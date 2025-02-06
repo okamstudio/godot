@@ -771,7 +771,7 @@ void Viewport::_process_picking() {
 			vp->local_input_handled = false;
 		}
 
-		Ref<InputEvent> ev = physics_picking_events.front()->get();
+		Ref<InputEvent> ev = physics_picking_events.get_front();
 		physics_picking_events.pop_front();
 
 		Vector2 pos;
@@ -4062,7 +4062,7 @@ void Viewport::_cleanup_mouseover_colliders(bool p_clean_all_frames, bool p_paus
 	}
 
 	while (to_erase.size()) {
-		physics_2d_mouseover.erase(to_erase.front()->get());
+		physics_2d_mouseover.erase(to_erase.get_front());
 		to_erase.pop_front();
 	}
 
@@ -4089,19 +4089,19 @@ void Viewport::_cleanup_mouseover_colliders(bool p_clean_all_frames, bool p_paus
 	}
 
 	while (shapes_to_erase.size()) {
-		physics_2d_shape_mouseover.erase(shapes_to_erase.front()->get());
+		physics_2d_shape_mouseover.erase(shapes_to_erase.get_front());
 		shapes_to_erase.pop_front();
 	}
 
 	while (to_mouse_exit.size()) {
-		Object *o = ObjectDB::get_instance(to_mouse_exit.front()->get());
+		Object *o = ObjectDB::get_instance(to_mouse_exit.get_front());
 		CollisionObject2D *co = Object::cast_to<CollisionObject2D>(o);
 		co->_mouse_exit();
 		to_mouse_exit.pop_front();
 	}
 
 	while (shapes_to_mouse_exit.size()) {
-		Pair<ObjectID, int> e = shapes_to_mouse_exit.front()->get();
+		Pair<ObjectID, int> e = shapes_to_mouse_exit.get_front();
 		Object *o = ObjectDB::get_instance(e.first);
 		CollisionObject2D *co = Object::cast_to<CollisionObject2D>(o);
 		co->_mouse_shape_exit(e.second);

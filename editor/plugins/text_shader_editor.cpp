@@ -489,12 +489,12 @@ void ShaderTextEditor::_validate_script() {
 		ERR_FAIL_COND(err_positions.is_empty());
 
 		String err_text = error_pp;
-		int err_line = err_positions.front()->get().line;
+		int err_line = err_positions.get_front().line;
 		if (err_positions.size() == 1) {
 			// Error in main file
 			err_text = "error(" + itos(err_line) + "): " + err_text;
 		} else {
-			err_text = "error(" + itos(err_line) + ") in include " + err_positions.back()->get().file.get_file() + ":" + itos(err_positions.back()->get().line) + ": " + err_text;
+			err_text = "error(" + itos(err_line) + ") in include " + err_positions.get_back().file.get_file() + ":" + itos(err_positions.get_back().line) + ": " + err_text;
 			set_error_count(err_positions.size() - 1);
 		}
 

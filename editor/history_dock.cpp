@@ -135,11 +135,11 @@ void HistoryDock::refresh_version() {
 	double newest_undo_timestamp = 0;
 
 	if (include_scene && !current_scene_history.undo_stack.is_empty()) {
-		newest_undo_timestamp = current_scene_history.undo_stack.front()->get().timestamp;
+		newest_undo_timestamp = current_scene_history.undo_stack.get_front().timestamp;
 	}
 
 	if (include_global && !global_history.undo_stack.is_empty()) {
-		double global_undo_timestamp = global_history.undo_stack.front()->get().timestamp;
+		double global_undo_timestamp = global_history.undo_stack.get_front().timestamp;
 		if (global_undo_timestamp > newest_undo_timestamp) {
 			newest_undo_timestamp = global_undo_timestamp;
 		}

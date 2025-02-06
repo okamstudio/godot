@@ -1051,8 +1051,8 @@ void GridMap::_update_octants_callback() {
 	}
 
 	while (to_delete.front()) {
-		memdelete(octant_map[to_delete.front()->get()]);
-		octant_map.erase(to_delete.front()->get());
+		memdelete(octant_map[to_delete.get_front()]);
+		octant_map.erase(to_delete.get_front());
 		to_delete.pop_front();
 	}
 

@@ -4264,7 +4264,7 @@ bool VisualShaderEditor::_check_node_drop_on_connection(const Vector2 &p_positio
 		return false;
 	}
 
-	Ref<GraphEdit::Connection> intersecting_connection = intersecting_connections.front()->get();
+	Ref<GraphEdit::Connection> intersecting_connection = intersecting_connections.get_front();
 
 	if (selected_vsnode->is_any_port_connected() || selected_vsnode->get_input_port_count() == 0 || selected_vsnode->get_output_port_count() == 0) {
 		return false;
@@ -4327,7 +4327,7 @@ void VisualShaderEditor::_handle_node_drop_on_connection() {
 		return;
 	}
 
-	int selected_node_id = drag_buffer.front()->get().node;
+	int selected_node_id = drag_buffer.get_front().node;
 	VisualShader::Type shader_type = get_current_shader_type();
 	Ref<VisualShaderNode> selected_vsnode = visual_shader->get_node(shader_type, selected_node_id);
 
@@ -6275,8 +6275,8 @@ void VisualShaderEditor::_update_preview() {
 		if (err != OK) {
 			ERR_FAIL_COND(err_positions.is_empty());
 
-			String file = err_positions.front()->get().file;
-			int err_line = err_positions.front()->get().line;
+			String file = err_positions.get_front().file;
+			int err_line = err_positions.get_front().line;
 			Color error_line_color = EDITOR_GET("text_editor/theme/highlighting/mark_color");
 			preview_text->set_line_background_color(err_line - 1, error_line_color);
 			error_panel->show();

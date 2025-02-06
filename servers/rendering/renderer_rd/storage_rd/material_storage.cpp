@@ -1065,7 +1065,7 @@ void MaterialStorage::MaterialData::update_textures(const HashMap<StringName, Va
 		}
 
 		while (to_delete.front()) {
-			used_global_textures.erase(to_delete.front()->get());
+			used_global_textures.erase(to_delete.get_front());
 			to_delete.pop_front();
 		}
 		//handle registering/unregistering global textures

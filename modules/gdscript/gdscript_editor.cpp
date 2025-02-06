@@ -3634,17 +3634,17 @@ void GDScriptLanguage::auto_indent_code(String &p_code, int p_from_line, int p_t
 
 		int ilevel = 0;
 		if (indent_stack.size()) {
-			ilevel = indent_stack.back()->get();
+			ilevel = indent_stack.get_back();
 		}
 
 		if (tc > ilevel) {
 			indent_stack.push_back(tc);
 		} else if (tc < ilevel) {
-			while (indent_stack.size() && indent_stack.back()->get() > tc) {
+			while (indent_stack.size() && indent_stack.get_back() > tc) {
 				indent_stack.pop_back();
 			}
 
-			if (indent_stack.size() && indent_stack.back()->get() != tc) {
+			if (indent_stack.size() && indent_stack.get_back() != tc) {
 				indent_stack.push_back(tc); // this is not right but gets the job done
 			}
 		}

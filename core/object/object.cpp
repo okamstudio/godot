@@ -441,7 +441,7 @@ void Object::set_indexed(const Vector<StringName> &p_names, const Variant &p_val
 	}
 
 	for (int i = 1; i < p_names.size() - 1; i++) {
-		value_stack.push_back(value_stack.back()->get().get_named(p_names[i], valid));
+		value_stack.push_back(value_stack.get_back().get_named(p_names[i], valid));
 		if (r_valid) {
 			*r_valid = valid;
 		}
@@ -455,7 +455,7 @@ void Object::set_indexed(const Vector<StringName> &p_names, const Variant &p_val
 	value_stack.push_back(p_value); // p_names[p_names.size() - 1]
 
 	for (int i = p_names.size() - 1; i > 0; i--) {
-		value_stack.back()->prev()->get().set_named(p_names[i], value_stack.back()->get(), valid);
+		value_stack.back()->prev()->get().set_named(p_names[i], value_stack.get_back(), valid);
 		value_stack.pop_back();
 
 		if (r_valid) {
@@ -467,7 +467,7 @@ void Object::set_indexed(const Vector<StringName> &p_names, const Variant &p_val
 		}
 	}
 
-	set(p_names[0], value_stack.back()->get(), r_valid);
+	set(p_names[0], value_stack.get_back(), r_valid);
 	value_stack.pop_back();
 
 	ERR_FAIL_COND(!value_stack.is_empty());
@@ -2185,7 +2185,7 @@ Object::~Object() {
 
 	// Disconnect signals that connect to this object.
 	while (connections.size()) {
-		Connection c = connections.front()->get();
+		Connection c = connections.get_front();
 		Object *obj = c.callable.get_object();
 		bool disconnected = false;
 		if (likely(obj)) {

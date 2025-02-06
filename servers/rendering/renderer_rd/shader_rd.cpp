@@ -898,7 +898,7 @@ ShaderRD::~ShaderRD() {
 	if (remaining.size()) {
 		ERR_PRINT(itos(remaining.size()) + " shaders of type " + name + " were never freed");
 		while (remaining.size()) {
-			version_free(remaining.front()->get());
+			version_free(remaining.get_front());
 			remaining.pop_front();
 		}
 	}

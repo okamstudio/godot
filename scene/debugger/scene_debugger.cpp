@@ -630,7 +630,7 @@ SceneDebuggerTree::SceneDebuggerTree(Node *p_root) {
 	const StringName &is_visible_sn = SNAME("is_visible");
 	const StringName &is_visible_in_tree_sn = SNAME("is_visible_in_tree");
 	while (stack.size()) {
-		Node *n = stack.front()->get();
+		Node *n = stack.get_front();
 		stack.pop_front();
 
 		int count = n->get_child_count();

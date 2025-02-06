@@ -63,7 +63,7 @@ void EditorVisualProfiler::add_frame_metric(const Metric &p_metric) {
 		}
 
 		if (stack.size()) {
-			full_name = stack.back()->get() + name;
+			full_name = stack.get_back() + name;
 		} else {
 			full_name = name;
 		}
@@ -345,7 +345,7 @@ void EditorVisualProfiler::_update_frame(bool p_focus_selected) {
 	TreeItem *ensure_selected = nullptr;
 
 	for (int i = 1; i < m.areas.size() - 1; i++) {
-		TreeItem *parent = stack.size() ? stack.back()->get() : root;
+		TreeItem *parent = stack.size() ? stack.get_back() : root;
 
 		String name = m.areas[i].name;
 

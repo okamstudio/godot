@@ -182,7 +182,7 @@ void RenderingServerDefault::_draw(bool p_swap_buffers, double frame_step) {
 
 void RenderingServerDefault::_run_post_draw_steps() {
 	while (frame_drawn_callbacks.front()) {
-		Callable c = frame_drawn_callbacks.front()->get();
+		Callable c = frame_drawn_callbacks.get_front();
 		Variant result;
 		Callable::CallError ce;
 		c.callp(nullptr, 0, result, ce);

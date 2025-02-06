@@ -136,7 +136,7 @@ void TTS_Linux::_speech_event(int p_msg_id, int p_type) {
 		}
 	}
 	if (!speaking && queue.size() > 0) {
-		DisplayServer::TTSUtterance &message = queue.front()->get();
+		DisplayServer::TTSUtterance &message = queue.get_front();
 
 		// Inject index mark after each word.
 		String text;

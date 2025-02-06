@@ -704,7 +704,7 @@ bool PList::load_string(const String &p_string, String &r_err_out) {
 				// Add subnode end enter it.
 				Ref<PListNode> dict = PListNode::new_dict();
 				dict->data_type = PList::PLNodeType::PL_NODE_TYPE_DICT;
-				if (!stack.back()->get()->push_subnode(dict, key)) {
+				if (!stack.get_back()->push_subnode(dict, key)) {
 					r_err_out = "Can't push subnode, invalid parent type.";
 					return false;
 				}
@@ -724,7 +724,7 @@ bool PList::load_string(const String &p_string, String &r_err_out) {
 
 		if (token == "/dict") {
 			// Exit current dict.
-			if (stack.is_empty() || stack.back()->get()->data_type != PList::PLNodeType::PL_NODE_TYPE_DICT) {
+			if (stack.is_empty() || stack.get_back()->data_type != PList::PLNodeType::PL_NODE_TYPE_DICT) {
 				r_err_out = "Mismatched </dict> tag.";
 				return false;
 			}
@@ -736,7 +736,7 @@ bool PList::load_string(const String &p_string, String &r_err_out) {
 			if (!stack.is_empty()) {
 				// Add subnode end enter it.
 				Ref<PListNode> arr = PListNode::new_array();
-				if (!stack.back()->get()->push_subnode(arr, key)) {
+				if (!stack.get_back()->push_subnode(arr, key)) {
 					r_err_out = "Can't push subnode, invalid parent type.";
 					return false;
 				}
@@ -756,7 +756,7 @@ bool PList::load_string(const String &p_string, String &r_err_out) {
 
 		if (token == "/array") {
 			// Exit current array.
-			if (stack.is_empty() || stack.back()->get()->data_type != PList::PLNodeType::PL_NODE_TYPE_ARRAY) {
+			if (stack.is_empty() || stack.get_back()->data_type != PList::PLNodeType::PL_NODE_TYPE_ARRAY) {
 				r_err_out = "Mismatched </array> tag.";
 				return false;
 			}
@@ -803,7 +803,7 @@ bool PList::load_string(const String &p_string, String &r_err_out) {
 				r_err_out = vformat("Invalid value type: %s.", token);
 				return false;
 			}
-			if (stack.is_empty() || !stack.back()->get()->push_subnode(var, key)) {
+			if (stack.is_empty() || !stack.get_back()->push_subnode(var, key)) {
 				r_err_out = "Can't push subnode, invalid parent type.";
 				return false;
 			}

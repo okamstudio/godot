@@ -137,7 +137,7 @@ class GDScriptCompiler {
 		}
 
 		void end_block() {
-			locals = locals_stack.back()->get();
+			locals = locals_stack.get_back();
 			locals_stack.pop_back();
 			generator->end_block();
 		}

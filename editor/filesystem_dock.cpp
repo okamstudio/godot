@@ -349,7 +349,7 @@ Vector<String> FileSystemDock::get_uncollapsed_paths() const {
 			queue.push_back(res_subtree);
 
 			while (!queue.is_empty()) {
-				TreeItem *ti = queue.back()->get();
+				TreeItem *ti = queue.get_back();
 				queue.pop_back();
 				if (!ti->is_collapsed() && ti->get_child_count() > 0) {
 					Variant path = ti->get_metadata(0);
@@ -2021,7 +2021,7 @@ void FileSystemDock::_before_move(HashMap<String, ResourceUID::ID> &r_uids, Hash
 			List<EditorFileSystemDirectory *> folders;
 			folders.push_back(current_folder);
 			while (folders.front()) {
-				current_folder = folders.front()->get();
+				current_folder = folders.get_front();
 				for (int j = 0; j < current_folder->get_file_count(); j++) {
 					const String file_path = current_folder->get_file_path(j);
 					renamed_files.insert(file_path);

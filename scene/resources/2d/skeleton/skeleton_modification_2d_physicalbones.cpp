@@ -194,7 +194,7 @@ void SkeletonModification2DPhysicalBones::fetch_physical_bones() {
 	node_queue.push_back(stack->skeleton);
 
 	while (node_queue.size() > 0) {
-		Node *node_to_process = node_queue.front()->get();
+		Node *node_to_process = node_queue.get_front();
 		node_queue.pop_front();
 
 		if (node_to_process != nullptr) {

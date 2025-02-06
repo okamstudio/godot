@@ -111,7 +111,7 @@ protected:
 		get_animation_list(&animations);
 		Vector<String> ret;
 		while (animations.size()) {
-			ret.push_back(animations.front()->get());
+			ret.push_back(animations.get_front());
 			animations.pop_front();
 		}
 		return ret;

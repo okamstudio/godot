@@ -547,9 +547,9 @@ void ScriptTextEditor::_validate_script() {
 
 		if (errors.size() > 0) {
 			// TRANSLATORS: Script error pointing to a line and column number.
-			String error_text = vformat(TTR("Error at (%d, %d):"), errors.front()->get().line, errors.front()->get().column) + " " + errors.front()->get().message;
+			String error_text = vformat(TTR("Error at (%d, %d):"), errors.get_front().line, errors.get_front().column) + " " + errors.get_front().message;
 			code_editor->set_error(error_text);
-			code_editor->set_error_pos(errors.front()->get().line - 1, errors.front()->get().column - 1);
+			code_editor->set_error_pos(errors.get_front().line - 1, errors.get_front().column - 1);
 		}
 		script_is_valid = false;
 	} else {

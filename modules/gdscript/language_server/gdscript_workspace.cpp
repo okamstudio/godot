@@ -223,7 +223,7 @@ void GDScriptWorkspace::reload_all_workspace_scripts() {
 			HashMap<String, ExtendGDScriptParser *>::Iterator S = parse_results.find(path);
 			String err_msg = "Failed parse script " + path;
 			if (S) {
-				err_msg += "\n" + S->value->get_errors().front()->get().message;
+				err_msg += "\n" + S->value->get_errors().get_front().message;
 			}
 			ERR_CONTINUE_MSG(err != OK, err_msg);
 		}

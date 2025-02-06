@@ -62,7 +62,7 @@ void __stdcall TTS_Windows::speech_event_callback(WPARAM wParam, LPARAM lParam) 
 
 void TTS_Windows::process_events() {
 	if (update_requested && !paused && queue.size() > 0 && !is_speaking()) {
-		DisplayServer::TTSUtterance &message = queue.front()->get();
+		DisplayServer::TTSUtterance &message = queue.get_front();
 
 		String text;
 		DWORD flags = SPF_ASYNC | SPF_PURGEBEFORESPEAK | SPF_IS_XML;

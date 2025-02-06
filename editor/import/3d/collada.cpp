@@ -2299,7 +2299,7 @@ void Collada::_optimize() {
 			}
 
 			while (!mgeom.is_empty()) {
-				Node *n = mgeom.front()->get();
+				Node *n = mgeom.get_front();
 				n->parent->children.push_back(n);
 				mgeom.pop_front();
 			}

@@ -805,7 +805,7 @@ void Node3DEditorViewport::_select_clicked(bool p_allow_locked) {
 		}
 
 		if (editor_selection->get_selected_node_list().size() == 1) {
-			EditorNode::get_singleton()->edit_node(editor_selection->get_selected_node_list().front()->get());
+			EditorNode::get_singleton()->edit_node(editor_selection->get_selected_node_list().get_front());
 		}
 	}
 }
@@ -1136,7 +1136,7 @@ void Node3DEditorViewport::_select_region() {
 	}
 
 	if (editor_selection->get_selected_node_list().size() == 1) {
-		EditorNode::get_singleton()->edit_node(editor_selection->get_selected_node_list().front()->get());
+		EditorNode::get_singleton()->edit_node(editor_selection->get_selected_node_list().get_front());
 	}
 }
 
@@ -3168,7 +3168,7 @@ void Node3DEditorViewport::_notification(int p_what) {
 				} else {
 					List<Node *> &selection = editor_selection->get_selected_node_list();
 					if (selection.size() == 1) {
-						selected_node = Object::cast_to<Node3D>(selection.front()->get());
+						selected_node = Object::cast_to<Node3D>(selection.get_front());
 					}
 				}
 
@@ -4405,7 +4405,7 @@ Vector3 Node3DEditorViewport::_get_instance_position(const Point2 &p_pos, Node3D
 	if (!preview_node->is_inside_tree() && !ruler->is_inside_tree()) {
 		List<Node *> &selection = editor_selection->get_selected_node_list();
 
-		Node3D *first_selected_node = Object::cast_to<Node3D>(selection.front()->get());
+		Node3D *first_selected_node = Object::cast_to<Node3D>(selection.get_front());
 
 		Array children = first_selected_node->get_children();
 
@@ -5012,7 +5012,7 @@ void Node3DEditorViewport::drop_data_fw(const Point2 &p_point, const Variant &p_
 	List<Node *> selected_nodes = EditorNode::get_singleton()->get_editor_selection()->get_selected_node_list();
 	Node *root_node = EditorNode::get_singleton()->get_edited_scene();
 	if (selected_nodes.size() > 0) {
-		Node *selected_node = selected_nodes.front()->get();
+		Node *selected_node = selected_nodes.get_front();
 		if (is_alt) {
 			target_node = root_node;
 		} else if (is_shift) {

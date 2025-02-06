@@ -2829,12 +2829,12 @@ EditorProperty *EditorInspector::instantiate_property_editor(Object *p_object, c
 				memdelete(E->get().property_editor);
 			}
 
-			EditorProperty *prop = Object::cast_to<EditorProperty>(inspector_plugins[i]->added_editors.front()->get().property_editor);
+			EditorProperty *prop = Object::cast_to<EditorProperty>(inspector_plugins[i]->added_editors.get_front().property_editor);
 			if (prop) {
 				inspector_plugins[i]->added_editors.clear();
 				return prop;
 			} else {
-				memdelete(inspector_plugins[i]->added_editors.front()->get().property_editor);
+				memdelete(inspector_plugins[i]->added_editors.get_front().property_editor);
 				inspector_plugins[i]->added_editors.clear();
 			}
 		}

@@ -243,7 +243,7 @@ void RemoteDebugger::flush_output() {
 	}
 
 	while (errors.size()) {
-		ErrorMessage oe = errors.front()->get();
+		ErrorMessage oe = errors.get_front();
 		_put_msg("error", oe.serialize());
 		errors.pop_front();
 	}
@@ -388,8 +388,8 @@ Array RemoteDebugger::_get_message() {
 
 	Array msg;
 	msg.resize(2);
-	msg[0] = message_list.front()->get().message;
-	msg[1] = message_list.front()->get().data;
+	msg[0] = message_list.get_front().message;
+	msg[1] = message_list.get_front().data;
 	message_list.pop_front();
 	return msg;
 }

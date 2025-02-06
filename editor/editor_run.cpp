@@ -211,7 +211,7 @@ OS::ProcessID EditorRun::get_current_process() const {
 	if (pids.front() == nullptr) {
 		return 0;
 	}
-	return pids.front()->get();
+	return pids.get_front();
 }
 
 EditorRun::WindowPlacement EditorRun::get_window_placement() {

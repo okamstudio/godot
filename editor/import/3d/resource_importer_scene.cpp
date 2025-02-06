@@ -1438,7 +1438,7 @@ Node *ResourceImporterScene::_post_fix_node(Node *p_node, Node *p_root, HashMap<
 					List<StringName> anim_list;
 					anim_player->get_animation_list(&anim_list);
 					if (anim_list.size() == 1) {
-						selected_animation_name = anim_list.front()->get();
+						selected_animation_name = anim_list.get_front();
 					}
 					rest_animation = anim_player->get_animation(selected_animation_name);
 					if (rest_animation.is_valid()) {
@@ -1454,7 +1454,7 @@ Node *ResourceImporterScene::_post_fix_node(Node *p_node, Node *p_root, HashMap<
 						List<StringName> anim_list;
 						library->get_animation_list(&anim_list);
 						if (anim_list.size() == 1) {
-							selected_animation_name = String(anim_list.front()->get());
+							selected_animation_name = String(anim_list.get_front());
 						}
 						rest_animation = library->get_animation(selected_animation_name);
 					}
@@ -2252,7 +2252,7 @@ bool ResourceImporterScene::get_internal_option_visibility(InternalImportCategor
 						List<StringName> anim_list;
 						library->get_animation_list(&anim_list);
 						if (anim_list.size() == 1) {
-							selected_animation_name = String(anim_list.front()->get());
+							selected_animation_name = String(anim_list.get_front());
 						}
 						if (library->has_animation(selected_animation_name)) {
 							anim = library->get_animation(selected_animation_name);
@@ -3163,7 +3163,7 @@ Error ResourceImporterScene::import(ResourceUID::ID p_source_id, const String &p
 				List<StringName> libs;
 				ap->get_animation_library_list(&libs);
 				if (libs.size()) {
-					library = ap->get_animation_library(libs.front()->get());
+					library = ap->get_animation_library(libs.get_front());
 					break;
 				}
 			}

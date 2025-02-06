@@ -6250,7 +6250,7 @@ void RenderingDevice::_free_pending_resources(int p_frame) {
 	// Free in dependency usage order, so nothing weird happens.
 	// Pipelines.
 	while (frames[p_frame].render_pipelines_to_dispose_of.front()) {
-		RenderPipeline *pipeline = &frames[p_frame].render_pipelines_to_dispose_of.front()->get();
+		RenderPipeline *pipeline = &frames[p_frame].render_pipelines_to_dispose_of.get_front();
 
 		driver->pipeline_free(pipeline->driver_id);
 
@@ -6258,7 +6258,7 @@ void RenderingDevice::_free_pending_resources(int p_frame) {
 	}
 
 	while (frames[p_frame].compute_pipelines_to_dispose_of.front()) {
-		ComputePipeline *pipeline = &frames[p_frame].compute_pipelines_to_dispose_of.front()->get();
+		ComputePipeline *pipeline = &frames[p_frame].compute_pipelines_to_dispose_of.get_front();
 
 		driver->pipeline_free(pipeline->driver_id);
 
@@ -6267,7 +6267,7 @@ void RenderingDevice::_free_pending_resources(int p_frame) {
 
 	// Uniform sets.
 	while (frames[p_frame].uniform_sets_to_dispose_of.front()) {
-		UniformSet *uniform_set = &frames[p_frame].uniform_sets_to_dispose_of.front()->get();
+		UniformSet *uniform_set = &frames[p_frame].uniform_sets_to_dispose_of.get_front();
 
 		driver->uniform_set_free(uniform_set->driver_id);
 
@@ -6276,7 +6276,7 @@ void RenderingDevice::_free_pending_resources(int p_frame) {
 
 	// Shaders.
 	while (frames[p_frame].shaders_to_dispose_of.front()) {
-		Shader *shader = &frames[p_frame].shaders_to_dispose_of.front()->get();
+		Shader *shader = &frames[p_frame].shaders_to_dispose_of.get_front();
 
 		driver->shader_free(shader->driver_id);
 
@@ -6285,7 +6285,7 @@ void RenderingDevice::_free_pending_resources(int p_frame) {
 
 	// Samplers.
 	while (frames[p_frame].samplers_to_dispose_of.front()) {
-		RDD::SamplerID sampler = frames[p_frame].samplers_to_dispose_of.front()->get();
+		RDD::SamplerID sampler = frames[p_frame].samplers_to_dispose_of.get_front();
 
 		driver->sampler_free(sampler);
 
@@ -6294,14 +6294,14 @@ void RenderingDevice::_free_pending_resources(int p_frame) {
 
 	// Framebuffers.
 	while (frames[p_frame].framebuffers_to_dispose_of.front()) {
-		Framebuffer *framebuffer = &frames[p_frame].framebuffers_to_dispose_of.front()->get();
+		Framebuffer *framebuffer = &frames[p_frame].framebuffers_to_dispose_of.get_front();
 		draw_graph.framebuffer_cache_free(driver, framebuffer->framebuffer_cache);
 		frames[p_frame].framebuffers_to_dispose_of.pop_front();
 	}
 
 	// Textures.
 	while (frames[p_frame].textures_to_dispose_of.front()) {
-		Texture *texture = &frames[p_frame].textures_to_dispose_of.front()->get();
+		Texture *texture = &frames[p_frame].textures_to_dispose_of.get_front();
 		if (texture->bound) {
 			WARN_PRINT("Deleted a texture while it was bound.");
 		}
@@ -6316,7 +6316,7 @@ void RenderingDevice::_free_pending_resources(int p_frame) {
 
 	// Buffers.
 	while (frames[p_frame].buffers_to_dispose_of.front()) {
-		Buffer &buffer = frames[p_frame].buffers_to_dispose_of.front()->get();
+		Buffer &buffer = frames[p_frame].buffers_to_dispose_of.get_front();
 		driver->buffer_free(buffer.driver_id);
 		buffer_memory -= buffer.size;
 

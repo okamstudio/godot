@@ -270,7 +270,7 @@ void EditorResourcePreview::_iterate() {
 		return;
 	}
 
-	QueueItem item = queue.front()->get();
+	QueueItem item = queue.get_front();
 	queue.pop_front();
 
 	if (cache.has(item.path)) {

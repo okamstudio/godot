@@ -2523,7 +2523,7 @@ static void _add_text_to_rt(const String &p_bbcode, RichTextLabel *p_rt, const C
 		const String tag = bbcode.substr(brk_pos + 1, brk_end - brk_pos - 1);
 
 		if (tag.begins_with("/")) {
-			bool tag_ok = tag_stack.size() && tag_stack.front()->get() == tag.substr(1);
+			bool tag_ok = tag_stack.size() && tag_stack.get_front() == tag.substr(1);
 
 			if (!tag_ok) {
 				p_rt->add_text("[");
