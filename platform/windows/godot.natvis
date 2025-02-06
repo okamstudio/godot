@@ -168,18 +168,18 @@
 		<DisplayString Condition="type == Variant::BOOL">{_data._bool}</DisplayString>
 		<DisplayString Condition="type == Variant::INT">{_data._int}</DisplayString>
 		<DisplayString Condition="type == Variant::FLOAT">{_data._float}</DisplayString>
-		<DisplayString Condition="type == Variant::TRANSFORM2D">{_data._transform2d}</DisplayString>
-		<DisplayString Condition="type == Variant::AABB">{_data._aabb}</DisplayString>
-		<DisplayString Condition="type == Variant::BASIS">{_data._basis}</DisplayString>
-		<DisplayString Condition="type == Variant::TRANSFORM3D">{_data._transform3d}</DisplayString>
-		<DisplayString Condition="type == Variant::PROJECTION">{_data._projection}</DisplayString>
+		<DisplayString Condition="type == Variant::TRANSFORM2D">{*(Transform2D *)_data._ptr}</DisplayString>
+		<DisplayString Condition="type == Variant::AABB">{*(::AABB *)_data._ptr}</DisplayString>
+		<DisplayString Condition="type == Variant::BASIS">{*(Basis *)_data._ptr}</DisplayString>
+		<DisplayString Condition="type == Variant::TRANSFORM3D">{*(Transform3D *)_data._ptr}</DisplayString>
+		<DisplayString Condition="type == Variant::PROJECTION">{*(Projection *)_data._ptr}</DisplayString>
+		<DisplayString Condition="type == Variant::QUATERNION">{*(Quaternion *)_data._ptr}</DisplayString>
 		<DisplayString Condition="type == Variant::STRING">{*(String *)_data._mem}</DisplayString>
 		<DisplayString Condition="type == Variant::VECTOR2">{*(Vector2 *)_data._mem}</DisplayString>
 		<DisplayString Condition="type == Variant::RECT2">{*(Rect2 *)_data._mem}</DisplayString>
 		<DisplayString Condition="type == Variant::VECTOR3">{*(Vector3 *)_data._mem}</DisplayString>
 		<DisplayString Condition="type == Variant::VECTOR4">{*(Vector4 *)_data._mem}</DisplayString>
 		<DisplayString Condition="type == Variant::PLANE">{*(Plane *)_data._mem}</DisplayString>
-		<DisplayString Condition="type == Variant::QUATERNION">{*(Quaternion *)_data._mem}</DisplayString>
 		<DisplayString Condition="type == Variant::COLOR">{*(Color *)_data._mem}</DisplayString>
 		<DisplayString Condition="type == Variant::STRING_NAME">{*(StringName *)_data._mem}</DisplayString>
 		<DisplayString Condition="type == Variant::NODE_PATH">{*(NodePath *)_data._mem}</DisplayString>
@@ -187,16 +187,16 @@
 		<DisplayString Condition="type == Variant::OBJECT">{*(*reinterpret_cast&lt;ObjData*&gt;(&amp;_data._mem[0])).obj}</DisplayString>
 		<DisplayString Condition="type == Variant::DICTIONARY">{*(Dictionary *)_data._mem}</DisplayString>
 		<DisplayString Condition="type == Variant::ARRAY">{*(Array *)_data._mem}</DisplayString>
-		<DisplayString Condition="type == Variant::PACKED_BYTE_ARRAY">{reinterpret_cast&lt;const Variant::PackedArrayRef&lt;unsigned char&gt;*&gt;(_data.packed_array)->array}</DisplayString>
-		<DisplayString Condition="type == Variant::PACKED_INT32_ARRAY">{reinterpret_cast&lt;const Variant::PackedArrayRef&lt;int&gt;*&gt;(_data.packed_array)->array}</DisplayString>
-		<DisplayString Condition="type == Variant::PACKED_INT64_ARRAY">{*reinterpret_cast&lt;PackedInt64Array *&gt;(&amp;_data.packed_array[1])}</DisplayString>
-		<DisplayString Condition="type == Variant::PACKED_FLOAT32_ARRAY">{reinterpret_cast&lt;const Variant::PackedArrayRef&lt;float&gt;*&gt;(_data.packed_array)->array}</DisplayString>
-		<DisplayString Condition="type == Variant::PACKED_FLOAT64_ARRAY">{reinterpret_cast&lt;const Variant::PackedArrayRef&lt;double&gt;*&gt;(_data.packed_array)->array}</DisplayString>
-		<DisplayString Condition="type == Variant::PACKED_STRING_ARRAY">{reinterpret_cast&lt;const Variant::PackedArrayRef&lt;String&gt;*&gt;(_data.packed_array)->array}</DisplayString>
-		<DisplayString Condition="type == Variant::PACKED_VECTOR2_ARRAY">{reinterpret_cast&lt;const Variant::PackedArrayRef&lt;Vector2&gt;*&gt;(_data.packed_array)->array}</DisplayString>
-		<DisplayString Condition="type == Variant::PACKED_VECTOR3_ARRAY">{reinterpret_cast&lt;const Variant::PackedArrayRef&lt;Vector3&gt;*&gt;(_data.packed_array)->array}</DisplayString>
-		<DisplayString Condition="type == Variant::PACKED_COLOR_ARRAY">{reinterpret_cast&lt;const Variant::PackedArrayRef&lt;Color&gt;*&gt;(_data.packed_array)->array}</DisplayString>
-		<DisplayString Condition="type == Variant::PACKED_VECTOR4_ARRAY">{reinterpret_cast&lt;const Variant::PackedArrayRef&lt;Vector4&gt;*&gt;(_data.packed_array)->array}</DisplayString>
+		<DisplayString Condition="type == Variant::PACKED_BYTE_ARRAY">{reinterpret_cast&lt;const Variant::PackedArrayRef&lt;unsigned char&gt;*&gt;((PackedArrayRefBase*)_data._ptr)->array}</DisplayString>
+		<DisplayString Condition="type == Variant::PACKED_INT32_ARRAY">{reinterpret_cast&lt;const Variant::PackedArrayRef&lt;int&gt;*&gt;((PackedArrayRefBase*)_data._ptr)->array}</DisplayString>
+		<DisplayString Condition="type == Variant::PACKED_INT64_ARRAY">{*reinterpret_cast&lt;PackedInt64Array *&gt;(&amp;(PackedArrayRefBase*)_data._ptr[1])}</DisplayString>
+		<DisplayString Condition="type == Variant::PACKED_FLOAT32_ARRAY">{reinterpret_cast&lt;const Variant::PackedArrayRef&lt;float&gt;*&gt;((PackedArrayRefBase*)_data._ptr)->array}</DisplayString>
+		<DisplayString Condition="type == Variant::PACKED_FLOAT64_ARRAY">{reinterpret_cast&lt;const Variant::PackedArrayRef&lt;double&gt;*&gt;((PackedArrayRefBase*)_data._ptr)->array}</DisplayString>
+		<DisplayString Condition="type == Variant::PACKED_STRING_ARRAY">{reinterpret_cast&lt;const Variant::PackedArrayRef&lt;String&gt;*&gt;((PackedArrayRefBase*)_data._ptr)->array}</DisplayString>
+		<DisplayString Condition="type == Variant::PACKED_VECTOR2_ARRAY">{reinterpret_cast&lt;const Variant::PackedArrayRef&lt;Vector2&gt;*&gt;((PackedArrayRefBase*)_data._ptr)->array}</DisplayString>
+		<DisplayString Condition="type == Variant::PACKED_VECTOR3_ARRAY">{reinterpret_cast&lt;const Variant::PackedArrayRef&lt;Vector3&gt;*&gt;((PackedArrayRefBase*)_data._ptr)->array}</DisplayString>
+		<DisplayString Condition="type == Variant::PACKED_COLOR_ARRAY">{reinterpret_cast&lt;const Variant::PackedArrayRef&lt;Color&gt;*&gt;((PackedArrayRefBase*)_data._ptr)->array}</DisplayString>
+		<DisplayString Condition="type == Variant::PACKED_VECTOR4_ARRAY">{reinterpret_cast&lt;const Variant::PackedArrayRef&lt;Vector4&gt;*&gt;((PackedArrayRefBase*)_data._ptr)->array}</DisplayString>
 		<DisplayString Condition="type &lt; 0 || type >= Variant::VARIANT_MAX">[INVALID]</DisplayString>
 
 		<StringView Condition="type == Variant::STRING &amp;&amp; ((String *)(_data._mem))->_cowdata._ptr">((String *)(_data._mem))->_cowdata._ptr,s32</StringView>
@@ -205,10 +205,11 @@
 			<Item Name="[value]" Condition="type == Variant::BOOL">_data._bool</Item>
 			<Item Name="[value]" Condition="type == Variant::INT">_data._int</Item>
 			<Item Name="[value]" Condition="type == Variant::FLOAT">_data._float</Item>
-			<Item Name="[value]" Condition="type == Variant::TRANSFORM2D">_data._transform2d</Item>
-			<Item Name="[value]" Condition="type == Variant::AABB">_data._aabb</Item>
-			<Item Name="[value]" Condition="type == Variant::BASIS">_data._basis</Item>
-			<Item Name="[value]" Condition="type == Variant::TRANSFORM3D">_data._transform3d</Item>
+			<Item Name="[value]" Condition="type == Variant::TRANSFORM2D">*(Transform2D *)_data._ptr</Item>
+			<Item Name="[value]" Condition="type == Variant::AABB">*(::AABB *)_data._ptr</Item>
+			<Item Name="[value]" Condition="type == Variant::BASIS">*(Basis *)_data._ptr</Item>
+			<Item Name="[value]" Condition="type == Variant::TRANSFORM3D">*(Transform3D *)_data._ptr</Item>
+			<Item Name="[value]" Condition="type == Variant::PROJECTION">*(Projection *)_data._ptr</Item>
 			<Item Name="[value]" Condition="type == Variant::STRING">*(String *)_data._mem</Item>
 			<Item Name="[value]" Condition="type == Variant::VECTOR2">*(Vector2 *)_data._mem</Item>
 			<Item Name="[value]" Condition="type == Variant::RECT2">*(Rect2 *)_data._mem</Item>
@@ -222,16 +223,16 @@
 			<Item Name="[value]" Condition="type == Variant::OBJECT">*(*reinterpret_cast&lt;ObjData*&gt;(&amp;_data._mem[0])).obj</Item>
 			<Item Name="[value]" Condition="type == Variant::DICTIONARY">*(Dictionary *)_data._mem</Item>
 			<Item Name="[value]" Condition="type == Variant::ARRAY">*(Array *)_data._mem</Item>
-			<Item Name="[value]" Condition="type == Variant::PACKED_BYTE_ARRAY">reinterpret_cast&lt;const Variant::PackedArrayRef&lt;unsigned char&gt;*&gt;(_data.packed_array)->array</Item>
-			<Item Name="[value]" Condition="type == Variant::PACKED_INT32_ARRAY">reinterpret_cast&lt;const Variant::PackedArrayRef&lt;int&gt;*&gt;(_data.packed_array)->array</Item>
-			<Item Name="[value]" Condition="type == Variant::PACKED_INT64_ARRAY">*reinterpret_cast&lt;PackedInt64Array *&gt;(&amp;_data.packed_array[1])</Item>
-			<Item Name="[value]" Condition="type == Variant::PACKED_FLOAT32_ARRAY">reinterpret_cast&lt;const Variant::PackedArrayRef&lt;float&gt;*&gt;(_data.packed_array)->array</Item>
-			<Item Name="[value]" Condition="type == Variant::PACKED_FLOAT64_ARRAY">reinterpret_cast&lt;const Variant::PackedArrayRef&lt;double&gt;*&gt;(_data.packed_array)->array</Item>
-			<Item Name="[value]" Condition="type == Variant::PACKED_STRING_ARRAY">reinterpret_cast&lt;const Variant::PackedArrayRef&lt;String&gt;*&gt;(_data.packed_array)->array</Item>
-			<Item Name="[value]" Condition="type == Variant::PACKED_VECTOR2_ARRAY">reinterpret_cast&lt;const Variant::PackedArrayRef&lt;Vector2&gt;*&gt;(_data.packed_array)->array</Item>
-			<Item Name="[value]" Condition="type == Variant::PACKED_VECTOR3_ARRAY">reinterpret_cast&lt;const Variant::PackedArrayRef&lt;Vector3&gt;*&gt;(_data.packed_array)->array</Item>
-			<Item Name="[value]" Condition="type == Variant::PACKED_COLOR_ARRAY">reinterpret_cast&lt;const Variant::PackedArrayRef&lt;Color&gt;*&gt;(_data.packed_array)->array</Item>
-			<Item Name="[value]" Condition="type == Variant::PACKED_VECTOR4_ARRAY">reinterpret_cast&lt;const Variant::PackedArrayRef&lt;Vector4&gt;*&gt;(_data.packed_array)->array</Item>
+			<Item Name="[value]" Condition="type == Variant::PACKED_BYTE_ARRAY">reinterpret_cast&lt;const Variant::PackedArrayRef&lt;unsigned char&gt;*&gt;((PackedArrayRefBase*)_data._ptr)->array</Item>
+			<Item Name="[value]" Condition="type == Variant::PACKED_INT32_ARRAY">reinterpret_cast&lt;const Variant::PackedArrayRef&lt;int&gt;*&gt;((PackedArrayRefBase*)_data._ptr)->array</Item>
+			<Item Name="[value]" Condition="type == Variant::PACKED_INT64_ARRAY">*reinterpret_cast&lt;PackedInt64Array *&gt;(&amp;(PackedArrayRefBase*)_data._ptr[1])</Item>
+			<Item Name="[value]" Condition="type == Variant::PACKED_FLOAT32_ARRAY">reinterpret_cast&lt;const Variant::PackedArrayRef&lt;float&gt;*&gt;((PackedArrayRefBase*)_data._ptr)->array</Item>
+			<Item Name="[value]" Condition="type == Variant::PACKED_FLOAT64_ARRAY">reinterpret_cast&lt;const Variant::PackedArrayRef&lt;double&gt;*&gt;((PackedArrayRefBase*)_data._ptr)->array</Item>
+			<Item Name="[value]" Condition="type == Variant::PACKED_STRING_ARRAY">reinterpret_cast&lt;const Variant::PackedArrayRef&lt;String&gt;*&gt;((PackedArrayRefBase*)_data._ptr)->array</Item>
+			<Item Name="[value]" Condition="type == Variant::PACKED_VECTOR2_ARRAY">reinterpret_cast&lt;const Variant::PackedArrayRef&lt;Vector2&gt;*&gt;((PackedArrayRefBase*)_data._ptr)->array</Item>
+			<Item Name="[value]" Condition="type == Variant::PACKED_VECTOR3_ARRAY">reinterpret_cast&lt;const Variant::PackedArrayRef&lt;Vector3&gt;*&gt;((PackedArrayRefBase*)_data._ptr)->array</Item>
+			<Item Name="[value]" Condition="type == Variant::PACKED_COLOR_ARRAY">reinterpret_cast&lt;const Variant::PackedArrayRef&lt;Color&gt;*&gt;((PackedArrayRefBase*)_data._ptr)->array</Item>
+			<Item Name="[value]" Condition="type == Variant::PACKED_VECTOR4_ARRAY">reinterpret_cast&lt;const Variant::PackedArrayRef&lt;Vector4&gt;*&gt;((PackedArrayRefBase*)_data._ptr)->array</Item>
 
 		</Expand>
 	</Type>

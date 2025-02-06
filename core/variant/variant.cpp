@@ -920,7 +920,7 @@ bool Variant::is_zero() const {
 			return *reinterpret_cast<const Rect2i *>(_data._mem) == Rect2i();
 		}
 		case TRANSFORM2D: {
-			return *_data._transform2d == Transform2D();
+			return *reinterpret_cast<const Transform2D *>(_data._ptr) == Transform2D();
 		}
 		case VECTOR3: {
 			return *reinterpret_cast<const Vector3 *>(_data._mem) == Vector3();
@@ -938,19 +938,19 @@ bool Variant::is_zero() const {
 			return *reinterpret_cast<const Plane *>(_data._mem) == Plane();
 		}
 		case AABB: {
-			return *_data._aabb == ::AABB();
+			return *reinterpret_cast<const ::AABB *>(_data._ptr) == ::AABB();
 		}
 		case QUATERNION: {
 			return *reinterpret_cast<const Quaternion *>(_data._mem) == Quaternion();
 		}
 		case BASIS: {
-			return *_data._basis == Basis();
+			return *reinterpret_cast<const Basis *>(_data._ptr) == Basis();
 		}
 		case TRANSFORM3D: {
-			return *_data._transform3d == Transform3D();
+			return *reinterpret_cast<const Transform3D *>(_data._ptr) == Transform3D();
 		}
 		case PROJECTION: {
-			return *_data._projection == Projection();
+			return *reinterpret_cast<const Projection *>(_data._ptr) == Projection();
 		}
 
 		// Miscellaneous types.
@@ -984,34 +984,34 @@ bool Variant::is_zero() const {
 
 		// Arrays.
 		case PACKED_BYTE_ARRAY: {
-			return PackedArrayRef<uint8_t>::get_array(_data.packed_array).size() == 0;
+			return PackedArrayRef<uint8_t>::get_array((PackedArrayRefBase *)_data._ptr).size() == 0;
 		}
 		case PACKED_INT32_ARRAY: {
-			return PackedArrayRef<int32_t>::get_array(_data.packed_array).size() == 0;
+			return PackedArrayRef<int32_t>::get_array((PackedArrayRefBase *)_data._ptr).size() == 0;
 		}
 		case PACKED_INT64_ARRAY: {
-			return PackedArrayRef<int64_t>::get_array(_data.packed_array).size() == 0;
+			return PackedArrayRef<int64_t>::get_array((PackedArrayRefBase *)_data._ptr).size() == 0;
 		}
 		case PACKED_FLOAT32_ARRAY: {
-			return PackedArrayRef<float>::get_array(_data.packed_array).size() == 0;
+			return PackedArrayRef<float>::get_array((PackedArrayRefBase *)_data._ptr).size() == 0;
 		}
 		case PACKED_FLOAT64_ARRAY: {
-			return PackedArrayRef<double>::get_array(_data.packed_array).size() == 0;
+			return PackedArrayRef<double>::get_array((PackedArrayRefBase *)_data._ptr).size() == 0;
 		}
 		case PACKED_STRING_ARRAY: {
-			return PackedArrayRef<String>::get_array(_data.packed_array).size() == 0;
+			return PackedArrayRef<String>::get_array((PackedArrayRefBase *)_data._ptr).size() == 0;
 		}
 		case PACKED_VECTOR2_ARRAY: {
-			return PackedArrayRef<Vector2>::get_array(_data.packed_array).size() == 0;
+			return PackedArrayRef<Vector2>::get_array((PackedArrayRefBase *)_data._ptr).size() == 0;
 		}
 		case PACKED_VECTOR3_ARRAY: {
-			return PackedArrayRef<Vector3>::get_array(_data.packed_array).size() == 0;
+			return PackedArrayRef<Vector3>::get_array((PackedArrayRefBase *)_data._ptr).size() == 0;
 		}
 		case PACKED_COLOR_ARRAY: {
-			return PackedArrayRef<Color>::get_array(_data.packed_array).size() == 0;
+			return PackedArrayRef<Color>::get_array((PackedArrayRefBase *)_data._ptr).size() == 0;
 		}
 		case PACKED_VECTOR4_ARRAY: {
-			return PackedArrayRef<Vector4>::get_array(_data.packed_array).size() == 0;
+			return PackedArrayRef<Vector4>::get_array((PackedArrayRefBase *)_data._ptr).size() == 0;
 		}
 		default: {
 		}
@@ -1180,8 +1180,8 @@ void Variant::reference(const Variant &p_variant) {
 			memnew_placement(_data._mem, Rect2i(*reinterpret_cast<const Rect2i *>(p_variant._data._mem)));
 		} break;
 		case TRANSFORM2D: {
-			_data._transform2d = (Transform2D *)Pools::_bucket_small.alloc();
-			memnew_placement(_data._transform2d, Transform2D(*p_variant._data._transform2d));
+			_data._ptr = Pools::_bucket_small.alloc();
+			memnew_placement(_data._ptr, Transform2D(*reinterpret_cast<const Transform2D *>(p_variant._data._ptr)));
 		} break;
 		case VECTOR3: {
 			memnew_placement(_data._mem, Vector3(*reinterpret_cast<const Vector3 *>(p_variant._data._mem)));
@@ -1199,23 +1199,23 @@ void Variant::reference(const Variant &p_variant) {
 			memnew_placement(_data._mem, Plane(*reinterpret_cast<const Plane *>(p_variant._data._mem)));
 		} break;
 		case AABB: {
-			_data._aabb = (::AABB *)Pools::_bucket_small.alloc();
-			memnew_placement(_data._aabb, ::AABB(*p_variant._data._aabb));
+			_data._ptr = Pools::_bucket_small.alloc();
+			memnew_placement(_data._ptr, ::AABB(*reinterpret_cast<const ::AABB *>(p_variant._data._ptr)));
 		} break;
 		case QUATERNION: {
 			memnew_placement(_data._mem, Quaternion(*reinterpret_cast<const Quaternion *>(p_variant._data._mem)));
 		} break;
 		case BASIS: {
-			_data._basis = (Basis *)Pools::_bucket_medium.alloc();
-			memnew_placement(_data._basis, Basis(*p_variant._data._basis));
+			_data._ptr = Pools::_bucket_medium.alloc();
+			memnew_placement(_data._ptr, Basis(*reinterpret_cast<const Basis *>(p_variant._data._ptr)));
 		} break;
 		case TRANSFORM3D: {
-			_data._transform3d = (Transform3D *)Pools::_bucket_medium.alloc();
-			memnew_placement(_data._transform3d, Transform3D(*p_variant._data._transform3d));
+			_data._ptr = Pools::_bucket_medium.alloc();
+			memnew_placement(_data._ptr, Transform3D(*reinterpret_cast<const Transform3D *>(p_variant._data._ptr)));
 		} break;
 		case PROJECTION: {
-			_data._projection = (Projection *)Pools::_bucket_large.alloc();
-			memnew_placement(_data._projection, Projection(*p_variant._data._projection));
+			_data._ptr = (Projection *)Pools::_bucket_large.alloc();
+			memnew_placement(_data._ptr, Projection(*reinterpret_cast<const Projection *>(p_variant._data._ptr)));
 		} break;
 
 		// Miscellaneous types.
@@ -1250,63 +1250,63 @@ void Variant::reference(const Variant &p_variant) {
 
 		// Arrays.
 		case PACKED_BYTE_ARRAY: {
-			_data.packed_array = static_cast<PackedArrayRef<uint8_t> *>(p_variant._data.packed_array)->reference();
-			if (!_data.packed_array) {
-				_data.packed_array = PackedArrayRef<uint8_t>::create();
+			_data._ptr = static_cast<PackedArrayRef<uint8_t> *>((PackedArrayRefBase *)p_variant._data._ptr)->reference();
+			if (!_data._ptr) {
+				_data._ptr = PackedArrayRef<uint8_t>::create();
 			}
 		} break;
 		case PACKED_INT32_ARRAY: {
-			_data.packed_array = static_cast<PackedArrayRef<int32_t> *>(p_variant._data.packed_array)->reference();
-			if (!_data.packed_array) {
-				_data.packed_array = PackedArrayRef<int32_t>::create();
+			_data._ptr = static_cast<PackedArrayRef<int32_t> *>((PackedArrayRefBase *)p_variant._data._ptr)->reference();
+			if (!_data._ptr) {
+				_data._ptr = PackedArrayRef<int32_t>::create();
 			}
 		} break;
 		case PACKED_INT64_ARRAY: {
-			_data.packed_array = static_cast<PackedArrayRef<int64_t> *>(p_variant._data.packed_array)->reference();
-			if (!_data.packed_array) {
-				_data.packed_array = PackedArrayRef<int64_t>::create();
+			_data._ptr = static_cast<PackedArrayRef<int64_t> *>((PackedArrayRefBase *)p_variant._data._ptr)->reference();
+			if (!_data._ptr) {
+				_data._ptr = PackedArrayRef<int64_t>::create();
 			}
 		} break;
 		case PACKED_FLOAT32_ARRAY: {
-			_data.packed_array = static_cast<PackedArrayRef<float> *>(p_variant._data.packed_array)->reference();
-			if (!_data.packed_array) {
-				_data.packed_array = PackedArrayRef<float>::create();
+			_data._ptr = static_cast<PackedArrayRef<float> *>((PackedArrayRefBase *)p_variant._data._ptr)->reference();
+			if (!_data._ptr) {
+				_data._ptr = PackedArrayRef<float>::create();
 			}
 		} break;
 		case PACKED_FLOAT64_ARRAY: {
-			_data.packed_array = static_cast<PackedArrayRef<double> *>(p_variant._data.packed_array)->reference();
-			if (!_data.packed_array) {
-				_data.packed_array = PackedArrayRef<double>::create();
+			_data._ptr = static_cast<PackedArrayRef<double> *>((PackedArrayRefBase *)p_variant._data._ptr)->reference();
+			if (!_data._ptr) {
+				_data._ptr = PackedArrayRef<double>::create();
 			}
 		} break;
 		case PACKED_STRING_ARRAY: {
-			_data.packed_array = static_cast<PackedArrayRef<String> *>(p_variant._data.packed_array)->reference();
-			if (!_data.packed_array) {
-				_data.packed_array = PackedArrayRef<String>::create();
+			_data._ptr = static_cast<PackedArrayRef<String> *>((PackedArrayRefBase *)p_variant._data._ptr)->reference();
+			if (!_data._ptr) {
+				_data._ptr = PackedArrayRef<String>::create();
 			}
 		} break;
 		case PACKED_VECTOR2_ARRAY: {
-			_data.packed_array = static_cast<PackedArrayRef<Vector2> *>(p_variant._data.packed_array)->reference();
-			if (!_data.packed_array) {
-				_data.packed_array = PackedArrayRef<Vector2>::create();
+			_data._ptr = static_cast<PackedArrayRef<Vector2> *>((PackedArrayRefBase *)p_variant._data._ptr)->reference();
+			if (!_data._ptr) {
+				_data._ptr = PackedArrayRef<Vector2>::create();
 			}
 		} break;
 		case PACKED_VECTOR3_ARRAY: {
-			_data.packed_array = static_cast<PackedArrayRef<Vector3> *>(p_variant._data.packed_array)->reference();
-			if (!_data.packed_array) {
-				_data.packed_array = PackedArrayRef<Vector3>::create();
+			_data._ptr = static_cast<PackedArrayRef<Vector3> *>((PackedArrayRefBase *)p_variant._data._ptr)->reference();
+			if (!_data._ptr) {
+				_data._ptr = PackedArrayRef<Vector3>::create();
 			}
 		} break;
 		case PACKED_COLOR_ARRAY: {
-			_data.packed_array = static_cast<PackedArrayRef<Color> *>(p_variant._data.packed_array)->reference();
-			if (!_data.packed_array) {
-				_data.packed_array = PackedArrayRef<Color>::create();
+			_data._ptr = static_cast<PackedArrayRef<Color> *>((PackedArrayRefBase *)p_variant._data._ptr)->reference();
+			if (!_data._ptr) {
+				_data._ptr = PackedArrayRef<Color>::create();
 			}
 		} break;
 		case PACKED_VECTOR4_ARRAY: {
-			_data.packed_array = static_cast<PackedArrayRef<Vector4> *>(p_variant._data.packed_array)->reference();
-			if (!_data.packed_array) {
-				_data.packed_array = PackedArrayRef<Vector4>::create();
+			_data._ptr = static_cast<PackedArrayRef<Vector4> *>((PackedArrayRefBase *)p_variant._data._ptr)->reference();
+			if (!_data._ptr) {
+				_data._ptr = PackedArrayRef<Vector4>::create();
 			}
 		} break;
 		default: {
@@ -1383,38 +1383,38 @@ void Variant::_clear_internal() {
 
 		// Math types.
 		case TRANSFORM2D: {
-			if (_data._transform2d) {
-				_data._transform2d->~Transform2D();
-				Pools::_bucket_small.free((Pools::BucketSmall *)_data._transform2d);
-				_data._transform2d = nullptr;
+			if (_data._ptr) {
+				reinterpret_cast<Transform2D *>(_data._ptr)->~Transform2D();
+				Pools::_bucket_small.free((Pools::BucketSmall *)_data._ptr);
+				_data._ptr = nullptr;
 			}
 		} break;
 		case AABB: {
-			if (_data._aabb) {
-				_data._aabb->~AABB();
-				Pools::_bucket_small.free((Pools::BucketSmall *)_data._aabb);
-				_data._aabb = nullptr;
+			if (_data._ptr) {
+				reinterpret_cast<::AABB *>(_data._ptr)->~AABB();
+				Pools::_bucket_small.free((Pools::BucketSmall *)_data._ptr);
+				_data._ptr = nullptr;
 			}
 		} break;
 		case BASIS: {
-			if (_data._basis) {
-				_data._basis->~Basis();
-				Pools::_bucket_medium.free((Pools::BucketMedium *)_data._basis);
-				_data._basis = nullptr;
+			if (_data._ptr) {
+				reinterpret_cast<Basis *>(_data._ptr)->~Basis();
+				Pools::_bucket_medium.free((Pools::BucketMedium *)_data._ptr);
+				_data._ptr = nullptr;
 			}
 		} break;
 		case TRANSFORM3D: {
-			if (_data._transform3d) {
-				_data._transform3d->~Transform3D();
-				Pools::_bucket_medium.free((Pools::BucketMedium *)_data._transform3d);
-				_data._transform3d = nullptr;
+			if (_data._ptr) {
+				reinterpret_cast<Transform3D *>(_data._ptr)->~Transform3D();
+				Pools::_bucket_medium.free((Pools::BucketMedium *)_data._ptr);
+				_data._ptr = nullptr;
 			}
 		} break;
 		case PROJECTION: {
-			if (_data._projection) {
-				_data._projection->~Projection();
-				Pools::_bucket_large.free((Pools::BucketLarge *)_data._projection);
-				_data._projection = nullptr;
+			if (_data._ptr) {
+				reinterpret_cast<Projection *>(_data._ptr)->~Projection();
+				Pools::_bucket_large.free((Pools::BucketLarge *)_data._ptr);
+				_data._ptr = nullptr;
 			}
 		} break;
 
@@ -1449,34 +1449,34 @@ void Variant::_clear_internal() {
 
 		// Arrays.
 		case PACKED_BYTE_ARRAY: {
-			PackedArrayRefBase::destroy(_data.packed_array);
+			PackedArrayRefBase::destroy((PackedArrayRefBase *)_data._ptr);
 		} break;
 		case PACKED_INT32_ARRAY: {
-			PackedArrayRefBase::destroy(_data.packed_array);
+			PackedArrayRefBase::destroy((PackedArrayRefBase *)_data._ptr);
 		} break;
 		case PACKED_INT64_ARRAY: {
-			PackedArrayRefBase::destroy(_data.packed_array);
+			PackedArrayRefBase::destroy((PackedArrayRefBase *)_data._ptr);
 		} break;
 		case PACKED_FLOAT32_ARRAY: {
-			PackedArrayRefBase::destroy(_data.packed_array);
+			PackedArrayRefBase::destroy((PackedArrayRefBase *)_data._ptr);
 		} break;
 		case PACKED_FLOAT64_ARRAY: {
-			PackedArrayRefBase::destroy(_data.packed_array);
+			PackedArrayRefBase::destroy((PackedArrayRefBase *)_data._ptr);
 		} break;
 		case PACKED_STRING_ARRAY: {
-			PackedArrayRefBase::destroy(_data.packed_array);
+			PackedArrayRefBase::destroy((PackedArrayRefBase *)_data._ptr);
 		} break;
 		case PACKED_VECTOR2_ARRAY: {
-			PackedArrayRefBase::destroy(_data.packed_array);
+			PackedArrayRefBase::destroy((PackedArrayRefBase *)_data._ptr);
 		} break;
 		case PACKED_VECTOR3_ARRAY: {
-			PackedArrayRefBase::destroy(_data.packed_array);
+			PackedArrayRefBase::destroy((PackedArrayRefBase *)_data._ptr);
 		} break;
 		case PACKED_COLOR_ARRAY: {
-			PackedArrayRefBase::destroy(_data.packed_array);
+			PackedArrayRefBase::destroy((PackedArrayRefBase *)_data._ptr);
 		} break;
 		case PACKED_VECTOR4_ARRAY: {
-			PackedArrayRefBase::destroy(_data.packed_array);
+			PackedArrayRefBase::destroy((PackedArrayRefBase *)_data._ptr);
 		} break;
 		default: {
 			// Not needed, there is no point. The following do not allocate memory:
@@ -1886,7 +1886,7 @@ Variant::operator Plane() const {
 
 Variant::operator ::AABB() const {
 	if (type == AABB) {
-		return *_data._aabb;
+		return *(const ::AABB *)_data._ptr;
 	} else {
 		return ::AABB();
 	}
@@ -1894,11 +1894,11 @@ Variant::operator ::AABB() const {
 
 Variant::operator Basis() const {
 	if (type == BASIS) {
-		return *_data._basis;
+		return *reinterpret_cast<Basis *>(_data._ptr);
 	} else if (type == QUATERNION) {
 		return *reinterpret_cast<const Quaternion *>(_data._mem);
 	} else if (type == TRANSFORM3D) { // unexposed in Variant::can_convert?
-		return _data._transform3d->basis;
+		return reinterpret_cast<Transform3D *>(_data._ptr)->basis;
 	} else {
 		return Basis();
 	}
@@ -1908,9 +1908,9 @@ Variant::operator Quaternion() const {
 	if (type == QUATERNION) {
 		return *reinterpret_cast<const Quaternion *>(_data._mem);
 	} else if (type == BASIS) {
-		return *_data._basis;
+		return *reinterpret_cast<Basis *>(_data._ptr);
 	} else if (type == TRANSFORM3D) {
-		return _data._transform3d->basis;
+		return reinterpret_cast<Transform3D *>(_data._ptr)->basis;
 	} else {
 		return Quaternion();
 	}
@@ -1918,13 +1918,13 @@ Variant::operator Quaternion() const {
 
 Variant::operator Transform3D() const {
 	if (type == TRANSFORM3D) {
-		return *_data._transform3d;
+		return *reinterpret_cast<Transform3D *>(_data._ptr);
 	} else if (type == BASIS) {
-		return Transform3D(*_data._basis, Vector3());
+		return Transform3D(*reinterpret_cast<Basis *>(_data._ptr), Vector3());
 	} else if (type == QUATERNION) {
 		return Transform3D(Basis(*reinterpret_cast<const Quaternion *>(_data._mem)), Vector3());
 	} else if (type == TRANSFORM2D) {
-		const Transform2D &t = *_data._transform2d;
+		const Transform2D &t = *reinterpret_cast<Transform2D *>(_data._ptr);
 		Transform3D m;
 		m.basis.rows[0][0] = t.columns[0][0];
 		m.basis.rows[1][0] = t.columns[0][1];
@@ -1934,7 +1934,7 @@ Variant::operator Transform3D() const {
 		m.origin[1] = t.columns[2][1];
 		return m;
 	} else if (type == PROJECTION) {
-		return *_data._projection;
+		return *reinterpret_cast<Projection *>(_data._ptr);
 	} else {
 		return Transform3D();
 	}
@@ -1942,13 +1942,13 @@ Variant::operator Transform3D() const {
 
 Variant::operator Projection() const {
 	if (type == TRANSFORM3D) {
-		return *_data._transform3d;
+		return *reinterpret_cast<Transform3D *>(_data._ptr);
 	} else if (type == BASIS) {
-		return Transform3D(*_data._basis, Vector3());
+		return Transform3D(*reinterpret_cast<Basis *>(_data._ptr), Vector3());
 	} else if (type == QUATERNION) {
 		return Transform3D(Basis(*reinterpret_cast<const Quaternion *>(_data._mem)), Vector3());
 	} else if (type == TRANSFORM2D) {
-		const Transform2D &t = *_data._transform2d;
+		const Transform2D &t = *reinterpret_cast<Transform2D *>(_data._ptr);
 		Transform3D m;
 		m.basis.rows[0][0] = t.columns[0][0];
 		m.basis.rows[1][0] = t.columns[0][1];
@@ -1958,7 +1958,7 @@ Variant::operator Projection() const {
 		m.origin[1] = t.columns[2][1];
 		return m;
 	} else if (type == PROJECTION) {
-		return *_data._projection;
+		return *reinterpret_cast<Projection *>(_data._ptr);
 	} else {
 		return Projection();
 	}
@@ -1966,9 +1966,9 @@ Variant::operator Projection() const {
 
 Variant::operator Transform2D() const {
 	if (type == TRANSFORM2D) {
-		return *_data._transform2d;
+		return *reinterpret_cast<Transform2D *>(_data._ptr);
 	} else if (type == TRANSFORM3D) {
-		const Transform3D &t = *_data._transform3d;
+		const Transform3D &t = *reinterpret_cast<Transform3D *>(_data._ptr);
 		Transform2D m;
 		m.columns[0][0] = t.basis.rows[0][0];
 		m.columns[0][1] = t.basis.rows[1][0];
@@ -2141,7 +2141,7 @@ Variant::operator Array() const {
 
 Variant::operator PackedByteArray() const {
 	if (type == PACKED_BYTE_ARRAY) {
-		return static_cast<PackedArrayRef<uint8_t> *>(_data.packed_array)->array;
+		return static_cast<PackedArrayRef<uint8_t> *>((PackedArrayRefBase *)_data._ptr)->array;
 	} else {
 		return _convert_array_from_variant<PackedByteArray>(*this);
 	}
@@ -2149,7 +2149,7 @@ Variant::operator PackedByteArray() const {
 
 Variant::operator PackedInt32Array() const {
 	if (type == PACKED_INT32_ARRAY) {
-		return static_cast<PackedArrayRef<int32_t> *>(_data.packed_array)->array;
+		return static_cast<PackedArrayRef<int32_t> *>((PackedArrayRefBase *)_data._ptr)->array;
 	} else {
 		return _convert_array_from_variant<PackedInt32Array>(*this);
 	}
@@ -2157,7 +2157,7 @@ Variant::operator PackedInt32Array() const {
 
 Variant::operator PackedInt64Array() const {
 	if (type == PACKED_INT64_ARRAY) {
-		return static_cast<PackedArrayRef<int64_t> *>(_data.packed_array)->array;
+		return static_cast<PackedArrayRef<int64_t> *>((PackedArrayRefBase *)_data._ptr)->array;
 	} else {
 		return _convert_array_from_variant<PackedInt64Array>(*this);
 	}
@@ -2165,7 +2165,7 @@ Variant::operator PackedInt64Array() const {
 
 Variant::operator PackedFloat32Array() const {
 	if (type == PACKED_FLOAT32_ARRAY) {
-		return static_cast<PackedArrayRef<float> *>(_data.packed_array)->array;
+		return static_cast<PackedArrayRef<float> *>((PackedArrayRefBase *)_data._ptr)->array;
 	} else {
 		return _convert_array_from_variant<PackedFloat32Array>(*this);
 	}
@@ -2173,7 +2173,7 @@ Variant::operator PackedFloat32Array() const {
 
 Variant::operator PackedFloat64Array() const {
 	if (type == PACKED_FLOAT64_ARRAY) {
-		return static_cast<PackedArrayRef<double> *>(_data.packed_array)->array;
+		return static_cast<PackedArrayRef<double> *>((PackedArrayRefBase *)_data._ptr)->array;
 	} else {
 		return _convert_array_from_variant<PackedFloat64Array>(*this);
 	}
@@ -2181,7 +2181,7 @@ Variant::operator PackedFloat64Array() const {
 
 Variant::operator PackedStringArray() const {
 	if (type == PACKED_STRING_ARRAY) {
-		return static_cast<PackedArrayRef<String> *>(_data.packed_array)->array;
+		return static_cast<PackedArrayRef<String> *>((PackedArrayRefBase *)_data._ptr)->array;
 	} else {
 		return _convert_array_from_variant<PackedStringArray>(*this);
 	}
@@ -2189,7 +2189,7 @@ Variant::operator PackedStringArray() const {
 
 Variant::operator PackedVector2Array() const {
 	if (type == PACKED_VECTOR2_ARRAY) {
-		return static_cast<PackedArrayRef<Vector2> *>(_data.packed_array)->array;
+		return static_cast<PackedArrayRef<Vector2> *>((PackedArrayRefBase *)_data._ptr)->array;
 	} else {
 		return _convert_array_from_variant<PackedVector2Array>(*this);
 	}
@@ -2197,7 +2197,7 @@ Variant::operator PackedVector2Array() const {
 
 Variant::operator PackedVector3Array() const {
 	if (type == PACKED_VECTOR3_ARRAY) {
-		return static_cast<PackedArrayRef<Vector3> *>(_data.packed_array)->array;
+		return static_cast<PackedArrayRef<Vector3> *>((PackedArrayRefBase *)_data._ptr)->array;
 	} else {
 		return _convert_array_from_variant<PackedVector3Array>(*this);
 	}
@@ -2205,7 +2205,7 @@ Variant::operator PackedVector3Array() const {
 
 Variant::operator PackedColorArray() const {
 	if (type == PACKED_COLOR_ARRAY) {
-		return static_cast<PackedArrayRef<Color> *>(_data.packed_array)->array;
+		return static_cast<PackedArrayRef<Color> *>((PackedArrayRefBase *)_data._ptr)->array;
 	} else {
 		return _convert_array_from_variant<PackedColorArray>(*this);
 	}
@@ -2213,7 +2213,7 @@ Variant::operator PackedColorArray() const {
 
 Variant::operator PackedVector4Array() const {
 	if (type == PACKED_VECTOR4_ARRAY) {
-		return static_cast<PackedArrayRef<Vector4> *>(_data.packed_array)->array;
+		return static_cast<PackedArrayRef<Vector4> *>((PackedArrayRefBase *)_data._ptr)->array;
 	} else {
 		return _convert_array_from_variant<PackedVector4Array>(*this);
 	}
@@ -2455,14 +2455,14 @@ Variant::Variant(const Plane &p_plane) :
 
 Variant::Variant(const ::AABB &p_aabb) :
 		type(AABB) {
-	_data._aabb = (::AABB *)Pools::_bucket_small.alloc();
-	memnew_placement(_data._aabb, ::AABB(p_aabb));
+	_data._ptr = (::AABB *)Pools::_bucket_small.alloc();
+	memnew_placement(_data._ptr, ::AABB(p_aabb));
 }
 
 Variant::Variant(const Basis &p_matrix) :
 		type(BASIS) {
-	_data._basis = (Basis *)Pools::_bucket_medium.alloc();
-	memnew_placement(_data._basis, Basis(p_matrix));
+	_data._ptr = (Basis *)Pools::_bucket_medium.alloc();
+	memnew_placement(_data._ptr, Basis(p_matrix));
 }
 
 Variant::Variant(const Quaternion &p_quaternion) :
@@ -2473,20 +2473,20 @@ Variant::Variant(const Quaternion &p_quaternion) :
 
 Variant::Variant(const Transform3D &p_transform) :
 		type(TRANSFORM3D) {
-	_data._transform3d = (Transform3D *)Pools::_bucket_medium.alloc();
-	memnew_placement(_data._transform3d, Transform3D(p_transform));
+	_data._ptr = (Transform3D *)Pools::_bucket_medium.alloc();
+	memnew_placement(_data._ptr, Transform3D(p_transform));
 }
 
 Variant::Variant(const Projection &pp_projection) :
 		type(PROJECTION) {
-	_data._projection = (Projection *)Pools::_bucket_large.alloc();
-	memnew_placement(_data._projection, Projection(pp_projection));
+	_data._ptr = (Projection *)Pools::_bucket_large.alloc();
+	memnew_placement(_data._ptr, Projection(pp_projection));
 }
 
 Variant::Variant(const Transform2D &p_transform) :
 		type(TRANSFORM2D) {
-	_data._transform2d = (Transform2D *)Pools::_bucket_small.alloc();
-	memnew_placement(_data._transform2d, Transform2D(p_transform));
+	_data._ptr = (Transform2D *)Pools::_bucket_small.alloc();
+	memnew_placement(_data._ptr, Transform2D(p_transform));
 }
 
 Variant::Variant(const Color &p_color) :
@@ -2539,52 +2539,52 @@ Variant::Variant(const Array &p_array) :
 
 Variant::Variant(const PackedByteArray &p_byte_array) :
 		type(PACKED_BYTE_ARRAY) {
-	_data.packed_array = PackedArrayRef<uint8_t>::create(p_byte_array);
+	_data._ptr = PackedArrayRef<uint8_t>::create(p_byte_array);
 }
 
 Variant::Variant(const PackedInt32Array &p_int32_array) :
 		type(PACKED_INT32_ARRAY) {
-	_data.packed_array = PackedArrayRef<int32_t>::create(p_int32_array);
+	_data._ptr = PackedArrayRef<int32_t>::create(p_int32_array);
 }
 
 Variant::Variant(const PackedInt64Array &p_int64_array) :
 		type(PACKED_INT64_ARRAY) {
-	_data.packed_array = PackedArrayRef<int64_t>::create(p_int64_array);
+	_data._ptr = PackedArrayRef<int64_t>::create(p_int64_array);
 }
 
 Variant::Variant(const PackedFloat32Array &p_float32_array) :
 		type(PACKED_FLOAT32_ARRAY) {
-	_data.packed_array = PackedArrayRef<float>::create(p_float32_array);
+	_data._ptr = PackedArrayRef<float>::create(p_float32_array);
 }
 
 Variant::Variant(const PackedFloat64Array &p_float64_array) :
 		type(PACKED_FLOAT64_ARRAY) {
-	_data.packed_array = PackedArrayRef<double>::create(p_float64_array);
+	_data._ptr = PackedArrayRef<double>::create(p_float64_array);
 }
 
 Variant::Variant(const PackedStringArray &p_string_array) :
 		type(PACKED_STRING_ARRAY) {
-	_data.packed_array = PackedArrayRef<String>::create(p_string_array);
+	_data._ptr = PackedArrayRef<String>::create(p_string_array);
 }
 
 Variant::Variant(const PackedVector2Array &p_vector2_array) :
 		type(PACKED_VECTOR2_ARRAY) {
-	_data.packed_array = PackedArrayRef<Vector2>::create(p_vector2_array);
+	_data._ptr = PackedArrayRef<Vector2>::create(p_vector2_array);
 }
 
 Variant::Variant(const PackedVector3Array &p_vector3_array) :
 		type(PACKED_VECTOR3_ARRAY) {
-	_data.packed_array = PackedArrayRef<Vector3>::create(p_vector3_array);
+	_data._ptr = PackedArrayRef<Vector3>::create(p_vector3_array);
 }
 
 Variant::Variant(const PackedColorArray &p_color_array) :
 		type(PACKED_COLOR_ARRAY) {
-	_data.packed_array = PackedArrayRef<Color>::create(p_color_array);
+	_data._ptr = PackedArrayRef<Color>::create(p_color_array);
 }
 
 Variant::Variant(const PackedVector4Array &p_vector4_array) :
 		type(PACKED_VECTOR4_ARRAY) {
-	_data.packed_array = PackedArrayRef<Vector4>::create(p_vector4_array);
+	_data._ptr = PackedArrayRef<Vector4>::create(p_vector4_array);
 }
 
 /* helpers */
@@ -2691,7 +2691,7 @@ void Variant::operator=(const Variant &p_variant) {
 			*reinterpret_cast<Rect2i *>(_data._mem) = *reinterpret_cast<const Rect2i *>(p_variant._data._mem);
 		} break;
 		case TRANSFORM2D: {
-			*_data._transform2d = *(p_variant._data._transform2d);
+			*reinterpret_cast<Transform2D *>(_data._ptr) = *(reinterpret_cast<Transform2D *>(p_variant._data._ptr));
 		} break;
 		case VECTOR3: {
 			*reinterpret_cast<Vector3 *>(_data._mem) = *reinterpret_cast<const Vector3 *>(p_variant._data._mem);
@@ -2710,19 +2710,19 @@ void Variant::operator=(const Variant &p_variant) {
 		} break;
 
 		case AABB: {
-			*_data._aabb = *(p_variant._data._aabb);
+			*reinterpret_cast<::AABB *>(_data._ptr) = *reinterpret_cast<const ::AABB *>(p_variant._data._ptr);
 		} break;
 		case QUATERNION: {
 			*reinterpret_cast<Quaternion *>(_data._mem) = *reinterpret_cast<const Quaternion *>(p_variant._data._mem);
 		} break;
 		case BASIS: {
-			*_data._basis = *(p_variant._data._basis);
+			*reinterpret_cast<Basis *>(_data._ptr) = *(reinterpret_cast<const Basis *>(p_variant._data._ptr));
 		} break;
 		case TRANSFORM3D: {
-			*_data._transform3d = *(p_variant._data._transform3d);
+			*reinterpret_cast<Transform3D *>(_data._ptr) = *(reinterpret_cast<const Transform3D *>(p_variant._data._ptr));
 		} break;
 		case PROJECTION: {
-			*_data._projection = *(p_variant._data._projection);
+			*reinterpret_cast<Projection *>(_data._ptr) = *(reinterpret_cast<const Projection *>(p_variant._data._ptr));
 		} break;
 
 		// misc types
@@ -2757,34 +2757,34 @@ void Variant::operator=(const Variant &p_variant) {
 
 		// arrays
 		case PACKED_BYTE_ARRAY: {
-			_data.packed_array = PackedArrayRef<uint8_t>::reference_from(_data.packed_array, p_variant._data.packed_array);
+			_data._ptr = PackedArrayRef<uint8_t>::reference_from((PackedArrayRefBase *)_data._ptr, (PackedArrayRefBase *)p_variant._data._ptr);
 		} break;
 		case PACKED_INT32_ARRAY: {
-			_data.packed_array = PackedArrayRef<int32_t>::reference_from(_data.packed_array, p_variant._data.packed_array);
+			_data._ptr = PackedArrayRef<int32_t>::reference_from((PackedArrayRefBase *)_data._ptr, (PackedArrayRefBase *)p_variant._data._ptr);
 		} break;
 		case PACKED_INT64_ARRAY: {
-			_data.packed_array = PackedArrayRef<int64_t>::reference_from(_data.packed_array, p_variant._data.packed_array);
+			_data._ptr = PackedArrayRef<int64_t>::reference_from((PackedArrayRefBase *)_data._ptr, (PackedArrayRefBase *)p_variant._data._ptr);
 		} break;
 		case PACKED_FLOAT32_ARRAY: {
-			_data.packed_array = PackedArrayRef<float>::reference_from(_data.packed_array, p_variant._data.packed_array);
+			_data._ptr = PackedArrayRef<float>::reference_from((PackedArrayRefBase *)_data._ptr, (PackedArrayRefBase *)p_variant._data._ptr);
 		} break;
 		case PACKED_FLOAT64_ARRAY: {
-			_data.packed_array = PackedArrayRef<double>::reference_from(_data.packed_array, p_variant._data.packed_array);
+			_data._ptr = PackedArrayRef<double>::reference_from((PackedArrayRefBase *)_data._ptr, (PackedArrayRefBase *)p_variant._data._ptr);
 		} break;
 		case PACKED_STRING_ARRAY: {
-			_data.packed_array = PackedArrayRef<String>::reference_from(_data.packed_array, p_variant._data.packed_array);
+			_data._ptr = PackedArrayRef<String>::reference_from((PackedArrayRefBase *)_data._ptr, (PackedArrayRefBase *)p_variant._data._ptr);
 		} break;
 		case PACKED_VECTOR2_ARRAY: {
-			_data.packed_array = PackedArrayRef<Vector2>::reference_from(_data.packed_array, p_variant._data.packed_array);
+			_data._ptr = PackedArrayRef<Vector2>::reference_from((PackedArrayRefBase *)_data._ptr, (PackedArrayRefBase *)p_variant._data._ptr);
 		} break;
 		case PACKED_VECTOR3_ARRAY: {
-			_data.packed_array = PackedArrayRef<Vector3>::reference_from(_data.packed_array, p_variant._data.packed_array);
+			_data._ptr = PackedArrayRef<Vector3>::reference_from((PackedArrayRefBase *)_data._ptr, (PackedArrayRefBase *)p_variant._data._ptr);
 		} break;
 		case PACKED_COLOR_ARRAY: {
-			_data.packed_array = PackedArrayRef<Color>::reference_from(_data.packed_array, p_variant._data.packed_array);
+			_data._ptr = PackedArrayRef<Color>::reference_from((PackedArrayRefBase *)_data._ptr, (PackedArrayRefBase *)p_variant._data._ptr);
 		} break;
 		case PACKED_VECTOR4_ARRAY: {
-			_data.packed_array = PackedArrayRef<Vector4>::reference_from(_data.packed_array, p_variant._data.packed_array);
+			_data._ptr = PackedArrayRef<Vector4>::reference_from((PackedArrayRefBase *)_data._ptr, (PackedArrayRefBase *)p_variant._data._ptr);
 		} break;
 		default: {
 		}
@@ -2837,7 +2837,7 @@ uint32_t Variant::recursive_hash(int recursion_count) const {
 		} break;
 		case TRANSFORM2D: {
 			uint32_t h = HASH_MURMUR3_SEED;
-			const Transform2D &t = *_data._transform2d;
+			const Transform2D &t = *reinterpret_cast<Transform2D *>(_data._ptr);
 			h = hash_murmur3_one_real(t[0].x, h);
 			h = hash_murmur3_one_real(t[0].y, h);
 			h = hash_murmur3_one_real(t[1].x, h);
@@ -2869,7 +2869,7 @@ uint32_t Variant::recursive_hash(int recursion_count) const {
 			return hash_fmix32(h);
 		} break;
 		case AABB: {
-			return HashMapHasherDefault::hash(*_data._aabb);
+			return HashMapHasherDefault::hash(*(const ::AABB *)_data._ptr);
 		} break;
 		case QUATERNION: {
 			uint32_t h = HASH_MURMUR3_SEED;
@@ -2882,7 +2882,7 @@ uint32_t Variant::recursive_hash(int recursion_count) const {
 		} break;
 		case BASIS: {
 			uint32_t h = HASH_MURMUR3_SEED;
-			const Basis &b = *_data._basis;
+			const Basis &b = *reinterpret_cast<Basis *>(_data._ptr);
 			h = hash_murmur3_one_real(b[0].x, h);
 			h = hash_murmur3_one_real(b[0].y, h);
 			h = hash_murmur3_one_real(b[0].z, h);
@@ -2896,7 +2896,7 @@ uint32_t Variant::recursive_hash(int recursion_count) const {
 		} break;
 		case TRANSFORM3D: {
 			uint32_t h = HASH_MURMUR3_SEED;
-			const Transform3D &t = *_data._transform3d;
+			const Transform3D &t = *reinterpret_cast<Transform3D *>(_data._ptr);
 			h = hash_murmur3_one_real(t.basis[0].x, h);
 			h = hash_murmur3_one_real(t.basis[0].y, h);
 			h = hash_murmur3_one_real(t.basis[0].z, h);
@@ -2913,7 +2913,7 @@ uint32_t Variant::recursive_hash(int recursion_count) const {
 		} break;
 		case PROJECTION: {
 			uint32_t h = HASH_MURMUR3_SEED;
-			const Projection &t = *_data._projection;
+			const Projection &t = *reinterpret_cast<Projection *>(_data._ptr);
 			h = hash_murmur3_one_real(t.columns[0].x, h);
 			h = hash_murmur3_one_real(t.columns[0].y, h);
 			h = hash_murmur3_one_real(t.columns[0].z, h);
@@ -2973,7 +2973,7 @@ uint32_t Variant::recursive_hash(int recursion_count) const {
 
 		} break;
 		case PACKED_BYTE_ARRAY: {
-			const PackedByteArray &arr = PackedArrayRef<uint8_t>::get_array(_data.packed_array);
+			const PackedByteArray &arr = PackedArrayRef<uint8_t>::get_array((PackedArrayRefBase *)_data._ptr);
 			int len = arr.size();
 			if (likely(len)) {
 				const uint8_t *r = arr.ptr();
@@ -2984,7 +2984,7 @@ uint32_t Variant::recursive_hash(int recursion_count) const {
 
 		} break;
 		case PACKED_INT32_ARRAY: {
-			const PackedInt32Array &arr = PackedArrayRef<int32_t>::get_array(_data.packed_array);
+			const PackedInt32Array &arr = PackedArrayRef<int32_t>::get_array((PackedArrayRefBase *)_data._ptr);
 			int len = arr.size();
 			if (likely(len)) {
 				const int32_t *r = arr.ptr();
@@ -2995,7 +2995,7 @@ uint32_t Variant::recursive_hash(int recursion_count) const {
 
 		} break;
 		case PACKED_INT64_ARRAY: {
-			const PackedInt64Array &arr = PackedArrayRef<int64_t>::get_array(_data.packed_array);
+			const PackedInt64Array &arr = PackedArrayRef<int64_t>::get_array((PackedArrayRefBase *)_data._ptr);
 			int len = arr.size();
 			if (likely(len)) {
 				const int64_t *r = arr.ptr();
@@ -3006,7 +3006,7 @@ uint32_t Variant::recursive_hash(int recursion_count) const {
 
 		} break;
 		case PACKED_FLOAT32_ARRAY: {
-			const PackedFloat32Array &arr = PackedArrayRef<float>::get_array(_data.packed_array);
+			const PackedFloat32Array &arr = PackedArrayRef<float>::get_array((PackedArrayRefBase *)_data._ptr);
 			int len = arr.size();
 
 			if (likely(len)) {
@@ -3022,7 +3022,7 @@ uint32_t Variant::recursive_hash(int recursion_count) const {
 
 		} break;
 		case PACKED_FLOAT64_ARRAY: {
-			const PackedFloat64Array &arr = PackedArrayRef<double>::get_array(_data.packed_array);
+			const PackedFloat64Array &arr = PackedArrayRef<double>::get_array((PackedArrayRefBase *)_data._ptr);
 			int len = arr.size();
 
 			if (likely(len)) {
@@ -3039,7 +3039,7 @@ uint32_t Variant::recursive_hash(int recursion_count) const {
 		} break;
 		case PACKED_STRING_ARRAY: {
 			uint32_t hash = HASH_MURMUR3_SEED;
-			const PackedStringArray &arr = PackedArrayRef<String>::get_array(_data.packed_array);
+			const PackedStringArray &arr = PackedArrayRef<String>::get_array((PackedArrayRefBase *)_data._ptr);
 			int len = arr.size();
 
 			if (likely(len)) {
@@ -3055,7 +3055,7 @@ uint32_t Variant::recursive_hash(int recursion_count) const {
 		} break;
 		case PACKED_VECTOR2_ARRAY: {
 			uint32_t hash = HASH_MURMUR3_SEED;
-			const PackedVector2Array &arr = PackedArrayRef<Vector2>::get_array(_data.packed_array);
+			const PackedVector2Array &arr = PackedArrayRef<Vector2>::get_array((PackedArrayRefBase *)_data._ptr);
 			int len = arr.size();
 
 			if (likely(len)) {
@@ -3072,7 +3072,7 @@ uint32_t Variant::recursive_hash(int recursion_count) const {
 		} break;
 		case PACKED_VECTOR3_ARRAY: {
 			uint32_t hash = HASH_MURMUR3_SEED;
-			const PackedVector3Array &arr = PackedArrayRef<Vector3>::get_array(_data.packed_array);
+			const PackedVector3Array &arr = PackedArrayRef<Vector3>::get_array((PackedArrayRefBase *)_data._ptr);
 			int len = arr.size();
 
 			if (likely(len)) {
@@ -3090,7 +3090,7 @@ uint32_t Variant::recursive_hash(int recursion_count) const {
 		} break;
 		case PACKED_COLOR_ARRAY: {
 			uint32_t hash = HASH_MURMUR3_SEED;
-			const PackedColorArray &arr = PackedArrayRef<Color>::get_array(_data.packed_array);
+			const PackedColorArray &arr = PackedArrayRef<Color>::get_array((PackedArrayRefBase *)_data._ptr);
 			int len = arr.size();
 
 			if (likely(len)) {
@@ -3109,7 +3109,7 @@ uint32_t Variant::recursive_hash(int recursion_count) const {
 		} break;
 		case PACKED_VECTOR4_ARRAY: {
 			uint32_t hash = HASH_MURMUR3_SEED;
-			const PackedVector4Array &arr = PackedArrayRef<Vector4>::get_array(_data.packed_array);
+			const PackedVector4Array &arr = PackedArrayRef<Vector4>::get_array((PackedArrayRefBase *)_data._ptr);
 			int len = arr.size();
 
 			if (likely(len)) {
@@ -3232,8 +3232,8 @@ bool Variant::hash_compare(const Variant &p_variant, int recursion_count, bool s
 		} break;
 
 		case TRANSFORM2D: {
-			Transform2D *l = _data._transform2d;
-			Transform2D *r = p_variant._data._transform2d;
+			Transform2D *l = reinterpret_cast<Transform2D *>(_data._ptr);
+			Transform2D *r = reinterpret_cast<Transform2D *>(p_variant._data._ptr);
 
 			for (int i = 0; i < 3; i++) {
 				if (!hash_compare_vector2(l->columns[i], r->columns[i])) {
@@ -3278,8 +3278,8 @@ bool Variant::hash_compare(const Variant &p_variant, int recursion_count, bool s
 		} break;
 
 		case AABB: {
-			const ::AABB *l = _data._aabb;
-			const ::AABB *r = p_variant._data._aabb;
+			const ::AABB *l = (const ::AABB *)_data._ptr;
+			const ::AABB *r = (const ::AABB *)p_variant._data._ptr;
 
 			return hash_compare_vector3(l->position, r->position) &&
 					hash_compare_vector3(l->size, r->size);
@@ -3294,8 +3294,8 @@ bool Variant::hash_compare(const Variant &p_variant, int recursion_count, bool s
 		} break;
 
 		case BASIS: {
-			const Basis *l = _data._basis;
-			const Basis *r = p_variant._data._basis;
+			const Basis *l = reinterpret_cast<Basis *>(_data._ptr);
+			const Basis *r = reinterpret_cast<Basis *>(p_variant._data._ptr);
 
 			for (int i = 0; i < 3; i++) {
 				if (!hash_compare_vector3(l->rows[i], r->rows[i])) {
@@ -3307,8 +3307,8 @@ bool Variant::hash_compare(const Variant &p_variant, int recursion_count, bool s
 		} break;
 
 		case TRANSFORM3D: {
-			const Transform3D *l = _data._transform3d;
-			const Transform3D *r = p_variant._data._transform3d;
+			const Transform3D *l = reinterpret_cast<Transform3D *>(_data._ptr);
+			const Transform3D *r = reinterpret_cast<Transform3D *>(p_variant._data._ptr);
 
 			for (int i = 0; i < 3; i++) {
 				if (!hash_compare_vector3(l->basis.rows[i], r->basis.rows[i])) {
@@ -3319,8 +3319,8 @@ bool Variant::hash_compare(const Variant &p_variant, int recursion_count, bool s
 			return hash_compare_vector3(l->origin, r->origin);
 		} break;
 		case PROJECTION: {
-			const Projection *l = _data._projection;
-			const Projection *r = p_variant._data._projection;
+			const Projection *l = reinterpret_cast<Projection *>(_data._ptr);
+			const Projection *r = reinterpret_cast<Projection *>(p_variant._data._ptr);
 
 			for (int i = 0; i < 4; i++) {
 				if (!hash_compare_vector4(l->columns[i], r->columns[i])) {
@@ -3362,27 +3362,27 @@ bool Variant::hash_compare(const Variant &p_variant, int recursion_count, bool s
 
 		// This is for floating point comparisons only.
 		case PACKED_FLOAT32_ARRAY: {
-			hash_compare_packed_array(_data.packed_array, p_variant._data.packed_array, float, hash_compare_scalar);
+			hash_compare_packed_array((PackedArrayRefBase *)_data._ptr, (PackedArrayRefBase *)p_variant._data._ptr, float, hash_compare_scalar);
 		} break;
 
 		case PACKED_FLOAT64_ARRAY: {
-			hash_compare_packed_array(_data.packed_array, p_variant._data.packed_array, double, hash_compare_scalar);
+			hash_compare_packed_array((PackedArrayRefBase *)_data._ptr, (PackedArrayRefBase *)p_variant._data._ptr, double, hash_compare_scalar);
 		} break;
 
 		case PACKED_VECTOR2_ARRAY: {
-			hash_compare_packed_array(_data.packed_array, p_variant._data.packed_array, Vector2, hash_compare_vector2);
+			hash_compare_packed_array((PackedArrayRefBase *)_data._ptr, (PackedArrayRefBase *)p_variant._data._ptr, Vector2, hash_compare_vector2);
 		} break;
 
 		case PACKED_VECTOR3_ARRAY: {
-			hash_compare_packed_array(_data.packed_array, p_variant._data.packed_array, Vector3, hash_compare_vector3);
+			hash_compare_packed_array((PackedArrayRefBase *)_data._ptr, (PackedArrayRefBase *)p_variant._data._ptr, Vector3, hash_compare_vector3);
 		} break;
 
 		case PACKED_COLOR_ARRAY: {
-			hash_compare_packed_array(_data.packed_array, p_variant._data.packed_array, Color, hash_compare_color);
+			hash_compare_packed_array((PackedArrayRefBase *)_data._ptr, (PackedArrayRefBase *)p_variant._data._ptr, Color, hash_compare_color);
 		} break;
 
 		case PACKED_VECTOR4_ARRAY: {
-			hash_compare_packed_array(_data.packed_array, p_variant._data.packed_array, Vector4, hash_compare_vector4);
+			hash_compare_packed_array((PackedArrayRefBase *)_data._ptr, (PackedArrayRefBase *)p_variant._data._ptr, Vector4, hash_compare_vector4);
 		} break;
 
 		default:
@@ -3425,7 +3425,7 @@ bool Variant::identity_compare(const Variant &p_variant) const {
 		case PACKED_VECTOR3_ARRAY:
 		case PACKED_COLOR_ARRAY:
 		case PACKED_VECTOR4_ARRAY: {
-			return _data.packed_array == p_variant._data.packed_array;
+			return _data._ptr == p_variant._data._ptr;
 		} break;
 
 		default: {

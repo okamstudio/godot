@@ -261,12 +261,6 @@ private:
 		bool _bool;
 		int64_t _int;
 		double _float;
-		Transform2D *_transform2d;
-		::AABB *_aabb;
-		Basis *_basis;
-		Transform3D *_transform3d;
-		Projection *_projection;
-		PackedArrayRefBase *packed_array;
 		void *_ptr; //generic pointer
 		uint8_t _mem[sizeof(ObjData) > (sizeof(real_t) * 4) ? sizeof(ObjData) : (sizeof(real_t) * 4)]{ 0 };
 	} _data alignas(8);
