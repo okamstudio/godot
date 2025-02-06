@@ -4567,6 +4567,25 @@ void DisplayServerX11::process_events() {
 		if (XGetEventData(x11_display, &event.xcookie)) {
 			if (event.xcookie.type == GenericEvent && event.xcookie.extension == xi.opcode) {
 				XIDeviceEvent *event_data = (XIDeviceEvent *)event.xcookie.data;
+
+				// Use the XIDeviceEvent's window for touch events as the XEvent's window is inaccurate
+				if (event_data->evtype >= XI_TouchBegin &&
+						event_data->evtype <= XI_TouchOwnership &&
+						event.xany.window != event_data->event) {
+					window_id = MAIN_WINDOW_ID;
+					for (const KeyValue<WindowID, WindowData> &E : windows) {
+						if (event_data->event == E.value.x11_window) {
+							window_id = E.key;
+							break;
+						}
+						if (event_data->event == E.value.x11_xim_window) {
+							window_id = E.key;
+							ime_window_event = true;
+							break;
+						}
+					}
+				}
+
 				switch (event_data->evtype) {
 					case XI_HierarchyChanged:
 					case XI_DeviceChanged: {
