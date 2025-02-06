@@ -624,7 +624,7 @@ void TextEdit::_notification(int p_what) {
 			RID ci = get_canvas_item();
 			int xmargin_beg = theme_cache.style_normal->get_margin(SIDE_LEFT) + gutters_width + gutter_padding;
 
-			int xmargin_end = size.width - theme_cache.style_normal->get_margin(SIDE_RIGHT);
+			int xmargin_end = size.width - theme_cache.style_normal->get_margin(SIDE_RIGHT) + RIGHT_SIDE_BUFFER;
 			if (draw_minimap) {
 				xmargin_end -= minimap_width;
 			}
