@@ -1047,15 +1047,21 @@ void GodotPhysicsServer2D::joint_set_param(RID p_joint, JointParam p_param, real
 	ERR_FAIL_NULL(joint);
 
 	switch (p_param) {
-		case JOINT_PARAM_BIAS:
+		case JOINT_PARAM_BIAS: {
 			joint->set_bias(p_value);
-			break;
-		case JOINT_PARAM_MAX_BIAS:
+		} break;
+		case JOINT_PARAM_MAX_BIAS: {
 			joint->set_max_bias(p_value);
-			break;
-		case JOINT_PARAM_MAX_FORCE:
+		} break;
+		case JOINT_PARAM_MAX_FORCE: {
 			joint->set_max_force(p_value);
-			break;
+		} break;
+		case JOINT_PARAM_BREAK_FORCE: {
+			joint->set_break_force(p_value);
+		} break;
+		case JOINT_PARAM_BREAK_TORQUE: {
+			joint->set_break_torque(p_value);
+		} break;
 	}
 }
 
@@ -1064,17 +1070,57 @@ real_t GodotPhysicsServer2D::joint_get_param(RID p_joint, JointParam p_param) co
 	ERR_FAIL_NULL_V(joint, -1);
 
 	switch (p_param) {
-		case JOINT_PARAM_BIAS:
+		case JOINT_PARAM_BIAS: {
 			return joint->get_bias();
-			break;
-		case JOINT_PARAM_MAX_BIAS:
+		} break;
+		case JOINT_PARAM_MAX_BIAS: {
 			return joint->get_max_bias();
-			break;
-		case JOINT_PARAM_MAX_FORCE:
+		} break;
+		case JOINT_PARAM_MAX_FORCE: {
 			return joint->get_max_force();
-			break;
+		} break;
+		case JOINT_PARAM_BREAK_FORCE: {
+			return joint->get_break_force();
+		} break;
+		case JOINT_PARAM_BREAK_TORQUE: {
+			return joint->get_break_torque();
+		} break;
 	}
 
+	return 0;
+}
+
+void GodotPhysicsServer2D::joint_set_flag(RID p_joint, JointFlag p_flag, bool p_enabled) {
+	GodotJoint2D *joint = joint_owner.get_or_null(p_joint);
+	ERR_FAIL_NULL(joint);
+
+	switch (p_flag) {
+		case JOINT_FLAG_BREAK_ENABLED: {
+			joint->set_break_enabled(p_enabled);
+		} break;
+	}
+}
+bool GodotPhysicsServer2D::joint_get_flag(RID p_joint, JointFlag p_flag) const {
+	const GodotJoint2D *joint = joint_owner.get_or_null(p_joint);
+	ERR_FAIL_NULL_V(joint, false);
+
+	switch (p_flag) {
+		case JOINT_FLAG_BREAK_ENABLED:
+			return joint->is_break_enabled();
+	}
+	return false;
+}
+
+Variant GodotPhysicsServer2D::joint_get_state(RID p_joint, JointState p_param) const {
+	const GodotJoint2D *joint = joint_owner.get_or_null(p_joint);
+	ERR_FAIL_NULL_V(joint, -1);
+
+	switch (p_param) {
+		case JOINT_STATE_REACTION_FORCE:
+			return joint->get_reaction_force();
+		case JOINT_STATE_REACTION_TORQUE:
+			return joint->get_reaction_torque();
+	}
 	return 0;
 }
 

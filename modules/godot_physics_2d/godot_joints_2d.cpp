@@ -55,11 +55,34 @@
  * SOFTWARE.
  */
 
+void GodotJoint2D::_set_reaction(Vector2 impulse, real_t torque_impulse, GodotBody2D *A, GodotBody2D *B, real_t p_step) {
+	reaction_force = Vector2();
+	reaction_torque = 0.0;
+	if (A) {
+		reaction_force += impulse * A->get_inv_mass();
+		reaction_torque += A->get_inv_inertia() * (A->get_center_of_mass()).cross(impulse);
+	}
+	if (B) {
+		reaction_force += impulse * B->get_inv_mass();
+		reaction_torque += B->get_inv_inertia() * (B->get_center_of_mass()).cross(impulse);
+	}
+
+	reaction_force = reaction_force * p_step;
+	reaction_torque = reaction_torque * p_step;
+	if (break_enabled &&
+			(reaction_force.length_squared() > break_force * break_force ||
+					reaction_torque > break_torque)) {
+		PhysicsServer2D::get_singleton()->joint_clear(get_self());
+	}
+}
+
 void GodotJoint2D::copy_settings_from(GodotJoint2D *p_joint) {
 	set_self(p_joint->get_self());
 	set_max_force(p_joint->get_max_force());
 	set_bias(p_joint->get_bias());
 	set_max_bias(p_joint->get_max_bias());
+	set_break_force(p_joint->get_break_force());
+	set_break_torque(p_joint->get_break_torque());
 	disable_collisions_between_bodies(p_joint->is_disabled_collisions_between_bodies());
 }
 
@@ -254,6 +277,8 @@ void GodotPinJoint2D::solve(real_t p_step) {
 	}
 
 	P += impulse;
+
+	_set_reaction(impulse, 0.0, dynamic_A ? A : nullptr, dynamic_B ? B : nullptr, p_step);
 }
 
 void GodotPinJoint2D::set_param(PhysicsServer2D::PinJointParam p_param, real_t p_value) {
@@ -468,6 +493,8 @@ void GodotGrooveJoint2D::solve(real_t p_step) {
 	if (dynamic_B) {
 		B->apply_impulse(j, rB);
 	}
+
+	_set_reaction(j, 0.0, dynamic_A ? A : nullptr, dynamic_B ? B : nullptr, p_step);
 }
 
 GodotGrooveJoint2D::GodotGrooveJoint2D(const Vector2 &p_a_groove1, const Vector2 &p_a_groove2, const Vector2 &p_b_anchor, GodotBody2D *p_body_a, GodotBody2D *p_body_b) :
@@ -549,6 +576,8 @@ void GodotDampedSpringJoint2D::solve(real_t p_step) {
 	if (dynamic_B) {
 		B->apply_impulse(j_new, rB);
 	}
+
+	_set_reaction(j_new, 0.0, dynamic_A ? A : nullptr, dynamic_B ? B : nullptr, p_step);
 }
 
 void GodotDampedSpringJoint2D::set_param(PhysicsServer2D::DampedSpringParam p_param, real_t p_value) {

@@ -44,6 +44,9 @@ class Joint2D : public Node2D {
 	NodePath a;
 	NodePath b;
 	real_t bias = 0.0;
+	real_t break_force = 0.0;
+	real_t break_torque = 0.0;
+	bool break_enabled = false;
 
 	bool exclude_from_collision = true;
 	bool configured = false;
@@ -72,6 +75,18 @@ public:
 
 	void set_bias(real_t p_bias);
 	real_t get_bias() const;
+
+	void set_break_force(real_t p_break_force);
+	real_t get_break_force() const;
+
+	void set_break_torque(real_t p_break_torque);
+	real_t get_break_torque() const;
+
+	void set_break_enabled(bool p_break_enabled);
+	bool is_break_enabled() const;
+
+	Vector2 get_reaction_force() const;
+	real_t get_reaction_torque() const;
 
 	void set_exclude_nodes_from_collision(bool p_enable);
 	bool get_exclude_nodes_from_collision() const;

@@ -38,12 +38,22 @@ class GodotJoint2D : public GodotConstraint2D {
 	real_t bias = 0;
 	real_t max_bias = 3.40282e+38;
 	real_t max_force = 3.40282e+38;
+	real_t break_force = 0;
+	real_t break_torque = 0;
+	Vector2 reaction_force;
+	real_t reaction_torque = 0;
+	bool break_enabled = false;
 
 protected:
 	bool dynamic_A = false;
 	bool dynamic_B = false;
 
+	void _set_reaction(Vector2 impulse, real_t torque_impulse, GodotBody2D *A, GodotBody2D *B, real_t p_step);
+
 public:
+	_FORCE_INLINE_ void set_break_enabled(bool p_enabled) { break_enabled = p_enabled; }
+	_FORCE_INLINE_ bool is_break_enabled() const { return break_enabled; }
+
 	_FORCE_INLINE_ void set_max_force(real_t p_force) { max_force = p_force; }
 	_FORCE_INLINE_ real_t get_max_force() const { return max_force; }
 
@@ -52,6 +62,15 @@ public:
 
 	_FORCE_INLINE_ void set_max_bias(real_t p_bias) { max_bias = p_bias; }
 	_FORCE_INLINE_ real_t get_max_bias() const { return max_bias; }
+
+	_FORCE_INLINE_ void set_break_force(real_t p_break_force) { break_force = p_break_force; }
+	_FORCE_INLINE_ real_t get_break_force() const { return break_force; }
+
+	_FORCE_INLINE_ void set_break_torque(real_t p_break_torque) { break_torque = p_break_torque; }
+	_FORCE_INLINE_ real_t get_break_torque() const { return break_torque; }
+
+	_FORCE_INLINE_ Vector2 get_reaction_force() const { return reaction_force; }
+	_FORCE_INLINE_ real_t get_reaction_torque() const { return reaction_torque; }
 
 	virtual bool setup(real_t p_step) override { return false; }
 	virtual bool pre_solve(real_t p_step) override { return false; }

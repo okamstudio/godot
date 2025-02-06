@@ -790,12 +790,28 @@
 				Sets whether the bodies attached to the [Joint2D] will collide with each other.
 			</description>
 		</method>
+		<method name="joint_get_flag" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="joint" type="RID" />
+			<param index="1" name="flag" type="int" enum="PhysicsServer2D.JointFlag" />
+			<description>
+				Gets a joint flag (see [enum JointFlag] constants).
+			</description>
+		</method>
 		<method name="joint_get_param" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="joint" type="RID" />
 			<param index="1" name="param" type="int" enum="PhysicsServer2D.JointParam" />
 			<description>
 				Returns the value of the given joint parameter. See [enum JointParam] for the list of available parameters.
+			</description>
+		</method>
+		<method name="joint_get_state" qualifiers="const">
+			<return type="Variant" />
+			<param index="0" name="joint" type="RID" />
+			<param index="1" name="state" type="int" enum="PhysicsServer2D.JointState" />
+			<description>
+				Returns the value of the given state of the joint. See [enum JointState] for the list of available states.
 			</description>
 		</method>
 		<method name="joint_get_type" qualifiers="const">
@@ -843,6 +859,15 @@
 			<param index="3" name="body_b" type="RID" default="RID()" />
 			<description>
 				Makes the joint a pin joint. If [param body_b] is an empty [RID], then [param body_a] is pinned to the point [param anchor] (given in global coordinates); otherwise, [param body_a] is pinned to [param body_b] at the point [param anchor] (given in global coordinates). To set the parameters which are specific to the pin joint, see [method pin_joint_set_param].
+			</description>
+		</method>
+		<method name="joint_set_flag">
+			<return type="void" />
+			<param index="0" name="joint" type="RID" />
+			<param index="1" name="flag" type="int" enum="PhysicsServer2D.JointFlag" />
+			<param index="2" name="enabled" type="bool" />
+			<description>
+				Sets a joint flag (see [enum JointFlag] constants).
 			</description>
 		</method>
 		<method name="joint_set_param">
@@ -1188,6 +1213,21 @@
 		<constant name="JOINT_PARAM_MAX_FORCE" value="2" enum="JointParam">
 			Constant to set/get the maximum force that the joint can use to act on the two bodies. The default value of this parameter is [code]3.40282e+38[/code].
 			[b]Note:[/b] In Godot Physics, this parameter is only used for groove joints.
+		</constant>
+		<constant name="JOINT_PARAM_BREAK_FORCE" value="3" enum="JointParam">
+			Constant to set/get the maximum torque the joint will handle before it gets disabled.
+		</constant>
+		<constant name="JOINT_PARAM_BREAK_TORQUE" value="4" enum="JointParam">
+			Constant to set/get the maximum torque the joint will handle before it gets disabled.
+		</constant>
+		<constant name="JOINT_FLAG_BREAK_ENABLED" value="0" enum="JointFlag">
+			Constant to set/get if the joint can break. Joints break if the force is higher than [member Joint2D.break_force] or the torque is higher than [member Joint2D.break_torque].
+		</constant>
+		<constant name="JOINT_STATE_REACTION_FORCE" value="0" enum="JointState">
+			Constant to get at what force should the joint break. The default value of this parameter is [code]0.0[/code].
+		</constant>
+		<constant name="JOINT_STATE_REACTION_TORQUE" value="1" enum="JointState">
+			Constant to get at what torque should the joint break. The default value of this parameter is [code]0.0[/code].
 		</constant>
 		<constant name="PIN_JOINT_SOFTNESS" value="0" enum="PinJointParam">
 			Constant to set/get a how much the bond of the pin joint can flex. The default value of this parameter is [code]0.0[/code].

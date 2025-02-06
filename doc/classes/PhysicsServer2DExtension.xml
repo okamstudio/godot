@@ -840,12 +840,26 @@
 				Overridable version of [method PhysicsServer2D.joint_disable_collisions_between_bodies].
 			</description>
 		</method>
+		<method name="_joint_get_flag" qualifiers="virtual const">
+			<return type="bool" />
+			<param index="0" name="joint" type="RID" />
+			<param index="1" name="flag" type="int" enum="PhysicsServer2D.JointFlag" />
+			<description>
+			</description>
+		</method>
 		<method name="_joint_get_param" qualifiers="virtual const">
 			<return type="float" />
 			<param index="0" name="joint" type="RID" />
 			<param index="1" name="param" type="int" enum="PhysicsServer2D.JointParam" />
 			<description>
 				Overridable version of [method PhysicsServer2D.joint_get_param].
+			</description>
+		</method>
+		<method name="_joint_get_state" qualifiers="virtual const">
+			<return type="Variant" />
+			<param index="0" name="joint" type="RID" />
+			<param index="1" name="state" type="int" enum="PhysicsServer2D.JointState" />
+			<description>
 			</description>
 		</method>
 		<method name="_joint_get_type" qualifiers="virtual const">
@@ -893,6 +907,14 @@
 			<param index="3" name="body_b" type="RID" />
 			<description>
 				Overridable version of [method PhysicsServer2D.joint_make_pin].
+			</description>
+		</method>
+		<method name="_joint_set_flag" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="joint" type="RID" />
+			<param index="1" name="flag" type="int" enum="PhysicsServer2D.JointFlag" />
+			<param index="2" name="enabled" type="bool" />
+			<description>
 			</description>
 		</method>
 		<method name="_joint_set_param" qualifiers="virtual">

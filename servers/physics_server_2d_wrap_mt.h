@@ -277,6 +277,11 @@ public:
 	FUNC3(joint_set_param, RID, JointParam, real_t);
 	FUNC2RC(real_t, joint_get_param, RID, JointParam);
 
+	FUNC3(joint_set_flag, RID, JointFlag, bool);
+	FUNC2RC(bool, joint_get_flag, RID, JointFlag);
+
+	FUNC2RC(Variant, joint_get_state, RID, JointState);
+
 	FUNC2(joint_disable_collisions_between_bodies, RID, const bool);
 	FUNC1RC(bool, joint_is_disabled_collisions_between_bodies, RID);
 

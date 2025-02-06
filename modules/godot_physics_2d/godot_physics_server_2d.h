@@ -268,6 +268,11 @@ public:
 	virtual void joint_set_param(RID p_joint, JointParam p_param, real_t p_value) override;
 	virtual real_t joint_get_param(RID p_joint, JointParam p_param) const override;
 
+	virtual void joint_set_flag(RID p_joint, JointFlag p_flag, bool p_enabled) override;
+	virtual bool joint_get_flag(RID p_joint, JointFlag p_flag) const override;
+
+	virtual Variant joint_get_state(RID p_joint, JointState p_param) const override;
+
 	virtual void joint_disable_collisions_between_bodies(RID p_joint, const bool p_disabled) override;
 	virtual bool joint_is_disabled_collisions_between_bodies(RID p_joint) const override;
 

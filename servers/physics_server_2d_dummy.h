@@ -303,6 +303,11 @@ public:
 
 	virtual void joint_clear(RID p_joint) override {}
 
+	virtual void joint_set_flag(RID p_joint, JointFlag p_flag, bool p_enabled) override {}
+	virtual bool joint_get_flag(RID p_joint, JointFlag p_flag) const override { return false; }
+
+	virtual Variant joint_get_state(RID p_joint, JointState p_param) const override { return Variant(); }
+
 	virtual void joint_set_param(RID p_joint, JointParam p_param, real_t p_value) override {}
 	virtual real_t joint_get_param(RID p_joint, JointParam p_param) const override { return 0; }
 

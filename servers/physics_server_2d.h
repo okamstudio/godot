@@ -540,10 +540,26 @@ public:
 		JOINT_PARAM_BIAS,
 		JOINT_PARAM_MAX_BIAS,
 		JOINT_PARAM_MAX_FORCE,
+		JOINT_PARAM_BREAK_FORCE,
+		JOINT_PARAM_BREAK_TORQUE,
+	};
+
+	enum JointFlag {
+		JOINT_FLAG_BREAK_ENABLED,
+	};
+
+	enum JointState {
+		JOINT_STATE_REACTION_FORCE,
+		JOINT_STATE_REACTION_TORQUE,
 	};
 
 	virtual void joint_set_param(RID p_joint, JointParam p_param, real_t p_value) = 0;
 	virtual real_t joint_get_param(RID p_joint, JointParam p_param) const = 0;
+
+	virtual void joint_set_flag(RID p_joint, JointFlag p_flag, bool p_enabled) = 0;
+	virtual bool joint_get_flag(RID p_joint, JointFlag p_flag) const = 0;
+
+	virtual Variant joint_get_state(RID p_joint, JointState p_param) const = 0;
 
 	virtual void joint_disable_collisions_between_bodies(RID p_joint, const bool p_disable) = 0;
 	virtual bool joint_is_disabled_collisions_between_bodies(RID p_joint) const = 0;
@@ -838,7 +854,9 @@ VARIANT_ENUM_CAST(PhysicsServer2D::BodyParameter);
 VARIANT_ENUM_CAST(PhysicsServer2D::BodyDampMode);
 VARIANT_ENUM_CAST(PhysicsServer2D::BodyState);
 VARIANT_ENUM_CAST(PhysicsServer2D::CCDMode);
+VARIANT_ENUM_CAST(PhysicsServer2D::JointFlag);
 VARIANT_ENUM_CAST(PhysicsServer2D::JointParam);
+VARIANT_ENUM_CAST(PhysicsServer2D::JointState);
 VARIANT_ENUM_CAST(PhysicsServer2D::JointType);
 VARIANT_ENUM_CAST(PhysicsServer2D::PinJointParam);
 VARIANT_ENUM_CAST(PhysicsServer2D::PinJointFlag);

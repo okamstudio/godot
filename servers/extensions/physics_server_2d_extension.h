@@ -411,6 +411,11 @@ public:
 	EXBIND3(joint_set_param, RID, JointParam, real_t)
 	EXBIND2RC(real_t, joint_get_param, RID, JointParam)
 
+	EXBIND3(joint_set_flag, RID, JointFlag, bool)
+	EXBIND2RC(bool, joint_get_flag, RID, JointFlag)
+
+	EXBIND2RC(Variant, joint_get_state, RID, JointState)
+
 	EXBIND2(joint_disable_collisions_between_bodies, RID, bool)
 	EXBIND1RC(bool, joint_is_disabled_collisions_between_bodies, RID)
 

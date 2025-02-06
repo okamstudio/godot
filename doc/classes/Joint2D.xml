@@ -9,6 +9,18 @@
 	<tutorials>
 	</tutorials>
 	<methods>
+		<method name="get_reaction_force" qualifiers="const">
+			<return type="Vector2" />
+			<description>
+				Get the force applied by this joint.
+			</description>
+		</method>
+		<method name="get_reaction_torque" qualifiers="const">
+			<return type="float" />
+			<description>
+				Get the torque applied by this joint.
+			</description>
+		</method>
 		<method name="get_rid" qualifiers="const">
 			<return type="RID" />
 			<description>
@@ -20,6 +32,15 @@
 		<member name="bias" type="float" setter="set_bias" getter="get_bias" default="0.0">
 			When [member node_a] and [member node_b] move in different directions the [member bias] controls how fast the joint pulls them back to their original position. The lower the [member bias] the more the two bodies can pull on the joint.
 			When set to [code]0[/code], the default value from [member ProjectSettings.physics/2d/solver/default_constraint_bias] is used.
+		</member>
+		<member name="break_enabled" type="bool" setter="set_break_enabled" getter="is_break_enabled" default="false">
+			Set's this joint to be breakable or not. Breaking the joint will set it's [member Node.process_mode] to [constant Node.PROCESS_MODE_DISABLED]. Also set [member break_force] or [member break_torque] if you are using this flag.
+		</member>
+		<member name="break_force" type="float" setter="set_break_force" getter="get_break_force" default="0.0">
+			The force required to break the joint. Breaking the joint will set it's [member Node.process_mode] to [constant Node.PROCESS_MODE_DISABLED]. Only works if [member break_enabled] is set to [code]true[/code].
+		</member>
+		<member name="break_torque" type="float" setter="set_break_torque" getter="get_break_torque" default="0.0">
+			The torque required to break the joint. Breaking the joint will set it's [member Node.process_mode] to [constant Node.PROCESS_MODE_DISABLED]. Only works if [member break_enabled] is set to [code]true[/code].
 		</member>
 		<member name="disable_collision" type="bool" setter="set_exclude_nodes_from_collision" getter="get_exclude_nodes_from_collision" default="true">
 			If [code]true[/code], the two bodies bound together do not collide with each other.
