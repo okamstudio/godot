@@ -54,6 +54,7 @@ void TextEditor::set_syntax_highlighter(Ref<EditorSyntaxHighlighter> p_highlight
 	}
 
 	CodeEdit *te = code_editor->get_text_editor();
+	p_highlighter->_set_edited_resource(edited_res);
 	te->set_syntax_highlighter(p_highlighter);
 }
 

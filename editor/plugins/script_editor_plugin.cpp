@@ -97,7 +97,7 @@ Ref<EditorSyntaxHighlighter> EditorSyntaxHighlighter::_create() const {
 }
 
 void EditorSyntaxHighlighter::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("_get_edited_resource"), &EditorSyntaxHighlighter::_get_edited_resource);
+	ClassDB::bind_method(D_METHOD("get_edited_resource"), &EditorSyntaxHighlighter::_get_edited_resource);
 
 	GDVIRTUAL_BIND(_get_name)
 	GDVIRTUAL_BIND(_get_supported_languages)

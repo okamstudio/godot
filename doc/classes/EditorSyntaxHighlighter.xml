@@ -22,5 +22,11 @@
 				Virtual method which can be overridden to return the supported language names.
 			</description>
 		</method>
+		<method name="get_edited_resource">
+			<return type="RefCounted" />
+			<description>
+				Returns the associated [Resource].
+			</description>
+		</method>
 	</methods>
 </class>
