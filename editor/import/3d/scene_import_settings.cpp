@@ -331,6 +331,12 @@ void SceneImportSettingsDialog::_fill_animation(Tree *p_tree, const Ref<Animatio
 		ad.animation = p_anim;
 
 		_load_default_subresource_settings(ad.settings, "animations", p_name, ResourceImporterScene::INTERNAL_IMPORT_CATEGORY_ANIMATION);
+		if (!ad.settings.has("settings/loop_mode")) {
+			// Update the loop mode to match detected mode (from import hints).
+			// This is necessary on the first import of a scene, otherwise the
+			// default (0/NONE) is set when filling out defaults.
+			ad.settings["settings/loop_mode"] = p_anim->get_loop_mode();
+		}
 
 		animation_map[p_name] = ad;
 	}
