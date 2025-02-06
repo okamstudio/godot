@@ -44,7 +44,8 @@ private:
 	bool use_hdr = false;
 
 	void _queue_update();
-	void _update() const;
+	void _update_now() const;
+	void _update();
 
 protected:
 	static void _bind_methods();
@@ -64,7 +65,6 @@ public:
 	virtual bool has_alpha() const override { return true; }
 
 	virtual Ref<Image> get_image() const override;
-	void update_now() const;
 
 	GradientTexture1D();
 	virtual ~GradientTexture1D();
@@ -104,7 +104,8 @@ private:
 
 	mutable bool update_pending = false;
 	void _queue_update();
-	void _update() const;
+	void _update_now() const;
+	void _update();
 
 protected:
 	static void _bind_methods();
@@ -134,7 +135,6 @@ public:
 	virtual RID get_rid() const override;
 	virtual bool has_alpha() const override { return true; }
 	virtual Ref<Image> get_image() const override;
-	void update_now() const;
 
 	GradientTexture2D();
 	virtual ~GradientTexture2D();
