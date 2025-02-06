@@ -2822,6 +2822,10 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 					break;
 				}
 
+				if (base.get_type() == Variant::NIL && ClassDB::can_instantiate(class_name)) {
+					base = ClassDB::instantiate(class_name);
+				}
+
 				MethodInfo info;
 				int method_args = 0;
 
@@ -2856,6 +2860,12 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 					}
 
 					r_arghint = _make_arguments_hint(info, p_argidx);
+				}
+
+				if (p_base.value.get_type() == Variant::NIL) {
+					if (!base.is_ref_counted()) {
+						memdelete_notnull(base.get_validated_object());
+					}
 				}
 
 				if (p_argidx == 1 && p_context.node && p_context.node->type == GDScriptParser::Node::CALL && ClassDB::is_parent_class(class_name, SNAME("Tween")) && p_method == SNAME("tween_property")) {
