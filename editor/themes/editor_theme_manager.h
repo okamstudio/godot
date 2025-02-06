@@ -134,6 +134,8 @@ class EditorThemeManager {
 		Ref<StyleBoxFlat> button_style_pressed;
 		Ref<StyleBoxFlat> button_style_hover;
 
+		Ref<StyleBoxFlat> circle_style_focus;
+
 		Ref<StyleBoxFlat> popup_style;
 		Ref<StyleBoxFlat> popup_border_style;
 		Ref<StyleBoxFlat> window_style;
