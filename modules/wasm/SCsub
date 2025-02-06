@@ -1,0 +1,54 @@
+#!/usr/bin/env python
+
+Import("env")
+Import("env_modules")
+
+env_wasm3 = env_modules.Clone()
+
+# Thirdparty source files
+
+thirdparty_obj = []
+
+# Recast Thirdparty source files
+if env["builtin_wasm3"]:
+    thirdparty_dir = "#thirdparty/wasm3/source/"
+    thirdparty_sources = [
+        #"m3_api_libc.c",
+        #"m3_api_meta_wasi.c",
+        #"m3_api_tracer.c",
+        #"m3_api_uvwasi.c",
+        #"m3_api_wasi.c",
+        "m3_bind.c",
+        "m3_code.c",
+        "m3_compile.c",
+        "m3_core.c",
+        "m3_env.c",
+        "m3_exec.c",
+        "m3_function.c",
+        "m3_info.c",
+        "m3_module.c",
+        "m3_parse.c",
+    ]
+    thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
+
+    env_wasm3.Prepend(CPPPATH=[thirdparty_dir], CPPDEFINES=[])
+    if env_wasm3.msvc:  # MSVC
+        env_wasm3.Append(CCFLAGS=["/wd4200"])
+
+    env_thirdparty = env_wasm3.Clone()
+    env_thirdparty.disable_warnings()
+    env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
+
+
+env.modules_sources += thirdparty_obj
+
+# Godot source files
+
+module_obj = []
+
+env_wasm3.add_source_files(module_obj, "*.cpp")
+
+env.modules_sources += module_obj
+
+# Needed to force rebuilding the module files when the thirdparty library is updated.
+env.Depends(module_obj, thirdparty_obj)

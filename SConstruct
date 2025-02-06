@@ -263,6 +263,7 @@ opts.Add(BoolVariable("builtin_pcre2_with_jit", "Use JIT compiler for the built-
 opts.Add(BoolVariable("builtin_recastnavigation", "Use the built-in Recast navigation library", True))
 opts.Add(BoolVariable("builtin_rvo2_2d", "Use the built-in RVO2 2D library", True))
 opts.Add(BoolVariable("builtin_rvo2_3d", "Use the built-in RVO2 3D library", True))
+opts.Add(BoolVariable("builtin_wasm3", "Use the built-in wasm3 library", True))
 opts.Add(BoolVariable("builtin_xatlas", "Use the built-in xatlas library", True))
 opts.Add(BoolVariable("builtin_zlib", "Use the built-in zlib library", True))
 opts.Add(BoolVariable("builtin_zstd", "Use the built-in Zstd library", True))

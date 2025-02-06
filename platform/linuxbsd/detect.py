@@ -300,6 +300,10 @@ def configure(env: "SConsEnvironment"):
         # No pkgconfig file so far, hardcode expected lib name.
         env.Append(LIBS=["embree4"])
 
+    if not env["builtin_wasm3"]:
+        # No pkgconfig file so far, hardcode expected lib name.
+        env.Append(LIBS=["wasm3"])
+
     if not env["builtin_openxr"]:
         env.ParseConfig("pkg-config openxr --cflags --libs")
 

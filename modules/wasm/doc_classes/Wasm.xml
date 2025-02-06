@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="Wasm" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		An instance of a Wasm module.
+		Before being able to be used, the module must be compiled and instantiated.
+	</brief_description>
+	<description>
+		An instance of a Wasm module.
+		Before being able to be used, the module must be compiled and instantiated.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="compile">
+			<return type="int" enum="Error" />
+			<param index="0" name="bytecode" type="PackedByteArray" />
+			<description>
+				Compile the Wasm module provided Wasm binary [param bytecode].
+				This must be called before instantiating the module. Alternatively, the module can be compiled and instantiated in a single step with [method load].
+			</description>
+		</method>
+		<method name="function" qualifiers="const">
+			<return type="Variant" />
+			<param index="0" name="name" type="String" />
+			<param index="1" name="args" type="Array" />
+			<description>
+				Call an exported function of the instantiated Wasm module.
+				The [param args] argument array must be provided even if no arguments are required.
+				Returns either a single float or integer.
+			</description>
+		</method>
+		<method name="global" qualifiers="const">
+			<return type="Variant" />
+			<param index="0" name="name" type="String" />
+			<description>
+				Access an exported global of the instantiated Wasm module.
+				Returns either a single float or integer.
+			</description>
+		</method>
+		<method name="inspect" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+				Inspect the imports, exports, and memories of a compiled Wasm module.
+				Note that this may be called before instantiating a module and may even inform the imports provided [method instantiate].
+			</description>
+		</method>
+		<method name="instantiate">
+			<return type="int" enum="Error" />
+			<param index="0" name="import_map" type="Dictionary" />
+			<description>
+				Instantiate a compiled Wasm module.
+				Before this can be called, the module must be compiled via [method compile].
+				Imported functions can be provided in [param import_map] in the form [code]var imports = { "functions": { "index.function": [self, "function"] } }[/code].
+				Each key of the [code]import_map.functions[/code] should be an array whose members are the object containing the imported method and a string specifying the name of the method.
+				Alternatively, the module can be compiled and instantiated in a single step with [method load].
+			</description>
+		</method>
+		<method name="load">
+			<return type="int" enum="Error" />
+			<param index="0" name="bytecode" type="PackedByteArray" />
+			<param index="1" name="import_map" type="Dictionary" />
+			<description>
+				Compile and instantiate a Wasm module in a single step.
+				Equivalent to calling [method compile] and [method instantiate].
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="memory" type="WasmMemory" setter="" getter="get_memory">
+			A [StreamPeer] interface for interacting with the memory of an instantiated Wasm module.
+		</member>
+	</members>
+</class>

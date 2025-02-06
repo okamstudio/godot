@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="WasmMemory" inherits="StreamPeer" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		A [StreamPeer] interface for interacting with the memory of an instantiated Wasm module.
+	</brief_description>
+	<description>
+		A [StreamPeer] interface for interacting with the memory of an instantiated Wasm module.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_position" qualifiers="const">
+			<return type="int" />
+			<description>
+				The current memory offset of the [StreamPeer].
+				Can be set using [method seek].
+			</description>
+		</method>
+		<method name="grow">
+			<return type="int" enum="Error" />
+			<param index="0" name="pages" type="int" />
+			<description>
+				Grow the memory by a number of pages.
+				Per WebAssembly specifications, each memory page is 65536 bytes.
+				Memory can be created by an instantiated Wasm module or created externally to be used as a module import.
+				External memory must be grown before being used as a module import.
+				Allocated memory can not be decreased i.e. grown by a negative number of pages.
+			</description>
+		</method>
+		<method name="inspect" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+				Inspect the minimum, maximum, and current memory sizes.
+			</description>
+		</method>
+		<method name="seek">
+			<return type="WasmMemory" />
+			<param index="0" name="p_pos" type="int" />
+			<description>
+				Set the memory offset of the [StreamPeer].
+				Values will be read from and written to this position.
+				This method returns the [code]SteamPeerWasm[/code] and can therefore be chained e.g. [code]wasm.memory.seek(0).get_64()[/code].
+			</description>
+		</method>
+	</methods>
+</class>
