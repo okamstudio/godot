@@ -384,6 +384,7 @@ public:
 #ifdef DEBUG_ENABLED
 	void flush_frame_parsed_events();
 #endif
+	void clear_mouse_axes_action_state();
 	void flush_buffered_events();
 	bool is_agile_input_event_flushing();
 	void set_agile_input_event_flushing(bool p_enable);

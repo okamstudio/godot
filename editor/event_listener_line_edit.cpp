@@ -61,6 +61,7 @@ String EventListenerLineEdit::get_event_text(const Ref<InputEvent> &p_event, boo
 
 	String text;
 	Ref<InputEventKey> key = p_event;
+	Ref<InputEventMouseMotion> mouse_motion = p_event;
 	if (key.is_valid()) {
 		String mods_text = key->InputEventWithModifiers::as_text();
 		mods_text = mods_text.is_empty() ? mods_text : mods_text + "+";
@@ -94,6 +95,17 @@ String EventListenerLineEdit::get_event_text(const Ref<InputEvent> &p_event, boo
 
 		if (text.is_empty()) {
 			text = "(" + TTR("Unset") + ")";
+		}
+	} else if (mouse_motion.is_valid()) {
+		Vector2 rel = mouse_motion->get_relative();
+		if (rel.x < 0) {
+			text = TTR("Mouse X (Left)");
+		} else if (rel.x > 0) {
+			text = TTR("Mouse X (Right)");
+		} else if (rel.y < 0) {
+			text = TTR("Mouse Y (Up)");
+		} else {
+			text = TTR("Mouse Y (Down)");
 		}
 	} else {
 		text = p_event->as_text();

@@ -4561,35 +4561,36 @@ bool Main::iteration() {
 	}
 #endif
 
-	if (fixed_fps != -1) {
-		return exit;
-	}
-
-	OS::get_singleton()->add_frame_delay(DisplayServer::get_singleton()->window_can_draw());
+	if (fixed_fps == -1) {
+		OS::get_singleton()->add_frame_delay(DisplayServer::get_singleton()->window_can_draw());
 
 #ifdef TOOLS_ENABLED
-	if (auto_build_solutions) {
-		auto_build_solutions = false;
-		// Only relevant when running the editor.
-		if (!editor) {
-			OS::get_singleton()->set_exit_code(EXIT_FAILURE);
-			ERR_FAIL_V_MSG(true,
-					"Command line option --build-solutions was passed, but no project is being edited. Aborting.");
+		if (auto_build_solutions) {
+			auto_build_solutions = false;
+			// Only relevant when running the editor.
+			if (!editor) {
+				OS::get_singleton()->set_exit_code(EXIT_FAILURE);
+				ERR_FAIL_V_MSG(true,
+						"Command line option --build-solutions was passed, but no project is being edited. Aborting.");
+			}
+			if (!EditorNode::get_singleton()->call_build()) {
+				OS::get_singleton()->set_exit_code(EXIT_FAILURE);
+				ERR_FAIL_V_MSG(true,
+						"Command line option --build-solutions was passed, but the build callback failed. Aborting.");
+			}
 		}
-		if (!EditorNode::get_singleton()->call_build()) {
-			OS::get_singleton()->set_exit_code(EXIT_FAILURE);
-			ERR_FAIL_V_MSG(true,
-					"Command line option --build-solutions was passed, but the build callback failed. Aborting.");
-		}
-	}
 #endif
+	}
 
 #ifdef TOOLS_ENABLED
 	if (exit && quit_after_timeout && EditorNode::get_singleton()) {
 		EditorNode::get_singleton()->unload_editor_addons();
 	}
 #endif
-
+	//need to find a better place to put this.
+	if (!Math::is_equal_approx((double)Input::get_singleton()->get_last_mouse_velocity().length_squared(), (double)0.0)) {
+		Input::get_singleton()->clear_mouse_axes_action_state();
+	}
 	return exit;
 }
 

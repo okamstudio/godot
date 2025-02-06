@@ -1170,6 +1170,20 @@ void Input::flush_frame_parsed_events() {
 }
 #endif
 
+void Input::clear_mouse_axes_action_state() {
+	for (const KeyValue<StringName, InputMap::Action> &E : InputMap::get_singleton()->get_action_map()) {
+		const List<Ref<InputEvent>> *inputs = InputMap::get_singleton()->action_get_events(E.key);
+		if (inputs) {
+			for (const Ref<InputEvent> &input : *inputs) {
+				Ref<InputEventMouseMotion> mm = input;
+				if (mm.is_valid()) {
+					action_release(E.key);
+				}
+			}
+		}
+	}
+}
+
 void Input::flush_buffered_events() {
 	_THREAD_SAFE_METHOD_
 

@@ -981,6 +981,40 @@ Ref<InputEvent> InputEventMouseMotion::xformed_by(const Transform2D &p_xform, co
 	return mm;
 }
 
+bool InputEventMouseMotion::action_match(const Ref<InputEvent> &p_event, bool p_exact_match, float p_deadzone, bool *r_pressed, float *r_strength, float *r_raw_strength) const {
+	Ref<InputEventMouseMotion> mm = p_event;
+	if (mm.is_null()) {
+		return false;
+	}
+
+	Vector2 action_rel = get_relative();
+	Vector2 event_rel = mm->get_relative();
+
+	if (event_rel.dot(action_rel) <= 0) {
+		return false;
+	}
+
+	Vector2 action_value = action_rel * event_rel;
+	float strength = action_value.x + action_value.y;
+
+	if (r_pressed != nullptr) {
+		*r_pressed = strength != 0;
+	}
+	if (r_strength != nullptr) {
+		*r_strength = strength;
+	}
+	if (r_raw_strength != nullptr) {
+		*r_raw_strength = strength;
+	}
+
+	return true;
+}
+
+bool InputEventMouseMotion::is_match(const Ref<InputEvent> &p_event, bool p_exact_match) const {
+	Ref<InputEventMouseMotion> mm = p_event;
+	return mm.is_valid() && mm->get_relative().dot(get_relative()) > 0;
+}
+
 String InputEventMouseMotion::as_text() const {
 	return vformat(RTR("Mouse motion at position (%s) with velocity (%s)"), String(get_position()), String(get_velocity()));
 }

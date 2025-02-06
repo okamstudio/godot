@@ -37,13 +37,14 @@ enum InputType {
 	INPUT_KEY = 1,
 	INPUT_MOUSE_BUTTON = 2,
 	INPUT_JOY_BUTTON = 4,
-	INPUT_JOY_MOTION = 8
+	INPUT_JOY_MOTION = 8,
+	INPUT_MOUSE_MOTION = 16,
 };
 
 class EventListenerLineEdit : public LineEdit {
 	GDCLASS(EventListenerLineEdit, LineEdit)
 
-	int allowed_input_types = INPUT_KEY | INPUT_MOUSE_BUTTON | INPUT_JOY_BUTTON | INPUT_JOY_MOTION;
+	int allowed_input_types = INPUT_KEY | INPUT_MOUSE_BUTTON | INPUT_JOY_BUTTON | INPUT_JOY_MOTION | INPUT_MOUSE_MOTION;
 	bool ignore_next_event = true;
 	bool share_keycodes = false;
 	Ref<InputEvent> event;

@@ -56,6 +56,7 @@ void InputEventConfigurationDialog::_set_event(const Ref<InputEvent> &p_event, c
 
 		Ref<InputEventKey> k = p_event;
 		Ref<InputEventMouseButton> mb = p_event;
+		Ref<InputEventMouseMotion> mm = p_event;
 		Ref<InputEventJoypadButton> joyb = p_event;
 		Ref<InputEventJoypadMotion> joym = p_event;
 		Ref<InputEventWithModifiers> mod = p_event;
@@ -74,6 +75,10 @@ void InputEventConfigurationDialog::_set_event(const Ref<InputEvent> &p_event, c
 			mod_checkboxes[MOD_META]->set_pressed(mod->is_meta_pressed());
 
 			autoremap_command_or_control_checkbox->set_pressed(mod->is_command_or_control_autoremap());
+		}
+
+		if (mm.is_valid()) {
+			show_mods = false;
 		}
 
 		if (k.is_valid()) {
@@ -110,7 +115,7 @@ void InputEventConfigurationDialog::_set_event(const Ref<InputEvent> &p_event, c
 		device_container->set_visible(show_device);
 		key_mode->set_visible(show_key);
 		location_container->set_visible(show_location);
-		additional_options_container->show();
+		additional_options_container->set_visible(show_mods or show_device or show_key or show_location);
 
 		// Update mode selector based on original key event.
 		Ref<InputEventKey> ko = p_original_event;
@@ -148,7 +153,7 @@ void InputEventConfigurationDialog::_set_event(const Ref<InputEvent> &p_event, c
 		}
 
 		// Update selected item in input list.
-		if (p_update_input_list_selection && (k.is_valid() || joyb.is_valid() || joym.is_valid() || mb.is_valid())) {
+		if (p_update_input_list_selection && (k.is_valid() || joyb.is_valid() || joym.is_valid() || mb.is_valid() || mm.is_valid())) {
 			in_tree_update = true;
 			TreeItem *category = input_list_tree->get_root()->get_first_child();
 			while (category) {
@@ -170,7 +175,8 @@ void InputEventConfigurationDialog::_set_event(const Ref<InputEvent> &p_event, c
 							bool joyb_match = joyb.is_valid() && Variant(joyb->get_button_index()) == input_item->get_meta("__index");
 							bool joym_match = joym.is_valid() && Variant(joym->get_axis()) == input_item->get_meta("__axis") && joym->get_axis_value() == (float)input_item->get_meta("__value");
 							bool mb_match = mb.is_valid() && Variant(mb->get_button_index()) == input_item->get_meta("__index");
-							if (key_match || joyb_match || joym_match || mb_match) {
+							bool mm_match = mm.is_valid() && mm->get_relative()[input_item->get_meta("__axis")] != 0;
+							if (key_match || joyb_match || joym_match || mb_match || mm_match) {
 								category->set_collapsed(false);
 								input_item->select(0);
 								input_list_tree->ensure_cursor_is_visible();
@@ -316,6 +322,35 @@ void InputEventConfigurationDialog::_update_input_list() {
 			TreeItem *item = input_list_tree->create_item(mouse_root);
 			item->set_text(0, desc);
 			item->set_meta("__index", mouse_buttons[i]);
+		}
+	}
+
+	if (allowed_input_types & INPUT_MOUSE_MOTION) {
+		TreeItem *mouse_motion_root = input_list_tree->create_item(root);
+		mouse_motion_root->set_text(0, TTR("Mouse Axes"));
+		mouse_motion_root->set_icon(0, icon_cache.mouse);
+		mouse_motion_root->set_collapsed(collapse);
+		mouse_motion_root->set_meta("__type", INPUT_MOUSE_MOTION);
+
+		for (int i = 0; i < 4; i++) {
+			int axis = i / 2;
+			int direction = (i & 1) ? 1 : -1;
+
+			String desc;
+			if (axis == 0) {
+				desc = direction == 1 ? TTR("Mouse X (Right)") : TTR("Mouse X (Left)");
+			} else {
+				desc = direction == 1 ? TTR("Mouse Y (Down)") : TTR("Mouse Y (Up)");
+			}
+
+			if (!search_term.is_empty() && desc.findn(search_term) == -1) {
+				continue;
+			}
+
+			TreeItem *item = input_list_tree->create_item(mouse_motion_root);
+			item->set_text(0, desc);
+			item->set_meta("__axis", axis);
+			item->set_meta("__value", direction);
 		}
 	}
 
@@ -524,6 +559,21 @@ void InputEventConfigurationDialog::_input_list_item_selected() {
 
 			_set_event(mb, mb, false);
 		} break;
+		case INPUT_MOUSE_MOTION: {
+			int axis = selected->get_meta("__axis");
+			int value = selected->get_meta("__value");
+
+			Ref<InputEventMouseMotion> mm;
+			mm.instantiate();
+			Vector2 rel(0, 0);
+			rel[axis] = value;
+			mm->set_relative(rel);
+
+			// Maintain selected device.
+			mm->set_device(_get_current_device());
+
+			_set_event(mm, mm, false);
+		} break;
 		case INPUT_JOY_BUTTON: {
 			JoyButton idx = (JoyButton)(int)selected->get_meta("__index");
 			Ref<InputEventJoypadButton> jb = InputEventJoypadButton::create_reference(idx);
@@ -635,7 +685,7 @@ void InputEventConfigurationDialog::set_allowed_input_types(int p_type_masks) {
 }
 
 InputEventConfigurationDialog::InputEventConfigurationDialog() {
-	allowed_input_types = INPUT_KEY | INPUT_MOUSE_BUTTON | INPUT_JOY_BUTTON | INPUT_JOY_MOTION;
+	allowed_input_types = INPUT_KEY | INPUT_MOUSE_BUTTON | INPUT_MOUSE_MOTION | INPUT_JOY_BUTTON | INPUT_JOY_MOTION;
 
 	set_min_size(Size2i(800, 0) * EDSCALE);
 
