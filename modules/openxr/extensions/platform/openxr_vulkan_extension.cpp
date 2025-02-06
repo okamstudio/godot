@@ -304,6 +304,10 @@ bool OpenXRVulkanExtension::get_swapchain_image_data(XrSwapchain p_swapchain, in
 			format = RenderingDevice::DATA_FORMAT_B8G8R8A8_UINT;
 			usage_flags |= RenderingDevice::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT;
 			break;
+		case VK_FORMAT_R16G16B16A16_SFLOAT:
+			format = RenderingDevice::DATA_FORMAT_R16G16B16A16_SFLOAT;
+			usage_flags |= RenderingDevice::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT;
+			break;
 		case VK_FORMAT_D32_SFLOAT:
 			format = RenderingDevice::DATA_FORMAT_D32_SFLOAT;
 			usage_flags |= RenderingDevice::TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;

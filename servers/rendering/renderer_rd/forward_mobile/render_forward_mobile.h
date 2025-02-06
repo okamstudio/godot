@@ -90,6 +90,8 @@ private:
 		virtual void free_data() override;
 		virtual void configure(RenderSceneBuffersRD *p_render_buffers) override;
 
+		RID get_motion_vectors_fb();
+
 	private:
 		RenderSceneBuffersRD *render_buffers = nullptr;
 	};
@@ -109,6 +111,7 @@ private:
 		// PASS_MODE_DEPTH_NORMAL_ROUGHNESS_VOXEL_GI,
 		PASS_MODE_DEPTH_MATERIAL,
 		// PASS_MODE_SDF,
+		PASS_MODE_MOTION_VECTORS,
 	};
 
 	struct RenderElementInfo;
@@ -200,14 +203,16 @@ private:
 		};
 
 		struct PushConstant {
-			float uv_offset[2];
+			uint32_t uv_offset;
 			uint32_t base_index;
-			uint32_t pad;
+			uint32_t multimesh_motion_vectors_current_offset;
+			uint32_t multimesh_motion_vectors_previous_offset;
 			PushConstantUbershader ubershader;
 		};
 
 		struct InstanceData {
 			float transform[16];
+			float prev_transform[16];
 			uint32_t flags;
 			uint32_t instance_uniforms_ofs; // Base offset in global buffer for instance variables.
 			uint32_t gi_offset; // GI information when using lightmapping (VCT or lightmap index).
@@ -453,6 +458,10 @@ protected:
 		uint32_t instance_count = 0;
 		uint32_t trail_steps = 1;
 
+		uint64_t prev_transform_change_frame = UINT_MAX;
+		bool prev_transform_dirty = true;
+		Transform3D prev_transform;
+
 		// lightmap
 		uint32_t gi_offset_cache = 0; // !BAS! Should rename this to lightmap_offset_cache, in forward clustered this was shared between gi and lightmap
 		RID lightmap_instance;
@@ -480,6 +489,7 @@ protected:
 
 		virtual void _mark_dirty() override;
 
+		virtual void set_transform(const Transform3D &p_transform, const AABB &p_aabb, const AABB &p_transformed_aabb) override;
 		virtual void set_use_lightmap(RID p_lightmap_instance, const Rect2 &p_lightmap_uv_scale, int p_lightmap_slice_index) override;
 		virtual void set_lightmap_capture(const Color *p_sh9) override;
 

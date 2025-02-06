@@ -165,6 +165,34 @@ void RenderForwardMobile::RenderBufferDataForwardMobile::configure(RenderSceneBu
 	ERR_FAIL_NULL(render_buffers); // Huh? really?
 }
 
+RID RendererSceneRenderImplementation::RenderForwardMobile::RenderBufferDataForwardMobile::get_motion_vectors_fb() {
+	ERR_FAIL_NULL_V(render_buffers, RID());
+
+	RendererRD::TextureStorage *texture_storage = RendererRD::TextureStorage::get_singleton();
+	ERR_FAIL_NULL_V(texture_storage, RID());
+
+	RID velocity = render_buffers->get_velocity_buffer(false);
+	RID velocity_depth = render_buffers->get_velocity_depth_buffer();
+
+	if (velocity.is_valid() && velocity_depth.is_valid()) {
+		Vector<RID> textures;
+		textures.push_back(velocity);
+		textures.push_back(velocity_depth);
+
+		Vector<RD::FramebufferPass> passes;
+		RD::FramebufferPass pass;
+		pass.color_attachments.push_back(0);
+		pass.depth_attachment = 1;
+		passes.push_back(pass);
+
+		uint32_t view_count = render_buffers->get_view_count();
+
+		return FramebufferCacheRD::get_singleton()->get_cache_multipass(textures, passes, view_count);
+	}
+
+	return RID();
+}
+
 RID RenderForwardMobile::RenderBufferDataForwardMobile::get_color_fbs(FramebufferConfigType p_config_type) {
 	ERR_FAIL_NULL_V(render_buffers, RID());
 
@@ -763,19 +791,7 @@ void RenderForwardMobile::_render_scene(RenderDataRD *p_render_data, const Color
 
 	RENDER_TIMESTAMP("Setup 3D Scene");
 
-	/* TODO
-	// check if we need motion vectors
-	if (get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_MOTION_VECTORS) {
-		p_render_data->scene_data->calculate_motion_vectors = true;
-	} else if (_compositor_effects_has_flag(p_render_data, RS::COMPOSITOR_EFFECT_FLAG_NEEDS_MOTION_VECTORS)) {
-		p_render_data->scene_data->calculate_motion_vectors = true;
-	} else if (render target has velocity override) { // TODO
-		p_render_data->scene_data->calculate_motion_vectors = true;
-	} else {
-		p_render_data->scene_data->calculate_motion_vectors = false;
-	}
-	*/
-	p_render_data->scene_data->calculate_motion_vectors = false; // for now, not yet supported...
+	p_render_data->scene_data->calculate_motion_vectors = RendererRD::TextureStorage::get_singleton()->render_target_get_override_velocity(rb->get_render_target()).is_valid();
 
 	p_render_data->scene_data->directional_light_count = 0;
 	p_render_data->scene_data->opaque_prepass_threshold = 0.0;
@@ -1058,6 +1074,25 @@ void RenderForwardMobile::_render_scene(RenderDataRD *p_render_data, const Color
 		} else {
 			RD::get_singleton()->draw_command_begin_label("Render Reflection Probe Pass");
 			breadcrumb = RDD::BreadcrumbMarker::REFLECTION_PROBES;
+		}
+
+		if (rb_data.is_valid() && p_render_data->scene_data->calculate_motion_vectors) {
+			RID mv_fb = rb_data->get_motion_vectors_fb();
+
+			if (mv_fb.is_valid()) {
+				RENDER_TIMESTAMP("Render Motion Vectors");
+
+				Vector<Color> mv_pass_clear;
+				mv_pass_clear.push_back(Color(0, 0, 0, 0));
+
+				RD::get_singleton()->draw_command_begin_label("Render Motion Vectors");
+
+				RID rp_uniform_set = _setup_render_pass_uniform_set(RENDER_LIST_OPAQUE, nullptr, RID(), samplers);
+				RenderListParameters render_list_params(render_list[RENDER_LIST_OPAQUE].elements.ptr(), render_list[RENDER_LIST_OPAQUE].element_info.ptr(), render_list[RENDER_LIST_OPAQUE].elements.size(), reverse_cull, PASS_MODE_MOTION_VECTORS, rp_uniform_set, base_specialization);
+				_render_list_with_draw_list(&render_list_params, mv_fb, RD::DRAW_CLEAR_ALL, mv_pass_clear);
+
+				RD::get_singleton()->draw_command_end_label();
+			}
 		}
 
 		// opaque pass
@@ -1824,14 +1859,22 @@ void RenderForwardMobile::_fill_instance_data(RenderListType p_render_list, uint
 	scene_state.instance_data[p_render_list].resize(p_offset + element_total);
 	rl->element_info.resize(p_offset + element_total);
 
+	uint64_t frame = RSG::rasterizer->get_frame_number();
+
 	for (uint32_t i = 0; i < element_total; i++) {
 		GeometryInstanceSurfaceDataCache *surface = rl->elements[i + p_offset];
 		GeometryInstanceForwardMobile *inst = surface->owner;
 
 		SceneState::InstanceData &instance_data = scene_state.instance_data[p_render_list][i + p_offset];
 
+		if (inst->prev_transform_dirty && frame > inst->prev_transform_change_frame + 1 && inst->prev_transform_change_frame) {
+			inst->prev_transform = inst->transform;
+			inst->prev_transform_dirty = false;
+		}
+
 		if (inst->store_transform_cache) {
 			RendererRD::MaterialStorage::store_transform(inst->transform, instance_data.transform);
+			RendererRD::MaterialStorage::store_transform(inst->prev_transform, instance_data.prev_transform);
 
 #ifdef REAL_T_IS_DOUBLE
 			// Split the origin into two components, the float approximation and the missing precision.
@@ -1842,6 +1885,7 @@ void RenderForwardMobile::_fill_instance_data(RenderListType p_render_list, uint
 #endif
 		} else {
 			RendererRD::MaterialStorage::store_transform(Transform3D(), instance_data.transform);
+			RendererRD::MaterialStorage::store_transform(Transform3D(), instance_data.prev_transform);
 		}
 
 		instance_data.flags = inst->flags_cache;
@@ -2036,7 +2080,7 @@ void RenderForwardMobile::_fill_render_list(RenderListType p_render_list, const 
 			}
 
 			// ADD Element
-			if (p_pass_mode == PASS_MODE_COLOR || p_pass_mode == PASS_MODE_COLOR_TRANSPARENT) {
+			if (p_pass_mode == PASS_MODE_COLOR || p_pass_mode == PASS_MODE_COLOR_TRANSPARENT || p_pass_mode == PASS_MODE_MOTION_VECTORS) {
 #ifdef DEBUG_ENABLED
 				bool force_alpha = unlikely(get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_OVERDRAW);
 #else
@@ -2129,6 +2173,9 @@ void RenderForwardMobile::_render_list(RenderingDevice::DrawListID p_draw_list, 
 		case PASS_MODE_DEPTH_MATERIAL: {
 			_render_list_template<PASS_MODE_DEPTH_MATERIAL>(p_draw_list, p_framebuffer_Format, p_params, p_from_element, p_to_element);
 		} break;
+		case PASS_MODE_MOTION_VECTORS: {
+			_render_list_template<PASS_MODE_MOTION_VECTORS>(p_draw_list, p_framebuffer_Format, p_params, p_from_element, p_to_element);
+		}
 	}
 }
 
@@ -2144,6 +2191,7 @@ void RenderForwardMobile::_render_list_with_draw_list(RenderListParameters *p_pa
 template <RenderForwardMobile::PassMode p_pass_mode>
 void RenderForwardMobile::_render_list_template(RenderingDevice::DrawListID p_draw_list, RenderingDevice::FramebufferFormatID p_framebuffer_Format, RenderListParameters *p_params, uint32_t p_from_element, uint32_t p_to_element) {
 	RendererRD::MeshStorage *mesh_storage = RendererRD::MeshStorage::get_singleton();
+	RendererRD::ParticlesStorage *particles_storage = RendererRD::ParticlesStorage::get_singleton();
 
 	RD::DrawListID draw_list = p_draw_list;
 	RD::FramebufferFormatID framebuffer_format = p_framebuffer_Format;
@@ -2189,11 +2237,10 @@ void RenderForwardMobile::_render_list_template(RenderingDevice::DrawListID p_dr
 		push_constant.base_index = i + p_params->element_offset;
 
 		if constexpr (p_pass_mode == PASS_MODE_DEPTH_MATERIAL) {
-			push_constant.uv_offset[0] = p_params->uv_offset.x;
-			push_constant.uv_offset[1] = p_params->uv_offset.y;
+			push_constant.uv_offset = Math::make_half_float(p_params->uv_offset.y) << 16;
+			push_constant.uv_offset |= Math::make_half_float(p_params->uv_offset.x);
 		} else {
-			push_constant.uv_offset[0] = 0.0;
-			push_constant.uv_offset[1] = 0.0;
+			push_constant.uv_offset = 0;
 		}
 
 		if (shadow_pass) {
@@ -2275,6 +2322,9 @@ void RenderForwardMobile::_render_list_template(RenderingDevice::DrawListID p_dr
 				ERR_FAIL_COND_MSG(p_params->view_count > 1, "Multiview not supported for material pass");
 				pipeline_key.version = SceneShaderForwardMobile::SHADER_VERSION_DEPTH_PASS_WITH_MATERIAL;
 			} break;
+			case PASS_MODE_MOTION_VECTORS: {
+				pipeline_key.version = SceneShaderForwardMobile::SHADER_VERSION_MOTION_VECTORS;
+			}
 		}
 
 		pipeline_key.framebuffer_format_id = framebuffer_format;
@@ -2293,9 +2343,9 @@ void RenderForwardMobile::_render_list_template(RenderingDevice::DrawListID p_dr
 			// Skeleton and blend shape.
 			uint64_t input_mask = shader->get_vertex_input_mask(pipeline_key.version, pipeline_key.ubershader);
 			if (surf->owner->mesh_instance.is_valid()) {
-				mesh_storage->mesh_instance_surface_get_vertex_arrays_and_format(surf->owner->mesh_instance, surf->surface_index, input_mask, false, vertex_array_rd, vertex_format);
+				mesh_storage->mesh_instance_surface_get_vertex_arrays_and_format(surf->owner->mesh_instance, surf->surface_index, input_mask, p_pass_mode == PASS_MODE_MOTION_VECTORS, vertex_array_rd, vertex_format);
 			} else {
-				mesh_storage->mesh_surface_get_vertex_arrays_and_format(mesh_surface, input_mask, false, vertex_array_rd, vertex_format);
+				mesh_storage->mesh_surface_get_vertex_arrays_and_format(mesh_surface, input_mask, p_pass_mode == PASS_MODE_MOTION_VECTORS, vertex_array_rd, vertex_format);
 			}
 
 			index_array_rd = mesh_storage->mesh_surface_get_index_array(mesh_surface, element_info.lod_index);
@@ -2363,6 +2413,15 @@ void RenderForwardMobile::_render_list_template(RenderingDevice::DrawListID p_dr
 				prev_material_uniform_set = material_uniform_set;
 			}
 
+			if (surf->owner->base_flags & INSTANCE_DATA_FLAG_PARTICLES) {
+				particles_storage->particles_get_instance_buffer_motion_vectors_offsets(surf->owner->data->base, push_constant.multimesh_motion_vectors_current_offset, push_constant.multimesh_motion_vectors_previous_offset);
+			} else if (surf->owner->base_flags & INSTANCE_DATA_FLAG_MULTIMESH) {
+				mesh_storage->_multimesh_get_motion_vectors_offsets(surf->owner->data->base, push_constant.multimesh_motion_vectors_current_offset, push_constant.multimesh_motion_vectors_previous_offset);
+			} else {
+				push_constant.multimesh_motion_vectors_current_offset = 0;
+				push_constant.multimesh_motion_vectors_previous_offset = 0;
+			}
+
 			size_t push_constant_size = 0;
 			if (pipeline_key.ubershader) {
 				push_constant_size = sizeof(SceneState::PushConstant);
@@ -2412,6 +2471,17 @@ RenderGeometryInstance *RenderForwardMobile::geometry_instance_create(RID p_base
 	ginstance->_mark_dirty();
 
 	return ginstance;
+}
+
+void RendererSceneRenderImplementation::RenderForwardMobile::GeometryInstanceForwardMobile::set_transform(const Transform3D &p_transform, const AABB &p_aabb, const AABB &p_transformed_aabb) {
+	uint64_t frame = RSG::rasterizer->get_frame_number();
+	if (frame != prev_transform_change_frame) {
+		prev_transform = transform;
+		prev_transform_change_frame = frame;
+		prev_transform_dirty = true;
+	}
+
+	RenderGeometryInstanceBase::set_transform(p_transform, p_aabb, p_transformed_aabb);
 }
 
 void RenderForwardMobile::GeometryInstanceForwardMobile::set_use_lightmap(RID p_lightmap_instance, const Rect2 &p_lightmap_uv_scale, int p_lightmap_slice_index) {
@@ -2822,6 +2892,7 @@ void RenderForwardMobile::_geometry_instance_update(RenderGeometryInstance *p_ge
 		ginstance->transforms_uniform_set = mesh_storage->multimesh_get_3d_uniform_set(ginstance->data->base, scene_shader.default_shader_rd, TRANSFORMS_UNIFORM_SET);
 
 	} else if (ginstance->data->base_type == RS::INSTANCE_PARTICLES) {
+		ginstance->base_flags |= INSTANCE_DATA_FLAG_PARTICLES;
 		ginstance->base_flags |= INSTANCE_DATA_FLAG_MULTIMESH;
 		if (false) { // 2D particles
 			ginstance->base_flags |= INSTANCE_DATA_FLAG_MULTIMESH_FORMAT_2D;
