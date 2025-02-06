@@ -157,7 +157,7 @@
 			If [code]false[/code], the body will slide on floor's slopes when [member velocity] applies a downward force.
 		</member>
 		<member name="max_slides" type="int" setter="set_max_slides" getter="get_max_slides" default="6">
-			Maximum number of times the body can change direction before it stops when calling [method move_and_slide].
+			Maximum number of times the body can change direction before it stops when calling [method move_and_slide]. Must be greater than zero.
 		</member>
 		<member name="motion_mode" type="int" setter="set_motion_mode" getter="get_motion_mode" enum="CharacterBody3D.MotionMode" default="0">
 			Sets the motion mode which defines the behavior of [method move_and_slide]. See [enum MotionMode] constants for available modes.
