@@ -259,6 +259,10 @@ private:
 
 		mutable NodePath *path_cache = nullptr;
 
+		// connection_owners and conn_id are used by PackedScene::Instantiate and PackedScene::pack (in _parse_connections)
+		// to ensure correct signals are saved when packing a scene
+		HashMap<StringName, HashMap<Callable, int, HashableHasher<Callable>>> connection_owners;
+		int conn_id;
 	} data;
 
 	Ref<MultiplayerAPI> multiplayer;
@@ -450,6 +454,13 @@ public:
 		NOTIFICATION_SUSPENDED = 9003,
 		NOTIFICATION_UNSUSPENDED = 9004
 	};
+
+	/* Used by PackedScene */
+	void set_scene_connection_id(int conn_id);
+	int get_scene_connection_id() const;
+
+	void set_connection_id(const StringName &p_signal, const Callable &p_callable, int conn_id);
+	int get_connection_id(const StringName &p_signal, const Callable &p_callable) const;
 
 	/* NODE/TREE */
 

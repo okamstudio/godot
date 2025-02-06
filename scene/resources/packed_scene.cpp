@@ -123,6 +123,20 @@ Ref<Resource> SceneState::get_remap_resource(const Ref<Resource> &p_resource, Ha
 	return remap_resource;
 }
 
+int SceneState::_generate_unique_connection_id() const {
+	// Generate a unique enough hash to serve as a temporary connection id
+	OS::DateTime dt = OS::get_singleton()->get_datetime();
+	uint32_t hash = hash_murmur3_one_32(OS::get_singleton()->get_ticks_usec());
+	hash = hash_murmur3_one_32(dt.year, hash);
+	hash = hash_murmur3_one_32(dt.month, hash);
+	hash = hash_murmur3_one_32(dt.day, hash);
+	hash = hash_murmur3_one_32(dt.hour, hash);
+	hash = hash_murmur3_one_32(dt.minute, hash);
+	hash = hash_murmur3_one_32(dt.second, hash);
+	hash = hash_murmur3_one_32(Math::rand(), hash);
+	return hash;
+}
+
 Node *SceneState::instantiate(GenEditState p_edit_state) const {
 	// Nodes where instantiation failed (because something is missing.)
 	List<Node *> stray_instances;
@@ -136,6 +150,11 @@ Node *SceneState::instantiate(GenEditState p_edit_state) const {
 		ERR_FAIL_INDEX_V(p_id &FLAG_MASK, nc, nullptr); \
 		p_name = ret_nodes[p_id & FLAG_MASK];           \
 	}
+
+	// `conn_id` serves as a kind of scene id, all nodes and connections in the same scene receive the same id
+	// unlike the `owner` property of nodes, the root nodes of instantiated scenes will have the same id as their children.
+	// When the scene is packed this unique id can be used to differentiate which signals actually belong to the scene.
+	int conn_id = _generate_unique_connection_id();
 
 	int nc = nodes.size();
 	ERR_FAIL_COND_V_MSG(nc == 0, nullptr, vformat("Failed to instantiate scene state of \"%s\", node count is 0. Make sure the PackedScene resource is valid.", path));
@@ -298,6 +317,8 @@ Node *SceneState::instantiate(GenEditState p_edit_state) const {
 		if (node) {
 			// may not have found the node (part of instantiated scene and removed)
 			// if found all is good, otherwise ignore
+
+			node->set_scene_connection_id(conn_id);
 
 			//properties
 			int nprop_count = n.properties.size();
@@ -606,6 +627,7 @@ Node *SceneState::instantiate(GenEditState p_edit_state) const {
 		}
 
 		cfrom->connect(snames[c.signal], callable, CONNECT_PERSIST | c.flags | (p_edit_state == GEN_EDIT_STATE_MAIN ? 0 : CONNECT_INHERITED));
+		cfrom->set_connection_id(snames[c.signal], callable, conn_id);
 	}
 
 	//Node *s = ret_nodes[0];
@@ -1032,23 +1054,24 @@ Error SceneState::_parse_node(Node *p_owner, Node *p_node, int p_parent_idx, Has
 	return OK;
 }
 
+/**
+ * A subfunction of `pack`.
+ * Recursively parses and saves connections that should be packed in the scene.
+ */
 Error SceneState::_parse_connections(Node *p_owner, Node *p_node, HashMap<StringName, int> &name_map, HashMap<Variant, int, VariantHasher, VariantComparator> &variant_map, HashMap<Node *, int> &node_map, HashMap<Node *, int> &nodepath_map) {
-	// Ignore nodes that are within a scene instance.
+	// Ignore nodes that are children of scene instances (and not editable).
 	if (p_node != p_owner && p_node->get_owner() && p_node->get_owner() != p_owner && !p_owner->is_editable_instance(p_node->get_owner())) {
 		return OK;
 	}
 
+	// Loop through connections and decide whether to pack them or not
 	List<MethodInfo> _signals;
 	p_node->get_signal_list(&_signals);
 	_signals.sort();
 
-	//ERR_FAIL_COND_V( !node_map.has(p_node), ERR_BUG);
-	//NodeData &nd = nodes[node_map[p_node]];
-
 	for (const MethodInfo &E : _signals) {
 		List<Node::Connection> conns;
 		p_node->get_signal_connection_list(E.name, &conns);
-
 		conns.sort();
 
 		for (const Node::Connection &F : conns) {
@@ -1059,20 +1082,19 @@ Error SceneState::_parse_connections(Node *p_owner, Node *p_node, HashMap<String
 				continue;
 			}
 
-			// Don't save connections that are already saved in a child scene.
-			if (c.flags & CONNECT_INHERITED) {
-				continue;
-			}
-
-			// only connections that originate or end into main saved scene are saved
-			// everything else is discarded
-
 			Node *target = Object::cast_to<Node>(c.callable.get_object());
 
 			if (!target) {
 				continue;
 			}
 
+			// Don't save the connection if the target is not in the tree being packed.
+			Node *common_parent = target->find_common_parent_with(p_node);
+			if (!common_parent) {
+				continue;
+			}
+
+			// Get connection callable
 			Vector<Variant> binds;
 			int unbinds = 0;
 			Callable base_callable;
@@ -1093,96 +1115,17 @@ Error SceneState::_parse_connections(Node *p_owner, Node *p_node, HashMap<String
 				base_callable = c.callable;
 			}
 
-			//find if this connection already exists
-			Node *common_parent = target->find_common_parent_with(p_node);
-
-			ERR_CONTINUE(!common_parent);
-
-			if (common_parent != p_owner && common_parent->get_scene_file_path().is_empty()) {
-				common_parent = common_parent->get_owner();
-			}
-
-			bool exists = false;
-
-			//go through ownership chain to see if this exists
-			while (common_parent) {
-				Ref<SceneState> ps;
-
-				if (common_parent == p_owner) {
-					ps = common_parent->get_scene_inherited_state();
-				} else {
-					ps = common_parent->get_scene_instance_state();
-				}
-
-				if (ps.is_valid()) {
-					NodePath signal_from = common_parent->get_path_to(p_node);
-					NodePath signal_to = common_parent->get_path_to(target);
-
-					if (ps->has_connection(signal_from, c.signal.get_name(), signal_to, base_callable.get_method())) {
-						exists = true;
-						break;
-					}
-				}
-
-				if (common_parent == p_owner) {
-					break;
-				} else {
-					common_parent = common_parent->get_owner();
-				}
-			}
-
-			if (exists) { //already exists (comes from instance or inheritance), so don't save
-				continue;
-			}
-
-			{
-				Node *nl = p_node;
-
-				bool exists2 = false;
-
-				while (nl) {
-					if (nl == p_owner) {
-						Ref<SceneState> state = nl->get_scene_inherited_state();
-						if (state.is_valid()) {
-							int from_node = state->find_node_by_path(nl->get_path_to(p_node));
-							int to_node = state->find_node_by_path(nl->get_path_to(target));
-
-							if (from_node >= 0 && to_node >= 0) {
-								//this one has state for this node, save
-								if (state->is_connection(from_node, c.signal.get_name(), to_node, base_callable.get_method())) {
-									exists2 = true;
-									break;
-								}
-							}
-						}
-
-						nl = nullptr;
-					} else {
-						if (!nl->get_scene_file_path().is_empty()) {
-							//is an instance
-							Ref<SceneState> state = nl->get_scene_instance_state();
-							if (state.is_valid()) {
-								int from_node = state->find_node_by_path(nl->get_path_to(p_node));
-								int to_node = state->find_node_by_path(nl->get_path_to(target));
-
-								if (from_node >= 0 && to_node >= 0) {
-									//this one has state for this node, save
-									if (state->is_connection(from_node, c.signal.get_name(), to_node, base_callable.get_method())) {
-										exists2 = true;
-										break;
-									}
-								}
-							}
-						}
-						nl = nl->get_owner();
-					}
-				}
-
-				if (exists2) {
+			// Don't save connections that are inherited or belong to scene instances
+			int conn_id = p_node->get_connection_id(E.name, base_callable);
+			if (conn_id) {
+				if (conn_id != p_owner->get_scene_connection_id()) {
 					continue;
 				}
 			}
+			// if there is no conn_id this connection was just added to the working scene (not through instantiation)
+			// which means it belongs to the current working scene and should be saved.
 
+			/// Add Connection
 			int src_id;
 
 			if (node_map.has(p_node)) {
@@ -1216,7 +1159,7 @@ Error SceneState::_parse_connections(Node *p_owner, Node *p_node, HashMap<String
 			cd.to = target_id;
 			cd.method = _nm_get_string(base_callable.get_method(), name_map);
 			cd.signal = _nm_get_string(c.signal.get_name(), name_map);
-			cd.flags = c.flags & ~CONNECT_INHERITED; // Do not store inherited.
+			cd.flags = c.flags & ~CONNECT_INHERITED; // Do not store inherited flag.
 			cd.unbinds = unbinds;
 
 			for (int i = 0; i < binds.size(); i++) {
