@@ -424,36 +424,96 @@ void CollisionShape3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 		float radius = cs2->get_radius();
 		float height = cs2->get_height();
 
+		// Number of points in an octant. So there ill be 8 * points_in_octant points in total.
+		// Correspond to the smoothness of the circle.
+		const uint32_t points_in_octant = 45;
+		const real_t inc = (Math_PI / (4 * points_in_octant));
+		const real_t radius_squared = radius * radius;
+		real_t r = 0;
+
 		Vector<Vector3> points;
+		//  4 verticalLines and 4 fullCircles.
+		points.resize(4 * 2 + 4 * 8 * points_in_octant * 2);
+		Vector3 *points_ptrw = points.ptrw();
 
-		Vector3 d(0, height * 0.5 - radius, 0);
-		for (int i = 0; i < 360; i++) {
-			float ra = Math::deg_to_rad((float)i);
-			float rb = Math::deg_to_rad((float)i + 1);
-			Point2 a = Vector2(Math::sin(ra), Math::cos(ra)) * radius;
-			Point2 b = Vector2(Math::sin(rb), Math::cos(rb)) * radius;
+		uint32_t index = 0;
+		float y_value = height * 0.5 - radius;
 
-			points.push_back(Vector3(a.x, 0, a.y) + d);
-			points.push_back(Vector3(b.x, 0, b.y) + d);
+		// Vertical Lines.
+		points_ptrw[index++] = Vector3(0.f, y_value, radius);
+		points_ptrw[index++] = Vector3(0.f, -y_value, radius);
+		points_ptrw[index++] = Vector3(0.f, y_value, -radius);
+		points_ptrw[index++] = Vector3(0.f, -y_value, -radius);
+		points_ptrw[index++] = Vector3(radius, y_value, 0.f);
+		points_ptrw[index++] = Vector3(radius, -y_value, 0.f);
+		points_ptrw[index++] = Vector3(-radius, y_value, 0.f);
+		points_ptrw[index++] = Vector3(-radius, -y_value, 0.f);
 
-			points.push_back(Vector3(a.x, 0, a.y) - d);
-			points.push_back(Vector3(b.x, 0, b.y) - d);
+#define PUSH_QUARTER(from_x, from_y, to_x, to_y, y)      \
+	points_ptrw[index++] = Vector3(from_x, y, from_y);   \
+	points_ptrw[index++] = Vector3(to_x, y, to_y);       \
+	points_ptrw[index++] = Vector3(from_x, y, -from_y);  \
+	points_ptrw[index++] = Vector3(to_x, y, -to_y);      \
+	points_ptrw[index++] = Vector3(-from_x, y, from_y);  \
+	points_ptrw[index++] = Vector3(-to_x, y, to_y);      \
+	points_ptrw[index++] = Vector3(-from_x, y, -from_y); \
+	points_ptrw[index++] = Vector3(-to_x, y, -to_y);
 
-			if (i % 90 == 0) {
-				points.push_back(Vector3(a.x, 0, a.y) + d);
-				points.push_back(Vector3(a.x, 0, a.y) - d);
-			}
+#define PUSH_QUARTER_XY(from_x, from_y, to_x, to_y, y)       \
+	points_ptrw[index++] = Vector3(from_x, -from_y - y, 0);  \
+	points_ptrw[index++] = Vector3(to_x, -to_y - y, 0);      \
+	points_ptrw[index++] = Vector3(from_x, from_y + y, 0);   \
+	points_ptrw[index++] = Vector3(to_x, to_y + y, 0);       \
+	points_ptrw[index++] = Vector3(-from_x, -from_y - y, 0); \
+	points_ptrw[index++] = Vector3(-to_x, -to_y - y, 0);     \
+	points_ptrw[index++] = Vector3(-from_x, from_y + y, 0);  \
+	points_ptrw[index++] = Vector3(-to_x, to_y + y, 0);
 
-			Vector3 dud = i < 180 ? d : -d;
+#define PUSH_QUARTER_YZ(from_x, from_y, to_x, to_y, y)       \
+	points_ptrw[index++] = Vector3(0, -from_y - y, from_x);  \
+	points_ptrw[index++] = Vector3(0, -to_y - y, to_x);      \
+	points_ptrw[index++] = Vector3(0, from_y + y, from_x);   \
+	points_ptrw[index++] = Vector3(0, to_y + y, to_x);       \
+	points_ptrw[index++] = Vector3(0, -from_y - y, -from_x); \
+	points_ptrw[index++] = Vector3(0, -to_y - y, -to_x);     \
+	points_ptrw[index++] = Vector3(0, from_y + y, -from_x);  \
+	points_ptrw[index++] = Vector3(0, to_y + y, -to_x);
 
-			points.push_back(Vector3(0, a.x, a.y) + dud);
-			points.push_back(Vector3(0, b.x, b.y) + dud);
-			points.push_back(Vector3(a.y, a.x, 0) + dud);
-			points.push_back(Vector3(b.y, b.x, 0) + dud);
+		float previous_x = radius;
+		float previous_y = 0.f;
+
+		for (uint32_t i = 0; i < points_in_octant; ++i) {
+			r += inc;
+			real_t x = Math::cos(r) * radius;
+			real_t y = Math::sqrt(radius_squared - (x * x));
+
+			// high circle ring.
+			PUSH_QUARTER(previous_x, previous_y, x, y, y_value);
+			PUSH_QUARTER(previous_y, previous_x, y, x, y_value);
+
+			// low circle ring.
+			PUSH_QUARTER(previous_x, previous_y, x, y, -y_value);
+			PUSH_QUARTER(previous_y, previous_x, y, x, -y_value);
+
+			// Up and Low circle in X-Y plane.
+			PUSH_QUARTER_XY(previous_x, previous_y, x, y, y_value);
+			PUSH_QUARTER_XY(previous_y, previous_x, y, x, y_value);
+
+			// // Up and Low circle in Y-Z plane.
+			PUSH_QUARTER_YZ(previous_x, previous_y, x, y, y_value);
+			PUSH_QUARTER_YZ(previous_y, previous_x, y, x, y_value)
+
+			previous_x = x;
+			previous_y = y;
 		}
+
+#undef PUSH_QUARTER
+#undef PUSH_QUARTER_XY
+#undef PUSH_QUARTER_YZ
 
 		p_gizmo->add_lines(points, material, false, collision_color);
 
+		Vector3 d(0, height * 0.5 - radius, 0);
 		Vector<Vector3> collision_segments;
 
 		for (int i = 0; i < 64; i++) {
