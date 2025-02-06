@@ -189,7 +189,7 @@ void AudioStreamPlaybackWAV::do_resample(const Depth *p_src, AudioFrame *p_dst, 
 							qoa_decode_frame(ofs_src, p_qoa->frame_len, &p_qoa->desc, p_qoa->dec.ptr(), &p_qoa->dec_len);
 						}
 
-						uint32_t dec_idx = (interp_pos % QOA_FRAME_LEN) * p_qoa->desc.channels;
+						uint32_t dec_idx = interp_pos % QOA_FRAME_LEN << (is_stereo ? 1 : 0);
 
 						if ((sign > 0 && i == 0) || (sign < 0 && i == 1)) {
 							final = p_qoa->dec[dec_idx];
