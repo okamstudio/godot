@@ -127,6 +127,9 @@ public:
 	};
 
 	static int orphan_node_count;
+#ifdef TOOLS_ENABLED
+	static inline Callable fold_changed_callback;
+#endif
 
 	void _update_process(bool p_enable, bool p_for_children);
 
@@ -722,6 +725,7 @@ public:
 	void update_configuration_warnings();
 
 	void set_display_folded(bool p_folded);
+	void set_display_folded_bind(bool p_folded);
 	bool is_displayed_folded() const;
 
 	/* NETWORK */

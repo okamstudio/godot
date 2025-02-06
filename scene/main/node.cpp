@@ -3446,6 +3446,21 @@ void Node::set_display_folded(bool p_folded) {
 	data.display_folded = p_folded;
 }
 
+void Node::set_display_folded_bind(bool p_folded) {
+	ERR_THREAD_GUARD
+
+	if (p_folded == data.display_folded) {
+		return;
+	}
+	data.display_folded = p_folded;
+
+#ifdef TOOLS_ENABLED
+	if (fold_changed_callback.is_valid() && is_part_of_edited_scene()) {
+		fold_changed_callback.call();
+	}
+#endif
+}
+
 bool Node::is_displayed_folded() const {
 	return data.display_folded;
 }
@@ -3683,7 +3698,7 @@ void Node::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_process_thread_group_order", "order"), &Node::set_process_thread_group_order);
 	ClassDB::bind_method(D_METHOD("get_process_thread_group_order"), &Node::get_process_thread_group_order);
 
-	ClassDB::bind_method(D_METHOD("set_display_folded", "fold"), &Node::set_display_folded);
+	ClassDB::bind_method(D_METHOD("set_display_folded", "fold"), &Node::set_display_folded_bind);
 	ClassDB::bind_method(D_METHOD("is_displayed_folded"), &Node::is_displayed_folded);
 
 	ClassDB::bind_method(D_METHOD("set_process_internal", "enable"), &Node::set_process_internal);

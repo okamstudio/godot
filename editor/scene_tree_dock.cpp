@@ -4855,6 +4855,7 @@ SceneTreeDock::SceneTreeDock(Node *p_scene_root, EditorSelection *p_editor_selec
 	EDITOR_DEF("_use_favorites_root_selection", false);
 
 	Resource::_update_configuration_warning = _update_configuration_warning;
+	Node::fold_changed_callback = callable_mp(scene_tree, &SceneTreeEditor::_update_tree).bind(false);
 }
 
 SceneTreeDock::~SceneTreeDock() {
