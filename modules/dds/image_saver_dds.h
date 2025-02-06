@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  texture_loader_dds.h                                                  */
+/*  image_saver_dds.h                                                     */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,20 +28,14 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEXTURE_LOADER_DDS_H
-#define TEXTURE_LOADER_DDS_H
+#ifndef IMAGE_SAVER_DDS_H
+#define IMAGE_SAVER_DDS_H
 
-#include "core/io/resource_loader.h"
+#include "core/io/file_access_memory.h"
+#include "core/io/image.h"
+#include "core/io/image_loader.h"
 
-class ResourceFormatDDS : public ResourceFormatLoader {
-public:
-	virtual Ref<Resource> load(const String &p_path, const String &p_original_path = "", Error *r_error = nullptr, bool p_use_sub_threads = false, float *r_progress = nullptr, CacheMode p_cache_mode = CACHE_MODE_REUSE) override;
-	virtual void get_recognized_extensions(List<String> *p_extensions) const override;
-	virtual bool handles_type(const String &p_type) const override;
-	virtual String get_resource_type(const String &p_path) const override;
+Error save_dds(const String &p_path, const Ref<Image> &p_img);
+Vector<uint8_t> save_dds_buffer(const Ref<Image> &p_img);
 
-	ResourceFormatDDS();
-	virtual ~ResourceFormatDDS() {}
-};
-
-#endif // TEXTURE_LOADER_DDS_H
+#endif // IMAGE_SAVER_DDS_H
