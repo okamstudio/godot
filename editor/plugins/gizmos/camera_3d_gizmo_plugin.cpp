@@ -245,6 +245,36 @@ void Camera3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 			Vector3 tup(0, up.y + hsize / 2, side.z);
 			ADD_TRIANGLE(tup + offset, side + up + offset, nside + up + offset);
 		} break;
+
+		case Camera3D::PROJECTION_CUSTOM: {
+			Vector3 points[8] = {
+				Vector3(0.5f, 0.5f, 0.0f),
+				Vector3(0.5f, -0.5f, 0.0f),
+				Vector3(-0.5f, 0.5f, 0.0f),
+				Vector3(-0.5f, -0.5f, 0.0f),
+				Vector3(0.5f, 0.5f, -1.0f),
+				Vector3(0.5f, -0.5f, -1.0f),
+				Vector3(-0.5f, 0.5f, -1.0f),
+				Vector3(-0.5f, -0.5f, -1.0f)
+			};
+
+			Projection proj = camera->get_camera_projection();
+
+			for (int i = 0; i < 8; i++) {
+				points[i] = proj.xform(points[i]);
+			}
+
+			ADD_QUAD(points[0], points[1], points[5], points[4]);
+			ADD_QUAD(points[2], points[3], points[7], points[6]);
+			ADD_QUAD(points[0], points[2], points[6], points[4]);
+			ADD_QUAD(points[1], points[3], points[7], points[5]);
+
+			Vector3 top_left_to_top_right = points[0] - points[2];
+			Vector3 up = Vector3(0, 0, 0.2).cross(top_left_to_top_right);
+			ADD_TRIANGLE(points[2] + top_left_to_top_right * 0.4,
+					points[2] + top_left_to_top_right * 0.6,
+					points[2] + top_left_to_top_right * 0.5 + up);
+		} break;
 	}
 
 #undef ADD_TRIANGLE

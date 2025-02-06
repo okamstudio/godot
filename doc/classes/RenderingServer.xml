@@ -134,6 +134,14 @@
 				Sets the cull mask associated with this camera. The cull mask describes which 3D layers are rendered by this camera. Equivalent to [member Camera3D.cull_mask].
 			</description>
 		</method>
+		<method name="camera_set_custom">
+			<return type="void" />
+			<param index="0" name="camera" type="RID" />
+			<param index="1" name="p_proj" type="Projection" />
+			<description>
+				Sets camera to use custom projection.
+			</description>
+		</method>
 		<method name="camera_set_environment">
 			<return type="void" />
 			<param index="0" name="camera" type="RID" />

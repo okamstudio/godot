@@ -44,7 +44,8 @@ public:
 	enum ProjectionType {
 		PROJECTION_PERSPECTIVE,
 		PROJECTION_ORTHOGONAL,
-		PROJECTION_FRUSTUM
+		PROJECTION_FRUSTUM,
+		PROJECTION_CUSTOM
 	};
 
 	enum KeepAspect {
@@ -74,6 +75,7 @@ private:
 	real_t v_offset = 0.0;
 	real_t h_offset = 0.0;
 	KeepAspect keep_aspect = KEEP_HEIGHT;
+	Projection c_proj;
 
 	RID camera;
 	RID scenario_id;
@@ -151,7 +153,9 @@ public:
 	void set_perspective(real_t p_fovy_degrees, real_t p_z_near, real_t p_z_far);
 	void set_orthogonal(real_t p_size, real_t p_z_near, real_t p_z_far);
 	void set_frustum(real_t p_size, Vector2 p_offset, real_t p_z_near, real_t p_z_far);
+	void set_custom(Projection p_proj);
 	void set_projection(Camera3D::ProjectionType p_mode);
+	void set_custom_projection(Projection p_proj);
 
 	void make_current();
 	void clear_current(bool p_enable_next = true);
@@ -163,6 +167,7 @@ public:
 	real_t get_fov() const;
 	real_t get_size() const;
 	real_t get_far() const;
+	Projection get_custom_projection() const;
 	real_t get_near() const;
 	Vector2 get_frustum_offset() const;
 

@@ -172,6 +172,10 @@
 			If [code]true[/code], the ancestor [Viewport] is currently using this camera.
 			If multiple cameras are in the scene, one will always be made current. For example, if two [Camera3D] nodes are present in the scene and only one is current, setting one camera's [member current] to [code]false[/code] will cause the other camera to be made current.
 		</member>
+		<member name="custom_projection" type="Projection" setter="set_custom_projection" getter="get_custom_projection" default="Projection(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)">
+			The camera's [Projection]. This can be changed from the default to apply custom projection matrix.
+			[b]Note:[/b] Only effective if [member projection] is [constant PROJECTION_CUSTOM].
+		</member>
 		<member name="doppler_tracking" type="int" setter="set_doppler_tracking" getter="get_doppler_tracking" enum="Camera3D.DopplerTracking" default="0">
 			If not [constant DOPPLER_TRACKING_DISABLED], this camera will simulate the [url=https://en.wikipedia.org/wiki/Doppler_effect]Doppler effect[/url] for objects changed in particular [code]_process[/code] methods. See [enum DopplerTracking] for possible values.
 		</member>
@@ -221,6 +225,9 @@
 		</constant>
 		<constant name="PROJECTION_FRUSTUM" value="2" enum="ProjectionType">
 			Frustum projection. This mode allows adjusting [member frustum_offset] to create "tilted frustum" effects.
+		</constant>
+		<constant name="PROJECTION_CUSTOM" value="3" enum="ProjectionType">
+			Custom projection. This mode allows using [member custom_projection].
 		</constant>
 		<constant name="KEEP_WIDTH" value="0" enum="KeepAspect">
 			Preserves the horizontal aspect ratio; also known as Vert- scaling. This is usually the best option for projects running in portrait mode, as taller aspect ratios will benefit from a wider vertical FOV.

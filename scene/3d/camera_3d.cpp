@@ -46,13 +46,15 @@ void Camera3D::_update_camera_mode() {
 	switch (mode) {
 		case PROJECTION_PERSPECTIVE: {
 			set_perspective(fov, _near, _far);
-
 		} break;
 		case PROJECTION_ORTHOGONAL: {
 			set_orthogonal(size, _near, _far);
 		} break;
 		case PROJECTION_FRUSTUM: {
 			set_frustum(size, frustum_offset, _near, _far);
+		} break;
+		case PROJECTION_CUSTOM: {
+			set_custom(c_proj);
 		} break;
 	}
 }
@@ -68,6 +70,18 @@ void Camera3D::_validate_property(PropertyInfo &p_property) const {
 		}
 	} else if (p_property.name == "frustum_offset") {
 		if (mode != PROJECTION_FRUSTUM) {
+			p_property.usage = PROPERTY_USAGE_NO_EDITOR;
+		}
+	} else if (p_property.name == "custom_projection") {
+		if (mode != PROJECTION_CUSTOM) {
+			p_property.usage = PROPERTY_USAGE_NO_EDITOR;
+		}
+	} else if (p_property.name == "near") {
+		if (mode == PROJECTION_CUSTOM) {
+			p_property.usage = PROPERTY_USAGE_NO_EDITOR;
+		}
+	} else if (p_property.name == "far") {
+		if (mode == PROJECTION_CUSTOM) {
 			p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 		}
 	}
@@ -309,6 +323,9 @@ Projection Camera3D::_get_camera_projection(real_t p_near) const {
 		case PROJECTION_FRUSTUM: {
 			cm.set_frustum(size, viewport_size.aspect(), frustum_offset, p_near, _far);
 		} break;
+		case PROJECTION_CUSTOM: {
+			cm = c_proj;
+		} break;
 	}
 
 	return cm;
@@ -367,8 +384,44 @@ void Camera3D::set_frustum(real_t p_size, Vector2 p_offset, real_t p_z_near, rea
 	update_gizmos();
 }
 
+void Camera3D::set_custom(Projection p_proj) {
+	if (!force_change && c_proj == p_proj) {
+		return;
+	}
+
+	c_proj = p_proj;
+	mode = PROJECTION_CUSTOM;
+	force_change = false;
+
+	Vector<Plane> planes = c_proj.get_projection_planes(Transform3D());
+	const Projection::Planes intersections[8][3] = {
+		{ Projection::PLANE_FAR, Projection::PLANE_LEFT, Projection::PLANE_TOP },
+		{ Projection::PLANE_FAR, Projection::PLANE_LEFT, Projection::PLANE_BOTTOM },
+		{ Projection::PLANE_FAR, Projection::PLANE_RIGHT, Projection::PLANE_TOP },
+		{ Projection::PLANE_FAR, Projection::PLANE_RIGHT, Projection::PLANE_BOTTOM },
+		{ Projection::PLANE_NEAR, Projection::PLANE_LEFT, Projection::PLANE_TOP },
+		{ Projection::PLANE_NEAR, Projection::PLANE_LEFT, Projection::PLANE_BOTTOM },
+		{ Projection::PLANE_NEAR, Projection::PLANE_RIGHT, Projection::PLANE_TOP },
+		{ Projection::PLANE_NEAR, Projection::PLANE_RIGHT, Projection::PLANE_BOTTOM },
+	};
+
+	for (int i = 0; i < 8; i++) {
+		Plane a = planes[intersections[i][0]];
+		Plane b = planes[intersections[i][1]];
+		Plane c = planes[intersections[i][2]];
+		ERR_FAIL_COND_MSG(!a.intersect_3(b, c), "Camera3D custom projection has non-intersecting planes; skipping update.");
+	}
+
+	RenderingServer::get_singleton()->camera_set_custom(camera, c_proj);
+	update_gizmos();
+}
+
 void Camera3D::set_projection(ProjectionType p_mode) {
-	if (p_mode == PROJECTION_PERSPECTIVE || p_mode == PROJECTION_ORTHOGONAL || p_mode == PROJECTION_FRUSTUM) {
+	if (p_mode == PROJECTION_CUSTOM && mode != PROJECTION_CUSTOM && is_inside_tree()) {
+		c_proj = get_camera_projection();
+	}
+
+	if (p_mode == PROJECTION_PERSPECTIVE || p_mode == PROJECTION_ORTHOGONAL || p_mode == PROJECTION_FRUSTUM || p_mode == PROJECTION_CUSTOM) {
 		mode = p_mode;
 		_update_camera_mode();
 		notify_property_list_changed();
@@ -653,6 +706,7 @@ void Camera3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_perspective", "fov", "z_near", "z_far"), &Camera3D::set_perspective);
 	ClassDB::bind_method(D_METHOD("set_orthogonal", "size", "z_near", "z_far"), &Camera3D::set_orthogonal);
 	ClassDB::bind_method(D_METHOD("set_frustum", "size", "offset", "z_near", "z_far"), &Camera3D::set_frustum);
+	ClassDB::bind_method(D_METHOD("set_custom_projection", "p_proj"), &Camera3D::set_custom_projection);
 	ClassDB::bind_method(D_METHOD("make_current"), &Camera3D::make_current);
 	ClassDB::bind_method(D_METHOD("clear_current", "enable_next"), &Camera3D::clear_current, DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("set_current", "enabled"), &Camera3D::set_current);
@@ -663,6 +717,7 @@ void Camera3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_frustum_offset"), &Camera3D::get_frustum_offset);
 	ClassDB::bind_method(D_METHOD("get_size"), &Camera3D::get_size);
 	ClassDB::bind_method(D_METHOD("get_far"), &Camera3D::get_far);
+	ClassDB::bind_method(D_METHOD("get_custom_projection"), &Camera3D::get_custom_projection);
 	ClassDB::bind_method(D_METHOD("get_near"), &Camera3D::get_near);
 	ClassDB::bind_method(D_METHOD("set_fov", "fov"), &Camera3D::set_fov);
 	ClassDB::bind_method(D_METHOD("set_frustum_offset", "offset"), &Camera3D::set_frustum_offset);
@@ -705,17 +760,19 @@ void Camera3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "h_offset", PROPERTY_HINT_NONE, "suffix:m"), "set_h_offset", "get_h_offset");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "v_offset", PROPERTY_HINT_NONE, "suffix:m"), "set_v_offset", "get_v_offset");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "doppler_tracking", PROPERTY_HINT_ENUM, "Disabled,Idle,Physics"), "set_doppler_tracking", "get_doppler_tracking");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "projection", PROPERTY_HINT_ENUM, "Perspective,Orthogonal,Frustum"), "set_projection", "get_projection");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "projection", PROPERTY_HINT_ENUM, "Perspective,Orthogonal,Frustum,Custom"), "set_projection", "get_projection");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "current"), "set_current", "is_current");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "fov", PROPERTY_HINT_RANGE, "1,179,0.1,degrees"), "set_fov", "get_fov");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "size", PROPERTY_HINT_RANGE, "0.001,100,0.001,or_greater,suffix:m"), "set_size", "get_size");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "frustum_offset", PROPERTY_HINT_NONE, "suffix:m"), "set_frustum_offset", "get_frustum_offset");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "near", PROPERTY_HINT_RANGE, "0.001,10,0.001,or_greater,exp,suffix:m"), "set_near", "get_near");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "far", PROPERTY_HINT_RANGE, "0.01,4000,0.01,or_greater,exp,suffix:m"), "set_far", "get_far");
+	ADD_PROPERTY(PropertyInfo(Variant::PROJECTION, "custom_projection"), "set_custom_projection", "get_custom_projection");
 
 	BIND_ENUM_CONSTANT(PROJECTION_PERSPECTIVE);
 	BIND_ENUM_CONSTANT(PROJECTION_ORTHOGONAL);
 	BIND_ENUM_CONSTANT(PROJECTION_FRUSTUM);
+	BIND_ENUM_CONSTANT(PROJECTION_CUSTOM);
 
 	BIND_ENUM_CONSTANT(KEEP_WIDTH);
 	BIND_ENUM_CONSTANT(KEEP_HEIGHT);
@@ -743,6 +800,10 @@ Vector2 Camera3D::get_frustum_offset() const {
 
 real_t Camera3D::get_far() const {
 	return _far;
+}
+
+Projection Camera3D::get_custom_projection() const {
+	return c_proj;
 }
 
 Camera3D::ProjectionType Camera3D::get_projection() const {
@@ -773,6 +834,11 @@ void Camera3D::set_frustum_offset(Vector2 p_offset) {
 
 void Camera3D::set_far(real_t p_far) {
 	_far = p_far;
+	_update_camera_mode();
+}
+
+void Camera3D::set_custom_projection(Projection p_proj) {
+	c_proj = p_proj;
 	_update_camera_mode();
 }
 

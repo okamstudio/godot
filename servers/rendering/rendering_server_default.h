@@ -659,6 +659,7 @@ public:
 	FUNC4(camera_set_perspective, RID, float, float, float)
 	FUNC4(camera_set_orthogonal, RID, float, float, float)
 	FUNC5(camera_set_frustum, RID, float, Vector2, float, float)
+	FUNC2(camera_set_custom, RID, Projection)
 	FUNC2(camera_set_transform, RID, const Transform3D &)
 	FUNC2(camera_set_cull_mask, RID, uint32_t)
 	FUNC2(camera_set_environment, RID, RID)
