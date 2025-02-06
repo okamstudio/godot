@@ -288,6 +288,10 @@
 		<member name="editors/2d/zoom_speed_factor" type="float" setter="" getter="">
 			The factor to use when zooming in or out in the 2D editor. For example, [code]1.1[/code] will zoom in by 10% with every step. If set to [code]2.0[/code], zooming will only cycle through powers of two.
 		</member>
+		<member name="editors/3d/active_selection_box_color" type="Color" setter="" getter="">
+			The color to use for the active selection box that surrounds selected nodes in the 3D editor viewport. The color's alpha channel influences the selection box's opacity.
+			[b]Note:[/b] The term "active" indicates that this object is the primary selection used as the basis for certain operations. This is the last selected [Node3D], which can be reordered with [kbd]Shift + Left mouse button[/kbd].
+		</member>
 		<member name="editors/3d/default_fov" type="float" setter="" getter="">
 			The default camera vertical field of view to use in the 3D editor (in degrees). The camera field of view can be adjusted on a per-scene basis using the [b]View[/b] menu at the top of the 3D editor. If a scene had its camera field of view adjusted using the [b]View[/b] menu, this setting is ignored in the scene in question. This setting is also ignored while a [Camera3D] node is being previewed in the editor.
 			[b]Note:[/b] The editor camera always uses the [b]Keep Height[/b] aspect mode.
