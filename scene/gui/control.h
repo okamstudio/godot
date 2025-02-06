@@ -258,6 +258,9 @@ private:
 		// Internationalization.
 
 		LayoutDirection layout_dir = LAYOUT_DIRECTION_INHERITED;
+		mutable LayoutDirection resolved_layout_dir = LAYOUT_DIRECTION_APPLICATION_LOCALE;
+		mutable bool is_resolved_layout_dir_dirty = true;
+
 		mutable bool is_rtl_dirty = true;
 		mutable bool is_rtl = false;
 
@@ -325,7 +328,8 @@ private:
 
 	// Extra properties.
 
-	static int root_layout_direction;
+	// Root layout direction is never LAYOUT_DIRECTION_INHERITED.
+	static LayoutDirection root_layout_direction;
 
 	String get_tooltip_text() const;
 
@@ -634,6 +638,9 @@ public:
 	void set_layout_direction(LayoutDirection p_direction);
 	LayoutDirection get_layout_direction() const;
 	virtual bool is_layout_rtl() const;
+
+	// LAYOUT_DIRECTION_INHERITED is resolved into other enumerators.
+	LayoutDirection get_resolved_layout_direction() const;
 
 	void set_localize_numeral_system(bool p_enable);
 	bool is_localizing_numeral_system() const;

@@ -195,10 +195,18 @@ void Control::reparent(Node *p_parent, bool p_keep_global_transform) {
 
 // Editor integration.
 
-int Control::root_layout_direction = 0;
+Control::LayoutDirection Control::root_layout_direction = Control::LAYOUT_DIRECTION_APPLICATION_LOCALE;
+
+static Control::LayoutDirection _to_layout_direction(int p_root_dir) {
+	// Root node layout direction skips LAYOUT_DIRECTION_INHERIT.
+	int shifted = p_root_dir + 1;
+	ERR_FAIL_INDEX_V(shifted, Control::LAYOUT_DIRECTION_MAX, Control::LAYOUT_DIRECTION_APPLICATION_LOCALE);
+	ERR_FAIL_COND_V(shifted == Control::LAYOUT_DIRECTION_INHERITED, Control::LAYOUT_DIRECTION_APPLICATION_LOCALE);
+	return (Control::LayoutDirection)shifted;
+}
 
 void Control::set_root_layout_direction(int p_root_dir) {
-	root_layout_direction = p_root_dir;
+	root_layout_direction = _to_layout_direction(p_root_dir);
 }
 
 #ifdef TOOLS_ENABLED
@@ -3121,84 +3129,100 @@ Control::LayoutDirection Control::get_layout_direction() const {
 	return data.layout_dir;
 }
 
+Control::LayoutDirection Control::get_resolved_layout_direction() const {
+	if (data.is_resolved_layout_dir_dirty) {
+		data.is_resolved_layout_dir_dirty = false;
+
+		switch (data.layout_dir) {
+			case LAYOUT_DIRECTION_APPLICATION_LOCALE: {
+				if (GLOBAL_GET(SNAME("internationalization/rendering/force_right_to_left_layout_direction"))) {
+					data.resolved_layout_dir = LAYOUT_DIRECTION_RTL;
+				} else {
+					data.resolved_layout_dir = LAYOUT_DIRECTION_APPLICATION_LOCALE;
+				}
+			} break;
+
+			case LAYOUT_DIRECTION_SYSTEM_LOCALE: {
+				if (GLOBAL_GET(SNAME("internationalization/rendering/force_right_to_left_layout_direction"))) {
+					data.resolved_layout_dir = LAYOUT_DIRECTION_RTL;
+				} else {
+					data.resolved_layout_dir = LAYOUT_DIRECTION_SYSTEM_LOCALE;
+				}
+			} break;
+
+			case LAYOUT_DIRECTION_INHERITED: {
+#ifdef TOOLS_ENABLED
+				if (is_part_of_edited_scene() && GLOBAL_GET(SNAME("internationalization/rendering/force_right_to_left_layout_direction"))) {
+					data.resolved_layout_dir = LAYOUT_DIRECTION_RTL;
+					return data.resolved_layout_dir;
+				}
+				if (is_inside_tree()) {
+					Node *edited_scene_root = get_tree()->get_edited_scene_root();
+					if (edited_scene_root == this) {
+						data.resolved_layout_dir = _to_layout_direction(GLOBAL_GET(SNAME("internationalization/rendering/root_node_layout_direction")));
+						return data.resolved_layout_dir;
+					}
+				}
+#else
+				if (GLOBAL_GET(SNAME("internationalization/rendering/force_right_to_left_layout_direction"))) {
+					data.resolved_layout_dir = LAYOUT_DIRECTION_RTL;
+					return data.resolved_layout_dir;
+				}
+#endif // TOOLS_ENABLED
+				Node *parent_node = get_parent();
+				while (parent_node) {
+					Control *parent_control = Object::cast_to<Control>(parent_node);
+					if (parent_control) {
+						data.resolved_layout_dir = parent_control->get_resolved_layout_direction();
+						return data.resolved_layout_dir;
+					}
+
+					Window *parent_window = Object::cast_to<Window>(parent_node);
+					if (parent_window) {
+						data.resolved_layout_dir = (LayoutDirection)parent_window->get_resolved_layout_direction();
+						return data.resolved_layout_dir;
+					}
+					parent_node = parent_node->get_parent();
+				}
+
+				data.resolved_layout_dir = root_layout_direction;
+			} break;
+
+			default: {
+				data.resolved_layout_dir = data.layout_dir;
+			} break;
+		}
+	}
+	return data.resolved_layout_dir;
+}
+
 bool Control::is_layout_rtl() const {
 	ERR_READ_THREAD_GUARD_V(false);
 	if (data.is_rtl_dirty) {
-		data.is_rtl_dirty = false;
-		if (data.layout_dir == LAYOUT_DIRECTION_INHERITED) {
-#ifdef TOOLS_ENABLED
-			if (is_part_of_edited_scene() && GLOBAL_GET(SNAME("internationalization/rendering/force_right_to_left_layout_direction"))) {
-				data.is_rtl = true;
-				return data.is_rtl;
-			}
-			if (is_inside_tree()) {
-				Node *edited_scene_root = get_tree()->get_edited_scene_root();
-				if (edited_scene_root == this) {
-					int proj_root_layout_direction = GLOBAL_GET(SNAME("internationalization/rendering/root_node_layout_direction"));
-					if (proj_root_layout_direction == 1) {
-						data.is_rtl = false;
-					} else if (proj_root_layout_direction == 2) {
-						data.is_rtl = true;
-					} else if (proj_root_layout_direction == 3) {
-						String locale = OS::get_singleton()->get_locale();
-						data.is_rtl = TS->is_locale_right_to_left(locale);
-					} else {
-						String locale = TranslationServer::get_singleton()->get_tool_locale();
-						data.is_rtl = TS->is_locale_right_to_left(locale);
-					}
-					return data.is_rtl;
-				}
-			}
-#else
-			if (GLOBAL_GET(SNAME("internationalization/rendering/force_right_to_left_layout_direction"))) {
-				data.is_rtl = true;
-				return data.is_rtl;
-			}
-#endif // TOOLS_ENABLED
-			Node *parent_node = get_parent();
-			while (parent_node) {
-				Control *parent_control = Object::cast_to<Control>(parent_node);
-				if (parent_control) {
-					data.is_rtl = parent_control->is_layout_rtl();
-					return data.is_rtl;
-				}
+		switch (get_resolved_layout_direction()) {
+			case LAYOUT_DIRECTION_APPLICATION_LOCALE: {
+				const String &locale = TranslationServer::get_singleton()->get_tool_locale();
+				data.is_rtl = TS->is_locale_right_to_left(locale);
+			} break;
 
-				Window *parent_window = Object::cast_to<Window>(parent_node);
-				if (parent_window) {
-					data.is_rtl = parent_window->is_layout_rtl();
-					return data.is_rtl;
-				}
-				parent_node = parent_node->get_parent();
-			}
-
-			if (root_layout_direction == 1) {
+			case LAYOUT_DIRECTION_LTR: {
 				data.is_rtl = false;
-			} else if (root_layout_direction == 2) {
+			} break;
+
+			case LAYOUT_DIRECTION_RTL: {
 				data.is_rtl = true;
-			} else if (root_layout_direction == 3) {
-				String locale = OS::get_singleton()->get_locale();
+			} break;
+
+			case LAYOUT_DIRECTION_SYSTEM_LOCALE: {
+				const String &locale = OS::get_singleton()->get_locale();
 				data.is_rtl = TS->is_locale_right_to_left(locale);
-			} else {
-				String locale = TranslationServer::get_singleton()->get_tool_locale();
-				data.is_rtl = TS->is_locale_right_to_left(locale);
-			}
-		} else if (data.layout_dir == LAYOUT_DIRECTION_APPLICATION_LOCALE) {
-			if (GLOBAL_GET(SNAME("internationalization/rendering/force_right_to_left_layout_direction"))) {
-				data.is_rtl = true;
-			} else {
-				String locale = TranslationServer::get_singleton()->get_tool_locale();
-				data.is_rtl = TS->is_locale_right_to_left(locale);
-			}
-		} else if (data.layout_dir == LAYOUT_DIRECTION_SYSTEM_LOCALE) {
-			if (GLOBAL_GET(SNAME("internationalization/rendering/force_right_to_left_layout_direction"))) {
-				const_cast<Control *>(this)->data.is_rtl = true;
-			} else {
-				String locale = OS::get_singleton()->get_locale();
-				const_cast<Control *>(this)->data.is_rtl = TS->is_locale_right_to_left(locale);
-			}
-		} else {
-			data.is_rtl = (data.layout_dir == LAYOUT_DIRECTION_RTL);
+			} break;
+
+			default: {
+				ERR_PRINT("Unexpected layout direction");
+			} break;
 		}
+		data.is_rtl_dirty = false;
 	}
 	return data.is_rtl;
 }
@@ -3314,6 +3338,7 @@ void Control::_notification(int p_notification) {
 
 		case NOTIFICATION_POST_ENTER_TREE: {
 			data.is_rtl_dirty = true;
+			data.is_resolved_layout_dir_dirty = true;
 			update_minimum_size();
 			_size_changed();
 		} break;
@@ -3333,6 +3358,7 @@ void Control::_notification(int p_notification) {
 
 		case NOTIFICATION_ENTER_CANVAS: {
 			data.is_rtl_dirty = true;
+			data.is_resolved_layout_dir_dirty = true;
 
 			CanvasItem *node = this;
 			bool has_parent_control = false;
@@ -3394,6 +3420,7 @@ void Control::_notification(int p_notification) {
 
 			data.parent_canvas_item = nullptr;
 			data.is_rtl_dirty = true;
+			data.is_resolved_layout_dir_dirty = true;
 		} break;
 
 		case NOTIFICATION_CHILD_ORDER_CHANGED: {
@@ -3452,8 +3479,11 @@ void Control::_notification(int p_notification) {
 			}
 		} break;
 
-		case NOTIFICATION_TRANSLATION_CHANGED:
 		case NOTIFICATION_LAYOUT_DIRECTION_CHANGED: {
+			data.is_resolved_layout_dir_dirty = true;
+			[[fallthrough]];
+		}
+		case NOTIFICATION_TRANSLATION_CHANGED: {
 			if (is_inside_tree()) {
 				data.is_rtl_dirty = true;
 
