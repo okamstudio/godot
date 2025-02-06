@@ -1113,6 +1113,9 @@ void CodeTextEditor::update_editor_settings() {
 	text_editor->set_draw_line_numbers(EDITOR_GET("text_editor/appearance/gutters/show_line_numbers"));
 	text_editor->set_line_numbers_zero_padded(EDITOR_GET("text_editor/appearance/gutters/line_numbers_zero_padded"));
 
+	// Appearance: Scrollbar
+	text_editor->set_scrollbar_touch_area_enabled(EDITOR_GET("interface/touchscreen/increase_scrollbar_touch_area"));
+
 	// Appearance: Minimap
 	text_editor->set_draw_minimap(EDITOR_GET("text_editor/appearance/minimap/show_minimap"));
 	text_editor->set_minimap_width((int)EDITOR_GET("text_editor/appearance/minimap/minimap_width") * EDSCALE);

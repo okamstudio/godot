@@ -519,6 +519,8 @@ private:
 	bool scrolling = false;
 	bool updating_scrolls = false;
 
+	bool increase_scrollbar_touch_area = false;
+
 	void _update_scrollbars();
 	int _get_control_height() const;
 
@@ -1000,6 +1002,8 @@ public:
 	bool is_fit_content_width_enabled() const;
 
 	double get_scroll_pos_for_line(int p_line, int p_wrap_index = 0) const;
+
+	void set_scrollbar_touch_area_enabled(bool p_enabled);
 
 	// Visible lines.
 	void set_line_as_first_visible(int p_line, int p_wrap_index = 0);

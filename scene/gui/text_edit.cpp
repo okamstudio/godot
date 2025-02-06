@@ -628,6 +628,12 @@ void TextEdit::_notification(int p_what) {
 			if (draw_minimap) {
 				xmargin_end -= minimap_width;
 			}
+
+			// Use the local variable to adjust for increased scrollbar touch area.
+			if (increase_scrollbar_touch_area) {
+				xmargin_end -= 50; // Hardcoded value matching the increased touch area size.
+			}
+
 			// Let's do it easy for now.
 			theme_cache.style_normal->draw(ci, Rect2(Point2(), size));
 			if (!editable) {
@@ -5914,6 +5920,18 @@ double TextEdit::get_scroll_pos_for_line(int p_line, int p_wrap_index) const {
 	return new_line_scroll_pos;
 }
 
+void TextEdit::set_scrollbar_touch_area_enabled(bool p_enabled) {
+	if (increase_scrollbar_touch_area == p_enabled) {
+		return; // No need to update if the value is unchanged.
+	}
+
+	increase_scrollbar_touch_area = p_enabled;
+
+	// Update layout to reflect the new scrollbar configuration.
+	_update_scrollbars();
+	queue_redraw(); // Requests a redraw of the viewport to reflect changes.
+}
+
 // Visible lines.
 void TextEdit::set_line_as_first_visible(int p_line, int p_wrap_index) {
 	ERR_FAIL_INDEX(p_line, text.size());
@@ -8206,7 +8224,8 @@ void TextEdit::_adjust_viewport_to_caret_horizontally(int p_caret) {
 
 void TextEdit::_update_minimap_hover() {
 	const Point2 mp = get_local_mouse_pos();
-	const int xmargin_end = get_size().width - theme_cache.style_normal->get_margin(SIDE_RIGHT);
+	int scrollbar_offset = increase_scrollbar_touch_area ? 50 : 0;
+	const int xmargin_end = get_size().width - theme_cache.style_normal->get_margin(SIDE_RIGHT) - scrollbar_offset;
 
 	bool hovering_sidebar = mp.x > xmargin_end - minimap_width && mp.x < xmargin_end;
 	if (!hovering_sidebar) {
@@ -8233,7 +8252,9 @@ void TextEdit::_update_minimap_hover() {
 void TextEdit::_update_minimap_click() {
 	Point2 mp = get_local_mouse_pos();
 
-	int xmargin_end = get_size().width - theme_cache.style_normal->get_margin(SIDE_RIGHT);
+	int scrollbar_offset = increase_scrollbar_touch_area ? 50 : 0;
+	int xmargin_end = get_size().width - theme_cache.style_normal->get_margin(SIDE_RIGHT) - scrollbar_offset;
+
 	if (!dragging_minimap && (mp.x < xmargin_end - minimap_width || mp.x > xmargin_end)) {
 		minimap_clicked = false;
 		return;
