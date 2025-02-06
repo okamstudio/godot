@@ -448,11 +448,11 @@ Vector<String> OS_MacOS::get_system_fonts() const {
 String OS_MacOS::_get_default_fontname(const String &p_font_name) const {
 	String font_name = p_font_name;
 	if (font_name.to_lower() == "sans-serif") {
-		font_name = "Helvetica";
+		font_name = "SF Pro";
 	} else if (font_name.to_lower() == "serif") {
-		font_name = "Times";
+		font_name = "New York";
 	} else if (font_name.to_lower() == "monospace") {
-		font_name = "Courier";
+		font_name = "SF Mono";
 	} else if (font_name.to_lower() == "fantasy") {
 		font_name = "Papyrus";
 	} else if (font_name.to_lower() == "cursive") {

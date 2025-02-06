@@ -1537,11 +1537,11 @@ public:
 String OS_Windows::_get_default_fontname(const String &p_font_name) const {
 	String font_name = p_font_name;
 	if (font_name.to_lower() == "sans-serif") {
-		font_name = "Arial";
+		font_name = "Segoe UI";
 	} else if (font_name.to_lower() == "serif") {
-		font_name = "Times New Roman";
+		font_name = "Cambria";
 	} else if (font_name.to_lower() == "monospace") {
-		font_name = "Courier New";
+		font_name = "Consolas";
 	} else if (font_name.to_lower() == "cursive") {
 		font_name = "Comic Sans MS";
 	} else if (font_name.to_lower() == "fantasy") {
