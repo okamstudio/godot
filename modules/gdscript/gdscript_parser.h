@@ -143,6 +143,7 @@ public:
 		_FORCE_INLINE_ bool is_resolving() const { return kind == RESOLVING; }
 		_FORCE_INLINE_ bool has_no_type() const { return type_source == UNDETECTED; }
 		_FORCE_INLINE_ bool is_variant() const { return kind == VARIANT || kind == RESOLVING || kind == UNRESOLVED; }
+		_FORCE_INLINE_ bool is_void() const { return kind == BUILTIN && builtin_type == Variant::NIL; }
 		_FORCE_INLINE_ bool is_hard_type() const { return type_source > INFERRED; }
 
 		String to_string() const;

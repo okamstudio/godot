@@ -1813,6 +1813,8 @@ void GDScriptAnalyzer::resolve_function_signature(GDScriptParser::FunctionNode *
 				} else {
 					valid = valid && is_type_compatible(parent_return_type, return_type);
 				}
+			} else if (!parent_return_type.is_variant() && !parent_return_type.is_void()) {
+				valid = false;
 			}
 
 			int par_count_diff = p_function->parameters.size() - parameters_types.size();
