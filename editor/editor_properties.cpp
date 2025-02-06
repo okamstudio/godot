@@ -2809,7 +2809,6 @@ bool EditorPropertyNodePath::can_drop_data_fw(const Point2 &p_point, const Varia
 }
 
 void EditorPropertyNodePath::drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from) {
-	ERR_FAIL_COND(!is_drop_valid(p_data));
 	Dictionary data_dict = p_data;
 	Array nodes = data_dict["nodes"];
 	Node *node = get_tree()->get_edited_scene_root()->get_node(nodes[0]);
@@ -2852,6 +2851,13 @@ bool EditorPropertyNodePath::is_drop_valid(const Dictionary &p_drag_data) const 
 	}
 
 	return false;
+}
+
+void EditorPropertyNodePath::_button_draw() {
+	if (dropping) {
+		const Color color = get_theme_color(SNAME("accent_color"), EditorStringName(Editor));
+		assign->draw_rect(Rect2(Point2(), assign->get_size()), color, false);
+	}
 }
 
 void EditorPropertyNodePath::update_property() {
@@ -2902,6 +2908,20 @@ void EditorPropertyNodePath::_notification(int p_what) {
 			menu->get_popup()->set_item_icon(ACTION_EDIT, get_editor_theme_icon(SNAME("Edit")));
 			menu->get_popup()->set_item_icon(ACTION_SELECT, get_editor_theme_icon(SNAME("ExternalLink")));
 		} break;
+
+		case NOTIFICATION_DRAG_BEGIN: {
+			if (!is_read_only() && is_drop_valid(get_viewport()->gui_get_drag_data())) {
+				dropping = true;
+				assign->queue_redraw();
+			}
+		} break;
+
+		case NOTIFICATION_DRAG_END: {
+			if (dropping) {
+				dropping = false;
+				assign->queue_redraw();
+			}
+		} break;
 	}
 }
 
@@ -2942,6 +2962,7 @@ EditorPropertyNodePath::EditorPropertyNodePath() {
 	assign->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
 	assign->set_expand_icon(true);
 	assign->connect(SceneStringName(pressed), callable_mp(this, &EditorPropertyNodePath::_node_assign));
+	assign->connect(SceneStringName(draw), callable_mp(this, &EditorPropertyNodePath::_button_draw));
 	SET_DRAG_FORWARDING_CD(assign, EditorPropertyNodePath);
 	hbc->add_child(assign);
 

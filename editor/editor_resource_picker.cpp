@@ -731,8 +731,6 @@ bool EditorResourcePicker::can_drop_data_fw(const Point2 &p_point, const Variant
 }
 
 void EditorResourcePicker::drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from) {
-	ERR_FAIL_COND(!_is_drop_valid(p_data));
-
 	Dictionary drag_data = p_data;
 
 	Ref<Resource> dropped_resource;

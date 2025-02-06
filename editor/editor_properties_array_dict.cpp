@@ -644,8 +644,6 @@ bool EditorPropertyArray::can_drop_data_fw(const Point2 &p_point, const Variant 
 }
 
 void EditorPropertyArray::drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from) {
-	ERR_FAIL_COND(!_is_drop_valid(p_data));
-
 	Dictionary drag_data = p_data;
 	const String drop_type = drag_data.get("type", "");
 	Variant array = object->get_array();
@@ -724,11 +722,9 @@ void EditorPropertyArray::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_DRAG_BEGIN: {
-			if (is_visible_in_tree()) {
-				if (_is_drop_valid(get_viewport()->gui_get_drag_data())) {
-					dropping = true;
-					edit->queue_redraw();
-				}
+			if (is_visible_in_tree() && _is_drop_valid(get_viewport()->gui_get_drag_data())) {
+				dropping = true;
+				edit->queue_redraw();
 			}
 		} break;
 

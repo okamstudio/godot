@@ -629,6 +629,7 @@ class EditorPropertyNodePath : public EditorProperty {
 	SceneTreeDialog *scene_tree = nullptr;
 	bool use_path_from_scene_root = false;
 	bool editing_node = false;
+	bool dropping = false;
 
 	Vector<StringName> valid_types;
 	void _node_selected(const NodePath &p_path, bool p_absolute = true);
@@ -643,6 +644,7 @@ class EditorPropertyNodePath : public EditorProperty {
 	bool can_drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from) const;
 	void drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from);
 	bool is_drop_valid(const Dictionary &p_drag_data) const;
+	void _button_draw();
 
 	virtual Variant _get_cache_value(const StringName &p_prop, bool &r_valid) const override;
 
