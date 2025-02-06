@@ -240,7 +240,7 @@ private:
 		Ref<Theme> theme;
 		StringName theme_type_variation;
 
-		bool bulk_theme_override = false;
+		int bulk_theme_override = 0;
 		Theme::ThemeIconMap theme_icon_override;
 		Theme::ThemeStyleMap theme_style_override;
 		Theme::ThemeFontMap theme_font_override;

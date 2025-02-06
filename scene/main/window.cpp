@@ -2640,14 +2640,14 @@ int Window::get_theme_default_font_size() const {
 
 void Window::begin_bulk_theme_override() {
 	ERR_MAIN_THREAD_GUARD;
-	bulk_theme_override = true;
+	bulk_theme_override += 1;
 }
 
 void Window::end_bulk_theme_override() {
 	ERR_MAIN_THREAD_GUARD;
-	ERR_FAIL_COND(!bulk_theme_override);
+	ERR_FAIL_COND_MSG(bulk_theme_override <= 0, "end_bulk_theme_override() called without a matching begin_bulk_theme_override().");
 
-	bulk_theme_override = false;
+	bulk_theme_override -= 1;
 	_notify_theme_override_changed();
 }
 
