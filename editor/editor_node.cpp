@@ -3708,6 +3708,7 @@ void EditorNode::set_addon_plugin_enabled(const String &p_addon, bool p_enabled,
 	Ref<Script> scr; // We need to save it for creating "ep" below.
 
 	// Only try to load the script if it has a name. Else, the plugin has no init script.
+	EditorPlugin *ep = nullptr;
 	if (script_path.length() > 0) {
 		script_path = addon_path.get_base_dir().path_join(script_path);
 		scr = ResourceLoader::load(script_path, "Script", ResourceFormatLoader::CACHE_MODE_IGNORE);
@@ -3740,10 +3741,14 @@ void EditorNode::set_addon_plugin_enabled(const String &p_addon, bool p_enabled,
 			show_warning(vformat(TTR("Unable to load addon script from path: '%s'. Script is not in tool mode."), script_path));
 			return;
 		}
+
+		Object *obj = ClassDB::instantiate(scr->get_instance_base_type());
+		ep = Object::cast_to<EditorPlugin>(obj);
+		ep->set_script(scr);
+	} else {
+		ep = memnew(EditorPlugin);
 	}
 
-	EditorPlugin *ep = memnew(EditorPlugin);
-	ep->set_script(scr);
 	ep->set_plugin_version(plugin_version);
 	addon_name_to_plugin[addon_path] = ep;
 	add_editor_plugin(ep, p_config_changed);
