@@ -38,7 +38,7 @@
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
 #include "editor/editor_undo_redo_manager.h"
-#include "editor/node_dock.h"
+#include "editor/inspector_dock.h"
 #include "editor/plugins/animation_player_editor_plugin.h"
 #include "editor/plugins/canvas_item_editor_plugin.h"
 #include "editor/plugins/script_editor_plugin.h"
@@ -186,16 +186,16 @@ void SceneTreeEditor::_cell_button_pressed(Object *p_item, int p_column, int p_i
 
 		set_selected(n);
 
-		EditorDockManager::get_singleton()->focus_dock(NodeDock::get_singleton());
-		NodeDock::get_singleton()->show_connections();
+		EditorDockManager::get_singleton()->focus_dock(InspectorDock::get_singleton());
+		InspectorDock::get_singleton()->show_signals();
 	} else if (p_id == BUTTON_GROUPS) {
 		editor_selection->clear();
 		editor_selection->add_node(n);
 
 		set_selected(n);
 
-		EditorDockManager::get_singleton()->focus_dock(NodeDock::get_singleton());
-		NodeDock::get_singleton()->show_groups();
+		EditorDockManager::get_singleton()->focus_dock(InspectorDock::get_singleton());
+		InspectorDock::get_singleton()->show_groups();
 	} else if (p_id == BUTTON_UNIQUE) {
 		bool ask_before_revoking_unique_name = EDITOR_GET("docks/scene_tree/ask_before_revoking_unique_name");
 		revoke_node = n;

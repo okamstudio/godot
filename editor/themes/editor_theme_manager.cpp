@@ -1813,6 +1813,16 @@ void EditorThemeManager::_populate_editor_styles(const Ref<EditorTheme> &p_theme
 			tag->set_corner_radius(CORNER_BOTTOM_RIGHT, 4);
 			p_theme->set_stylebox(SceneStringName(pressed), "ProjectTagButton", tag);
 		}
+
+		// InspectorTabButton.
+		{
+			p_theme->set_type_variation("InspectorTabButton", "Button");
+
+			Ref<StyleBoxFlat> inspector_tab_button = p_config.button_style->duplicate();
+			inspector_tab_button->set_border_color(p_config.accent_color);
+			inspector_tab_button->set_border_width(SIDE_BOTTOM, 2 * EDSCALE);
+			p_theme->set_stylebox(SceneStringName(pressed), "InspectorTabButton", inspector_tab_button);
+		}
 	}
 
 	// Editor and main screen.

@@ -232,6 +232,7 @@ class ConnectionsDock : public VBoxContainer {
 	String class_menu_doc_class_name;
 	PopupMenu *signal_menu = nullptr;
 	PopupMenu *slot_menu = nullptr;
+	Label *no_node_warning = nullptr;
 	LineEdit *search_box = nullptr;
 
 	void _filter_changed(const String &p_text);

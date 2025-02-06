@@ -41,8 +41,11 @@
 #include "scene/gui/menu_button.h"
 #include "scene/gui/tree.h"
 
+class ButtonGroup;
+class ConnectionsDock;
 class EditorFileDialog;
 class EditorObjectSelector;
+class GroupsEditor;
 
 class InspectorDock : public VBoxContainer {
 	GDCLASS(InspectorDock, VBoxContainer);
@@ -80,6 +83,16 @@ class InspectorDock : public VBoxContainer {
 
 	Button *backward_button = nullptr;
 	Button *forward_button = nullptr;
+
+	Button *button_properties = nullptr;
+	Button *button_signals = nullptr;
+	Button *button_groups = nullptr;
+
+	Control *tab_properties = nullptr;
+	ConnectionsDock *tab_signals = nullptr;
+	GroupsEditor *tab_groups = nullptr;
+
+	Ref<ButtonGroup> tab_buttons_group;
 
 	EditorFileDialog *load_resource_dialog = nullptr;
 	CreateDialog *new_resource_dialog = nullptr;
@@ -133,10 +146,13 @@ class InspectorDock : public VBoxContainer {
 	void _select_history(int p_idx);
 	void _prepare_history();
 
+	void _save_layout_to_config(Ref<ConfigFile> p_layout, const String &p_section) const;
+	void _load_layout_from_config(Ref<ConfigFile> p_layout, const String &p_section);
+
 	virtual void shortcut_input(const Ref<InputEvent> &p_event) override;
 
 private:
-	static InspectorDock *singleton;
+	inline static InspectorDock *singleton = nullptr;
 
 public:
 	static InspectorDock *get_singleton() { return singleton; }
@@ -147,6 +163,11 @@ protected:
 	void _notification(int p_what);
 
 public:
+	void edit(Object *p_object);
+	void update_signals();
+	void show_signals();
+	void show_groups();
+
 	void go_back();
 	void edit_resource(const Ref<Resource> &p_resource);
 	void open_resource(const String &p_type);

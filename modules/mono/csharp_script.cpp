@@ -63,7 +63,6 @@
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
 #include "editor/inspector_dock.h"
-#include "editor/node_dock.h"
 #endif
 
 #include <stdint.h>
@@ -1006,7 +1005,7 @@ void CSharpLanguage::reload_assemblies(bool p_soft_reload) {
 	// FIXME: Hack to refresh editor in order to display new properties and signals. See if there is a better alternative.
 	if (Engine::get_singleton()->is_editor_hint()) {
 		InspectorDock::get_inspector_singleton()->update_tree();
-		NodeDock::get_singleton()->update_lists();
+		InspectorDock::get_singleton()->update_signals();
 	}
 #endif
 }

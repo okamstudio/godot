@@ -49,7 +49,6 @@
 #include "editor/gui/editor_quick_open_dialog.h"
 #include "editor/inspector_dock.h"
 #include "editor/multi_node_edit.h"
-#include "editor/node_dock.h"
 #include "editor/plugins/animation_player_editor_plugin.h"
 #include "editor/plugins/canvas_item_editor_plugin.h"
 #include "editor/plugins/editor_context_menu_plugin.h"
@@ -102,7 +101,7 @@ void SceneTreeDock::_inspect_hovered_node() {
 
 	EditorSelectionHistory *editor_history = EditorNode::get_singleton()->get_editor_selection_history();
 	editor_history->add_object(node_hovered_now->get_instance_id());
-	InspectorDock::get_inspector_singleton()->edit(node_hovered_now);
+	InspectorDock::get_singleton()->edit(node_hovered_now);
 	InspectorDock::get_inspector_singleton()->propagate_notification(NOTIFICATION_DRAG_BEGIN); // Enable inspector drag preview after it updated.
 	InspectorDock::get_singleton()->update(node_hovered_now);
 	EditorNode::get_singleton()->hide_unused_editors();
@@ -1329,7 +1328,6 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 					undo_redo->add_undo_method(node, "set_scene_file_path", node->get_scene_file_path());
 					_node_replace_owner(node, node, root);
 					_node_strip_signal_inheritance(node);
-					NodeDock::get_singleton()->set_node(node); // Refresh.
 					undo_redo->add_do_method(scene_tree, "update_tree");
 					undo_redo->add_undo_method(scene_tree, "update_tree");
 					undo_redo->commit_action();
@@ -2552,7 +2550,7 @@ void SceneTreeDock::_script_created(Ref<Script> p_script) {
 	_push_item(p_script.ptr());
 	_update_script_button();
 
-	InspectorDock::get_inspector_singleton()->edit(edited_object);
+	InspectorDock::get_singleton()->edit(edited_object);
 }
 
 void SceneTreeDock::_shader_created(Ref<Shader> p_shader) {
@@ -2817,7 +2815,6 @@ void SceneTreeDock::_delete_confirm(bool p_cut) {
 	editor_history->cleanup_history();
 	InspectorDock::get_singleton()->call("_prepare_history");
 	InspectorDock::get_singleton()->update(nullptr);
-	NodeDock::get_singleton()->set_node(nullptr);
 }
 
 void SceneTreeDock::_update_script_button() {

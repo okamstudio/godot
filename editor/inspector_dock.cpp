@@ -30,18 +30,18 @@
 
 #include "inspector_dock.h"
 
+#include "editor/connections_dialog.h"
 #include "editor/editor_main_screen.h"
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
 #include "editor/editor_undo_redo_manager.h"
 #include "editor/filesystem_dock.h"
+#include "editor/groups_editor.h"
 #include "editor/gui/editor_file_dialog.h"
 #include "editor/gui/editor_object_selector.h"
 #include "editor/plugins/script_editor_plugin.h"
 #include "editor/themes/editor_scale.h"
-
-InspectorDock *InspectorDock::singleton = nullptr;
 
 void InspectorDock::_prepare_menu() {
 	PopupMenu *menu = object_menu->get_popup();
@@ -364,6 +364,19 @@ void InspectorDock::_prepare_history() {
 	}
 }
 
+void InspectorDock::_save_layout_to_config(Ref<ConfigFile> p_layout, const String &p_section) const {
+	p_layout->set_value(p_section, "dock_inspector_current_tab", tab_buttons_group->get_pressed_button()->get_index());
+}
+
+void InspectorDock::_load_layout_from_config(Ref<ConfigFile> p_layout, const String &p_section) {
+	const int current_tab = p_layout->get_value(p_section, "dock_inspector_current_tab", 0);
+
+	List<BaseButton *> tab_buttons_list;
+	tab_buttons_group->get_buttons(&tab_buttons_list);
+	ERR_FAIL_INDEX(current_tab, tab_buttons_list.size());
+	tab_buttons_list.get(current_tab)->set_pressed(true);
+}
+
 void InspectorDock::_select_history(int p_idx) {
 	// Push it to the top, it is not correct, but it's more useful.
 	ObjectID id = EditorNode::get_singleton()->get_editor_selection_history()->get_history_obj(p_idx);
@@ -428,15 +441,21 @@ Container *InspectorDock::get_addon_area() {
 
 void InspectorDock::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_THEME_CHANGED:
-		case NOTIFICATION_TRANSLATION_CHANGED:
-		case NOTIFICATION_LAYOUT_DIRECTION_CHANGED: {
+		case NOTIFICATION_THEME_CHANGED: {
+			button_properties->set_button_icon(get_editor_theme_icon(SNAME("Paint")));
+			button_signals->set_button_icon(get_editor_theme_icon(SNAME("Signals")));
+			button_groups->set_button_icon(get_editor_theme_icon(SNAME("Groups")));
+
 			resource_new_button->set_button_icon(get_editor_theme_icon(SNAME("New")));
 			resource_load_button->set_button_icon(get_editor_theme_icon(SNAME("Load")));
 			resource_save_button->set_button_icon(get_editor_theme_icon(SNAME("Save")));
 			resource_extra_button->set_button_icon(get_editor_theme_icon(SNAME("GuiTabMenuHl")));
 			open_docs_button->set_button_icon(get_editor_theme_icon(SNAME("HelpSearch")));
 
+			[[fallthrough]];
+		}
+		case NOTIFICATION_TRANSLATION_CHANGED:
+		case NOTIFICATION_LAYOUT_DIRECTION_CHANGED: {
 			PopupMenu *resource_extra_popup = resource_extra_button->get_popup();
 			resource_extra_popup->set_item_icon(resource_extra_popup->get_item_index(RESOURCE_EDIT_CLIPBOARD), get_editor_theme_icon(SNAME("ActionPaste")));
 			resource_extra_popup->set_item_icon(resource_extra_popup->get_item_index(RESOURCE_COPY), get_editor_theme_icon(SNAME("ActionCopy")));
@@ -468,6 +487,9 @@ void InspectorDock::_notification(int p_what) {
 }
 
 void InspectorDock::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("_save_layout_to_config"), &InspectorDock::_save_layout_to_config);
+	ClassDB::bind_method(D_METHOD("_load_layout_from_config"), &InspectorDock::_load_layout_from_config);
+
 	ClassDB::bind_method("store_script_properties", &InspectorDock::store_script_properties);
 	ClassDB::bind_method("apply_script_properties", &InspectorDock::apply_script_properties);
 
@@ -590,6 +612,30 @@ void InspectorDock::update(Object *p_object) {
 	}
 }
 
+void InspectorDock::edit(Object *p_object) {
+	inspector->edit(p_object);
+	Node *n = Object::cast_to<Node>(p_object);
+	if (n && n->is_inside_tree()) {
+		tab_signals->set_node(n);
+		tab_groups->set_current(n);
+	} else {
+		tab_signals->set_node(nullptr);
+		tab_groups->set_current(nullptr);
+	}
+}
+
+void InspectorDock::update_signals() {
+	tab_signals->update_tree();
+}
+
+void InspectorDock::show_signals() {
+	button_signals->set_pressed(true);
+}
+
+void InspectorDock::show_groups() {
+	button_groups->set_pressed(true);
+}
+
 void InspectorDock::go_back() {
 	_edit_back();
 }
@@ -646,13 +692,52 @@ void InspectorDock::shortcut_input(const Ref<InputEvent> &p_event) {
 InspectorDock::InspectorDock(EditorData &p_editor_data) {
 	singleton = this;
 	set_name("Inspector");
+	set_process_shortcut_input(true);
 
 	editor_data = &p_editor_data;
 
 	property_name_style = EditorPropertyNameProcessor::get_default_inspector_style();
 
+	HBoxContainer *main_tabs_hb = memnew(HBoxContainer);
+	add_child(main_tabs_hb);
+
+	tab_buttons_group.instantiate();
+
+	button_properties = memnew(Button);
+	button_properties->set_text(TTRC("Properties"));
+	button_properties->set_toggle_mode(true);
+	button_properties->set_pressed(true);
+	button_properties->set_button_group(tab_buttons_group);
+	button_properties->set_h_size_flags(SIZE_EXPAND_FILL);
+	button_properties->set_theme_type_variation("InspectorTabButton");
+	main_tabs_hb->add_child(button_properties);
+
+	button_signals = memnew(Button);
+	button_signals->set_text(TTRC("Signals"));
+	button_signals->set_toggle_mode(true);
+	button_signals->set_button_group(tab_buttons_group);
+	button_signals->set_h_size_flags(SIZE_EXPAND_FILL);
+	button_signals->set_theme_type_variation("InspectorTabButton");
+	main_tabs_hb->add_child(button_signals);
+
+	button_groups = memnew(Button);
+	button_groups->set_text(TTRC("Groups"));
+	button_groups->set_toggle_mode(true);
+	button_groups->set_button_group(tab_buttons_group);
+	button_groups->set_h_size_flags(SIZE_EXPAND_FILL);
+	button_groups->set_theme_type_variation("InspectorTabButton");
+	main_tabs_hb->add_child(button_groups);
+
+	add_child(memnew(Control)); // Spacer.
+
+	tab_properties = memnew(VBoxContainer);
+	tab_properties->set_v_size_flags(SIZE_EXPAND_FILL);
+	add_child(tab_properties);
+
+	button_properties->connect(SceneStringName(toggled), callable_mp((CanvasItem *)tab_properties, &CanvasItem::set_visible));
+
 	HBoxContainer *general_options_hb = memnew(HBoxContainer);
-	add_child(general_options_hb);
+	tab_properties->add_child(general_options_hb);
 
 	resource_new_button = memnew(Button);
 	resource_new_button->set_theme_type_variation("FlatMenuButton");
@@ -720,7 +805,7 @@ InspectorDock::InspectorDock(EditorData &p_editor_data) {
 	history_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp(this, &InspectorDock::_select_history));
 
 	HBoxContainer *subresource_hb = memnew(HBoxContainer);
-	add_child(subresource_hb);
+	tab_properties->add_child(subresource_hb);
 	object_selector = memnew(EditorObjectSelector(EditorNode::get_singleton()->get_editor_selection_history()));
 	object_selector->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	subresource_hb->add_child(object_selector);
@@ -739,7 +824,7 @@ InspectorDock::InspectorDock(EditorData &p_editor_data) {
 	new_resource_dialog->connect("create", callable_mp(this, &InspectorDock::_resource_created));
 
 	HBoxContainer *property_tools_hb = memnew(HBoxContainer);
-	add_child(property_tools_hb);
+	tab_properties->add_child(property_tools_hb);
 
 	search = memnew(LineEdit);
 	search->set_h_size_flags(Control::SIZE_EXPAND_FILL);
@@ -756,13 +841,13 @@ InspectorDock::InspectorDock(EditorData &p_editor_data) {
 	object_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp(this, &InspectorDock::_menu_option));
 
 	info = memnew(Button);
-	add_child(info);
+	tab_properties->add_child(info);
 	info->set_clip_text(true);
 	info->hide();
 	info->connect(SceneStringName(pressed), callable_mp(this, &InspectorDock::_info_pressed));
 
 	unique_resources_confirmation = memnew(ConfirmationDialog);
-	add_child(unique_resources_confirmation);
+	tab_properties->add_child(unique_resources_confirmation);
 
 	VBoxContainer *container = memnew(VBoxContainer);
 	unique_resources_confirmation->add_child(container);
@@ -788,12 +873,12 @@ InspectorDock::InspectorDock(EditorData &p_editor_data) {
 	EditorNode::get_singleton()->get_gui_base()->add_child(info_dialog);
 
 	load_resource_dialog = memnew(EditorFileDialog);
-	add_child(load_resource_dialog);
+	tab_properties->add_child(load_resource_dialog);
 	load_resource_dialog->set_current_dir("res://");
 	load_resource_dialog->connect("file_selected", callable_mp(this, &InspectorDock::_resource_file_selected));
 
 	inspector = memnew(EditorInspector);
-	add_child(inspector);
+	tab_properties->add_child(inspector);
 	inspector->set_autoclear(true);
 	inspector->set_show_categories(true, true);
 	inspector->set_v_size_flags(Control::SIZE_EXPAND_FILL);
@@ -809,7 +894,19 @@ InspectorDock::InspectorDock(EditorData &p_editor_data) {
 
 	inspector->connect("resource_selected", callable_mp(this, &InspectorDock::_resource_selected));
 
-	set_process_shortcut_input(true);
+	tab_signals = memnew(ConnectionsDock);
+	tab_signals->set_v_size_flags(SIZE_EXPAND_FILL);
+	tab_signals->hide();
+	add_child(tab_signals);
+
+	button_signals->connect(SceneStringName(toggled), callable_mp((CanvasItem *)tab_signals, &CanvasItem::set_visible));
+
+	tab_groups = memnew(GroupsEditor);
+	tab_groups->set_v_size_flags(SIZE_EXPAND_FILL);
+	tab_groups->hide();
+	add_child(tab_groups);
+
+	button_groups->connect(SceneStringName(toggled), callable_mp((CanvasItem *)tab_groups, &CanvasItem::set_visible));
 }
 
 InspectorDock::~InspectorDock() {

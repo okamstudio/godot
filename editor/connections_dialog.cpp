@@ -40,7 +40,6 @@
 #include "editor/editor_string_names.h"
 #include "editor/editor_undo_redo_manager.h"
 #include "editor/gui/scene_tree_editor.h"
-#include "editor/node_dock.h"
 #include "editor/plugins/script_editor_plugin.h"
 #include "editor/scene_tree_dock.h"
 #include "editor/themes/editor_scale.h"
@@ -478,9 +477,8 @@ void ConnectDialog::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_ENTER_TREE: {
 			bind_editor->edit(cdbinds);
+		} break;
 
-			[[fallthrough]];
-		}
 		case NOTIFICATION_THEME_CHANGED: {
 			for (int i = 0; i < type_list->get_item_count(); i++) {
 				String type_name = Variant::get_type_name((Variant::Type)type_list->get_item_id(i));
@@ -1372,8 +1370,14 @@ void ConnectionsDock::_connect_pressed() {
 
 void ConnectionsDock::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_ENTER_TREE:
+		case NOTIFICATION_READY: {
+			connect_button->set_text(TTRC("Connect..."));
+			connect_button->set_button_icon(get_editor_theme_icon(SNAME("Instance")));
+			connect_button->set_disabled(true);
+		} break;
+
 		case NOTIFICATION_THEME_CHANGED: {
+			no_node_warning->add_theme_color_override(SNAME("font_color"), get_theme_color(SNAME("warning_color"), EditorStringName(Editor)));
 			search_box->set_right_icon(get_editor_theme_icon(SNAME("Search")));
 
 			class_menu->set_item_icon(class_menu->get_item_index(CLASS_MENU_OPEN_DOCS), get_editor_theme_icon(SNAME("Help")));
@@ -1407,6 +1411,12 @@ void ConnectionsDock::_bind_methods() {
 void ConnectionsDock::set_node(Node *p_node) {
 	selected_node = p_node;
 	update_tree();
+
+	if (!selected_node) {
+		search_box->clear();
+	}
+	no_node_warning->set_visible(selected_node == nullptr);
+	search_box->set_editable(selected_node != nullptr);
 }
 
 void ConnectionsDock::update_tree() {
@@ -1590,16 +1600,16 @@ void ConnectionsDock::update_tree() {
 }
 
 ConnectionsDock::ConnectionsDock() {
-	set_name(TTR("Signals"));
-
-	VBoxContainer *vbc = this;
+	no_node_warning = memnew(Label(TTRC("Select a Node to edit its signal connections.")));
+	no_node_warning->set_autowrap_mode(TextServer::AUTOWRAP_WORD);
+	add_child(no_node_warning);
 
 	search_box = memnew(LineEdit);
 	search_box->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	search_box->set_placeholder(TTR("Filter Signals"));
 	search_box->set_clear_button_enabled(true);
 	search_box->connect(SceneStringName(text_changed), callable_mp(this, &ConnectionsDock::_filter_changed));
-	vbc->add_child(search_box);
+	add_child(search_box);
 
 	tree = memnew(ConnectionsDockTree);
 	tree->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
@@ -1607,13 +1617,13 @@ ConnectionsDock::ConnectionsDock() {
 	tree->set_select_mode(Tree::SELECT_ROW);
 	tree->set_hide_root(true);
 	tree->set_column_clip_content(0, true);
-	vbc->add_child(tree);
+	add_child(tree);
 	tree->set_v_size_flags(Control::SIZE_EXPAND_FILL);
 	tree->set_allow_rmb_select(true);
 
 	connect_button = memnew(Button);
 	HBoxContainer *hb = memnew(HBoxContainer);
-	vbc->add_child(hb);
+	add_child(hb);
 	hb->add_spacer();
 	hb->add_child(connect_button);
 	connect_button->connect(SceneStringName(pressed), callable_mp(this, &ConnectionsDock::_connect_pressed));
