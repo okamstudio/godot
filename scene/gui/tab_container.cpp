@@ -761,6 +761,7 @@ void TabContainer::set_all_tabs_in_front(bool p_in_front) {
 
 	remove_child(tab_bar);
 	add_child(tab_bar, false, all_tabs_in_front ? INTERNAL_MODE_FRONT : INTERNAL_MODE_BACK);
+	tab_bar->force_parent_owned();
 }
 
 bool TabContainer::is_all_tabs_in_front() const {
