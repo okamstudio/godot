@@ -2336,8 +2336,11 @@ void FileSystemDock::_file_option(int p_option, const Vector<String> &p_selected
 				selected = tree->get_next_selected(selected);
 			}
 			// Open the file.
+			EditorProgress ep("Open Scenes", TTR("Open Scenes"), p_selected.size());
+			int step_count = 0;
 			for (int i = 0; i < p_selected.size(); i++) {
 				_select_file(p_selected[i]);
+				ep.step(TTR("Opening Scenes..."), step_count++);
 			}
 		} break;
 
