@@ -458,11 +458,18 @@ void GDScript::set_source_code(const String &p_code) {
 	}
 	source = p_code;
 #ifdef TOOLS_ENABLED
-	source_changed_cache = true;
+	mark_source_changed();
 #endif
 }
 
 #ifdef TOOLS_ENABLED
+void GDScript::mark_source_changed() {
+	_source_changed_cache = true;
+	for (KeyValue<StringName, Ref<GDScript>> &inner : subclasses) {
+		inner.value->mark_source_changed();
+	}
+}
+
 void GDScript::_update_exports_values(HashMap<StringName, Variant> &values, List<PropertyInfo> &propnames) {
 	for (const KeyValue<StringName, Variant> &E : member_default_values_cache) {
 		values[E.key] = E.value;
@@ -514,8 +521,9 @@ bool GDScript::_update_exports(bool *r_err, bool p_recursive_call, PlaceHolderSc
 
 	bool changed = p_base_exports_changed;
 
-	if (source_changed_cache) {
-		source_changed_cache = false;
+	if (_source_changed_cache) {
+		// Only set to false for this instance: subclasses have to update themselves
+		_source_changed_cache = false;
 		changed = true;
 
 		String basedir = path;
@@ -530,17 +538,27 @@ bool GDScript::_update_exports(bool *r_err, bool p_recursive_call, PlaceHolderSc
 
 		GDScriptParser parser;
 		GDScriptAnalyzer analyzer(&parser);
-		Error err = parser.parse(source, path, false);
+
+		const String *s = &source;
+		if (!is_root_script()) {
+			// Subclasses are contained in their root script's source
+			s = &get_root_script()->source;
+		}
+		Error err = parser.parse(*s, path, false);
 
 		if (err == OK && analyzer.analyze() == OK) {
 			const GDScriptParser::ClassNode *c = parser.get_tree();
+			if (!is_root_script()) {
+				// get_tree() would return outer class. We are in that tree somewhere!
+				c = c->find_class(fully_qualified_name);
+			}
 
 			if (base_cache.is_valid()) {
 				base_cache->inheriters_cache.erase(get_instance_id());
 				base_cache = Ref<GDScript>();
 			}
 
-			GDScriptParser::DataType base_type = parser.get_tree()->base_type;
+			GDScriptParser::DataType base_type = c->base_type;
 			if (base_type.kind == GDScriptParser::DataType::CLASS) {
 				Ref<GDScript> bf = GDScriptCache::get_full_script(base_type.script_path, err, path);
 				if (err == OK) {
@@ -1131,7 +1149,7 @@ Error GDScript::load_source_code(const String &p_path) {
 	path = p_path;
 	path_valid = true;
 #ifdef TOOLS_ENABLED
-	source_changed_cache = true;
+	mark_source_changed();
 	set_edited(false);
 	set_last_modified_time(FileAccess::get_modified_time(path));
 #endif // TOOLS_ENABLED

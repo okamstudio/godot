@@ -155,7 +155,8 @@ private:
 	HashMap<StringName, Variant> member_default_values_cache;
 	Ref<GDScript> base_cache;
 	HashSet<ObjectID> inheriters_cache;
-	bool source_changed_cache = false;
+	bool _source_changed_cache = false;
+	void mark_source_changed();
 	bool placeholder_fallback_enabled = false;
 	void _update_exports_values(HashMap<StringName, Variant> &values, List<PropertyInfo> &propnames);
 

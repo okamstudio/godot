@@ -762,6 +762,23 @@ public:
 			ERR_FAIL_INDEX(members_indices[p_name], members.size());
 			members.write[members_indices[p_name]].enum_value.doc_data = p_doc_data;
 		}
+
+		const ClassNode *find_class(const String &p_fqcn) const {
+			if (fqcn == p_fqcn) {
+				return this;
+			}
+
+			for (const Member &member : members) {
+				if (member.type == Member::CLASS) {
+					const ClassNode *c = member.m_class->find_class(p_fqcn);
+					if (c != nullptr) {
+						return c;
+					}
+				}
+			}
+
+			return nullptr;
+		}
 #endif // TOOLS_ENABLED
 
 		bool resolved_interface = false;

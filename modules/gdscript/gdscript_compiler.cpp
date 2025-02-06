@@ -3124,6 +3124,11 @@ void GDScriptCompiler::make_scripts(GDScript *p_script, const GDScriptParser::Cl
 
 		make_scripts(subclass.ptr(), inner_class, p_keep_state);
 	}
+
+#ifdef TOOLS_ENABLED
+	// Mark all newly created subclasses as having changed source
+	p_script->mark_source_changed();
+#endif // TOOLS_ENABLED
 }
 
 GDScriptCompiler::FunctionLambdaInfo GDScriptCompiler::_get_function_replacement_info(GDScriptFunction *p_func, int p_index, int p_depth, GDScriptFunction *p_parent_func) {
