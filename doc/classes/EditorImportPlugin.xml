@@ -248,7 +248,78 @@
 			<param index="2" name="custom_importer" type="String" default="&quot;&quot;" />
 			<param index="3" name="generator_parameters" type="Variant" default="null" />
 			<description>
-				This function can only be called during the [method _import] callback and it allows manually importing resources from it. This is useful when the imported file generates external resources that require importing (as example, images). Custom parameters for the ".import" file can be passed via the [param custom_options]. Additionally, in cases where multiple importers can handle a file, the [param custom_importer] can be specified to force a specific one. This function performs a resource import and returns immediately with a success or error code. [param generator_parameters] defines optional extra metadata which will be stored as [code skip-lint]generator_parameters[/code] in the [code]remap[/code] section of the [code].import[/code] file, for example to store a md5 hash of the source data.
+				This function can only be called during the [method _import] callback and it allows manually importing resources from it. This is useful when the imported file generates external resources that require importing (as example, images). Custom parameters for the [code].import[/code] file can be passed via the [param custom_options]. Additionally, in cases where multiple importers can handle a file, the [param custom_importer] can be specified to force a specific one. This function performs a resource import and returns immediately with a success or error code. [param generator_parameters] defines optional extra metadata which will be stored as [code skip-lint]generator_parameters[/code] in the [code]remap[/code] section of the [code].import[/code] file, for example to store a md5 hash of the source data. For example:
+				[codeblocks]
+				[gdscript]
+				func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
+				    # Make textures folder if required.
+				    var source_file_folder = source_file.rsplit("/", true, 1)[0]
+				    var textures_folder: String = "%s/textures" % source_file_folder
+				    DirAccess.make_dir_recursive_absolute(textures_folder)
+
+				    # Simulate image export by copying the source file to the textures folder.
+				    var export_path: String = "%s/icon.png" % textures_folder
+				    var export_image_file: FileAccess = FileAccess.open(export_path, FileAccess.WRITE)
+				    export_image_file.store_buffer(FileAccess.get_file_as_bytes("res://game/my_icon.png"))
+				    export_image_file.close()
+
+				    # Ensure file visibility for ResourceLoader later.
+				    var editor_file_system: EditorFileSystem = EditorInterface.get_resource_filesystem()
+				    editor_file_system.update_file(textures_folder)
+				    editor_file_system.update_file(export_path)
+
+				    # Append exported file as external resource.
+				    var err: Error = self.append_import_external_resource(export_path)
+				    if err != OK:
+				        return err
+
+				    # Load exported image as a Texture2D.
+				    var export_image_tex: Texture2D = ResourceLoader.load(export_path, "Texture2D", ResourceLoader.CACHE_MODE_REPLACE)
+				    if export_image_tex == null:
+				        return ERR_SCRIPT_FAILED
+
+				    # ...
+				[/gdscript]
+				[csharp]
+				public partial class MyEditorImportPlugin : EditorImportPlugin
+				{
+				    public override Error _Import(string sourceFile, string savePath, Godot.Collections.Dictionary options, Godot.Collections.Array&lt;string&gt; platformVariants, Godot.Collections.Array&lt;string&gt; genFiles)
+				    {
+				        // Make textures folder if required.
+				        string sourceFileFolder = sourceFile.Substring(0, sourceFile.LastIndexOf('/'));
+				        string texturesFolder = $"{sourceFileFolder}/Textures";
+				        DirAccess.MakeDirRecursiveAbsolute(texturesFolder);
+
+				        // Simulate image export by copying the source file to the textures folder.
+				        string exportPath = $"{texturesFolder}/Icon.png";
+				        using FileAccess exportImageFile = FileAccess.Open(exportPath, FileAccess.ModeFlags.Write);
+				        exportImageFile.StoreBuffer(FileAccess.GetFileAsBytes("res://Game/MyIcon.png"));
+				        exportImageFile.Close();
+
+				        // Ensure file visibility for ResourceLoader later.
+				        EditorFileSystem editorFileSystem = EditorInterface.Singleton.GetResourceFilesystem();
+				        editorFileSystem.UpdateFile(texturesFolder);
+				        editorFileSystem.UpdateFile(exportPath);
+
+				        // Append exported file as external resource.
+				        Error err = AppendImportExternalResource(exportPath);
+				        if (err != Error.Ok)
+				        {
+				            return err;
+				        }
+
+				        // Load exported image as a Texture2D.
+				        Texture2D exportImageTex = ResourceLoader.Load&lt;Texture2D&gt;(exportPath, nameof(Texture2D), ResourceLoader.CacheMode.Replace);
+				        if (exportImageTex == null)
+				        {
+				            return Error.ScriptFailed;
+				        }
+
+				        // ...
+				    }
+				}
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 	</methods>
