@@ -233,7 +233,7 @@ void TileSetScenesCollectionSourceEditor::_scene_thumbnail_done(const String &p_
 void TileSetScenesCollectionSourceEditor::_scenes_list_item_activated(int p_index) {
 	Ref<PackedScene> packed_scene = tile_set_scenes_collection_source->get_scene_tile_scene(scene_tiles_list->get_item_metadata(p_index));
 	if (packed_scene.is_valid()) {
-		EditorNode::get_singleton()->open_request(packed_scene->get_path());
+		EditorNode::get_singleton()->load_scene(packed_scene->get_path());
 	}
 }
 

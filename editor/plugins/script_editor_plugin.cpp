@@ -847,13 +847,8 @@ void ScriptEditor::_open_recent_script(int p_idx) {
 	} else if (path.contains("::")) {
 		// built-in script
 		String res_path = path.get_slice("::", 0);
-		if (ResourceLoader::get_resource_type(res_path) == "PackedScene") {
-			if (!EditorNode::get_singleton()->is_scene_open(res_path)) {
-				EditorNode::get_singleton()->load_scene(res_path);
-			}
-		} else {
-			EditorNode::get_singleton()->load_resource(res_path);
-		}
+		EditorNode::get_singleton()->load_scene_or_resource(res_path, false, false);
+
 		Ref<Script> scr = ResourceLoader::load(path);
 		if (scr.is_valid()) {
 			edit(scr, true);
@@ -1358,13 +1353,7 @@ void ScriptEditor::_menu_option(int p_option) {
 			if (extensions.find(path.get_extension()) || built_in) {
 				if (built_in) {
 					String res_path = path.get_slice("::", 0);
-					if (ResourceLoader::get_resource_type(res_path) == "PackedScene") {
-						if (!EditorNode::get_singleton()->is_scene_open(res_path)) {
-							EditorNode::get_singleton()->load_scene(res_path);
-						}
-					} else {
-						EditorNode::get_singleton()->load_resource(res_path);
-					}
+					EditorNode::get_singleton()->load_scene_or_resource(res_path, false, false);
 				}
 
 				Ref<Resource> scr = ResourceLoader::load(path);
@@ -4525,13 +4514,7 @@ void ScriptEditorPlugin::edit(Object *p_object) {
 		String res_path = p_script->get_path().get_slice("::", 0);
 
 		if (p_script->is_built_in() && !res_path.is_empty()) {
-			if (ResourceLoader::get_resource_type(res_path) == "PackedScene") {
-				if (!EditorNode::get_singleton()->is_scene_open(res_path)) {
-					EditorNode::get_singleton()->load_scene(res_path);
-				}
-			} else {
-				EditorNode::get_singleton()->load_resource(res_path);
-			}
+			EditorNode::get_singleton()->load_scene_or_resource(res_path, false, false);
 		}
 		script_editor->edit(p_script);
 	} else if (Object::cast_to<JSON>(p_object)) {

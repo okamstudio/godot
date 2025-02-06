@@ -138,12 +138,6 @@ public:
 class DependencyErrorDialog : public ConfirmationDialog {
 	GDCLASS(DependencyErrorDialog, ConfirmationDialog);
 
-public:
-	enum Mode {
-		MODE_SCENE,
-		MODE_RESOURCE,
-	};
-
 private:
 	String for_file;
 	Mode mode;
@@ -154,7 +148,7 @@ private:
 	void custom_action(const String &) override;
 
 public:
-	void show(Mode p_mode, const String &p_for_file, const Vector<String> &report);
+	void show(const String &p_for_file, const Vector<String> &report);
 	DependencyErrorDialog();
 };
 

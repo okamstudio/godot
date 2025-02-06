@@ -647,8 +647,7 @@ void EditorInterface::open_scene_from_path(const String &scene_path, bool p_set_
 	if (EditorNode::get_singleton()->is_changing_scene()) {
 		return;
 	}
-
-	EditorNode::get_singleton()->open_request(scene_path, p_set_inherited);
+	EditorNode::get_singleton()->load_scene(scene_path, false, p_set_inherited);
 }
 
 void EditorInterface::reload_scene_from_path(const String &scene_path) {

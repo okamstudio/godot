@@ -351,7 +351,7 @@ private:
 
 	PopupMenu *recent_scenes = nullptr;
 	String _recent_scene;
-	List<String> previous_scenes;
+	List<String> prev_closed_scenes;
 	String defer_load_scene;
 	Node *_last_instantiated_scene = nullptr;
 
@@ -422,7 +422,6 @@ private:
 	bool cmdline_export_mode = false;
 	bool convert_old = false;
 	bool immediate_dialog_confirmed = false;
-	bool opening_prev = false;
 	bool restoring_scenes = false;
 	bool unsaved_cache = true;
 
@@ -537,7 +536,6 @@ private:
 	void _tool_menu_option(int p_idx);
 	void _export_as_menu_option(int p_idx);
 	void _update_file_menu_opened();
-	void _update_file_menu_closed();
 	void _palette_quick_open_dialog();
 
 	void _remove_plugin_from_enabled(const String &p_name);
@@ -587,9 +585,12 @@ private:
 	void _project_run_started();
 	void _project_run_stopped();
 
+	void _update_prev_closed_scenes(const String &p_scene_path, bool p_add_scene);
+
 	void _add_to_recent_scenes(const String &p_scene);
 	void _update_recent_scenes();
 	void _open_recent_scene(int p_idx);
+
 	void _dropped_files(const Vector<String> &p_files);
 	void _add_dropped_files_recursive(const Vector<String> &p_files, String to_path);
 
@@ -741,7 +742,7 @@ public:
 	ProjectSettingsEditor *get_project_settings() { return project_settings_editor; }
 
 	void trigger_menu_option(int p_option, bool p_confirmed);
-	bool has_previous_scenes() const;
+	bool has_previous_closed_scenes() const;
 
 	void new_inherited_scene() { _menu_option_confirm(FILE_NEW_INHERITED_SCENE, false); }
 
@@ -775,7 +776,6 @@ public:
 	void replace_resources_in_scenes(
 			const Vector<Ref<Resource>> &p_source_resources,
 			const Vector<Ref<Resource>> &p_target_resource);
-	void open_request(const String &p_path, bool p_set_inherited = false);
 	void edit_foreign_resource(Ref<Resource> p_resource);
 
 	bool is_resource_read_only(Ref<Resource> p_resource, bool p_foreign_resources_are_writable = false);
@@ -794,6 +794,7 @@ public:
 	int new_scene();
 	Error load_scene(const String &p_scene, bool p_ignore_broken_deps = false, bool p_set_inherited = false, bool p_force_open_imported = false, bool p_silent_change_tab = false);
 	Error load_resource(const String &p_resource, bool p_ignore_broken_deps = false);
+	Error load_scene_or_resource(const String &p_file, bool p_ignore_broken_deps = false, bool p_change_scene_tab_if_already_open = true);
 
 	HashMap<StringName, Variant> get_modified_properties_for_node(Node *p_node, bool p_node_references_only);
 	HashMap<StringName, Variant> get_modified_properties_reference_to_nodes(Node *p_node, List<Node *> &p_nodes_referenced_by);

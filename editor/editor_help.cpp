@@ -3987,11 +3987,7 @@ void EditorHelpBit::_meta_clicked(const String &p_select) {
 		String path = ProjectSettings::get_singleton()->globalize_path(p_select.trim_prefix("open-file:"));
 		OS::get_singleton()->shell_show_in_file_manager(path, true);
 	} else if (p_select.begins_with("open-res:")) {
-		if (help_data.doc_type.type == "PackedScene") {
-			EditorNode::get_singleton()->load_scene(p_select.trim_prefix("open-res:"));
-		} else {
-			EditorNode::get_singleton()->load_resource(p_select.trim_prefix("open-res:"));
-		}
+		EditorNode::get_singleton()->load_scene_or_resource(p_select.trim_prefix("open-res:"));
 	} else if (p_select.begins_with("show:")) {
 		FileSystemDock::get_singleton()->navigate_to_path(p_select.trim_prefix("show:"));
 	} else if (p_select.begins_with("http:") || p_select.begins_with("https:")) {
