@@ -35,6 +35,7 @@
 #include "core/math/math_funcs.h"
 
 class String;
+struct Vector2i;
 struct Vector3;
 
 struct [[nodiscard]] Vector3i {
@@ -138,6 +139,8 @@ struct [[nodiscard]] Vector3i {
 		y = p_y;
 		z = p_z;
 	}
+
+	Vector3i(const Vector2i &p_xy, const real_t p_z);
 };
 
 int64_t Vector3i::length_squared() const {

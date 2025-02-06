@@ -193,6 +193,8 @@ struct [[nodiscard]] Vector3 {
 		y = p_y;
 		z = p_z;
 	}
+
+	Vector3(const Vector2 &p_xy, const real_t p_z);
 };
 
 Vector3 Vector3::cross(const Vector3 &p_with) const {

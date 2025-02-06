@@ -43,6 +43,14 @@
 				Returns a [Vector3i] with the given components.
 			</description>
 		</constructor>
+		<constructor name="Vector3i">
+			<return type="Vector3i" />
+			<param index="0" name="xy" type="Vector2i" />
+			<param index="1" name="z" type="int" />
+			<description>
+				Returns a [Vector3i] using the given [Vector2i] for x, y components.
+			</description>
+		</constructor>
 	</constructors>
 	<methods>
 		<method name="abs" qualifiers="const">

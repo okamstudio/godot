@@ -30,6 +30,7 @@
 
 #include "vector3i.h"
 
+#include "core/math/vector2i.h"
 #include "core/math/vector3.h"
 #include "core/string/ustring.h"
 
@@ -75,4 +76,10 @@ Vector3i::operator String() const {
 
 Vector3i::operator Vector3() const {
 	return Vector3(x, y, z);
+}
+
+Vector3i::Vector3i(const Vector2i &p_xy, const real_t p_z) {
+	x = p_xy.x;
+	y = p_xy.y;
+	z = p_z;
 }

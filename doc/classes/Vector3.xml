@@ -47,6 +47,14 @@
 				Returns a [Vector3] with the given components.
 			</description>
 		</constructor>
+		<constructor name="Vector3">
+			<return type="Vector3" />
+			<param index="0" name="xy" type="Vector2" />
+			<param index="1" name="z" type="float" />
+			<description>
+				Returns a [Vector3] using the given [Vector2] for x, y components.
+			</description>
+		</constructor>
 	</constructors>
 	<methods>
 		<method name="abs" qualifiers="const">

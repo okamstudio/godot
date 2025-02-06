@@ -171,3 +171,9 @@ Vector3::operator String() const {
 Vector3::operator Vector3i() const {
 	return Vector3i(x, y, z);
 }
+
+Vector3::Vector3(const Vector2 &p_xy, const real_t p_z) {
+	x = p_xy.x;
+	y = p_xy.y;
+	z = p_z;
+}
