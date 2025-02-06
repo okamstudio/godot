@@ -1289,6 +1289,12 @@
 			The speed of scrolling in lines per second when [member text_editor/behavior/navigation/smooth_scrolling] is [code]true[/code]. Higher values make the script scroll by faster when using the mouse wheel.
 			[b]Note:[/b] You can hold down [kbd]Alt[/kbd] while using the mouse wheel to temporarily scroll 5 times faster.
 		</member>
+		<member name="text_editor/behavior/zoom/zoom_scroll_shortcut" type="bool" setter="" getter="">
+			If [code]true[/code], allows zooming in the script and text-based shader editor with
+			[kbd]Windows: Ctrl + Scroll wheel[/kbd].
+			[kbd]Mac: CMD + Scroll wheel[/kbd].
+			[kbd]Linux: Option + Scroll wheel[/kbd].
+		</member>
 		<member name="text_editor/completion/add_node_path_literals" type="bool" setter="" getter="">
 			If [code]true[/code], uses [NodePath] instead of [String] when appropriate for code autocompletion or for drag and dropping object properties into the script editor.
 		</member>

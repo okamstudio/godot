@@ -719,6 +719,9 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	_initial_set("text_editor/behavior/files/auto_reload_and_parse_scripts_on_save", true);
 	_initial_set("text_editor/behavior/files/open_dominant_script_on_scene_change", false, true);
 
+	// Behavior: Zoom
+	_initial_set("text_editor/behavior/zoom/zoom_scroll_shortcut", true);
+
 	// Script list
 	_initial_set("text_editor/script_list/show_members_overview", true, true);
 	_initial_set("text_editor/script_list/sort_members_outline_alphabetically", false, true);
