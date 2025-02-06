@@ -92,6 +92,10 @@ Dictionary DebugAdapterParser::prepare_error_response(const Dictionary &p_params
 			error = "wrong_path";
 			error_desc = "The editor and client are working on different paths; the client is on \"{clientPath}\", but the editor is on \"{editorPath}\"";
 			break;
+		case DAP::ErrorType::WRONG_SCENE:
+			error = "wrong_scene";
+			error_desc = "Could not find \"{scenePath}\"";
+			break;
 		case DAP::ErrorType::NOT_RUNNING:
 			error = "not_running";
 			error_desc = "Can't attach to a running session since there isn't one.";
@@ -195,7 +199,17 @@ Dictionary DebugAdapterParser::_launch_process(const Dictionary &p_params) const
 
 	String platform_string = args.get("platform", "host");
 	if (platform_string == "host") {
-		EditorRunBar::get_singleton()->play_main_scene();
+		if (args.has("scene")) {
+			String scene = args["scene"];
+			if (!is_valid_path(scene)) {
+				Dictionary variables;
+				variables["scenePath"] = scene;
+				return prepare_error_response(p_params, DAP::ErrorType::WRONG_SCENE, variables);
+			}
+			EditorRunBar::get_singleton()->play_custom_scene(scene);
+		} else {
+			EditorRunBar::get_singleton()->play_main_scene();
+		}
 	} else {
 		int device = args.get("device", -1);
 		int idx = -1;
