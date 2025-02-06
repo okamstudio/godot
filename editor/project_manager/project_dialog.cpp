@@ -90,7 +90,7 @@ void ProjectDialog::_validate_path() {
 	Ref<DirAccess> d = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
 	String path = project_path->get_text().simplify_path();
 
-	String target_path = path;
+	String target_path = _get_target_path();
 	InputType target_path_input_type = PROJECT_PATH;
 
 	if (mode == MODE_IMPORT) {
@@ -108,7 +108,6 @@ void ProjectDialog::_validate_path() {
 		}
 
 		if (!zip_path.is_empty()) {
-			target_path = install_path->get_text().simplify_path();
 			target_path_input_type = INSTALL_PATH;
 
 			create_dir->show();
@@ -247,22 +246,16 @@ void ProjectDialog::_validate_path() {
 }
 
 String ProjectDialog::_get_target_path() {
+	String path;
 	if (mode == MODE_NEW || mode == MODE_INSTALL) {
-		return project_path->get_text();
+		path = project_path->get_text();
 	} else if (mode == MODE_IMPORT) {
-		return install_path->get_text();
-	} else {
-		ERR_FAIL_V("");
+		path = install_path->get_text();
 	}
-}
-void ProjectDialog::_set_target_path(const String &p_text) {
-	if (mode == MODE_NEW || mode == MODE_INSTALL) {
-		project_path->set_text(p_text);
-	} else if (mode == MODE_IMPORT) {
-		install_path->set_text(p_text);
-	} else {
-		ERR_FAIL();
+	if (project_name_suffix->is_visible() || install_name_suffix->is_visible()) {
+		path = path.path_join(auto_dir);
 	}
+	return path;
 }
 
 void ProjectDialog::_update_target_auto_dir() {
@@ -296,61 +289,34 @@ void ProjectDialog::_update_target_auto_dir() {
 			break;
 	}
 	new_auto_dir = OS::get_singleton()->get_safe_dir_name(new_auto_dir);
-
-	if (create_dir->is_pressed()) {
-		String target_path = _get_target_path();
-
-		if (target_path.get_file() == auto_dir) {
-			// Update target dir name to new project name / ZIP name.
-			target_path = target_path.get_base_dir().path_join(new_auto_dir);
-		}
-
-		_set_target_path(target_path);
-	}
-
 	auto_dir = new_auto_dir;
+	_create_dir_toggled(create_dir->is_pressed());
 }
 
 void ProjectDialog::_create_dir_toggled(bool p_pressed) {
-	String target_path = _get_target_path();
-
-	if (create_dir->is_pressed()) {
-		// (Re-)append target dir name.
-		if (last_custom_target_dir.is_empty()) {
-			target_path = target_path.path_join(auto_dir);
-		} else {
-			target_path = target_path.path_join(last_custom_target_dir);
-		}
-	} else {
-		// Strip any trailing slash.
-		target_path = target_path.rstrip("/\\");
-		// Save and remove target dir name.
-		if (target_path.get_file() == auto_dir) {
-			last_custom_target_dir = "";
-		} else {
-			last_custom_target_dir = target_path.get_file();
-		}
-		target_path = target_path.get_base_dir();
+	if (p_pressed) {
+		project_name_suffix->set_text("/" + auto_dir);
+		install_name_suffix->set_text("/" + auto_dir);
 	}
-
-	_set_target_path(target_path);
+	project_name_suffix->set_visible(p_pressed && mode == MODE_NEW);
+	install_name_suffix->set_visible(p_pressed && mode == MODE_IMPORT);
 	_validate_path();
 }
 
 void ProjectDialog::_project_name_changed() {
 	if (mode == MODE_NEW || mode == MODE_INSTALL) {
 		_update_target_auto_dir();
+	} else {
+		_validate_path();
 	}
-
-	_validate_path();
 }
 
 void ProjectDialog::_project_path_changed() {
 	if (mode == MODE_IMPORT) {
 		_update_target_auto_dir();
+	} else {
+		_validate_path();
 	}
-
-	_validate_path();
 }
 
 void ProjectDialog::_install_path_changed() {
@@ -408,13 +374,7 @@ void ProjectDialog::_browse_install_path() {
 void ProjectDialog::_project_path_selected(const String &p_path) {
 	show_dialog(false);
 
-	if (create_dir->is_pressed() && (mode == MODE_NEW || mode == MODE_INSTALL)) {
-		// Replace parent directory, but keep target dir name.
-		project_path->set_text(p_path.path_join(project_path->get_text().get_file()));
-	} else {
-		project_path->set_text(p_path);
-	}
-
+	project_path->set_text(p_path);
 	_project_path_changed();
 
 	if (install_path->is_visible_in_tree()) {
@@ -428,13 +388,7 @@ void ProjectDialog::_project_path_selected(const String &p_path) {
 void ProjectDialog::_install_path_selected(const String &p_path) {
 	ERR_FAIL_COND_MSG(mode != MODE_IMPORT, "Install path is only used for MODE_IMPORT.");
 
-	if (create_dir->is_pressed()) {
-		// Replace parent directory, but keep target dir name.
-		install_path->set_text(p_path.path_join(install_path->get_text().get_file()));
-	} else {
-		install_path->set_text(p_path);
-	}
-
+	install_path->set_text(p_path);
 	_install_path_changed();
 
 	get_ok_button()->grab_focus();
@@ -506,7 +460,7 @@ void ProjectDialog::ok_pressed() {
 		return;
 	}
 
-	String path = project_path->get_text();
+	String path = _get_target_path();
 
 	if (mode == MODE_NEW) {
 		if (create_dir->is_pressed()) {
@@ -585,7 +539,6 @@ void ProjectDialog::ok_pressed() {
 				break;
 			}
 
-			path = install_path->get_text().simplify_path();
 			[[fallthrough]];
 		}
 		case MODE_INSTALL: {
@@ -834,19 +787,12 @@ void ProjectDialog::show_dialog(bool p_reset_name) {
 
 			callable_mp((Control *)project_path, &Control::grab_focus).call_deferred();
 		}
-
-		auto_dir = "";
-		last_custom_target_dir = "";
 		_update_target_auto_dir();
-		if (create_dir->is_pressed()) {
-			// Append `auto_dir` to target path.
-			_create_dir_toggled(true);
-		}
 	}
 
 	_validate_path();
 
-	popup_centered(Size2(500, 0) * EDSCALE);
+	popup_centered(Size2(800, 0) * EDSCALE);
 }
 
 void ProjectDialog::_notification(int p_what) {
@@ -927,6 +873,14 @@ ProjectDialog::ProjectDialog() {
 	install_path->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	install_path->set_structured_text_bidi_override(TextServer::STRUCTURED_TEXT_FILE);
 	iphb->add_child(install_path);
+
+	project_name_suffix = memnew(Label);
+	project_name_suffix->hide();
+	pphb->add_child(project_name_suffix);
+
+	install_name_suffix = memnew(Label);
+	install_name_suffix->hide();
+	iphb->add_child(install_name_suffix);
 
 	// status icon
 	project_status_rect = memnew(TextureRect);
