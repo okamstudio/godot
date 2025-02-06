@@ -1941,6 +1941,29 @@ TEST_CASE("[SceneTree][Viewport] Embedded Windows") {
 		CHECK_EQ(root->subwindow_get_popup_safe_rect(w), Rect2i());
 	}
 
+	SUBCASE("[Viewport] Clamp to embedder on resize") {
+		root->set_size(Size2i(200, 200));
+		root->set_embedding_subwindows(true);
+		root->add_child(w);
+		w->set_size(Size2i(100, 100));
+		w->set_position(Point2i(150, 0));
+		const int title_height = root->get_theme_constant("title_height");
+
+		// Do not clamp to embedder on resize.
+		w->set_clamp_to_embedder(false);
+		CHECK_FALSE(w->is_clamped_to_embedder());
+		root->set_size(Size2i(200, 201));
+		CHECK(w->get_size() == Size2i(100, 100));
+		CHECK(w->get_position() == Point2i(150, 0));
+
+		// Clamp to embedder on resize.
+		w->set_clamp_to_embedder(true);
+		CHECK(w->is_clamped_to_embedder());
+		root->set_size(Size2i(200, 202));
+		CHECK(w->get_size() == Size2i(100, 100));
+		CHECK(w->get_position() == Point2i(100, title_height));
+	}
+
 	memdelete(w);
 }
 
