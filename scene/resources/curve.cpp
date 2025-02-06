@@ -1627,6 +1627,10 @@ Vector3 Curve3D::_calculate_tangent(const Vector3 &p_begin, const Vector3 &p_con
 		return (p_end - p_begin).normalized();
 	}
 
+	if (Math::is_equal_approx(p_t, (real_t)0.5) && p_control_1.is_equal_approx(p_end) && p_control_2.is_equal_approx(p_begin)) {
+		return (p_end - p_begin).normalized();
+	}
+
 	return p_begin.bezier_derivative(p_control_1, p_control_2, p_end, p_t).normalized();
 }
 

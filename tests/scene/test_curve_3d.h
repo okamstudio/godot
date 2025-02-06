@@ -235,6 +235,17 @@ TEST_CASE("[Curve3D] Sampling") {
 		c->add_point(Vector3(0, .1, 1));
 		CHECK_LT((c->sample_baked_up_vector(c->get_closest_offset(Vector3(0, 0, .9))) - Vector3(0, 0.995037, -0.099504)).length(), 0.01);
 	}
+
+	SUBCASE("sample_baked_with_rotation, linear curve with control1 = end and control2 = begin") {
+		// Regression test for issue #88923
+		// The Vector3s that aren't relevant to the issue have z == 2.
+		// They're just set to make collisions with corner cases less likely
+		// that involve zero-vector control points.
+		Ref<Curve3D> cross_linear_curve = memnew(Curve3D);
+		cross_linear_curve->add_point(Vector3(), Vector3(-1, 0, 2), Vector3(1, 0, 0));
+		cross_linear_curve->add_point(Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(1, 0, 2));
+		CHECK(cross_linear_curve->sample_baked_with_rotation(cross_linear_curve->get_closest_offset(Vector3(0.5, 0, 0))).is_equal_approx(Transform3D(Basis(Vector3(0, 0, 1), Vector3(0, 1, 0), Vector3(-1, 0, 0)), Vector3(0.5, 0, 0))));
+	}
 }
 
 TEST_CASE("[Curve3D] Tessellation") {
