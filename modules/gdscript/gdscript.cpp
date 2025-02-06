@@ -946,9 +946,21 @@ Variant GDScript::callp(const StringName &p_method, const Variant **p_args, int 
 		top = top->_base;
 	}
 
-	//none found, regular
+	Variant ret = Script::callp(p_method, p_args, p_argcount, r_error);
+	if (r_error.error != Callable::CallError::CALL_ERROR_INVALID_METHOD) {
+		return ret;
+	}
 
-	return Script::callp(p_method, p_args, p_argcount, r_error);
+	if (native.is_valid()) {
+		MethodBind *method = ClassDB::get_method(native->get_name(), p_method);
+		if (method && method->is_static()) {
+			// Native static method.
+			return method->call(nullptr, p_args, p_argcount, r_error);
+		}
+	}
+
+	r_error.error = Callable::CallError::CALL_ERROR_INVALID_METHOD;
+	return ret;
 }
 
 bool GDScript::_get(const StringName &p_name, Variant &r_ret) const {

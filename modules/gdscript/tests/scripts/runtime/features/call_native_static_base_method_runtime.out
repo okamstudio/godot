@@ -1,0 +1,6 @@
+GDTEST_OK
+>> WARNING
+>> Line: 5
+>> UNSAFE_METHOD_ACCESS
+>> The method "stringify()" is not present on the inferred type "GDScript" (but may be present on a subtype).
+"test"
