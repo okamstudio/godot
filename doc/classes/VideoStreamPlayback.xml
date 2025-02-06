@@ -78,6 +78,13 @@
 				Set the paused status of video playback. [method _is_paused] must return [param paused]. Called in response to the [member VideoStreamPlayer.paused] setter.
 			</description>
 		</method>
+		<method name="_set_pp_level" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="pp_level" type="int" />
+			<description>
+				Set the post-processing level [param pp_level]. Called when playback starts, and in response to the [member VideoStreamPlayer.pp_level] setter.
+			</description>
+		</method>
 		<method name="_stop" qualifiers="virtual">
 			<return type="void" />
 			<description>

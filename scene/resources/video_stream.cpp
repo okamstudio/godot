@@ -43,6 +43,7 @@ void VideoStreamPlayback::_bind_methods() {
 	GDVIRTUAL_BIND(_get_playback_position);
 	GDVIRTUAL_BIND(_seek, "time");
 	GDVIRTUAL_BIND(_set_audio_track, "idx");
+	GDVIRTUAL_BIND(_set_pp_level, "pp_level");
 	GDVIRTUAL_BIND(_get_texture);
 	GDVIRTUAL_BIND(_update, "delta");
 	GDVIRTUAL_BIND(_get_channels);
@@ -107,6 +108,10 @@ void VideoStreamPlayback::set_audio_track(int p_idx) {
 	GDVIRTUAL_CALL(_set_audio_track, p_idx);
 }
 
+void VideoStreamPlayback::set_pp_level(int p_pp_level) {
+	GDVIRTUAL_CALL(_set_pp_level, p_pp_level);
+}
+
 Ref<Texture2D> VideoStreamPlayback::get_texture() const {
 	Ref<Texture2D> ret;
 	if (GDVIRTUAL_CALL(_get_texture, ret)) {
@@ -160,6 +165,7 @@ Ref<VideoStreamPlayback> VideoStream::instantiate_playback() {
 	if (GDVIRTUAL_CALL(_instantiate_playback, ret)) {
 		ERR_FAIL_COND_V_MSG(ret.is_null(), nullptr, "Plugin returned null playback");
 		ret->set_audio_track(audio_track);
+		ret->set_pp_level(pp_level);
 		return ret;
 	}
 	return nullptr;
@@ -191,4 +197,8 @@ VideoStream::~VideoStream() {
 
 void VideoStream::set_audio_track(int p_track) {
 	audio_track = p_track;
+}
+
+void VideoStream::set_pp_level(int p_pp_level) {
+	pp_level = p_pp_level;
 }
