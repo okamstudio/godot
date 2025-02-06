@@ -278,9 +278,15 @@ void LineEdit::_backspace(bool p_word, bool p_all_to_left) {
 
 	if (p_all_to_left) {
 		text = text.substr(caret_column);
+		if (!mask.is_empty()) {
+			text = _apply_mask(text);
+		}
 		_shape();
-		set_caret_column(0);
+		if (!mask.is_empty()) {
+			set_caret_column(0);
+		}
 		_text_changed();
+		queue_redraw();
 		return;
 	}
 
@@ -304,7 +310,24 @@ void LineEdit::_backspace(bool p_word, bool p_all_to_left) {
 
 		set_caret_column(cc);
 	} else {
-		delete_char();
+		if (mask.is_empty()) {
+			delete_char();
+		} else {
+			int col = caret_column - 1;
+			while (mask[col].char_class == MASK_CLASS_STATIC) {
+				col--;
+				if (col < 0) {
+					return;
+				}
+			}
+			text[col] = blank;
+			_shape();
+
+			set_caret_column(col);
+
+			_text_changed();
+			queue_redraw();
+		}
 	}
 }
 
@@ -324,8 +347,12 @@ void LineEdit::_delete(bool p_word, bool p_all_to_right) {
 
 	if (p_all_to_right) {
 		text = text.substr(0, caret_column);
+		if (!mask.is_empty()) {
+			text = _apply_mask(text);
+		}
 		_shape();
 		_text_changed();
+		queue_redraw();
 		return;
 	}
 
@@ -347,7 +374,19 @@ void LineEdit::_delete(bool p_word, bool p_all_to_right) {
 		delete_text(caret_column, cc);
 		set_caret_column(caret_column);
 	} else {
-		if (caret_mid_grapheme_enabled) {
+		if (!mask.is_empty()) {
+			int col = caret_column;
+			while (mask[col].char_class == MASK_CLASS_STATIC) {
+				col++;
+				if (col >= text.length()) {
+					return;
+				}
+			}
+			text[col] = blank;
+			_shape();
+			_text_changed();
+			queue_redraw();
+		} else if (caret_mid_grapheme_enabled) {
 			set_caret_column(caret_column + 1);
 			delete_char();
 		} else {
@@ -386,6 +425,11 @@ void LineEdit::unhandled_key_input(const Ref<InputEvent> &p_event) {
 
 void LineEdit::gui_input(const Ref<InputEvent> &p_event) {
 	ERR_FAIL_COND(p_event.is_null());
+
+	if (ignore_next_event) {
+		ignore_next_event = false;
+		return;
+	}
 
 	Ref<InputEventMouseButton> b = p_event;
 
@@ -1235,10 +1279,18 @@ void LineEdit::_notification(int p_what) {
 				bool selected = selection.enabled && glyphs[i].start >= selection.begin && glyphs[i].end <= selection.end;
 				for (int j = 0; j < glyphs[i].repeat; j++) {
 					if (ceil(ofs.x) >= x_ofs && (ofs.x + glyphs[i].advance) <= ofs_max) {
+						Color color = selected ? font_selected_color : font_color;
+						if (!mask.is_empty() && glyphs[i].start >= 0) {
+							if (text[glyphs[i].start] == blank) {
+								color = theme_cache.font_placeholder_color;
+							} else if (mask[glyphs[i].start].char_class == MASK_CLASS_STATIC) {
+								color = theme_cache.font_mask_color;
+							}
+						}
 						if (glyphs[i].font_rid != RID()) {
-							TS->font_draw_glyph(glyphs[i].font_rid, ci, glyphs[i].font_size, ofs + Vector2(glyphs[i].x_off, glyphs[i].y_off), glyphs[i].index, selected ? font_selected_color : font_color);
+							TS->font_draw_glyph(glyphs[i].font_rid, ci, glyphs[i].font_size, ofs + Vector2(glyphs[i].x_off, glyphs[i].y_off), glyphs[i].index, color);
 						} else if (((glyphs[i].flags & TextServer::GRAPHEME_IS_VIRTUAL) != TextServer::GRAPHEME_IS_VIRTUAL) && ((glyphs[i].flags & TextServer::GRAPHEME_IS_EMBEDDED_OBJECT) != TextServer::GRAPHEME_IS_EMBEDDED_OBJECT)) {
-							TS->draw_hex_code_box(ci, glyphs[i].font_size, ofs + Vector2(glyphs[i].x_off, glyphs[i].y_off), glyphs[i].index, selected ? font_selected_color : font_color);
+							TS->draw_hex_code_box(ci, glyphs[i].font_size, ofs + Vector2(glyphs[i].x_off, glyphs[i].y_off), glyphs[i].index, color);
 						}
 					}
 					ofs.x += glyphs[i].advance;
@@ -1366,9 +1418,22 @@ void LineEdit::_notification(int p_what) {
 				edit();
 				emit_signal(SNAME("editing_toggled"), true);
 			}
+			if (!mask.is_empty()) {
+				ignore_next_event = true;
+
+				caret_column = 0;
+				while (mask[caret_column].char_class == MASK_CLASS_STATIC) {
+					caret_column++;
+					if (caret_column >= mask.size()) {
+						caret_column = 0;
+						break;
+					}
+				}
+			}
 		} break;
 
 		case NOTIFICATION_FOCUS_EXIT: {
+			ignore_next_event = false;
 			if (editing) {
 				unedit();
 				emit_signal(SNAME("editing_toggled"), false);
@@ -1652,6 +1717,166 @@ Vector2 LineEdit::get_caret_pixel_pos() {
 	return ret;
 }
 
+void LineEdit::_parse_mask(const String &p_mask) {
+	mask.clear();
+	blank = ' ';
+
+	MaskCase mcase = MASK_CASE_ANY;
+	for (int i = 0; i < p_mask.length(); i++) {
+		char32_t c = String::char_uppercase(p_mask[i]);
+		switch (c) {
+			case 0:
+				break;
+			case '>': {
+				mcase = MASK_CASE_UPPER;
+			} break;
+			case '<': {
+				mcase = MASK_CASE_LOWER;
+			} break;
+			case '!': {
+				mcase = MASK_CASE_ANY;
+			} break;
+			case '\\': {
+				if (i < p_mask.length() - 1) {
+					MaskElement e;
+					e.char_class = MASK_CLASS_STATIC;
+					e.value = p_mask[i + 1];
+					mask.push_back(e);
+					i++;
+				}
+			} break;
+			case ';': {
+				if (i < p_mask.length() - 1) {
+					blank = p_mask[i + 1];
+					return;
+				}
+			} break;
+			case 'A': {
+				MaskElement e;
+				e.char_class = MASK_CLASS_ALPHA;
+				e.char_case = mcase;
+				mask.push_back(e);
+			} break;
+			case 'N': {
+				MaskElement e;
+				e.char_class = MASK_CLASS_ALPHA_NUM;
+				e.char_case = mcase;
+				mask.push_back(e);
+			} break;
+			case '9': {
+				MaskElement e;
+				e.char_class = MASK_CLASS_NUM;
+				e.char_case = mcase;
+				mask.push_back(e);
+			} break;
+			case 'D': {
+				MaskElement e;
+				e.char_class = MASK_CLASS_NUM_NON_ZERO;
+				mask.push_back(e);
+			} break;
+			case '#': {
+				MaskElement e;
+				e.char_class = MASK_CLASS_SIGN;
+				mask.push_back(e);
+			} break;
+			case 'H': {
+				MaskElement e;
+				e.char_class = MASK_CLASS_HEX;
+				e.char_case = mcase;
+				mask.push_back(e);
+			} break;
+			case 'X': {
+				MaskElement e;
+				e.char_class = MASK_CLASS_ANY;
+				mask.push_back(e);
+			} break;
+			case 'B': {
+				MaskElement e;
+				e.char_class = MASK_CLASS_BIN;
+				mask.push_back(e);
+			} break;
+			default: {
+				MaskElement e;
+				e.char_class = MASK_CLASS_STATIC;
+				e.value = c;
+				mask.push_back(e);
+			} break;
+		}
+	}
+}
+
+String LineEdit::_apply_mask(const String &p_text) const {
+	String new_text;
+	new_text.resize(mask.size() + 1);
+	char32_t *new_text_ptr = new_text.ptrw();
+	for (int i = 0; i < mask.size(); i++) {
+		const MaskElement &e = mask[i];
+		char32_t c = (i < p_text.length()) ? p_text[i] : blank;
+		switch (e.char_class) {
+			case MASK_CLASS_STATIC: {
+				c = e.value;
+			} break;
+			case MASK_CLASS_ALPHA: {
+				c = is_ascii_alphabet_char(c) ? c : blank;
+			} break;
+			case MASK_CLASS_ALPHA_NUM: {
+				c = is_ascii_alphanumeric_char(c) ? c : blank;
+			} break;
+			case MASK_CLASS_NUM: {
+				c = is_digit(c) ? c : blank;
+			} break;
+			case MASK_CLASS_NUM_NON_ZERO: {
+				c = (c >= '1' && c <= '9') ? c : blank;
+			} break;
+			case MASK_CLASS_SIGN: {
+				c = (c == '+' || c == '-') ? c : blank;
+			} break;
+			case MASK_CLASS_HEX: {
+				c = is_hex_digit(c) ? c : blank;
+			} break;
+			case MASK_CLASS_BIN: {
+				c = (c == '0' || c == '1') ? c : blank;
+			} break;
+			default:
+				break;
+		}
+		if (e.char_case == MASK_CASE_UPPER) {
+			c = String::char_uppercase(c);
+		} else if (e.char_case == MASK_CASE_LOWER) {
+			c = String::char_lowercase(c);
+		}
+		new_text_ptr[i] = c;
+	}
+	return new_text;
+}
+
+void LineEdit::set_overtype_mode_enabled(bool p_enabled) {
+	overtype_mode = p_enabled;
+}
+
+bool LineEdit::is_overtype_mode_enabled() const {
+	return overtype_mode;
+}
+
+void LineEdit::set_input_mask(const String &p_input_mask) {
+	if (mask_src == p_input_mask) {
+		return;
+	}
+
+	mask_src = p_input_mask;
+	_parse_mask(mask_src);
+
+	if (!mask.is_empty()) {
+		text = _apply_mask(text);
+	}
+	_shape();
+	queue_redraw();
+}
+
+String LineEdit::get_input_mask() const {
+	return mask_src;
+}
+
 void LineEdit::set_caret_mid_grapheme_enabled(const bool p_enabled) {
 	caret_mid_grapheme_enabled = p_enabled;
 }
@@ -1747,10 +1972,19 @@ void LineEdit::delete_text(int p_from_column, int p_to_column) {
 	ERR_FAIL_COND_MSG(p_from_column < 0 || p_from_column > p_to_column || p_to_column > text.length(),
 			vformat("Positional parameters (from: %d, to: %d) are inverted or outside the text length (%d).", p_from_column, p_to_column, text.length()));
 
-	text = text.left(p_from_column) + text.substr(p_to_column);
+	if (mask.is_empty()) {
+		text = text.left(p_from_column) + text.substr(p_to_column);
+	} else {
+		for (int i = p_from_column; i <= p_to_column; i++) {
+			text[i] = blank;
+		}
+		text = _apply_mask(text);
+	}
 	_shape();
 
-	set_caret_column(caret_column - CLAMP(caret_column - p_from_column, 0, p_to_column - p_from_column));
+	if (!mask.is_empty()) {
+		set_caret_column(caret_column - CLAMP(caret_column - p_from_column, 0, p_to_column - p_from_column));
+	}
 
 	if (!text_changed_dirty) {
 		if (is_inside_tree()) {
@@ -1767,6 +2001,15 @@ void LineEdit::set_text(String p_text) {
 
 	queue_redraw();
 	caret_column = 0;
+	if (!mask.is_empty()) {
+		while (mask[caret_column].char_class == MASK_CLASS_STATIC) {
+			caret_column++;
+			if (caret_column >= mask.size()) {
+				caret_column = 0;
+				break;
+			}
+		}
+	}
 	scroll_offset = 0.0;
 }
 
@@ -1912,6 +2155,23 @@ void LineEdit::set_caret_column(int p_column) {
 		p_column = 0;
 	}
 
+	if (!mask.is_empty() && p_column < (int)mask.size()) {
+		bool move_fwd = (p_column >= caret_column);
+		while (mask[p_column].char_class == MASK_CLASS_STATIC) {
+			if (move_fwd) {
+				p_column++;
+			} else {
+				p_column--;
+			}
+			if (p_column < 0) {
+				return;
+			}
+			if (p_column == mask.size()) {
+				break;
+			}
+		}
+	}
+
 	caret_column = p_column;
 
 	// Fit to window.
@@ -2009,9 +2269,17 @@ void LineEdit::insert_text_at_caret(String p_text) {
 			p_text = p_text.substr(0, available_chars);
 		}
 	}
+	int end_pos = (overtype_mode || !mask.is_empty()) ? caret_column + p_text.length() : caret_column;
 	String pre = text.substr(0, caret_column);
-	String post = text.substr(caret_column, text.length() - caret_column);
-	text = pre + p_text + post;
+	String post = text.substr(end_pos, text.length() - end_pos);
+	String new_text = pre + p_text + post;
+	if (!mask.is_empty()) {
+		new_text = _apply_mask(new_text);
+	}
+	if (new_text == text) {
+		return;
+	}
+	text = new_text;
 	_shape();
 	TextServer::Direction dir = TS->shaped_text_get_dominant_direction_in_range(text_rid, caret_column, caret_column + p_text.length());
 	if (dir != TextServer::DIRECTION_AUTO) {
@@ -2031,6 +2299,16 @@ void LineEdit::clear_internal() {
 	scroll_offset = 0.0;
 	undo_text = "";
 	text = "";
+	if (!mask.is_empty()) {
+		text = _apply_mask(text);
+		while (mask[caret_column].char_class == MASK_CLASS_STATIC) {
+			caret_column++;
+			if (caret_column >= mask.size()) {
+				caret_column = 0;
+				break;
+			}
+		}
+	}
 	_shape();
 	queue_redraw();
 }
@@ -2911,6 +3189,11 @@ void LineEdit::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_select_all_on_focus", "enabled"), &LineEdit::set_select_all_on_focus);
 	ClassDB::bind_method(D_METHOD("is_select_all_on_focus"), &LineEdit::is_select_all_on_focus);
 
+	ClassDB::bind_method(D_METHOD("set_overtype_mode_enabled", "enabled"), &LineEdit::set_overtype_mode_enabled);
+	ClassDB::bind_method(D_METHOD("is_overtype_mode_enabled"), &LineEdit::is_overtype_mode_enabled);
+	ClassDB::bind_method(D_METHOD("set_input_mask", "input_mask"), &LineEdit::set_input_mask);
+	ClassDB::bind_method(D_METHOD("get_input_mask"), &LineEdit::get_input_mask);
+
 	ADD_SIGNAL(MethodInfo("text_changed", PropertyInfo(Variant::STRING, "new_text")));
 	ADD_SIGNAL(MethodInfo("text_change_rejected", PropertyInfo(Variant::STRING, "rejected_substring")));
 	ADD_SIGNAL(MethodInfo("text_submitted", PropertyInfo(Variant::STRING, "new_text")));
@@ -2979,6 +3262,8 @@ void LineEdit::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "flat"), "set_flat", "is_flat");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "draw_control_chars"), "set_draw_control_chars", "get_draw_control_chars");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "select_all_on_focus"), "set_select_all_on_focus", "is_select_all_on_focus");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "overtype_mode_enabled"), "set_overtype_mode_enabled", "is_overtype_mode_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "input_mask"), "set_input_mask", "get_input_mask");
 
 	ADD_GROUP("Caret", "caret_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "caret_blink"), "set_caret_blink_enabled", "is_caret_blink_enabled");
@@ -3009,6 +3294,7 @@ void LineEdit::_bind_methods() {
 	BIND_THEME_ITEM_CUSTOM(Theme::DATA_TYPE_CONSTANT, LineEdit, font_outline_size, "outline_size");
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, LineEdit, font_outline_color);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, LineEdit, font_placeholder_color);
+	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, LineEdit, font_mask_color);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, LineEdit, caret_width);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, LineEdit, caret_color);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, LineEdit, minimum_character_width);

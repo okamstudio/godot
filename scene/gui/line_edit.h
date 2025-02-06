@@ -95,6 +95,7 @@ private:
 
 	bool alt_start = false;
 	bool alt_start_no_hold = false;
+	bool overtype_mode = false;
 	uint32_t alt_code = 0;
 
 	String undo_text;
@@ -143,6 +144,7 @@ private:
 
 	bool middle_mouse_paste_enabled = true;
 
+	bool ignore_next_event = false;
 	bool drag_action = false;
 	bool drag_caret_force_displayed = false;
 
@@ -198,6 +200,7 @@ private:
 		int font_outline_size;
 		Color font_outline_color;
 		Color font_placeholder_color;
+		Color font_mask_color;
 		int caret_width = 0;
 		Color caret_color;
 		int minimum_character_width = 0;
@@ -209,6 +212,38 @@ private:
 
 		float base_scale = 1.0;
 	} theme_cache;
+
+	char32_t blank = ' ';
+
+	enum MaskClass {
+		MASK_CLASS_STATIC,
+		MASK_CLASS_ALPHA,
+		MASK_CLASS_ALPHA_NUM,
+		MASK_CLASS_NUM,
+		MASK_CLASS_NUM_NON_ZERO,
+		MASK_CLASS_SIGN,
+		MASK_CLASS_HEX,
+		MASK_CLASS_BIN,
+		MASK_CLASS_ANY,
+	};
+
+	enum MaskCase {
+		MASK_CASE_UPPER,
+		MASK_CASE_LOWER,
+		MASK_CASE_ANY,
+	};
+
+	struct MaskElement {
+		MaskClass char_class = MASK_CLASS_ANY;
+		MaskCase char_case = MASK_CASE_ANY;
+		char32_t value = 0;
+	};
+
+	Vector<MaskElement> mask;
+	String mask_src;
+
+	void _parse_mask(const String &p_mask);
+	String _apply_mask(const String &p_text) const;
 
 	void _close_ime_window();
 	void _update_ime_window_position();
@@ -338,6 +373,12 @@ public:
 
 	void insert_text_at_caret(String p_text);
 	void clear();
+
+	void set_overtype_mode_enabled(bool p_enabled);
+	bool is_overtype_mode_enabled() const;
+
+	void set_input_mask(const String &p_input_mask);
+	String get_input_mask() const;
 
 	void set_caret_mid_grapheme_enabled(const bool p_enabled);
 	bool is_caret_mid_grapheme_enabled() const;

@@ -472,6 +472,7 @@ void EditorThemeManager::_create_shared_styles(const Ref<EditorTheme> &p_theme, 
 		p_config.font_disabled_color = Color(p_config.mono_color.r, p_config.mono_color.g, p_config.mono_color.b, 0.35);
 		p_config.font_readonly_color = Color(p_config.mono_color.r, p_config.mono_color.g, p_config.mono_color.b, 0.65);
 		p_config.font_placeholder_color = Color(p_config.mono_color.r, p_config.mono_color.g, p_config.mono_color.b, 0.6);
+		p_config.font_mask_color = Color(p_config.mono_color.r, p_config.mono_color.g, p_config.mono_color.b, 0.6);
 		p_config.font_outline_color = Color(0, 0, 0, 0);
 
 		p_theme->set_color(SceneStringName(font_color), EditorStringName(Editor), p_config.font_color);
@@ -482,6 +483,7 @@ void EditorThemeManager::_create_shared_styles(const Ref<EditorTheme> &p_theme, 
 		p_theme->set_color("font_disabled_color", EditorStringName(Editor), p_config.font_disabled_color);
 		p_theme->set_color("font_readonly_color", EditorStringName(Editor), p_config.font_readonly_color);
 		p_theme->set_color("font_placeholder_color", EditorStringName(Editor), p_config.font_placeholder_color);
+		p_theme->set_color("font_mask_color", EditorStringName(Editor), p_config.font_mask_color);
 		p_theme->set_color("font_outline_color", EditorStringName(Editor), p_config.font_outline_color);
 #ifndef DISABLE_DEPRECATED // Used before 4.3.
 		p_theme->set_color("readonly_font_color", EditorStringName(Editor), p_config.font_readonly_color);
@@ -1219,6 +1221,7 @@ void EditorThemeManager::_populate_standard_styles(const Ref<EditorTheme> &p_the
 		p_theme->set_color("font_selected_color", "LineEdit", p_config.mono_color);
 		p_theme->set_color("font_uneditable_color", "LineEdit", p_config.font_readonly_color);
 		p_theme->set_color("font_placeholder_color", "LineEdit", p_config.font_placeholder_color);
+		p_theme->set_color("font_mask_color", "LineEdit", p_config.font_mask_color);
 		p_theme->set_color("font_outline_color", "LineEdit", p_config.font_outline_color);
 		p_theme->set_color("caret_color", "LineEdit", p_config.font_color);
 		p_theme->set_color("selection_color", "LineEdit", p_config.selection_color);
