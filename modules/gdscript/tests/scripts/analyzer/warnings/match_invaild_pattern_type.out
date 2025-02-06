@@ -1,0 +1,4506 @@
+GDTEST_OK
+>> WARNING
+>> Line: 6
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Array[float, float, String, bool] but the match expression type is Array[int, float, String, bool].
+>> WARNING
+>> Line: 13
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Dictionary of size 5 but the match expression type is Dictionary of size 4.
+>> WARNING
+>> Line: 15
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Dictionary missing [int, int] but the match expression type is Dictionary containing those terms.
+>> WARNING
+>> Line: 17
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Array but the match expression type is Dictionary.
+>> WARNING
+>> Line: 129
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is bool.
+>> WARNING
+>> Line: 131
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is bool.
+>> WARNING
+>> Line: 133
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is bool.
+>> WARNING
+>> Line: 135
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is bool.
+>> WARNING
+>> Line: 137
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is bool.
+>> WARNING
+>> Line: 139
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is bool.
+>> WARNING
+>> Line: 141
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is bool.
+>> WARNING
+>> Line: 143
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is bool.
+>> WARNING
+>> Line: 145
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is bool.
+>> WARNING
+>> Line: 147
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is bool.
+>> WARNING
+>> Line: 149
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is bool.
+>> WARNING
+>> Line: 151
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is bool.
+>> WARNING
+>> Line: 153
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is bool.
+>> WARNING
+>> Line: 155
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is bool.
+>> WARNING
+>> Line: 157
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is bool.
+>> WARNING
+>> Line: 159
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is bool.
+>> WARNING
+>> Line: 161
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is bool.
+>> WARNING
+>> Line: 163
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is bool.
+>> WARNING
+>> Line: 165
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is bool.
+>> WARNING
+>> Line: 167
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is bool.
+>> WARNING
+>> Line: 169
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is bool.
+>> WARNING
+>> Line: 171
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is bool.
+>> WARNING
+>> Line: 173
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is bool.
+>> WARNING
+>> Line: 175
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is bool.
+>> WARNING
+>> Line: 177
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is bool.
+>> WARNING
+>> Line: 179
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is bool.
+>> WARNING
+>> Line: 181
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is bool.
+>> WARNING
+>> Line: 183
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is bool.
+>> WARNING
+>> Line: 185
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is bool.
+>> WARNING
+>> Line: 187
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is bool.
+>> WARNING
+>> Line: 189
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is bool.
+>> WARNING
+>> Line: 191
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is bool.
+>> WARNING
+>> Line: 193
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is bool.
+>> WARNING
+>> Line: 197
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is int.
+>> WARNING
+>> Line: 199
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is int.
+>> WARNING
+>> Line: 201
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is int.
+>> WARNING
+>> Line: 203
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is int.
+>> WARNING
+>> Line: 205
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is int.
+>> WARNING
+>> Line: 207
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is int.
+>> WARNING
+>> Line: 209
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is int.
+>> WARNING
+>> Line: 211
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is int.
+>> WARNING
+>> Line: 213
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is int.
+>> WARNING
+>> Line: 215
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is int.
+>> WARNING
+>> Line: 217
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is int.
+>> WARNING
+>> Line: 219
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is int.
+>> WARNING
+>> Line: 221
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is int.
+>> WARNING
+>> Line: 223
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is int.
+>> WARNING
+>> Line: 225
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is int.
+>> WARNING
+>> Line: 227
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is int.
+>> WARNING
+>> Line: 229
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is int.
+>> WARNING
+>> Line: 231
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is int.
+>> WARNING
+>> Line: 233
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is int.
+>> WARNING
+>> Line: 235
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is int.
+>> WARNING
+>> Line: 237
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is int.
+>> WARNING
+>> Line: 239
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is int.
+>> WARNING
+>> Line: 241
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is int.
+>> WARNING
+>> Line: 243
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is int.
+>> WARNING
+>> Line: 245
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is int.
+>> WARNING
+>> Line: 247
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is int.
+>> WARNING
+>> Line: 249
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is int.
+>> WARNING
+>> Line: 251
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is int.
+>> WARNING
+>> Line: 253
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is int.
+>> WARNING
+>> Line: 255
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is int.
+>> WARNING
+>> Line: 257
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is int.
+>> WARNING
+>> Line: 259
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is int.
+>> WARNING
+>> Line: 261
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is int.
+>> WARNING
+>> Line: 265
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is float.
+>> WARNING
+>> Line: 267
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is float.
+>> WARNING
+>> Line: 269
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is float.
+>> WARNING
+>> Line: 271
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is float.
+>> WARNING
+>> Line: 273
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is float.
+>> WARNING
+>> Line: 275
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is float.
+>> WARNING
+>> Line: 277
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is float.
+>> WARNING
+>> Line: 279
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is float.
+>> WARNING
+>> Line: 281
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is float.
+>> WARNING
+>> Line: 283
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is float.
+>> WARNING
+>> Line: 285
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is float.
+>> WARNING
+>> Line: 287
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is float.
+>> WARNING
+>> Line: 289
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is float.
+>> WARNING
+>> Line: 291
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is float.
+>> WARNING
+>> Line: 293
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is float.
+>> WARNING
+>> Line: 295
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is float.
+>> WARNING
+>> Line: 297
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is float.
+>> WARNING
+>> Line: 299
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is float.
+>> WARNING
+>> Line: 301
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is float.
+>> WARNING
+>> Line: 303
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is float.
+>> WARNING
+>> Line: 305
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is float.
+>> WARNING
+>> Line: 307
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is float.
+>> WARNING
+>> Line: 309
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is float.
+>> WARNING
+>> Line: 311
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is float.
+>> WARNING
+>> Line: 313
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is float.
+>> WARNING
+>> Line: 315
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is float.
+>> WARNING
+>> Line: 317
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is float.
+>> WARNING
+>> Line: 319
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is float.
+>> WARNING
+>> Line: 321
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is float.
+>> WARNING
+>> Line: 323
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is float.
+>> WARNING
+>> Line: 325
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is float.
+>> WARNING
+>> Line: 327
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is float.
+>> WARNING
+>> Line: 329
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is float.
+>> WARNING
+>> Line: 333
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is Vector2.
+>> WARNING
+>> Line: 335
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is Vector2.
+>> WARNING
+>> Line: 337
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is Vector2.
+>> WARNING
+>> Line: 339
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is Vector2.
+>> WARNING
+>> Line: 341
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is Vector2.
+>> WARNING
+>> Line: 343
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is Vector2.
+>> WARNING
+>> Line: 345
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is Vector2.
+>> WARNING
+>> Line: 347
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is Vector2.
+>> WARNING
+>> Line: 349
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is Vector2.
+>> WARNING
+>> Line: 351
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is Vector2.
+>> WARNING
+>> Line: 353
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is Vector2.
+>> WARNING
+>> Line: 355
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is Vector2.
+>> WARNING
+>> Line: 357
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is Vector2.
+>> WARNING
+>> Line: 359
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is Vector2.
+>> WARNING
+>> Line: 361
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is Vector2.
+>> WARNING
+>> Line: 363
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is Vector2.
+>> WARNING
+>> Line: 365
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is Vector2.
+>> WARNING
+>> Line: 367
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is Vector2.
+>> WARNING
+>> Line: 369
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is Vector2.
+>> WARNING
+>> Line: 371
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is Vector2.
+>> WARNING
+>> Line: 373
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is Vector2.
+>> WARNING
+>> Line: 375
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is Vector2.
+>> WARNING
+>> Line: 377
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is Vector2.
+>> WARNING
+>> Line: 379
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is Vector2.
+>> WARNING
+>> Line: 381
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is Vector2.
+>> WARNING
+>> Line: 383
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is Vector2.
+>> WARNING
+>> Line: 385
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is Vector2.
+>> WARNING
+>> Line: 387
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is Vector2.
+>> WARNING
+>> Line: 389
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is Vector2.
+>> WARNING
+>> Line: 391
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is Vector2.
+>> WARNING
+>> Line: 393
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is Vector2.
+>> WARNING
+>> Line: 395
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is Vector2.
+>> WARNING
+>> Line: 397
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is Vector2.
+>> WARNING
+>> Line: 401
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is Vector2i.
+>> WARNING
+>> Line: 403
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is Vector2i.
+>> WARNING
+>> Line: 405
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is Vector2i.
+>> WARNING
+>> Line: 407
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is Vector2i.
+>> WARNING
+>> Line: 409
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is Vector2i.
+>> WARNING
+>> Line: 411
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is Vector2i.
+>> WARNING
+>> Line: 413
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is Vector2i.
+>> WARNING
+>> Line: 415
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is Vector2i.
+>> WARNING
+>> Line: 417
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is Vector2i.
+>> WARNING
+>> Line: 419
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is Vector2i.
+>> WARNING
+>> Line: 421
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is Vector2i.
+>> WARNING
+>> Line: 423
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is Vector2i.
+>> WARNING
+>> Line: 425
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is Vector2i.
+>> WARNING
+>> Line: 427
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is Vector2i.
+>> WARNING
+>> Line: 429
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is Vector2i.
+>> WARNING
+>> Line: 431
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is Vector2i.
+>> WARNING
+>> Line: 433
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is Vector2i.
+>> WARNING
+>> Line: 435
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is Vector2i.
+>> WARNING
+>> Line: 437
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is Vector2i.
+>> WARNING
+>> Line: 439
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is Vector2i.
+>> WARNING
+>> Line: 441
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is Vector2i.
+>> WARNING
+>> Line: 443
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is Vector2i.
+>> WARNING
+>> Line: 445
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is Vector2i.
+>> WARNING
+>> Line: 447
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is Vector2i.
+>> WARNING
+>> Line: 449
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is Vector2i.
+>> WARNING
+>> Line: 451
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is Vector2i.
+>> WARNING
+>> Line: 453
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is Vector2i.
+>> WARNING
+>> Line: 455
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is Vector2i.
+>> WARNING
+>> Line: 457
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is Vector2i.
+>> WARNING
+>> Line: 459
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is Vector2i.
+>> WARNING
+>> Line: 461
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is Vector2i.
+>> WARNING
+>> Line: 463
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is Vector2i.
+>> WARNING
+>> Line: 465
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is Vector2i.
+>> WARNING
+>> Line: 469
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is Rect2.
+>> WARNING
+>> Line: 471
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is Rect2.
+>> WARNING
+>> Line: 473
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is Rect2.
+>> WARNING
+>> Line: 475
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is Rect2.
+>> WARNING
+>> Line: 477
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is Rect2.
+>> WARNING
+>> Line: 479
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is Rect2.
+>> WARNING
+>> Line: 481
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is Rect2.
+>> WARNING
+>> Line: 483
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is Rect2.
+>> WARNING
+>> Line: 485
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is Rect2.
+>> WARNING
+>> Line: 487
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is Rect2.
+>> WARNING
+>> Line: 489
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is Rect2.
+>> WARNING
+>> Line: 491
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is Rect2.
+>> WARNING
+>> Line: 493
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is Rect2.
+>> WARNING
+>> Line: 495
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is Rect2.
+>> WARNING
+>> Line: 497
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is Rect2.
+>> WARNING
+>> Line: 499
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is Rect2.
+>> WARNING
+>> Line: 501
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is Rect2.
+>> WARNING
+>> Line: 503
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is Rect2.
+>> WARNING
+>> Line: 505
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is Rect2.
+>> WARNING
+>> Line: 507
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is Rect2.
+>> WARNING
+>> Line: 509
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is Rect2.
+>> WARNING
+>> Line: 511
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is Rect2.
+>> WARNING
+>> Line: 513
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is Rect2.
+>> WARNING
+>> Line: 515
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is Rect2.
+>> WARNING
+>> Line: 517
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is Rect2.
+>> WARNING
+>> Line: 519
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is Rect2.
+>> WARNING
+>> Line: 521
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is Rect2.
+>> WARNING
+>> Line: 523
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is Rect2.
+>> WARNING
+>> Line: 525
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is Rect2.
+>> WARNING
+>> Line: 527
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is Rect2.
+>> WARNING
+>> Line: 529
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is Rect2.
+>> WARNING
+>> Line: 531
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is Rect2.
+>> WARNING
+>> Line: 533
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is Rect2.
+>> WARNING
+>> Line: 537
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is Rect2i.
+>> WARNING
+>> Line: 539
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is Rect2i.
+>> WARNING
+>> Line: 541
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is Rect2i.
+>> WARNING
+>> Line: 543
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is Rect2i.
+>> WARNING
+>> Line: 545
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is Rect2i.
+>> WARNING
+>> Line: 547
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is Rect2i.
+>> WARNING
+>> Line: 549
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is Rect2i.
+>> WARNING
+>> Line: 551
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is Rect2i.
+>> WARNING
+>> Line: 553
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is Rect2i.
+>> WARNING
+>> Line: 555
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is Rect2i.
+>> WARNING
+>> Line: 557
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is Rect2i.
+>> WARNING
+>> Line: 559
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is Rect2i.
+>> WARNING
+>> Line: 561
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is Rect2i.
+>> WARNING
+>> Line: 563
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is Rect2i.
+>> WARNING
+>> Line: 565
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is Rect2i.
+>> WARNING
+>> Line: 567
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is Rect2i.
+>> WARNING
+>> Line: 569
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is Rect2i.
+>> WARNING
+>> Line: 571
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is Rect2i.
+>> WARNING
+>> Line: 573
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is Rect2i.
+>> WARNING
+>> Line: 575
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is Rect2i.
+>> WARNING
+>> Line: 577
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is Rect2i.
+>> WARNING
+>> Line: 579
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is Rect2i.
+>> WARNING
+>> Line: 581
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is Rect2i.
+>> WARNING
+>> Line: 583
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is Rect2i.
+>> WARNING
+>> Line: 585
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is Rect2i.
+>> WARNING
+>> Line: 587
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is Rect2i.
+>> WARNING
+>> Line: 589
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is Rect2i.
+>> WARNING
+>> Line: 591
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is Rect2i.
+>> WARNING
+>> Line: 593
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is Rect2i.
+>> WARNING
+>> Line: 595
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is Rect2i.
+>> WARNING
+>> Line: 597
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is Rect2i.
+>> WARNING
+>> Line: 599
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is Rect2i.
+>> WARNING
+>> Line: 601
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is Rect2i.
+>> WARNING
+>> Line: 605
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is Vector3.
+>> WARNING
+>> Line: 607
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is Vector3.
+>> WARNING
+>> Line: 609
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is Vector3.
+>> WARNING
+>> Line: 611
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is Vector3.
+>> WARNING
+>> Line: 613
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is Vector3.
+>> WARNING
+>> Line: 615
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is Vector3.
+>> WARNING
+>> Line: 617
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is Vector3.
+>> WARNING
+>> Line: 619
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is Vector3.
+>> WARNING
+>> Line: 621
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is Vector3.
+>> WARNING
+>> Line: 623
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is Vector3.
+>> WARNING
+>> Line: 625
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is Vector3.
+>> WARNING
+>> Line: 627
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is Vector3.
+>> WARNING
+>> Line: 629
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is Vector3.
+>> WARNING
+>> Line: 631
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is Vector3.
+>> WARNING
+>> Line: 633
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is Vector3.
+>> WARNING
+>> Line: 635
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is Vector3.
+>> WARNING
+>> Line: 637
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is Vector3.
+>> WARNING
+>> Line: 639
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is Vector3.
+>> WARNING
+>> Line: 641
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is Vector3.
+>> WARNING
+>> Line: 643
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is Vector3.
+>> WARNING
+>> Line: 645
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is Vector3.
+>> WARNING
+>> Line: 647
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is Vector3.
+>> WARNING
+>> Line: 649
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is Vector3.
+>> WARNING
+>> Line: 651
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is Vector3.
+>> WARNING
+>> Line: 653
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is Vector3.
+>> WARNING
+>> Line: 655
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is Vector3.
+>> WARNING
+>> Line: 657
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is Vector3.
+>> WARNING
+>> Line: 659
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is Vector3.
+>> WARNING
+>> Line: 661
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is Vector3.
+>> WARNING
+>> Line: 663
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is Vector3.
+>> WARNING
+>> Line: 665
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is Vector3.
+>> WARNING
+>> Line: 667
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is Vector3.
+>> WARNING
+>> Line: 669
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is Vector3.
+>> WARNING
+>> Line: 673
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is Vector3i.
+>> WARNING
+>> Line: 675
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is Vector3i.
+>> WARNING
+>> Line: 677
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is Vector3i.
+>> WARNING
+>> Line: 679
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is Vector3i.
+>> WARNING
+>> Line: 681
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is Vector3i.
+>> WARNING
+>> Line: 683
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is Vector3i.
+>> WARNING
+>> Line: 685
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is Vector3i.
+>> WARNING
+>> Line: 687
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is Vector3i.
+>> WARNING
+>> Line: 689
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is Vector3i.
+>> WARNING
+>> Line: 691
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is Vector3i.
+>> WARNING
+>> Line: 693
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is Vector3i.
+>> WARNING
+>> Line: 695
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is Vector3i.
+>> WARNING
+>> Line: 697
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is Vector3i.
+>> WARNING
+>> Line: 699
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is Vector3i.
+>> WARNING
+>> Line: 701
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is Vector3i.
+>> WARNING
+>> Line: 703
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is Vector3i.
+>> WARNING
+>> Line: 705
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is Vector3i.
+>> WARNING
+>> Line: 707
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is Vector3i.
+>> WARNING
+>> Line: 709
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is Vector3i.
+>> WARNING
+>> Line: 711
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is Vector3i.
+>> WARNING
+>> Line: 713
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is Vector3i.
+>> WARNING
+>> Line: 715
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is Vector3i.
+>> WARNING
+>> Line: 717
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is Vector3i.
+>> WARNING
+>> Line: 719
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is Vector3i.
+>> WARNING
+>> Line: 721
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is Vector3i.
+>> WARNING
+>> Line: 723
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is Vector3i.
+>> WARNING
+>> Line: 725
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is Vector3i.
+>> WARNING
+>> Line: 727
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is Vector3i.
+>> WARNING
+>> Line: 729
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is Vector3i.
+>> WARNING
+>> Line: 731
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is Vector3i.
+>> WARNING
+>> Line: 733
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is Vector3i.
+>> WARNING
+>> Line: 735
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is Vector3i.
+>> WARNING
+>> Line: 737
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is Vector3i.
+>> WARNING
+>> Line: 741
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is Transform2D.
+>> WARNING
+>> Line: 743
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is Transform2D.
+>> WARNING
+>> Line: 745
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is Transform2D.
+>> WARNING
+>> Line: 747
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is Transform2D.
+>> WARNING
+>> Line: 749
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is Transform2D.
+>> WARNING
+>> Line: 751
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is Transform2D.
+>> WARNING
+>> Line: 753
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is Transform2D.
+>> WARNING
+>> Line: 755
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is Transform2D.
+>> WARNING
+>> Line: 757
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is Transform2D.
+>> WARNING
+>> Line: 759
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is Transform2D.
+>> WARNING
+>> Line: 761
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is Transform2D.
+>> WARNING
+>> Line: 763
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is Transform2D.
+>> WARNING
+>> Line: 765
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is Transform2D.
+>> WARNING
+>> Line: 767
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is Transform2D.
+>> WARNING
+>> Line: 769
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is Transform2D.
+>> WARNING
+>> Line: 771
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is Transform2D.
+>> WARNING
+>> Line: 773
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is Transform2D.
+>> WARNING
+>> Line: 775
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is Transform2D.
+>> WARNING
+>> Line: 777
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is Transform2D.
+>> WARNING
+>> Line: 779
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is Transform2D.
+>> WARNING
+>> Line: 781
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is Transform2D.
+>> WARNING
+>> Line: 783
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is Transform2D.
+>> WARNING
+>> Line: 785
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is Transform2D.
+>> WARNING
+>> Line: 787
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is Transform2D.
+>> WARNING
+>> Line: 789
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is Transform2D.
+>> WARNING
+>> Line: 791
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is Transform2D.
+>> WARNING
+>> Line: 793
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is Transform2D.
+>> WARNING
+>> Line: 795
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is Transform2D.
+>> WARNING
+>> Line: 797
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is Transform2D.
+>> WARNING
+>> Line: 799
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is Transform2D.
+>> WARNING
+>> Line: 801
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is Transform2D.
+>> WARNING
+>> Line: 803
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is Transform2D.
+>> WARNING
+>> Line: 805
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is Transform2D.
+>> WARNING
+>> Line: 809
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is Vector4.
+>> WARNING
+>> Line: 811
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is Vector4.
+>> WARNING
+>> Line: 813
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is Vector4.
+>> WARNING
+>> Line: 815
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is Vector4.
+>> WARNING
+>> Line: 817
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is Vector4.
+>> WARNING
+>> Line: 819
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is Vector4.
+>> WARNING
+>> Line: 821
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is Vector4.
+>> WARNING
+>> Line: 823
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is Vector4.
+>> WARNING
+>> Line: 825
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is Vector4.
+>> WARNING
+>> Line: 827
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is Vector4.
+>> WARNING
+>> Line: 829
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is Vector4.
+>> WARNING
+>> Line: 831
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is Vector4.
+>> WARNING
+>> Line: 833
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is Vector4.
+>> WARNING
+>> Line: 835
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is Vector4.
+>> WARNING
+>> Line: 837
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is Vector4.
+>> WARNING
+>> Line: 839
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is Vector4.
+>> WARNING
+>> Line: 841
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is Vector4.
+>> WARNING
+>> Line: 843
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is Vector4.
+>> WARNING
+>> Line: 845
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is Vector4.
+>> WARNING
+>> Line: 847
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is Vector4.
+>> WARNING
+>> Line: 849
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is Vector4.
+>> WARNING
+>> Line: 851
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is Vector4.
+>> WARNING
+>> Line: 853
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is Vector4.
+>> WARNING
+>> Line: 855
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is Vector4.
+>> WARNING
+>> Line: 857
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is Vector4.
+>> WARNING
+>> Line: 859
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is Vector4.
+>> WARNING
+>> Line: 861
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is Vector4.
+>> WARNING
+>> Line: 863
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is Vector4.
+>> WARNING
+>> Line: 865
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is Vector4.
+>> WARNING
+>> Line: 867
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is Vector4.
+>> WARNING
+>> Line: 869
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is Vector4.
+>> WARNING
+>> Line: 871
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is Vector4.
+>> WARNING
+>> Line: 873
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is Vector4.
+>> WARNING
+>> Line: 877
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is Vector4i.
+>> WARNING
+>> Line: 879
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is Vector4i.
+>> WARNING
+>> Line: 881
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is Vector4i.
+>> WARNING
+>> Line: 883
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is Vector4i.
+>> WARNING
+>> Line: 885
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is Vector4i.
+>> WARNING
+>> Line: 887
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is Vector4i.
+>> WARNING
+>> Line: 889
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is Vector4i.
+>> WARNING
+>> Line: 891
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is Vector4i.
+>> WARNING
+>> Line: 893
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is Vector4i.
+>> WARNING
+>> Line: 895
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is Vector4i.
+>> WARNING
+>> Line: 897
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is Vector4i.
+>> WARNING
+>> Line: 899
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is Vector4i.
+>> WARNING
+>> Line: 901
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is Vector4i.
+>> WARNING
+>> Line: 903
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is Vector4i.
+>> WARNING
+>> Line: 905
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is Vector4i.
+>> WARNING
+>> Line: 907
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is Vector4i.
+>> WARNING
+>> Line: 909
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is Vector4i.
+>> WARNING
+>> Line: 911
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is Vector4i.
+>> WARNING
+>> Line: 913
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is Vector4i.
+>> WARNING
+>> Line: 915
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is Vector4i.
+>> WARNING
+>> Line: 917
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is Vector4i.
+>> WARNING
+>> Line: 919
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is Vector4i.
+>> WARNING
+>> Line: 921
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is Vector4i.
+>> WARNING
+>> Line: 923
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is Vector4i.
+>> WARNING
+>> Line: 925
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is Vector4i.
+>> WARNING
+>> Line: 927
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is Vector4i.
+>> WARNING
+>> Line: 929
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is Vector4i.
+>> WARNING
+>> Line: 931
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is Vector4i.
+>> WARNING
+>> Line: 933
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is Vector4i.
+>> WARNING
+>> Line: 935
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is Vector4i.
+>> WARNING
+>> Line: 937
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is Vector4i.
+>> WARNING
+>> Line: 939
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is Vector4i.
+>> WARNING
+>> Line: 941
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is Vector4i.
+>> WARNING
+>> Line: 945
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is Plane.
+>> WARNING
+>> Line: 947
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is Plane.
+>> WARNING
+>> Line: 949
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is Plane.
+>> WARNING
+>> Line: 951
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is Plane.
+>> WARNING
+>> Line: 953
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is Plane.
+>> WARNING
+>> Line: 955
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is Plane.
+>> WARNING
+>> Line: 957
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is Plane.
+>> WARNING
+>> Line: 959
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is Plane.
+>> WARNING
+>> Line: 961
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is Plane.
+>> WARNING
+>> Line: 963
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is Plane.
+>> WARNING
+>> Line: 965
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is Plane.
+>> WARNING
+>> Line: 967
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is Plane.
+>> WARNING
+>> Line: 969
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is Plane.
+>> WARNING
+>> Line: 971
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is Plane.
+>> WARNING
+>> Line: 973
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is Plane.
+>> WARNING
+>> Line: 975
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is Plane.
+>> WARNING
+>> Line: 977
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is Plane.
+>> WARNING
+>> Line: 979
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is Plane.
+>> WARNING
+>> Line: 981
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is Plane.
+>> WARNING
+>> Line: 983
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is Plane.
+>> WARNING
+>> Line: 985
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is Plane.
+>> WARNING
+>> Line: 987
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is Plane.
+>> WARNING
+>> Line: 989
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is Plane.
+>> WARNING
+>> Line: 991
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is Plane.
+>> WARNING
+>> Line: 993
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is Plane.
+>> WARNING
+>> Line: 995
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is Plane.
+>> WARNING
+>> Line: 997
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is Plane.
+>> WARNING
+>> Line: 999
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is Plane.
+>> WARNING
+>> Line: 1001
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is Plane.
+>> WARNING
+>> Line: 1003
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is Plane.
+>> WARNING
+>> Line: 1005
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is Plane.
+>> WARNING
+>> Line: 1007
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is Plane.
+>> WARNING
+>> Line: 1009
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is Plane.
+>> WARNING
+>> Line: 1013
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1015
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1017
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1019
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1021
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1023
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1025
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1027
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1029
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1031
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1033
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1035
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1037
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1039
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1041
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1043
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1045
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1047
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1049
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1051
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1053
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1055
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1057
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1059
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1061
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1063
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1065
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1067
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1069
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1071
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1073
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1075
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1077
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is Quaternion.
+>> WARNING
+>> Line: 1081
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is AABB.
+>> WARNING
+>> Line: 1083
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is AABB.
+>> WARNING
+>> Line: 1085
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is AABB.
+>> WARNING
+>> Line: 1087
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is AABB.
+>> WARNING
+>> Line: 1089
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is AABB.
+>> WARNING
+>> Line: 1091
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is AABB.
+>> WARNING
+>> Line: 1093
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is AABB.
+>> WARNING
+>> Line: 1095
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is AABB.
+>> WARNING
+>> Line: 1097
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is AABB.
+>> WARNING
+>> Line: 1099
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is AABB.
+>> WARNING
+>> Line: 1101
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is AABB.
+>> WARNING
+>> Line: 1103
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is AABB.
+>> WARNING
+>> Line: 1105
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is AABB.
+>> WARNING
+>> Line: 1107
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is AABB.
+>> WARNING
+>> Line: 1109
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is AABB.
+>> WARNING
+>> Line: 1111
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is AABB.
+>> WARNING
+>> Line: 1113
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is AABB.
+>> WARNING
+>> Line: 1115
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is AABB.
+>> WARNING
+>> Line: 1117
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is AABB.
+>> WARNING
+>> Line: 1119
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is AABB.
+>> WARNING
+>> Line: 1121
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is AABB.
+>> WARNING
+>> Line: 1123
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is AABB.
+>> WARNING
+>> Line: 1125
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is AABB.
+>> WARNING
+>> Line: 1127
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is AABB.
+>> WARNING
+>> Line: 1129
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is AABB.
+>> WARNING
+>> Line: 1131
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is AABB.
+>> WARNING
+>> Line: 1133
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is AABB.
+>> WARNING
+>> Line: 1135
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is AABB.
+>> WARNING
+>> Line: 1137
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is AABB.
+>> WARNING
+>> Line: 1139
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is AABB.
+>> WARNING
+>> Line: 1141
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is AABB.
+>> WARNING
+>> Line: 1143
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is AABB.
+>> WARNING
+>> Line: 1145
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is AABB.
+>> WARNING
+>> Line: 1149
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is Basis.
+>> WARNING
+>> Line: 1151
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is Basis.
+>> WARNING
+>> Line: 1153
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is Basis.
+>> WARNING
+>> Line: 1155
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is Basis.
+>> WARNING
+>> Line: 1157
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is Basis.
+>> WARNING
+>> Line: 1159
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is Basis.
+>> WARNING
+>> Line: 1161
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is Basis.
+>> WARNING
+>> Line: 1163
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is Basis.
+>> WARNING
+>> Line: 1165
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is Basis.
+>> WARNING
+>> Line: 1167
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is Basis.
+>> WARNING
+>> Line: 1169
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is Basis.
+>> WARNING
+>> Line: 1171
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is Basis.
+>> WARNING
+>> Line: 1173
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is Basis.
+>> WARNING
+>> Line: 1175
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is Basis.
+>> WARNING
+>> Line: 1177
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is Basis.
+>> WARNING
+>> Line: 1179
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is Basis.
+>> WARNING
+>> Line: 1181
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is Basis.
+>> WARNING
+>> Line: 1183
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is Basis.
+>> WARNING
+>> Line: 1185
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is Basis.
+>> WARNING
+>> Line: 1187
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is Basis.
+>> WARNING
+>> Line: 1189
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is Basis.
+>> WARNING
+>> Line: 1191
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is Basis.
+>> WARNING
+>> Line: 1193
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is Basis.
+>> WARNING
+>> Line: 1195
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is Basis.
+>> WARNING
+>> Line: 1197
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is Basis.
+>> WARNING
+>> Line: 1199
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is Basis.
+>> WARNING
+>> Line: 1201
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is Basis.
+>> WARNING
+>> Line: 1203
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is Basis.
+>> WARNING
+>> Line: 1205
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is Basis.
+>> WARNING
+>> Line: 1207
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is Basis.
+>> WARNING
+>> Line: 1209
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is Basis.
+>> WARNING
+>> Line: 1211
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is Basis.
+>> WARNING
+>> Line: 1213
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is Basis.
+>> WARNING
+>> Line: 1217
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1219
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1221
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1223
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1225
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1227
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1229
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1231
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1233
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1235
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1237
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1239
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1241
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1243
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1245
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1247
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1249
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1251
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1253
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1255
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1257
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1259
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1261
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1263
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1265
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1267
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1269
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1271
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1273
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1275
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1277
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1279
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1281
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is Transform3D.
+>> WARNING
+>> Line: 1285
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is Projection.
+>> WARNING
+>> Line: 1287
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is Projection.
+>> WARNING
+>> Line: 1289
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is Projection.
+>> WARNING
+>> Line: 1291
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is Projection.
+>> WARNING
+>> Line: 1293
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is Projection.
+>> WARNING
+>> Line: 1295
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is Projection.
+>> WARNING
+>> Line: 1297
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is Projection.
+>> WARNING
+>> Line: 1299
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is Projection.
+>> WARNING
+>> Line: 1301
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is Projection.
+>> WARNING
+>> Line: 1303
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is Projection.
+>> WARNING
+>> Line: 1305
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is Projection.
+>> WARNING
+>> Line: 1307
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is Projection.
+>> WARNING
+>> Line: 1309
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is Projection.
+>> WARNING
+>> Line: 1311
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is Projection.
+>> WARNING
+>> Line: 1313
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is Projection.
+>> WARNING
+>> Line: 1315
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is Projection.
+>> WARNING
+>> Line: 1317
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is Projection.
+>> WARNING
+>> Line: 1319
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is Projection.
+>> WARNING
+>> Line: 1321
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is Projection.
+>> WARNING
+>> Line: 1323
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is Projection.
+>> WARNING
+>> Line: 1325
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is Projection.
+>> WARNING
+>> Line: 1327
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is Projection.
+>> WARNING
+>> Line: 1329
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is Projection.
+>> WARNING
+>> Line: 1331
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is Projection.
+>> WARNING
+>> Line: 1333
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is Projection.
+>> WARNING
+>> Line: 1335
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is Projection.
+>> WARNING
+>> Line: 1337
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is Projection.
+>> WARNING
+>> Line: 1339
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is Projection.
+>> WARNING
+>> Line: 1341
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is Projection.
+>> WARNING
+>> Line: 1343
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is Projection.
+>> WARNING
+>> Line: 1345
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is Projection.
+>> WARNING
+>> Line: 1347
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is Projection.
+>> WARNING
+>> Line: 1349
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is Projection.
+>> WARNING
+>> Line: 1353
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is Color.
+>> WARNING
+>> Line: 1355
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is Color.
+>> WARNING
+>> Line: 1357
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is Color.
+>> WARNING
+>> Line: 1359
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is Color.
+>> WARNING
+>> Line: 1361
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is Color.
+>> WARNING
+>> Line: 1363
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is Color.
+>> WARNING
+>> Line: 1365
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is Color.
+>> WARNING
+>> Line: 1367
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is Color.
+>> WARNING
+>> Line: 1369
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is Color.
+>> WARNING
+>> Line: 1371
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is Color.
+>> WARNING
+>> Line: 1373
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is Color.
+>> WARNING
+>> Line: 1375
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is Color.
+>> WARNING
+>> Line: 1377
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is Color.
+>> WARNING
+>> Line: 1379
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is Color.
+>> WARNING
+>> Line: 1381
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is Color.
+>> WARNING
+>> Line: 1383
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is Color.
+>> WARNING
+>> Line: 1385
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is Color.
+>> WARNING
+>> Line: 1387
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is Color.
+>> WARNING
+>> Line: 1389
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is Color.
+>> WARNING
+>> Line: 1391
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is Color.
+>> WARNING
+>> Line: 1393
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is Color.
+>> WARNING
+>> Line: 1395
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is Color.
+>> WARNING
+>> Line: 1397
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is Color.
+>> WARNING
+>> Line: 1399
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is Color.
+>> WARNING
+>> Line: 1401
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is Color.
+>> WARNING
+>> Line: 1403
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is Color.
+>> WARNING
+>> Line: 1405
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is Color.
+>> WARNING
+>> Line: 1407
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is Color.
+>> WARNING
+>> Line: 1409
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is Color.
+>> WARNING
+>> Line: 1411
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is Color.
+>> WARNING
+>> Line: 1413
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is Color.
+>> WARNING
+>> Line: 1415
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is Color.
+>> WARNING
+>> Line: 1417
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is Color.
+>> WARNING
+>> Line: 1421
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is NodePath.
+>> WARNING
+>> Line: 1423
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is NodePath.
+>> WARNING
+>> Line: 1425
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is NodePath.
+>> WARNING
+>> Line: 1427
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is NodePath.
+>> WARNING
+>> Line: 1429
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is NodePath.
+>> WARNING
+>> Line: 1431
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is NodePath.
+>> WARNING
+>> Line: 1433
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is NodePath.
+>> WARNING
+>> Line: 1435
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is NodePath.
+>> WARNING
+>> Line: 1437
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is NodePath.
+>> WARNING
+>> Line: 1439
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is NodePath.
+>> WARNING
+>> Line: 1441
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is NodePath.
+>> WARNING
+>> Line: 1443
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is NodePath.
+>> WARNING
+>> Line: 1445
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is NodePath.
+>> WARNING
+>> Line: 1447
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is NodePath.
+>> WARNING
+>> Line: 1449
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is NodePath.
+>> WARNING
+>> Line: 1451
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is NodePath.
+>> WARNING
+>> Line: 1453
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is NodePath.
+>> WARNING
+>> Line: 1455
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is NodePath.
+>> WARNING
+>> Line: 1457
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is NodePath.
+>> WARNING
+>> Line: 1459
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is NodePath.
+>> WARNING
+>> Line: 1461
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is NodePath.
+>> WARNING
+>> Line: 1463
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is NodePath.
+>> WARNING
+>> Line: 1465
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is NodePath.
+>> WARNING
+>> Line: 1467
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is NodePath.
+>> WARNING
+>> Line: 1469
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is NodePath.
+>> WARNING
+>> Line: 1471
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is NodePath.
+>> WARNING
+>> Line: 1473
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is NodePath.
+>> WARNING
+>> Line: 1475
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is NodePath.
+>> WARNING
+>> Line: 1477
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is NodePath.
+>> WARNING
+>> Line: 1479
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is NodePath.
+>> WARNING
+>> Line: 1481
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is NodePath.
+>> WARNING
+>> Line: 1483
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is NodePath.
+>> WARNING
+>> Line: 1485
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is NodePath.
+>> WARNING
+>> Line: 1489
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is RID.
+>> WARNING
+>> Line: 1491
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is RID.
+>> WARNING
+>> Line: 1493
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is RID.
+>> WARNING
+>> Line: 1495
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is RID.
+>> WARNING
+>> Line: 1497
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is RID.
+>> WARNING
+>> Line: 1499
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is RID.
+>> WARNING
+>> Line: 1501
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is RID.
+>> WARNING
+>> Line: 1503
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is RID.
+>> WARNING
+>> Line: 1505
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is RID.
+>> WARNING
+>> Line: 1507
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is RID.
+>> WARNING
+>> Line: 1509
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is RID.
+>> WARNING
+>> Line: 1511
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is RID.
+>> WARNING
+>> Line: 1513
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is RID.
+>> WARNING
+>> Line: 1515
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is RID.
+>> WARNING
+>> Line: 1517
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is RID.
+>> WARNING
+>> Line: 1519
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is RID.
+>> WARNING
+>> Line: 1521
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is RID.
+>> WARNING
+>> Line: 1523
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is RID.
+>> WARNING
+>> Line: 1525
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is RID.
+>> WARNING
+>> Line: 1527
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is RID.
+>> WARNING
+>> Line: 1529
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is RID.
+>> WARNING
+>> Line: 1531
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is RID.
+>> WARNING
+>> Line: 1533
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is RID.
+>> WARNING
+>> Line: 1535
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is RID.
+>> WARNING
+>> Line: 1537
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is RID.
+>> WARNING
+>> Line: 1539
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is RID.
+>> WARNING
+>> Line: 1541
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is RID.
+>> WARNING
+>> Line: 1543
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is RID.
+>> WARNING
+>> Line: 1545
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is RID.
+>> WARNING
+>> Line: 1547
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is RID.
+>> WARNING
+>> Line: 1549
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is RID.
+>> WARNING
+>> Line: 1551
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is RID.
+>> WARNING
+>> Line: 1553
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is RID.
+>> WARNING
+>> Line: 1557
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is Callable.
+>> WARNING
+>> Line: 1559
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is Callable.
+>> WARNING
+>> Line: 1561
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is Callable.
+>> WARNING
+>> Line: 1563
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is Callable.
+>> WARNING
+>> Line: 1565
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is Callable.
+>> WARNING
+>> Line: 1567
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is Callable.
+>> WARNING
+>> Line: 1569
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is Callable.
+>> WARNING
+>> Line: 1571
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is Callable.
+>> WARNING
+>> Line: 1573
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is Callable.
+>> WARNING
+>> Line: 1575
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is Callable.
+>> WARNING
+>> Line: 1577
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is Callable.
+>> WARNING
+>> Line: 1579
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is Callable.
+>> WARNING
+>> Line: 1581
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is Callable.
+>> WARNING
+>> Line: 1583
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is Callable.
+>> WARNING
+>> Line: 1585
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is Callable.
+>> WARNING
+>> Line: 1587
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is Callable.
+>> WARNING
+>> Line: 1589
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is Callable.
+>> WARNING
+>> Line: 1591
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is Callable.
+>> WARNING
+>> Line: 1593
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is Callable.
+>> WARNING
+>> Line: 1595
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is Callable.
+>> WARNING
+>> Line: 1597
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is Callable.
+>> WARNING
+>> Line: 1599
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is Callable.
+>> WARNING
+>> Line: 1601
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is Callable.
+>> WARNING
+>> Line: 1603
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is Callable.
+>> WARNING
+>> Line: 1605
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is Callable.
+>> WARNING
+>> Line: 1607
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is Callable.
+>> WARNING
+>> Line: 1609
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is Callable.
+>> WARNING
+>> Line: 1611
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is Callable.
+>> WARNING
+>> Line: 1613
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is Callable.
+>> WARNING
+>> Line: 1615
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is Callable.
+>> WARNING
+>> Line: 1617
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is Callable.
+>> WARNING
+>> Line: 1619
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is Callable.
+>> WARNING
+>> Line: 1621
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is Callable.
+>> WARNING
+>> Line: 1625
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is Signal.
+>> WARNING
+>> Line: 1627
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is Signal.
+>> WARNING
+>> Line: 1629
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is Signal.
+>> WARNING
+>> Line: 1631
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is Signal.
+>> WARNING
+>> Line: 1633
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is Signal.
+>> WARNING
+>> Line: 1635
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is Signal.
+>> WARNING
+>> Line: 1637
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is Signal.
+>> WARNING
+>> Line: 1639
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is Signal.
+>> WARNING
+>> Line: 1641
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is Signal.
+>> WARNING
+>> Line: 1643
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is Signal.
+>> WARNING
+>> Line: 1645
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is Signal.
+>> WARNING
+>> Line: 1647
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is Signal.
+>> WARNING
+>> Line: 1649
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is Signal.
+>> WARNING
+>> Line: 1651
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is Signal.
+>> WARNING
+>> Line: 1653
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is Signal.
+>> WARNING
+>> Line: 1655
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is Signal.
+>> WARNING
+>> Line: 1657
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is Signal.
+>> WARNING
+>> Line: 1659
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is Signal.
+>> WARNING
+>> Line: 1661
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is Signal.
+>> WARNING
+>> Line: 1663
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is Signal.
+>> WARNING
+>> Line: 1665
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is Signal.
+>> WARNING
+>> Line: 1667
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is Signal.
+>> WARNING
+>> Line: 1669
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is Signal.
+>> WARNING
+>> Line: 1671
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is Signal.
+>> WARNING
+>> Line: 1673
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is Signal.
+>> WARNING
+>> Line: 1675
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is Signal.
+>> WARNING
+>> Line: 1677
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is Signal.
+>> WARNING
+>> Line: 1679
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is Signal.
+>> WARNING
+>> Line: 1681
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is Signal.
+>> WARNING
+>> Line: 1683
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is Signal.
+>> WARNING
+>> Line: 1685
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is Signal.
+>> WARNING
+>> Line: 1687
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is Signal.
+>> WARNING
+>> Line: 1689
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is Signal.
+>> WARNING
+>> Line: 1693
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is Object.
+>> WARNING
+>> Line: 1695
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is Object.
+>> WARNING
+>> Line: 1697
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is Object.
+>> WARNING
+>> Line: 1699
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is Object.
+>> WARNING
+>> Line: 1701
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is Object.
+>> WARNING
+>> Line: 1703
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is Object.
+>> WARNING
+>> Line: 1705
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is Object.
+>> WARNING
+>> Line: 1707
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is Object.
+>> WARNING
+>> Line: 1709
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is Object.
+>> WARNING
+>> Line: 1711
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is Object.
+>> WARNING
+>> Line: 1713
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is Object.
+>> WARNING
+>> Line: 1715
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is Object.
+>> WARNING
+>> Line: 1717
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is Object.
+>> WARNING
+>> Line: 1719
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is Object.
+>> WARNING
+>> Line: 1721
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is Object.
+>> WARNING
+>> Line: 1723
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is Object.
+>> WARNING
+>> Line: 1725
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is Object.
+>> WARNING
+>> Line: 1727
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is Object.
+>> WARNING
+>> Line: 1729
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is Object.
+>> WARNING
+>> Line: 1731
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is Object.
+>> WARNING
+>> Line: 1733
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is Object.
+>> WARNING
+>> Line: 1735
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is Object.
+>> WARNING
+>> Line: 1737
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is Object.
+>> WARNING
+>> Line: 1739
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is Object.
+>> WARNING
+>> Line: 1741
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is Object.
+>> WARNING
+>> Line: 1743
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is Object.
+>> WARNING
+>> Line: 1745
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is Object.
+>> WARNING
+>> Line: 1747
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is Object.
+>> WARNING
+>> Line: 1749
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is Object.
+>> WARNING
+>> Line: 1751
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is Object.
+>> WARNING
+>> Line: 1753
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is Object.
+>> WARNING
+>> Line: 1755
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is Object.
+>> WARNING
+>> Line: 1757
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is Object.
+>> WARNING
+>> Line: 1761
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1763
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1765
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1767
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1769
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1771
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1773
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1775
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1777
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1779
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1781
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1783
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1785
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1787
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1789
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1791
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1793
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1795
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1797
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1799
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1801
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1803
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1805
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1807
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1809
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1811
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1813
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1815
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1817
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1819
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1821
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1823
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1825
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is PackedByteArray.
+>> WARNING
+>> Line: 1829
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1831
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1833
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1835
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1837
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1839
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1841
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1843
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1845
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1847
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1849
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1851
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1853
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1855
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1857
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1859
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1861
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1863
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1865
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1867
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1869
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1871
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1873
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1875
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1877
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1879
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1881
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1883
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1885
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1887
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1889
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1891
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1893
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is PackedInt32Array.
+>> WARNING
+>> Line: 1897
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1899
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1901
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1903
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1905
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1907
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1909
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1911
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1913
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1915
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1917
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1919
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1921
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1923
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1925
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1927
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1929
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1931
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1933
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1935
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1937
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1939
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1941
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1943
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1945
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1947
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1949
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1951
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1953
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1955
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1957
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1959
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1961
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is PackedInt64Array.
+>> WARNING
+>> Line: 1965
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 1967
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 1969
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 1971
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 1973
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 1975
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 1977
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 1979
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 1981
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 1983
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 1985
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 1987
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 1989
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 1991
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 1993
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 1995
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 1997
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 1999
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 2001
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 2003
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 2005
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 2007
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 2009
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 2011
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 2013
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 2015
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 2017
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 2019
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 2021
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 2023
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 2025
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 2027
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 2029
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is PackedFloat32Array.
+>> WARNING
+>> Line: 2033
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2035
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2037
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2039
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2041
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2043
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2045
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2047
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2049
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2051
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2053
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2055
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2057
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2059
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2061
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2063
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2065
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2067
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2069
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2071
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2073
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2075
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2077
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2079
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2081
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2083
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2085
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2087
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2089
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2091
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2093
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2095
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2097
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is PackedFloat64Array.
+>> WARNING
+>> Line: 2101
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2103
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2105
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2107
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2109
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2111
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2113
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2115
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2117
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2119
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2121
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2123
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2125
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2127
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2129
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2131
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2133
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2135
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2137
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2139
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2141
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2143
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2145
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2147
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2149
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2151
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2153
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2155
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2157
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2159
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2161
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2163
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2165
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is PackedStringArray.
+>> WARNING
+>> Line: 2169
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2171
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2173
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2175
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2177
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2179
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2181
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2183
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2185
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2187
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2189
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2191
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2193
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2195
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2197
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2199
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2201
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2203
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2205
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2207
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2209
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2211
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2213
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2215
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2217
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2219
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2221
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2223
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2225
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2227
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2229
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2231
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2233
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is PackedVector2Array.
+>> WARNING
+>> Line: 2237
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2239
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2241
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2243
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2245
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2247
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2249
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2251
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2253
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2255
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2257
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2259
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2261
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2263
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2265
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2267
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2269
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2271
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2273
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2275
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2277
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2279
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2281
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2283
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2285
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2287
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2289
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2291
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2293
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2295
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2297
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2299
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2301
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is PackedVector3Array.
+>> WARNING
+>> Line: 2305
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2307
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2309
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2311
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2313
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2315
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2317
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2319
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2321
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2323
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2325
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2327
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2329
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2331
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2333
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2335
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2337
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2339
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2341
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2343
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2345
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2347
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2349
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2351
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2353
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2355
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2357
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2359
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2361
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2363
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2365
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2367
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2369
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector4Array but the match expression type is PackedColorArray.
+>> WARNING
+>> Line: 2373
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is bool but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2375
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is int but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2377
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is float but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2379
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2 but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2381
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector2i but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2383
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2 but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2385
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Rect2i but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2387
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3 but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2389
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector3i but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2391
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform2D but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2393
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4 but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2395
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Vector4i but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2397
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Plane but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2399
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Quaternion but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2401
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is AABB but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2403
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Basis but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2405
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Transform3D but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2407
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Projection but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2409
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Color but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2411
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is NodePath but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2413
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is RID but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2415
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Callable but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2417
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Signal but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2419
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is Object but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2421
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedByteArray but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2423
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt32Array but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2425
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedInt64Array but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2427
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat32Array but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2429
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedFloat64Array but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2431
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedStringArray but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2433
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector2Array but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2435
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedVector3Array but the match expression type is PackedVector4Array.
+>> WARNING
+>> Line: 2437
+>> MISMATCHED_TYPE
+>> The match expression will not match this pattern. The pattern type is PackedColorArray but the match expression type is PackedVector4Array.
+should not match

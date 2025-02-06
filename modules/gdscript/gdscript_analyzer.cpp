@@ -2461,6 +2461,399 @@ void GDScriptAnalyzer::resolve_match_pattern(GDScriptParser::PatternNode *p_matc
 	}
 
 	p_match_pattern->set_datatype(result);
+
+#ifdef DEBUG_ENABLED
+	if (p_match_test != nullptr && (p_match_test->datatype.type_source == GDScriptParser::DataType::TypeSource::ANNOTATED_EXPLICIT || p_match_test->datatype.type_source == GDScriptParser::DataType::TypeSource::ANNOTATED_INFERRED) && (p_match_test->datatype.type_source == GDScriptParser::DataType::TypeSource::ANNOTATED_EXPLICIT || p_match_pattern->datatype.type_source == GDScriptParser::DataType::TypeSource::ANNOTATED_INFERRED) && p_match_pattern->pattern_type != GDScriptParser::PatternNode::PT_REST && p_match_pattern->pattern_type != GDScriptParser::PatternNode::PT_BIND && p_match_pattern->pattern_type != GDScriptParser::PatternNode::PT_WILDCARD) {
+		switch (p_match_test->get_datatype().builtin_type) {
+			case Variant::NIL:
+			case Variant::VARIANT_MAX:
+				break;
+
+			case Variant::BOOL:
+			case Variant::INT:
+			case Variant::FLOAT:
+
+			case Variant::VECTOR2:
+			case Variant::VECTOR2I:
+			case Variant::RECT2:
+			case Variant::RECT2I:
+			case Variant::VECTOR3:
+			case Variant::VECTOR3I:
+			case Variant::TRANSFORM2D:
+			case Variant::VECTOR4:
+			case Variant::VECTOR4I:
+			case Variant::PLANE:
+			case Variant::QUATERNION:
+			case Variant::AABB:
+			case Variant::BASIS:
+			case Variant::TRANSFORM3D:
+			case Variant::PROJECTION:
+
+			case Variant::COLOR:
+			case Variant::NODE_PATH:
+			case Variant::RID:
+			case Variant::CALLABLE:
+			case Variant::SIGNAL:
+			case Variant::OBJECT:
+
+			case Variant::PACKED_BYTE_ARRAY:
+			case Variant::PACKED_INT32_ARRAY:
+			case Variant::PACKED_INT64_ARRAY:
+			case Variant::PACKED_FLOAT32_ARRAY:
+			case Variant::PACKED_FLOAT64_ARRAY:
+			case Variant::PACKED_STRING_ARRAY:
+			case Variant::PACKED_VECTOR2_ARRAY:
+			case Variant::PACKED_VECTOR3_ARRAY:
+			case Variant::PACKED_COLOR_ARRAY:
+			case Variant::PACKED_VECTOR4_ARRAY:
+				if (p_match_pattern->get_datatype() != p_match_test->get_datatype()) {
+					parser->push_warning(p_match_pattern, GDScriptWarning::MISMATCHED_TYPE, p_match_pattern->get_datatype().to_string(), p_match_test->get_datatype().to_string(), "", "", "");
+				}
+				break;
+			case Variant::STRING:
+			case Variant::STRING_NAME:
+				if (p_match_pattern->get_datatype().builtin_type != Variant::STRING && p_match_pattern->get_datatype().builtin_type != Variant::STRING_NAME) {
+					parser->push_warning(p_match_pattern, GDScriptWarning::MISMATCHED_TYPE, p_match_pattern->get_datatype().to_string(), p_match_test->get_datatype().to_string(), "", "", "");
+				}
+				break;
+			case Variant::DICTIONARY:
+
+				// There are 4 cases which are checked:
+				// - Match Expression is Identifier, Match Pattern is Dictionary
+				// - Match Expression is Identifier, Match Pattern is Identifier
+				// - Match Expression is Dictionary, Match Pattern is Dictionary
+				// - Match Expression is Dictionary, Match Pattern is Identifier
+
+				if (p_match_pattern->pattern_type == GDScriptParser::PatternNode::Type::PT_ARRAY) {
+					parser->push_warning(p_match_pattern, GDScriptWarning::MISMATCHED_TYPE, Variant::get_type_name(Variant::ARRAY), p_match_test->get_datatype().to_string(), "", "", "");
+					break;
+				}
+				if (p_match_pattern->get_datatype() != p_match_test->get_datatype()) {
+					parser->push_warning(p_match_pattern, GDScriptWarning::MISMATCHED_TYPE, p_match_pattern->get_datatype().to_string(), p_match_test->get_datatype().to_string(), "", "", "");
+					break;
+				}
+
+				if (p_match_pattern->pattern_type != GDScriptParser::PatternNode::PT_DICTIONARY && (p_match_test->datatype.type_source == GDScriptParser::DataType::TypeSource::ANNOTATED_EXPLICIT || p_match_test->datatype.type_source == GDScriptParser::DataType::TypeSource::ANNOTATED_INFERRED)) {
+					// Match Pattern is an Identifier, not a Dictionary
+					// Check dictionary keys and values match the match expression dictionary keys and values
+
+					Pair<GDScriptParser::DataType, GDScriptParser::DataType> other_type_found;
+					Pair<GDScriptParser::DataType, GDScriptParser::DataType> correct_type;
+					bool has_value = false;
+
+					GDScriptParser::DataType correct_type_key;
+					GDScriptParser::DataType correct_type_value;
+
+					if (p_match_test->get_datatype().container_element_types.size() == 2) {
+						// Match pattern is typed, both dict key and value typed in match expression
+						correct_type_key = p_match_test->get_datatype().container_element_types[0];
+						correct_type_value = p_match_test->get_datatype().container_element_types[1];
+						has_value = true;
+					} else if (p_match_test->get_datatype().container_element_types.size() == 1) {
+						// Match pattern is typed, only dict key typed in match expression
+						correct_type_key = p_match_test->get_datatype().container_element_types[0];
+					} else if (p_match_test->type == GDScriptParser::Node::Type::DICTIONARY) {
+						// Match expression is a Dictionary and the match pattern is an Identifier
+						// Check that the match expression contains only one type, emit a warning if there are multiple types in the match expression
+
+						GDScriptParser::DictionaryNode *dict_node_match = dynamic_cast<GDScriptParser::DictionaryNode *>(p_match_test);
+						if (dict_node_match->elements.size() == 0) {
+							break;
+						}
+						correct_type_key = dict_node_match->elements[0].key->get_datatype();
+						correct_type_value = dict_node_match->elements[0].value->get_datatype();
+						has_value = true;
+
+						bool dict_mismatch_found = false;
+						for (int i = 1; i < dict_node_match->elements.size(); i++) {
+							if (correct_type_key != dict_node_match->elements[i].key->get_datatype() || (has_value && correct_type_value != dict_node_match->elements[i].value->get_datatype())) {
+								parser->push_warning(p_match_pattern, GDScriptWarning::MISMATCHED_TYPE, p_match_pattern->get_datatype().to_string(), p_match_test->get_datatype().to_string(), "array_typed_match", "", "");
+								dict_mismatch_found = true;
+								break;
+							}
+						}
+						if (dict_mismatch_found) {
+							break;
+						}
+					}
+
+					if (p_match_pattern->get_datatype().container_element_types.size() > 0) {
+						if (p_match_pattern->get_datatype().container_element_types[0] != correct_type_key || (has_value && correct_type_value != p_match_pattern->get_datatype().container_element_types[1])) {
+							parser->push_warning(p_match_pattern, GDScriptWarning::MISMATCHED_TYPE, p_match_pattern->get_datatype().to_string(), p_match_test->get_datatype().to_string() + "[" + correct_type_key.to_string() + ", " + correct_type_value.to_string() + "]", "", "", "");
+							break;
+						}
+					}
+					break;
+				}
+
+				if (p_match_pattern->pattern_type == GDScriptParser::PatternNode::PT_DICTIONARY) {
+					if (p_match_test->type == GDScriptParser::Node::Type::IDENTIFIER) {
+						// If the match expression is an Identifier and the match pattern is a Dictionary
+						Pair<GDScriptParser::DataType, GDScriptParser::DataType> other_type_found;
+						bool incorrect_type_present = false;
+						bool incorrect_key_present = false;
+						bool has_value = false;
+
+						GDScriptParser::DataType correct_type_key;
+						GDScriptParser::DataType correct_type_value;
+
+						if (p_match_test->get_datatype().container_element_types.size() == 2) {
+							// Dictionary is typed
+							correct_type_key = p_match_test->get_datatype().container_element_types[0];
+							correct_type_value = p_match_test->get_datatype().container_element_types[1];
+							has_value = true;
+						} else {
+							break; // Dictionary has no type
+						}
+						for (int i = 0; i < p_match_pattern->dictionary.size(); i++) {
+							// For each element in the dictionary check the pattern can match the match expression
+							// and there are no additionally types in the match pattern that cannot match the match expression
+
+							if (p_match_pattern->dictionary[i].value_pattern && p_match_pattern->dictionary[i].value_pattern->pattern_type == GDScriptParser::PatternNode::PT_REST) {
+								continue; // Don't count the ".." symbol
+							}
+
+							if (p_match_pattern->dictionary[i].value_pattern) {
+								// Test key and value type, key and value are given
+								if (p_match_pattern->dictionary[i].key->datatype != correct_type_key || (has_value && p_match_pattern->dictionary[i].value_pattern->datatype != correct_type_value)) {
+									incorrect_type_present = true;
+									other_type_found = Pair(p_match_pattern->dictionary[i].key->datatype, p_match_pattern->dictionary[i].value_pattern->datatype);
+									break;
+								}
+							} else {
+								// Only test key type, value is not given
+								if (p_match_pattern->dictionary[i].key->datatype != correct_type_key) {
+									incorrect_key_present = true;
+									other_type_found = Pair(p_match_pattern->dictionary[i].key->datatype, GDScriptParser::DataType());
+								}
+							}
+						}
+
+						if (incorrect_type_present || incorrect_key_present) {
+							parser->push_warning(p_match_pattern, GDScriptWarning::MISMATCHED_TYPE, Variant::get_type_name(Variant::Type::DICTIONARY), p_match_test->get_datatype().to_string(), "dict_typed", "[" + other_type_found.first.to_string() + (incorrect_key_present ? "" : ", " + other_type_found.second.to_string()) + "]", "");
+						}
+						break;
+					}
+					if (p_match_test->type == GDScriptParser::Node::Type::DICTIONARY) {
+						// Match expression is a Dictionary and the match pattern is a Dictionary
+						// Check the types present
+						GDScriptParser::DictionaryNode *dict_node_match = dynamic_cast<GDScriptParser::DictionaryNode *>(p_match_test);
+						bool open_ended = false;
+
+						if (p_match_pattern->dictionary.size() == 0) {
+							break;
+						}
+
+						// Create vectors of the types present in the pattern and the matching expression
+						List<Pair<GDScriptParser::DataType, GDScriptParser::DataType>> match_vector;
+						List<Pair<GDScriptParser::DataType, GDScriptParser::DataType>> pattern_vector;
+						List<GDScriptParser::DataType> pattern_vector_keys;
+						for (int i = 0; i < p_match_pattern->dictionary.size(); i++) {
+							if (p_match_pattern->dictionary[i].value_pattern && p_match_pattern->dictionary[i].value_pattern->pattern_type == GDScriptParser::PatternNode::PT_REST) {
+								open_ended = true;
+								continue;
+							}
+
+							if (p_match_pattern->dictionary[i].value_pattern) {
+								pattern_vector.push_front(Pair(p_match_pattern->dictionary[i].key->datatype, p_match_pattern->dictionary[i].value_pattern->datatype));
+							} else {
+								pattern_vector_keys.push_front(p_match_pattern->dictionary[i].key->datatype);
+							}
+						}
+
+						// Check sizes
+						if ((!open_ended && dict_node_match->elements.size() != p_match_pattern->dictionary.size()) || (open_ended && dict_node_match->elements.size() < p_match_pattern->dictionary.size() - 1)) {
+							parser->push_warning(p_match_pattern, GDScriptWarning::MISMATCHED_TYPE, Variant::get_type_name(Variant::DICTIONARY), p_match_test->get_datatype().to_string(), "size", String::num(p_match_pattern->dictionary.size() - (open_ended ? 1 : 0)), String::num(dict_node_match->elements.size()));
+							break;
+						}
+
+						// Create match vector
+						for (int i = 0; i < dict_node_match->elements.size(); i++) {
+							match_vector.push_front(Pair(dict_node_match->elements[i].key ? dict_node_match->elements[i].key->datatype : GDScriptParser::DataType(), dict_node_match->elements[i].value ? dict_node_match->elements[i].value->datatype : GDScriptParser::DataType()));
+						}
+
+						// Match keys with values within pattern
+						int vec_size = pattern_vector.size();
+						List<Pair<GDScriptParser::DataType, GDScriptParser::DataType>>::Element *pattern_to_match = pattern_vector.front();
+						for (int i = 0; i < vec_size; i++) {
+							List<Pair<GDScriptParser::DataType, GDScriptParser::DataType>>::Element *j = match_vector.find(pattern_to_match->get());
+
+							if (j != nullptr) {
+								j->erase();
+								List<Pair<GDScriptParser::DataType, GDScriptParser::DataType>>::Element *temp = pattern_to_match->next();
+								pattern_to_match->erase();
+								pattern_to_match = temp;
+
+								if (match_vector.is_empty() || pattern_vector.is_empty()) {
+									break;
+								}
+							} else {
+								pattern_to_match = pattern_to_match->next();
+							}
+							if (pattern_to_match == nullptr) {
+								break;
+							}
+						}
+
+						// Match keys without values within pattern
+						List<GDScriptParser::DataType>::Element *pattern_keys_to_match = pattern_vector_keys.front();
+						bool found = false;
+						vec_size = pattern_vector_keys.size();
+						for (int i = 0; i < vec_size; i++) {
+							found = false;
+							GDScriptParser::DataType pattern_to_match_dt = pattern_keys_to_match->get();
+							for (List<Pair<GDScriptParser::DataType, GDScriptParser::DataType>>::Element *elem_match = match_vector.front(); elem_match != nullptr; elem_match = elem_match->next()) {
+								if (elem_match->get().first == pattern_to_match_dt) {
+									elem_match->erase();
+									List<GDScriptParser::DataType>::Element *temp = pattern_keys_to_match->next();
+									pattern_keys_to_match->erase();
+									pattern_keys_to_match = temp;
+
+									found = true;
+									break;
+								}
+							}
+							if (!found) {
+								pattern_keys_to_match = pattern_keys_to_match->next();
+							}
+							if (pattern_keys_to_match == nullptr || match_vector.is_empty() || pattern_vector_keys.is_empty()) {
+								break;
+							}
+						}
+
+						if (pattern_vector.is_empty() && pattern_vector_keys.is_empty() && open_ended) {
+							break; // All pattern types are within the match vector
+						}
+						if (!match_vector.is_empty()) {
+							// Anything remaining in the match vector is not present in the pattern vector, the match cannot succeed
+							String missing_values;
+							for (List<Pair<GDScriptParser::DataType, GDScriptParser::DataType>>::Element *elem = match_vector.front(); elem != nullptr; elem = elem->next()) {
+								missing_values += "[" + elem->get().first.to_string() + ", " + elem->get().second.to_string() + "]";
+							}
+							parser->push_warning(p_match_pattern, GDScriptWarning::MISMATCHED_TYPE, Variant::get_type_name(Variant::Type::DICTIONARY), p_match_test->get_datatype().to_string(), "dict", missing_values, "");
+						}
+					}
+				}
+				break;
+			case Variant::ARRAY:
+				if (p_match_pattern->pattern_type == GDScriptParser::PatternNode::Type::PT_DICTIONARY || p_match_pattern->get_datatype().builtin_type == Variant::Type::DICTIONARY) {
+					parser->push_warning(p_match_pattern, GDScriptWarning::MISMATCHED_TYPE, Variant::get_type_name(Variant::DICTIONARY), p_match_test->get_datatype().to_string(), "", "", "");
+					break;
+				}
+				if (p_match_pattern->get_datatype() != p_match_test->get_datatype()) {
+					parser->push_warning(p_match_pattern, GDScriptWarning::MISMATCHED_TYPE, p_match_pattern->get_datatype().to_string(), p_match_test->get_datatype().to_string(), "", "", "");
+					break;
+				}
+				if (p_match_pattern->pattern_type == GDScriptParser::PatternNode::Type::PT_BIND || p_match_pattern->pattern_type == GDScriptParser::PatternNode::Type::PT_REST || p_match_pattern->pattern_type == GDScriptParser::PatternNode::Type::PT_WILDCARD) {
+					break;
+				}
+
+				if (p_match_pattern->pattern_type != GDScriptParser::PatternNode::PT_ARRAY && (p_match_test->datatype.type_source == GDScriptParser::DataType::TypeSource::ANNOTATED_EXPLICIT || p_match_test->datatype.type_source == GDScriptParser::DataType::TypeSource::ANNOTATED_INFERRED)) {
+					if (p_match_pattern->get_datatype().container_element_types.size() == 0) {
+						break;
+					}
+
+					GDScriptParser::DataType array_type;
+					if (p_match_test->datatype.container_element_types.size() > 0) {
+						// match expression is an Identifier and match pattern is an Identifier
+						array_type = p_match_test->datatype.container_element_types[0];
+						if (p_match_pattern->get_datatype().container_element_types[0] != array_type) {
+							parser->push_warning(p_match_pattern, GDScriptWarning::MISMATCHED_TYPE, Variant::get_type_name(Variant::Type::ARRAY) + "[" + p_match_pattern->get_datatype().container_element_types[0].to_string() + "]", Variant::get_type_name(Variant::Type::ARRAY) + "[" + array_type.to_string() + "]", "", "", "");
+						}
+					} else if (p_match_test->type == GDScriptParser::Node::Type::ARRAY) {
+						// match expression is Array and match pattern is Identifier
+						GDScriptParser::ArrayNode *arr_node_match = dynamic_cast<GDScriptParser::ArrayNode *>(p_match_test);
+						if (arr_node_match->elements.size() == 0) {
+							break;
+						}
+						array_type = arr_node_match->elements[0]->get_datatype();
+						bool array_mismatch_found = false;
+						for (int i = 1; i < arr_node_match->elements.size(); i++) {
+							if (array_type != arr_node_match->elements[i]->get_datatype()) {
+								// Multiple types within array, cannot be compatible with typed array
+								array_mismatch_found = true;
+								parser->push_warning(p_match_pattern, GDScriptWarning::MISMATCHED_TYPE, p_match_pattern->get_datatype().to_string(), p_match_test->get_datatype().to_string(), "array_typed_match", "", "");
+								break;
+							}
+						}
+						if (array_mismatch_found) {
+							break;
+						}
+					}
+					break;
+				}
+
+				if (p_match_pattern->pattern_type == GDScriptParser::PatternNode::PT_ARRAY) {
+					bool mismatched_types = false;
+					if (p_match_test->type == GDScriptParser::Node::Type::IDENTIFIER) {
+						// match expression is Identifier and match pattern is Array
+						if (p_match_test->get_datatype().container_element_types.size() == 0) {
+							break;
+						}
+						GDScriptParser::DataType pattern_array_type = p_match_test->get_datatype().container_element_types[0];
+						for (int i = 0; i < p_match_pattern->array.size(); i++) {
+							if (pattern_array_type != p_match_pattern->array[i]->get_datatype()) {
+								mismatched_types = true;
+								break;
+							}
+						}
+						if (mismatched_types) {
+							parser->push_warning(p_match_pattern, GDScriptWarning::MISMATCHED_TYPE, Variant::get_type_name(Variant::ARRAY) + "[" + p_match_pattern->get_datatype().to_string() + "]", p_match_test->get_datatype().to_string(), "", "", "");
+						}
+					} else if (p_match_test->type == GDScriptParser::Node::Type::ARRAY) {
+						// match expression is Array and match pattern is Array
+						GDScriptParser::ArrayNode *arr_node_match = dynamic_cast<GDScriptParser::ArrayNode *>(p_match_test);
+						String all_container_types_match;
+						String all_container_types_pattern;
+						bool first_element = true;
+						bool open_ended = false;
+
+						Vector<GDScriptParser::DataType> pattern_vector;
+
+						// Create Vector of all types in the pattern array
+						for (int i = 0; i < p_match_pattern->array.size(); i++) {
+							if (p_match_pattern->array[i]->pattern_type == GDScriptParser::PatternNode::PT_REST) {
+								open_ended = true;
+								continue;
+							}
+							pattern_vector.append(p_match_pattern->array[i]->get_datatype());
+
+							if (!first_element) {
+								all_container_types_pattern += ", ";
+							} else {
+								first_element = false;
+							}
+							all_container_types_pattern += p_match_pattern->array[i]->get_datatype().to_string();
+						}
+
+						// Check sizes
+						if ((!open_ended && arr_node_match->elements.size() != p_match_pattern->array.size()) || (open_ended && arr_node_match->elements.size() < p_match_pattern->array.size() - 1)) {
+							parser->push_warning(p_match_pattern, GDScriptWarning::MISMATCHED_TYPE, p_match_pattern->get_datatype().to_string(), p_match_test->get_datatype().to_string(), "size", String::num(p_match_pattern->array.size() - (open_ended ? 1 : 0)), String::num(arr_node_match->elements.size()));
+							break;
+						}
+
+						// Check all pattern types are within the match array, in the same order
+						first_element = true;
+						for (int i = 0; i < p_match_pattern->array.size(); i++) {
+							if (arr_node_match->elements[i]->get_datatype() != pattern_vector[i]) {
+								mismatched_types = true;
+							}
+							if (!first_element) {
+								all_container_types_match += ", ";
+							} else {
+								first_element = false;
+							}
+							all_container_types_match += arr_node_match->elements[i]->datatype.to_string();
+						}
+						if (mismatched_types) {
+							parser->push_warning(p_match_pattern, GDScriptWarning::MISMATCHED_TYPE, Variant::get_type_name(Variant::ARRAY) + "[" + all_container_types_pattern + "]", p_match_test->get_datatype().to_string() + "[" + all_container_types_match + "]", "", "", "");
+						}
+					}
+					break;
+				}
+		}
+	}
+#endif
 }
 
 void GDScriptAnalyzer::resolve_return(GDScriptParser::ReturnNode *p_return) {
