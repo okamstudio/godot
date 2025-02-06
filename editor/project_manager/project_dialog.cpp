@@ -277,7 +277,7 @@ void ProjectDialog::_update_target_auto_dir() {
 		case 0: // No convention
 			break;
 		case 1: // kebab-case
-			new_auto_dir = new_auto_dir.to_lower().replace(" ", "-");
+			new_auto_dir = new_auto_dir.to_lower().replace_char(' ', '-');
 			break;
 		case 2: // snake_case
 			new_auto_dir = new_auto_dir.to_snake_case();

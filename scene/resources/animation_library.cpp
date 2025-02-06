@@ -42,10 +42,8 @@ bool AnimationLibrary::is_valid_library_name(const String &p_name) {
 
 String AnimationLibrary::validate_library_name(const String &p_name) {
 	String name = p_name;
-	const char *characters = "/:,[";
-	for (const char *p = characters; *p; p++) {
-		name = name.replace(String::chr(*p), "_");
-	}
+	static const char *characters = "/:,[";
+	name.replace_chars(characters, '_');
 	return name;
 }
 

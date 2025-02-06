@@ -67,7 +67,7 @@ Error FileAccessUnixPipe::open_internal(const String &p_path, int p_mode_flags) 
 	path_src = p_path;
 	ERR_FAIL_COND_V_MSG(fd[0] >= 0 || fd[1] >= 0, ERR_ALREADY_IN_USE, "Pipe is already in use.");
 
-	path = String("/tmp/") + p_path.replace("pipe://", "").replace("/", "_");
+	path = String("/tmp/") + p_path.replace("pipe://", "").replace_char('/', '_');
 	const CharString path_utf8 = path.utf8();
 
 	struct stat st = {};

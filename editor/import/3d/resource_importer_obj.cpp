@@ -119,7 +119,7 @@ static Error _parse_material_library(const String &p_path, HashMap<String, Ref<S
 			//normal
 			ERR_FAIL_COND_V(current.is_null(), ERR_FILE_CORRUPT);
 
-			String p = l.replace("map_Kd", "").replace("\\", "/").strip_edges();
+			String p = l.replace("map_Kd", "").replace_char('\\', '/').strip_edges();
 			String path;
 			if (p.is_absolute_path()) {
 				path = p;
@@ -139,7 +139,7 @@ static Error _parse_material_library(const String &p_path, HashMap<String, Ref<S
 			//normal
 			ERR_FAIL_COND_V(current.is_null(), ERR_FILE_CORRUPT);
 
-			String p = l.replace("map_Ks", "").replace("\\", "/").strip_edges();
+			String p = l.replace("map_Ks", "").replace_char('\\', '/').strip_edges();
 			String path;
 			if (p.is_absolute_path()) {
 				path = p;
@@ -159,7 +159,7 @@ static Error _parse_material_library(const String &p_path, HashMap<String, Ref<S
 			//normal
 			ERR_FAIL_COND_V(current.is_null(), ERR_FILE_CORRUPT);
 
-			String p = l.replace("map_Ns", "").replace("\\", "/").strip_edges();
+			String p = l.replace("map_Ns", "").replace_char('\\', '/').strip_edges();
 			String path;
 			if (p.is_absolute_path()) {
 				path = p;
@@ -178,7 +178,7 @@ static Error _parse_material_library(const String &p_path, HashMap<String, Ref<S
 			//normal
 			ERR_FAIL_COND_V(current.is_null(), ERR_FILE_CORRUPT);
 
-			String p = l.replace("map_bump", "").replace("\\", "/").strip_edges();
+			String p = l.replace("map_bump", "").replace_char('\\', '/').strip_edges();
 			String path = base_path.path_join(p);
 
 			Ref<Texture2D> texture = ResourceLoader::load(path);

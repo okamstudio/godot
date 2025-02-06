@@ -556,7 +556,7 @@ void EditorFileDialog::_action_pressed() {
 	} else if (mode == FILE_MODE_OPEN_ANY || mode == FILE_MODE_OPEN_DIR) {
 		String path = dir_access->get_current_dir();
 
-		path = path.replace("\\", "/");
+		path = path.replace_char('\\', '/');
 
 		for (int i = 0; i < item_list->get_item_count(); i++) {
 			if (item_list->is_selected(i)) {

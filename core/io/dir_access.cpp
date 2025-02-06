@@ -146,7 +146,7 @@ Error DirAccess::make_dir_recursive(const String &p_dir) {
 		full_dir = p_dir;
 	}
 
-	full_dir = full_dir.replace("\\", "/");
+	full_dir = full_dir.replace_char('\\', '/');
 
 	String base;
 

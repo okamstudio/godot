@@ -525,8 +525,7 @@ String GLTFDocument::_gen_unique_animation_name(Ref<GLTFState> p_state, const St
 
 String GLTFDocument::_sanitize_bone_name(const String &p_name) {
 	String bone_name = p_name;
-	bone_name = bone_name.replace(":", "_");
-	bone_name = bone_name.replace("/", "_");
+	bone_name = bone_name.replace_chars(":/", '_');
 	return bone_name;
 }
 
@@ -807,7 +806,7 @@ Error GLTFDocument::_parse_buffers(Ref<GLTFState> p_state, const String &p_base_
 				} else { // Relative path to an external image file.
 					ERR_FAIL_COND_V(p_base_path.is_empty(), ERR_INVALID_PARAMETER);
 					uri = uri.uri_decode();
-					uri = p_base_path.path_join(uri).replace("\\", "/"); // Fix for Windows.
+					uri = p_base_path.path_join(uri).replace_char('\\', '/'); // Fix for Windows.
 					ERR_FAIL_COND_V_MSG(!FileAccess::exists(uri), ERR_FILE_NOT_FOUND, "glTF: Binary file not found: " + uri);
 					buffer_data = FileAccess::get_file_as_bytes(uri);
 					ERR_FAIL_COND_V_MSG(buffer_data.is_empty(), ERR_PARSE_ERROR, "glTF: Couldn't load binary file as an array: " + uri);
@@ -4107,7 +4106,7 @@ Error GLTFDocument::_parse_images(Ref<GLTFState> p_state, const String &p_base_p
 			} else { // Relative path to an external image file.
 				ERR_FAIL_COND_V(p_base_path.is_empty(), ERR_INVALID_PARAMETER);
 				uri = uri.uri_decode();
-				uri = p_base_path.path_join(uri).replace("\\", "/"); // Fix for Windows.
+				uri = p_base_path.path_join(uri).replace_char('\\', '/'); // Fix for Windows.
 				resource_uri = uri.simplify_path();
 				// ResourceLoader will rely on the file extension to use the relevant loader.
 				// The spec says that if mimeType is defined, it should take precedence (e.g.

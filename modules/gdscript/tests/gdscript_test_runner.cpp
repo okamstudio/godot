@@ -478,7 +478,7 @@ void GDScriptTest::error_handler(void *p_this, const char *p_function, const cha
 
 	if (include_source_info) {
 		header += vformat(" at %s:%d on %s()",
-				String::utf8(p_file).trim_prefix(self->base_dir).replace("\\", "/"),
+				String::utf8(p_file).trim_prefix(self->base_dir).replace_char('\\', '/'),
 				p_line,
 				String::utf8(p_function));
 	}

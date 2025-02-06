@@ -49,7 +49,7 @@ private:
 		// If path contains \, it's a Windows path, so we need to convert it to /, and check as case-insensitive.
 		if (p_path.contains_char('\\')) {
 			String project_path = ProjectSettings::get_singleton()->get_resource_path();
-			String path = p_path.replace("\\", "/");
+			String path = p_path.replace_char('\\', '/');
 			return path.containsn(project_path);
 		}
 		return p_path.begins_with(ProjectSettings::get_singleton()->get_resource_path());

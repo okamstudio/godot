@@ -102,7 +102,8 @@ const Vector<String> classes_with_csharp_differences = {
 };
 #endif
 
-static const String nbsp = String::chr(160);
+static const char32_t nbsp_chr = 160;
+static const String nbsp = String::chr(nbsp_chr);
 static const String nbsp_equal_nbsp = nbsp + "=" + nbsp;
 static const String colon_nbsp = ":" + nbsp;
 
@@ -120,7 +121,7 @@ const Vector<String> packed_array_types = {
 };
 
 static String _replace_nbsp_with_space(const String &p_string) {
-	return p_string.replace(nbsp, " ");
+	return p_string.replace_char(nbsp_chr, ' ');
 }
 
 static String _fix_constant(const String &p_constant) {

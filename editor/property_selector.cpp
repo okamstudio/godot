@@ -81,7 +81,7 @@ void PropertySelector::_update_search() {
 	TreeItem *root = search_options->create_item();
 
 	// Allow using spaces in place of underscores in the search string (makes the search more fault-tolerant).
-	const String search_text = search_box->get_text().replace(" ", "_");
+	const String search_text = search_box->get_text().replace_char(' ', '_');
 
 	if (properties) {
 		List<PropertyInfo> props;

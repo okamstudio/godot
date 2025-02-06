@@ -144,7 +144,7 @@ void PluginConfigDialog::_on_required_text_changed() {
 }
 
 String PluginConfigDialog::_get_subfolder() {
-	return subfolder_edit->get_text().is_empty() ? name_edit->get_text().replace(" ", "_").to_lower() : subfolder_edit->get_text();
+	return subfolder_edit->get_text().is_empty() ? name_edit->get_text().replace_char(' ', '_').to_lower() : subfolder_edit->get_text();
 }
 
 String PluginConfigDialog::_to_absolute_plugin_path(const String &p_plugin_name) {

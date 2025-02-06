@@ -173,7 +173,7 @@ String ProjectSettings::localize_path(const String &p_path) const {
 
 	if (dir->change_dir(path) == OK) {
 		String cwd = dir->get_current_dir();
-		cwd = cwd.replace("\\", "/");
+		cwd = cwd.replace_char('\\', '/');
 
 		// Ensure that we end with a '/'.
 		// This is important to ensure that we do not wrongly localize the resource path
@@ -582,7 +582,7 @@ Error ProjectSettings::_setup(const String &p_path, const String &p_main_pack, b
 	if (!OS::get_singleton()->get_resource_dir().is_empty()) {
 		// OS will call ProjectSettings->get_resource_path which will be empty if not overridden!
 		// If the OS would rather use a specific location, then it will not be empty.
-		resource_path = OS::get_singleton()->get_resource_dir().replace("\\", "/");
+		resource_path = OS::get_singleton()->get_resource_dir().replace_char('\\', '/');
 		if (!resource_path.is_empty() && resource_path[resource_path.length() - 1] == '/') {
 			resource_path = resource_path.substr(0, resource_path.length() - 1); // Chop end.
 		}
@@ -703,7 +703,7 @@ Error ProjectSettings::_setup(const String &p_path, const String &p_main_pack, b
 	while (true) {
 		// Set the resource path early so things can be resolved when loading.
 		resource_path = current_dir;
-		resource_path = resource_path.replace("\\", "/"); // Windows path to Unix path just in case.
+		resource_path = resource_path.replace_char('\\', '/'); // Windows path to Unix path just in case.
 		err = _load_settings_text_or_binary(current_dir.path_join("project.godot"), current_dir.path_join("project.binary"));
 		if (err == OK && !p_ignore_override) {
 			// Optional, we don't mind if it fails.

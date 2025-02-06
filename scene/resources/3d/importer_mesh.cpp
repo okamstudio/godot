@@ -38,12 +38,7 @@
 #include <cstdint>
 
 String ImporterMesh::validate_blend_shape_name(const String &p_name) {
-	String name = p_name;
-	const char *characters = ":";
-	for (const char *p = characters; *p; p++) {
-		name = name.replace(String::chr(*p), "_");
-	}
-	return name;
+	return p_name.replace_char(':', '_');
 }
 
 void ImporterMesh::add_blend_shape(const String &p_name) {

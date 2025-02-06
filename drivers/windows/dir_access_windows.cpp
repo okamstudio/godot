@@ -70,17 +70,17 @@ struct DirAccessWindowsPrivate {
 };
 
 String DirAccessWindows::fix_path(const String &p_path) const {
-	String r_path = DirAccess::fix_path(p_path.trim_prefix(R"(\\?\)").replace("\\", "/"));
+	String r_path = DirAccess::fix_path(p_path.trim_prefix(R"(\\?\)").replace_char('\\', '/'));
 	if (r_path.ends_with(":")) {
 		r_path += "/";
 	}
 	if (r_path.is_relative_path()) {
-		r_path = current_dir.trim_prefix(R"(\\?\)").replace("\\", "/").path_join(r_path);
+		r_path = current_dir.trim_prefix(R"(\\?\)").replace_char('\\', '/').path_join(r_path);
 	} else if (r_path == ".") {
-		r_path = current_dir.trim_prefix(R"(\\?\)").replace("\\", "/");
+		r_path = current_dir.trim_prefix(R"(\\?\)").replace_char('\\', '/');
 	}
 	r_path = r_path.simplify_path();
-	r_path = r_path.replace("/", "\\");
+	r_path = r_path.replace_char('/', '\\');
 	if (!r_path.is_network_share_path() && !r_path.begins_with(R"(\\?\)")) {
 		r_path = R"(\\?\)" + r_path;
 	}
@@ -167,7 +167,7 @@ Error DirAccessWindows::change_dir(String p_dir) {
 		str_len = GetCurrentDirectoryW(0, nullptr);
 		real_current_dir_name.resize(str_len + 1);
 		GetCurrentDirectoryW(real_current_dir_name.size(), (LPWSTR)real_current_dir_name.ptrw());
-		String new_dir = String::utf16((const char16_t *)real_current_dir_name.get_data()).trim_prefix(R"(\\?\)").replace("\\", "/");
+		String new_dir = String::utf16((const char16_t *)real_current_dir_name.get_data()).trim_prefix(R"(\\?\)").replace_char('\\', '/');
 		if (!new_dir.begins_with(base)) {
 			worked = false;
 		}
@@ -215,7 +215,7 @@ Error DirAccessWindows::make_dir(String p_dir) {
 }
 
 String DirAccessWindows::get_current_dir(bool p_include_drive) const {
-	String cdir = current_dir.trim_prefix(R"(\\?\)").replace("\\", "/");
+	String cdir = current_dir.trim_prefix(R"(\\?\)").replace_char('\\', '/');
 	String base = _get_root_path();
 	if (!base.is_empty()) {
 		String bd = cdir.replace_first(base, "");
@@ -419,7 +419,7 @@ String DirAccessWindows::read_link(String p_file) {
 	GetFinalPathNameByHandleW(hfile, (LPWSTR)cs.ptrw(), ret, VOLUME_NAME_DOS | FILE_NAME_NORMALIZED);
 	CloseHandle(hfile);
 
-	return String::utf16((const char16_t *)cs.ptr(), ret).trim_prefix(R"(\\?\)").replace("\\", "/");
+	return String::utf16((const char16_t *)cs.ptr(), ret).trim_prefix(R"(\\?\)").replace_char('\\', '/');
 }
 
 Error DirAccessWindows::create_link(String p_source, String p_target) {

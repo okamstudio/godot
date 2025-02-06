@@ -167,7 +167,7 @@ extern void CrashHandlerException(int signal) {
 	if (FileAccess::exists(_execpath + ".debugsymbols")) {
 		_execpath = _execpath + ".debugsymbols";
 	}
-	_execpath = _execpath.replace("/", "\\");
+	_execpath = _execpath.replace_char('/', '\\');
 
 	CharString cs = _execpath.utf8(); // Note: should remain in scope during backtrace_simple call.
 	data.state = backtrace_create_state(cs.get_data(), 0, &error_callback, reinterpret_cast<void *>(&data));

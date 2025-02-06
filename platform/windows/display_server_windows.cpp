@@ -337,7 +337,7 @@ public:
 		if (!lpw_path) {
 			return S_FALSE;
 		}
-		String path = String::utf16((const char16_t *)lpw_path).replace("\\", "/").trim_prefix(R"(\\?\)").simplify_path();
+		String path = String::utf16((const char16_t *)lpw_path).replace_char('\\', '/').trim_prefix(R"(\\?\)").simplify_path();
 		if (!path.begins_with(root.simplify_path())) {
 			return S_FALSE;
 		}
@@ -572,13 +572,13 @@ void DisplayServerWindows::_thread_fd_monitor(void *p_ud) {
 			current_dir_name.resize(str_len + 1);
 			GetCurrentDirectoryW(current_dir_name.size(), (LPWSTR)current_dir_name.ptrw());
 			if (dir == ".") {
-				dir = String::utf16((const char16_t *)current_dir_name.get_data()).trim_prefix(R"(\\?\)").replace("\\", "/");
+				dir = String::utf16((const char16_t *)current_dir_name.get_data()).trim_prefix(R"(\\?\)").replace_char('\\', '/');
 			} else {
-				dir = String::utf16((const char16_t *)current_dir_name.get_data()).trim_prefix(R"(\\?\)").replace("\\", "/").path_join(dir);
+				dir = String::utf16((const char16_t *)current_dir_name.get_data()).trim_prefix(R"(\\?\)").replace_char('\\', '/').path_join(dir);
 			}
 		}
 		dir = dir.simplify_path();
-		dir = dir.trim_prefix(R"(\\?\)").replace("/", "\\");
+		dir = dir.trim_prefix(R"(\\?\)").replace_char('/', '\\');
 
 		IShellItem *shellitem = nullptr;
 		hr = SHCreateItemFromParsingName((LPCWSTR)dir.utf16().ptr(), nullptr, IID_IShellItem, (void **)&shellitem);
@@ -621,7 +621,7 @@ void DisplayServerWindows::_thread_fd_monitor(void *p_ud) {
 						PWSTR file_path = nullptr;
 						hr = result->GetDisplayName(SIGDN_FILESYSPATH, &file_path);
 						if (SUCCEEDED(hr)) {
-							file_names.push_back(String::utf16((const char16_t *)file_path).replace("\\", "/").trim_prefix(R"(\\?\)"));
+							file_names.push_back(String::utf16((const char16_t *)file_path).replace_char('\\', '/').trim_prefix(R"(\\?\)"));
 							CoTaskMemFree(file_path);
 						}
 						result->Release();
@@ -635,7 +635,7 @@ void DisplayServerWindows::_thread_fd_monitor(void *p_ud) {
 					PWSTR file_path = nullptr;
 					hr = result->GetDisplayName(SIGDN_FILESYSPATH, &file_path);
 					if (SUCCEEDED(hr)) {
-						file_names.push_back(String::utf16((const char16_t *)file_path).replace("\\", "/").trim_prefix(R"(\\?\)"));
+						file_names.push_back(String::utf16((const char16_t *)file_path).replace_char('\\', '/').trim_prefix(R"(\\?\)"));
 						CoTaskMemFree(file_path);
 					}
 					result->Release();
@@ -6897,7 +6897,7 @@ DisplayServerWindows::DisplayServerWindows(const String &p_rendering_driver, Win
 		HKEY key;
 		if (RegOpenKeyW(HKEY_CURRENT_USER_LOCAL_SETTINGS, L"Software\\Microsoft\\Windows\\Shell\\MuiCache", &key) == ERROR_SUCCESS) {
 			Char16String cs_name = name.utf16();
-			String value_name = OS::get_singleton()->get_executable_path().replace("/", "\\") + ".FriendlyAppName";
+			String value_name = OS::get_singleton()->get_executable_path().replace_char('/', '\\') + ".FriendlyAppName";
 			RegSetValueExW(key, (LPCWSTR)value_name.utf16().get_data(), 0, REG_SZ, (const BYTE *)cs_name.get_data(), cs_name.size() * sizeof(WCHAR));
 			RegCloseKey(key);
 		}

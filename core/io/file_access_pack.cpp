@@ -550,7 +550,7 @@ String DirAccessPack::get_drive(int p_drive) {
 }
 
 PackedData::PackedDir *DirAccessPack::_find_dir(const String &p_dir) {
-	String nd = p_dir.replace("\\", "/");
+	String nd = p_dir.replace_char('\\', '/');
 
 	// Special handling since simplify_path() will forbid it
 	if (p_dir == "..") {

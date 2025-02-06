@@ -442,6 +442,27 @@ TEST_CASE("[String] Find and replace") {
 	MULTICHECK_STRING_STRING_EQ(s, replacen, "Y", "Y", "HappY BirthdaY, Anna!");
 }
 
+TEST_CASE("[String] replace_char") {
+	String s = "Banana";
+	CHECK(s.replace_char('n', 'x') == "Baxaxa");
+	CHECK(s.replace_char('\0', 'x') == "Banana");
+	ERR_PRINT_OFF
+	CHECK(s.replace_char('n', '\0') == "Banana");
+	ERR_PRINT_ON
+}
+
+TEST_CASE("[String] replace_chars") {
+	String s = "Banana";
+	CHECK(s.replace_chars(String("Bn"), 'x') == "xaxaxa");
+	CHECK(s.replace_chars("Bn", 'x') == "xaxaxa");
+	CHECK(s.replace_chars(String(), 'x') == "Banana");
+	CHECK(s.replace_chars("", 'x') == "Banana");
+	ERR_PRINT_OFF
+	CHECK(s.replace_chars(String("Bn"), '\0') == "Banana");
+	CHECK(s.replace_chars("Bn", '\0') == "Banana");
+	ERR_PRINT_ON
+}
+
 TEST_CASE("[String] Insertion") {
 	String s = "Who is Frederic?";
 	s = s.insert(s.find("?"), " Chopin");

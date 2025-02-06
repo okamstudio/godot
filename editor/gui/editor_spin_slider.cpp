@@ -566,8 +566,8 @@ void EditorSpinSlider::_evaluate_input_text() {
 	expr.instantiate();
 
 	// Convert commas ',' to dots '.' for French/German etc. keyboard layouts.
-	String text = value_input->get_text().replace(",", ".");
-	text = text.replace(";", ",");
+	String text = value_input->get_text().replace_char(',', '.');
+	text = text.replace_char(';', ',');
 	text = TS->parse_number(text);
 
 	Error err = expr->parse(text);

@@ -476,7 +476,7 @@ void EditorPropertyOTVariation::update_property() {
 			String name = TS->tag_to_name(name_tag);
 			String name_cap;
 			{
-				String aux = name.replace("_", " ").strip_edges();
+				String aux = name.replace_char('_', ' ').strip_edges();
 				for (int j = 0; j < aux.get_slice_count(" "); j++) {
 					String slice = aux.get_slicec(' ', j);
 					if (slice.length() > 0) {

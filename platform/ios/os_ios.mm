@@ -353,11 +353,11 @@ String OS_IOS::get_locale() const {
 	NSString *preferredLanguage = [NSLocale preferredLanguages].firstObject;
 
 	if (preferredLanguage) {
-		return String::utf8([preferredLanguage UTF8String]).replace("-", "_");
+		return String::utf8([preferredLanguage UTF8String]).replace_char('-', '_');
 	}
 
 	NSString *localeIdentifier = [[NSLocale currentLocale] localeIdentifier];
-	return String::utf8([localeIdentifier UTF8String]).replace("-", "_");
+	return String::utf8([localeIdentifier UTF8String]).replace_char('-', '_');
 }
 
 String OS_IOS::get_unique_id() const {

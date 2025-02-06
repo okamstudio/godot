@@ -151,7 +151,7 @@ int EGLManager::_get_gldisplay_id(void *p_display) {
 String EGLManager::shader_cache_dir;
 
 void EGLManager::_set_cache(const void *p_key, EGLsizeiANDROID p_key_size, const void *p_value, EGLsizeiANDROID p_value_size) {
-	String name = CryptoCore::b64_encode_str((const uint8_t *)p_key, p_key_size).replace("/", "_");
+	String name = CryptoCore::b64_encode_str((const uint8_t *)p_key, p_key_size).replace_char('/', '_');
 	String path = shader_cache_dir.path_join(name) + ".cache";
 
 	Error err = OK;
@@ -163,7 +163,7 @@ void EGLManager::_set_cache(const void *p_key, EGLsizeiANDROID p_key_size, const
 }
 
 EGLsizeiANDROID EGLManager::_get_cache(const void *p_key, EGLsizeiANDROID p_key_size, void *p_value, EGLsizeiANDROID p_value_size) {
-	String name = CryptoCore::b64_encode_str((const uint8_t *)p_key, p_key_size).replace("/", "_");
+	String name = CryptoCore::b64_encode_str((const uint8_t *)p_key, p_key_size).replace_char('/', '_');
 	String path = shader_cache_dir.path_join(name) + ".cache";
 
 	Error err = OK;
