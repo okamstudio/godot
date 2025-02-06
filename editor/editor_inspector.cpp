@@ -3049,9 +3049,10 @@ void EditorInspector::update_tree() {
 
 		Node *nod = Object::cast_to<Node>(object);
 		Node *es = EditorNode::get_singleton()->get_edited_scene();
-		if (nod && es != nod && nod->get_owner() != es) {
+		if (nod && ((es != nod && nod->get_owner() != es) || (es->get_scene_inherited_state().is_valid() && es->get_scene_inherited_state()->find_node_by_path(es->get_path_to(nod)) >= 0))) {
 			// Draw in warning color edited nodes that are not in the currently edited scene,
-			// as changes may be lost in the future.
+			// or when the edited scene is inherited from another scene, as changes may be
+			// lost in the future.
 			draw_warning = true;
 		} else {
 			if (!all_read_only) {
