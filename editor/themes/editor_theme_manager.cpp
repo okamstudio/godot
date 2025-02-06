@@ -1384,9 +1384,10 @@ void EditorThemeManager::_populate_standard_styles(const Ref<EditorTheme> &p_the
 			p_theme->set_icon("visibility_xray", "PopupMenu", p_theme->get_icon(SNAME("GuiVisibilityXray"), EditorStringName(EditorIcons)));
 
 			p_theme->set_constant("v_separation", "PopupMenu", p_config.forced_even_separation * EDSCALE);
+			p_theme->set_constant("h_separation", "PopupMenu", 4 * EDSCALE);
 			p_theme->set_constant("outline_size", "PopupMenu", 0);
-			p_theme->set_constant("item_start_padding", "PopupMenu", p_config.separation_margin);
-			p_theme->set_constant("item_end_padding", "PopupMenu", p_config.separation_margin);
+			p_theme->set_constant("item_start_padding", "PopupMenu", (((p_config.base_spacing + p_config.extra_spacing / 2) * 2) + 2) * EDSCALE);
+			p_theme->set_constant("item_end_padding", "PopupMenu", (((p_config.base_spacing + p_config.extra_spacing / 2) * 2) + 2) * EDSCALE);
 		}
 	}
 
