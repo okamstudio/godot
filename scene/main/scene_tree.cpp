@@ -60,10 +60,20 @@
 void SceneTreeTimer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_time_left", "time"), &SceneTreeTimer::set_time_left);
 	ClassDB::bind_method(D_METHOD("get_time_left"), &SceneTreeTimer::get_time_left);
+	ClassDB::bind_method(D_METHOD("stop"), &SceneTreeTimer::stop);
+	ClassDB::bind_method(D_METHOD("is_stopped"), &SceneTreeTimer::is_stopped);
 
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "time_left", PROPERTY_HINT_NONE, "suffix:s"), "set_time_left", "get_time_left");
 
 	ADD_SIGNAL(MethodInfo("timeout"));
+}
+
+void SceneTreeTimer::stop() {
+	stopped = true;
+}
+
+bool SceneTreeTimer::is_stopped() const {
+	return stopped;
 }
 
 void SceneTreeTimer::set_time_left(double p_time) {
@@ -648,6 +658,12 @@ void SceneTree::process_timers(double p_delta, bool p_physics_frame) {
 	const double unscaled_delta = Engine::get_singleton()->get_process_step();
 
 	for (List<Ref<SceneTreeTimer>>::Element *E = timers.front(); E;) {
+		if (E->get()->is_stopped()) {
+			//timer got stopped, let's remove it.
+			timers.erase(E);
+			continue;
+		}
+
 		List<Ref<SceneTreeTimer>>::Element *N = E->next();
 		Ref<SceneTreeTimer> timer = E->get();
 

@@ -60,10 +60,16 @@ class SceneTreeTimer : public RefCounted {
 	bool process_in_physics = false;
 	bool ignore_time_scale = false;
 
+private:
+	bool stopped = false;
+
 protected:
 	static void _bind_methods();
 
 public:
+	void stop();
+	bool is_stopped() const;
+
 	void set_time_left(double p_time);
 	double get_time_left() const;
 

@@ -27,6 +27,20 @@
 	</description>
 	<tutorials>
 	</tutorials>
+	<methods>
+		<method name="is_stopped" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns true in case this timer has been stopped.
+			</description>
+		</method>
+		<method name="stop">
+			<return type="void" />
+			<description>
+				Stops this timer at the next time this timer would be processed. No further signals will be emitted.
+			</description>
+		</method>
+	</methods>
 	<members>
 		<member name="time_left" type="float" setter="set_time_left" getter="get_time_left">
 			The time remaining (in seconds).
