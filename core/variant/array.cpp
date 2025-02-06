@@ -233,14 +233,14 @@ void Array::assign(const Array &p_array) {
 		for (int i = 0; i < size; i++) {
 			const Variant &element = source[i];
 			if (element.get_type() != Variant::NIL && (element.get_type() != Variant::OBJECT || !typed.validate_object(element, "assign"))) {
-				ERR_FAIL_MSG(vformat(R"(Unable to convert array index %d from "%s" to "%s".)", i, Variant::get_type_name(element.get_type()), Variant::get_type_name(typed.type)));
+				ERR_FAIL_MSG(vformat(R"(Unable to convert array index %d from "%s" to "%s".)", i, element.get_full_type_name(), typed.get_contained_type_name()));
 			}
 		}
 		_p->array = p_array._p->array;
 		return;
 	}
 	if (typed.type == Variant::OBJECT || source_typed.type == Variant::OBJECT) {
-		ERR_FAIL_MSG(vformat(R"(Cannot assign contents of "Array[%s]" to "Array[%s]".)", Variant::get_type_name(source_typed.type), Variant::get_type_name(typed.type)));
+		ERR_FAIL_MSG(vformat(R"(Cannot assign contents of "Array[%s]" to "Array[%s]".)", source_typed.get_contained_type_name(), typed.get_contained_type_name()));
 	}
 
 	Vector<Variant> array;
@@ -256,11 +256,11 @@ void Array::assign(const Array &p_array) {
 				continue;
 			}
 			if (!Variant::can_convert_strict(value->get_type(), typed.type)) {
-				ERR_FAIL_MSG(vformat(R"(Unable to convert array index %d from "%s" to "%s".)", i, Variant::get_type_name(value->get_type()), Variant::get_type_name(typed.type)));
+				ERR_FAIL_MSG(vformat(R"(Unable to convert array index %d from "%s" to "%s".)", i, value->get_full_type_name(), typed.get_contained_type_name()));
 			}
 			Callable::CallError ce;
 			Variant::construct(typed.type, data[i], &value, 1, ce);
-			ERR_FAIL_COND_MSG(ce.error, vformat(R"(Unable to convert array index %d from "%s" to "%s".)", i, Variant::get_type_name(value->get_type()), Variant::get_type_name(typed.type)));
+			ERR_FAIL_COND_MSG(ce.error, vformat(R"(Unable to convert array index %d from "%s" to "%s".)", i, value->get_full_type_name(), typed.get_contained_type_name()));
 		}
 	} else if (Variant::can_convert_strict(source_typed.type, typed.type)) {
 		// from primitives to different convertible primitives
@@ -268,10 +268,10 @@ void Array::assign(const Array &p_array) {
 			const Variant *value = source + i;
 			Callable::CallError ce;
 			Variant::construct(typed.type, data[i], &value, 1, ce);
-			ERR_FAIL_COND_MSG(ce.error, vformat(R"(Unable to convert array index %d from "%s" to "%s".)", i, Variant::get_type_name(value->get_type()), Variant::get_type_name(typed.type)));
+			ERR_FAIL_COND_MSG(ce.error, vformat(R"(Unable to convert array index %d from "%s" to "%s".)", i, value->get_full_type_name(), typed.get_contained_type_name()));
 		}
 	} else {
-		ERR_FAIL_MSG(vformat(R"(Cannot assign contents of "Array[%s]" to "Array[%s]".)", Variant::get_type_name(source_typed.type), Variant::get_type_name(typed.type)));
+		ERR_FAIL_MSG(vformat(R"(Cannot assign contents of "Array[%s]" to "Array[%s]".)", source_typed.get_contained_type_name(), typed.get_contained_type_name()));
 	}
 
 	_p->array = array;

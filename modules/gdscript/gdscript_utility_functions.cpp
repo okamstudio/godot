@@ -445,7 +445,7 @@ struct GDScriptUtilityFunctionsDefinitions {
 				*r_ret = d.size();
 			} break;
 			default: {
-				*r_ret = vformat(RTR("Value of type '%s' can't provide a length."), Variant::get_type_name(p_args[0]->get_type()));
+				*r_ret = vformat(RTR("Value of type '%s' can't provide a length."), p_args[0]->get_full_type_name());
 				r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 				r_error.argument = 0;
 				r_error.expected = Variant::NIL;

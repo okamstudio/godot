@@ -34,6 +34,7 @@
 #include "core/io/json.h"
 #include "core/io/resource.h"
 #include "core/math/math_funcs.h"
+#include "core/object/script_language.h"
 #include "core/variant/variant_parser.h"
 
 PagedAllocator<Variant::Pools::BucketSmall, true> Variant::Pools::_bucket_small;
@@ -172,6 +173,77 @@ String Variant::get_type_name(Variant::Type p_type) {
 	}
 
 	return "";
+}
+
+String Variant::get_full_type_name() const {
+	switch (get_type()) {
+		case OBJECT: {
+			Object *obj = _get_obj().obj;
+			if (obj == nullptr) {
+				return "Object (null instance)";
+			}
+
+			ObjectID id = _get_obj().id;
+			if (!id.is_ref_counted() && ObjectDB::get_instance(id) == nullptr) {
+				return "Object (previously freed)";
+			}
+
+			String class_name = obj->get_class();
+			Vector<Pair<Ref<Script>, String>> scripts;
+			scripts.push_back({ Object::cast_to<Script>(obj), "{0}[{1}]" });
+			scripts.push_back({ obj->get_script(), "{0} ({1})" });
+
+			for (const Pair<Ref<Script>, String> &script_and_fmt : scripts) {
+				const Ref<Script> &script = script_and_fmt.first;
+				const String &fmt = script_and_fmt.second;
+				if (script.is_null()) {
+					continue;
+				}
+
+				String script_name = script->get_global_name();
+				if (script_name.is_empty()) {
+					script_name = script->get_path();
+				}
+				if (!script_name.is_empty()) {
+					Array format_values;
+					format_values.push_back(class_name);
+					format_values.push_back(script_name);
+					class_name = fmt.format(format_values);
+				}
+			}
+
+			return class_name;
+		}
+		case ARRAY: {
+			const Array &arr = *reinterpret_cast<const Array *>(_data._mem);
+			if (!arr.is_typed()) {
+				return "Array";
+			}
+
+			String contained_typename;
+			if (arr.get_typed_builtin() != OBJECT) {
+				contained_typename = get_type_name(get_type());
+			} else {
+				contained_typename = arr.get_typed_class_name();
+				if (contained_typename.is_empty()) {
+					contained_typename = "Object";
+				}
+				Ref<Script> script = arr.get_typed_script();
+				if (!script.is_null()) {
+					String script_name = script->get_global_name();
+					if (script_name.is_empty()) {
+						script_name = script->get_path();
+					}
+					contained_typename += " (" + script_name + ")";
+				}
+			}
+
+			return "Array[" + contained_typename + "]";
+		}
+		default: {
+			return get_type_name(get_type());
+		}
+	}
 }
 
 Variant::Type Variant::get_type_by_name(const String &p_type_name) {
@@ -3520,7 +3592,7 @@ String Variant::get_call_error_text(Object *p_base, const StringName &p_method, 
 	if (ce.error == Callable::CallError::CALL_ERROR_INVALID_ARGUMENT) {
 		int errorarg = ce.argument;
 		if (p_argptrs) {
-			err_text = "Cannot convert argument " + itos(errorarg + 1) + " from " + Variant::get_type_name(p_argptrs[errorarg]->get_type()) + " to " + Variant::get_type_name(Variant::Type(ce.expected));
+			err_text = "Cannot convert argument " + itos(errorarg + 1) + " from " + p_argptrs[errorarg]->get_full_type_name() + " to " + Variant::get_type_name(Variant::Type(ce.expected));
 		} else {
 			err_text = "Cannot convert argument " + itos(errorarg + 1) + " from [missing argptr, type unknown] to " + Variant::get_type_name(Variant::Type(ce.expected));
 		}

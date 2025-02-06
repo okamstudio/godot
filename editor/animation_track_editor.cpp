@@ -2825,7 +2825,7 @@ String AnimationTrackEdit::get_tooltip(const Point2 &p_pos) const {
 				} break;
 				case Animation::TYPE_VALUE: {
 					const Variant &v = animation->track_get_key_value(track, key_idx);
-					text += TTR("Type:") + " " + Variant::get_type_name(v.get_type()) + "\n";
+					text += TTR("Type:") + " " + v.get_full_type_name() + "\n";
 					Variant::Type valid_type = Variant::NIL;
 					text += TTR("Value:") + " " + String(v);
 					if (!_is_value_key_valid(v, valid_type)) {

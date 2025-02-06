@@ -46,6 +46,32 @@ struct ContainerTypeValidate {
 	Ref<Script> script;
 	const char *where = "container";
 
+	String get_contained_type_name() const {
+		if (type == Variant::NIL) {
+			return "";
+		}
+
+		String contained_typename;
+		if (type != Variant::OBJECT) {
+			contained_typename = Variant::get_type_name(type);
+		} else {
+			contained_typename = class_name;
+			if (contained_typename.is_empty()) {
+				contained_typename = "Object";
+			}
+
+			if (!script.is_null()) {
+				String script_name = script->get_global_name();
+				if (script_name.is_empty()) {
+					script_name = script->get_path();
+				}
+				contained_typename += " (" + script_name + ")";
+			}
+		}
+
+		return contained_typename;
+	}
+
 	_FORCE_INLINE_ bool can_reference(const ContainerTypeValidate &p_type) const {
 		if (type != p_type.type) {
 			return false;
@@ -100,7 +126,7 @@ struct ContainerTypeValidate {
 				return true;
 			}
 
-			ERR_FAIL_V_MSG(false, vformat("Attempted to %s a variable of type '%s' into a %s of type '%s'.", String(p_operation), Variant::get_type_name(inout_variant.get_type()), where, Variant::get_type_name(type)));
+			ERR_FAIL_V_MSG(false, vformat("Attempted to %s a variable of type '%s' into a %s of type '%s'.", String(p_operation), inout_variant.get_full_type_name(), where, get_contained_type_name()));
 		}
 
 		if (type != Variant::OBJECT) {

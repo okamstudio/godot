@@ -1,0 +1,1 @@
+class_name GlobalClass1 extends GlobalBase

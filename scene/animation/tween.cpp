@@ -83,7 +83,7 @@ bool Tween::_validate_type_match(const Variant &p_from, Variant &r_to) {
 		} else if (p_from.get_type() == Variant::INT && r_to.get_type() == Variant::FLOAT) {
 			r_to = int(r_to);
 		} else {
-			ERR_FAIL_V_MSG(false, "Type mismatch between initial and final value: " + Variant::get_type_name(p_from.get_type()) + " and " + Variant::get_type_name(r_to.get_type()));
+			ERR_FAIL_V_MSG(false, "Type mismatch between initial and final value: " + p_from.get_full_type_name() + " and " + r_to.get_full_type_name());
 		}
 	}
 	return true;
