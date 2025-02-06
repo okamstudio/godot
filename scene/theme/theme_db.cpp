@@ -49,8 +49,8 @@ void ThemeDB::initialize_theme() {
 	// Allow creating the default theme at a different scale to suit higher/lower base resolutions.
 	float default_theme_scale = GLOBAL_DEF(PropertyInfo(Variant::FLOAT, "gui/theme/default_theme_scale", PROPERTY_HINT_RANGE, "0.5,8,0.01", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), 1.0);
 
-	String project_theme_path = GLOBAL_DEF_RST_BASIC(PropertyInfo(Variant::STRING, "gui/theme/custom", PROPERTY_HINT_FILE, "*.tres,*.res,*.theme", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), "");
-	String project_font_path = GLOBAL_DEF_RST_BASIC(PropertyInfo(Variant::STRING, "gui/theme/custom_font", PROPERTY_HINT_FILE, "*.tres,*.res,*.otf,*.ttf,*.woff,*.woff2,*.fnt,*.font,*.pfb,*.pfm", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), "");
+	String project_theme_path = GLOBAL_DEF_BASIC(PropertyInfo(Variant::STRING, "gui/theme/custom", PROPERTY_HINT_FILE, "*.tres,*.res,*.theme", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), "");
+	String project_font_path = GLOBAL_DEF_BASIC(PropertyInfo(Variant::STRING, "gui/theme/custom_font", PROPERTY_HINT_FILE, "*.tres,*.res,*.otf,*.ttf,*.woff,*.woff2,*.fnt,*.font,*.pfb,*.pfm", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), "");
 
 	TextServer::FontAntialiasing font_antialiasing = (TextServer::FontAntialiasing)(int)GLOBAL_DEF_RST(PropertyInfo(Variant::INT, "gui/theme/default_font_antialiasing", PROPERTY_HINT_ENUM, "None,Grayscale,LCD Subpixel", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), 1);
 	TextServer::Hinting font_hinting = (TextServer::Hinting)(int)GLOBAL_DEF_RST(PropertyInfo(Variant::INT, "gui/theme/default_font_hinting", PROPERTY_HINT_ENUM, "None,Light,Normal", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), TextServer::HINTING_LIGHT);
@@ -412,6 +412,23 @@ void ThemeDB::_sort_theme_items() {
 	}
 }
 
+void ThemeDB::_update_project_settings() {
+	String project_theme_path = GLOBAL_GET("gui/theme/custom");
+	String project_font_path = GLOBAL_GET("gui/theme/custom_font");
+
+	Ref<Theme> new_theme;
+	if (!project_theme_path.is_empty()) {
+		new_theme = ResourceLoader::load(project_theme_path);
+	}
+	set_project_theme(new_theme);
+
+	Ref<Font> new_font;
+	if (!project_font_path.is_empty()) {
+		new_font = ResourceLoader::load(project_font_path);
+	}
+	set_fallback_font(new_font);
+}
+
 // Object methods.
 
 void ThemeDB::_bind_methods() {
@@ -452,6 +469,7 @@ ThemeDB::ThemeDB() {
 	if (MessageQueue::get_singleton()) { // May not exist in tests etc.
 		callable_mp(this, &ThemeDB::_sort_theme_items).call_deferred();
 	}
+	ProjectSettings::get_singleton()->connect("settings_changed", callable_mp(this, &ThemeDB::_update_project_settings));
 }
 
 ThemeDB::~ThemeDB() {

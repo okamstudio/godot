@@ -400,6 +400,7 @@ void EditorNode::_update_vsync_mode() {
 
 void EditorNode::_update_from_settings() {
 	_update_title();
+	_update_project_theme(true);
 
 	int current_filter = GLOBAL_GET("rendering/textures/canvas_textures/default_texture_filter");
 	if (current_filter != scene_root->get_default_canvas_item_texture_filter()) {
@@ -564,6 +565,34 @@ void EditorNode::_update_theme(bool p_skip_creation) {
 
 	editor_dock_manager->update_tab_styles();
 	editor_dock_manager->set_tab_icon_max_width(theme->get_constant(SNAME("class_icon_size"), EditorStringName(Editor)));
+}
+
+void EditorNode::_update_project_theme(bool p_also_update_previews) {
+	String project_theme_path = GLOBAL_GET("gui/theme/custom");
+	String project_font_path = GLOBAL_GET("gui/theme/custom_font");
+	bool changed = false;
+
+	Ref<Theme> new_theme;
+	if (!project_theme_path.is_empty()) {
+		new_theme = ResourceLoader::load(project_theme_path);
+	}
+	if (new_theme != project_theme) {
+		project_theme = new_theme;
+		changed = true;
+	}
+
+	Ref<Font> new_font;
+	if (!project_font_path.is_empty()) {
+		new_font = ResourceLoader::load(project_font_path);
+	}
+	if (new_font != project_font) {
+		project_font = new_font;
+		changed = true;
+	}
+
+	if (changed && p_also_update_previews && CanvasItemEditor::get_singleton()->get_theme_preview() == CanvasItemEditor::THEME_PREVIEW_PROJECT) {
+		callable_mp(this, &EditorNode::update_preview_themes).call_deferred(CanvasItemEditor::THEME_PREVIEW_PROJECT);
+	}
 }
 
 void EditorNode::update_preview_themes(int p_mode) {
@@ -762,6 +791,7 @@ void EditorNode::_notification(int p_what) {
 			}
 
 			_titlebar_resized();
+			_update_project_theme(false);
 
 			// Set up a theme context for the 2D preview viewport using the stored preview theme.
 			CanvasItemEditor::ThemePreviewMode theme_preview_mode = (CanvasItemEditor::ThemePreviewMode)(int)EditorSettings::get_singleton()->get_project_metadata("2d_editor", "theme_preview", CanvasItemEditor::THEME_PREVIEW_PROJECT);
