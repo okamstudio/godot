@@ -4831,8 +4831,19 @@ LRESULT DisplayServerWindows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 				PACKET packet;
 				if (wintab_WTPacket(windows[window_id].wtctx, wParam, &packet)) {
 					POINT coords;
-					GetCursorPos(&coords);
-					ScreenToClient(windows[window_id].hWnd, &coords);
+					coords.x = packet.pkX;
+					coords.y = packet.pkY;
+					if (win81p_LogicalToPhysicalPointForPerMonitorDPI && win81p_PhysicalToLogicalPointForPerMonitorDPI) {
+						win81p_LogicalToPhysicalPointForPerMonitorDPI(0, &coords);
+						win81p_PhysicalToLogicalPointForPerMonitorDPI(windows[window_id].hWnd, &coords);
+					} else {
+						ScreenToClient(windows[window_id].hWnd, &coords);
+					}
+
+					// Event outside window area, ignore.
+					if (coords.x < 0 || coords.y < 0 || coords.x > windows[window_id].width || coords.y > windows[window_id].height) {
+						break;
+					}
 
 					windows[window_id].last_pressure_update = 0;
 
@@ -6037,8 +6048,8 @@ void DisplayServerWindows::_update_tablet_ctx(const String &p_old_driver, const 
 		if ((p_new_driver == "wintab") && wintab_available) {
 			wintab_WTInfo(WTI_DEFSYSCTX, 0, &wd.wtlc);
 			wd.wtlc.lcOptions |= CXO_MESSAGES;
-			wd.wtlc.lcPktData = PK_STATUS | PK_NORMAL_PRESSURE | PK_TANGENT_PRESSURE | PK_ORIENTATION;
-			wd.wtlc.lcMoveMask = PK_STATUS | PK_NORMAL_PRESSURE | PK_TANGENT_PRESSURE;
+			wd.wtlc.lcPktData = PK_STATUS | PK_NORMAL_PRESSURE | PK_TANGENT_PRESSURE | PK_X | PK_Y | PK_ORIENTATION;
+			wd.wtlc.lcMoveMask = PK_STATUS | PK_NORMAL_PRESSURE | PK_TANGENT_PRESSURE | PK_X | PK_Y;
 			wd.wtlc.lcPktMode = 0;
 			wd.wtlc.lcOutOrgX = 0;
 			wd.wtlc.lcOutExtX = wd.wtlc.lcInExtX;
@@ -6263,8 +6274,8 @@ DisplayServer::WindowID DisplayServerWindows::_create_window(WindowMode p_mode, 
 		if ((tablet_get_current_driver() == "wintab") && wintab_available) {
 			wintab_WTInfo(WTI_DEFSYSCTX, 0, &wd.wtlc);
 			wd.wtlc.lcOptions |= CXO_MESSAGES;
-			wd.wtlc.lcPktData = PK_STATUS | PK_NORMAL_PRESSURE | PK_TANGENT_PRESSURE | PK_ORIENTATION;
-			wd.wtlc.lcMoveMask = PK_STATUS | PK_NORMAL_PRESSURE | PK_TANGENT_PRESSURE;
+			wd.wtlc.lcPktData = PK_STATUS | PK_NORMAL_PRESSURE | PK_TANGENT_PRESSURE | PK_X | PK_Y | PK_ORIENTATION;
+			wd.wtlc.lcMoveMask = PK_STATUS | PK_NORMAL_PRESSURE | PK_TANGENT_PRESSURE | PK_X | PK_Y;
 			wd.wtlc.lcPktMode = 0;
 			wd.wtlc.lcOutOrgX = 0;
 			wd.wtlc.lcOutExtX = wd.wtlc.lcInExtX;

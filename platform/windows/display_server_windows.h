@@ -85,6 +85,8 @@
 
 #define CXO_MESSAGES 0x0004
 #define PK_STATUS 0x0002
+#define PK_X 0x0080
+#define PK_Y 0x0100
 #define PK_NORMAL_PRESSURE 0x0400
 #define PK_TANGENT_PRESSURE 0x0800
 #define PK_ORIENTATION 0x1000
@@ -143,6 +145,8 @@ typedef struct tagORIENTATION {
 
 typedef struct tagPACKET {
 	int pkStatus;
+	LONG pkX;
+	LONG pkY;
 	int pkNormalPressure;
 	int pkTangentPressure;
 	ORIENTATION pkOrientation;
