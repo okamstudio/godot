@@ -48,20 +48,26 @@ void Timer::_notification(int p_what) {
 			if (!processing || timer_process_callback == TIMER_PROCESS_PHYSICS || !is_processing_internal()) {
 				return;
 			}
+
 			if (ignore_time_scale) {
 				time_left -= Engine::get_singleton()->get_process_step();
 			} else {
 				time_left -= get_process_delta_time();
 			}
 
-			if (time_left < 0) {
+			timeouts_in_tick = 0;
+
+			while (time_left < 0 && timeouts_in_tick < max_timeouts_per_tick) {
 				if (!one_shot) {
 					time_left += wait_time;
 				} else {
 					stop();
+					emit_signal(SNAME("timeout"));
+					break;
 				}
 
 				emit_signal(SNAME("timeout"));
+				timeouts_in_tick++;
 			}
 		} break;
 
@@ -69,26 +75,32 @@ void Timer::_notification(int p_what) {
 			if (!processing || timer_process_callback == TIMER_PROCESS_IDLE || !is_physics_processing_internal()) {
 				return;
 			}
+
+			timeouts_in_tick = 0;
 			if (ignore_time_scale) {
 				time_left -= Engine::get_singleton()->get_process_step();
 			} else {
 				time_left -= get_physics_process_delta_time();
 			}
 
-			if (time_left < 0) {
+			while (time_left < 0 && timeouts_in_tick < max_timeouts_per_tick) {
 				if (!one_shot) {
 					time_left += wait_time;
 				} else {
 					stop();
+					emit_signal(SNAME("timeout"));
+					break;
 				}
+
 				emit_signal(SNAME("timeout"));
+				timeouts_in_tick++;
 			}
 		} break;
 	}
 }
 
 void Timer::set_wait_time(double p_time) {
-	ERR_FAIL_COND_MSG(p_time <= 0, "Time should be greater than zero.");
+	ERR_FAIL_COND_MSG(p_time <= 0, "Wait time must be greater than zero.");
 	wait_time = p_time;
 	update_configuration_warnings();
 }
@@ -99,6 +111,7 @@ double Timer::get_wait_time() const {
 
 void Timer::set_one_shot(bool p_one_shot) {
 	one_shot = p_one_shot;
+	notify_property_list_changed();
 }
 
 bool Timer::is_one_shot() const {
@@ -111,6 +124,16 @@ void Timer::set_autostart(bool p_start) {
 
 bool Timer::has_autostart() const {
 	return autostart;
+}
+
+void Timer::set_max_timeouts_per_tick(int p_max_timeouts) {
+	ERR_FAIL_COND_MSG(p_max_timeouts <= 0, "Maximum timeouts per tick must be greater than zero.");
+	max_timeouts_per_tick = p_max_timeouts;
+	update_configuration_warnings();
+}
+
+int Timer::get_max_timeouts_per_tick() const {
+	return max_timeouts_per_tick;
 }
 
 void Timer::start(double p_time) {
@@ -196,11 +219,17 @@ void Timer::_set_process(bool p_process, bool p_force) {
 	processing = p_process;
 }
 
+void Timer::_validate_property(PropertyInfo &p_property) const {
+	if (one_shot && p_property.name == "max_timeouts_per_tick") {
+		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
+	}
+}
+
 PackedStringArray Timer::get_configuration_warnings() const {
 	PackedStringArray warnings = Node::get_configuration_warnings();
 
-	if (wait_time < 0.05 - CMP_EPSILON) {
-		warnings.push_back(RTR("Very low timer wait times (< 0.05 seconds) may behave in significantly different ways depending on the rendered or physics frame rate.\nConsider using a script's process loop instead of relying on a Timer for very low wait times."));
+	if (wait_time < 0.05 - CMP_EPSILON && max_timeouts_per_tick < 2) {
+		warnings.push_back(RTR("Very low timer wait times (< 0.05 seconds) may behave in significantly different ways depending on the rendered or physics frame rate if Maximum Timeouts per Tick is too low.\nConsider increasing Max Timeouts per Tick to a higher value."));
 	}
 
 	return warnings;
@@ -215,6 +244,9 @@ void Timer::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_autostart", "enable"), &Timer::set_autostart);
 	ClassDB::bind_method(D_METHOD("has_autostart"), &Timer::has_autostart);
+
+	ClassDB::bind_method(D_METHOD("set_max_timeouts_per_tick", "max_timeouts"), &Timer::set_max_timeouts_per_tick);
+	ClassDB::bind_method(D_METHOD("get_max_timeouts_per_tick"), &Timer::get_max_timeouts_per_tick);
 
 	ClassDB::bind_method(D_METHOD("start", "time_sec"), &Timer::start, DEFVAL(-1));
 	ClassDB::bind_method(D_METHOD("stop"), &Timer::stop);
@@ -238,6 +270,7 @@ void Timer::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "wait_time", PROPERTY_HINT_RANGE, "0.001,4096,0.001,or_greater,exp,suffix:s"), "set_wait_time", "get_wait_time");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "one_shot"), "set_one_shot", "is_one_shot");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "autostart"), "set_autostart", "has_autostart");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "max_timeouts_per_tick", PROPERTY_HINT_RANGE, "1,100,1,or_greater"), "set_max_timeouts_per_tick", "get_max_timeouts_per_tick");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "paused", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NONE), "set_paused", "is_paused");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "ignore_time_scale"), "set_ignore_time_scale", "is_ignoring_time_scale");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "time_left", PROPERTY_HINT_NONE, "suffix:s", PROPERTY_USAGE_NONE), "", "get_time_left");

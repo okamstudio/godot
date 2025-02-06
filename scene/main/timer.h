@@ -43,10 +43,14 @@ class Timer : public Node {
 	bool paused = false;
 	bool ignore_time_scale = false;
 
+	int timeouts_in_tick = 0;
+	int max_timeouts_per_tick = 1;
+
 	double time_left = -1.0;
 
 protected:
 	void _notification(int p_what);
+	void _validate_property(PropertyInfo &p_property) const;
 	static void _bind_methods();
 
 public:
@@ -63,6 +67,9 @@ public:
 
 	void set_autostart(bool p_start);
 	bool has_autostart() const;
+
+	void set_max_timeouts_per_tick(int p_max_timeouts);
+	int get_max_timeouts_per_tick() const;
 
 	void start(double p_time = -1);
 	void stop();
