@@ -230,6 +230,86 @@ TEST_CASE("[XMLParser] CDATA") {
 	CHECK_EQ(parser.get_node_type(), XMLParser::NodeType::NODE_ELEMENT_END);
 	CHECK_EQ(parser.get_node_name(), "a");
 }
+
+TEST_CASE("[XMLParser] Whitespace") {
+	constexpr int CASES = 5;
+	String inputs[CASES] = {
+		"<xml><element /></xml>",
+		"<xml>\t<element /></xml>",
+		"<xml>\t\t<element /></xml>",
+		"<xml>\t\t\t<element /></xml>",
+		"<xml>\t\t\t\t<element /></xml>"
+	};
+
+	String results[CASES] = {
+		"", "\t", "\t\t", "\t\t\t", "\t\t\t\t"
+	};
+
+	String trails[CASES] = {
+		"<p>abc</p>",
+		"<p>abc</p>\t",
+		"<p>abc</p>\t\t",
+		"<p>abc</p>\t\t\t",
+		"<p>abc</p>\t\t\t\t"
+	};
+
+	SUBCASE("Ignore Whitespace") {
+		XMLParser parser;
+		for (int i = 0; i < CASES; i++) {
+			REQUIRE_EQ(parser.open_buffer(inputs[i].to_utf8_buffer()), OK);
+			REQUIRE_EQ(parser.read(), OK);
+			REQUIRE_EQ(parser.read(), OK);
+			CHECK_NE(parser.get_node_type(), XMLParser::NodeType::NODE_TEXT);
+		}
+	}
+
+	SUBCASE("Not Ignore Whitespace") {
+		XMLParser parser;
+		parser.set_ignore_whitespace_text(false);
+		for (int i = 0; i < CASES; i++) {
+			REQUIRE_EQ(parser.open_buffer(inputs[i].to_utf8_buffer()), OK);
+			REQUIRE_EQ(parser.read(), OK);
+			REQUIRE_EQ(parser.read(), OK);
+			if (i == 0) {
+				CHECK_NE(parser.get_node_type(), XMLParser::NodeType::NODE_TEXT);
+			} else {
+				CHECK_EQ(parser.get_node_type(), XMLParser::NodeType::NODE_TEXT);
+				CHECK_EQ(parser.get_node_data(), results[i]);
+			}
+		}
+	}
+
+	SUBCASE("Ignore Trailing Whitespace") {
+		XMLParser parser;
+		for (int i = 0; i < CASES; i++) {
+			REQUIRE_EQ(parser.open_buffer(trails[i].to_utf8_buffer()), OK);
+			REQUIRE_EQ(parser.read(), OK);
+			REQUIRE_EQ(parser.read(), OK);
+			REQUIRE_EQ(parser.read(), OK);
+			REQUIRE_EQ(parser.read(), ERR_FILE_EOF);
+		}
+	}
+
+	SUBCASE("Not Ignore Trailing Whitespace") {
+		XMLParser parser;
+		parser.set_ignore_whitespace_text(false);
+		for (int i = 0; i < CASES; i++) {
+			REQUIRE_EQ(parser.open_buffer(trails[i].to_utf8_buffer()), OK);
+			REQUIRE_EQ(parser.read(), OK);
+			REQUIRE_EQ(parser.read(), OK);
+			REQUIRE_EQ(parser.read(), OK);
+			if (i < 2) {
+				// Return EOF if the text has only one character left.
+				REQUIRE_EQ(parser.read(), ERR_FILE_EOF);
+			} else {
+				REQUIRE_EQ(parser.read(), OK);
+				REQUIRE_EQ(parser.get_node_type(), XMLParser::NodeType::NODE_TEXT);
+				CHECK_EQ(parser.get_node_data(), results[i]);
+			}
+		}
+	}
+}
+
 } // namespace TestXMLParser
 
 #endif // TEST_XML_PARSER_H

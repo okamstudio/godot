@@ -43,7 +43,7 @@ class XMLParser : public RefCounted {
 	GDCLASS(XMLParser, RefCounted);
 
 public:
-	//! Enumeration of all supported source text file formats
+	//! Enumeration of all supported source text file formats.
 	enum SourceFormat {
 		SOURCE_ASCII,
 		SOURCE_UTF8,
@@ -73,6 +73,7 @@ private:
 	bool node_empty = false;
 	NodeType node_type = NODE_NONE;
 	uint64_t node_offset = 0;
+	bool ignore_whitespace_text = true; // Do not return EXN_TEXT nodes for pure whitespace.
 
 	struct Attribute {
 		String name;
@@ -87,7 +88,7 @@ private:
 	bool _parse_cdata();
 	void _parse_comment();
 	void _parse_opening_xml_element();
-	void _parse_current_node();
+	bool _parse_current_node();
 
 	_FORCE_INLINE_ void next_char() {
 		if (*P == '\n') {
@@ -109,9 +110,11 @@ public:
 	String get_attribute_value(int p_idx) const;
 	bool has_attribute(const String &p_name) const;
 	String get_named_attribute_value(const String &p_name) const;
-	String get_named_attribute_value_safe(const String &p_name) const; // do not print error if doesn't exist
+	String get_named_attribute_value_safe(const String &p_name) const; // Do not print error if it doesn't exist.
 	bool is_empty() const;
 	int get_current_line() const;
+	void set_ignore_whitespace_text(bool p_ignore);
+	bool get_ignore_whitespace_text();
 
 	void skip_section();
 	Error seek(uint64_t p_pos);

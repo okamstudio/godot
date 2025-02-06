@@ -38,11 +38,10 @@ static inline bool _is_white_space(char c) {
 	return (c == ' ' || c == '\t' || c == '\n' || c == '\r');
 }
 
-//! sets the state that text was found. Returns true if set should be set
+//! Sets the state that text was found. Returns true if set should be set.
 bool XMLParser::_set_text(const char *start, const char *end) {
-	// check if text is more than 2 characters, and if not, check if there is
-	// only white space, so that this text won't be reported
-	if (end - start < 3) {
+	// Drop all whitespace by default.
+	if (ignore_whitespace_text) {
 		const char *p = start;
 		for (; p != end; ++p) {
 			if (!_is_white_space(*p)) {
@@ -55,11 +54,11 @@ bool XMLParser::_set_text(const char *start, const char *end) {
 		}
 	}
 
-	// set current text to the parsed text, and replace xml special characters
+	// Set current text to the parsed text, and replace xml special characters.
 	String s = String::utf8(start, (int)(end - start));
 	node_name = s.xml_unescape();
 
-	// current XML node type is text
+	// Current XML node type is text.
 	node_type = NODE_TEXT;
 
 	return true;
@@ -91,7 +90,7 @@ void XMLParser::_ignore_definition() {
 	node_type = NODE_UNKNOWN;
 
 	const char *F = P;
-	// move until end marked with '>' reached
+	// Move until end marked with '>' reached.
 	while (*P && *P != '>') {
 		next_char();
 	}
@@ -109,7 +108,7 @@ bool XMLParser::_parse_cdata() {
 
 	node_type = NODE_CDATA;
 
-	// skip '<![CDATA['
+	// Skip '<![CDATA['.
 	int count = 0;
 	while (*P && count < 8) {
 		next_char();
@@ -124,7 +123,7 @@ bool XMLParser::_parse_cdata() {
 	const char *cDataBegin = P;
 	const char *cDataEnd = nullptr;
 
-	// find end of CDATA
+	// Find end of CDATA.
 	while (*P && !cDataEnd) {
 		if (*P == '>' &&
 				(*(P - 1) == ']') &&
@@ -199,25 +198,25 @@ void XMLParser::_parse_opening_xml_element() {
 	node_empty = false;
 	attributes.clear();
 
-	// find name
+	// Find name.
 	const char *startName = P;
 
-	// find end of element
+	// Find end of element.
 	while (*P && *P != '>' && !_is_white_space(*P)) {
 		next_char();
 	}
 
 	const char *endName = P;
 
-	// find attributes
+	// Find attributes.
 	while (*P && *P != '>') {
 		if (_is_white_space(*P)) {
 			next_char();
 		} else {
 			if (*P != '/') {
-				// we've got an attribute
+				// We've got an attribute.
 
-				// read the attribute names
+				// Read the attribute names.
 				const char *attributeNameBegin = P;
 
 				while (*P && !_is_white_space(*P) && *P != '=') {
@@ -231,13 +230,13 @@ void XMLParser::_parse_opening_xml_element() {
 				const char *attributeNameEnd = P;
 				next_char();
 
-				// read the attribute value
-				// check for quotes and single quotes, thx to murphy
+				// Read the attribute value.
+				// Check for quotes and single quotes, thx to murphy.
 				while ((*P != '\"') && (*P != '\'') && *P) {
 					next_char();
 				}
 
-				if (!*P) { // malformatted xml file
+				if (!*P) { // Malformatted xml file.
 					break;
 				}
 
@@ -265,7 +264,7 @@ void XMLParser::_parse_opening_xml_element() {
 				attr.value = s.xml_unescape();
 				attributes.push_back(attr);
 			} else {
-				// tag is closed directly
+				// Tag is closed directly.
 				next_char();
 				node_empty = true;
 				break;
@@ -273,9 +272,9 @@ void XMLParser::_parse_opening_xml_element() {
 		}
 	}
 
-	// check if this tag is closing directly
+	// Check if this tag is closing directly.
 	if (endName > startName && *(endName - 1) == '/') {
-		// directly closing tag
+		// Directly closing tag.
 		node_empty = true;
 		endName--;
 	}
@@ -290,29 +289,32 @@ void XMLParser::_parse_opening_xml_element() {
 	}
 }
 
-void XMLParser::_parse_current_node() {
+// Reads the current xml node.
+// Return false if no further node is found.
+bool XMLParser::_parse_current_node() {
 	const char *start = P;
 	node_offset = P - data;
 
-	// more forward until '<' found
+	// More forward until '<' found.
 	while (*P != '<' && *P) {
 		next_char();
 	}
 
 	if (P - start > 0) {
-		// we found some text, store it
+		// We found some text, store it.
 		if (_set_text(start, P)) {
-			return;
+			return true;
 		}
 	}
 
+	// Not a node, so return false.
 	if (!*P) {
-		return;
+		return false;
 	}
 
 	next_char();
 
-	// based on current token, parse and report next element
+	// Based on current token, parse and report next element.
 	switch (*P) {
 		case '/':
 			_parse_closing_xml_element();
@@ -329,6 +331,7 @@ void XMLParser::_parse_current_node() {
 			_parse_opening_xml_element();
 			break;
 	}
+	return true;
 }
 
 uint64_t XMLParser::get_node_offset() const {
@@ -362,6 +365,8 @@ void XMLParser::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("seek", "position"), &XMLParser::seek);
 	ClassDB::bind_method(D_METHOD("open", "file"), &XMLParser::open);
 	ClassDB::bind_method(D_METHOD("open_buffer", "buffer"), &XMLParser::open_buffer);
+	ClassDB::bind_method(D_METHOD("get_ignore_whitespace_text"), &XMLParser::get_ignore_whitespace_text);
+	ClassDB::bind_method(D_METHOD("set_ignore_whitespace_text", "ignore"), &XMLParser::set_ignore_whitespace_text);
 
 	BIND_ENUM_CONSTANT(NODE_NONE);
 	BIND_ENUM_CONSTANT(NODE_ELEMENT);
@@ -373,12 +378,13 @@ void XMLParser::_bind_methods() {
 }
 
 Error XMLParser::read() {
-	// if end not reached, parse the node
+	// If end not reached, parse the node.
+	// Return EOF if the text has only one character left.
 	if (P && (P - data) < (int64_t)length - 1 && *P != 0) {
-		_parse_current_node();
-		return OK;
+		if (_parse_current_node()) {
+			return OK;
+		}
 	}
-
 	return ERR_FILE_EOF;
 }
 
@@ -514,12 +520,12 @@ Error XMLParser::open(const String &p_path) {
 }
 
 void XMLParser::skip_section() {
-	// skip if this element is empty anyway.
+	// Skip if this element is empty anyway.
 	if (is_empty()) {
 		return;
 	}
 
-	// read until we've reached the last element in this section
+	// Read until we've reached the last element in this section.
 	int tagcount = 1;
 
 	while (tagcount && read() == OK) {
@@ -547,6 +553,14 @@ void XMLParser::close() {
 
 int XMLParser::get_current_line() const {
 	return current_line;
+}
+
+void XMLParser::set_ignore_whitespace_text(bool p_ignore) {
+	ignore_whitespace_text = p_ignore;
+}
+
+bool XMLParser::get_ignore_whitespace_text() {
+	return ignore_whitespace_text;
 }
 
 XMLParser::~XMLParser() {

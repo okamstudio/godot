@@ -68,6 +68,12 @@
 				Returns the current line in the parsed file, counting from 0.
 			</description>
 		</method>
+		<method name="get_ignore_whitespace_text">
+			<return type="bool" />
+			<description>
+				Returns whether the parser is set to ignore whitespace text nodes.
+			</description>
+		</method>
 		<method name="get_named_attribute_value" qualifiers="const">
 			<return type="String" />
 			<param index="0" name="name" type="String" />
@@ -145,6 +151,13 @@
 			<param index="0" name="position" type="int" />
 			<description>
 				Moves the buffer cursor to a certain offset (since the beginning) and reads the next node there. This method returns an error code.
+			</description>
+		</method>
+		<method name="set_ignore_whitespace_text">
+			<return type="void" />
+			<param index="0" name="ignore" type="bool" />
+			<description>
+				Sets whether the parser should ignore whitespace text nodes. If set to [code]true[/code], the parser will skip text nodes that contain only whitespace characters.
 			</description>
 		</method>
 		<method name="skip_section">
