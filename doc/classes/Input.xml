@@ -6,6 +6,7 @@
 	<description>
 		The [Input] singleton handles key presses, mouse buttons and movement, gamepads, and input actions. Actions and their events can be set in the [b]Input Map[/b] tab in [b]Project &gt; Project Settings[/b], or with the [InputMap] class.
 		[b]Note:[/b] [Input]'s methods reflect the global input state and are not affected by [method Control.accept_event] or [method Viewport.set_input_as_handled], as those methods only deal with the way input is propagated in the [SceneTree].
+		[b]Note:[/b] Several methods are available in both the [InputEvent] instances and the [Input] singleton. In this case, calling methods on [InputEvent] should be preferred as it has greater context about the input state compared to the [Input] singleton. For example, [method InputEvent.is_action_pressed] checks for echo events and ignores them automatically, while [method Input.is_action_pressed] treats echo events like non-echo events.
 	</description>
 	<tutorials>
 		<link title="Inputs documentation index">$DOCS_URL/tutorials/inputs/index.html</link>

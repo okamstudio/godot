@@ -65,6 +65,7 @@
 				To consume the input event and stop it propagating further to other nodes, [method Viewport.set_input_as_handled] can be called.
 				For gameplay input, [method _unhandled_input] and [method _unhandled_key_input] are usually a better fit as they allow the GUI to intercept the events first.
 				[b]Note:[/b] This method is only called if the node is present in the scene tree (i.e. if it's not an orphan).
+				[b]Note:[/b] Several methods are available in both the [InputEvent] instance that is the [param event] parameter and the [Input] singleton. In this case, calling methods on [InputEvent] should be preferred as it has greater context about the input state compared to the [Input] singleton. For example, [method InputEvent.is_action_pressed] checks for echo events and ignores them automatically, while [method Input.is_action_pressed] treats echo events like non-echo events.
 			</description>
 		</method>
 		<method name="_physics_process" qualifiers="virtual">
@@ -109,6 +110,7 @@
 				To consume the input event and stop it propagating further to other nodes, [method Viewport.set_input_as_handled] can be called.
 				This method can be used to handle shortcuts. For generic GUI events, use [method _input] instead. Gameplay events should usually be handled with either [method _unhandled_input] or [method _unhandled_key_input].
 				[b]Note:[/b] This method is only called if the node is present in the scene tree (i.e. if it's not orphan).
+				[b]Note:[/b] Several methods are available in both the [InputEvent] instance that is the [param event] parameter and the [Input] singleton. In this case, calling methods on [InputEvent] should be preferred as it has greater context about the input state compared to the [Input] singleton. For example, [method InputEvent.is_action_pressed] checks for echo events and ignores them automatically, while [method Input.is_action_pressed] treats echo events like non-echo events.
 			</description>
 		</method>
 		<method name="_unhandled_input" qualifiers="virtual">
@@ -120,6 +122,7 @@
 				To consume the input event and stop it propagating further to other nodes, [method Viewport.set_input_as_handled] can be called.
 				For gameplay input, this method is usually a better fit than [method _input], as GUI events need a higher priority. For keyboard shortcuts, consider using [method _shortcut_input] instead, as it is called before this method. Finally, to handle keyboard events, consider using [method _unhandled_key_input] for performance reasons.
 				[b]Note:[/b] This method is only called if the node is present in the scene tree (i.e. if it's not an orphan).
+				[b]Note:[/b] Several methods are available in both the [InputEvent] instance that is the [param event] parameter and the [Input] singleton. In this case, calling methods on [InputEvent] should be preferred as it has greater context about the input state compared to the [Input] singleton. For example, [method InputEvent.is_action_pressed] checks for echo events and ignores them automatically, while [method Input.is_action_pressed] treats echo events like non-echo events.
 			</description>
 		</method>
 		<method name="_unhandled_key_input" qualifiers="virtual">
@@ -132,6 +135,7 @@
 				This method can be used to handle Unicode character input with [kbd]Alt[/kbd], [kbd]Alt + Ctrl[/kbd], and [kbd]Alt + Shift[/kbd] modifiers, after shortcuts were handled.
 				For gameplay input, this and [method _unhandled_input] are usually a better fit than [method _input], as GUI events should be handled first. This method also performs better than [method _unhandled_input], since unrelated events such as [InputEventMouseMotion] are automatically filtered. For shortcuts, consider using [method _shortcut_input] instead.
 				[b]Note:[/b] This method is only called if the node is present in the scene tree (i.e. if it's not an orphan).
+				[b]Note:[/b] Several methods are available in both the [InputEvent] instance that is the [param event] parameter and the [Input] singleton. In this case, calling methods on [InputEvent] should be preferred as it has greater context about the input state compared to the [Input] singleton. For example, [method InputEvent.is_action_pressed] checks for echo events and ignores them automatically, while [method Input.is_action_pressed] treats echo events like non-echo events.
 			</description>
 		</method>
 		<method name="add_child">
