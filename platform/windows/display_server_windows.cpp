@@ -1570,7 +1570,7 @@ DisplayServer::WindowID DisplayServerWindows::get_window_at_screen_position(cons
 	POINT p;
 	p.x = p_position.x + offset.x;
 	p.y = p_position.y + offset.y;
-	HWND hwnd = WindowFromPoint(p);
+	HWND hwnd = ChildWindowFromPoint(HWND_DESKTOP, p);
 	for (const KeyValue<WindowID, WindowData> &E : windows) {
 		if (E.value.hWnd == hwnd) {
 			return E.key;
