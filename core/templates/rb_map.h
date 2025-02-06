@@ -112,6 +112,16 @@ public:
 			E = E->prev();
 			return *this;
 		}
+		[[nodiscard]] _FORCE_INLINE_ Iterator operator++(int) {
+			Iterator old = *this;
+			operator++();
+			return old;
+		}
+		[[nodiscard]] _FORCE_INLINE_ Iterator operator--(int) {
+			Iterator old = *this;
+			operator--();
+			return old;
+		}
 
 		_FORCE_INLINE_ bool operator==(const Iterator &p_it) const { return E == p_it.E; }
 		_FORCE_INLINE_ bool operator!=(const Iterator &p_it) const { return E != p_it.E; }
@@ -143,6 +153,16 @@ public:
 		_FORCE_INLINE_ ConstIterator &operator--() {
 			E = E->prev();
 			return *this;
+		}
+		[[nodiscard]] _FORCE_INLINE_ ConstIterator operator++(int) {
+			ConstIterator old = *this;
+			operator++();
+			return old;
+		}
+		[[nodiscard]] _FORCE_INLINE_ ConstIterator operator--(int) {
+			ConstIterator old = *this;
+			operator--();
+			return old;
 		}
 
 		_FORCE_INLINE_ bool operator==(const ConstIterator &p_it) const { return E == p_it.E; }

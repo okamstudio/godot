@@ -343,6 +343,16 @@ public:
 			}
 			return *this;
 		}
+		[[nodiscard]] _FORCE_INLINE_ Iterator operator++(int) {
+			Iterator old = *this;
+			operator++();
+			return old;
+		}
+		[[nodiscard]] _FORCE_INLINE_ Iterator operator--(int) {
+			Iterator old = *this;
+			operator--();
+			return old;
+		}
 
 		_FORCE_INLINE_ bool operator==(const Iterator &b) const { return keys == b.keys && index == b.index; }
 		_FORCE_INLINE_ bool operator!=(const Iterator &b) const { return keys != b.keys || index != b.index; }

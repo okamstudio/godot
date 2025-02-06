@@ -997,6 +997,18 @@ Array::Iterator &Array::Iterator::operator--() {
 	return *this;
 }
 
+Array::Iterator Array::Iterator::operator++(int) {
+	Array::Iterator old = *this;
+	operator++();
+	return old;
+}
+
+Array::Iterator Array::Iterator::operator--(int) {
+	Array::Iterator old = *this;
+	operator--();
+	return old;
+}
+
 const Variant &Array::ConstIterator::operator*() const {
 	if (unlikely(read_only)) {
 		*read_only = *element_ptr;
@@ -1021,6 +1033,18 @@ Array::ConstIterator &Array::ConstIterator::operator++() {
 Array::ConstIterator &Array::ConstIterator::operator--() {
 	element_ptr--;
 	return *this;
+}
+
+Array::ConstIterator Array::ConstIterator::operator++(int) {
+	Array::ConstIterator old = *this;
+	operator++();
+	return old;
+}
+
+Array::ConstIterator Array::ConstIterator::operator--(int) {
+	Array::ConstIterator old = *this;
+	operator--();
+	return old;
 }
 
 #endif // VARIANT_H
