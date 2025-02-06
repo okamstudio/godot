@@ -317,7 +317,6 @@ class EditorFileSystem : public Node {
 	void _update_script_documentation();
 	void _process_update_pending();
 	void _process_removed_files(const HashSet<String> &p_processed_files);
-	bool _should_reload_script(const String &p_path);
 
 	Mutex update_scene_mutex;
 	HashSet<String> update_scene_paths;
