@@ -357,7 +357,9 @@ void Skeleton3D::_notification(int p_what) {
 				// Store dirty flags for global bone poses.
 				bone_global_pose_dirty_backup = bone_global_pose_dirty;
 
-				_process_modifiers();
+				if (is_inside_tree()) {
+					_process_modifiers();
+				}
 			}
 
 			// Abort if pose is not changed.
