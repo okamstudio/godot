@@ -61,18 +61,21 @@ void GridMapEditor::_configure() {
 void GridMapEditor::_menu_option(int p_option) {
 	switch (p_option) {
 		case MENU_OPTION_PREV_LEVEL: {
-			floor->set_value(floor->get_value() - 1);
-			if (selection.active && input_action == INPUT_SELECT) {
+			if (selection.active && input_action != INPUT_SELECT) {
 				selection.current[edit_axis]--;
 				_validate_selection();
+			} else {
+				floor->set_value(floor->get_value() - 1);
 			}
+
 		} break;
 
 		case MENU_OPTION_NEXT_LEVEL: {
-			floor->set_value(floor->get_value() + 1);
-			if (selection.active && input_action == INPUT_SELECT) {
+			if (selection.active && input_action != INPUT_SELECT) {
 				selection.current[edit_axis]++;
 				_validate_selection();
+			} else {
+				floor->set_value(floor->get_value() + 1);
 			}
 		} break;
 
