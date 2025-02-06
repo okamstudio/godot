@@ -62,7 +62,7 @@ protected:
 
 public:
 	virtual void update_property() override;
-	void setup(double p_min, double p_max, double p_step = 1.0, bool p_hide_slider = true, bool p_link = false, const String &p_suffix = String(), bool p_radians_as_degrees = false);
+	void setup(double p_min, double p_max, double p_step = 1.0, bool p_hide_slider = true, bool p_link = false, const String &p_suffix = String(), bool p_radians_as_degrees = false, bool p_is_int = false);
 	EditorPropertyVectorN(Variant::Type p_type, bool p_force_wide, bool p_horizontal);
 };
 
