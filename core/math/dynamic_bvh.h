@@ -248,8 +248,6 @@ private:
 
 	_FORCE_INLINE_ void _update(Node *leaf, int lookahead = -1);
 
-	void _extract_leaves(Node *p_node, List<ID> *r_elements);
-
 	_FORCE_INLINE_ bool _ray_aabb(const Vector3 &rayFrom, const Vector3 &rayInvDirection, const unsigned int raySign[3], const Vector3 bounds[2], real_t &tmin, real_t lambda_min, real_t lambda_max) {
 		real_t tmax, tymin, tymax, tzmin, tzmax;
 		tmin = (bounds[raySign[0]].x - rayFrom.x) * rayInvDirection.x;
@@ -294,7 +292,6 @@ public:
 	ID insert(const AABB &p_box, void *p_userdata);
 	bool update(const ID &p_id, const AABB &p_box);
 	void remove(const ID &p_id);
-	void get_elements(List<ID> *r_elements);
 
 	int get_leaf_count() const;
 	int get_max_depth() const;
