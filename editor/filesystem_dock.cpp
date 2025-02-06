@@ -2548,7 +2548,13 @@ void FileSystemDock::_file_option(int p_option, const Vector<String> &p_selected
 		case FILE_COPY_ABSOLUTE_PATH: {
 			if (!p_selected.is_empty()) {
 				const String &fpath = p_selected[0];
+#ifdef WINDOWS_ENABLED
+				// Replace forward slashes with backslashes to make copying to other programs easier,
+				// as many Windows programs only accept paths with backslashes.
+				const String absolute_path = ProjectSettings::get_singleton()->globalize_path(fpath).replace("/", "\\");
+#else
 				const String absolute_path = ProjectSettings::get_singleton()->globalize_path(fpath);
+#endif
 				DisplayServer::get_singleton()->clipboard_set(absolute_path);
 			}
 		} break;
