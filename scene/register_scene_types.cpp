@@ -108,6 +108,8 @@
 #include "scene/resources/animated_texture.h"
 #include "scene/resources/animation_library.h"
 #include "scene/resources/atlas_texture.h"
+#include "scene/resources/audio_stream_graph.h"
+#include "scene/resources/audio_stream_graph_nodes.h"
 #include "scene/resources/audio_stream_polyphonic.h"
 #include "scene/resources/audio_stream_wav.h"
 #include "scene/resources/bit_map.h"
@@ -1011,6 +1013,17 @@ void register_scene_types() {
 	GDREGISTER_CLASS(AudioStreamPlayer);
 	GDREGISTER_CLASS(AudioStreamWAV);
 	GDREGISTER_CLASS(AudioStreamPolyphonic);
+	GDREGISTER_CLASS(AudioStreamGraph);
+	GDREGISTER_ABSTRACT_CLASS(AudioStreamGraphNode);
+	GDREGISTER_ABSTRACT_CLASS(AudioStreamGraphNodePlayback);
+	GDREGISTER_ABSTRACT_CLASS(AudioStreamGraphNodeParameter);
+	GDREGISTER_ABSTRACT_CLASS(AudioStreamPlaybackGraph);
+	GDREGISTER_CLASS(AudioStreamGraphInputNode);
+	GDREGISTER_CLASS(AudioStreamGraphOutputNode);
+	GDREGISTER_CLASS(AudioStreamGraphRandomizerNode);
+	GDREGISTER_CLASS(AudioStreamGraphMixerNode);
+	GDREGISTER_CLASS(AudioStreamGraphModulatorNode);
+	GDREGISTER_CLASS(AudioStreamGraphNodeFloatParameter);
 	GDREGISTER_ABSTRACT_CLASS(AudioStreamPlaybackPolyphonic);
 
 	OS::get_singleton()->yield(); // may take time to init
