@@ -13,6 +13,7 @@
 		[/gdscript]
 		[csharp skip-lint]
 		// The RichTextEffect will be usable like this: `[example]Some text[/example]`
+		// Note that this field cannot be static!
 		string bbcode = "example";
 		[/csharp]
 		[/codeblocks]
