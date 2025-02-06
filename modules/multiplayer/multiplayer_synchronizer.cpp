@@ -278,7 +278,9 @@ void MultiplayerSynchronizer::_bind_methods() {
 	BIND_ENUM_CONSTANT(VISIBILITY_PROCESS_PHYSICS);
 	BIND_ENUM_CONSTANT(VISIBILITY_PROCESS_NONE);
 
+	ADD_SIGNAL(MethodInfo("synchronizing"));
 	ADD_SIGNAL(MethodInfo("synchronized"));
+	ADD_SIGNAL(MethodInfo("delta_synchronizing"));
 	ADD_SIGNAL(MethodInfo("delta_synchronized"));
 	ADD_SIGNAL(MethodInfo("visibility_changed", PropertyInfo(Variant::INT, "for_peer")));
 }

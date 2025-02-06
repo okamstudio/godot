@@ -789,10 +789,11 @@ Error SceneReplicationInterface::on_delta_receive(int p_from, const uint8_t *p_b
 		Error err = MultiplayerAPI::decode_and_decompress_variants(vars, p_buffer + ofs, size, consumed);
 		ERR_FAIL_COND_V(err != OK, err);
 		ERR_FAIL_COND_V(uint32_t(consumed) != size, ERR_INVALID_DATA);
+		sync->emit_signal(SNAME("delta_synchronizing"));
 		err = MultiplayerSynchronizer::set_state(props, node, vars);
+		sync->emit_signal(SNAME("delta_synchronized"));
 		ERR_FAIL_COND_V(err != OK, err);
 		ofs += size;
-		sync->emit_signal(SNAME("delta_synchronized"));
 #ifdef DEBUG_ENABLED
 		_profile_node_data("delta_in", sync->get_instance_id(), size);
 #endif
@@ -890,10 +891,11 @@ Error SceneReplicationInterface::on_sync_receive(int p_from, const uint8_t *p_bu
 		int consumed;
 		Error err = MultiplayerAPI::decode_and_decompress_variants(vars, &p_buffer[ofs], size, consumed);
 		ERR_FAIL_COND_V(err, err);
+		sync->emit_signal(SNAME("synchronizing"));
 		err = MultiplayerSynchronizer::set_state(props, node, vars);
+		sync->emit_signal(SNAME("synchronized"));
 		ERR_FAIL_COND_V(err, err);
 		ofs += size;
-		sync->emit_signal(SNAME("synchronized"));
 #ifdef DEBUG_ENABLED
 		_profile_node_data("sync_in", sync->get_instance_id(), size);
 #endif

@@ -78,9 +78,19 @@
 				Emitted when a new delta synchronization state is received by this synchronizer after the properties have been updated.
 			</description>
 		</signal>
+		<signal name="delta_synchronizing">
+			<description>
+				Emitted when a new delta synchronization state is received by this synchronizer before updating the properties.
+			</description>
+		</signal>
 		<signal name="synchronized">
 			<description>
 				Emitted when a new synchronization state is received by this synchronizer after the properties have been updated.
+			</description>
+		</signal>
+		<signal name="synchronizing">
+			<description>
+				Emitted when a new synchronization state is received by this synchronizer before updating the properties.
 			</description>
 		</signal>
 		<signal name="visibility_changed">
