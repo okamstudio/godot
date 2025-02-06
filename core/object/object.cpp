@@ -558,6 +558,61 @@ void Object::get_property_list(List<PropertyInfo> *p_list, bool p_reversed) cons
 			} else {
 				pi.hint_string = "Resource";
 			}
+		} else if (K.value.get_type() == Variant::ARRAY) {
+			pi.hint = PROPERTY_HINT_TYPE_STRING;
+			const int builtin = Array(K.value).get_typed_builtin();
+			pi.hint_string = itos(builtin);
+			if (builtin == Variant::OBJECT) {
+				pi.hint_string += "/" + itos(PROPERTY_HINT_RESOURCE_TYPE) + ":";
+				const Script *s = Object::cast_to<Script>(Array(K.value).get_typed_script());
+				if (s) {
+					if (s->get_global_name().is_empty()) {
+						pi.hint_string += s->get_instance_base_type();
+					} else {
+						pi.hint_string += s->get_global_name();
+					}
+				} else {
+					pi.hint_string += Array(K.value).get_typed_class_name();
+				}
+			} else {
+				pi.hint_string += ":";
+			}
+		} else if (K.value.get_type() == Variant::DICTIONARY) {
+			pi.hint = PROPERTY_HINT_TYPE_STRING;
+			const int key_builtin = Dictionary(K.value).get_typed_key_builtin();
+			pi.hint_string = itos(key_builtin);
+			if (key_builtin == Variant::OBJECT) {
+				pi.hint_string += "/" + itos(PROPERTY_HINT_RESOURCE_TYPE) + ":";
+				const Script *s = Object::cast_to<Script>(Dictionary(K.value).get_typed_key_script());
+				if (s) {
+					if (s->get_global_name().is_empty()) {
+						pi.hint_string += s->get_instance_base_type();
+					} else {
+						pi.hint_string += s->get_global_name();
+					}
+				} else {
+					pi.hint_string += Dictionary(K.value).get_typed_key_class_name();
+				}
+			} else {
+				pi.hint_string += ":";
+			}
+			const int value_builtin = Dictionary(K.value).get_typed_value_builtin();
+			pi.hint_string += ";" + itos(value_builtin);
+			if (value_builtin == Variant::OBJECT) {
+				pi.hint_string += "/" + itos(PROPERTY_HINT_RESOURCE_TYPE) + ":";
+				const Script *s = Object::cast_to<Script>(Dictionary(K.value).get_typed_value_script());
+				if (s) {
+					if (s->get_global_name().is_empty()) {
+						pi.hint_string += s->get_instance_base_type();
+					} else {
+						pi.hint_string += s->get_global_name();
+					}
+				} else {
+					pi.hint_string += Dictionary(K.value).get_typed_value_class_name();
+				}
+			} else {
+				pi.hint_string += ":";
+			}
 		}
 		p_list->push_back(pi);
 	}
