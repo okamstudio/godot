@@ -9,6 +9,7 @@
 		Viewports can also choose to be audio listeners, so they generate positional audio depending on a 2D or 3D camera child of it.
 		Also, viewports can be assigned to different screens in case the devices have multiple screens.
 		Finally, viewports can also behave as render targets, in which case they will not be visible unless the associated texture is used to draw.
+		[b]Performance:[/b] Rendering an additional [Viewport] has a significant base cost compared to rendering sprites directly, both in terms of GPU utilization and memory usage. If you need to run a shader on the final rendering of various 2D elements, consider using [CanvasGroup] instead.
 	</description>
 	<tutorials>
 		<link title="Using Viewports">$DOCS_URL/tutorials/rendering/viewports.html</link>

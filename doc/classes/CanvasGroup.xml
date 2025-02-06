@@ -23,6 +23,7 @@
 		}
 		[/codeblock]
 		[b]Note:[/b] Since [CanvasGroup] and [member CanvasItem.clip_children] both utilize the backbuffer, children of a [CanvasGroup] who have their [member CanvasItem.clip_children] set to anything other than [constant CanvasItem.CLIP_CHILDREN_DISABLED] will not function correctly.
+		[b]Performance:[/b] Rendering a [CanvasGroup] is faster than rendering an additional [Viewport]. However, rendering a [CanvasGroup] still has a performance impact comparing to rendering sprites directly, as it still switches render targets. This comes with a performance penalty on mobile and some integrated GPUs.
 	</description>
 	<tutorials>
 	</tutorials>
