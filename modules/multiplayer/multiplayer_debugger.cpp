@@ -198,7 +198,7 @@ void MultiplayerDebugger::RPCProfiler::init_node(const ObjectID p_node) {
 	}
 	rpc_node_data.insert(p_node, RPCNodeInfo());
 	rpc_node_data[p_node].node = p_node;
-	rpc_node_data[p_node].node_path = Object::cast_to<Node>(ObjectDB::get_instance(p_node))->get_path();
+	rpc_node_data[p_node].node_path = p_node.get_object<Node>()->get_path();
 }
 
 void MultiplayerDebugger::RPCProfiler::toggle(bool p_enable, const Array &p_opts) {
@@ -304,7 +304,7 @@ void MultiplayerDebugger::ReplicationProfiler::add(const Array &p_data) {
 	const String what = p_data[0];
 	const ObjectID id = p_data[1];
 	const uint64_t size = p_data[2];
-	MultiplayerSynchronizer *sync = Object::cast_to<MultiplayerSynchronizer>(ObjectDB::get_instance(id));
+	MultiplayerSynchronizer *sync = id.get_object<MultiplayerSynchronizer>();
 	ERR_FAIL_NULL(sync);
 	if (!sync_data.has(id)) {
 		sync_data[id] = SyncInfo(sync);

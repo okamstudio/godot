@@ -144,7 +144,7 @@ NodePath VisibleOnScreenEnabler3D::get_enable_node_path() {
 }
 
 void VisibleOnScreenEnabler3D::_update_enable_mode(bool p_enable) {
-	Node *node = static_cast<Node *>(ObjectDB::get_instance(node_id));
+	Node *node = node_id.get_object<Node>();
 	if (node) {
 		if (p_enable) {
 			switch (enable_mode) {

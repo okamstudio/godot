@@ -179,7 +179,7 @@ private:
 		RID rid;
 
 		void _clear_children() {
-			RichTextLabel *owner_rtl = Object::cast_to<RichTextLabel>(ObjectDB::get_instance(owner));
+			RichTextLabel *owner_rtl = owner.get_object<RichTextLabel>();
 			while (subitems.size()) {
 				Item *subitem = subitems.front()->get();
 				if (subitem && subitem->rid.is_valid() && owner_rtl) {
@@ -249,7 +249,7 @@ private:
 		ItemImage() { type = ITEM_IMAGE; }
 		~ItemImage() {
 			if (image.is_valid()) {
-				RichTextLabel *owner_rtl = Object::cast_to<RichTextLabel>(ObjectDB::get_instance(owner));
+				RichTextLabel *owner_rtl = owner.get_object<RichTextLabel>();
 				if (owner_rtl) {
 					image->disconnect_changed(callable_mp(owner_rtl, &RichTextLabel::_texture_changed));
 				}

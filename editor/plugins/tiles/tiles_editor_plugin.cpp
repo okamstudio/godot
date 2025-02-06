@@ -339,14 +339,14 @@ void TileMapEditorPlugin::_tile_map_layer_changed() {
 
 void TileMapEditorPlugin::_tile_map_layer_removed() {
 	// Workaround for TileMap, making sure the editor stays open when you delete the currently edited layer.
-	TileMap *tile_map = Object::cast_to<TileMap>(ObjectDB::get_instance(tile_map_group_id));
+	TileMap *tile_map = tile_map_group_id.get_object<TileMap>();
 	if (tile_map) {
 		edit(tile_map);
 	}
 }
 
 void TileMapEditorPlugin::_update_tile_map() {
-	TileMapLayer *edited_layer = Object::cast_to<TileMapLayer>(ObjectDB::get_instance(tile_map_layer_id));
+	TileMapLayer *edited_layer = tile_map_layer_id.get_object<TileMapLayer>();
 	if (edited_layer) {
 		Ref<TileSet> tile_set = edited_layer->get_tile_set();
 		if (tile_set.is_valid() && tile_set_id != tile_set->get_instance_id()) {
@@ -363,7 +363,7 @@ void TileMapEditorPlugin::_update_tile_map() {
 }
 
 void TileMapEditorPlugin::_select_layer(const StringName &p_name) {
-	TileMapLayer *edited_layer = Object::cast_to<TileMapLayer>(ObjectDB::get_instance(tile_map_layer_id));
+	TileMapLayer *edited_layer = tile_map_layer_id.get_object<TileMapLayer>();
 	ERR_FAIL_NULL(edited_layer);
 
 	Node *parent = edited_layer->get_parent();
@@ -415,7 +415,7 @@ void TileMapEditorPlugin::_notification(int p_notification) {
 }
 
 void TileMapEditorPlugin::edit(Object *p_object) {
-	TileMapLayer *edited_layer = Object::cast_to<TileMapLayer>(ObjectDB::get_instance(tile_map_layer_id));
+	TileMapLayer *edited_layer = tile_map_layer_id.get_object<TileMapLayer>();
 	if (edited_layer) {
 		edited_layer->disconnect(CoreStringName(changed), callable_mp(this, &TileMapEditorPlugin::_tile_map_layer_changed));
 		edited_layer->disconnect(SceneStringName(tree_exited), callable_mp(this, &TileMapEditorPlugin::_tile_map_layer_removed));

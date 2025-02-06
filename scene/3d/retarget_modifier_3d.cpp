@@ -161,7 +161,7 @@ Vector<RetargetModifier3D::RetargetBoneInfo> RetargetModifier3D::cache_bone_rest
 
 void RetargetModifier3D::_update_child_skeleton_rests(int p_child_skeleton_idx) {
 	ERR_FAIL_INDEX(p_child_skeleton_idx, child_skeletons.size());
-	Skeleton3D *c = Object::cast_to<Skeleton3D>(ObjectDB::get_instance(child_skeletons[p_child_skeleton_idx].skeleton_id));
+	Skeleton3D *c = child_skeletons[p_child_skeleton_idx].skeleton_id.get_object<Skeleton3D>();
 	if (!c) {
 		return;
 	}
@@ -192,7 +192,7 @@ void RetargetModifier3D::_update_child_skeletons() {
 
 void RetargetModifier3D::_reset_child_skeleton_poses() {
 	for (const RetargetInfo &E : child_skeletons) {
-		Skeleton3D *c = Object::cast_to<Skeleton3D>(ObjectDB::get_instance(E.skeleton_id));
+		Skeleton3D *c = E.skeleton_id.get_object<Skeleton3D>();
 		if (!c) {
 			continue;
 		}
@@ -304,7 +304,7 @@ void RetargetModifier3D::_retarget_global_pose() {
 	}
 
 	for (const RetargetInfo &E : child_skeletons) {
-		Skeleton3D *target_skeleton = Object::cast_to<Skeleton3D>(ObjectDB::get_instance(E.skeleton_id));
+		Skeleton3D *target_skeleton = E.skeleton_id.get_object<Skeleton3D>();
 		if (!target_skeleton) {
 			continue;
 		}
@@ -338,7 +338,7 @@ void RetargetModifier3D::_retarget_pose() {
 	}
 
 	for (const RetargetInfo &E : child_skeletons) {
-		Skeleton3D *target_skeleton = Object::cast_to<Skeleton3D>(ObjectDB::get_instance(E.skeleton_id));
+		Skeleton3D *target_skeleton = E.skeleton_id.get_object<Skeleton3D>();
 		if (!target_skeleton) {
 			continue;
 		}

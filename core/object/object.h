@@ -1066,4 +1066,9 @@ public:
 	static int get_object_count();
 };
 
+template <typename T>
+T *ObjectID::get_object() const {
+	return Object::cast_to<T>(ObjectDB::get_instance(*this));
+}
+
 #endif // OBJECT_H

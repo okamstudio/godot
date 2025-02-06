@@ -37,7 +37,7 @@ void BoneAttachment3D::_validate_property(PropertyInfo &p_property) const {
 		const Skeleton3D *parent = nullptr;
 		if (use_external_skeleton) {
 			if (external_skeleton_node_cache.is_valid()) {
-				parent = Object::cast_to<Skeleton3D>(ObjectDB::get_instance(external_skeleton_node_cache));
+				parent = external_skeleton_node_cache.get_object<Skeleton3D>();
 			}
 		} else {
 			parent = Object::cast_to<Skeleton3D>(get_parent());
@@ -151,11 +151,11 @@ void BoneAttachment3D::_check_bind() {
 Skeleton3D *BoneAttachment3D::get_skeleton() {
 	if (use_external_skeleton) {
 		if (external_skeleton_node_cache.is_valid()) {
-			return Object::cast_to<Skeleton3D>(ObjectDB::get_instance(external_skeleton_node_cache));
+			return external_skeleton_node_cache.get_object<Skeleton3D>();
 		} else {
 			_update_external_skeleton_cache();
 			if (external_skeleton_node_cache.is_valid()) {
-				return Object::cast_to<Skeleton3D>(ObjectDB::get_instance(external_skeleton_node_cache));
+				return external_skeleton_node_cache.get_object<Skeleton3D>();
 			}
 		}
 	} else {
@@ -341,7 +341,7 @@ void BoneAttachment3D::notify_skeleton_bones_renamed(Node *p_base_scene, Skeleto
 	const Skeleton3D *parent = nullptr;
 	if (use_external_skeleton) {
 		if (external_skeleton_node_cache.is_valid()) {
-			parent = Object::cast_to<Skeleton3D>(ObjectDB::get_instance(external_skeleton_node_cache));
+			parent = external_skeleton_node_cache.get_object<Skeleton3D>();
 		}
 	} else {
 		parent = Object::cast_to<Skeleton3D>(get_parent());

@@ -318,7 +318,7 @@ Error SceneDebugger::parse_message(void *p_user, const String &p_msg, const Arra
 }
 
 void SceneDebugger::_save_node(ObjectID id, const String &p_path) {
-	Node *node = Object::cast_to<Node>(ObjectDB::get_instance(id));
+	Node *node = id.get_object<Node>();
 	ERR_FAIL_NULL(node);
 
 #ifdef TOOLS_ENABLED
@@ -358,7 +358,7 @@ void SceneDebugger::_send_object_id(ObjectID p_id, int p_max_size) {
 		return;
 	}
 
-	Node *node = Object::cast_to<Node>(ObjectDB::get_instance(p_id));
+	Node *node = p_id.get_object<Node>();
 	RuntimeNodeSelect::get_singleton()->_select_node(node);
 
 	Array arr;

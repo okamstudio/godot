@@ -51,7 +51,7 @@ void RemoteTransform2D::_update_remote() {
 		return;
 	}
 
-	Node2D *n = Object::cast_to<Node2D>(ObjectDB::get_instance(cache));
+	Node2D *n = cache.get_object<Node2D>();
 	if (!n) {
 		return;
 	}
@@ -117,7 +117,7 @@ void RemoteTransform2D::_notification(int p_what) {
 		case NOTIFICATION_RESET_PHYSICS_INTERPOLATION: {
 			if (cache.is_valid()) {
 				_update_remote();
-				Node2D *n = Object::cast_to<Node2D>(ObjectDB::get_instance(cache));
+				Node2D *n = cache.get_object<Node2D>();
 				if (n) {
 					n->reset_physics_interpolation();
 				}

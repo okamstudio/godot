@@ -185,7 +185,7 @@ void MultiplayerSpawner::_update_spawn_node() {
 	}
 #endif
 	if (spawn_node.is_valid()) {
-		Node *node = Object::cast_to<Node>(ObjectDB::get_instance(spawn_node));
+		Node *node = spawn_node.get_object<Node>();
 		if (node && node->is_connected("child_entered_tree", callable_mp(this, &MultiplayerSpawner::_node_added))) {
 			node->disconnect("child_entered_tree", callable_mp(this, &MultiplayerSpawner::_node_added));
 		}
@@ -211,7 +211,7 @@ void MultiplayerSpawner::_notification(int p_what) {
 			_update_spawn_node();
 
 			for (const KeyValue<ObjectID, SpawnInfo> &E : tracked_nodes) {
-				Node *node = Object::cast_to<Node>(ObjectDB::get_instance(E.key));
+				Node *node = E.key.get_object<Node>();
 				ERR_CONTINUE(!node);
 				node->disconnect(SceneStringName(tree_exiting), callable_mp(this, &MultiplayerSpawner::_node_exit));
 				get_multiplayer()->object_configuration_remove(node, this);
@@ -265,7 +265,7 @@ void MultiplayerSpawner::_spawn_notify(ObjectID p_id) {
 }
 
 void MultiplayerSpawner::_node_exit(ObjectID p_id) {
-	Node *node = Object::cast_to<Node>(ObjectDB::get_instance(p_id));
+	Node *node = p_id.get_object<Node>();
 	ERR_FAIL_NULL(node);
 	if (tracked_nodes.has(p_id)) {
 		tracked_nodes.erase(p_id);

@@ -124,7 +124,7 @@ void SkeletonModification2DTwoBoneIK::_execute(float p_delta) {
 		update_joint_two_bone2d_cache();
 	}
 
-	Node2D *target = Object::cast_to<Node2D>(ObjectDB::get_instance(target_node_cache));
+	Node2D *target = target_node_cache.get_object<Node2D>();
 	if (!target || !target->is_inside_tree()) {
 		ERR_PRINT_ONCE("Target node is not in the scene tree. Cannot execute modification!");
 		return;
@@ -235,7 +235,7 @@ void SkeletonModification2DTwoBoneIK::_draw_editor_gizmo() {
 				Vector2 target_direction = Vector2(0, 1);
 				if (target_node_cache.is_valid()) {
 					stack->skeleton->draw_set_transform(Vector2(0, 0), 0.0);
-					Node2D *target = Object::cast_to<Node2D>(ObjectDB::get_instance(target_node_cache));
+					Node2D *target = target_node_cache.get_object<Node2D>();
 					target_direction = operation_bone_one->get_global_position().direction_to(target->get_global_position());
 				}
 

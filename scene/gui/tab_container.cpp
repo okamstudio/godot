@@ -950,7 +950,7 @@ void TabContainer::set_popup(Node *p_popup) {
 
 Popup *TabContainer::get_popup() const {
 	if (popup_obj_id.is_valid()) {
-		Popup *popup = Object::cast_to<Popup>(ObjectDB::get_instance(popup_obj_id));
+		Popup *popup = popup_obj_id.get_object<Popup>();
 		if (popup) {
 			return popup;
 		} else {

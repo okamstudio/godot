@@ -223,7 +223,7 @@ void EditorDebuggerNode::register_undo_redo(UndoRedo *p_undo_redo) {
 }
 
 EditorDebuggerRemoteObject *EditorDebuggerNode::get_inspected_remote_object() {
-	return Object::cast_to<EditorDebuggerRemoteObject>(ObjectDB::get_instance(EditorNode::get_singleton()->get_editor_selection_history()->get_current()));
+	return EditorNode::get_singleton()->get_editor_selection_history()->get_current().get_object<EditorDebuggerRemoteObject>();
 }
 
 ScriptEditorDebugger *EditorDebuggerNode::get_debugger(int p_id) const {

@@ -154,7 +154,7 @@ void SceneCacheInterface::process_confirm_path(int p_from, const uint8_t *p_pack
 	}
 
 	if (valid_rpc_checksum == false) {
-		const Node *node = Object::cast_to<Node>(ObjectDB::get_instance(*oid));
+		const Node *node = (*oid).get_object<Node>();
 		ERR_FAIL_NULL(node); // Bug.
 		ERR_PRINT("The rpc node checksum failed. Make sure to have the same methods on both nodes. Node path: " + node->get_path());
 	}
@@ -280,7 +280,7 @@ Object *SceneCacheInterface::get_cached_object(int p_from, uint32_t p_cache_id) 
 
 	RecvNode *recv_node = pinfo->recv_nodes.getptr(p_cache_id);
 	ERR_FAIL_NULL_V_MSG(recv_node, nullptr, vformat("ID %d not found in cache of peer %d.", p_cache_id, p_from));
-	Node *node = Object::cast_to<Node>(ObjectDB::get_instance(recv_node->oid));
+	Node *node = recv_node->oid.get_object<Node>();
 	if (!node) {
 		// Fallback to path lookup.
 		Node *root_node = SceneTree::get_singleton()->get_root()->get_node(multiplayer->get_root_path());

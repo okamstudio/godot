@@ -275,7 +275,7 @@ Window *Window::get_from_id(DisplayServer::WindowID p_window_id) {
 	if (p_window_id == DisplayServer::INVALID_WINDOW_ID) {
 		return nullptr;
 	}
-	return Object::cast_to<Window>(ObjectDB::get_instance(DisplayServer::get_singleton()->window_get_attached_instance_id(p_window_id)));
+	return DisplayServer::get_singleton()->window_get_attached_instance_id(p_window_id).get_object<Window>();
 }
 
 void Window::set_title(const String &p_title) {

@@ -1335,7 +1335,7 @@ void SceneTree::_call_input_pause(const StringName &p_group, CallInputType p_cal
 		if (p_viewport->is_input_handled()) {
 			break;
 		}
-		Node *n = Object::cast_to<Node>(ObjectDB::get_instance(id));
+		Node *n = id.get_object<Node>();
 		if (n) {
 			n->_call_shortcut_input(p_input);
 		}

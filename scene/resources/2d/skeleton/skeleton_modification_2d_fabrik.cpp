@@ -116,7 +116,7 @@ void SkeletonModification2DFABRIK::_execute(float p_delta) {
 		return;
 	}
 
-	Node2D *target = Object::cast_to<Node2D>(ObjectDB::get_instance(target_node_cache));
+	Node2D *target = target_node_cache.get_object<Node2D>();
 	if (!target || !target->is_inside_tree()) {
 		ERR_PRINT_ONCE("Target node is not in the scene tree. Cannot execute modification!");
 		return;
@@ -128,7 +128,7 @@ void SkeletonModification2DFABRIK::_execute(float p_delta) {
 		WARN_PRINT("Bone2D cache for origin joint is out of date. Updating...");
 	}
 
-	Bone2D *origin_bone2d_node = Object::cast_to<Bone2D>(ObjectDB::get_instance(fabrik_data_chain[0].bone2d_node_cache));
+	Bone2D *origin_bone2d_node = fabrik_data_chain[0].bone2d_node_cache.get_object<Bone2D>();
 	if (!origin_bone2d_node || !origin_bone2d_node->is_inside_tree()) {
 		ERR_PRINT_ONCE("Origin joint's Bone2D node is not in the scene tree. Cannot execute modification!");
 		return;
@@ -146,7 +146,7 @@ void SkeletonModification2DFABRIK::_execute(float p_delta) {
 			WARN_PRINT_ONCE("Bone2D cache for joint " + itos(i) + " is out of date.. Attempting to update...");
 			fabrik_joint_update_bone2d_cache(i);
 		}
-		Bone2D *joint_bone2d_node = Object::cast_to<Bone2D>(ObjectDB::get_instance(fabrik_data_chain[i].bone2d_node_cache));
+		Bone2D *joint_bone2d_node = fabrik_data_chain[i].bone2d_node_cache.get_object<Bone2D>();
 		if (!joint_bone2d_node) {
 			ERR_PRINT_ONCE("FABRIK Joint " + itos(i) + " does not have a Bone2D node set! Cannot execute modification!");
 			return;
@@ -154,7 +154,7 @@ void SkeletonModification2DFABRIK::_execute(float p_delta) {
 		fabrik_transform_chain.write[i] = joint_bone2d_node->get_global_transform();
 	}
 
-	Bone2D *final_bone2d_node = Object::cast_to<Bone2D>(ObjectDB::get_instance(fabrik_data_chain[fabrik_data_chain.size() - 1].bone2d_node_cache));
+	Bone2D *final_bone2d_node = fabrik_data_chain[fabrik_data_chain.size() - 1].bone2d_node_cache.get_object<Bone2D>();
 	float final_bone2d_angle = final_bone2d_node->get_global_rotation();
 	if (fabrik_data_chain[fabrik_data_chain.size() - 1].use_target_rotation) {
 		final_bone2d_angle = target_global_pose.get_rotation();
@@ -183,7 +183,7 @@ void SkeletonModification2DFABRIK::_execute(float p_delta) {
 
 	// Apply all of the saved transforms to the Bone2D nodes
 	for (int i = 0; i < fabrik_data_chain.size(); i++) {
-		Bone2D *joint_bone2d_node = Object::cast_to<Bone2D>(ObjectDB::get_instance(fabrik_data_chain[i].bone2d_node_cache));
+		Bone2D *joint_bone2d_node = fabrik_data_chain[i].bone2d_node_cache.get_object<Bone2D>();
 		if (!joint_bone2d_node) {
 			ERR_PRINT_ONCE("FABRIK Joint " + itos(i) + " does not have a Bone2D node set!");
 			continue;
@@ -214,7 +214,7 @@ void SkeletonModification2DFABRIK::_execute(float p_delta) {
 
 void SkeletonModification2DFABRIK::chain_backwards() {
 	int final_joint_index = fabrik_data_chain.size() - 1;
-	Bone2D *final_bone2d_node = Object::cast_to<Bone2D>(ObjectDB::get_instance(fabrik_data_chain[final_joint_index].bone2d_node_cache));
+	Bone2D *final_bone2d_node = fabrik_data_chain[final_joint_index].bone2d_node_cache.get_object<Bone2D>();
 	Transform2D final_bone2d_trans = fabrik_transform_chain[final_joint_index];
 
 	// Apply magnet position
@@ -241,7 +241,7 @@ void SkeletonModification2DFABRIK::chain_backwards() {
 	while (i >= 1) {
 		Transform2D previous_pose = fabrik_transform_chain[i];
 		i -= 1;
-		Bone2D *current_bone2d_node = Object::cast_to<Bone2D>(ObjectDB::get_instance(fabrik_data_chain[i].bone2d_node_cache));
+		Bone2D *current_bone2d_node = fabrik_data_chain[i].bone2d_node_cache.get_object<Bone2D>();
 		Transform2D current_pose = fabrik_transform_chain[i];
 
 		// Apply magnet position
@@ -266,7 +266,7 @@ void SkeletonModification2DFABRIK::chain_forwards() {
 	fabrik_transform_chain.write[0] = origin_bone2d_trans;
 
 	for (int i = 0; i < fabrik_data_chain.size() - 1; i++) {
-		Bone2D *current_bone2d_node = Object::cast_to<Bone2D>(ObjectDB::get_instance(fabrik_data_chain[i].bone2d_node_cache));
+		Bone2D *current_bone2d_node = fabrik_data_chain[i].bone2d_node_cache.get_object<Bone2D>();
 		Transform2D current_pose = fabrik_transform_chain[i];
 		Transform2D next_pose = fabrik_transform_chain[i + 1];
 

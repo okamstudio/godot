@@ -221,7 +221,7 @@ void MenuBar::bind_global_menu() {
 		for (int i = 0; i < count; i++) {
 			String tag = nmenu->get_item_tag(main_menu, i).operator String().get_slice("#", 1);
 			if (!tag.is_empty() && tag != prev_tag) {
-				MenuBar *mb = Object::cast_to<MenuBar>(ObjectDB::get_instance(ObjectID(static_cast<uint64_t>(tag.to_int()))));
+				MenuBar *mb = (ObjectID(static_cast<uint64_t>(tag.to_int()))).get_object<MenuBar>();
 				if (mb && mb->get_start_index() >= start_index) {
 					global_start_idx = i;
 					break;

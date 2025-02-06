@@ -1052,7 +1052,7 @@ void PhysicalBone3D::_update_simulator_path() {
 }
 
 PhysicalBoneSimulator3D *PhysicalBone3D::get_simulator() const {
-	return Object::cast_to<PhysicalBoneSimulator3D>(ObjectDB::get_instance(simulator_id));
+	return simulator_id.get_object<PhysicalBoneSimulator3D>();
 }
 
 Skeleton3D *PhysicalBone3D::get_skeleton() const {

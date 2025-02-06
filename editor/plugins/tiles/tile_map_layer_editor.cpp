@@ -47,7 +47,7 @@
 #include "core/os/keyboard.h"
 
 TileMapLayer *TileMapLayerSubEditorPlugin::_get_edited_layer() const {
-	return Object::cast_to<TileMapLayer>(ObjectDB::get_instance(edited_tile_map_layer_id));
+	return edited_tile_map_layer_id.get_object<TileMapLayer>();
 }
 
 void TileMapLayerEditorTilesPlugin::tile_set_changed() {
@@ -2171,7 +2171,7 @@ void TileMapLayerEditorTilesPlugin::edit(ObjectID p_tile_map_layer_id) {
 		}
 	}
 
-	TileMapLayer *new_tile_map_layer = Object::cast_to<TileMapLayer>(ObjectDB::get_instance(edited_tile_map_layer_id));
+	TileMapLayer *new_tile_map_layer = edited_tile_map_layer_id.get_object<TileMapLayer>();
 	Ref<TileSet> new_tile_set;
 	if (new_tile_map_layer) {
 		new_tile_set = new_tile_map_layer->get_tile_set();
@@ -3634,7 +3634,7 @@ TileMapLayerEditorTerrainsPlugin::~TileMapLayerEditorTerrainsPlugin() {
 }
 
 TileMapLayer *TileMapLayerEditor::_get_edited_layer() const {
-	return Object::cast_to<TileMapLayer>(ObjectDB::get_instance(edited_tile_map_layer_id));
+	return edited_tile_map_layer_id.get_object<TileMapLayer>();
 }
 
 void TileMapLayerEditor::_find_tile_map_layers_in_scene(Node *p_current, const Node *p_owner, Vector<TileMapLayer *> &r_list) const {

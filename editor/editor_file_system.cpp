@@ -3020,7 +3020,7 @@ void EditorFileSystem::_queue_refresh_filesystem() {
 
 void EditorFileSystem::_refresh_filesystem() {
 	for (const ObjectID &id : folders_to_sort) {
-		EditorFileSystemDirectory *dir = Object::cast_to<EditorFileSystemDirectory>(ObjectDB::get_instance(id));
+		EditorFileSystemDirectory *dir = id.get_object<EditorFileSystemDirectory>();
 		if (dir) {
 			dir->subdirs.sort_custom<DirectoryComparator>();
 		}

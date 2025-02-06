@@ -124,7 +124,7 @@ void SkeletonModification2DLookAt::_execute(float p_delta) {
 	}
 
 	if (target_node_reference == nullptr) {
-		target_node_reference = Object::cast_to<Node2D>(ObjectDB::get_instance(target_node_cache));
+		target_node_reference = target_node_cache.get_object<Node2D>();
 	}
 	if (!target_node_reference || !target_node_reference->is_inside_tree()) {
 		ERR_PRINT_ONCE("Target node is not in the scene tree. Cannot execute modification!");

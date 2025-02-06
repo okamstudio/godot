@@ -784,7 +784,7 @@ void TileSetEditor::remove_expanded_editor() {
 		return;
 	}
 
-	Node *original_parent = Object::cast_to<Node>(ObjectDB::get_instance(expanded_editor_parent));
+	Node *original_parent = expanded_editor_parent.get_object<Node>();
 	if (original_parent) {
 		expanded_editor->remove_meta("reparented");
 		expanded_editor->reparent(original_parent);

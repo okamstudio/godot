@@ -63,7 +63,7 @@ void Tweener::start() {
 }
 
 Ref<Tween> Tweener::_get_tween() {
-	return Ref<Tween>(ObjectDB::get_instance(tween_id));
+	return tween_id.get_ref<Tween>();
 }
 
 void Tweener::_finish() {
@@ -432,7 +432,7 @@ bool Tween::can_process(bool p_tree_paused) const {
 
 Node *Tween::get_bound_node() const {
 	if (is_bound) {
-		return Object::cast_to<Node>(ObjectDB::get_instance(bound_node));
+		return bound_node.get_object<Node>();
 	} else {
 		return nullptr;
 	}

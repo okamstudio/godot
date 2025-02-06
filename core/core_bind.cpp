@@ -1347,7 +1347,7 @@ void Thread::_start_func(void *ud) {
 	target_callable.callp(nullptr, 0, ret, ce);
 	// If script properly kept a reference to the thread, we should be able to re-reference it now
 	// (well, or if the call failed, since we had to break chains anyway because the outcome isn't known upfront).
-	t = Ref<Thread>(ObjectDB::get_instance(th_instance_id));
+	t = th_instance_id.get_ref<Thread>();
 	if (t.is_valid()) {
 		t->ret = ret;
 		t->running.clear();

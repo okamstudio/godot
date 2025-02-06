@@ -91,7 +91,7 @@ public:
 	PackedStringArray get_configuration_warnings() const override;
 
 	Node *get_spawn_node() const {
-		return spawn_node.is_valid() ? Object::cast_to<Node>(ObjectDB::get_instance(spawn_node)) : nullptr;
+		return spawn_node.is_valid() ? spawn_node.get_object<Node>() : nullptr;
 	}
 
 	void add_spawnable_scene(const String &p_path);

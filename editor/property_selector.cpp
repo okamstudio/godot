@@ -180,7 +180,7 @@ void PropertySelector::_update_search() {
 			Variant::construct(type, v, nullptr, 0, ce);
 			v.get_method_list(&methods);
 		} else {
-			Ref<Script> script_ref = Object::cast_to<Script>(ObjectDB::get_instance(script));
+			Ref<Script> script_ref = script.get_ref<Script>();
 			if (script_ref.is_valid()) {
 				if (script_ref->is_built_in()) {
 					script_ref->reload(true);

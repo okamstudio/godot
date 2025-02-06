@@ -143,7 +143,7 @@ void SkeletonModification2DJiggle::_execute(float p_delta) {
 		update_target_cache();
 		return;
 	}
-	Node2D *target = Object::cast_to<Node2D>(ObjectDB::get_instance(target_node_cache));
+	Node2D *target = target_node_cache.get_object<Node2D>();
 	if (!target || !target->is_inside_tree()) {
 		ERR_PRINT_ONCE("Target node is not in the scene tree. Cannot execute modification!");
 		return;

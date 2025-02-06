@@ -171,13 +171,13 @@ void SkeletonModification2DCCDIK::_execute(float p_delta) {
 		return;
 	}
 
-	Node2D *target = Object::cast_to<Node2D>(ObjectDB::get_instance(target_node_cache));
+	Node2D *target = target_node_cache.get_object<Node2D>();
 	if (!target || !target->is_inside_tree()) {
 		ERR_PRINT_ONCE("Target node is not in the scene tree. Cannot execute modification!");
 		return;
 	}
 
-	Node2D *tip = Object::cast_to<Node2D>(ObjectDB::get_instance(tip_node_cache));
+	Node2D *tip = tip_node_cache.get_object<Node2D>();
 	if (!tip || !tip->is_inside_tree()) {
 		ERR_PRINT_ONCE("Tip node is not in the scene tree. Cannot execute modification!");
 		return;

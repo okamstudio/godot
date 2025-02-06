@@ -278,4 +278,9 @@ struct VariantInternalAccessor<const Ref<T> &> {
 	static _FORCE_INLINE_ void set(Variant *v, const Ref<T> &p_ref) { VariantInternal::object_assign(v, p_ref); }
 };
 
+template <typename T>
+Ref<T> ObjectID::get_ref() const {
+	return Ref<T>(ObjectDB::get_instance(*this));
+}
+
 #endif // REF_COUNTED_H
