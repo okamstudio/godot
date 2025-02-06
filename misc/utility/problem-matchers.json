@@ -27,6 +27,21 @@
 					"message": 6
 				}
 			]
+		},
+		{
+			"owner": "godot",
+			"pattern": [
+				{
+					"regexp": "^(?:\\x1b\\[[;\\d]+m)?(?:(?:SCRIPT|SHADER|UNKNOWN)\\s)?(ERROR|WARNING):(?:\\x1b\\[[;\\d]+m)?\\s(.*)$",
+					"severity": 1,
+					"message": 2
+				},
+				{
+					"regexp": "^(?:\\x1b\\[[;\\d]+m)?\\s+at:.*\\((.*):(\\d+)\\)(?:\\x1b\\[[;\\d]+m)?$",
+					"file": 1,
+					"line": 2
+				}
+			]
 		}
 	]
 }
