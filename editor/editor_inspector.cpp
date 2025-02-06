@@ -2990,6 +2990,11 @@ bool EditorInspector::_is_property_disabled_by_feature_profile(const StringName 
 }
 
 void EditorInspector::update_tree() {
+	if (!is_visible_in_tree()) {
+		update_tree_pending = true;
+		return;
+	}
+
 	// Store currently selected and focused elements to restore after the update.
 	// TODO: Can be useful to store more context for the focusable, such as the caret position in LineEdit.
 	StringName current_selected = property_selected;
@@ -4877,8 +4882,6 @@ void EditorInspector::_bind_methods() {
 }
 
 EditorInspector::EditorInspector() {
-	object = nullptr;
-
 	base_vbox = memnew(VBoxContainer);
 	base_vbox->set_h_size_flags(SIZE_EXPAND_FILL);
 	add_child(base_vbox);
