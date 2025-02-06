@@ -1959,19 +1959,23 @@ void ScriptTextEditor::drop_data_fw(const Point2 &p_point, const Variant &p_data
 	int drop_at_column = pos.x;
 	int selection_index = te->get_selection_at_line_column(drop_at_line, drop_at_column);
 
-	bool line_will_be_empty = false;
+	bool is_empty_line = false;
 	if (selection_index >= 0) {
 		// Dropped on a selection, it will be replaced.
 		drop_at_line = te->get_selection_from_line(selection_index);
 		drop_at_column = te->get_selection_from_column(selection_index);
-		line_will_be_empty = drop_at_column <= te->get_first_non_whitespace_column(drop_at_line) && te->get_selection_to_column(selection_index) == te->get_line(te->get_selection_to_line(selection_index)).length();
+		is_empty_line = drop_at_column <= te->get_first_non_whitespace_column(drop_at_line) && te->get_selection_to_column(selection_index) == te->get_line(te->get_selection_to_line(selection_index)).length();
 	}
-
-	String text_to_drop;
 
 	const bool drop_modifier_pressed = Input::get_singleton()->is_key_pressed(Key::CMD_OR_CTRL);
 	const String &line = te->get_line(drop_at_line);
-	const bool is_empty_line = line_will_be_empty || line.is_empty() || te->get_first_non_whitespace_column(drop_at_line) == line.length();
+
+	if (selection_index < 0) {
+		is_empty_line = line.is_empty() || te->get_first_non_whitespace_column(drop_at_line) == line.length();
+	}
+
+	String text_to_drop;
+	bool add_new_line = false;
 
 	const String type = d.get("type", "");
 	if (type == "resource") {
@@ -2040,6 +2044,7 @@ void ScriptTextEditor::drop_data_fw(const Point2 &p_point, const Variant &p_data
 
 		if (drop_modifier_pressed) {
 			const bool use_type = EDITOR_GET("text_editor/completion/add_type_hints");
+			add_new_line = !is_empty_line && drop_at_column != 0;
 
 			for (int i = 0; i < nodes.size(); i++) {
 				NodePath np = nodes[i];
@@ -2073,10 +2078,17 @@ void ScriptTextEditor::drop_data_fw(const Point2 &p_point, const Variant &p_data
 							class_name = global_node_script_name;
 						}
 					}
-					text_to_drop += vformat("@onready var %s: %s = %c%s\n", variable_name, class_name, is_unique ? '%' : '$', path);
+					text_to_drop += vformat("@onready var %s: %s = %c%s", variable_name, class_name, is_unique ? '%' : '$', path);
 				} else {
-					text_to_drop += vformat("@onready var %s = %c%s\n", variable_name, is_unique ? '%' : '$', path);
+					text_to_drop += vformat("@onready var %s = %c%s", variable_name, is_unique ? '%' : '$', path);
 				}
+				if (i < nodes.size() - 1) {
+					text_to_drop += "\n";
+				}
+			}
+
+			if (!is_empty_line && drop_at_column == 0) {
+				text_to_drop += "\n";
 			}
 		} else {
 			for (int i = 0; i < nodes.size(); i++) {
@@ -2131,7 +2143,12 @@ void ScriptTextEditor::drop_data_fw(const Point2 &p_point, const Variant &p_data
 	te->remove_secondary_carets();
 	te->deselect();
 	te->set_caret_line(drop_at_line);
-	te->set_caret_column(drop_at_column);
+	if (add_new_line) {
+		te->set_caret_column(te->get_line(drop_at_line).length());
+		text_to_drop = "\n" + text_to_drop;
+	} else {
+		te->set_caret_column(drop_at_column);
+	}
 	te->insert_text_at_caret(text_to_drop);
 	te->end_complex_operation();
 	te->grab_focus();
