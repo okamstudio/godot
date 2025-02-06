@@ -1566,10 +1566,12 @@ void ScriptEditorDebugger::_error_activated() {
 		return;
 	}
 
-	TreeItem *ci = selected->get_first_child();
-	if (ci) {
-		selected->set_collapsed(!selected->is_collapsed());
+	Array meta = selected->get_metadata(0);
+	if (meta.is_empty()) {
+		return;
 	}
+
+	emit_signal(SNAME("error_activated"), int(meta[1]));
 }
 
 void ScriptEditorDebugger::_error_selected() {
@@ -1778,6 +1780,7 @@ void ScriptEditorDebugger::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("stop_requested"));
 	ADD_SIGNAL(MethodInfo("stack_frame_selected", PropertyInfo(Variant::INT, "frame")));
 	ADD_SIGNAL(MethodInfo("error_selected", PropertyInfo(Variant::INT, "error")));
+	ADD_SIGNAL(MethodInfo("error_activated", PropertyInfo(Variant::INT, "error")));
 	ADD_SIGNAL(MethodInfo("breakpoint_selected", PropertyInfo("script"), PropertyInfo(Variant::INT, "line")));
 	ADD_SIGNAL(MethodInfo("set_execution", PropertyInfo("script"), PropertyInfo(Variant::INT, "line")));
 	ADD_SIGNAL(MethodInfo("clear_execution", PropertyInfo("script")));

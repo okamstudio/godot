@@ -147,7 +147,8 @@ protected:
 	void _text_editor_stack_goto(const ScriptEditorDebugger *p_debugger);
 	void _text_editor_stack_clear(const ScriptEditorDebugger *p_debugger);
 	void _stack_frame_selected(int p_debugger);
-	void _error_selected(const String &p_file, int p_line, int p_debugger);
+	void _breakpoint_selected(const String &p_file, int p_line, int p_debugger);
+	void _error_activated(const String &p_file, int p_line, int p_debugger);
 	void _breaked(bool p_breaked, bool p_can_debug, const String &p_message, bool p_has_stackdump, int p_debugger);
 	void _paused();
 	void _break_state_changed();
