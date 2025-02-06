@@ -6,7 +6,7 @@
 	<description>
 		[RigidBody3D] implements full 3D physics. It cannot be controlled directly, instead, you must apply forces to it (gravity, impulses, etc.), and the physics simulation will calculate the resulting movement, rotation, react to collisions, and affect other physics bodies in its path.
 		The body's behavior can be adjusted via [member lock_rotation], [member freeze], and [member freeze_mode]. By changing various properties of the object, such as [member mass], you can control how the physics simulation acts on it.
-		A rigid body will always maintain its shape and size, even when forces are applied to it. It is useful for objects that can be interacted with in an environment, such as a tree that can be knocked over or a stack of crates that can be pushed around.
+		A rigid body is useful for objects that can be interacted with in an environment, such as a tree that can be knocked over or a stack of crates that can be pushed around. It will always maintain its shape and size, even when forces are applied to it. If you attempt to modify its shape directly (e.g., by modifying its [member Node3D.scale] property), the physics engine will override this change. To change the shape of a rigid body, modify the properties of its children instead.
 		If you need to override the default physics behavior, you can write a custom force integration function. See [member custom_integrator].
 		[b]Note:[/b] Changing the 3D transform or [member linear_velocity] of a [RigidBody3D] very often may lead to some unpredictable behaviors. If you need to directly affect the body, prefer [method _integrate_forces] as it allows you to directly access the physics state.
 	</description>
