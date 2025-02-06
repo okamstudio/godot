@@ -82,23 +82,21 @@ static MethodInfo info_from_utility_func(const StringName &p_function) {
 	return info;
 }
 
-static GDScriptParser::DataType make_callable_type(const MethodInfo &p_info) {
+static GDScriptParser::DataType make_callable_type() {
 	GDScriptParser::DataType type;
 	type.type_source = GDScriptParser::DataType::ANNOTATED_EXPLICIT;
 	type.kind = GDScriptParser::DataType::BUILTIN;
 	type.builtin_type = Variant::CALLABLE;
 	type.is_constant = true;
-	type.method_info = p_info;
 	return type;
 }
 
-static GDScriptParser::DataType make_signal_type(const MethodInfo &p_info) {
+static GDScriptParser::DataType make_signal_type() {
 	GDScriptParser::DataType type;
 	type.type_source = GDScriptParser::DataType::ANNOTATED_EXPLICIT;
 	type.kind = GDScriptParser::DataType::BUILTIN;
 	type.builtin_type = Variant::SIGNAL;
 	type.is_constant = true;
-	type.method_info = p_info;
 	return type;
 }
 
@@ -1131,7 +1129,7 @@ void GDScriptAnalyzer::resolve_class_member(GDScriptParser::ClassNode *p_class, 
 					mi.arguments.push_back(param_type.to_property_info(param->identifier->name));
 					// Signals do not support parameter default values.
 				}
-				member.signal->set_datatype(make_signal_type(mi));
+				member.signal->set_datatype(make_signal_type());
 				member.signal->method_info = mi;
 
 				// Apply annotations.
@@ -4075,7 +4073,7 @@ void GDScriptAnalyzer::reduce_identifier_from_base(GDScriptParser::IdentifierNod
 						}
 					}
 					if (Variant::has_builtin_method(base.builtin_type, name)) {
-						p_identifier->set_datatype(make_callable_type(Variant::get_builtin_method_info(base.builtin_type, name)));
+						p_identifier->set_datatype(make_callable_type());
 						return;
 					}
 					if (base.is_hard_type()) {
@@ -4173,7 +4171,7 @@ void GDScriptAnalyzer::reduce_identifier_from_base(GDScriptParser::IdentifierNod
 
 				case GDScriptParser::ClassNode::Member::FUNCTION: {
 					if (is_base && (!base.is_meta_type || member.function->is_static || is_constructor)) {
-						p_identifier->set_datatype(make_callable_type(member.function->info));
+						p_identifier->set_datatype(make_callable_type());
 						p_identifier->source = GDScriptParser::IdentifierNode::MEMBER_FUNCTION;
 						p_identifier->function_source = member.function;
 						p_identifier->function_source_is_static = member.function->is_static;
@@ -4221,9 +4219,8 @@ void GDScriptAnalyzer::reduce_identifier_from_base(GDScriptParser::IdentifierNod
 		}
 
 		MethodInfo method_info = script_type->get_method_info(p_identifier->name);
-
 		if (method_info.name == p_identifier->name) {
-			p_identifier->set_datatype(make_callable_type(method_info));
+			p_identifier->set_datatype(make_callable_type());
 			p_identifier->source = GDScriptParser::IdentifierNode::MEMBER_FUNCTION;
 			p_identifier->function_source_is_static = method_info.flags & METHOD_FLAG_STATIC;
 			return;
@@ -4237,9 +4234,7 @@ void GDScriptAnalyzer::reduce_identifier_from_base(GDScriptParser::IdentifierNod
 				continue;
 			}
 
-			const GDScriptParser::DataType signal_type = make_signal_type(signal_info);
-
-			p_identifier->set_datatype(signal_type);
+			p_identifier->set_datatype(make_signal_type());
 			p_identifier->source = GDScriptParser::IdentifierNode::MEMBER_SIGNAL;
 			return;
 		}
@@ -4277,13 +4272,13 @@ void GDScriptAnalyzer::reduce_identifier_from_base(GDScriptParser::IdentifierNod
 		}
 		if (ClassDB::get_method_info(native, name, &method_info)) {
 			// Method is callable.
-			p_identifier->set_datatype(make_callable_type(method_info));
+			p_identifier->set_datatype(make_callable_type());
 			p_identifier->source = GDScriptParser::IdentifierNode::INHERITED_VARIABLE;
 			return;
 		}
 		if (ClassDB::get_signal(native, name, &method_info)) {
 			// Signal is a type too.
-			p_identifier->set_datatype(make_signal_type(method_info));
+			p_identifier->set_datatype(make_signal_type());
 			p_identifier->source = GDScriptParser::IdentifierNode::INHERITED_VARIABLE;
 			return;
 		}
@@ -4573,13 +4568,7 @@ void GDScriptAnalyzer::reduce_identifier(GDScriptParser::IdentifierNode *p_ident
 	if (Variant::has_utility_function(name) || GDScriptUtilityFunctions::function_exists(name)) {
 		p_identifier->is_constant = true;
 		p_identifier->reduced_value = Callable(memnew(GDScriptUtilityCallable(name)));
-		MethodInfo method_info;
-		if (GDScriptUtilityFunctions::function_exists(name)) {
-			method_info = GDScriptUtilityFunctions::get_function_info(name);
-		} else {
-			method_info = Variant::get_utility_function_info(name);
-		}
-		p_identifier->set_datatype(make_callable_type(method_info));
+		p_identifier->set_datatype(make_callable_type());
 		return;
 	}
 

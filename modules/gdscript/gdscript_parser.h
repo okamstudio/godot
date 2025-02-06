@@ -136,7 +136,6 @@ public:
 		String script_path;
 		ClassNode *class_type = nullptr;
 
-		MethodInfo method_info; // For callable/signals.
 		HashMap<StringName, int64_t> enum_values; // For enums.
 
 		_FORCE_INLINE_ bool is_set() const { return kind != RESOLVING && kind != UNRESOLVED; }
@@ -245,7 +244,6 @@ public:
 			script_type = p_other.script_type;
 			script_path = p_other.script_path;
 			class_type = p_other.class_type;
-			method_info = p_other.method_info;
 			enum_values = p_other.enum_values;
 			container_element_types = p_other.container_element_types;
 		}
