@@ -98,20 +98,20 @@ void Range::_set_value_no_signal(double p_val) {
 		return;
 	}
 
-	if (shared->step > 0) {
-		p_val = Math::round((p_val - shared->min) / shared->step) * shared->step + shared->min;
-	}
-
-	if (_rounded_values) {
-		p_val = Math::round(p_val);
-	}
-
 	if (!shared->allow_greater && p_val > shared->max - shared->page) {
 		p_val = shared->max - shared->page;
 	}
 
 	if (!shared->allow_lesser && p_val < shared->min) {
 		p_val = shared->min;
+	}
+
+	if (shared->step > 0) {
+		p_val = Math::round(p_val / shared->step) * shared->step;
+	}
+
+	if (_rounded_values) {
+		p_val = Math::round(p_val);
 	}
 
 	if (shared->val == p_val) {
