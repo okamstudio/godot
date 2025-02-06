@@ -652,8 +652,15 @@ void vertex_shader(vec3 vertex_input,
 #endif
 #ifdef MODE_RENDER_MATERIAL
 	if (scene_data.material_uv2_mode) {
+		vec2 uv_dest_attrib;
+		if (uv_scale != vec4(0.0)) {
+			uv_dest_attrib = (uv2_attrib.xy - 0.5) * uv_scale.zw;
+		} else {
+			uv_dest_attrib = uv2_attrib.xy;
+		}
+
 		vec2 uv_offset = unpackHalf2x16(draw_call.uv_offset);
-		gl_Position.xy = (uv2_attrib.xy + uv_offset) * 2.0 - 1.0;
+		gl_Position.xy = (uv_dest_attrib + uv_offset) * 2.0 - 1.0;
 		gl_Position.z = 0.00001;
 		gl_Position.w = 1.0;
 	}
