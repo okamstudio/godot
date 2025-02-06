@@ -136,9 +136,12 @@ void CanvasItem::_redraw_callback() {
 		return;
 	}
 
-	RenderingServer::get_singleton()->canvas_item_clear(get_canvas_item());
-	//todo updating = true - only allow drawing here
-	if (is_visible_in_tree()) {
+	if (draw_commands_dirty) {
+		RenderingServer::get_singleton()->canvas_item_clear(get_canvas_item());
+		draw_commands_dirty = false;
+	}
+
+	if (is_visible_in_tree() && (!sub_viewport || sub_viewport->get_update_mode() != SubViewport::UPDATE_DISABLED)) {
 		drawing = true;
 		current_item_drawn = this;
 		notification(NOTIFICATION_DRAW);
@@ -146,9 +149,9 @@ void CanvasItem::_redraw_callback() {
 		GDVIRTUAL_CALL(_draw);
 		current_item_drawn = nullptr;
 		drawing = false;
+		draw_commands_dirty = true;
 	}
-	//todo updating = false
-	pending_update = false; // don't change to false until finished drawing (avoid recursive update)
+	pending_update = false; // Don't change to false until finished drawing (avoid recursive update).
 }
 
 Transform2D CanvasItem::get_global_transform_with_canvas() const {
@@ -332,6 +335,7 @@ void CanvasItem::_notification(int p_what) {
 					}
 				}
 			}
+			sub_viewport = Object::cast_to<SubViewport>(get_viewport());
 
 			_set_global_invalid(true);
 			_enter_canvas();
@@ -381,6 +385,7 @@ void CanvasItem::_notification(int p_what) {
 				window->disconnect(SceneStringName(visibility_changed), callable_mp(this, &CanvasItem::_window_visibility_changed));
 				window = nullptr;
 			}
+			sub_viewport = nullptr;
 			_set_global_invalid(true);
 			parent_visible_in_tree = false;
 
