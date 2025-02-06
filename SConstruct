@@ -213,6 +213,7 @@ opts.Add(BoolVariable("verbose", "Enable verbose output for the compilation", Fa
 opts.Add(BoolVariable("progress", "Show a progress indicator during compilation", True))
 opts.Add(EnumVariable("warnings", "Level of compilation warnings", "all", ("extra", "all", "moderate", "no")))
 opts.Add(BoolVariable("werror", "Treat compiler warnings as errors", False))
+opts.Add(BoolVariable("include_default_suffix", "Include default program suffix", True))
 opts.Add("extra_suffix", "Custom extra suffix added to the base filename of all generated binary files", "")
 opts.Add("object_prefix", "Custom prefix added to the base filename of all generated object files", "")
 opts.Add(BoolVariable("vsproj", "Generate a Visual Studio solution", False))
@@ -912,6 +913,9 @@ suffix += "." + env["arch"]
 
 if not env["threads"]:
     suffix += ".nothreads"
+
+if not env["include_default_suffix"]:
+    suffix = ""
 
 suffix += env.extra_suffix
 
