@@ -89,6 +89,10 @@ void CanvasItem::set_visible(bool p_visible) {
 	_handle_visibility_change(p_visible);
 }
 
+void CanvasItem::toggle_visibility() {
+	set_visible(!visible);
+}
+
 void CanvasItem::_handle_visibility_change(bool p_visible) {
 	RenderingServer::get_singleton()->canvas_item_set_visible(canvas_item, p_visible);
 	notification(NOTIFICATION_VISIBILITY_CHANGED);
@@ -1270,6 +1274,7 @@ void CanvasItem::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_canvas_item"), &CanvasItem::get_canvas_item);
 
 	ClassDB::bind_method(D_METHOD("set_visible", "visible"), &CanvasItem::set_visible);
+	ClassDB::bind_method(D_METHOD("toggle_visibility"), &CanvasItem::toggle_visibility);
 	ClassDB::bind_method(D_METHOD("is_visible"), &CanvasItem::is_visible);
 	ClassDB::bind_method(D_METHOD("is_visible_in_tree"), &CanvasItem::is_visible_in_tree);
 	ClassDB::bind_method(D_METHOD("show"), &CanvasItem::show);

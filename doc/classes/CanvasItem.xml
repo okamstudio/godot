@@ -607,6 +607,12 @@
 				Show the [CanvasItem] if it's currently hidden. This is equivalent to setting [member visible] to [code]true[/code]. For controls that inherit [Popup], the correct way to make them visible is to call one of the multiple [code]popup*()[/code] functions instead.
 			</description>
 		</method>
+		<method name="toggle_visibility">
+			<return type="void" />
+			<description>
+				Show the [CanvasItem] if it's currently hidden or hide the [CanvasItem] if it's currently visible.
+			</description>
+		</method>
 	</methods>
 	<members>
 		<member name="clip_children" type="int" setter="set_clip_children_mode" getter="get_clip_children_mode" enum="CanvasItem.ClipChildrenMode" default="0">
