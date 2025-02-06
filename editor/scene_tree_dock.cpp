@@ -3714,16 +3714,18 @@ void SceneTreeDock::_add_children_to_popup(Object *p_obj, int p_depth) {
 	}
 }
 
-void SceneTreeDock::_tree_rmb(const Vector2 &p_menu_pos) {
-	if (!EditorNode::get_singleton()->get_edited_scene()) {
-		menu->clear(false);
+void SceneTreeDock::_tree_rmb(const Vector2 &p_menu_pos, bool p_from_empty) {
+	ERR_FAIL_COND(!EditorNode::get_singleton()->get_edited_scene());
+	menu->clear(false);
+
+	if (p_from_empty) {
 		if (profile_allow_editing) {
 			menu->add_icon_shortcut(get_editor_theme_icon(SNAME("Add")), ED_GET_SHORTCUT("scene_tree/add_child_node"), TOOL_NEW);
 			menu->add_icon_shortcut(get_editor_theme_icon(SNAME("Instance")), ED_GET_SHORTCUT("scene_tree/instantiate_scene"), TOOL_INSTANTIATE);
 		}
 
 		menu->reset_size();
-		menu->set_position(get_screen_position() + p_menu_pos);
+		menu->set_position(p_menu_pos);
 		menu->popup();
 		return;
 	}
@@ -3944,6 +3946,12 @@ void SceneTreeDock::_tree_rmb(const Vector2 &p_menu_pos) {
 	menu->reset_size();
 	menu->set_position(p_menu_pos);
 	menu->popup();
+}
+
+void SceneTreeDock::_tree_empty_click(const Vector2 &p_pos, MouseButton p_button) {
+	if (p_button == MouseButton::RIGHT) {
+		_tree_rmb(scene_tree->get_scene_tree()->get_screen_position() + p_pos, true);
+	}
 }
 
 void SceneTreeDock::_update_tree_menu() {
@@ -4752,7 +4760,7 @@ SceneTreeDock::SceneTreeDock(Node *p_scene_root, EditorSelection *p_editor_selec
 
 	vbc->add_child(scene_tree);
 	scene_tree->set_v_size_flags(SIZE_EXPAND | SIZE_FILL);
-	scene_tree->connect("rmb_pressed", callable_mp(this, &SceneTreeDock::_tree_rmb));
+	scene_tree->connect("rmb_pressed", callable_mp(this, &SceneTreeDock::_tree_rmb).bind(false));
 
 	scene_tree->connect("node_selected", callable_mp(this, &SceneTreeDock::_node_selected), CONNECT_DEFERRED);
 	scene_tree->connect("node_renamed", callable_mp(this, &SceneTreeDock::_node_renamed), CONNECT_DEFERRED);
@@ -4766,6 +4774,7 @@ SceneTreeDock::SceneTreeDock(Node *p_scene_root, EditorSelection *p_editor_selec
 
 	scene_tree->get_scene_tree()->connect(SceneStringName(gui_input), callable_mp(this, &SceneTreeDock::_scene_tree_gui_input));
 	scene_tree->get_scene_tree()->connect("item_icon_double_clicked", callable_mp(this, &SceneTreeDock::_focus_node));
+	scene_tree->get_scene_tree()->connect("empty_clicked", callable_mp(this, &SceneTreeDock::_tree_empty_click));
 
 	editor_selection->connect("selection_changed", callable_mp(this, &SceneTreeDock::_selection_changed));
 

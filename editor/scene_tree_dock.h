@@ -260,7 +260,8 @@ class SceneTreeDock : public VBoxContainer {
 	void _script_dropped(const String &p_file, NodePath p_to);
 	void _quick_open(const String &p_file_path);
 
-	void _tree_rmb(const Vector2 &p_menu_pos);
+	void _tree_rmb(const Vector2 &p_menu_pos, bool p_from_empty);
+	void _tree_empty_click(const Vector2 &p_pos, MouseButton p_button);
 	void _update_tree_menu();
 
 	void _filter_changed(const String &p_filter);
