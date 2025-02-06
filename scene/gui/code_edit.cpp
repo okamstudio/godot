@@ -1028,6 +1028,10 @@ void CodeEdit::convert_indent(int p_from_line, int p_to_line) {
 			continue;
 		}
 
+		if (is_in_string(i) != -1) {
+			continue;
+		}
+
 		// Check chars in the line.
 		int j = 0;
 		int space_count = 0;

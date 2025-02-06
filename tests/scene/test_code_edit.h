@@ -2831,6 +2831,16 @@ TEST_CASE("[SceneTree][CodeEdit] indent") {
 		CHECK(code_edit->has_selection());
 		CHECK(code_edit->get_selection_origin_column() == 2);
 		CHECK(code_edit->get_caret_column() == 3);
+
+		// Multiline blocks.
+		code_edit->set_text("'''\n    test\n        test\n'''");
+		code_edit->select(1, 0, 1, 8);
+		code_edit->convert_indent();
+		CHECK(code_edit->get_line(1) == "    test");
+		CHECK(code_edit->get_line(2) == "        test");
+		CHECK(code_edit->has_selection());
+		CHECK(code_edit->get_selection_origin_column() == 0);
+		CHECK(code_edit->get_caret_column() == 8);
 	}
 
 	SUBCASE("[CodeEdit] convert indent to spaces") {
