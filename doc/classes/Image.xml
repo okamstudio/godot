@@ -346,6 +346,13 @@
 				[b]Note:[/b] This method is only available in engine builds with the BMP module enabled. By default, the BMP module is enabled, but it can be disabled at build-time using the [code]module_bmp_enabled=no[/code] SCons option.
 			</description>
 		</method>
+		<method name="load_exr_from_buffer">
+			<return type="int" enum="Error" />
+			<param index="0" name="buffer" type="PackedByteArray" />
+			<description>
+				Loads an image from the binary contents of a OpenEXR file.
+			</description>
+		</method>
 		<method name="load_from_file" qualifiers="static">
 			<return type="Image" />
 			<param index="0" name="path" type="String" />
@@ -464,7 +471,6 @@
 			<param index="1" name="grayscale" type="bool" default="false" />
 			<description>
 				Saves the image as an EXR file to [param path]. If [param grayscale] is [code]true[/code] and the image has only one channel, it will be saved explicitly as monochrome rather than one red channel. This function will return [constant ERR_UNAVAILABLE] if Godot was compiled without the TinyEXR module.
-				[b]Note:[/b] The TinyEXR module is disabled in non-editor builds, which means [method save_exr] will return [constant ERR_UNAVAILABLE] when it is called from an exported project.
 			</description>
 		</method>
 		<method name="save_exr_to_buffer" qualifiers="const">
@@ -472,7 +478,6 @@
 			<param index="0" name="grayscale" type="bool" default="false" />
 			<description>
 				Saves the image as an EXR file to a byte array. If [param grayscale] is [code]true[/code] and the image has only one channel, it will be saved explicitly as monochrome rather than one red channel. This function will return an empty byte array if Godot was compiled without the TinyEXR module.
-				[b]Note:[/b] The TinyEXR module is disabled in non-editor builds, which means [method save_exr] will return an empty byte array when it is called from an exported project.
 			</description>
 		</method>
 		<method name="save_jpg" qualifiers="const">
