@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="TabContainer" inherits="Container" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
 	<brief_description>
-		A container that creates a tab for each child control, displaying only the active tab's control.
+		A container that creates a tab for each child control, displaying only the tab that corresponds to the currently selected tab's control.
 	</brief_description>
 	<description>
 		Arranges child controls into a tabbed view, creating a tab for each one. The active tab's corresponding control is made visible, while all other child controls are hidden. Ignores non-control children.
-		[b]Note:[/b] The drawing of the clickable tabs is handled by this node; [TabBar] is not needed.
+		[b]Note:[/b] The drawing and managment of the clickable tabs is handled by this node; [TabBar] is not needed.
+
+		The tabs are generated only by the first children of the TabContainer node. Children of the node are the content of the tab. The tab that is active is the only one visible. 
+		The name of the tab is derived from the name of the node, but can be changed using the [method set_tab_title] method.
+
+		Changing the tab icon is handled in code by [method set_tab_icon].
+		[b]Note:[/b] The [method set_tab_button_icon] and [method set_tab_icon] are not the same methods. The [method set_tab_button_icon] method is an actual button within the tab of the TabContainer. This can cause issues when pressing the tab bar Button within to register the tab.
 	</description>
 	<tutorials>
 		<link title="Using Containers">$DOCS_URL/tutorials/ui/gui_containers.html</link>
@@ -145,6 +151,7 @@
 			<param index="1" name="icon" type="Texture2D" />
 			<description>
 				Sets the button icon from the tab at index [param tab_idx].
+				[b]Note:[/b] Creates an actuall button that can be pressed. May interfere with the pressing of the tab
 			</description>
 		</method>
 		<method name="set_tab_disabled">
