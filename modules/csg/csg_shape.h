@@ -156,6 +156,8 @@ public:
 	void set_collision_mask_value(int p_layer_number, bool p_value);
 	bool get_collision_mask_value(int p_layer_number) const;
 
+	RID get_root_collision_instance() const;
+
 	void set_collision_priority(real_t p_priority);
 	real_t get_collision_priority() const;
 
