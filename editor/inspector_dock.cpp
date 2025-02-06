@@ -700,6 +700,7 @@ InspectorDock::InspectorDock(EditorData &p_editor_data) {
 	backward_button->set_flat(true);
 	general_options_hb->add_child(backward_button);
 	backward_button->set_tooltip_text(TTR("Go to previous edited object in history."));
+	backward_button->set_shortcut(ED_SHORTCUT("property_editor/previous_object", TTR("Go to Previous Edited Object"), KeyModifierMask::ALT | Key::LEFT));
 	backward_button->set_disabled(true);
 	backward_button->connect(SceneStringName(pressed), callable_mp(this, &InspectorDock::_edit_back));
 
@@ -707,6 +708,7 @@ InspectorDock::InspectorDock(EditorData &p_editor_data) {
 	forward_button->set_flat(true);
 	general_options_hb->add_child(forward_button);
 	forward_button->set_tooltip_text(TTR("Go to next edited object in history."));
+	forward_button->set_shortcut(ED_SHORTCUT("property_editor/next_object", TTR("Go to Next Edited Object"), KeyModifierMask::ALT | Key::RIGHT));
 	forward_button->set_disabled(true);
 	forward_button->connect(SceneStringName(pressed), callable_mp(this, &InspectorDock::_edit_forward));
 
@@ -715,6 +717,7 @@ InspectorDock::InspectorDock(EditorData &p_editor_data) {
 	history_menu->set_flat(false);
 	history_menu->set_theme_type_variation("FlatMenuButton");
 	history_menu->set_tooltip_text(TTR("History of recently edited objects."));
+	history_menu->set_shortcut(ED_SHORTCUT("property_editor/show_history", TTR("Show Edited Object History"), KeyModifierMask::CTRL | Key::H));
 	general_options_hb->add_child(history_menu);
 	history_menu->connect("about_to_popup", callable_mp(this, &InspectorDock::_prepare_history));
 	history_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp(this, &InspectorDock::_select_history));
