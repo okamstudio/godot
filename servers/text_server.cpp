@@ -1145,20 +1145,45 @@ PackedInt32Array TextServer::shaped_text_get_word_breaks(const RID &p_shaped, Bi
 	const_cast<TextServer *>(this)->shaped_text_update_justification_ops(p_shaped);
 	const Vector2i &range = shaped_text_get_range(p_shaped);
 
-	int word_start = range.x;
-
 	const int l_size = shaped_text_get_glyph_count(p_shaped);
 	const Glyph *l_gl = const_cast<TextServer *>(this)->shaped_text_sort_logical(p_shaped);
 
+	int word_start = range.x;
+	int word_end = l_size > 0 ? l_gl[0].start : 0;
+	bool was_whitespace = true;
+	bool was_punctuation = (p_skip_grapheme_flags & GRAPHEME_IS_SPACE) != 0;
+
 	for (int i = 0; i < l_size; i++) {
 		if (l_gl[i].count > 0) {
-			if ((l_gl[i].flags & p_grapheme_flags) != 0 && (l_gl[i].flags & p_skip_grapheme_flags) == 0) {
-				int next = (i == 0) ? l_gl[i].start : l_gl[i - 1].end;
-				if (word_start < next) {
+			if ((l_gl[i].flags & p_skip_grapheme_flags) != 0) {
+				continue;
+			}
+			if ((l_gl[i].flags & GRAPHEME_IS_SPACE) != 0) {
+				if (!was_whitespace) {
 					words.push_back(word_start);
-					words.push_back(next);
+					words.push_back(word_end);
 				}
+				was_whitespace = true;
+				was_punctuation = false;
 				word_start = l_gl[i].end;
+			} else if ((l_gl[i].flags & p_grapheme_flags) != 0) {
+				if (!was_punctuation && !was_whitespace) {
+					words.push_back(word_start);
+					words.push_back(word_end);
+					word_start = l_gl[i].start;
+				}
+				was_whitespace = false;
+				was_punctuation = true;
+				word_end = l_gl[i].end;
+			} else {
+				if (was_punctuation) {
+					words.push_back(word_start);
+					words.push_back(word_end);
+					word_start = l_gl[i].start;
+				}
+				was_whitespace = false;
+				was_punctuation = false;
+				word_end = l_gl[i].end;
 			}
 		}
 	}
