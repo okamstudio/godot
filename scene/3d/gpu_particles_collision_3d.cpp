@@ -523,15 +523,19 @@ Ref<Image> GPUParticlesCollisionSDF3D::bake() {
 	return ret;
 }
 
-PackedStringArray GPUParticlesCollisionSDF3D::get_configuration_warnings() const {
-	PackedStringArray warnings = GPUParticlesCollision3D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> GPUParticlesCollisionSDF3D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = GPUParticlesCollision3D::get_configuration_info();
 
 	if (bake_mask == 0) {
-		warnings.push_back(RTR("The Bake Mask has no bits enabled, which means baking will not produce any collision for this GPUParticlesCollisionSDF3D.\nTo resolve this, enable at least one bit in the Bake Mask property."));
+		CONFIG_WARNING_P(
+				RTR("The Bake Mask has no bits enabled, which means baking will not produce any collision for this GPUParticlesCollisionSDF3D.\nTo resolve this, enable at least one bit in the Bake Mask."),
+				"bake_mask");
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 void GPUParticlesCollisionSDF3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_size", "size"), &GPUParticlesCollisionSDF3D::set_size);
@@ -613,7 +617,7 @@ GPUParticlesCollisionSDF3D::Resolution GPUParticlesCollisionSDF3D::get_resolutio
 
 void GPUParticlesCollisionSDF3D::set_bake_mask(uint32_t p_mask) {
 	bake_mask = p_mask;
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 uint32_t GPUParticlesCollisionSDF3D::get_bake_mask() const {

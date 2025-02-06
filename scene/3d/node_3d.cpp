@@ -1161,6 +1161,20 @@ NodePath Node3D::get_visibility_parent() const {
 	return visibility_parent_path;
 }
 
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> Node3D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node::get_configuration_info();
+
+	if (get_tree()->get_edited_scene_root() == this && !get_transform().is_equal_approx(Transform3D())) {
+		CONFIG_WARNING_P(
+				TTR("The root node of a scene is recommended to not be transformed, since instances of the scene will usually override this. Reset the transform to remove this warning."),
+				"transform");
+	}
+
+	return infos;
+}
+#endif
+
 void Node3D::_validate_property(PropertyInfo &p_property) const {
 	if (data.rotation_edit_mode != ROTATION_EDIT_MODE_BASIS && p_property.name == "basis") {
 		p_property.usage = 0;

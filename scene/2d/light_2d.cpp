@@ -413,7 +413,7 @@ void PointLight2D::set_texture(const Ref<Texture2D> &p_texture) {
 		RS::get_singleton()->canvas_light_set_texture(_get_light(), RID());
 	}
 
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 Ref<Texture2D> PointLight2D::get_texture() const {
@@ -430,15 +430,19 @@ Vector2 PointLight2D::get_texture_offset() const {
 	return texture_offset;
 }
 
-PackedStringArray PointLight2D::get_configuration_warnings() const {
-	PackedStringArray warnings = Light2D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> PointLight2D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Light2D::get_configuration_info();
 
 	if (texture.is_null()) {
-		warnings.push_back(RTR("A texture with the shape of the light must be supplied to the \"Texture\" property."));
+		CONFIG_WARNING_P(
+				RTR("A texture with the shape of the light must be supplied."),
+				"texture");
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 void PointLight2D::set_texture_scale(real_t p_scale) {
 	_scale = p_scale;

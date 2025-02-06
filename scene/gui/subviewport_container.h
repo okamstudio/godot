@@ -73,7 +73,9 @@ public:
 	virtual Vector<int> get_allowed_size_flags_horizontal() const override;
 	virtual Vector<int> get_allowed_size_flags_vertical() const override;
 
-	PackedStringArray get_configuration_warnings() const override;
+#ifdef TOOLS_ENABLED
+	Vector<ConfigurationInfo> get_configuration_info() const override;
+#endif
 
 	SubViewportContainer();
 };

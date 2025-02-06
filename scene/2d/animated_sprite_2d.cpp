@@ -316,7 +316,7 @@ void AnimatedSprite2D::set_sprite_frames(const Ref<SpriteFrames> &p_frames) {
 
 	notify_property_list_changed();
 	queue_redraw();
-	update_configuration_warnings();
+	update_configuration_info();
 	emit_signal("sprite_frames_changed");
 }
 
@@ -573,13 +573,17 @@ StringName AnimatedSprite2D::get_animation() const {
 	return animation;
 }
 
-PackedStringArray AnimatedSprite2D::get_configuration_warnings() const {
-	PackedStringArray warnings = Node2D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> AnimatedSprite2D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node2D::get_configuration_info();
 	if (frames.is_null()) {
-		warnings.push_back(RTR("A SpriteFrames resource must be created or set in the \"Sprite Frames\" property in order for AnimatedSprite2D to display frames."));
+		CONFIG_WARNING_P(
+				RTR("A SpriteFrames resource must be created or set in order for AnimatedSprite2D to display frames."),
+				"sprite_frames");
 	}
-	return warnings;
+	return infos;
 }
+#endif
 
 #ifdef TOOLS_ENABLED
 void AnimatedSprite2D::get_argument_options(const StringName &p_function, int p_idx, List<String> *r_options) const {

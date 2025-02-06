@@ -58,7 +58,9 @@ public:
 	void set_recording_properties(bool p_enable);
 	bool is_recording_properties() const;
 
-	virtual PackedStringArray get_configuration_warnings() const override;
+#ifdef TOOLS_ENABLED
+	virtual Vector<ConfigurationInfo> get_configuration_info() const override;
+#endif
 
 	MissingNode();
 };

@@ -225,17 +225,17 @@ Popup::~Popup() {
 }
 
 #ifdef TOOLS_ENABLED
-PackedStringArray PopupPanel::get_configuration_warnings() const {
-	PackedStringArray warnings = Popup::get_configuration_warnings();
+Vector<ConfigurationInfo> PopupPanel::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Popup::get_configuration_info();
 
 	if (!DisplayServer::get_singleton()->is_window_transparency_available() && !GLOBAL_GET("display/window/subwindows/embed_subwindows")) {
 		Ref<StyleBoxFlat> sb = theme_cache.panel_style;
 		if (sb.is_valid() && (sb->get_shadow_size() > 0 || sb->get_corner_radius(CORNER_TOP_LEFT) > 0 || sb->get_corner_radius(CORNER_TOP_RIGHT) > 0 || sb->get_corner_radius(CORNER_BOTTOM_LEFT) > 0 || sb->get_corner_radius(CORNER_BOTTOM_RIGHT) > 0)) {
-			warnings.push_back(RTR("The current theme style has shadows and/or rounded corners for popups, but those won't display correctly if \"display/window/per_pixel_transparency/allowed\" isn't enabled in the Project Settings, nor if it isn't supported."));
+			CONFIG_WARNING(RTR("The current theme style has shadows and/or rounded corners for popups, but those won't display correctly if \"display/window/per_pixel_transparency/allowed\" isn't enabled in the Project Settings, nor if it isn't supported."));
 		}
 	}
 
-	return warnings;
+	return infos;
 }
 #endif
 
@@ -369,7 +369,7 @@ void PopupPanel::_notification(int p_what) {
 			_update_child_rects();
 
 #ifdef TOOLS_ENABLED
-			update_configuration_warnings();
+			update_configuration_info();
 #endif
 		} break;
 
@@ -425,6 +425,6 @@ PopupPanel::PopupPanel() {
 	add_child(panel, false, INTERNAL_MODE_FRONT);
 
 #ifdef TOOLS_ENABLED
-	ProjectSettings::get_singleton()->connect("settings_changed", callable_mp((Node *)this, &Node::update_configuration_warnings));
+	ProjectSettings::get_singleton()->connect("settings_changed", callable_mp((Node *)this, &Node::update_configuration_info));
 #endif
 }

@@ -61,7 +61,9 @@ public:
 	void set_compositor(const Ref<Compositor> &p_compositor);
 	Ref<Compositor> get_compositor() const;
 
-	PackedStringArray get_configuration_warnings() const override;
+#ifdef TOOLS_ENABLED
+	Vector<ConfigurationInfo> get_configuration_info() const override;
+#endif
 
 	WorldEnvironment();
 };

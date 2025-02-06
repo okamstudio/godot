@@ -32,6 +32,7 @@
 
 #include "core/config/project_settings.h"
 #include "core/object/script_language.h"
+#include "editor/editor_configuration_info.h"
 #include "editor/editor_dock_manager.h"
 #include "editor/editor_file_system.h"
 #include "editor/editor_node.h"
@@ -54,27 +55,6 @@ Node *SceneTreeEditor::get_scene_node() const {
 	ERR_FAIL_COND_V(!is_inside_tree(), nullptr);
 
 	return get_tree()->get_edited_scene_root();
-}
-
-PackedStringArray SceneTreeEditor::_get_node_configuration_warnings(Node *p_node) {
-	PackedStringArray warnings = p_node->get_configuration_warnings();
-	if (p_node == get_scene_node()) {
-		Node2D *node_2d = Object::cast_to<Node2D>(p_node);
-		if (node_2d) {
-			// Note: Warn for Node2D but not all CanvasItems, don't warn for Control nodes.
-			// Control nodes may have reasons to use a transformed root node like anchors.
-			if (!node_2d->get_transform().is_equal_approx(Transform2D())) {
-				warnings.append(TTR("The root node of a scene is recommended to not be transformed, since instances of the scene will usually override this. Reset the transform and reload the scene to remove this warning."));
-			}
-		}
-		Node3D *node_3d = Object::cast_to<Node3D>(p_node);
-		if (node_3d) {
-			if (!node_3d->get_transform().is_equal_approx(Transform3D())) {
-				warnings.append(TTR("The root node of a scene is recommended to not be transformed, since instances of the scene will usually override this. Reset the transform and reload the scene to remove this warning."));
-			}
-		}
-	}
-	return warnings;
 }
 
 void SceneTreeEditor::_cell_button_pressed(Object *p_item, int p_column, int p_id, MouseButton p_button) {
@@ -151,33 +131,12 @@ void SceneTreeEditor::_cell_button_pressed(Object *p_item, int p_column, int p_i
 		}
 		undo_redo->commit_action();
 	} else if (p_id == BUTTON_WARNING) {
-		const PackedStringArray warnings = _get_node_configuration_warnings(n);
-
-		if (warnings.is_empty()) {
+		const Vector<ConfigurationInfo> config_infos = EditorConfigurationInfo::get_configuration_info(n);
+		if (config_infos.is_empty()) {
 			return;
 		}
 
-		// Improve looks on tooltip, extra spacing on non-bullet point newlines.
-		const String bullet_point = U"•  ";
-		String all_warnings;
-		for (const String &w : warnings) {
-			all_warnings += "\n" + bullet_point + w;
-		}
-
-		// Limit the line width while keeping some padding.
-		// It is not efficient, but it does not have to be.
-		const PackedInt32Array boundaries = TS->string_get_word_breaks(all_warnings, "", 80);
-		PackedStringArray lines;
-		for (int i = 0; i < boundaries.size(); i += 2) {
-			const int start = boundaries[i];
-			const int end = boundaries[i + 1];
-			const String line = all_warnings.substr(start, end - start);
-			lines.append(line);
-		}
-		// We don't want the first two newlines.
-		all_warnings = String("\n").join(lines).indent("    ").replace(U"    •", U"\n•").substr(2);
-
-		warning->set_text(all_warnings);
+		warning->set_text(EditorConfigurationInfo::format_list_as_string(config_infos, true, true));
 		warning->popup_centered();
 
 	} else if (p_id == BUTTON_SIGNALS) {
@@ -473,29 +432,14 @@ void SceneTreeEditor::_update_node(Node *p_node, TreeItem *p_item, bool p_part_o
 	}
 
 	if (can_rename) { // TODO Should be can edit..
-		const PackedStringArray warnings = _get_node_configuration_warnings(p_node);
-		const int num_warnings = warnings.size();
-		if (num_warnings > 0) {
-			StringName warning_icon;
-			if (num_warnings == 1) {
-				warning_icon = SNAME("NodeWarning");
-			} else if (num_warnings <= 3) {
-				warning_icon = vformat("NodeWarnings%d", num_warnings);
-			} else {
-				warning_icon = SNAME("NodeWarnings4Plus");
-			}
 
-			// Improve looks on tooltip, extra spacing on non-bullet point newlines.
-			const String bullet_point = U"•  ";
-			String all_warnings;
-			for (const String &w : warnings) {
-				all_warnings += "\n\n" + bullet_point + w.replace("\n", "\n    ");
-			}
-			if (num_warnings == 1) {
-				all_warnings.remove_at(0); // With only one warning, two newlines do not look great.
-			}
+		const Vector<ConfigurationInfo> config_infos = EditorConfigurationInfo::get_configuration_info(p_node);
+		if (!config_infos.is_empty()) {
+			ConfigurationInfo::Severity max_severity = EditorConfigurationInfo::get_max_severity(config_infos);
+			const StringName config_info_icon = EditorConfigurationInfo::get_severity_icon(max_severity);
 
-			p_item->add_button(0, get_editor_theme_icon(warning_icon), BUTTON_WARNING, false, TTR("Node configuration warning:") + all_warnings);
+			const String config_info_text = EditorConfigurationInfo::format_list_as_string(config_infos, false, true);
+			p_item->add_button(0, get_editor_theme_icon(config_info_icon), BUTTON_WARNING, false, TTR("Node configuration info:") + "\n\n" + config_info_text);
 		}
 
 		if (p_node->is_unique_name_in_owner()) {
@@ -1295,7 +1239,7 @@ void SceneTreeEditor::_notification(int p_what) {
 			get_tree()->connect("node_added", callable_mp(this, &SceneTreeEditor::_node_added));
 			get_tree()->connect("node_removed", callable_mp(this, &SceneTreeEditor::_node_removed));
 			get_tree()->connect("node_renamed", callable_mp(this, &SceneTreeEditor::_node_renamed));
-			get_tree()->connect(SceneStringName(node_configuration_warning_changed), callable_mp(this, &SceneTreeEditor::_warning_changed));
+			EditorNode::get_singleton()->connect(EditorStringName(configuration_info_changed), callable_mp(this, &SceneTreeEditor::_config_info_changed));
 
 			tree->connect("item_collapsed", callable_mp(this, &SceneTreeEditor::_cell_collapsed));
 
@@ -1309,7 +1253,7 @@ void SceneTreeEditor::_notification(int p_what) {
 			get_tree()->disconnect("node_removed", callable_mp(this, &SceneTreeEditor::_node_removed));
 			get_tree()->disconnect("node_renamed", callable_mp(this, &SceneTreeEditor::_node_renamed));
 			tree->disconnect("item_collapsed", callable_mp(this, &SceneTreeEditor::_cell_collapsed));
-			get_tree()->disconnect(SceneStringName(node_configuration_warning_changed), callable_mp(this, &SceneTreeEditor::_warning_changed));
+			EditorNode::get_singleton()->disconnect(EditorStringName(configuration_info_changed), callable_mp(this, &SceneTreeEditor::_config_info_changed));
 		} break;
 
 		case NOTIFICATION_THEME_CHANGED: {
@@ -1991,12 +1935,15 @@ void SceneTreeEditor::_rmb_select(const Vector2 &p_pos, MouseButton p_button) {
 	emit_signal(SNAME("rmb_pressed"), tree->get_screen_position() + p_pos);
 }
 
-void SceneTreeEditor::update_warning() {
-	_warning_changed(nullptr);
+void SceneTreeEditor::update_config_info() {
+	_config_info_changed(nullptr);
 }
 
-void SceneTreeEditor::_warning_changed(Node *p_for_node) {
-	node_cache.mark_dirty(p_for_node);
+void SceneTreeEditor::_config_info_changed(Object *p_object) {
+	Node *node = Object::cast_to<Node>(p_object);
+	if (node) {
+		node_cache.mark_dirty(node);
+	}
 
 	// Should use a timer.
 	update_timer->start();
@@ -2107,7 +2054,7 @@ SceneTreeEditor::SceneTreeEditor(bool p_label, bool p_can_rename, bool p_can_ope
 
 	warning = memnew(AcceptDialog);
 	add_child(warning);
-	warning->set_title(TTR("Node Configuration Warning!"));
+	warning->set_title(TTR("Configuration Info"));
 	warning->set_flag(Window::FLAG_POPUP, true);
 
 	last_hash = 0;

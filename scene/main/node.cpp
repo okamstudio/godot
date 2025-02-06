@@ -2164,7 +2164,7 @@ void Node::set_unique_name_in_owner(bool p_enabled) {
 		_acquire_unique_name_in_owner();
 	}
 
-	update_configuration_warnings();
+	update_configuration_info();
 	_emit_editor_state_changed();
 }
 
@@ -3413,6 +3413,7 @@ void Node::clear_internal_tree_resource_paths() {
 	}
 }
 
+#ifndef DISABLE_DEPRECATED
 PackedStringArray Node::get_configuration_warnings() const {
 	ERR_THREAD_GUARD_V(PackedStringArray());
 	PackedStringArray ret;
@@ -3426,15 +3427,50 @@ PackedStringArray Node::get_configuration_warnings() const {
 }
 
 void Node::update_configuration_warnings() {
-	ERR_THREAD_GUARD
 #ifdef TOOLS_ENABLED
-	if (!is_inside_tree()) {
+	ERR_THREAD_GUARD
+	if (!ConfigurationInfo::configuration_info_changed_func) {
 		return;
 	}
-	if (get_tree()->get_edited_scene_root() && (get_tree()->get_edited_scene_root() == this || get_tree()->get_edited_scene_root()->is_ancestor_of(this))) {
+	if (is_inside_tree() && get_tree()->get_edited_scene_root() && (get_tree()->get_edited_scene_root() == this || get_tree()->get_edited_scene_root()->is_ancestor_of(this))) {
+		ConfigurationInfo::configuration_info_changed_func(this);
+
+		// Emit old signal for compatibility.
 		get_tree()->emit_signal(SceneStringName(node_configuration_warning_changed), this);
 	}
-#endif
+#endif // TOOLS_ENABLED
+}
+#endif // DISABLE_DEPRECATED
+
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> Node::get_configuration_info() const {
+	Vector<ConfigurationInfo> ret;
+	ERR_THREAD_GUARD_V(ret);
+
+	Array info;
+	if (GDVIRTUAL_CALL(_get_configuration_info, info)) {
+		ret.resize(info.size());
+
+		ConfigurationInfo *ptrw = ret.ptrw();
+		for (const Variant &variant : info) {
+			*ptrw++ = ConfigurationInfo::from_variant(variant);
+		}
+	}
+
+	return ret;
+}
+#endif // TOOLS_ENABLED
+
+void Node::update_configuration_info() {
+#ifdef TOOLS_ENABLED
+	ERR_THREAD_GUARD
+	if (!ConfigurationInfo::configuration_info_changed_func) {
+		return;
+	}
+	if (is_part_of_edited_scene()) {
+		ConfigurationInfo::configuration_info_changed_func(this);
+	}
+#endif // TOOLS_ENABLED
 }
 
 bool Node::is_owned_by_parent() const {
@@ -3763,7 +3799,10 @@ void Node::_bind_methods() {
 		ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "rpc_id", &Node::_rpc_id_bind, mi);
 	}
 
+#ifndef DISABLE_DEPRECATED
 	ClassDB::bind_method(D_METHOD("update_configuration_warnings"), &Node::update_configuration_warnings);
+#endif
+	ClassDB::bind_method(D_METHOD("update_configuration_info"), &Node::update_configuration_info);
 
 	{
 		MethodInfo mi;
@@ -3905,7 +3944,12 @@ void Node::_bind_methods() {
 	GDVIRTUAL_BIND(_enter_tree);
 	GDVIRTUAL_BIND(_exit_tree);
 	GDVIRTUAL_BIND(_ready);
+#ifndef DISABLE_DEPRECATED
 	GDVIRTUAL_BIND(_get_configuration_warnings);
+#endif
+#ifdef TOOLS_ENABLED
+	GDVIRTUAL_BIND(_get_configuration_info);
+#endif
 	GDVIRTUAL_BIND(_input, "event");
 	GDVIRTUAL_BIND(_shortcut_input, "event");
 	GDVIRTUAL_BIND(_unhandled_input, "event");

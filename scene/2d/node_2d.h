@@ -117,6 +117,10 @@ public:
 
 	Transform2D get_transform() const override;
 
+#ifdef TOOLS_ENABLED
+	Vector<ConfigurationInfo> get_configuration_info() const override;
+#endif
+
 	Node2D() {}
 };
 

@@ -128,7 +128,9 @@ public:
 	VScrollBar *get_v_scroll_bar();
 	void ensure_control_visible(Control *p_control);
 
-	PackedStringArray get_configuration_warnings() const override;
+#ifdef TOOLS_ENABLED
+	Vector<ConfigurationInfo> get_configuration_info() const override;
+#endif
 
 	void set_draw_focus_border(bool p_draw);
 	bool get_draw_focus_border();

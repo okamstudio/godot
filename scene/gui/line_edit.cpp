@@ -2579,14 +2579,6 @@ void LineEdit::_emit_text_change() {
 	text_changed_dirty = false;
 }
 
-PackedStringArray LineEdit::get_configuration_warnings() const {
-	PackedStringArray warnings = Control::get_configuration_warnings();
-	if (secret_character.length() > 1) {
-		warnings.push_back("Secret Character property supports only one character. Extra characters will be ignored.");
-	}
-	return warnings;
-}
-
 void LineEdit::_shape() {
 	const Ref<Font> &font = theme_cache.font;
 	int font_size = theme_cache.font_size;

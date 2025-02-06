@@ -101,7 +101,7 @@ void CollisionShape3D::_notification(int p_what) {
 			if (collision_object) {
 				_update_in_shape_owner(true);
 			}
-			update_configuration_warnings();
+			update_configuration_info();
 		} break;
 
 		case NOTIFICATION_UNPARENTED: {
@@ -119,16 +119,17 @@ void CollisionShape3D::resource_changed(Ref<Resource> res) {
 }
 #endif
 
-PackedStringArray CollisionShape3D::get_configuration_warnings() const {
-	PackedStringArray warnings = Node3D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> CollisionShape3D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node3D::get_configuration_info();
 
 	CollisionObject3D *col_object = Object::cast_to<CollisionObject3D>(get_parent());
 	if (col_object == nullptr) {
-		warnings.push_back(RTR("CollisionShape3D only serves to provide a collision shape to a CollisionObject3D derived node.\nPlease only use it as a child of Area3D, StaticBody3D, RigidBody3D, CharacterBody3D, etc. to give them a shape."));
+		CONFIG_WARNING(RTR("CollisionShape3D only serves to provide a collision shape to a CollisionObject3D derived node.\nPlease only use it as a child of Area3D, StaticBody3D, RigidBody3D, CharacterBody3D, etc. to give them a shape."));
 	}
 
 	if (shape.is_null()) {
-		warnings.push_back(RTR("A shape must be provided for CollisionShape3D to function. Please create a shape resource for it."));
+		CONFIG_WARNING_P(RTR("A shape must be provided for CollisionShape3D to function. Please create a shape resource for it."), "shape");
 	}
 
 	if (shape.is_valid() && Object::cast_to<RigidBody3D>(col_object)) {
@@ -138,25 +139,26 @@ PackedStringArray CollisionShape3D::get_configuration_warnings() const {
 		}
 
 		if (Object::cast_to<ConcavePolygonShape3D>(*shape)) {
-			warnings.push_back(vformat(RTR("When used for collision, ConcavePolygonShape3D is intended to work with static CollisionObject3D nodes like StaticBody3D.\nIt will likely not behave well for %ss (except when frozen and freeze_mode set to FREEZE_MODE_STATIC)."), body_type));
+			CONFIG_WARNING(vformat(RTR("When used for collision, ConcavePolygonShape3D is intended to work with static CollisionObject3D nodes like StaticBody3D.\nIt will likely not behave well for %ss (except when frozen and freeze_mode set to FREEZE_MODE_STATIC)."), body_type));
 		} else if (Object::cast_to<WorldBoundaryShape3D>(*shape)) {
-			warnings.push_back(RTR("WorldBoundaryShape3D doesn't support RigidBody3D in another mode than static."));
+			CONFIG_WARNING(RTR("WorldBoundaryShape3D doesn't support RigidBody3D in another mode than static."));
 		}
 	}
 
 	if (shape.is_valid() && Object::cast_to<CharacterBody3D>(col_object)) {
 		if (Object::cast_to<ConcavePolygonShape3D>(*shape)) {
-			warnings.push_back(RTR("When used for collision, ConcavePolygonShape3D is intended to work with static CollisionObject3D nodes like StaticBody3D.\nIt will likely not behave well for CharacterBody3Ds."));
+			CONFIG_WARNING(RTR("When used for collision, ConcavePolygonShape3D is intended to work with static CollisionObject3D nodes like StaticBody3D.\nIt will likely not behave well for CharacterBody3Ds."));
 		}
 	}
 
 	Vector3 scale = get_transform().get_basis().get_scale();
 	if (!(Math::is_zero_approx(scale.x - scale.y) && Math::is_zero_approx(scale.y - scale.z))) {
-		warnings.push_back(RTR("A non-uniformly scaled CollisionShape3D node will probably not function as expected.\nPlease make its scale uniform (i.e. the same on all axes), and change the size of its shape resource instead."));
+		CONFIG_WARNING(RTR("A non-uniformly scaled CollisionShape3D node will probably not function as expected.\nPlease make its scale uniform (i.e. the same on all axes), and change the size of its shape resource instead."));
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 void CollisionShape3D::_bind_methods() {
 #ifndef DISABLE_DEPRECATED
@@ -225,7 +227,7 @@ void CollisionShape3D::set_shape(const Ref<Shape3D> &p_shape) {
 		// If this is a heightfield shape our center may have changed
 		_update_in_shape_owner(true);
 	}
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 Ref<Shape3D> CollisionShape3D::get_shape() const {

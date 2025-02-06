@@ -65,7 +65,9 @@ public:
 	const StringName size_flags_changed = StaticCString::create("size_flags_changed");
 	const StringName minimum_size_changed = StaticCString::create("minimum_size_changed");
 	const StringName sleeping_state_changed = StaticCString::create("sleeping_state_changed");
+#ifndef DISABLE_DEPRECATED
 	const StringName node_configuration_warning_changed = StaticCString::create("node_configuration_warning_changed");
+#endif
 	const StringName update = StaticCString::create("update");
 	const StringName updated = StaticCString::create("updated");
 

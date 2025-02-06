@@ -62,7 +62,9 @@ protected:
 	_FORCE_INLINE_ bool is_configured() const { return configured; }
 
 public:
-	virtual PackedStringArray get_configuration_warnings() const override;
+#ifdef TOOLS_ENABLED
+	virtual Vector<ConfigurationInfo> get_configuration_info() const override;
+#endif
 
 	void set_node_a(const NodePath &p_node_a);
 	NodePath get_node_a() const;

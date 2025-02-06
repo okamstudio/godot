@@ -386,7 +386,7 @@ void Bone2D::set_rest(const Transform2D &p_rest) {
 		skeleton->_make_bone_setup_dirty();
 	}
 
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 Transform2D Bone2D::get_rest() const {
@@ -411,22 +411,24 @@ int Bone2D::get_index_in_skeleton() const {
 	return skeleton_index;
 }
 
-PackedStringArray Bone2D::get_configuration_warnings() const {
-	PackedStringArray warnings = Node2D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> Bone2D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node2D::get_configuration_info();
 	if (!skeleton) {
 		if (parent_bone) {
-			warnings.push_back(RTR("This Bone2D chain should end at a Skeleton2D node."));
+			CONFIG_WARNING(RTR("This Bone2D chain should end at a Skeleton2D node."));
 		} else {
-			warnings.push_back(RTR("A Bone2D only works with a Skeleton2D or another Bone2D as parent node."));
+			CONFIG_WARNING(RTR("A Bone2D only works with a Skeleton2D or another Bone2D as parent node."));
 		}
 	}
 
 	if (rest == Transform2D(0, 0, 0, 0, 0, 0)) {
-		warnings.push_back(RTR("This bone lacks a proper REST pose. Go to the Skeleton2D node and set one."));
+		CONFIG_WARNING(RTR("This bone lacks a proper REST pose. Go to the Skeleton2D node and set one."));
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 void Bone2D::calculate_length_and_rotation() {
 	// If there is at least a single child Bone2D node, we can calculate

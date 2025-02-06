@@ -4603,9 +4603,9 @@ void SceneTreeDock::_bind_methods() {
 
 SceneTreeDock *SceneTreeDock::singleton = nullptr;
 
-void SceneTreeDock::_update_configuration_warning() {
+void SceneTreeDock::_update_configuration_info() {
 	if (singleton) {
-		callable_mp(singleton->scene_tree, &SceneTreeEditor::update_warning).call_deferred();
+		callable_mp(singleton->scene_tree, &SceneTreeEditor::update_config_info).call_deferred();
 	}
 }
 
@@ -4853,8 +4853,6 @@ SceneTreeDock::SceneTreeDock(Node *p_scene_root, EditorSelection *p_editor_selec
 	set_process(true);
 
 	EDITOR_DEF("_use_favorites_root_selection", false);
-
-	Resource::_update_configuration_warning = _update_configuration_warning;
 }
 
 SceneTreeDock::~SceneTreeDock() {

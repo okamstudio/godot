@@ -154,14 +154,14 @@ void GPUParticles2D::set_process_material(const Ref<Material> &p_material) {
 	}
 	RS::get_singleton()->particles_set_process_material(particles, material_rid);
 
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 void GPUParticles2D::set_trail_enabled(bool p_enabled) {
 	trail_enabled = p_enabled;
 	RS::get_singleton()->particles_set_trails(particles, trail_enabled, trail_lifetime);
 	queue_redraw();
-	update_configuration_warnings();
+	update_configuration_info();
 
 	RS::get_singleton()->particles_set_transform_align(particles, p_enabled ? RS::PARTICLES_TRANSFORM_ALIGN_Y_TO_VELOCITY : RS::PARTICLES_TRANSFORM_ALIGN_DISABLED);
 }
@@ -349,11 +349,12 @@ void GPUParticles2D::request_particles_process(real_t p_requested_process_time) 
 	RS::get_singleton()->particles_request_process_time(particles, p_requested_process_time);
 }
 
-PackedStringArray GPUParticles2D::get_configuration_warnings() const {
-	PackedStringArray warnings = Node2D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> GPUParticles2D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node2D::get_configuration_info();
 
 	if (process_material.is_null()) {
-		warnings.push_back(RTR("A material to process the particles is not assigned, so no behavior is imprinted."));
+		CONFIG_WARNING(RTR("A material to process the particles is not assigned, so no behavior is imprinted."));
 	} else {
 		CanvasItemMaterial *mat = Object::cast_to<CanvasItemMaterial>(get_material().ptr());
 
@@ -362,21 +363,22 @@ PackedStringArray GPUParticles2D::get_configuration_warnings() const {
 			if (process &&
 					(process->get_param_max(ParticleProcessMaterial::PARAM_ANIM_SPEED) != 0.0 || process->get_param_max(ParticleProcessMaterial::PARAM_ANIM_OFFSET) != 0.0 ||
 							process->get_param_texture(ParticleProcessMaterial::PARAM_ANIM_SPEED).is_valid() || process->get_param_texture(ParticleProcessMaterial::PARAM_ANIM_OFFSET).is_valid())) {
-				warnings.push_back(RTR("Particles2D animation requires the usage of a CanvasItemMaterial with \"Particles Animation\" enabled."));
+				CONFIG_WARNING(RTR("Particles2D animation requires the usage of a CanvasItemMaterial with \"Particles Animation\" enabled."));
 			}
 		}
 	}
 
 	if (trail_enabled && OS::get_singleton()->get_current_rendering_method() == "gl_compatibility") {
-		warnings.push_back(RTR("Particle trails are only available when using the Forward+ or Mobile renderers."));
+		CONFIG_WARNING(RTR("Particle trails are only available when using the Forward+ or Mobile renderers."));
 	}
 
 	if (sub_emitter != NodePath() && OS::get_singleton()->get_current_rendering_method() == "gl_compatibility") {
-		warnings.push_back(RTR("Particle sub-emitters are not available when using the Compatibility renderer."));
+		CONFIG_WARNING(RTR("Particle sub-emitters are not available when using the Compatibility renderer."));
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 Rect2 GPUParticles2D::capture_rect() const {
 	AABB aabb = RS::get_singleton()->particles_get_current_aabb(particles);
@@ -453,7 +455,7 @@ void GPUParticles2D::set_sub_emitter(const NodePath &p_path) {
 	if (is_inside_tree() && sub_emitter != NodePath()) {
 		_attach_sub_emitter();
 	}
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 NodePath GPUParticles2D::get_sub_emitter() const {

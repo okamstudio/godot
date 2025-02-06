@@ -85,7 +85,9 @@ public:
 	void set_debug_fill_enabled(bool p_enable);
 	bool get_debug_fill_enabled() const;
 
-	PackedStringArray get_configuration_warnings() const override;
+#ifdef TOOLS_ENABLED
+	Vector<ConfigurationInfo> get_configuration_info() const override;
+#endif
 
 	CollisionShape3D();
 	~CollisionShape3D();

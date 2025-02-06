@@ -84,14 +84,18 @@ void MultiplayerSpawner::_get_property_list(List<PropertyInfo> *p_list) const {
 }
 #endif
 
-PackedStringArray MultiplayerSpawner::get_configuration_warnings() const {
-	PackedStringArray warnings = Node::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> MultiplayerSpawner::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node::get_configuration_info();
 
 	if (spawn_path.is_empty() || !has_node(spawn_path)) {
-		warnings.push_back(RTR("A valid NodePath must be set in the \"Spawn Path\" property in order for MultiplayerSpawner to be able to spawn Nodes."));
+		CONFIG_WARNING_P(
+				RTR("A valid NodePath must be set in order for MultiplayerSpawner to be able to spawn Nodes."),
+				"spawn_path");
 	}
-	return warnings;
+	return infos;
 }
+#endif
 
 void MultiplayerSpawner::add_spawnable_scene(const String &p_path) {
 	SpawnableScene sc;
@@ -248,7 +252,7 @@ NodePath MultiplayerSpawner::get_spawn_path() const {
 void MultiplayerSpawner::set_spawn_path(const NodePath &p_path) {
 	spawn_path = p_path;
 	_update_spawn_node();
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 void MultiplayerSpawner::_track(Node *p_node, const Variant &p_argument, int p_scene_id) {

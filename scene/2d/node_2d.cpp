@@ -427,6 +427,22 @@ Point2 Node2D::to_global(Point2 p_local) const {
 	return get_global_transform().xform(p_local);
 }
 
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> Node2D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = CanvasItem::get_configuration_info();
+
+	// Note: Warn for Node2D but not all CanvasItems, don't warn for Control nodes.
+	// Control nodes may have reasons to use a transformed root node like anchors.
+	if (get_tree()->get_edited_scene_root() == this && !get_transform().is_equal_approx(Transform2D())) {
+		CONFIG_WARNING_P(
+				TTR("The root node of a scene is recommended to not be transformed, since instances of the scene will usually override this. Reset the transform to remove this warning."),
+				"transform");
+	}
+
+	return infos;
+}
+#endif
+
 void Node2D::_notification(int p_notification) {
 	switch (p_notification) {
 		case NOTIFICATION_ENTER_TREE: {

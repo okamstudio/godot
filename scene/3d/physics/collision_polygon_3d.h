@@ -90,7 +90,9 @@ public:
 	real_t get_margin() const;
 	void set_margin(real_t p_margin);
 
-	PackedStringArray get_configuration_warnings() const override;
+#ifdef TOOLS_ENABLED
+	Vector<ConfigurationInfo> get_configuration_info() const override;
+#endif
 
 	CollisionPolygon3D();
 };

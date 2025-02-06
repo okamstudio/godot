@@ -90,7 +90,7 @@ void Timer::_notification(int p_what) {
 void Timer::set_wait_time(double p_time) {
 	ERR_FAIL_COND_MSG(p_time <= 0, "Time should be greater than zero.");
 	wait_time = p_time;
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 double Timer::get_wait_time() const {
@@ -196,15 +196,19 @@ void Timer::_set_process(bool p_process, bool p_force) {
 	processing = p_process;
 }
 
-PackedStringArray Timer::get_configuration_warnings() const {
-	PackedStringArray warnings = Node::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> Timer::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node::get_configuration_info();
 
 	if (wait_time < 0.05 - CMP_EPSILON) {
-		warnings.push_back(RTR("Very low timer wait times (< 0.05 seconds) may behave in significantly different ways depending on the rendered or physics frame rate.\nConsider using a script's process loop instead of relying on a Timer for very low wait times."));
+		CONFIG_WARNING_P(
+				RTR("Very low timer wait times (< 0.05 seconds) may behave in significantly different ways depending on the rendered or physics frame rate.\nConsider using a script's process loop instead of relying on a Timer for very low wait times."),
+				"wait_time");
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 void Timer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_wait_time", "time_sec"), &Timer::set_wait_time);

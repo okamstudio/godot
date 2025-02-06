@@ -180,7 +180,9 @@ protected:
 	static void _bind_methods();
 
 public:
-	virtual PackedStringArray get_configuration_warnings() const override;
+#ifdef TOOLS_ENABLED
+	virtual Vector<ConfigurationInfo> get_configuration_info() const override;
+#endif
 
 	enum BakeError {
 		BAKE_ERROR_OK,

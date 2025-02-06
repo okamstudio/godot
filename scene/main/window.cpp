@@ -1276,6 +1276,7 @@ void Window::_update_viewport_size() {
 	}
 
 	notification(NOTIFICATION_WM_SIZE_CHANGED);
+	update_configuration_info();
 
 	if (embedder) {
 		float scale = MIN(embedder->stretch_transform.get_scale().width, embedder->stretch_transform.get_scale().height);
@@ -2880,6 +2881,18 @@ void Window::_mouse_leave_viewport() {
 		_propagate_window_notification(this, NOTIFICATION_WM_MOUSE_EXIT);
 	}
 }
+
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> Window::get_configuration_info() const {
+	ERR_MAIN_THREAD_GUARD_V(Vector<ConfigurationInfo>());
+	Vector<ConfigurationInfo> infos = Viewport::get_configuration_info();
+
+	if (size.x <= 1 || size.y <= 1) {
+		CONFIG_WARNING_P(RTR("The Window size must be greater than or equal to 2 pixels on both dimensions to render anything."), "size");
+	}
+	return infos;
+}
+#endif
 
 void Window::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_title", "title"), &Window::set_title);

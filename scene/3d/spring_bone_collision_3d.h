@@ -43,7 +43,9 @@ class SpringBoneCollision3D : public Node3D {
 	Quaternion rotation_offset;
 
 protected:
-	PackedStringArray get_configuration_warnings() const override;
+#ifdef TOOLS_ENABLED
+	Vector<ConfigurationInfo> get_configuration_info() const override;
+#endif
 
 	void _validate_property(PropertyInfo &p_property) const;
 	static void _bind_methods();

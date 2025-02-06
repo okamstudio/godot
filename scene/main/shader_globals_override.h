@@ -58,7 +58,9 @@ protected:
 	static void _bind_methods();
 
 public:
-	PackedStringArray get_configuration_warnings() const override;
+#ifdef TOOLS_ENABLED
+	Vector<ConfigurationInfo> get_configuration_info() const override;
+#endif
 
 	ShaderGlobalsOverride();
 };

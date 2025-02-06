@@ -450,7 +450,7 @@ void OccluderInstance3D::set_occluder(const Ref<Occluder3D> &p_occluder) {
 	}
 
 	update_gizmos();
-	update_configuration_warnings();
+	update_configuration_info();
 
 #ifdef TOOLS_ENABLED
 	// PolygonOccluder3D is edited via an editor plugin, this ensures the plugin is shown/hidden when necessary
@@ -462,7 +462,7 @@ void OccluderInstance3D::set_occluder(const Ref<Occluder3D> &p_occluder) {
 
 void OccluderInstance3D::_occluder_changed() {
 	update_gizmos();
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 Ref<Occluder3D> OccluderInstance3D::get_occluder() const {
@@ -471,7 +471,7 @@ Ref<Occluder3D> OccluderInstance3D::get_occluder() const {
 
 void OccluderInstance3D::set_bake_mask(uint32_t p_mask) {
 	bake_mask = p_mask;
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 uint32_t OccluderInstance3D::get_bake_mask() const {
@@ -690,34 +690,40 @@ OccluderInstance3D::BakeError OccluderInstance3D::bake_scene(Node *p_from_node, 
 	return BAKE_ERROR_OK;
 }
 
-PackedStringArray OccluderInstance3D::get_configuration_warnings() const {
-	PackedStringArray warnings = VisualInstance3D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> OccluderInstance3D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = VisualInstance3D::get_configuration_info();
 
 	if (!bool(GLOBAL_GET("rendering/occlusion_culling/use_occlusion_culling"))) {
-		warnings.push_back(RTR("Occlusion culling is disabled in the Project Settings, which means occlusion culling won't be performed in the root viewport.\nTo resolve this, open the Project Settings and enable Rendering > Occlusion Culling > Use Occlusion Culling."));
+		CONFIG_WARNING(RTR("Occlusion culling is disabled in the Project Settings, which means occlusion culling won't be performed in the root viewport.\nTo resolve this, open the Project Settings and enable Rendering > Occlusion Culling > Use Occlusion Culling."));
 	}
 
 	if (bake_mask == 0) {
-		warnings.push_back(RTR("The Bake Mask has no bits enabled, which means baking will not produce any occluder meshes for this OccluderInstance3D.\nTo resolve this, enable at least one bit in the Bake Mask property."));
+		CONFIG_WARNING_P(
+				RTR("The Bake Mask has no bits enabled, which means baking will not produce any occluder meshes for this OccluderInstance3D.\nTo resolve this, enable at least one bit in the Bake Mask."),
+				"bake_mask");
 	}
 
 	if (occluder.is_null()) {
-		warnings.push_back(RTR("No occluder mesh is defined in the Occluder property, so no occlusion culling will be performed using this OccluderInstance3D.\nTo resolve this, set the Occluder property to one of the primitive occluder types or bake the scene meshes by selecting the OccluderInstance3D and pressing the Bake Occluders button at the top of the 3D editor viewport."));
+		CONFIG_WARNING_P(
+				RTR("No occluder mesh is defined in the Occluder property, so no occlusion culling will be performed using this OccluderInstance3D.\nTo resolve this, set the Occluder to one of the primitive occluder types or bake the scene meshes by selecting the OccluderInstance3D and pressing the Bake Occluders button at the top of the 3D editor viewport."),
+				"occluder");
 	} else {
 		Ref<ArrayOccluder3D> arr_occluder = occluder;
 		if (arr_occluder.is_valid() && arr_occluder->get_indices().size() < 3) {
 			// Setting a new ArrayOccluder3D from the inspector will create an empty occluder,
 			// so warn the user about this.
-			warnings.push_back(RTR("The occluder mesh has less than 3 vertices, so no occlusion culling will be performed using this OccluderInstance3D.\nTo generate a proper occluder mesh, select the OccluderInstance3D then use the Bake Occluders button at the top of the 3D editor viewport."));
+			CONFIG_WARNING(RTR("The occluder mesh has less than 3 vertices, so no occlusion culling will be performed using this OccluderInstance3D.\nTo generate a proper occluder mesh, select the OccluderInstance3D then use the Bake Occluders button at the top of the 3D editor viewport."));
 		}
 		Ref<PolygonOccluder3D> poly_occluder = occluder;
 		if (poly_occluder.is_valid() && poly_occluder->get_polygon().size() < 3) {
-			warnings.push_back(RTR("The polygon occluder has less than 3 vertices, so no occlusion culling will be performed using this OccluderInstance3D.\nVertices can be added in the inspector or using the polygon editing tools at the top of the 3D editor viewport."));
+			CONFIG_WARNING(RTR("The polygon occluder has less than 3 vertices, so no occlusion culling will be performed using this OccluderInstance3D.\nVertices can be added in the inspector or using the polygon editing tools at the top of the 3D editor viewport."));
 		}
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 bool OccluderInstance3D::_is_editable_3d_polygon() const {
 	return Ref<PolygonOccluder3D>(occluder).is_valid();

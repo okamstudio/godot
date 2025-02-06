@@ -405,24 +405,26 @@ bool NavigationObstacle3D::get_carve_navigation_mesh() const {
 	return carve_navigation_mesh;
 }
 
-PackedStringArray NavigationObstacle3D::get_configuration_warnings() const {
-	PackedStringArray warnings = Node3D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> NavigationObstacle3D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node3D::get_configuration_info();
 
 	if (get_global_rotation().x != 0.0 || get_global_rotation().z != 0.0) {
-		warnings.push_back(RTR("NavigationObstacle3D only takes global rotation around the y-axis into account. Rotations around the x-axis or z-axis might lead to unexpected results."));
+		CONFIG_WARNING_P(RTR("NavigationObstacle3D only takes global rotation around the y-axis into account. Rotations around the x-axis or z-axis might lead to unexpected results."), "rotation");
 	}
 
 	const Vector3 global_scale = get_global_basis().get_scale();
 	if (global_scale.x < 0.001 || global_scale.y < 0.001 || global_scale.z < 0.001) {
-		warnings.push_back(RTR("NavigationObstacle3D does not support negative or zero scaling."));
+		CONFIG_WARNING_P(RTR("NavigationObstacle3D does not support negative or zero scaling."), "scale");
 	}
 
 	if (radius > 0.0 && !get_global_basis().is_conformal()) {
-		warnings.push_back(RTR("The agent radius can only be scaled uniformly. The largest scale value along the three axes will be used."));
+		CONFIG_WARNING(RTR("The agent radius can only be scaled uniformly. The largest scale value along the three axes will be used."));
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 void NavigationObstacle3D::navmesh_parse_init() {
 	ERR_FAIL_NULL(NavigationServer3D::get_singleton());

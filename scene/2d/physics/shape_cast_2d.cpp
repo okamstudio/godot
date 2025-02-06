@@ -161,7 +161,7 @@ void ShapeCast2D::set_shape(const Ref<Shape2D> &p_shape) {
 		shape_rid = shape->get_rid();
 	}
 
-	update_configuration_warnings();
+	update_configuration_info();
 	queue_redraw();
 }
 
@@ -401,14 +401,16 @@ Array ShapeCast2D::get_collision_result() const {
 	return ret;
 }
 
-PackedStringArray ShapeCast2D::get_configuration_warnings() const {
-	PackedStringArray warnings = Node2D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> ShapeCast2D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node2D::get_configuration_info();
 
 	if (shape.is_null()) {
-		warnings.push_back(RTR("This node cannot interact with other objects unless a Shape2D is assigned."));
+		CONFIG_WARNING(RTR("This node cannot interact with other objects unless a Shape2D is assigned."));
 	}
-	return warnings;
+	return infos;
 }
+#endif
 
 void ShapeCast2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_enabled", "enabled"), &ShapeCast2D::set_enabled);

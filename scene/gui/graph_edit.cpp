@@ -251,13 +251,15 @@ Control::CursorShape GraphEdit::get_cursor_shape(const Point2 &p_pos) const {
 	return Control::get_cursor_shape(p_pos);
 }
 
-PackedStringArray GraphEdit::get_configuration_warnings() const {
-	PackedStringArray warnings = Control::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> GraphEdit::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Control::get_configuration_info();
 
-	warnings.push_back(RTR("Please be aware that GraphEdit and GraphNode will undergo extensive refactoring in a future 4.x version involving compatibility-breaking API changes."));
+	CONFIG_WARNING(RTR("Please be aware that GraphEdit and GraphNode will undergo extensive refactoring in a future 4.x version involving compatibility-breaking API changes."));
 
-	return warnings;
+	return infos;
 }
+#endif
 
 Error GraphEdit::connect_node(const StringName &p_from, int p_from_port, const StringName &p_to, int p_to_port, bool p_keep_alive) {
 	ERR_FAIL_NULL_V_MSG(connections_layer, FAILED, "connections_layer is missing.");

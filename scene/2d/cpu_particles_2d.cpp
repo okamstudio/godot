@@ -277,20 +277,22 @@ bool CPUParticles2D::get_fractional_delta() const {
 	return fractional_delta;
 }
 
-PackedStringArray CPUParticles2D::get_configuration_warnings() const {
-	PackedStringArray warnings = Node2D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> CPUParticles2D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node2D::get_configuration_info();
 
 	CanvasItemMaterial *mat = Object::cast_to<CanvasItemMaterial>(get_material().ptr());
 
 	if (get_material().is_null() || (mat && !mat->get_particles_animation())) {
 		if (get_param_max(PARAM_ANIM_SPEED) != 0.0 || get_param_max(PARAM_ANIM_OFFSET) != 0.0 ||
 				get_param_curve(PARAM_ANIM_SPEED).is_valid() || get_param_curve(PARAM_ANIM_OFFSET).is_valid()) {
-			warnings.push_back(RTR("CPUParticles2D animation requires the usage of a CanvasItemMaterial with \"Particles Animation\" enabled."));
+			CONFIG_WARNING(RTR("CPUParticles2D animation requires the usage of a CanvasItemMaterial with \"Particles Animation\" enabled."));
 		}
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 void CPUParticles2D::restart(bool p_keep_seed) {
 	time = 0;
@@ -352,7 +354,7 @@ void CPUParticles2D::set_param_max(Parameter p_param, real_t p_value) {
 		set_param_min(p_param, p_value);
 	}
 
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 real_t CPUParticles2D::get_param_max(Parameter p_param) const {
@@ -414,7 +416,7 @@ void CPUParticles2D::set_param_curve(Parameter p_param, const Ref<Curve> &p_curv
 		}
 	}
 
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 Ref<Curve> CPUParticles2D::get_param_curve(Parameter p_param) const {

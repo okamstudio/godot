@@ -135,7 +135,6 @@ class SceneTreeEditor : public Control {
 
 	void _compute_hash(Node *p_node, uint64_t &hash);
 	void _reset();
-	PackedStringArray _get_node_configuration_warnings(Node *p_node);
 
 	void _update_node_path(Node *p_node, bool p_recursive = true);
 	void _update_node_subtree(Node *p_node, TreeItem *p_parent, bool p_force = false);
@@ -207,7 +206,7 @@ class SceneTreeEditor : public Control {
 	void _empty_clicked(const Vector2 &p_pos, MouseButton p_button);
 	void _rmb_select(const Vector2 &p_pos, MouseButton p_button = MouseButton::RIGHT);
 
-	void _warning_changed(Node *p_for_node);
+	void _config_info_changed(Object *p_object);
 	void _update_marking_list(const HashSet<Node *> &p_marked);
 
 	Timer *update_timer = nullptr;
@@ -254,7 +253,7 @@ public:
 
 	Tree *get_scene_tree() { return tree; }
 
-	void update_warning();
+	void update_config_info();
 
 	SceneTreeEditor(bool p_label = true, bool p_can_rename = false, bool p_can_open_instance = false);
 	~SceneTreeEditor();

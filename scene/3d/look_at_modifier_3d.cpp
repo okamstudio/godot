@@ -67,13 +67,15 @@ void LookAtModifier3D::_validate_property(PropertyInfo &p_property) const {
 	}
 }
 
-PackedStringArray LookAtModifier3D::get_configuration_warnings() const {
-	PackedStringArray warnings = SkeletonModifier3D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> LookAtModifier3D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = SkeletonModifier3D::get_configuration_info();
 	if (get_axis_from_bone_axis(forward_axis) == primary_rotation_axis) {
-		warnings.push_back(RTR("Forward axis and primary rotation axis must not be parallel."));
+		CONFIG_WARNING(RTR("Forward axis and primary rotation axis must not be parallel."));
 	}
-	return warnings;
+	return infos;
 }
+#endif
 
 void LookAtModifier3D::set_bone_name(const String &p_bone_name) {
 	bone_name = p_bone_name;
@@ -106,7 +108,7 @@ int LookAtModifier3D::get_bone() const {
 
 void LookAtModifier3D::set_forward_axis(BoneAxis p_axis) {
 	forward_axis = p_axis;
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 SkeletonModifier3D::BoneAxis LookAtModifier3D::get_forward_axis() const {
@@ -115,7 +117,7 @@ SkeletonModifier3D::BoneAxis LookAtModifier3D::get_forward_axis() const {
 
 void LookAtModifier3D::set_primary_rotation_axis(Vector3::Axis p_axis) {
 	primary_rotation_axis = p_axis;
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 Vector3::Axis LookAtModifier3D::get_primary_rotation_axis() const {

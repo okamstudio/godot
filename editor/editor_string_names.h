@@ -45,6 +45,7 @@ public:
 
 	_FORCE_INLINE_ static EditorStringNames *get_singleton() { return singleton; }
 
+	const StringName configuration_info_changed = StaticCString::create("configuration_info_changed");
 	const StringName Editor = StaticCString::create("Editor");
 	const StringName EditorFonts = StaticCString::create("EditorFonts");
 	const StringName EditorIcons = StaticCString::create("EditorIcons");

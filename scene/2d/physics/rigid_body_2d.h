@@ -233,7 +233,9 @@ public:
 
 	TypedArray<Node2D> get_colliding_bodies() const; //function for script
 
-	virtual PackedStringArray get_configuration_warnings() const override;
+#ifdef TOOLS_ENABLED
+	virtual Vector<ConfigurationInfo> get_configuration_info() const override;
+#endif
 
 	RigidBody2D();
 	~RigidBody2D();

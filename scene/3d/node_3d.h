@@ -300,6 +300,10 @@ public:
 	void set_visibility_parent(const NodePath &p_path);
 	NodePath get_visibility_parent() const;
 
+#ifdef TOOLS_ENABLED
+	Vector<ConfigurationInfo> get_configuration_info() const override;
+#endif
+
 	Node3D();
 	~Node3D();
 };

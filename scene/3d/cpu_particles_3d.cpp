@@ -180,7 +180,7 @@ void CPUParticles3D::set_mesh(const Ref<Mesh> &p_mesh) {
 		RS::get_singleton()->multimesh_set_mesh(multimesh, RID());
 	}
 
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 Ref<Mesh> CPUParticles3D::get_mesh() const {
@@ -203,8 +203,9 @@ bool CPUParticles3D::get_fractional_delta() const {
 	return fractional_delta;
 }
 
-PackedStringArray CPUParticles3D::get_configuration_warnings() const {
-	PackedStringArray warnings = GeometryInstance3D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> CPUParticles3D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = GeometryInstance3D::get_configuration_info();
 
 	bool mesh_found = false;
 	bool anim_material_found = false;
@@ -223,15 +224,16 @@ PackedStringArray CPUParticles3D::get_configuration_warnings() const {
 	anim_material_found = anim_material_found || (spat && spat->get_billboard_mode() == StandardMaterial3D::BILLBOARD_PARTICLES);
 
 	if (!mesh_found) {
-		warnings.push_back(RTR("Nothing is visible because no mesh has been assigned."));
+		CONFIG_WARNING(RTR("Nothing is visible because no mesh has been assigned."));
 	}
 
 	if (!anim_material_found && (get_param_max(PARAM_ANIM_SPEED) != 0.0 || get_param_max(PARAM_ANIM_OFFSET) != 0.0 || get_param_curve(PARAM_ANIM_SPEED).is_valid() || get_param_curve(PARAM_ANIM_OFFSET).is_valid())) {
-		warnings.push_back(RTR("CPUParticles3D animation requires the usage of a StandardMaterial3D whose Billboard Mode is set to \"Particle Billboard\"."));
+		CONFIG_WARNING(RTR("CPUParticles3D animation requires the usage of a StandardMaterial3D whose Billboard Mode is set to \"Particle Billboard\"."));
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 void CPUParticles3D::restart(bool p_keep_seed) {
 	time = 0;
@@ -286,7 +288,7 @@ void CPUParticles3D::set_param_min(Parameter p_param, real_t p_value) {
 		set_param_max(p_param, p_value);
 	}
 
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 real_t CPUParticles3D::get_param_min(Parameter p_param) const {
@@ -303,7 +305,7 @@ void CPUParticles3D::set_param_max(Parameter p_param, real_t p_value) {
 		set_param_min(p_param, p_value);
 	}
 
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 real_t CPUParticles3D::get_param_max(Parameter p_param) const {
@@ -365,7 +367,7 @@ void CPUParticles3D::set_param_curve(Parameter p_param, const Ref<Curve> &p_curv
 		}
 	}
 
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 Ref<Curve> CPUParticles3D::get_param_curve(Parameter p_param) const {

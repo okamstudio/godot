@@ -57,7 +57,7 @@ void CanvasModulate::_on_in_canvas_visibility_changed(bool p_new_visibility) {
 		}
 	}
 
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 void CanvasModulate::_notification(int p_what) {
@@ -113,20 +113,22 @@ Color CanvasModulate::get_color() const {
 	return color;
 }
 
-PackedStringArray CanvasModulate::get_configuration_warnings() const {
-	PackedStringArray warnings = Node2D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> CanvasModulate::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node2D::get_configuration_info();
 
 	if (is_in_canvas && is_visible_in_tree()) {
 		List<Node *> nodes;
 		get_tree()->get_nodes_in_group("_canvas_modulate_" + itos(get_canvas().get_id()), &nodes);
 
 		if (nodes.size() > 1) {
-			warnings.push_back(RTR("Only one visible CanvasModulate is allowed per canvas.\nWhen there are more than one, only one of them will be active. Which one is undefined."));
+			CONFIG_WARNING(RTR("Only one visible CanvasModulate is allowed per canvas.\nWhen there are more than one, only one of them will be active. Which one is undefined."));
 		}
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 CanvasModulate::CanvasModulate() {
 }
