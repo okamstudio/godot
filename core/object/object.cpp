@@ -1219,6 +1219,12 @@ Error Object::emit_signalp(const StringName &p_name, const Variant **p_args, int
 		const Callable &callable = slot_callables[i];
 		const uint32_t &flags = slot_flags[i];
 
+#ifdef TOOLS_ENABLED
+		if (flags & CONNECT_NO_EDITOR && Engine::get_singleton()->is_editor_hint() && is_class("Node") && call(SNAME("is_part_of_edited_scene"))) {
+			continue;
+		}
+#endif
+
 		if (!callable.is_valid()) {
 			// Target might have been deleted during signal callback, this is expected and OK.
 			continue;
