@@ -1221,7 +1221,9 @@
 			If [code]true[/code], tool scripts will be automatically soft-reloaded after they are saved.
 		</member>
 		<member name="text_editor/behavior/files/auto_reload_scripts_on_external_change" type="bool" setter="" getter="">
-			If [code]true[/code], automatically reloads scripts in the editor when they have been modified and saved by external editors.
+			If [code]true[/code], automatically reloads scripts and text-based shaders in the editor when they have been modified and saved by external editors or tools and the editor regains focus. External changes can be discarded by using the Undo function after they've been loaded in the editor.
+			If [code]false[/code], a file conflict dialog will always be displayed when the editor regains focus. This dialog allows you to choose whether to keep local changes or discard them.
+			[b]Note:[/b] Even when this setting is [code]true[/code], a file conflict dialog is still displayed in certain situations. For instance, it will display when the script editor has unsaved changes that the external editor did not account for.
 		</member>
 		<member name="text_editor/behavior/files/autosave_interval_secs" type="int" setter="" getter="">
 			If set to a value greater than [code]0[/code], automatically saves the current script following the specified interval (in seconds). This can be used to prevent data loss if the editor crashes.
