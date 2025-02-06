@@ -1674,8 +1674,18 @@ void Node3DEditorViewport::input(const Ref<InputEvent> &p_event) {
 }
 
 void Node3DEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
+	const Ref<InputEventKey> k = p_event;
+
+	if (k.is_valid() && k->is_pressed() && EDITOR_GET("editors/3d/navigation/emulate_numpad")) {
+		const Key code = k->get_physical_keycode();
+		if (code >= Key::KEY_0 && code <= Key::KEY_9) {
+			k->set_keycode(code - Key::KEY_0 + Key::KP_0);
+		}
+	}
+
 	if (previewing || get_viewport()->gui_get_drag_data()) {
-		return; //do NONE
+		// Disable all input actions when previewing a camera or during drag-and-drop.
+		return;
 	}
 
 	EditorPlugin::AfterGUIInput after = EditorPlugin::AFTER_GUI_INPUT_PASS;
@@ -2246,8 +2256,6 @@ void Node3DEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 			}
 		}
 	}
-
-	Ref<InputEventKey> k = p_event;
 
 	if (k.is_valid()) {
 		if (!k->is_pressed()) {
