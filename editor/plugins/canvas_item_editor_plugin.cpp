@@ -33,6 +33,7 @@
 #include "core/config/project_settings.h"
 #include "core/input/input.h"
 #include "core/os/keyboard.h"
+#include "core/string/translation_server.h"
 #include "editor/debugger/editor_debugger_node.h"
 #include "editor/editor_main_screen.h"
 #include "editor/editor_node.h"
@@ -64,6 +65,7 @@
 #include "scene/main/window.h"
 #include "scene/resources/packed_scene.h"
 #include "scene/resources/style_box_texture.h"
+#include "scene/scene_string_names.h"
 
 #define RULER_WIDTH (15 * EDSCALE)
 #define DRAG_THRESHOLD (8 * EDSCALE)
@@ -1094,6 +1096,34 @@ void CanvasItemEditor::_switch_theme_preview(int p_mode) {
 	}
 
 	EditorNode::get_singleton()->update_preview_themes(theme_preview);
+}
+
+void CanvasItemEditor::_prepare_translation_menu() {
+	const String current_preview_locale = EditorNode::get_singleton()->get_preview_locale();
+
+	translation_menu->clear();
+	translation_menu->add_radio_check_item(TTR("None"));
+	translation_menu->set_item_metadata(-1, "");
+	if (current_preview_locale.is_empty()) {
+		translation_menu->set_item_checked(-1, true);
+	}
+
+	const Vector<String> locales = TranslationServer::get_singleton()->get_loaded_locales();
+	if (!locales.is_empty()) {
+		translation_menu->add_separator();
+	}
+	for (const String &locale : locales) {
+		translation_menu->add_radio_check_item(locale);
+		translation_menu->set_item_metadata(-1, locale);
+		if (locale == current_preview_locale) {
+			translation_menu->set_item_checked(-1, true);
+		}
+	}
+}
+
+void CanvasItemEditor::_switch_translation_preview(int p_translation) {
+	view_menu->get_popup()->hide();
+	EditorNode::get_singleton()->set_preview_locale(translation_menu->get_item_metadata(p_translation));
 }
 
 bool CanvasItemEditor::_gui_input_rulers_and_guides(const Ref<InputEvent> &p_event) {
@@ -5630,6 +5660,12 @@ CanvasItemEditor::CanvasItemEditor() {
 	for (int i = 0; i < THEME_PREVIEW_MAX; i++) {
 		theme_menu->set_item_checked(i, i == theme_preview);
 	}
+
+	translation_menu = memnew(PopupMenu);
+	translation_menu->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
+	translation_menu->connect("about_to_popup", callable_mp(this, &CanvasItemEditor::_prepare_translation_menu));
+	translation_menu->connect("index_pressed", callable_mp(this, &CanvasItemEditor::_switch_translation_preview));
+	p->add_submenu_node_item(TTR("Preview Translation"), translation_menu);
 
 	main_menu_hbox->add_child(memnew(VSeparator));
 

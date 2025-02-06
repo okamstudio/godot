@@ -596,6 +596,7 @@ private:
 	void _update_vsync_mode();
 	void _update_from_settings();
 	void _gdextensions_reloaded();
+	void _update_translations();
 
 	void _renderer_selected(int);
 	void _update_renderer_color();
@@ -789,6 +790,9 @@ public:
 	void set_edited_scene(Node *p_scene);
 	void set_edited_scene_root(Node *p_scene, bool p_auto_add);
 	Node *get_edited_scene() { return editor_data.get_edited_scene_root(); }
+
+	String get_preview_locale() const;
+	void set_preview_locale(const String &p_locale);
 
 	void fix_dependencies(const String &p_for_file);
 	int new_scene();
