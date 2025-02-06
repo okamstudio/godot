@@ -1196,6 +1196,20 @@ bool ResourceLoader::has_custom_uid_support(const String &p_path) {
 	return false;
 }
 
+bool ResourceLoader::should_create_uid_file(const String &p_path) {
+	const String local_path = _validate_local_path(p_path);
+	if (FileAccess::exists(local_path + ".uid")) {
+		return false;
+	}
+
+	for (int i = 0; i < loader_count; i++) {
+		if (loader[i]->recognize_path(local_path)) {
+			return !loader[i]->has_custom_uid_support();
+		}
+	}
+	return false;
+}
+
 String ResourceLoader::_path_remap(const String &p_path, bool *r_translation_remapped) {
 	String new_path = p_path;
 

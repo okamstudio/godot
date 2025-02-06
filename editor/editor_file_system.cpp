@@ -1263,7 +1263,7 @@ void EditorFileSystem::_process_file_system(const ScannedDirectory *p_scan_dir, 
 				}
 			}
 
-			if (ResourceLoader::exists(path) && !ResourceLoader::has_custom_uid_support(path) && !FileAccess::exists(path + ".uid")) {
+			if (ResourceLoader::should_create_uid_file(path)) {
 				// Create a UID file and new UID, if it's invalid.
 				Ref<FileAccess> f = FileAccess::open(path + ".uid", FileAccess::WRITE);
 				if (f.is_valid()) {
@@ -2345,7 +2345,7 @@ void EditorFileSystem::update_files(const Vector<String> &p_script_paths) {
 
 				ResourceUID::get_singleton()->update_cache();
 			} else {
-				if (ResourceLoader::exists(file) && !ResourceLoader::has_custom_uid_support(file) && !FileAccess::exists(file + ".uid")) {
+				if (ResourceLoader::should_create_uid_file(file)) {
 					Ref<FileAccess> f = FileAccess::open(file + ".uid", FileAccess::WRITE);
 					if (f.is_valid()) {
 						const ResourceUID::ID id = ResourceUID::get_singleton()->create_id();
