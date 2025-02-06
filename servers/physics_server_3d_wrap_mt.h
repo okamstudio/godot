@@ -274,7 +274,7 @@ public:
 
 	FUNCRID(soft_body)
 
-	FUNC2(soft_body_update_rendering_server, RID, PhysicsServer3DRenderingServerHandler *)
+	FUNC2S(soft_body_update_rendering_server, RID, PhysicsServer3DRenderingServerHandler *)
 
 	FUNC2(soft_body_set_space, RID, RID)
 	FUNC1RC(RID, soft_body_get_space, RID)
