@@ -368,40 +368,39 @@ public:
 		return sum > 0.0f;
 	}
 
-	// Alternate implementation that should be faster.
 	static bool is_point_in_polygon(const Vector2 &p_point, const Vector<Vector2> &p_polygon) {
 		int c = p_polygon.size();
 		if (c < 3) {
 			return false;
 		}
 		const Vector2 *p = p_polygon.ptr();
-		Vector2 further_away(-1e20, -1e20);
-		Vector2 further_away_opposite(1e20, 1e20);
-
+		// The point is inside if there's and odd number of intersections between
+		// every line in the polygon and a ray going from p_point towards (-inf, p_point.y)
+		bool odd_intersections = false;
 		for (int i = 0; i < c; i++) {
-			further_away = further_away.max(p[i]);
-			further_away_opposite = further_away_opposite.min(p[i]);
-		}
-
-		// Make point outside that won't intersect with points in segment from p_point.
-		further_away += (further_away - further_away_opposite) * Vector2(1.221313, 1.512312);
-
-		int intersections = 0;
-		for (int i = 0; i < c; i++) {
+			if (p_point == p[i]) {
+				return true;
+			}
 			const Vector2 &v1 = p[i];
-			const Vector2 &v2 = p[(i + 1) % c];
-
-			Vector2 res;
-			if (segment_intersects_segment(v1, v2, p_point, further_away, &res)) {
-				intersections++;
-				if (res.is_equal_approx(p_point)) {
-					// Point is in one of the polygon edges.
+			const Vector2 &v2 = p[i == 0 ? c - 1 : i - 1];
+			// If the line is parallel, the point is touching the
+			// polygon if v1.x and v2.x are on different sides of p_point.x
+			if ((v1.y == p_point.y) && (v2.y == p_point.y) && ((v1.x < p_point.x) != (v2.x < p_point.x))) {
+				return true;
+			}
+			// There can only ever be an intersection if v1.y and v2.y are on different sides of p_point.y
+			if ((v1.y < p_point.y) != (v2.y < p_point.y)) {
+				float cross = (p_point.y - v1.y) * (v2.x - v1.x) - (p_point.x - v1.x) * (v2.y - v1.y);
+				if ((cross < 0) == (v1.y < v2.y)) {
+					odd_intersections = !odd_intersections;
+				}
+				if (cross == 0) {
 					return true;
 				}
 			}
 		}
 
-		return (intersections & 1);
+		return odd_intersections;
 	}
 
 	static bool is_segment_intersecting_polygon(const Vector2 &p_from, const Vector2 &p_to, const Vector<Vector2> &p_polygon) {
