@@ -752,6 +752,20 @@ Vector2i TextParagraph::get_line_range(int p_line) const {
 	return TS->shaped_text_get_range(lines_rid[p_line]);
 }
 
+Vector<Vector2i> TextParagraph::get_line_ranges() const {
+	_THREAD_SAFE_METHOD_
+
+	_shape_lines();
+
+	Vector<Vector2i> ret;
+	int line_count = lines_rid.size();
+	for (int i = 0; i < line_count; i++) {
+		ret.push_back(TS->shaped_text_get_range(lines_rid[i]));
+	}
+
+	return ret;
+}
+
 float TextParagraph::get_line_ascent(int p_line) const {
 	_THREAD_SAFE_METHOD_
 

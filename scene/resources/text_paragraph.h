@@ -139,6 +139,7 @@ public:
 	float get_line_descent(int p_line) const;
 	float get_line_width(int p_line) const;
 	Vector2i get_line_range(int p_line) const;
+	Vector<Vector2i> get_line_ranges() const;
 	float get_line_underline_position(int p_line) const;
 	float get_line_underline_thickness(int p_line) const;
 
