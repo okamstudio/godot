@@ -141,7 +141,7 @@
 			<param index="3" name="dir_b" type="Vector2" />
 			<description>
 				Returns the point of intersection between the two lines ([param from_a], [param dir_a]) and ([param from_b], [param dir_b]). Returns a [Vector2], or [code]null[/code] if the lines are parallel.
-				[code]from[/code] and [code]dir[/code] are [i]not[/i] endpoints of a line segment or ray but the slope ([code]dir[/code]) and a known point ([code]from[/code]) on that line.
+				[code]from[/code] and [code]dir[/code] are [i]not[/i] endpoints of a line segment or ray but the slope ([code]dir[/code]) and a known point ([code]from[/code]) on that line. To get the intersection between two line segments, use [method segment_intersects_segment].
 				[codeblocks]
 				[gdscript]
 				var from_a = Vector2.ZERO
@@ -252,7 +252,7 @@
 			<param index="2" name="from_b" type="Vector2" />
 			<param index="3" name="to_b" type="Vector2" />
 			<description>
-				Checks if the two segments ([param from_a], [param to_a]) and ([param from_b], [param to_b]) intersect. If yes, return the point of intersection as [Vector2]. If no intersection takes place, returns [code]null[/code].
+				Checks if two line segments intersect, with line [code]a[/code] between [param from_a] and [param to_a] and line [code]b[/code] between [param from_b] and [param to_b]. If the line segments intersect, the point of intersection is returned as a [Vector2]. If no intersection takes place, [code]null[/code] is returned.
 			</description>
 		</method>
 		<method name="triangulate_delaunay">
