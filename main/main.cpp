@@ -2145,6 +2145,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		BLOCK_DEVICE("AMD", "Radeon (TM) R9 M3");
 
 		// Intel GPUs.
+		BLOCK_DEVICE("Intel", "__ID_CHECK__:Intel(R) HD Graphics"); // Enable device ID checks for drivers using generic "Intel(R) HD Graphics" as name.
+		BLOCK_DEVICE("Intel", "__ID_CHECK__:Intel HD Graphics"); // Enable device ID checks for drivers using generic "Intel HD Graphics" as name.
 		BLOCK_DEVICE("0x8086", "0x0042"); // HD Graphics, Gen5, Clarkdale
 		BLOCK_DEVICE("0x8086", "0x0046"); // HD Graphics, Gen5, Arrandale
 		BLOCK_DEVICE("0x8086", "0x010A"); // HD Graphics, Gen6, Sandy Bridge

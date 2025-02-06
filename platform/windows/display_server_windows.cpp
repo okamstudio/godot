@@ -6801,13 +6801,20 @@ DisplayServerWindows::DisplayServerWindows(const String &p_rendering_driver, Win
 		bool force_angle = false;
 		gl_supported = gl_info["version"].operator int() >= 30003;
 
-		Vector2i device_id = _get_device_ids(gl_info["name"]);
+		Vector2i device_id;
 		Array device_list = GLOBAL_GET("rendering/gl_compatibility/force_angle_on_devices");
 		for (int i = 0; i < device_list.size(); i++) {
 			const Dictionary &device = device_list[i];
 			if (device.has("vendor") && device.has("name")) {
 				const String &vendor = device["vendor"];
 				const String &name = device["name"];
+				if (device_id == Vector2i() && gl_info["vendor"].operator String().to_upper().contains(vendor.to_upper()) && name.to_upper().begins_with("__ID_CHECK__:")) {
+					const String &real_name = name.get_slice(":", 1);
+					if (real_name == "*" || gl_info["name"].operator String().to_upper() == real_name.to_upper()) {
+						// Load device IDs.
+						device_id = _get_device_ids(gl_info["name"]);
+					}
+				}
 				if (device_id != Vector2i() && vendor.begins_with("0x") && name.begins_with("0x") && device_id.x == vendor.lstrip("0x").hex_to_int() && device_id.y == name.lstrip("0x").hex_to_int()) {
 					// Check vendor/device IDs.
 					force_angle = true;
