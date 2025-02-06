@@ -339,7 +339,7 @@ class AssetLibraryEditorPlugin : public EditorPlugin {
 public:
 	static bool is_available();
 
-	virtual String get_plugin_name() const override { return "AssetLib"; }
+	virtual String get_plugin_name() const override { return TTRC("AssetLib"); }
 	bool has_main_screen() const override { return true; }
 	virtual void edit(Object *p_object) override {}
 	virtual bool handles(Object *p_object) const override { return false; }
