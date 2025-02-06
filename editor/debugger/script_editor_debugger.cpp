@@ -329,8 +329,10 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, uint64_t p_thread
 	if (p_msg == "debug_enter") {
 		ERR_FAIL_COND(p_data.size() != 4);
 
+		const Thread::ID caller_id = p_data[3];
+
 		ThreadDebugged td;
-		td.name = p_data[3];
+		td.name = (caller_id == Thread::get_main_id()) ? TTR("Main Thread") : itos(caller_id);
 		td.error = p_data[1];
 		td.can_debug = p_data[0];
 		td.has_stackdump = p_data[2];
@@ -1917,6 +1919,7 @@ ScriptEditorDebugger::ScriptEditorDebugger() {
 		thread_hb->add_child(memnew(Label(TTR("Thread:"))));
 		threads = memnew(OptionButton);
 		thread_hb->add_child(threads);
+		threads->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
 		threads->set_h_size_flags(SIZE_EXPAND_FILL);
 		threads->connect(SceneStringName(item_selected), callable_mp(this, &ScriptEditorDebugger::_select_thread));
 

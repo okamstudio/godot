@@ -419,7 +419,7 @@ void RemoteDebugger::debug(bool p_can_continue, bool p_is_error_breakpoint) {
 	msg.push_back(error_str);
 	ERR_FAIL_NULL(script_lang);
 	msg.push_back(script_lang->debug_get_stack_level_count() > 0);
-	msg.push_back(Thread::get_caller_id() == Thread::get_main_id() ? String(RTR("Main Thread")) : itos(Thread::get_caller_id()));
+	msg.push_back(Thread::get_caller_id());
 	if (allow_focus_steal_fn) {
 		allow_focus_steal_fn();
 	}
