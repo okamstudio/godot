@@ -82,6 +82,14 @@
 				Creates a copy of the array, and returns it.
 			</description>
 		</method>
+		<method name="erase">
+			<return type="bool" />
+			<param index="0" name="value" type="Vector2" />
+			<description>
+				Removes the first occurrence of a value from the array and returns [code]true[/code]. If the value does not exist in the array, nothing happens and [code]false[/code] is returned. To remove an element by index, use [method remove_at] instead.
+				[b]Note:[/b] Vectors with [constant @GDScript.NAN] elements don't behave the same as other vectors. Therefore, the results from this method may not be accurate if NaNs are included.
+			</description>
+		</method>
 		<method name="fill">
 			<return type="void" />
 			<param index="0" name="value" type="Vector2" />

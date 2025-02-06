@@ -292,6 +292,13 @@
 				Encodes a [Variant] at the index of [param byte_offset] bytes. A sufficient space must be allocated, depending on the encoded variant's size. If [param allow_objects] is [code]false[/code], [Object]-derived values are not permitted and will instead be serialized as ID-only.
 			</description>
 		</method>
+		<method name="erase">
+			<return type="bool" />
+			<param index="0" name="value" type="int" />
+			<description>
+				Removes the first occurrence of a value from the array and returns [code]true[/code]. If the value does not exist in the array, nothing happens and [code]false[/code] is returned. To remove an element by index, use [method remove_at] instead.
+			</description>
+		</method>
 		<method name="fill">
 			<return type="void" />
 			<param index="0" name="value" type="int" />
