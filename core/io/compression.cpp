@@ -59,8 +59,19 @@ int Compression::compress(uint8_t *p_dst, const uint8_t *p_src, int p_src_size, 
 
 		} break;
 		case MODE_DEFLATE:
-		case MODE_GZIP: {
-			int window_bits = p_mode == MODE_DEFLATE ? 15 : 15 + 16;
+		case MODE_GZIP:
+		case MODE_DEFLATE_RAW: {
+			int window_bits;
+			switch (p_mode) {
+				case MODE_DEFLATE:
+					window_bits = 15;
+					break;
+				case MODE_DEFLATE_RAW:
+					window_bits = -15;
+					break;
+				default:
+					window_bits = 31;
+			}
 
 			z_stream strm;
 			strm.zalloc = zipio_alloc;
@@ -114,8 +125,19 @@ int Compression::get_max_compressed_buffer_size(int p_src_size, Mode p_mode) {
 
 		} break;
 		case MODE_DEFLATE:
-		case MODE_GZIP: {
-			int window_bits = p_mode == MODE_DEFLATE ? 15 : 15 + 16;
+		case MODE_GZIP:
+		case MODE_DEFLATE_RAW: {
+			int window_bits;
+			switch (p_mode) {
+				case MODE_DEFLATE:
+					window_bits = 15;
+					break;
+				case MODE_DEFLATE_RAW:
+					window_bits = -15;
+					break;
+				default:
+					window_bits = 31;
+			}
 
 			z_stream strm;
 			strm.zalloc = zipio_alloc;
@@ -163,8 +185,19 @@ int Compression::decompress(uint8_t *p_dst, int p_dst_max_size, const uint8_t *p
 			return ret_size;
 		} break;
 		case MODE_DEFLATE:
-		case MODE_GZIP: {
-			int window_bits = p_mode == MODE_DEFLATE ? 15 : 15 + 16;
+		case MODE_GZIP:
+		case MODE_DEFLATE_RAW: {
+			int window_bits;
+			switch (p_mode) {
+				case MODE_DEFLATE:
+					window_bits = 15;
+					break;
+				case MODE_DEFLATE_RAW:
+					window_bits = -15;
+					break;
+				default:
+					window_bits = 31;
+			}
 
 			z_stream strm;
 			strm.zalloc = zipio_alloc;
@@ -270,12 +303,23 @@ int Compression::decompress_dynamic(Vector<uint8_t> *p_dst_vect, int p_max_dst_s
 		ERR_FAIL_V_MSG(Z_ERRNO, "Godot was compiled without brotli support.");
 #endif
 	} else {
-		// This function only supports GZip and Deflate.
-		ERR_FAIL_COND_V(p_mode != MODE_DEFLATE && p_mode != MODE_GZIP, Z_ERRNO);
+		// This function only supports GZip, Deflate and Deflate Raw.
+		ERR_FAIL_COND_V(p_mode != MODE_DEFLATE && p_mode != MODE_GZIP && p_mode != MODE_DEFLATE_RAW,
+				Z_ERRNO);
 
 		int ret;
 		z_stream strm;
-		int window_bits = p_mode == MODE_DEFLATE ? 15 : 15 + 16;
+		int window_bits;
+		switch (p_mode) {
+			case MODE_DEFLATE:
+				window_bits = 15;
+				break;
+			case MODE_DEFLATE_RAW:
+				window_bits = -15;
+				break;
+			default:
+				window_bits = 31;
+		}
 
 		// Initialize the stream.
 		strm.zalloc = Z_NULL;

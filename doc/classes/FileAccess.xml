@@ -589,6 +589,9 @@
 		<constant name="COMPRESSION_BROTLI" value="4" enum="CompressionMode">
 			Uses the [url=https://github.com/google/brotli]brotli[/url] compression method (only decompression is supported).
 		</constant>
+		<constant name="COMPRESSION_DEFLATE_RAW" value="5" enum="CompressionMode">
+			Uses the [url=https://en.wikipedia.org/wiki/DEFLATE]DEFLATE[/url] compression method but not includes any header.
+		</constant>
 		<constant name="UNIX_READ_OWNER" value="256" enum="UnixPermissionFlags" is_bitfield="true">
 			Read for owner bit.
 		</constant>
