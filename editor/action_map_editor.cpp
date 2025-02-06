@@ -57,10 +57,15 @@ void ActionMapEditor::_event_config_confirmed() {
 	Array events = new_action["events"].duplicate();
 
 	if (current_action_event_index == -1) {
-		// Add new event
+		// Add new event if not already bound.
+		for (const Ref<InputEvent> event_to_check : events) {
+			if (event_to_check.is_valid() && event_to_check->is_match(ev)) {
+				return;
+			}
+		}
 		events.push_back(ev);
 	} else {
-		// Edit existing event
+		// Edit existing event.
 		events[current_action_event_index] = ev;
 	}
 
