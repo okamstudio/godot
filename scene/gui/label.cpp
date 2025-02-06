@@ -1186,11 +1186,16 @@ String Label::get_text() const {
 void Label::set_visible_characters(int p_amount) {
 	if (visible_chars != p_amount) {
 		visible_chars = p_amount;
-		if (get_total_character_count() > 0) {
-			visible_ratio = (float)p_amount / (float)get_total_character_count();
-		} else {
+		if (p_amount < 0) {
 			visible_ratio = 1.0;
+		} else {
+			if (get_total_character_count() > 0) {
+				visible_ratio = (float)p_amount / (float)get_total_character_count();
+			} else {
+				visible_ratio = 1.0;
+			}
 		}
+
 		if (visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING) {
 			text_dirty = true;
 		}
@@ -1205,7 +1210,9 @@ int Label::get_visible_characters() const {
 void Label::set_visible_ratio(float p_ratio) {
 	if (visible_ratio != p_ratio) {
 		if (p_ratio >= 1.0) {
-			visible_chars = -1;
+			if (get_total_character_count() > visible_chars) {
+				visible_chars = -1;
+			}
 			visible_ratio = 1.0;
 		} else if (p_ratio < 0.0) {
 			visible_chars = 0;
@@ -1342,9 +1349,9 @@ void Label::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "lines_skipped", PROPERTY_HINT_RANGE, "0,999,1"), "set_lines_skipped", "get_lines_skipped");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "max_lines_visible", PROPERTY_HINT_RANGE, "-1,999,1"), "set_max_lines_visible", "get_max_lines_visible");
 	// Note: "visible_characters" and "visible_ratio" should be set after "text" to be correctly applied.
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "visible_ratio", PROPERTY_HINT_RANGE, "0,1,0.001"), "set_visible_ratio", "get_visible_ratio");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "visible_characters", PROPERTY_HINT_RANGE, "-1,128000,1"), "set_visible_characters", "get_visible_characters");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "visible_characters_behavior", PROPERTY_HINT_ENUM, "Characters Before Shaping,Characters After Shaping,Glyphs (Layout Direction),Glyphs (Left-to-Right),Glyphs (Right-to-Left)"), "set_visible_characters_behavior", "get_visible_characters_behavior");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "visible_ratio", PROPERTY_HINT_RANGE, "0,1,0.001"), "set_visible_ratio", "get_visible_ratio");
 
 	ADD_GROUP("BiDi", "");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "text_direction", PROPERTY_HINT_ENUM, "Auto,Left-to-Right,Right-to-Left,Inherited"), "set_text_direction", "get_text_direction");
