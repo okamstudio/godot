@@ -9,7 +9,6 @@ thirdparty/* linguist-vendored
 *.bat eol=crlf
 *.sln eol=crlf
 *.csproj eol=crlf
-misc/msvs/*.template eol=crlf
 # And some test files where the EOL matters
 *.test.txt -text
 

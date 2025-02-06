@@ -23,7 +23,7 @@ for file in sys.argv[1:]:
     if original == "":
         continue
 
-    EOL = "\r\n" if file.endswith((".csproj", ".sln", ".bat")) or file.startswith("misc/msvs") else "\n"
+    EOL = "\r\n" if file.endswith((".csproj", ".sln", ".bat")) else "\n"
     WANTS_BOM = file.endswith((".csproj", ".sln"))
 
     revamp = EOL.join([line.rstrip("\n\r\t ") for line in original.splitlines(True)]).rstrip(EOL) + EOL
