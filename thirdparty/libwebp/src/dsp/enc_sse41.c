@@ -23,9 +23,10 @@
 //------------------------------------------------------------------------------
 // Compute susceptibility based on DCT-coeff histograms.
 
-static void CollectHistogram_SSE41(const uint8_t* ref, const uint8_t* pred,
+static void CollectHistogram_SSE41(const uint8_t* WEBP_RESTRICT ref,
+                                   const uint8_t* WEBP_RESTRICT pred,
                                    int start_block, int end_block,
-                                   VP8Histogram* const histo) {
+                                   VP8Histogram* WEBP_RESTRICT const histo) {
   const __m128i max_coeff_thresh = _mm_set1_epi16(MAX_COEFF_THRESH);
   int j;
   int distribution[MAX_COEFF_THRESH + 1] = { 0 };
@@ -168,14 +169,16 @@ static int TTransform_SSE41(const uint8_t* inA, const uint8_t* inB,
   return sum[0] + sum[1] + sum[2] + sum[3];
 }
 
-static int Disto4x4_SSE41(const uint8_t* const a, const uint8_t* const b,
-                          const uint16_t* const w) {
+static int Disto4x4_SSE41(const uint8_t* WEBP_RESTRICT const a,
+                          const uint8_t* WEBP_RESTRICT const b,
+                          const uint16_t* WEBP_RESTRICT const w) {
   const int diff_sum = TTransform_SSE41(a, b, w);
   return abs(diff_sum) >> 5;
 }
 
-static int Disto16x16_SSE41(const uint8_t* const a, const uint8_t* const b,
-                            const uint16_t* const w) {
+static int Disto16x16_SSE41(const uint8_t* WEBP_RESTRICT const a,
+                            const uint8_t* WEBP_RESTRICT const b,
+                            const uint16_t* WEBP_RESTRICT const w) {
   int D = 0;
   int x, y;
   for (y = 0; y < 16 * BPS; y += 4 * BPS) {
@@ -301,17 +304,17 @@ static WEBP_INLINE int DoQuantizeBlock_SSE41(int16_t in[16], int16_t out[16],
 #undef PSHUFB_CST
 
 static int QuantizeBlock_SSE41(int16_t in[16], int16_t out[16],
-                               const VP8Matrix* const mtx) {
+                               const VP8Matrix* WEBP_RESTRICT const mtx) {
   return DoQuantizeBlock_SSE41(in, out, &mtx->sharpen_[0], mtx);
 }
 
 static int QuantizeBlockWHT_SSE41(int16_t in[16], int16_t out[16],
-                                  const VP8Matrix* const mtx) {
+                                  const VP8Matrix* WEBP_RESTRICT const mtx) {
   return DoQuantizeBlock_SSE41(in, out, NULL, mtx);
 }
 
 static int Quantize2Blocks_SSE41(int16_t in[32], int16_t out[32],
-                                 const VP8Matrix* const mtx) {
+                                 const VP8Matrix* WEBP_RESTRICT const mtx) {
   int nz;
   const uint16_t* const sharpen = &mtx->sharpen_[0];
   nz  = DoQuantizeBlock_SSE41(in + 0 * 16, out + 0 * 16, sharpen, mtx) << 0;

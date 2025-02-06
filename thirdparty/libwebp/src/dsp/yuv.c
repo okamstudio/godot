@@ -20,9 +20,10 @@
 // Plain-C version
 
 #define ROW_FUNC(FUNC_NAME, FUNC, XSTEP)                                       \
-static void FUNC_NAME(const uint8_t* y,                                        \
-                      const uint8_t* u, const uint8_t* v,                      \
-                      uint8_t* dst, int len) {                                 \
+static void FUNC_NAME(const uint8_t* WEBP_RESTRICT y,                          \
+                      const uint8_t* WEBP_RESTRICT u,                          \
+                      const uint8_t* WEBP_RESTRICT v,                          \
+                      uint8_t* WEBP_RESTRICT dst, int len) {                   \
   const uint8_t* const end = dst + (len & ~1) * (XSTEP);                       \
   while (dst != end) {                                                         \
     FUNC(y[0], u[0], v[0], dst);                                               \
@@ -49,9 +50,10 @@ ROW_FUNC(YuvToRgb565Row,   VP8YuvToRgb565, 2)
 #undef ROW_FUNC
 
 // Main call for processing a plane with a WebPSamplerRowFunc function:
-void WebPSamplerProcessPlane(const uint8_t* y, int y_stride,
-                             const uint8_t* u, const uint8_t* v, int uv_stride,
-                             uint8_t* dst, int dst_stride,
+void WebPSamplerProcessPlane(const uint8_t* WEBP_RESTRICT y, int y_stride,
+                             const uint8_t* WEBP_RESTRICT u,
+                             const uint8_t* WEBP_RESTRICT v, int uv_stride,
+                             uint8_t* WEBP_RESTRICT dst, int dst_stride,
                              int width, int height, WebPSamplerRowFunc func) {
   int j;
   for (j = 0; j < height; ++j) {
@@ -117,7 +119,8 @@ WEBP_DSP_INIT_FUNC(WebPInitSamplers) {
 //-----------------------------------------------------------------------------
 // ARGB -> YUV converters
 
-static void ConvertARGBToY_C(const uint32_t* argb, uint8_t* y, int width) {
+static void ConvertARGBToY_C(const uint32_t* WEBP_RESTRICT argb,
+                             uint8_t* WEBP_RESTRICT y, int width) {
   int i;
   for (i = 0; i < width; ++i) {
     const uint32_t p = argb[i];
@@ -126,7 +129,8 @@ static void ConvertARGBToY_C(const uint32_t* argb, uint8_t* y, int width) {
   }
 }
 
-void WebPConvertARGBToUV_C(const uint32_t* argb, uint8_t* u, uint8_t* v,
+void WebPConvertARGBToUV_C(const uint32_t* WEBP_RESTRICT argb,
+                           uint8_t* WEBP_RESTRICT u, uint8_t* WEBP_RESTRICT v,
                            int src_width, int do_store) {
   // No rounding. Last pixel is dealt with separately.
   const int uv_width = src_width >> 1;
@@ -169,22 +173,25 @@ void WebPConvertARGBToUV_C(const uint32_t* argb, uint8_t* u, uint8_t* v,
 
 //-----------------------------------------------------------------------------
 
-static void ConvertRGB24ToY_C(const uint8_t* rgb, uint8_t* y, int width) {
+static void ConvertRGB24ToY_C(const uint8_t* WEBP_RESTRICT rgb,
+                              uint8_t* WEBP_RESTRICT y, int width) {
   int i;
   for (i = 0; i < width; ++i, rgb += 3) {
     y[i] = VP8RGBToY(rgb[0], rgb[1], rgb[2], YUV_HALF);
   }
 }
 
-static void ConvertBGR24ToY_C(const uint8_t* bgr, uint8_t* y, int width) {
+static void ConvertBGR24ToY_C(const uint8_t* WEBP_RESTRICT bgr,
+                              uint8_t* WEBP_RESTRICT y, int width) {
   int i;
   for (i = 0; i < width; ++i, bgr += 3) {
     y[i] = VP8RGBToY(bgr[2], bgr[1], bgr[0], YUV_HALF);
   }
 }
 
-void WebPConvertRGBA32ToUV_C(const uint16_t* rgb,
-                             uint8_t* u, uint8_t* v, int width) {
+void WebPConvertRGBA32ToUV_C(const uint16_t* WEBP_RESTRICT rgb,
+                             uint8_t* WEBP_RESTRICT u, uint8_t* WEBP_RESTRICT v,
+                             int width) {
   int i;
   for (i = 0; i < width; i += 1, rgb += 4) {
     const int r = rgb[0], g = rgb[1], b = rgb[2];
@@ -195,13 +202,18 @@ void WebPConvertRGBA32ToUV_C(const uint16_t* rgb,
 
 //-----------------------------------------------------------------------------
 
-void (*WebPConvertRGB24ToY)(const uint8_t* rgb, uint8_t* y, int width);
-void (*WebPConvertBGR24ToY)(const uint8_t* bgr, uint8_t* y, int width);
-void (*WebPConvertRGBA32ToUV)(const uint16_t* rgb,
-                              uint8_t* u, uint8_t* v, int width);
+void (*WebPConvertRGB24ToY)(const uint8_t* WEBP_RESTRICT rgb,
+                            uint8_t* WEBP_RESTRICT y, int width);
+void (*WebPConvertBGR24ToY)(const uint8_t* WEBP_RESTRICT bgr,
+                            uint8_t* WEBP_RESTRICT y, int width);
+void (*WebPConvertRGBA32ToUV)(const uint16_t* WEBP_RESTRICT rgb,
+                              uint8_t* WEBP_RESTRICT u,
+                              uint8_t* WEBP_RESTRICT v, int width);
 
-void (*WebPConvertARGBToY)(const uint32_t* argb, uint8_t* y, int width);
-void (*WebPConvertARGBToUV)(const uint32_t* argb, uint8_t* u, uint8_t* v,
+void (*WebPConvertARGBToY)(const uint32_t* WEBP_RESTRICT argb,
+                           uint8_t* WEBP_RESTRICT y, int width);
+void (*WebPConvertARGBToUV)(const uint32_t* WEBP_RESTRICT argb,
+                            uint8_t* WEBP_RESTRICT u, uint8_t* WEBP_RESTRICT v,
                             int src_width, int do_store);
 
 extern void WebPInitConvertARGBToYUVSSE2(void);

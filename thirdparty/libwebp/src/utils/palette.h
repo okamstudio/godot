@@ -53,6 +53,8 @@ int GetColorPalette(const struct WebPPicture* const pic,
 // Sorts the palette according to the criterion defined by 'method'.
 // 'palette_sorted' is the input palette sorted lexicographically, as done in
 // PrepareMapToPalette. Returns 0 on memory allocation error.
+// For kSortedDefault and kMinimizeDelta methods, 0 (if present) is set as the
+// last element to optimize later storage.
 int PaletteSort(PaletteSorting method, const struct WebPPicture* const pic,
                 const uint32_t* const palette_sorted, uint32_t num_colors,
                 uint32_t* const palette);

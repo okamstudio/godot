@@ -60,8 +60,8 @@ static WEBP_INLINE void SaturateAndStore4x4_NEON(uint8_t* const dst,
 
 static WEBP_INLINE void Add4x4_NEON(const int16x8_t row01,
                                     const int16x8_t row23,
-                                    const uint8_t* const ref,
-                                    uint8_t* const dst) {
+                                    const uint8_t* WEBP_RESTRICT const ref,
+                                    uint8_t* WEBP_RESTRICT const dst) {
   uint32x2_t dst01 = vdup_n_u32(0);
   uint32x2_t dst23 = vdup_n_u32(0);
 
@@ -120,8 +120,9 @@ static WEBP_INLINE void TransformPass_NEON(int16x8x2_t* const rows) {
   Transpose8x2_NEON(E0, E1, rows);
 }
 
-static void ITransformOne_NEON(const uint8_t* ref,
-                               const int16_t* in, uint8_t* dst) {
+static void ITransformOne_NEON(const uint8_t* WEBP_RESTRICT ref,
+                               const int16_t* WEBP_RESTRICT in,
+                               uint8_t* WEBP_RESTRICT dst) {
   int16x8x2_t rows;
   INIT_VECTOR2(rows, vld1q_s16(in + 0), vld1q_s16(in + 8));
   TransformPass_NEON(&rows);
@@ -131,8 +132,9 @@ static void ITransformOne_NEON(const uint8_t* ref,
 
 #else
 
-static void ITransformOne_NEON(const uint8_t* ref,
-                               const int16_t* in, uint8_t* dst) {
+static void ITransformOne_NEON(const uint8_t* WEBP_RESTRICT ref,
+                               const int16_t* WEBP_RESTRICT in,
+                               uint8_t* WEBP_RESTRICT dst) {
   const int kBPS = BPS;
   const int16_t kC1C2[] = { kC1, kC2, 0, 0 };
 
@@ -247,8 +249,9 @@ static void ITransformOne_NEON(const uint8_t* ref,
 
 #endif    // WEBP_USE_INTRINSICS
 
-static void ITransform_NEON(const uint8_t* ref,
-                            const int16_t* in, uint8_t* dst, int do_two) {
+static void ITransform_NEON(const uint8_t* WEBP_RESTRICT ref,
+                            const int16_t* WEBP_RESTRICT in,
+                            uint8_t* WEBP_RESTRICT dst, int do_two) {
   ITransformOne_NEON(ref, in, dst);
   if (do_two) {
     ITransformOne_NEON(ref + 4, in + 16, dst + 4);
@@ -294,8 +297,9 @@ static WEBP_INLINE int16x8_t DiffU8ToS16_NEON(const uint8x8_t a,
   return vreinterpretq_s16_u16(vsubl_u8(a, b));
 }
 
-static void FTransform_NEON(const uint8_t* src, const uint8_t* ref,
-                            int16_t* out) {
+static void FTransform_NEON(const uint8_t* WEBP_RESTRICT src,
+                            const uint8_t* WEBP_RESTRICT ref,
+                            int16_t* WEBP_RESTRICT out) {
   int16x8_t d0d1, d3d2;   // working 4x4 int16 variables
   {
     const uint8x16_t S0 = Load4x4_NEON(src);
@@ -364,8 +368,9 @@ static const int32_t kCoeff32[] = {
   51000, 51000, 51000, 51000
 };
 
-static void FTransform_NEON(const uint8_t* src, const uint8_t* ref,
-                            int16_t* out) {
+static void FTransform_NEON(const uint8_t* WEBP_RESTRICT src,
+                            const uint8_t* WEBP_RESTRICT ref,
+                            int16_t* WEBP_RESTRICT out) {
   const int kBPS = BPS;
   const uint8_t* src_ptr = src;
   const uint8_t* ref_ptr = ref;
@@ -484,7 +489,8 @@ static void FTransform_NEON(const uint8_t* src, const uint8_t* ref,
   src += stride;                                    \
 } while (0)
 
-static void FTransformWHT_NEON(const int16_t* src, int16_t* out) {
+static void FTransformWHT_NEON(const int16_t* WEBP_RESTRICT src,
+                               int16_t* WEBP_RESTRICT out) {
   const int stride = 16;
   const int16x4_t zero = vdup_n_s16(0);
   int32x4x4_t tmp0;
@@ -659,8 +665,9 @@ static WEBP_INLINE int32x2_t DistoSum_NEON(const int16x8x4_t q4_in,
 // Hadamard transform
 // Returns the weighted sum of the absolute value of transformed coefficients.
 // w[] contains a row-major 4 by 4 symmetric matrix.
-static int Disto4x4_NEON(const uint8_t* const a, const uint8_t* const b,
-                         const uint16_t* const w) {
+static int Disto4x4_NEON(const uint8_t* WEBP_RESTRICT const a,
+                         const uint8_t* WEBP_RESTRICT const b,
+                         const uint16_t* WEBP_RESTRICT const w) {
   uint32x2_t d_in_ab_0123 = vdup_n_u32(0);
   uint32x2_t d_in_ab_4567 = vdup_n_u32(0);
   uint32x2_t d_in_ab_89ab = vdup_n_u32(0);
@@ -701,8 +708,9 @@ static int Disto4x4_NEON(const uint8_t* const a, const uint8_t* const b,
 }
 #undef LOAD_LANE_32b
 
-static int Disto16x16_NEON(const uint8_t* const a, const uint8_t* const b,
-                           const uint16_t* const w) {
+static int Disto16x16_NEON(const uint8_t* WEBP_RESTRICT const a,
+                           const uint8_t* WEBP_RESTRICT const b,
+                           const uint16_t* WEBP_RESTRICT const w) {
   int D = 0;
   int x, y;
   for (y = 0; y < 16 * BPS; y += 4 * BPS) {
@@ -715,9 +723,10 @@ static int Disto16x16_NEON(const uint8_t* const a, const uint8_t* const b,
 
 //------------------------------------------------------------------------------
 
-static void CollectHistogram_NEON(const uint8_t* ref, const uint8_t* pred,
+static void CollectHistogram_NEON(const uint8_t* WEBP_RESTRICT ref,
+                                  const uint8_t* WEBP_RESTRICT pred,
                                   int start_block, int end_block,
-                                  VP8Histogram* const histo) {
+                                  VP8Histogram* WEBP_RESTRICT const histo) {
   const uint16x8_t max_coeff_thresh = vdupq_n_u16(MAX_COEFF_THRESH);
   int j;
   int distribution[MAX_COEFF_THRESH + 1] = { 0 };
@@ -747,9 +756,9 @@ static void CollectHistogram_NEON(const uint8_t* ref, const uint8_t* pred,
 
 //------------------------------------------------------------------------------
 
-static WEBP_INLINE void AccumulateSSE16_NEON(const uint8_t* const a,
-                                             const uint8_t* const b,
-                                             uint32x4_t* const sum) {
+static WEBP_INLINE void AccumulateSSE16_NEON(
+    const uint8_t* WEBP_RESTRICT const a, const uint8_t* WEBP_RESTRICT const b,
+    uint32x4_t* const sum) {
   const uint8x16_t a0 = vld1q_u8(a);
   const uint8x16_t b0 = vld1q_u8(b);
   const uint8x16_t abs_diff = vabdq_u8(a0, b0);
@@ -775,7 +784,8 @@ static int SumToInt_NEON(uint32x4_t sum) {
 #endif
 }
 
-static int SSE16x16_NEON(const uint8_t* a, const uint8_t* b) {
+static int SSE16x16_NEON(const uint8_t* WEBP_RESTRICT a,
+                         const uint8_t* WEBP_RESTRICT b) {
   uint32x4_t sum = vdupq_n_u32(0);
   int y;
   for (y = 0; y < 16; ++y) {
@@ -784,7 +794,8 @@ static int SSE16x16_NEON(const uint8_t* a, const uint8_t* b) {
   return SumToInt_NEON(sum);
 }
 
-static int SSE16x8_NEON(const uint8_t* a, const uint8_t* b) {
+static int SSE16x8_NEON(const uint8_t* WEBP_RESTRICT a,
+                        const uint8_t* WEBP_RESTRICT b) {
   uint32x4_t sum = vdupq_n_u32(0);
   int y;
   for (y = 0; y < 8; ++y) {
@@ -793,7 +804,8 @@ static int SSE16x8_NEON(const uint8_t* a, const uint8_t* b) {
   return SumToInt_NEON(sum);
 }
 
-static int SSE8x8_NEON(const uint8_t* a, const uint8_t* b) {
+static int SSE8x8_NEON(const uint8_t* WEBP_RESTRICT a,
+                       const uint8_t* WEBP_RESTRICT b) {
   uint32x4_t sum = vdupq_n_u32(0);
   int y;
   for (y = 0; y < 8; ++y) {
@@ -806,7 +818,8 @@ static int SSE8x8_NEON(const uint8_t* a, const uint8_t* b) {
   return SumToInt_NEON(sum);
 }
 
-static int SSE4x4_NEON(const uint8_t* a, const uint8_t* b) {
+static int SSE4x4_NEON(const uint8_t* WEBP_RESTRICT a,
+                       const uint8_t* WEBP_RESTRICT b) {
   const uint8x16_t a0 = Load4x4_NEON(a);
   const uint8x16_t b0 = Load4x4_NEON(b);
   const uint8x16_t abs_diff = vabdq_u8(a0, b0);
@@ -825,8 +838,9 @@ static int SSE4x4_NEON(const uint8_t* a, const uint8_t* b) {
 // Compilation with gcc-4.6.x is problematic for now.
 #if !defined(WORK_AROUND_GCC)
 
-static int16x8_t Quantize_NEON(int16_t* const in,
-                               const VP8Matrix* const mtx, int offset) {
+static int16x8_t Quantize_NEON(int16_t* WEBP_RESTRICT const in,
+                               const VP8Matrix* WEBP_RESTRICT const mtx,
+                               int offset) {
   const uint16x8_t sharp = vld1q_u16(&mtx->sharpen_[offset]);
   const uint16x8_t q = vld1q_u16(&mtx->q_[offset]);
   const uint16x8_t iq = vld1q_u16(&mtx->iq_[offset]);
@@ -860,7 +874,7 @@ static const uint8_t kShuffles[4][8] = {
 };
 
 static int QuantizeBlock_NEON(int16_t in[16], int16_t out[16],
-                              const VP8Matrix* const mtx) {
+                              const VP8Matrix* WEBP_RESTRICT const mtx) {
   const int16x8_t out0 = Quantize_NEON(in, mtx, 0);
   const int16x8_t out1 = Quantize_NEON(in, mtx, 8);
   uint8x8x4_t shuffles;
@@ -902,7 +916,7 @@ static int QuantizeBlock_NEON(int16_t in[16], int16_t out[16],
 }
 
 static int Quantize2Blocks_NEON(int16_t in[32], int16_t out[32],
-                                const VP8Matrix* const mtx) {
+                                const VP8Matrix* WEBP_RESTRICT const mtx) {
   int nz;
   nz  = QuantizeBlock_NEON(in + 0 * 16, out + 0 * 16, mtx) << 0;
   nz |= QuantizeBlock_NEON(in + 1 * 16, out + 1 * 16, mtx) << 1;
@@ -910,6 +924,271 @@ static int Quantize2Blocks_NEON(int16_t in[32], int16_t out[32],
 }
 
 #endif   // !WORK_AROUND_GCC
+
+#if WEBP_AARCH64
+
+#if BPS == 32
+#define DC4_VE4_HE4_TM4_NEON(dst, tbl, res, lane)                              \
+  do {                                                                         \
+    uint8x16_t r;                                                              \
+    r = vqtbl2q_u8(qcombined, tbl);                                            \
+    r = vreinterpretq_u8_u32(                                                  \
+        vsetq_lane_u32(vget_lane_u32(vreinterpret_u32_u8(res), lane),          \
+                       vreinterpretq_u32_u8(r), 1));                           \
+    vst1q_u8(dst, r);                                                          \
+  } while (0)
+
+#define RD4_VR4_LD4_VL4_NEON(dst, tbl)                                         \
+  do {                                                                         \
+    uint8x16_t r;                                                              \
+    r = vqtbl2q_u8(qcombined, tbl);                                            \
+    vst1q_u8(dst, r);                                                          \
+  } while (0)
+
+static void Intra4Preds_NEON(uint8_t* WEBP_RESTRICT dst,
+                             const uint8_t* WEBP_RESTRICT top) {
+  // 0   1   2   3   4   5   6   7   8   9  10  11  12  13
+  //     L   K   J   I   X   A   B   C   D   E   F   G   H
+  //    -5  -4  -3  -2  -1   0   1   2   3   4   5   6   7
+  static const uint8_t kLookupTbl1[64] = {
+    0,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 12, 12,
+    3,  3,  3,  3,  2,  2,  2,  2,  1,  1,  1,  1,  0,  0,  0,  0,
+    4, 20, 21, 22,  3, 18,  2, 17,  3, 19,  4, 20,  2, 17,  1, 16,
+    2, 18,  3, 19,  1, 16, 31, 31,  1, 17,  2, 18, 31, 31, 31, 31
+  };
+
+  static const uint8_t kLookupTbl2[64] = {
+    20, 21, 22, 23,  5,  6,  7,  8, 22, 23, 24, 25,  6,  7,  8,  9,
+    19, 20, 21, 22, 20, 21, 22, 23, 23, 24, 25, 26, 22, 23, 24, 25,
+    18, 19, 20, 21, 19,  5,  6,  7, 24, 25, 26, 27,  7,  8,  9, 26,
+    17, 18, 19, 20, 18, 20, 21, 22, 25, 26, 27, 28, 23, 24, 25, 27
+  };
+
+  static const uint8_t kLookupTbl3[64] = {
+    30, 30, 30, 30,  0,  0,  0,  0, 21, 22, 23, 24, 19, 19, 19, 19,
+    30, 30, 30, 30,  0,  0,  0,  0, 21, 22, 23, 24, 18, 18, 18, 18,
+    30, 30, 30, 30,  0,  0,  0,  0, 21, 22, 23, 24, 17, 17, 17, 17,
+    30, 30, 30, 30,  0,  0,  0,  0, 21, 22, 23, 24, 16, 16, 16, 16
+  };
+
+  const uint8x16x4_t lookup_avgs1 = vld1q_u8_x4(kLookupTbl1);
+  const uint8x16x4_t lookup_avgs2 = vld1q_u8_x4(kLookupTbl2);
+  const uint8x16x4_t lookup_avgs3 = vld1q_u8_x4(kLookupTbl3);
+
+  const uint8x16_t preload = vld1q_u8(top - 5);
+  uint8x16x2_t qcombined;
+  uint8x16_t result0, result1;
+
+  uint8x16_t a = vqtbl1q_u8(preload, lookup_avgs1.val[0]);
+  uint8x16_t b = preload;
+  uint8x16_t c = vextq_u8(a, a, 2);
+
+  uint8x16_t avg3_all = vrhaddq_u8(vhaddq_u8(a, c), b);
+  uint8x16_t avg2_all = vrhaddq_u8(a, b);
+
+  uint8x8_t preload_x8, sub_a, sub_c;
+  uint8_t result_u8;
+  uint8x8_t res_lo, res_hi;
+  uint8x16_t full_b;
+  uint16x8_t sub, sum_lo, sum_hi;
+
+  preload_x8 = vget_low_u8(c);
+  preload_x8 = vset_lane_u8(vgetq_lane_u8(preload, 0), preload_x8, 3);
+
+  result_u8 = (vaddlv_u8(preload_x8) + 4) >> 3;
+
+  avg3_all = vsetq_lane_u8(vgetq_lane_u8(preload, 0), avg3_all, 15);
+  avg3_all = vsetq_lane_u8(result_u8, avg3_all, 14);
+
+  qcombined.val[0] = avg2_all;
+  qcombined.val[1] = avg3_all;
+
+  sub_a = vdup_laneq_u8(preload, 4);
+
+  // preload = {a,b,c,d,...} => full_b = {d,d,d,d,c,c,c,c,b,b,b,b,a,a,a,a}
+  full_b = vqtbl1q_u8(preload, lookup_avgs1.val[1]);
+  // preload = {a,b,c,d,...} => sub_c = {a,b,c,d,a,b,c,d,a,b,c,d,a,b,c,d}
+  sub_c = vreinterpret_u8_u32(vdup_n_u32(
+      vgetq_lane_u32(vreinterpretq_u32_u8(vextq_u8(preload, preload, 5)), 0)));
+
+  sub = vsubl_u8(sub_c, sub_a);
+  sum_lo = vaddw_u8(sub, vget_low_u8(full_b));
+  res_lo = vqmovun_s16(vreinterpretq_s16_u16(sum_lo));
+
+  sum_hi = vaddw_u8(sub, vget_high_u8(full_b));
+  res_hi = vqmovun_s16(vreinterpretq_s16_u16(sum_hi));
+
+  // DC4, VE4, HE4, TM4
+  DC4_VE4_HE4_TM4_NEON(dst + I4DC4 + BPS * 0, lookup_avgs3.val[0], res_lo, 0);
+  DC4_VE4_HE4_TM4_NEON(dst + I4DC4 + BPS * 1, lookup_avgs3.val[1], res_lo, 1);
+  DC4_VE4_HE4_TM4_NEON(dst + I4DC4 + BPS * 2, lookup_avgs3.val[2], res_hi, 0);
+  DC4_VE4_HE4_TM4_NEON(dst + I4DC4 + BPS * 3, lookup_avgs3.val[3], res_hi, 1);
+
+  // RD4, VR4, LD4, VL4
+  RD4_VR4_LD4_VL4_NEON(dst + I4RD4 + BPS * 0, lookup_avgs2.val[0]);
+  RD4_VR4_LD4_VL4_NEON(dst + I4RD4 + BPS * 1, lookup_avgs2.val[1]);
+  RD4_VR4_LD4_VL4_NEON(dst + I4RD4 + BPS * 2, lookup_avgs2.val[2]);
+  RD4_VR4_LD4_VL4_NEON(dst + I4RD4 + BPS * 3, lookup_avgs2.val[3]);
+
+  // HD4, HU4
+  result0 = vqtbl2q_u8(qcombined, lookup_avgs1.val[2]);
+  result1 = vqtbl2q_u8(qcombined, lookup_avgs1.val[3]);
+
+  vst1_u8(dst + I4HD4 + BPS * 0, vget_low_u8(result0));
+  vst1_u8(dst + I4HD4 + BPS * 1, vget_high_u8(result0));
+  vst1_u8(dst + I4HD4 + BPS * 2, vget_low_u8(result1));
+  vst1_u8(dst + I4HD4 + BPS * 3, vget_high_u8(result1));
+}
+#endif  // BPS == 32
+
+static WEBP_INLINE void Fill_NEON(uint8_t* dst, const uint8_t value) {
+  uint8x16_t a = vdupq_n_u8(value);
+  int i;
+  for (i = 0; i < 16; i++) {
+    vst1q_u8(dst + BPS * i, a);
+  }
+}
+
+static WEBP_INLINE void Fill16_NEON(uint8_t* dst, const uint8_t* src) {
+  uint8x16_t a = vld1q_u8(src);
+  int i;
+  for (i = 0; i < 16; i++) {
+    vst1q_u8(dst + BPS * i, a);
+  }
+}
+
+static WEBP_INLINE void HorizontalPred16_NEON(uint8_t* dst,
+                                              const uint8_t* left) {
+  uint8x16_t a;
+
+  if (left == NULL) {
+    Fill_NEON(dst, 129);
+    return;
+  }
+
+  a = vld1q_u8(left + 0);
+  vst1q_u8(dst + BPS * 0, vdupq_laneq_u8(a, 0));
+  vst1q_u8(dst + BPS * 1, vdupq_laneq_u8(a, 1));
+  vst1q_u8(dst + BPS * 2, vdupq_laneq_u8(a, 2));
+  vst1q_u8(dst + BPS * 3, vdupq_laneq_u8(a, 3));
+  vst1q_u8(dst + BPS * 4, vdupq_laneq_u8(a, 4));
+  vst1q_u8(dst + BPS * 5, vdupq_laneq_u8(a, 5));
+  vst1q_u8(dst + BPS * 6, vdupq_laneq_u8(a, 6));
+  vst1q_u8(dst + BPS * 7, vdupq_laneq_u8(a, 7));
+  vst1q_u8(dst + BPS * 8, vdupq_laneq_u8(a, 8));
+  vst1q_u8(dst + BPS * 9, vdupq_laneq_u8(a, 9));
+  vst1q_u8(dst + BPS * 10, vdupq_laneq_u8(a, 10));
+  vst1q_u8(dst + BPS * 11, vdupq_laneq_u8(a, 11));
+  vst1q_u8(dst + BPS * 12, vdupq_laneq_u8(a, 12));
+  vst1q_u8(dst + BPS * 13, vdupq_laneq_u8(a, 13));
+  vst1q_u8(dst + BPS * 14, vdupq_laneq_u8(a, 14));
+  vst1q_u8(dst + BPS * 15, vdupq_laneq_u8(a, 15));
+}
+
+static WEBP_INLINE void VerticalPred16_NEON(uint8_t* dst, const uint8_t* top) {
+  if (top != NULL) {
+    Fill16_NEON(dst, top);
+  } else {
+    Fill_NEON(dst, 127);
+  }
+}
+
+static WEBP_INLINE void DCMode_NEON(uint8_t* dst, const uint8_t* left,
+                                    const uint8_t* top) {
+  uint8_t s;
+
+  if (top != NULL) {
+    uint16_t dc;
+    dc = vaddlvq_u8(vld1q_u8(top));
+    if (left != NULL) {
+      // top and left present.
+      dc += vaddlvq_u8(vld1q_u8(left));
+      s = vqrshrnh_n_u16(dc, 5);
+    } else {
+      // top but no left.
+      s = vqrshrnh_n_u16(dc, 4);
+    }
+  } else {
+    if (left != NULL) {
+      uint16_t dc;
+      // left but no top.
+      dc = vaddlvq_u8(vld1q_u8(left));
+      s = vqrshrnh_n_u16(dc, 4);
+    } else {
+      // No top, no left, nothing.
+      s = 0x80;
+    }
+  }
+  Fill_NEON(dst, s);
+}
+
+static WEBP_INLINE void TrueMotionHelper_NEON(uint8_t* dst,
+                                              const uint8x8_t outer,
+                                              const uint8x8x2_t inner,
+                                              const uint16x8_t a, int i,
+                                              const int n) {
+  uint8x8_t d1, d2;
+  uint16x8_t r1, r2;
+
+  r1 = vaddl_u8(outer, inner.val[0]);
+  r1 = vqsubq_u16(r1, a);
+  d1 = vqmovun_s16(vreinterpretq_s16_u16(r1));
+  r2 = vaddl_u8(outer, inner.val[1]);
+  r2 = vqsubq_u16(r2, a);
+  d2 = vqmovun_s16(vreinterpretq_s16_u16(r2));
+  vst1_u8(dst + BPS * (i * 4 + n), d1);
+  vst1_u8(dst + BPS * (i * 4 + n) + 8, d2);
+}
+
+static WEBP_INLINE void TrueMotion_NEON(uint8_t* dst, const uint8_t* left,
+                                        const uint8_t* top) {
+  int i;
+  uint16x8_t a;
+  uint8x8x2_t inner;
+
+  if (left == NULL) {
+    // True motion without left samples (hence: with default 129 value) is
+    // equivalent to VE prediction where you just copy the top samples.
+    // Note that if top samples are not available, the default value is then
+    // 129, and not 127 as in the VerticalPred case.
+    if (top != NULL) {
+      VerticalPred16_NEON(dst, top);
+    } else {
+      Fill_NEON(dst, 129);
+    }
+    return;
+  }
+
+  // left is not NULL.
+  if (top == NULL) {
+    HorizontalPred16_NEON(dst, left);
+    return;
+  }
+
+  // Neither left nor top are NULL.
+  a = vdupq_n_u16(left[-1]);
+  inner = vld1_u8_x2(top);
+
+  for (i = 0; i < 4; i++) {
+    const uint8x8x4_t outer = vld4_dup_u8(&left[i * 4]);
+
+    TrueMotionHelper_NEON(dst, outer.val[0], inner, a, i, 0);
+    TrueMotionHelper_NEON(dst, outer.val[1], inner, a, i, 1);
+    TrueMotionHelper_NEON(dst, outer.val[2], inner, a, i, 2);
+    TrueMotionHelper_NEON(dst, outer.val[3], inner, a, i, 3);
+  }
+}
+
+static void Intra16Preds_NEON(uint8_t* WEBP_RESTRICT dst,
+                              const uint8_t* WEBP_RESTRICT left,
+                              const uint8_t* WEBP_RESTRICT top) {
+  DCMode_NEON(I16DC16 + dst, left, top);
+  VerticalPred16_NEON(I16VE16 + dst, top);
+  HorizontalPred16_NEON(I16HE16 + dst, left);
+  TrueMotion_NEON(I16TM16 + dst, left, top);
+}
+
+#endif // WEBP_AARCH64
 
 //------------------------------------------------------------------------------
 // Entry point
@@ -931,9 +1210,17 @@ WEBP_TSAN_IGNORE_FUNCTION void VP8EncDspInitNEON(void) {
   VP8SSE8x8 = SSE8x8_NEON;
   VP8SSE4x4 = SSE4x4_NEON;
 
+#if WEBP_AARCH64
+#if BPS == 32
+  VP8EncPredLuma4 = Intra4Preds_NEON;
+#endif
+  VP8EncPredLuma16 = Intra16Preds_NEON;
+#endif
+
 #if !defined(WORK_AROUND_GCC)
   VP8EncQuantizeBlock = QuantizeBlock_NEON;
   VP8EncQuantize2Blocks = Quantize2Blocks_NEON;
+  VP8EncQuantizeBlockWHT = QuantizeBlock_NEON;
 #endif
 }
 

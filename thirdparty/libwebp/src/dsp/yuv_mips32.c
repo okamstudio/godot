@@ -22,9 +22,10 @@
 // simple point-sampling
 
 #define ROW_FUNC(FUNC_NAME, XSTEP, R, G, B, A)                                 \
-static void FUNC_NAME(const uint8_t* y,                                        \
-                      const uint8_t* u, const uint8_t* v,                      \
-                      uint8_t* dst, int len) {                                 \
+static void FUNC_NAME(const uint8_t* WEBP_RESTRICT y,                          \
+                      const uint8_t* WEBP_RESTRICT u,                          \
+                      const uint8_t* WEBP_RESTRICT v,                          \
+                      uint8_t* WEBP_RESTRICT dst, int len) {                   \
   int i, r, g, b;                                                              \
   int temp0, temp1, temp2, temp3, temp4;                                       \
   for (i = 0; i < (len >> 1); i++) {                                           \

@@ -35,10 +35,14 @@ WebPUpsampleLinePairFunc WebPUpsamplers[MODE_LAST];
 #define LOAD_UV(u, v) ((u) | ((v) << 16))
 
 #define UPSAMPLE_FUNC(FUNC_NAME, FUNC, XSTEP)                                  \
-static void FUNC_NAME(const uint8_t* top_y, const uint8_t* bottom_y,           \
-                      const uint8_t* top_u, const uint8_t* top_v,              \
-                      const uint8_t* cur_u, const uint8_t* cur_v,              \
-                      uint8_t* top_dst, uint8_t* bottom_dst, int len) {        \
+static void FUNC_NAME(const uint8_t* WEBP_RESTRICT top_y,                      \
+                      const uint8_t* WEBP_RESTRICT bottom_y,                   \
+                      const uint8_t* WEBP_RESTRICT top_u,                      \
+                      const uint8_t* WEBP_RESTRICT top_v,                      \
+                      const uint8_t* WEBP_RESTRICT cur_u,                      \
+                      const uint8_t* WEBP_RESTRICT cur_v,                      \
+                      uint8_t* WEBP_RESTRICT top_dst,                          \
+                      uint8_t* WEBP_RESTRICT bottom_dst, int len) {            \
   int x;                                                                       \
   const int last_pixel_pair = (len - 1) >> 1;                                  \
   uint32_t tl_uv = LOAD_UV(top_u[0], top_v[0]);   /* top-left sample */        \
@@ -136,10 +140,14 @@ static void EmptyUpsampleFunc(const uint8_t* top_y, const uint8_t* bottom_y,
 
 #if !defined(FANCY_UPSAMPLING)
 #define DUAL_SAMPLE_FUNC(FUNC_NAME, FUNC)                                      \
-static void FUNC_NAME(const uint8_t* top_y, const uint8_t* bot_y,              \
-                      const uint8_t* top_u, const uint8_t* top_v,              \
-                      const uint8_t* bot_u, const uint8_t* bot_v,              \
-                      uint8_t* top_dst, uint8_t* bot_dst, int len) {           \
+static void FUNC_NAME(const uint8_t* WEBP_RESTRICT top_y,                      \
+                      const uint8_t* WEBP_RESTRICT bot_y,                      \
+                      const uint8_t* WEBP_RESTRICT top_u,                      \
+                      const uint8_t* WEBP_RESTRICT top_v,                      \
+                      const uint8_t* WEBP_RESTRICT bot_u,                      \
+                      const uint8_t* WEBP_RESTRICT bot_v,                      \
+                      uint8_t* WEBP_RESTRICT top_dst,                          \
+                      uint8_t* WEBP_RESTRICT bot_dst, int len) {               \
   const int half_len = len >> 1;                                               \
   int x;                                                                       \
   assert(top_dst != NULL);                                                     \
@@ -178,10 +186,14 @@ WebPUpsampleLinePairFunc WebPGetLinePairConverter(int alpha_is_last) {
 // YUV444 converter
 
 #define YUV444_FUNC(FUNC_NAME, FUNC, XSTEP)                                    \
-extern void FUNC_NAME(const uint8_t* y, const uint8_t* u, const uint8_t* v,    \
-                      uint8_t* dst, int len);                                  \
-void FUNC_NAME(const uint8_t* y, const uint8_t* u, const uint8_t* v,           \
-               uint8_t* dst, int len) {                                        \
+extern void FUNC_NAME(const uint8_t* WEBP_RESTRICT y,                          \
+                      const uint8_t* WEBP_RESTRICT u,                          \
+                      const uint8_t* WEBP_RESTRICT v,                          \
+                      uint8_t* WEBP_RESTRICT dst, int len);                    \
+void FUNC_NAME(const uint8_t* WEBP_RESTRICT y,                                 \
+               const uint8_t* WEBP_RESTRICT u,                                 \
+               const uint8_t* WEBP_RESTRICT v,                                 \
+               uint8_t* WEBP_RESTRICT dst, int len) {                          \
   int i;                                                                       \
   for (i = 0; i < len; ++i) FUNC(y[i], u[i], v[i], &dst[i * (XSTEP)]);         \
 }

@@ -72,8 +72,9 @@ static void SubtractGreenFromBlueAndRed_NEON(uint32_t* argb_data,
 //------------------------------------------------------------------------------
 // Color Transform
 
-static void TransformColor_NEON(const VP8LMultipliers* const m,
-                                uint32_t* argb_data, int num_pixels) {
+static void TransformColor_NEON(const VP8LMultipliers* WEBP_RESTRICT const m,
+                                uint32_t* WEBP_RESTRICT argb_data,
+                                int num_pixels) {
   // sign-extended multiplying constants, pre-shifted by 6.
 #define CST(X)  (((int16_t)(m->X << 8)) >> 6)
   const int16_t rb[8] = {

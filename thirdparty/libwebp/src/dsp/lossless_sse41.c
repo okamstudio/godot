@@ -77,8 +77,8 @@ static void TransformColorInverse_SSE41(const VP8LMultipliers* const m,
   }                                                   \
 } while (0)
 
-static void ConvertBGRAToRGB_SSE41(const uint32_t* src, int num_pixels,
-                                   uint8_t* dst) {
+static void ConvertBGRAToRGB_SSE41(const uint32_t* WEBP_RESTRICT src,
+                                   int num_pixels, uint8_t* WEBP_RESTRICT dst) {
   const __m128i* in = (const __m128i*)src;
   __m128i* out = (__m128i*)dst;
   const __m128i perm0 = _mm_setr_epi8(2, 1, 0, 6, 5, 4, 10, 9,
@@ -95,8 +95,8 @@ static void ConvertBGRAToRGB_SSE41(const uint32_t* src, int num_pixels,
   }
 }
 
-static void ConvertBGRAToBGR_SSE41(const uint32_t* src,
-                                   int num_pixels, uint8_t* dst) {
+static void ConvertBGRAToBGR_SSE41(const uint32_t* WEBP_RESTRICT src,
+                                   int num_pixels, uint8_t* WEBP_RESTRICT dst) {
   const __m128i* in = (const __m128i*)src;
   __m128i* out = (__m128i*)dst;
   const __m128i perm0 = _mm_setr_epi8(0, 1, 2, 4, 5, 6, 8, 9, 10,

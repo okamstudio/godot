@@ -69,9 +69,10 @@
   : "memory", "hi", "lo"                                                       \
 
 #define ROW_FUNC(FUNC_NAME, XSTEP, R, G, B, A)                                 \
-static void FUNC_NAME(const uint8_t* y,                                        \
-                      const uint8_t* u, const uint8_t* v,                      \
-                      uint8_t* dst, int len) {                                 \
+static void FUNC_NAME(const uint8_t* WEBP_RESTRICT y,                          \
+                      const uint8_t* WEBP_RESTRICT u,                          \
+                      const uint8_t* WEBP_RESTRICT v,                          \
+                      uint8_t* WEBP_RESTRICT dst, int len) {                   \
   int i;                                                                       \
   uint32_t temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;             \
   const int t_con_1 = 26149;                                                   \

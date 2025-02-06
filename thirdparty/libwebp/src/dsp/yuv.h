@@ -11,15 +11,15 @@
 //
 // The exact naming is Y'CbCr, following the ITU-R BT.601 standard.
 // More information at: https://en.wikipedia.org/wiki/YCbCr
-// Y = 0.2569 * R + 0.5044 * G + 0.0979 * B + 16
-// U = -0.1483 * R - 0.2911 * G + 0.4394 * B + 128
-// V = 0.4394 * R - 0.3679 * G - 0.0715 * B + 128
+// Y = 0.2568 * R + 0.5041 * G + 0.0979 * B + 16
+// U = -0.1482 * R - 0.2910 * G + 0.4392 * B + 128
+// V = 0.4392 * R - 0.3678 * G - 0.0714 * B + 128
 // We use 16bit fixed point operations for RGB->YUV conversion (YUV_FIX).
 //
 // For the Y'CbCr to RGB conversion, the BT.601 specification reads:
 //   R = 1.164 * (Y-16) + 1.596 * (V-128)
-//   G = 1.164 * (Y-16) - 0.813 * (V-128) - 0.391 * (U-128)
-//   B = 1.164 * (Y-16)                   + 2.018 * (U-128)
+//   G = 1.164 * (Y-16) - 0.813 * (V-128) - 0.392 * (U-128)
+//   B = 1.164 * (Y-16)                   + 2.017 * (U-128)
 // where Y is in the [16,235] range, and U/V in the [16,240] range.
 //
 // The fixed-point implementation used here is:
@@ -149,20 +149,34 @@ static WEBP_INLINE void VP8YuvToRgba(uint8_t y, uint8_t u, uint8_t v,
 #if defined(WEBP_USE_SSE2)
 
 // Process 32 pixels and store the result (16b, 24b or 32b per pixel) in *dst.
-void VP8YuvToRgba32_SSE2(const uint8_t* y, const uint8_t* u, const uint8_t* v,
-                         uint8_t* dst);
-void VP8YuvToRgb32_SSE2(const uint8_t* y, const uint8_t* u, const uint8_t* v,
-                        uint8_t* dst);
-void VP8YuvToBgra32_SSE2(const uint8_t* y, const uint8_t* u, const uint8_t* v,
-                         uint8_t* dst);
-void VP8YuvToBgr32_SSE2(const uint8_t* y, const uint8_t* u, const uint8_t* v,
-                        uint8_t* dst);
-void VP8YuvToArgb32_SSE2(const uint8_t* y, const uint8_t* u, const uint8_t* v,
-                         uint8_t* dst);
-void VP8YuvToRgba444432_SSE2(const uint8_t* y, const uint8_t* u,
-                             const uint8_t* v, uint8_t* dst);
-void VP8YuvToRgb56532_SSE2(const uint8_t* y, const uint8_t* u, const uint8_t* v,
-                           uint8_t* dst);
+void VP8YuvToRgba32_SSE2(const uint8_t* WEBP_RESTRICT y,
+                         const uint8_t* WEBP_RESTRICT u,
+                         const uint8_t* WEBP_RESTRICT v,
+                         uint8_t* WEBP_RESTRICT dst);
+void VP8YuvToRgb32_SSE2(const uint8_t* WEBP_RESTRICT y,
+                        const uint8_t* WEBP_RESTRICT u,
+                        const uint8_t* WEBP_RESTRICT v,
+                        uint8_t* WEBP_RESTRICT dst);
+void VP8YuvToBgra32_SSE2(const uint8_t* WEBP_RESTRICT y,
+                         const uint8_t* WEBP_RESTRICT u,
+                         const uint8_t* WEBP_RESTRICT v,
+                         uint8_t* WEBP_RESTRICT dst);
+void VP8YuvToBgr32_SSE2(const uint8_t* WEBP_RESTRICT y,
+                        const uint8_t* WEBP_RESTRICT u,
+                        const uint8_t* WEBP_RESTRICT v,
+                        uint8_t* WEBP_RESTRICT dst);
+void VP8YuvToArgb32_SSE2(const uint8_t* WEBP_RESTRICT y,
+                         const uint8_t* WEBP_RESTRICT u,
+                         const uint8_t* WEBP_RESTRICT v,
+                         uint8_t* WEBP_RESTRICT dst);
+void VP8YuvToRgba444432_SSE2(const uint8_t* WEBP_RESTRICT y,
+                             const uint8_t* WEBP_RESTRICT u,
+                             const uint8_t* WEBP_RESTRICT v,
+                             uint8_t* WEBP_RESTRICT dst);
+void VP8YuvToRgb56532_SSE2(const uint8_t* WEBP_RESTRICT y,
+                           const uint8_t* WEBP_RESTRICT u,
+                           const uint8_t* WEBP_RESTRICT v,
+                           uint8_t* WEBP_RESTRICT dst);
 
 #endif    // WEBP_USE_SSE2
 
@@ -172,10 +186,14 @@ void VP8YuvToRgb56532_SSE2(const uint8_t* y, const uint8_t* u, const uint8_t* v,
 #if defined(WEBP_USE_SSE41)
 
 // Process 32 pixels and store the result (16b, 24b or 32b per pixel) in *dst.
-void VP8YuvToRgb32_SSE41(const uint8_t* y, const uint8_t* u, const uint8_t* v,
-                         uint8_t* dst);
-void VP8YuvToBgr32_SSE41(const uint8_t* y, const uint8_t* u, const uint8_t* v,
-                         uint8_t* dst);
+void VP8YuvToRgb32_SSE41(const uint8_t* WEBP_RESTRICT y,
+                         const uint8_t* WEBP_RESTRICT u,
+                         const uint8_t* WEBP_RESTRICT v,
+                         uint8_t* WEBP_RESTRICT dst);
+void VP8YuvToBgr32_SSE41(const uint8_t* WEBP_RESTRICT y,
+                         const uint8_t* WEBP_RESTRICT u,
+                         const uint8_t* WEBP_RESTRICT v,
+                         uint8_t* WEBP_RESTRICT dst);
 
 #endif    // WEBP_USE_SSE41
 

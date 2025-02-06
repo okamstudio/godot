@@ -107,14 +107,14 @@ static WEBP_INLINE uint32_t Select(uint32_t a, uint32_t b, uint32_t c) {
 //------------------------------------------------------------------------------
 // Predictors
 
-uint32_t VP8LPredictor0_C(const uint32_t* const left,
-                          const uint32_t* const top) {
+static uint32_t VP8LPredictor0_C(const uint32_t* const left,
+                                 const uint32_t* const top) {
   (void)top;
   (void)left;
   return ARGB_BLACK;
 }
-uint32_t VP8LPredictor1_C(const uint32_t* const left,
-                          const uint32_t* const top) {
+static uint32_t VP8LPredictor1_C(const uint32_t* const left,
+                                 const uint32_t* const top) {
   (void)top;
   return *left;
 }
@@ -182,13 +182,13 @@ uint32_t VP8LPredictor13_C(const uint32_t* const left,
 }
 
 static void PredictorAdd0_C(const uint32_t* in, const uint32_t* upper,
-                            int num_pixels, uint32_t* out) {
+                            int num_pixels, uint32_t* WEBP_RESTRICT out) {
   int x;
   (void)upper;
   for (x = 0; x < num_pixels; ++x) out[x] = VP8LAddPixels(in[x], ARGB_BLACK);
 }
 static void PredictorAdd1_C(const uint32_t* in, const uint32_t* upper,
-                            int num_pixels, uint32_t* out) {
+                            int num_pixels, uint32_t* WEBP_RESTRICT out) {
   int i;
   uint32_t left = out[-1];
   (void)upper;
@@ -441,8 +441,8 @@ static int is_big_endian(void) {
   return (tmp.b[0] != 1);
 }
 
-void VP8LConvertBGRAToRGB_C(const uint32_t* src,
-                            int num_pixels, uint8_t* dst) {
+void VP8LConvertBGRAToRGB_C(const uint32_t* WEBP_RESTRICT src,
+                            int num_pixels, uint8_t* WEBP_RESTRICT dst) {
   const uint32_t* const src_end = src + num_pixels;
   while (src < src_end) {
     const uint32_t argb = *src++;
@@ -452,8 +452,8 @@ void VP8LConvertBGRAToRGB_C(const uint32_t* src,
   }
 }
 
-void VP8LConvertBGRAToRGBA_C(const uint32_t* src,
-                             int num_pixels, uint8_t* dst) {
+void VP8LConvertBGRAToRGBA_C(const uint32_t* WEBP_RESTRICT src,
+                             int num_pixels, uint8_t* WEBP_RESTRICT dst) {
   const uint32_t* const src_end = src + num_pixels;
   while (src < src_end) {
     const uint32_t argb = *src++;
@@ -464,8 +464,8 @@ void VP8LConvertBGRAToRGBA_C(const uint32_t* src,
   }
 }
 
-void VP8LConvertBGRAToRGBA4444_C(const uint32_t* src,
-                                 int num_pixels, uint8_t* dst) {
+void VP8LConvertBGRAToRGBA4444_C(const uint32_t* WEBP_RESTRICT src,
+                                 int num_pixels, uint8_t* WEBP_RESTRICT dst) {
   const uint32_t* const src_end = src + num_pixels;
   while (src < src_end) {
     const uint32_t argb = *src++;
@@ -481,8 +481,8 @@ void VP8LConvertBGRAToRGBA4444_C(const uint32_t* src,
   }
 }
 
-void VP8LConvertBGRAToRGB565_C(const uint32_t* src,
-                               int num_pixels, uint8_t* dst) {
+void VP8LConvertBGRAToRGB565_C(const uint32_t* WEBP_RESTRICT src,
+                               int num_pixels, uint8_t* WEBP_RESTRICT dst) {
   const uint32_t* const src_end = src + num_pixels;
   while (src < src_end) {
     const uint32_t argb = *src++;
@@ -498,8 +498,8 @@ void VP8LConvertBGRAToRGB565_C(const uint32_t* src,
   }
 }
 
-void VP8LConvertBGRAToBGR_C(const uint32_t* src,
-                            int num_pixels, uint8_t* dst) {
+void VP8LConvertBGRAToBGR_C(const uint32_t* WEBP_RESTRICT src,
+                            int num_pixels, uint8_t* WEBP_RESTRICT dst) {
   const uint32_t* const src_end = src + num_pixels;
   while (src < src_end) {
     const uint32_t argb = *src++;
@@ -509,8 +509,8 @@ void VP8LConvertBGRAToBGR_C(const uint32_t* src,
   }
 }
 
-static void CopyOrSwap(const uint32_t* src, int num_pixels, uint8_t* dst,
-                       int swap_on_big_endian) {
+static void CopyOrSwap(const uint32_t* WEBP_RESTRICT src, int num_pixels,
+                       uint8_t* WEBP_RESTRICT dst, int swap_on_big_endian) {
   if (is_big_endian() == swap_on_big_endian) {
     const uint32_t* const src_end = src + num_pixels;
     while (src < src_end) {

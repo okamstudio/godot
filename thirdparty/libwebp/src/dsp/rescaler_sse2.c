@@ -43,8 +43,8 @@ static void LoadEightPixels_SSE2(const uint8_t* const src, __m128i* out) {
   *out = _mm_unpacklo_epi8(A, zero);
 }
 
-static void RescalerImportRowExpand_SSE2(WebPRescaler* const wrk,
-                                         const uint8_t* src) {
+static void RescalerImportRowExpand_SSE2(WebPRescaler* WEBP_RESTRICT const wrk,
+                                         const uint8_t* WEBP_RESTRICT src) {
   rescaler_t* frow = wrk->frow;
   const rescaler_t* const frow_end = frow + wrk->dst_width * wrk->num_channels;
   const int x_add = wrk->x_add;
@@ -109,8 +109,8 @@ static void RescalerImportRowExpand_SSE2(WebPRescaler* const wrk,
   assert(accum == 0);
 }
 
-static void RescalerImportRowShrink_SSE2(WebPRescaler* const wrk,
-                                         const uint8_t* src) {
+static void RescalerImportRowShrink_SSE2(WebPRescaler* WEBP_RESTRICT const wrk,
+                                         const uint8_t* WEBP_RESTRICT src) {
   const int x_sub = wrk->x_sub;
   int accum = 0;
   const __m128i zero = _mm_setzero_si128();
@@ -168,12 +168,10 @@ static void RescalerImportRowShrink_SSE2(WebPRescaler* const wrk,
 // Row export
 
 // load *src as epi64, multiply by mult and store result in [out0 ... out3]
-static WEBP_INLINE void LoadDispatchAndMult_SSE2(const rescaler_t* const src,
-                                                 const __m128i* const mult,
-                                                 __m128i* const out0,
-                                                 __m128i* const out1,
-                                                 __m128i* const out2,
-                                                 __m128i* const out3) {
+static WEBP_INLINE void LoadDispatchAndMult_SSE2(
+    const rescaler_t* WEBP_RESTRICT const src, const __m128i* const mult,
+    __m128i* const out0, __m128i* const out1, __m128i* const out2,
+    __m128i* const out3) {
   const __m128i A0 = _mm_loadu_si128((const __m128i*)(src + 0));
   const __m128i A1 = _mm_loadu_si128((const __m128i*)(src + 4));
   const __m128i A2 = _mm_srli_epi64(A0, 32);

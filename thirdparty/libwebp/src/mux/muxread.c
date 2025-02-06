@@ -223,11 +223,13 @@ WebPMux* WebPMuxCreateInternal(const WebPData* bitstream, int copy_data,
   // Note this padding is historical and differs from demux.c which does not
   // pad the file size.
   riff_size = SizeWithPadding(riff_size);
-  if (riff_size < CHUNK_HEADER_SIZE) goto Err;
+  // Make sure the whole RIFF header is available.
+  if (riff_size < RIFF_HEADER_SIZE) goto Err;
   if (riff_size > size) goto Err;
-  // There's no point in reading past the end of the RIFF chunk.
-  if (size > riff_size + CHUNK_HEADER_SIZE) {
-    size = riff_size + CHUNK_HEADER_SIZE;
+  // There's no point in reading past the end of the RIFF chunk. Note riff_size
+  // includes CHUNK_HEADER_SIZE after SizeWithPadding().
+  if (size > riff_size) {
+    size = riff_size;
   }
 
   end = data + size;

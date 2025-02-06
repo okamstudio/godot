@@ -52,7 +52,7 @@ extern "C" {
 // SharpYUV API version following the convention from semver.org
 #define SHARPYUV_VERSION_MAJOR 0
 #define SHARPYUV_VERSION_MINOR 4
-#define SHARPYUV_VERSION_PATCH 0
+#define SHARPYUV_VERSION_PATCH 1
 // Version as a uint32_t. The major number is the high 8 bits.
 // The minor number is the middle 8 bits. The patch number is the low 16 bits.
 #define SHARPYUV_MAKE_VERSION(MAJOR, MINOR, PATCH) \
@@ -66,10 +66,17 @@ extern "C" {
 SHARPYUV_EXTERN int SharpYuvGetVersion(void);
 
 // RGB to YUV conversion matrix, in 16 bit fixed point.
-// y = rgb_to_y[0] * r + rgb_to_y[1] * g + rgb_to_y[2] * b + rgb_to_y[3]
-// u = rgb_to_u[0] * r + rgb_to_u[1] * g + rgb_to_u[2] * b + rgb_to_u[3]
-// v = rgb_to_v[0] * r + rgb_to_v[1] * g + rgb_to_v[2] * b + rgb_to_v[3]
-// Then y, u and v values are divided by 1<<16 and rounded.
+// y_ = rgb_to_y[0] * r + rgb_to_y[1] * g + rgb_to_y[2] * b + rgb_to_y[3]
+// u_ = rgb_to_u[0] * r + rgb_to_u[1] * g + rgb_to_u[2] * b + rgb_to_u[3]
+// v_ = rgb_to_v[0] * r + rgb_to_v[1] * g + rgb_to_v[2] * b + rgb_to_v[3]
+// Then the values are divided by 1<<16 and rounded.
+// y = (y_ + (1 << 15)) >> 16
+// u = (u_ + (1 << 15)) >> 16
+// v = (v_ + (1 << 15)) >> 16
+//
+// Typically, the offset values rgb_to_y[3], rgb_to_u[3] and rgb_to_v[3] depend
+// on the input's bit depth, e.g., rgb_to_u[3] = 1 << (rgb_bit_depth - 1 + 16).
+// See also sharpyuv_csp.h to get a predefined matrix or generate a matrix.
 typedef struct {
   int rgb_to_y[4];
   int rgb_to_u[4];
@@ -127,6 +134,8 @@ typedef enum SharpYuvTransferFunctionType {
 //     adjacent pixels on the y, u and v channels. If yuv_bit_depth > 8, they
 //     should be multiples of 2.
 // width, height: width and height of the image in pixels
+// yuv_matrix: RGB to YUV conversion matrix. The matrix values typically
+//     depend on the input's rgb_bit_depth.
 // This function calls SharpYuvConvertWithOptions with a default transfer
 // function of kSharpYuvTransferFunctionSrgb.
 SHARPYUV_EXTERN int SharpYuvConvert(const void* r_ptr, const void* g_ptr,

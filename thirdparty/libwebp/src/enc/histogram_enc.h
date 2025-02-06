@@ -40,10 +40,10 @@ typedef struct {
   int palette_code_bits_;
   uint32_t trivial_symbol_;  // True, if histograms for Red, Blue & Alpha
                              // literal symbols are single valued.
-  float bit_cost_;           // cached value of bit cost.
-  float literal_cost_;       // Cached values of dominant entropy costs:
-  float red_cost_;           // literal, red & blue.
-  float blue_cost_;
+  uint64_t bit_cost_;        // cached value of bit cost.
+  uint64_t literal_cost_;    // Cached values of dominant entropy costs:
+  uint64_t red_cost_;        // literal, red & blue.
+  uint64_t blue_cost_;
   uint8_t is_used_[5];       // 5 for literal, red, blue, alpha, distance
 } VP8LHistogram;
 
@@ -63,9 +63,6 @@ typedef struct {
 void VP8LHistogramCreate(VP8LHistogram* const p,
                          const VP8LBackwardRefs* const refs,
                          int palette_code_bits);
-
-// Return the size of the histogram for a given cache_bits.
-int VP8LGetHistogramSize(int cache_bits);
 
 // Set the palette_code_bits and reset the stats.
 // If init_arrays is true, the arrays are also filled with 0's.
@@ -112,16 +109,16 @@ int VP8LGetHistoImageSymbols(int xsize, int ysize,
                              int low_effort, int histogram_bits, int cache_bits,
                              VP8LHistogramSet* const image_histo,
                              VP8LHistogram* const tmp_histo,
-                             uint16_t* const histogram_symbols,
+                             uint32_t* const histogram_symbols,
                              const WebPPicture* const pic, int percent_range,
                              int* const percent);
 
 // Returns the entropy for the symbols in the input array.
-float VP8LBitsEntropy(const uint32_t* const array, int n);
+uint64_t VP8LBitsEntropy(const uint32_t* const array, int n);
 
 // Estimate how many bits the combined entropy of literals and distance
 // approximately maps to.
-float VP8LHistogramEstimateBits(VP8LHistogram* const p);
+uint64_t VP8LHistogramEstimateBits(VP8LHistogram* const p);
 
 #ifdef __cplusplus
 }

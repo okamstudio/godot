@@ -114,9 +114,9 @@
   dst = __msa_copy_s_w((v4i32)t0, 0);                             \
 } while (0)
 
-static WEBP_INLINE void ExportRowExpand_0(const uint32_t* frow, uint8_t* dst,
-                                          int length,
-                                          WebPRescaler* const wrk) {
+static WEBP_INLINE void ExportRowExpand_0(
+    const uint32_t* WEBP_RESTRICT frow, uint8_t* WEBP_RESTRICT dst, int length,
+    WebPRescaler* WEBP_RESTRICT const wrk) {
   const v4u32 scale = (v4u32)__msa_fill_w(wrk->fy_scale);
   const v4u32 shift = (v4u32)__msa_fill_w(WEBP_RESCALER_RFIX);
   const v4i32 zero = { 0 };
@@ -171,9 +171,10 @@ static WEBP_INLINE void ExportRowExpand_0(const uint32_t* frow, uint8_t* dst,
   }
 }
 
-static WEBP_INLINE void ExportRowExpand_1(const uint32_t* frow, uint32_t* irow,
-                                          uint8_t* dst, int length,
-                                          WebPRescaler* const wrk) {
+static WEBP_INLINE void ExportRowExpand_1(
+    const uint32_t* WEBP_RESTRICT frow, uint32_t* WEBP_RESTRICT irow,
+    uint8_t* WEBP_RESTRICT dst, int length,
+    WebPRescaler* WEBP_RESTRICT const wrk) {
   const uint32_t B = WEBP_RESCALER_FRAC(-wrk->y_accum, wrk->y_sub);
   const uint32_t A = (uint32_t)(WEBP_RESCALER_ONE - B);
   const v4i32 B1 = __msa_fill_w(B);
@@ -262,10 +263,10 @@ static void RescalerExportRowExpand_MIPSdspR2(WebPRescaler* const wrk) {
 }
 
 #if 0  // disabled for now. TODO(skal): make match the C-code
-static WEBP_INLINE void ExportRowShrink_0(const uint32_t* frow, uint32_t* irow,
-                                          uint8_t* dst, int length,
-                                          const uint32_t yscale,
-                                          WebPRescaler* const wrk) {
+static WEBP_INLINE void ExportRowShrink_0(
+    const uint32_t* WEBP_RESTRICT frow, uint32_t* WEBP_RESTRICT irow,
+    uint8_t* WEBP_RESTRICT dst, int length, const uint32_t yscale,
+    WebPRescaler* WEBP_RESTRICT const wrk) {
   const v4u32 y_scale = (v4u32)__msa_fill_w(yscale);
   const v4u32 fxyscale = (v4u32)__msa_fill_w(wrk->fxy_scale);
   const v4u32 shiftval = (v4u32)__msa_fill_w(WEBP_RESCALER_RFIX);
@@ -348,9 +349,9 @@ static WEBP_INLINE void ExportRowShrink_0(const uint32_t* frow, uint32_t* irow,
   }
 }
 
-static WEBP_INLINE void ExportRowShrink_1(uint32_t* irow, uint8_t* dst,
-                                          int length,
-                                          WebPRescaler* const wrk) {
+static WEBP_INLINE void ExportRowShrink_1(
+    uint32_t* WEBP_RESTRICT irow, uint8_t* WEBP_RESTRICT dst, int length,
+    WebPRescaler* WEBP_RESTRICT const wrk) {
   const v4u32 scale = (v4u32)__msa_fill_w(wrk->fxy_scale);
   const v4u32 shift = (v4u32)__msa_fill_w(WEBP_RESCALER_RFIX);
   const v4i32 zero = { 0 };

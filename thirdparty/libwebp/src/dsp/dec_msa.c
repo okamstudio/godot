@@ -38,7 +38,8 @@
   BUTTERFLY_4(a1_m, b1_m, c1_m, d1_m, out0, out1, out2, out3);   \
 }
 
-static void TransformOne(const int16_t* in, uint8_t* dst) {
+static void TransformOne(const int16_t* WEBP_RESTRICT in,
+                         uint8_t* WEBP_RESTRICT dst) {
   v8i16 input0, input1;
   v4i32 in0, in1, in2, in3, hz0, hz1, hz2, hz3, vt0, vt1, vt2, vt3;
   v4i32 res0, res1, res2, res3;
@@ -65,14 +66,16 @@ static void TransformOne(const int16_t* in, uint8_t* dst) {
   ST4x4_UB(res0, res0, 3, 2, 1, 0, dst, BPS);
 }
 
-static void TransformTwo(const int16_t* in, uint8_t* dst, int do_two) {
+static void TransformTwo(const int16_t* WEBP_RESTRICT in,
+                         uint8_t* WEBP_RESTRICT dst, int do_two) {
   TransformOne(in, dst);
   if (do_two) {
     TransformOne(in + 16, dst + 4);
   }
 }
 
-static void TransformWHT(const int16_t* in, int16_t* out) {
+static void TransformWHT(const int16_t* WEBP_RESTRICT in,
+                         int16_t* WEBP_RESTRICT out) {
   v8i16 input0, input1;
   const v8i16 mask0 = { 0, 1, 2, 3, 8, 9, 10, 11 };
   const v8i16 mask1 = { 4, 5, 6, 7, 12, 13, 14, 15 };
@@ -114,13 +117,15 @@ static void TransformWHT(const int16_t* in, int16_t* out) {
   out[240] = __msa_copy_s_h(out1, 7);
 }
 
-static void TransformDC(const int16_t* in, uint8_t* dst) {
+static void TransformDC(const int16_t* WEBP_RESTRICT in,
+                        uint8_t* WEBP_RESTRICT dst) {
   const int DC = (in[0] + 4) >> 3;
   const v8i16 tmp0 = __msa_fill_h(DC);
   ADDBLK_ST4x4_UB(tmp0, tmp0, tmp0, tmp0, dst, BPS);
 }
 
-static void TransformAC3(const int16_t* in, uint8_t* dst) {
+static void TransformAC3(const int16_t* WEBP_RESTRICT in,
+                         uint8_t* WEBP_RESTRICT dst) {
   const int a = in[0] + 4;
   const int c4 = WEBP_TRANSFORM_AC3_MUL2(in[4]);
   const int d4 = WEBP_TRANSFORM_AC3_MUL1(in[4]);
@@ -475,8 +480,8 @@ static void HFilter16i(uint8_t* src_y, int stride,
 }
 
 // 8-pixels wide variants, for chroma filtering
-static void VFilter8(uint8_t* src_u, uint8_t* src_v, int stride,
-                     int b_limit_in, int limit_in, int thresh_in) {
+static void VFilter8(uint8_t* WEBP_RESTRICT src_u, uint8_t* WEBP_RESTRICT src_v,
+                     int stride, int b_limit_in, int limit_in, int thresh_in) {
   uint8_t* ptmp_src_u = src_u - 4 * stride;
   uint8_t* ptmp_src_v = src_v - 4 * stride;
   uint64_t p2_d, p1_d, p0_d, q0_d, q1_d, q2_d;
@@ -520,8 +525,8 @@ static void VFilter8(uint8_t* src_u, uint8_t* src_v, int stride,
   SD(q2_d, ptmp_src_v);
 }
 
-static void HFilter8(uint8_t* src_u, uint8_t* src_v, int stride,
-                     int b_limit_in, int limit_in, int thresh_in) {
+static void HFilter8(uint8_t* WEBP_RESTRICT src_u, uint8_t* WEBP_RESTRICT src_v,
+                     int stride, int b_limit_in, int limit_in, int thresh_in) {
   uint8_t* ptmp_src_u = src_u - 4;
   uint8_t* ptmp_src_v = src_v - 4;
   v16u8 p3, p2, p1, p0, q3, q2, q1, q0, mask, hev;
@@ -556,7 +561,8 @@ static void HFilter8(uint8_t* src_u, uint8_t* src_v, int stride,
   ST6x4_UB(tmp7, 0, tmp5, 4, ptmp_src_v, stride);
 }
 
-static void VFilter8i(uint8_t* src_u, uint8_t* src_v, int stride,
+static void VFilter8i(uint8_t* WEBP_RESTRICT src_u,
+                      uint8_t* WEBP_RESTRICT src_v, int stride,
                       int b_limit_in, int limit_in, int thresh_in) {
   uint64_t p1_d, p0_d, q0_d, q1_d;
   v16u8 p3, p2, p1, p0, q3, q2, q1, q0, mask, hev;
@@ -587,7 +593,8 @@ static void VFilter8i(uint8_t* src_u, uint8_t* src_v, int stride,
   SD4(q1_d, q0_d, p0_d, p1_d, src_v, -stride);
 }
 
-static void HFilter8i(uint8_t* src_u, uint8_t* src_v, int stride,
+static void HFilter8i(uint8_t* WEBP_RESTRICT src_u,
+                      uint8_t* WEBP_RESTRICT src_v, int stride,
                       int b_limit_in, int limit_in, int thresh_in) {
   v16u8 p3, p2, p1, p0, q3, q2, q1, q0, mask, hev;
   v16u8 row0, row1, row2, row3, row4, row5, row6, row7, row8;

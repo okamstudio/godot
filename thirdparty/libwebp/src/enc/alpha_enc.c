@@ -276,6 +276,7 @@ static int ApplyFiltersAndEncode(const uint8_t* alpha, int width, int height,
       stats->lossless_features = best.stats.lossless_features;
       stats->histogram_bits = best.stats.histogram_bits;
       stats->transform_bits = best.stats.transform_bits;
+      stats->cross_color_transform_bits = best.stats.cross_color_transform_bits;
       stats->cache_bits = best.stats.cache_bits;
       stats->palette_size = best.stats.palette_size;
       stats->lossless_size = best.stats.lossless_size;

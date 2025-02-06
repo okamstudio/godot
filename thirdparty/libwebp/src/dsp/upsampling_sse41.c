@@ -90,8 +90,9 @@
 } while (0)
 
 // Turn the macro into a function for reducing code-size when non-critical
-static void Upsample32Pixels_SSE41(const uint8_t r1[], const uint8_t r2[],
-                                  uint8_t* const out) {
+static void Upsample32Pixels_SSE41(const uint8_t* WEBP_RESTRICT const r1,
+                                   const uint8_t* WEBP_RESTRICT const r2,
+                                   uint8_t* WEBP_RESTRICT const out) {
   UPSAMPLE_32PIXELS(r1, r2, out);
 }
 
@@ -116,14 +117,18 @@ static void Upsample32Pixels_SSE41(const uint8_t r1[], const uint8_t r2[],
 } while (0)
 
 #define SSE4_UPSAMPLE_FUNC(FUNC_NAME, FUNC, XSTEP)                             \
-static void FUNC_NAME(const uint8_t* top_y, const uint8_t* bottom_y,           \
-                      const uint8_t* top_u, const uint8_t* top_v,              \
-                      const uint8_t* cur_u, const uint8_t* cur_v,              \
-                      uint8_t* top_dst, uint8_t* bottom_dst, int len) {        \
+static void FUNC_NAME(const uint8_t* WEBP_RESTRICT top_y,                      \
+                      const uint8_t* WEBP_RESTRICT bottom_y,                   \
+                      const uint8_t* WEBP_RESTRICT top_u,                      \
+                      const uint8_t* WEBP_RESTRICT top_v,                      \
+                      const uint8_t* WEBP_RESTRICT cur_u,                      \
+                      const uint8_t* WEBP_RESTRICT cur_v,                      \
+                      uint8_t* WEBP_RESTRICT top_dst,                          \
+                      uint8_t* WEBP_RESTRICT bottom_dst, int len) {            \
   int uv_pos, pos;                                                             \
   /* 16byte-aligned array to cache reconstructed u and v */                    \
   uint8_t uv_buf[14 * 32 + 15] = { 0 };                                        \
-  uint8_t* const r_u = (uint8_t*)((uintptr_t)(uv_buf + 15) & ~15);             \
+  uint8_t* const r_u = (uint8_t*)((uintptr_t)(uv_buf + 15) & ~(uintptr_t)15);  \
   uint8_t* const r_v = r_u + 32;                                               \
                                                                                \
   assert(top_y != NULL);                                                       \
@@ -202,10 +207,14 @@ extern WebPYUV444Converter WebPYUV444Converters[/* MODE_LAST */];
 extern void WebPInitYUV444ConvertersSSE41(void);
 
 #define YUV444_FUNC(FUNC_NAME, CALL, CALL_C, XSTEP)                            \
-extern void CALL_C(const uint8_t* y, const uint8_t* u, const uint8_t* v,       \
-                   uint8_t* dst, int len);                                     \
-static void FUNC_NAME(const uint8_t* y, const uint8_t* u, const uint8_t* v,    \
-                      uint8_t* dst, int len) {                                 \
+extern void CALL_C(const uint8_t* WEBP_RESTRICT y,                             \
+                   const uint8_t* WEBP_RESTRICT u,                             \
+                   const uint8_t* WEBP_RESTRICT v,                             \
+                   uint8_t* WEBP_RESTRICT dst, int len);                       \
+static void FUNC_NAME(const uint8_t* WEBP_RESTRICT y,                          \
+                      const uint8_t* WEBP_RESTRICT u,                          \
+                      const uint8_t* WEBP_RESTRICT v,                          \
+                      uint8_t* WEBP_RESTRICT dst, int len) {                   \
   int i;                                                                       \
   const int max_len = len & ~31;                                               \
   for (i = 0; i < max_len; i += 32) {                                          \

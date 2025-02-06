@@ -16,6 +16,7 @@
 
 #include <string.h>     // for memcpy()
 #include "src/dec/common_dec.h"
+#include "src/dsp/cpu.h"
 #include "src/dsp/dsp.h"
 #include "src/utils/bit_writer_utils.h"
 #include "src/utils/thread_utils.h"
@@ -31,7 +32,7 @@ extern "C" {
 
 // version numbers
 #define ENC_MAJ_VERSION 1
-#define ENC_MIN_VERSION 4
+#define ENC_MIN_VERSION 5
 #define ENC_REV_VERSION 0
 
 enum { MAX_LF_LEVELS = 64,       // Maximum loop filter level
@@ -78,7 +79,6 @@ typedef enum {   // Rate-distortion optimization levels
 extern const uint16_t VP8Scan[16];
 extern const uint16_t VP8UVModeOffsets[4];
 extern const uint16_t VP8I16ModeOffsets[4];
-extern const uint16_t VP8I4ModeOffsets[NUM_BMODES];
 
 // Layout of prediction blocks
 // intra 16x16
@@ -234,7 +234,11 @@ typedef struct {
   VP8BitWriter* bw_;               // current bit-writer
   uint8_t*      preds_;            // intra mode predictors (4x4 blocks)
   uint32_t*     nz_;               // non-zero pattern
+#if WEBP_AARCH64 && BPS == 32
+  uint8_t       i4_boundary_[40];  // 32+8 boundary samples needed by intra4x4
+#else
   uint8_t       i4_boundary_[37];  // 32+5 boundary samples needed by intra4x4
+#endif
   uint8_t*      i4_top_;           // pointer to the current top boundary sample
   int           i4_;               // current intra4x4 mode being tested
   int           top_nz_[9];        // top-non-zero context.
@@ -267,8 +271,6 @@ typedef struct {
   // in iterator.c
 // must be called first
 void VP8IteratorInit(VP8Encoder* const enc, VP8EncIterator* const it);
-// restart a scan
-void VP8IteratorReset(VP8EncIterator* const it);
 // reset iterator position to row 'y'
 void VP8IteratorSetRow(VP8EncIterator* const it, int y);
 // set count down (=number of iterations to go)
@@ -444,9 +446,6 @@ extern const uint8_t VP8Cat6[];
 void VP8MakeLuma16Preds(const VP8EncIterator* const it);
 // Form all the four Chroma8x8 predictions in the yuv_p_ cache
 void VP8MakeChroma8Preds(const VP8EncIterator* const it);
-// Form all the ten Intra4x4 predictions in the yuv_p_ cache
-// for the 4x4 block it->i4_
-void VP8MakeIntra4Preds(const VP8EncIterator* const it);
 // Rate calculation
 int VP8GetCostLuma16(VP8EncIterator* const it, const VP8ModeScore* const rd);
 int VP8GetCostLuma4(VP8EncIterator* const it, const int16_t levels[16]);

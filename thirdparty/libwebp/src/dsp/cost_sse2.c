@@ -22,8 +22,8 @@
 
 //------------------------------------------------------------------------------
 
-static void SetResidualCoeffs_SSE2(const int16_t* const coeffs,
-                                   VP8Residual* const res) {
+static void SetResidualCoeffs_SSE2(const int16_t* WEBP_RESTRICT const coeffs,
+                                   VP8Residual* WEBP_RESTRICT const res) {
   const __m128i c0 = _mm_loadu_si128((const __m128i*)(coeffs + 0));
   const __m128i c1 = _mm_loadu_si128((const __m128i*)(coeffs + 8));
   // Use SSE2 to compare 16 values with a single instruction.

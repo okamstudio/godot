@@ -24,203 +24,123 @@
 #include "src/dsp/lossless_common.h"
 #include "src/dsp/yuv.h"
 
-// lookup table for small values of log2(int)
-const float kLog2Table[LOG_LOOKUP_IDX_MAX] = {
-  0.0000000000000000f, 0.0000000000000000f,
-  1.0000000000000000f, 1.5849625007211560f,
-  2.0000000000000000f, 2.3219280948873621f,
-  2.5849625007211560f, 2.8073549220576041f,
-  3.0000000000000000f, 3.1699250014423121f,
-  3.3219280948873621f, 3.4594316186372973f,
-  3.5849625007211560f, 3.7004397181410921f,
-  3.8073549220576041f, 3.9068905956085187f,
-  4.0000000000000000f, 4.0874628412503390f,
-  4.1699250014423121f, 4.2479275134435852f,
-  4.3219280948873626f, 4.3923174227787606f,
-  4.4594316186372973f, 4.5235619560570130f,
-  4.5849625007211560f, 4.6438561897747243f,
-  4.7004397181410917f, 4.7548875021634682f,
-  4.8073549220576037f, 4.8579809951275718f,
-  4.9068905956085187f, 4.9541963103868749f,
-  5.0000000000000000f, 5.0443941193584533f,
-  5.0874628412503390f, 5.1292830169449663f,
-  5.1699250014423121f, 5.2094533656289501f,
-  5.2479275134435852f, 5.2854022188622487f,
-  5.3219280948873626f, 5.3575520046180837f,
-  5.3923174227787606f, 5.4262647547020979f,
-  5.4594316186372973f, 5.4918530963296747f,
-  5.5235619560570130f, 5.5545888516776376f,
-  5.5849625007211560f, 5.6147098441152083f,
-  5.6438561897747243f, 5.6724253419714951f,
-  5.7004397181410917f, 5.7279204545631987f,
-  5.7548875021634682f, 5.7813597135246599f,
-  5.8073549220576037f, 5.8328900141647412f,
-  5.8579809951275718f, 5.8826430493618415f,
-  5.9068905956085187f, 5.9307373375628866f,
-  5.9541963103868749f, 5.9772799234999167f,
-  6.0000000000000000f, 6.0223678130284543f,
-  6.0443941193584533f, 6.0660891904577720f,
-  6.0874628412503390f, 6.1085244567781691f,
-  6.1292830169449663f, 6.1497471195046822f,
-  6.1699250014423121f, 6.1898245588800175f,
-  6.2094533656289501f, 6.2288186904958804f,
-  6.2479275134435852f, 6.2667865406949010f,
-  6.2854022188622487f, 6.3037807481771030f,
-  6.3219280948873626f, 6.3398500028846243f,
-  6.3575520046180837f, 6.3750394313469245f,
-  6.3923174227787606f, 6.4093909361377017f,
-  6.4262647547020979f, 6.4429434958487279f,
-  6.4594316186372973f, 6.4757334309663976f,
-  6.4918530963296747f, 6.5077946401986963f,
-  6.5235619560570130f, 6.5391588111080309f,
-  6.5545888516776376f, 6.5698556083309478f,
-  6.5849625007211560f, 6.5999128421871278f,
-  6.6147098441152083f, 6.6293566200796094f,
-  6.6438561897747243f, 6.6582114827517946f,
-  6.6724253419714951f, 6.6865005271832185f,
-  6.7004397181410917f, 6.7142455176661224f,
-  6.7279204545631987f, 6.7414669864011464f,
-  6.7548875021634682f, 6.7681843247769259f,
-  6.7813597135246599f, 6.7944158663501061f,
-  6.8073549220576037f, 6.8201789624151878f,
-  6.8328900141647412f, 6.8454900509443747f,
-  6.8579809951275718f, 6.8703647195834047f,
-  6.8826430493618415f, 6.8948177633079437f,
-  6.9068905956085187f, 6.9188632372745946f,
-  6.9307373375628866f, 6.9425145053392398f,
-  6.9541963103868749f, 6.9657842846620869f,
-  6.9772799234999167f, 6.9886846867721654f,
-  7.0000000000000000f, 7.0112272554232539f,
-  7.0223678130284543f, 7.0334230015374501f,
-  7.0443941193584533f, 7.0552824355011898f,
-  7.0660891904577720f, 7.0768155970508308f,
-  7.0874628412503390f, 7.0980320829605263f,
-  7.1085244567781691f, 7.1189410727235076f,
-  7.1292830169449663f, 7.1395513523987936f,
-  7.1497471195046822f, 7.1598713367783890f,
-  7.1699250014423121f, 7.1799090900149344f,
-  7.1898245588800175f, 7.1996723448363644f,
-  7.2094533656289501f, 7.2191685204621611f,
-  7.2288186904958804f, 7.2384047393250785f,
-  7.2479275134435852f, 7.2573878426926521f,
-  7.2667865406949010f, 7.2761244052742375f,
-  7.2854022188622487f, 7.2946207488916270f,
-  7.3037807481771030f, 7.3128829552843557f,
-  7.3219280948873626f, 7.3309168781146167f,
-  7.3398500028846243f, 7.3487281542310771f,
-  7.3575520046180837f, 7.3663222142458160f,
-  7.3750394313469245f, 7.3837042924740519f,
-  7.3923174227787606f, 7.4008794362821843f,
-  7.4093909361377017f, 7.4178525148858982f,
-  7.4262647547020979f, 7.4346282276367245f,
-  7.4429434958487279f, 7.4512111118323289f,
-  7.4594316186372973f, 7.4676055500829976f,
-  7.4757334309663976f, 7.4838157772642563f,
-  7.4918530963296747f, 7.4998458870832056f,
-  7.5077946401986963f, 7.5156998382840427f,
-  7.5235619560570130f, 7.5313814605163118f,
-  7.5391588111080309f, 7.5468944598876364f,
-  7.5545888516776376f, 7.5622424242210728f,
-  7.5698556083309478f, 7.5774288280357486f,
-  7.5849625007211560f, 7.5924570372680806f,
-  7.5999128421871278f, 7.6073303137496104f,
-  7.6147098441152083f, 7.6220518194563764f,
-  7.6293566200796094f, 7.6366246205436487f,
-  7.6438561897747243f, 7.6510516911789281f,
-  7.6582114827517946f, 7.6653359171851764f,
-  7.6724253419714951f, 7.6794800995054464f,
-  7.6865005271832185f, 7.6934869574993252f,
-  7.7004397181410917f, 7.7073591320808825f,
-  7.7142455176661224f, 7.7210991887071855f,
-  7.7279204545631987f, 7.7347096202258383f,
-  7.7414669864011464f, 7.7481928495894605f,
-  7.7548875021634682f, 7.7615512324444795f,
-  7.7681843247769259f, 7.7747870596011736f,
-  7.7813597135246599f, 7.7879025593914317f,
-  7.7944158663501061f, 7.8008998999203047f,
-  7.8073549220576037f, 7.8137811912170374f,
-  7.8201789624151878f, 7.8265484872909150f,
-  7.8328900141647412f, 7.8392037880969436f,
-  7.8454900509443747f, 7.8517490414160571f,
-  7.8579809951275718f, 7.8641861446542797f,
-  7.8703647195834047f, 7.8765169465649993f,
-  7.8826430493618415f, 7.8887432488982591f,
-  7.8948177633079437f, 7.9008668079807486f,
-  7.9068905956085187f, 7.9128893362299619f,
-  7.9188632372745946f, 7.9248125036057812f,
-  7.9307373375628866f, 7.9366379390025709f,
-  7.9425145053392398f, 7.9483672315846778f,
-  7.9541963103868749f, 7.9600019320680805f,
-  7.9657842846620869f, 7.9715435539507719f,
-  7.9772799234999167f, 7.9829935746943103f,
-  7.9886846867721654f, 7.9943534368588577f
+// lookup table for small values of log2(int) * (1 << LOG_2_PRECISION_BITS).
+// Obtained in Python with:
+// a = [ str(round((1<<23)*math.log2(i))) if i else "0" for i in range(256)]
+// print(',\n'.join(['  '+','.join(v)
+//       for v in batched([i.rjust(9) for i in a],7)]))
+const uint32_t kLog2Table[LOG_LOOKUP_IDX_MAX] = {
+         0,        0,  8388608, 13295629, 16777216, 19477745, 21684237,
+  23549800, 25165824, 26591258, 27866353, 29019816, 30072845, 31041538,
+  31938408, 32773374, 33554432, 34288123, 34979866, 35634199, 36254961,
+  36845429, 37408424, 37946388, 38461453, 38955489, 39430146, 39886887,
+  40327016, 40751698, 41161982, 41558811, 41943040, 42315445, 42676731,
+  43027545, 43368474, 43700062, 44022807, 44337167, 44643569, 44942404,
+  45234037, 45518808, 45797032, 46069003, 46334996, 46595268, 46850061,
+  47099600, 47344097, 47583753, 47818754, 48049279, 48275495, 48497560,
+  48715624, 48929828, 49140306, 49347187, 49550590, 49750631, 49947419,
+  50141058, 50331648, 50519283, 50704053, 50886044, 51065339, 51242017,
+  51416153, 51587818, 51757082, 51924012, 52088670, 52251118, 52411415,
+  52569616, 52725775, 52879946, 53032177, 53182516, 53331012, 53477707,
+  53622645, 53765868, 53907416, 54047327, 54185640, 54322389, 54457611,
+  54591338, 54723604, 54854440, 54983876, 55111943, 55238669, 55364082,
+  55488208, 55611074, 55732705, 55853126, 55972361, 56090432, 56207362,
+  56323174, 56437887, 56551524, 56664103, 56775645, 56886168, 56995691,
+  57104232, 57211808, 57318436, 57424133, 57528914, 57632796, 57735795,
+  57837923, 57939198, 58039632, 58139239, 58238033, 58336027, 58433234,
+  58529666, 58625336, 58720256, 58814437, 58907891, 59000628, 59092661,
+  59183999, 59274652, 59364632, 59453947, 59542609, 59630625, 59718006,
+  59804761, 59890898, 59976426, 60061354, 60145690, 60229443, 60312620,
+  60395229, 60477278, 60558775, 60639726, 60720140, 60800023, 60879382,
+  60958224, 61036555, 61114383, 61191714, 61268554, 61344908, 61420785,
+  61496188, 61571124, 61645600, 61719620, 61793189, 61866315, 61939001,
+  62011253, 62083076, 62154476, 62225457, 62296024, 62366182, 62435935,
+  62505289, 62574248, 62642816, 62710997, 62778797, 62846219, 62913267,
+  62979946, 63046260, 63112212, 63177807, 63243048, 63307939, 63372484,
+  63436687, 63500551, 63564080, 63627277, 63690146, 63752690, 63814912,
+  63876816, 63938405, 63999682, 64060650, 64121313, 64181673, 64241734,
+  64301498, 64360969, 64420148, 64479040, 64537646, 64595970, 64654014,
+  64711782, 64769274, 64826495, 64883447, 64940132, 64996553, 65052711,
+  65108611, 65164253, 65219641, 65274776, 65329662, 65384299, 65438691,
+  65492840, 65546747, 65600416, 65653847, 65707044, 65760008, 65812741,
+  65865245, 65917522, 65969575, 66021404, 66073013, 66124403, 66175575,
+  66226531, 66277275, 66327806, 66378127, 66428240, 66478146, 66527847,
+  66577345, 66626641, 66675737, 66724635, 66773336, 66821842, 66870154,
+  66918274, 66966204, 67013944, 67061497
 };
 
-const float kSLog2Table[LOG_LOOKUP_IDX_MAX] = {
-  0.00000000f,    0.00000000f,  2.00000000f,   4.75488750f,
-  8.00000000f,   11.60964047f,  15.50977500f,  19.65148445f,
-  24.00000000f,  28.52932501f,  33.21928095f,  38.05374781f,
-  43.01955001f,  48.10571634f,  53.30296891f,  58.60335893f,
-  64.00000000f,  69.48686830f,  75.05865003f,  80.71062276f,
-  86.43856190f,  92.23866588f,  98.10749561f,  104.04192499f,
-  110.03910002f, 116.09640474f, 122.21143267f, 128.38196256f,
-  134.60593782f, 140.88144886f, 147.20671787f, 153.58008562f,
-  160.00000000f, 166.46500594f, 172.97373660f, 179.52490559f,
-  186.11730005f, 192.74977453f, 199.42124551f, 206.13068654f,
-  212.87712380f, 219.65963219f, 226.47733176f, 233.32938445f,
-  240.21499122f, 247.13338933f, 254.08384998f, 261.06567603f,
-  268.07820003f, 275.12078236f, 282.19280949f, 289.29369244f,
-  296.42286534f, 303.57978409f, 310.76392512f, 317.97478424f,
-  325.21187564f, 332.47473081f, 339.76289772f, 347.07593991f,
-  354.41343574f, 361.77497759f, 369.16017124f, 376.56863518f,
-  384.00000000f, 391.45390785f, 398.93001188f, 406.42797576f,
-  413.94747321f, 421.48818752f, 429.04981119f, 436.63204548f,
-  444.23460010f, 451.85719280f, 459.49954906f, 467.16140179f,
-  474.84249102f, 482.54256363f, 490.26137307f, 497.99867911f,
-  505.75424759f, 513.52785023f, 521.31926438f, 529.12827280f,
-  536.95466351f, 544.79822957f, 552.65876890f, 560.53608414f,
-  568.42998244f, 576.34027536f, 584.26677867f, 592.20931226f,
-  600.16769996f, 608.14176943f, 616.13135206f, 624.13628279f,
-  632.15640007f, 640.19154569f, 648.24156472f, 656.30630539f,
-  664.38561898f, 672.47935976f, 680.58738488f, 688.70955430f,
-  696.84573069f, 704.99577935f, 713.15956818f, 721.33696754f,
-  729.52785023f, 737.73209140f, 745.94956849f, 754.18016116f,
-  762.42375127f, 770.68022275f, 778.94946161f, 787.23135586f,
-  795.52579543f, 803.83267219f, 812.15187982f, 820.48331383f,
-  828.82687147f, 837.18245171f, 845.54995518f, 853.92928416f,
-  862.32034249f, 870.72303558f, 879.13727036f, 887.56295522f,
-  896.00000000f, 904.44831595f, 912.90781569f, 921.37841320f,
-  929.86002376f, 938.35256392f, 946.85595152f, 955.37010560f,
-  963.89494641f, 972.43039537f, 980.97637504f, 989.53280911f,
-  998.09962237f, 1006.67674069f, 1015.26409097f, 1023.86160116f,
-  1032.46920021f, 1041.08681805f, 1049.71438560f, 1058.35183469f,
-  1066.99909811f, 1075.65610955f, 1084.32280357f, 1092.99911564f,
-  1101.68498204f, 1110.38033993f, 1119.08512727f, 1127.79928282f,
-  1136.52274614f, 1145.25545758f, 1153.99735821f, 1162.74838989f,
-  1171.50849518f, 1180.27761738f, 1189.05570047f, 1197.84268914f,
-  1206.63852876f, 1215.44316535f, 1224.25654560f, 1233.07861684f,
-  1241.90932703f, 1250.74862473f, 1259.59645914f, 1268.45278005f,
-  1277.31753781f, 1286.19068338f, 1295.07216828f, 1303.96194457f,
-  1312.85996488f, 1321.76618236f, 1330.68055071f, 1339.60302413f,
-  1348.53355734f, 1357.47210556f, 1366.41862452f, 1375.37307041f,
-  1384.33539991f, 1393.30557020f, 1402.28353887f, 1411.26926400f,
-  1420.26270412f, 1429.26381818f, 1438.27256558f, 1447.28890615f,
-  1456.31280014f, 1465.34420819f, 1474.38309138f, 1483.42941118f,
-  1492.48312945f, 1501.54420843f, 1510.61261078f, 1519.68829949f,
-  1528.77123795f, 1537.86138993f, 1546.95871952f, 1556.06319119f,
-  1565.17476976f, 1574.29342040f, 1583.41910860f, 1592.55180020f,
-  1601.69146137f, 1610.83805860f, 1619.99155871f, 1629.15192882f,
-  1638.31913637f, 1647.49314911f, 1656.67393509f, 1665.86146266f,
-  1675.05570047f, 1684.25661744f, 1693.46418280f, 1702.67836605f,
-  1711.89913698f, 1721.12646563f, 1730.36032233f, 1739.60067768f,
-  1748.84750254f, 1758.10076802f, 1767.36044551f, 1776.62650662f,
-  1785.89892323f, 1795.17766747f, 1804.46271172f, 1813.75402857f,
-  1823.05159087f, 1832.35537170f, 1841.66534438f, 1850.98148244f,
-  1860.30375965f, 1869.63214999f, 1878.96662767f, 1888.30716711f,
-  1897.65374295f, 1907.00633003f, 1916.36490342f, 1925.72943838f,
-  1935.09991037f, 1944.47629506f, 1953.85856831f, 1963.24670620f,
-  1972.64068498f, 1982.04048108f, 1991.44607117f, 2000.85743204f,
-  2010.27454072f, 2019.69737440f, 2029.12591044f, 2038.56012640f
+// lookup table for small values of int*log2(int) * (1 << LOG_2_PRECISION_BITS).
+// Obtained in Python with:
+// a=[ "%d"%i if i<(1<<32) else "%dull"%i
+//     for i in [ round((1<<LOG_2_PRECISION_BITS)*math.log2(i)*i) if i
+//     else 0 for i in range(256)]]
+// print(',\n '.join([','.join(v) for v in batched([i.rjust(15)
+//                      for i in a],4)]))
+const uint64_t kSLog2Table[LOG_LOOKUP_IDX_MAX] = {
+               0,              0,       16777216,       39886887,
+        67108864,       97388723,      130105423,      164848600,
+       201326592,      239321324,      278663526,      319217973,
+       360874141,      403539997,      447137711,      491600606,
+       536870912,      582898099,      629637592,      677049776,
+       725099212,      773754010,      822985323,      872766924,
+       923074875,      973887230,     1025183802,     1076945958,
+      1129156447,     1181799249,     1234859451,     1288323135,
+      1342177280,     1396409681,     1451008871,     1505964059,
+      1561265072,     1616902301,     1672866655,     1729149526,
+      1785742744,     1842638548,     1899829557,     1957308741,
+      2015069397,     2073105127,     2131409817,  2189977618ull,
+   2248802933ull,  2307880396ull,  2367204859ull,  2426771383ull,
+   2486575220ull,  2546611805ull,  2606876748ull,  2667365819ull,
+   2728074942ull,  2789000187ull,  2850137762ull,  2911484006ull,
+   2973035382ull,  3034788471ull,  3096739966ull,  3158886666ull,
+   3221225472ull,  3283753383ull,  3346467489ull,  3409364969ull,
+   3472443085ull,  3535699182ull,  3599130679ull,  3662735070ull,
+   3726509920ull,  3790452862ull,  3854561593ull,  3918833872ull,
+   3983267519ull,  4047860410ull,  4112610476ull,  4177515704ull,
+   4242574127ull,  4307783833ull,  4373142952ull,  4438649662ull,
+   4504302186ull,  4570098787ull,  4636037770ull,  4702117480ull,
+   4768336298ull,  4834692645ull,  4901184974ull,  4967811774ull,
+   5034571569ull,  5101462912ull,  5168484389ull,  5235634615ull,
+   5302912235ull,  5370315922ull,  5437844376ull,  5505496324ull,
+   5573270518ull,  5641165737ull,  5709180782ull,  5777314477ull,
+   5845565671ull,  5913933235ull,  5982416059ull,  6051013057ull,
+   6119723161ull,  6188545324ull,  6257478518ull,  6326521733ull,
+   6395673979ull,  6464934282ull,  6534301685ull,  6603775250ull,
+   6673354052ull,  6743037185ull,  6812823756ull,  6882712890ull,
+   6952703725ull,  7022795412ull,  7092987118ull,  7163278025ull,
+   7233667324ull,  7304154222ull,  7374737939ull,  7445417707ull,
+   7516192768ull,  7587062379ull,  7658025806ull,  7729082328ull,
+   7800231234ull,  7871471825ull,  7942803410ull,  8014225311ull,
+   8085736859ull,  8157337394ull,  8229026267ull,  8300802839ull,
+   8372666477ull,  8444616560ull,  8516652476ull,  8588773618ull,
+   8660979393ull,  8733269211ull,  8805642493ull,  8878098667ull,
+   8950637170ull,  9023257446ull,  9095958945ull,  9168741125ull,
+   9241603454ull,  9314545403ull,  9387566451ull,  9460666086ull,
+   9533843800ull,  9607099093ull,  9680431471ull,  9753840445ull,
+   9827325535ull,  9900886263ull,  9974522161ull, 10048232765ull,
+  10122017615ull, 10195876260ull, 10269808253ull, 10343813150ull,
+  10417890516ull, 10492039919ull, 10566260934ull, 10640553138ull,
+  10714916116ull, 10789349456ull, 10863852751ull, 10938425600ull,
+  11013067604ull, 11087778372ull, 11162557513ull, 11237404645ull,
+  11312319387ull, 11387301364ull, 11462350205ull, 11537465541ull,
+  11612647010ull, 11687894253ull, 11763206912ull, 11838584638ull,
+  11914027082ull, 11989533899ull, 12065104750ull, 12140739296ull,
+  12216437206ull, 12292198148ull, 12368021795ull, 12443907826ull,
+  12519855920ull, 12595865759ull, 12671937032ull, 12748069427ull,
+  12824262637ull, 12900516358ull, 12976830290ull, 13053204134ull,
+  13129637595ull, 13206130381ull, 13282682202ull, 13359292772ull,
+  13435961806ull, 13512689025ull, 13589474149ull, 13666316903ull,
+  13743217014ull, 13820174211ull, 13897188225ull, 13974258793ull,
+  14051385649ull, 14128568535ull, 14205807192ull, 14283101363ull,
+  14360450796ull, 14437855239ull, 14515314443ull, 14592828162ull,
+  14670396151ull, 14748018167ull, 14825693972ull, 14903423326ull,
+  14981205995ull, 15059041743ull, 15136930339ull, 15214871554ull,
+  15292865160ull, 15370910930ull, 15449008641ull, 15527158071ull,
+  15605359001ull, 15683611210ull, 15761914485ull, 15840268608ull,
+  15918673369ull, 15997128556ull, 16075633960ull, 16154189373ull,
+  16232794589ull, 16311449405ull, 16390153617ull, 16468907026ull,
+  16547709431ull, 16626560636ull, 16705460444ull, 16784408661ull,
+  16863405094ull, 16942449552ull, 17021541845ull, 17100681785ull
 };
 
 const VP8LPrefixCode kPrefixEncodeCode[PREFIX_LOOKUP_IDX_MAX] = {
@@ -326,23 +246,19 @@ const uint8_t kPrefixEncodeExtraBitsValue[PREFIX_LOOKUP_IDX_MAX] = {
   112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126
 };
 
-static float FastSLog2Slow_C(uint32_t v) {
+static uint64_t FastSLog2Slow_C(uint32_t v) {
   assert(v >= LOG_LOOKUP_IDX_MAX);
   if (v < APPROX_LOG_WITH_CORRECTION_MAX) {
+    const uint64_t orig_v = v;
+    uint64_t correction;
 #if !defined(WEBP_HAVE_SLOW_CLZ_CTZ)
     // use clz if available
-    const int log_cnt = BitsLog2Floor(v) - 7;
+    const uint64_t log_cnt = BitsLog2Floor(v) - 7;
     const uint32_t y = 1 << log_cnt;
-    int correction = 0;
-    const float v_f = (float)v;
-    const uint32_t orig_v = v;
     v >>= log_cnt;
 #else
-    int log_cnt = 0;
+    uint64_t log_cnt = 0;
     uint32_t y = 1;
-    int correction = 0;
-    const float v_f = (float)v;
-    const uint32_t orig_v = v;
     do {
       ++log_cnt;
       v = v >> 1;
@@ -354,45 +270,43 @@ static float FastSLog2Slow_C(uint32_t v) {
     // log2(Xf) = log2(floor(Xf)) + log2(1 + (v % y) / v)
     // The correction factor: log(1 + d) ~ d; for very small d values, so
     // log2(1 + (v % y) / v) ~ LOG_2_RECIPROCAL * (v % y)/v
-    // LOG_2_RECIPROCAL ~ 23/16
-    correction = (23 * (orig_v & (y - 1))) >> 4;
-    return v_f * (kLog2Table[v] + log_cnt) + correction;
+    correction = LOG_2_RECIPROCAL_FIXED * (orig_v & (y - 1));
+    return orig_v * (kLog2Table[v] + (log_cnt << LOG_2_PRECISION_BITS)) +
+           correction;
   } else {
-    return (float)(LOG_2_RECIPROCAL * v * log((double)v));
+    return (uint64_t)(LOG_2_RECIPROCAL_FIXED_DOUBLE * v * log((double)v) + .5);
   }
 }
 
-static float FastLog2Slow_C(uint32_t v) {
+static uint32_t FastLog2Slow_C(uint32_t v) {
   assert(v >= LOG_LOOKUP_IDX_MAX);
   if (v < APPROX_LOG_WITH_CORRECTION_MAX) {
+    const uint32_t orig_v = v;
+    uint32_t log_2;
 #if !defined(WEBP_HAVE_SLOW_CLZ_CTZ)
     // use clz if available
-    const int log_cnt = BitsLog2Floor(v) - 7;
+    const uint32_t log_cnt = BitsLog2Floor(v) - 7;
     const uint32_t y = 1 << log_cnt;
-    const uint32_t orig_v = v;
-    double log_2;
     v >>= log_cnt;
 #else
-    int log_cnt = 0;
+    uint32_t log_cnt = 0;
     uint32_t y = 1;
-    const uint32_t orig_v = v;
-    double log_2;
     do {
       ++log_cnt;
       v = v >> 1;
       y = y << 1;
     } while (v >= LOG_LOOKUP_IDX_MAX);
 #endif
-    log_2 = kLog2Table[v] + log_cnt;
+    log_2 = kLog2Table[v] + (log_cnt << LOG_2_PRECISION_BITS);
     if (orig_v >= APPROX_LOG_MAX) {
       // Since the division is still expensive, add this correction factor only
       // for large values of 'v'.
-      const int correction = (23 * (orig_v & (y - 1))) >> 4;
-      log_2 += (double)correction / orig_v;
+      const uint64_t correction = LOG_2_RECIPROCAL_FIXED * (orig_v & (y - 1));
+      log_2 += (uint32_t)DivRound(correction, orig_v);
     }
-    return (float)log_2;
+    return log_2;
   } else {
-    return (float)(LOG_2_RECIPROCAL * log((double)v));
+    return (uint32_t)(LOG_2_RECIPROCAL_FIXED_DOUBLE * log((double)v) + .5);
   }
 }
 
@@ -400,37 +314,53 @@ static float FastLog2Slow_C(uint32_t v) {
 // Methods to calculate Entropy (Shannon).
 
 // Compute the combined Shanon's entropy for distribution {X} and {X+Y}
-static float CombinedShannonEntropy_C(const int X[256], const int Y[256]) {
+static uint64_t CombinedShannonEntropy_C(const uint32_t X[256],
+                                         const uint32_t Y[256]) {
   int i;
-  float retval = 0.f;
-  int sumX = 0, sumXY = 0;
+  uint64_t retval = 0;
+  uint32_t sumX = 0, sumXY = 0;
   for (i = 0; i < 256; ++i) {
-    const int x = X[i];
+    const uint32_t x = X[i];
     if (x != 0) {
-      const int xy = x + Y[i];
+      const uint32_t xy = x + Y[i];
       sumX += x;
-      retval -= VP8LFastSLog2(x);
+      retval += VP8LFastSLog2(x);
       sumXY += xy;
-      retval -= VP8LFastSLog2(xy);
+      retval += VP8LFastSLog2(xy);
     } else if (Y[i] != 0) {
       sumXY += Y[i];
-      retval -= VP8LFastSLog2(Y[i]);
+      retval += VP8LFastSLog2(Y[i]);
     }
   }
-  retval += VP8LFastSLog2(sumX) + VP8LFastSLog2(sumXY);
+  retval = VP8LFastSLog2(sumX) + VP8LFastSLog2(sumXY) - retval;
+  return retval;
+}
+
+static uint64_t ShannonEntropy_C(const uint32_t* X, int n) {
+  int i;
+  uint64_t retval = 0;
+  uint32_t sumX = 0;
+  for (i = 0; i < n; ++i) {
+    const int x = X[i];
+    if (x != 0) {
+      sumX += x;
+      retval += VP8LFastSLog2(x);
+    }
+  }
+  retval = VP8LFastSLog2(sumX) - retval;
   return retval;
 }
 
 void VP8LBitEntropyInit(VP8LBitEntropy* const entropy) {
-  entropy->entropy = 0.;
+  entropy->entropy = 0;
   entropy->sum = 0;
   entropy->nonzeros = 0;
   entropy->max_val = 0;
   entropy->nonzero_code = VP8L_NON_TRIVIAL_SYM;
 }
 
-void VP8LBitsEntropyUnrefined(const uint32_t* const array, int n,
-                              VP8LBitEntropy* const entropy) {
+void VP8LBitsEntropyUnrefined(const uint32_t* WEBP_RESTRICT const array, int n,
+                              VP8LBitEntropy* WEBP_RESTRICT const entropy) {
   int i;
 
   VP8LBitEntropyInit(entropy);
@@ -440,18 +370,20 @@ void VP8LBitsEntropyUnrefined(const uint32_t* const array, int n,
       entropy->sum += array[i];
       entropy->nonzero_code = i;
       ++entropy->nonzeros;
-      entropy->entropy -= VP8LFastSLog2(array[i]);
+      entropy->entropy += VP8LFastSLog2(array[i]);
       if (entropy->max_val < array[i]) {
         entropy->max_val = array[i];
       }
     }
   }
-  entropy->entropy += VP8LFastSLog2(entropy->sum);
+  entropy->entropy = VP8LFastSLog2(entropy->sum) - entropy->entropy;
 }
 
 static WEBP_INLINE void GetEntropyUnrefinedHelper(
-    uint32_t val, int i, uint32_t* const val_prev, int* const i_prev,
-    VP8LBitEntropy* const bit_entropy, VP8LStreaks* const stats) {
+    uint32_t val, int i, uint32_t* WEBP_RESTRICT const val_prev,
+    int* WEBP_RESTRICT const i_prev,
+    VP8LBitEntropy* WEBP_RESTRICT const bit_entropy,
+    VP8LStreaks* WEBP_RESTRICT const stats) {
   const int streak = i - *i_prev;
 
   // Gather info for the bit entropy.
@@ -459,7 +391,7 @@ static WEBP_INLINE void GetEntropyUnrefinedHelper(
     bit_entropy->sum += (*val_prev) * streak;
     bit_entropy->nonzeros += streak;
     bit_entropy->nonzero_code = *i_prev;
-    bit_entropy->entropy -= VP8LFastSLog2(*val_prev) * streak;
+    bit_entropy->entropy += VP8LFastSLog2(*val_prev) * streak;
     if (bit_entropy->max_val < *val_prev) {
       bit_entropy->max_val = *val_prev;
     }
@@ -473,9 +405,10 @@ static WEBP_INLINE void GetEntropyUnrefinedHelper(
   *i_prev = i;
 }
 
-static void GetEntropyUnrefined_C(const uint32_t X[], int length,
-                                  VP8LBitEntropy* const bit_entropy,
-                                  VP8LStreaks* const stats) {
+static void GetEntropyUnrefined_C(
+    const uint32_t X[], int length,
+    VP8LBitEntropy* WEBP_RESTRICT const bit_entropy,
+    VP8LStreaks* WEBP_RESTRICT const stats) {
   int i;
   int i_prev = 0;
   uint32_t x_prev = X[0];
@@ -491,14 +424,13 @@ static void GetEntropyUnrefined_C(const uint32_t X[], int length,
   }
   GetEntropyUnrefinedHelper(0, i, &x_prev, &i_prev, bit_entropy, stats);
 
-  bit_entropy->entropy += VP8LFastSLog2(bit_entropy->sum);
+  bit_entropy->entropy = VP8LFastSLog2(bit_entropy->sum) - bit_entropy->entropy;
 }
 
-static void GetCombinedEntropyUnrefined_C(const uint32_t X[],
-                                          const uint32_t Y[],
-                                          int length,
-                                          VP8LBitEntropy* const bit_entropy,
-                                          VP8LStreaks* const stats) {
+static void GetCombinedEntropyUnrefined_C(
+    const uint32_t X[], const uint32_t Y[], int length,
+    VP8LBitEntropy* WEBP_RESTRICT const bit_entropy,
+    VP8LStreaks* WEBP_RESTRICT const stats) {
   int i = 1;
   int i_prev = 0;
   uint32_t xy_prev = X[0] + Y[0];
@@ -514,7 +446,7 @@ static void GetCombinedEntropyUnrefined_C(const uint32_t X[],
   }
   GetEntropyUnrefinedHelper(0, i, &xy_prev, &i_prev, bit_entropy, stats);
 
-  bit_entropy->entropy += VP8LFastSLog2(bit_entropy->sum);
+  bit_entropy->entropy = VP8LFastSLog2(bit_entropy->sum) - bit_entropy->entropy;
 }
 
 //------------------------------------------------------------------------------
@@ -538,8 +470,8 @@ static WEBP_INLINE int8_t U32ToS8(uint32_t v) {
   return (int8_t)(v & 0xff);
 }
 
-void VP8LTransformColor_C(const VP8LMultipliers* const m, uint32_t* data,
-                          int num_pixels) {
+void VP8LTransformColor_C(const VP8LMultipliers* WEBP_RESTRICT const m,
+                          uint32_t* WEBP_RESTRICT data, int num_pixels) {
   int i;
   for (i = 0; i < num_pixels; ++i) {
     const uint32_t argb = data[i];
@@ -575,9 +507,10 @@ static WEBP_INLINE uint8_t TransformColorBlue(uint8_t green_to_blue,
   return (new_blue & 0xff);
 }
 
-void VP8LCollectColorRedTransforms_C(const uint32_t* argb, int stride,
+void VP8LCollectColorRedTransforms_C(const uint32_t* WEBP_RESTRICT argb,
+                                     int stride,
                                      int tile_width, int tile_height,
-                                     int green_to_red, int histo[]) {
+                                     int green_to_red, uint32_t histo[]) {
   while (tile_height-- > 0) {
     int x;
     for (x = 0; x < tile_width; ++x) {
@@ -587,10 +520,11 @@ void VP8LCollectColorRedTransforms_C(const uint32_t* argb, int stride,
   }
 }
 
-void VP8LCollectColorBlueTransforms_C(const uint32_t* argb, int stride,
+void VP8LCollectColorBlueTransforms_C(const uint32_t* WEBP_RESTRICT argb,
+                                      int stride,
                                       int tile_width, int tile_height,
                                       int green_to_blue, int red_to_blue,
-                                      int histo[]) {
+                                      uint32_t histo[]) {
   while (tile_height-- > 0) {
     int x;
     for (x = 0; x < tile_width; ++x) {
@@ -614,8 +548,8 @@ static int VectorMismatch_C(const uint32_t* const array1,
 }
 
 // Bundles multiple (1, 2, 4 or 8) pixels into a single pixel.
-void VP8LBundleColorMap_C(const uint8_t* const row, int width, int xbits,
-                          uint32_t* dst) {
+void VP8LBundleColorMap_C(const uint8_t* WEBP_RESTRICT const row,
+                          int width, int xbits, uint32_t* WEBP_RESTRICT dst) {
   int x;
   if (xbits > 0) {
     const int bit_depth = 1 << (3 - xbits);
@@ -646,7 +580,8 @@ static uint32_t ExtraCost_C(const uint32_t* population, int length) {
   return cost;
 }
 
-static uint32_t ExtraCostCombined_C(const uint32_t* X, const uint32_t* Y,
+static uint32_t ExtraCostCombined_C(const uint32_t* WEBP_RESTRICT X,
+                                    const uint32_t* WEBP_RESTRICT Y,
                                     int length) {
   int i;
   uint32_t cost = X[4] + Y[4] + X[5] + Y[5];
@@ -661,13 +596,15 @@ static uint32_t ExtraCostCombined_C(const uint32_t* X, const uint32_t* Y,
 
 //------------------------------------------------------------------------------
 
-static void AddVector_C(const uint32_t* a, const uint32_t* b, uint32_t* out,
-                        int size) {
+static void AddVector_C(const uint32_t* WEBP_RESTRICT a,
+                        const uint32_t* WEBP_RESTRICT b,
+                        uint32_t* WEBP_RESTRICT out, int size) {
   int i;
   for (i = 0; i < size; ++i) out[i] = a[i] + b[i];
 }
 
-static void AddVectorEq_C(const uint32_t* a, uint32_t* out, int size) {
+static void AddVectorEq_C(const uint32_t* WEBP_RESTRICT a,
+                          uint32_t* WEBP_RESTRICT out, int size) {
   int i;
   for (i = 0; i < size; ++i) out[i] += a[i];
 }
@@ -696,8 +633,9 @@ static void AddVectorEq_C(const uint32_t* a, uint32_t* out, int size) {
   }                                                                            \
 } while (0)
 
-void VP8LHistogramAdd(const VP8LHistogram* const a,
-                      const VP8LHistogram* const b, VP8LHistogram* const out) {
+void VP8LHistogramAdd(const VP8LHistogram* WEBP_RESTRICT const a,
+                      const VP8LHistogram* WEBP_RESTRICT const b,
+                      VP8LHistogram* WEBP_RESTRICT const out) {
   int i;
   const int literal_size = VP8LHistogramNumCodes(a->palette_code_bits_);
   assert(a->palette_code_bits_ == b->palette_code_bits_);
@@ -727,14 +665,14 @@ void VP8LHistogramAdd(const VP8LHistogram* const a,
 // Image transforms.
 
 static void PredictorSub0_C(const uint32_t* in, const uint32_t* upper,
-                            int num_pixels, uint32_t* out) {
+                            int num_pixels, uint32_t* WEBP_RESTRICT out) {
   int i;
   for (i = 0; i < num_pixels; ++i) out[i] = VP8LSubPixels(in[i], ARGB_BLACK);
   (void)upper;
 }
 
 static void PredictorSub1_C(const uint32_t* in, const uint32_t* upper,
-                            int num_pixels, uint32_t* out) {
+                            int num_pixels, uint32_t* WEBP_RESTRICT out) {
   int i;
   for (i = 0; i < num_pixels; ++i) out[i] = VP8LSubPixels(in[i], in[i - 1]);
   (void)upper;
@@ -745,7 +683,8 @@ static void PredictorSub1_C(const uint32_t* in, const uint32_t* upper,
 #define GENERATE_PREDICTOR_SUB(PREDICTOR_I)                                \
 static void PredictorSub##PREDICTOR_I##_C(const uint32_t* in,              \
                                           const uint32_t* upper,           \
-                                          int num_pixels, uint32_t* out) { \
+                                          int num_pixels,                  \
+                                          uint32_t* WEBP_RESTRICT out) {   \
   int x;                                                                   \
   assert(upper != NULL);                                                   \
   for (x = 0; x < num_pixels; ++x) {                                       \
@@ -778,11 +717,12 @@ VP8LCollectColorBlueTransformsFunc VP8LCollectColorBlueTransforms;
 VP8LCollectColorRedTransformsFunc VP8LCollectColorRedTransforms;
 
 VP8LFastLog2SlowFunc VP8LFastLog2Slow;
-VP8LFastLog2SlowFunc VP8LFastSLog2Slow;
+VP8LFastSLog2SlowFunc VP8LFastSLog2Slow;
 
 VP8LCostFunc VP8LExtraCost;
 VP8LCostCombinedFunc VP8LExtraCostCombined;
 VP8LCombinedShannonEntropyFunc VP8LCombinedShannonEntropy;
+VP8LShannonEntropyFunc VP8LShannonEntropy;
 
 VP8LGetEntropyUnrefinedFunc VP8LGetEntropyUnrefined;
 VP8LGetCombinedEntropyUnrefinedFunc VP8LGetCombinedEntropyUnrefined;
@@ -822,6 +762,7 @@ WEBP_DSP_INIT_FUNC(VP8LEncDspInit) {
   VP8LExtraCost = ExtraCost_C;
   VP8LExtraCostCombined = ExtraCostCombined_C;
   VP8LCombinedShannonEntropy = CombinedShannonEntropy_C;
+  VP8LShannonEntropy = ShannonEntropy_C;
 
   VP8LGetEntropyUnrefined = GetEntropyUnrefined_C;
   VP8LGetCombinedEntropyUnrefined = GetCombinedEntropyUnrefined_C;
@@ -911,6 +852,7 @@ WEBP_DSP_INIT_FUNC(VP8LEncDspInit) {
   assert(VP8LExtraCost != NULL);
   assert(VP8LExtraCostCombined != NULL);
   assert(VP8LCombinedShannonEntropy != NULL);
+  assert(VP8LShannonEntropy != NULL);
   assert(VP8LGetEntropyUnrefined != NULL);
   assert(VP8LGetCombinedEntropyUnrefined != NULL);
   assert(VP8LAddVector != NULL);
