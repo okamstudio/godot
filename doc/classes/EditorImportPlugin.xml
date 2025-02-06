@@ -139,7 +139,8 @@
 			<param index="0" name="path" type="String" />
 			<param index="1" name="preset_index" type="int" />
 			<description>
-				Gets the options and default values for the preset at this index. Returns an Array of Dictionaries with the following keys: [code]name[/code], [code]default_value[/code], [code]property_hint[/code] (optional), [code]hint_string[/code] (optional), [code]usage[/code] (optional).
+				Gets the options and default values for the preset at this index.
+				Returns an array of dictionaries with the following keys: [code]name[/code], [code]default_value[/code], [code]type[/code] (optional), [code]property_hint[/code] (optional), [code]hint_string[/code] (optional), [code]usage[/code] (optional). Type will be inferred from [code]default_value[/code] if [code]type[/code] is not specified.
 			</description>
 		</method>
 		<method name="_get_import_order" qualifiers="virtual const">
