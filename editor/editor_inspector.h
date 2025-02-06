@@ -184,6 +184,7 @@ public:
 		ERR_FAIL_NULL_V(object, Variant());
 		return object->get(property);
 	}
+	Variant get_edited_property_display_value() const;
 	EditorInspector *get_parent_inspector() const;
 
 	void set_doc_path(const String &p_doc_path);
