@@ -1327,6 +1327,9 @@
 		<constant name="DUPLICATE_USE_INSTANTIATION" value="8" enum="DuplicateFlags">
 			Duplicate using [method PackedScene.instantiate]. If the node comes from a scene saved on disk, reuses [method PackedScene.instantiate] as the base for the duplicated node and its children.
 		</constant>
+		<constant name="DUPLICATE_DEFAULT" value="15" enum="DuplicateFlags">
+			Duplicate the node's signals, groups and scripts using a new instance. This is the default behavior.
+		</constant>
 		<constant name="INTERNAL_MODE_DISABLED" value="0" enum="InternalMode">
 			The node will not be internal.
 		</constant>
