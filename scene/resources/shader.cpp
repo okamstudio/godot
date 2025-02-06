@@ -100,11 +100,23 @@ void Shader::set_code(const String &p_code) {
 		// 2) Server does not do interaction with Resource filetypes, this is a scene level feature.
 		HashSet<Ref<ShaderInclude>> new_include_dependencies;
 		ShaderPreprocessor preprocessor;
-		Error result = preprocessor.preprocess(p_code, path, preprocessed_code, nullptr, nullptr, nullptr, &new_include_dependencies);
-		if (result == OK) {
-			// This ensures previous include resources are not freed and then re-loaded during parse (which would make compiling slower)
-			include_dependencies = new_include_dependencies;
+		String error_pp;
+		List<ShaderPreprocessor::FilePosition> err_positions;
+		Error result = preprocessor.preprocess(p_code, path, preprocessed_code, &error_pp, &err_positions, nullptr, &new_include_dependencies);
+		if (result != OK) {
+			ERR_FAIL_COND(err_positions.is_empty());
+
+			String err_text = error_pp;
+			int err_line = err_positions.front()->get().line;
+			if (err_positions.size() == 1) {
+				// Error in main file
+				err_text = "error(" + itos(err_line) + "): " + err_text;
+			} else {
+				err_text = "error(" + itos(err_line) + ") in include " + err_positions.back()->get().file.get_file() + ":" + itos(err_positions.back()->get().line) + ": " + err_text;
+			}
+			ERR_FAIL_MSG(vformat("Preprocessing shader %s failed: %s", path, err_text));
 		}
+		include_dependencies = new_include_dependencies;
 	}
 
 	// Try to get the shader type from the final, fully preprocessed shader code.
@@ -327,6 +339,47 @@ Ref<Resource> ResourceFormatLoaderShader::load(const String &p_path, const Strin
 	}
 
 	return shader;
+}
+
+void ResourceFormatLoaderShader::get_dependencies(const String &p_path, List<String> *p_dependencies, bool p_add_types) {
+	Error error = OK;
+	Vector<uint8_t> buffer = FileAccess::get_file_as_bytes(p_path, &error);
+	ERR_FAIL_COND_MSG(error, "Cannot load shader: " + p_path);
+
+	String str;
+	if (buffer.size() > 0) {
+		error = str.parse_utf8((const char *)buffer.ptr(), buffer.size());
+		ERR_FAIL_COND_MSG(error, "Cannot parse shader: " + p_path);
+	}
+
+	{
+		HashSet<Ref<ShaderInclude>> new_include_dependencies;
+		ShaderPreprocessor preprocessor;
+		String preprocessed_code;
+		String error_pp;
+		List<ShaderPreprocessor::FilePosition> err_positions;
+		Error result = preprocessor.preprocess(str, p_path, preprocessed_code, &error_pp, &err_positions, nullptr, &new_include_dependencies);
+		if (result != OK) {
+			ERR_FAIL_COND(err_positions.is_empty());
+
+			String err_text = error_pp;
+			int err_line = err_positions.front()->get().line;
+			if (err_positions.size() == 1) {
+				// Error in main file
+				err_text = "error(" + itos(err_line) + "): " + err_text;
+			} else {
+				err_text = "error(" + itos(err_line) + ") in include " + err_positions.back()->get().file.get_file() + ":" + itos(err_positions.back()->get().line) + ": " + err_text;
+			}
+			ERR_FAIL_MSG(vformat("Preprocessing shader %s failed: %s", p_path, err_text));
+		}
+		if (p_dependencies) {
+			List<String> deps;
+			for (Ref<ShaderInclude> inc : new_include_dependencies) {
+				deps.push_back(inc->get_path());
+			}
+			*p_dependencies = deps;
+		}
+	}
 }
 
 void ResourceFormatLoaderShader::get_recognized_extensions(List<String> *p_extensions) const {
