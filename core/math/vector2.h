@@ -77,6 +77,18 @@ struct [[nodiscard]] Vector2 {
 		return x < y ? Vector2::AXIS_Y : Vector2::AXIS_X;
 	}
 
+#define SETGET_2D(a, b)                                                 \
+	_FORCE_INLINE_ Vector2 get_##a##b() const { return Vector2(a, b); } \
+	_FORCE_INLINE_ void set_##a##b(const Vector2 &p_v) {                \
+		a = p_v.x;                                                      \
+		b = p_v.y;                                                      \
+	}
+	SETGET_2D(x, y)
+	SETGET_2D(y, x)
+	SETGET_2D(x, x)
+	SETGET_2D(y, y)
+#undef SETGET_2D
+
 	void normalize();
 	Vector2 normalized() const;
 	bool is_normalized() const;

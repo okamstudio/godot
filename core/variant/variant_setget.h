@@ -281,17 +281,67 @@
 
 SETGET_NUMBER_STRUCT(Vector2, double, x)
 SETGET_NUMBER_STRUCT(Vector2, double, y)
+#define SETGET_VEC2D(v, a, b) SETGET_STRUCT_FUNC(v, v, a##b, set_##a##b, get_##a##b)
+#define SETGET_VEC2DV(v, w, a, b) SETGET_STRUCT_FUNC(v, w, a##b, set_##a##b, get_##a##b)
+#define SETGET_VEC2DM(v, a, b) SETGET_VEC2D(v, a, b) SETGET_VEC2D(v, b, a)
+#define SETGET_VEC2DMV(v, w, a, b) SETGET_VEC2DV(v, w, a, b) SETGET_VEC2DV(v, w, b, a)
+#define SETGET_VEC2DP(v, a, b) SETGET_VEC2DM(v, a, b) SETGET_VEC2D(v, a, a) SETGET_VEC2D(v, b, b)
+SETGET_VEC2DP(Vector2, x, y)
 
 SETGET_NUMBER_STRUCT(Vector2i, int64_t, x)
 SETGET_NUMBER_STRUCT(Vector2i, int64_t, y)
+SETGET_VEC2DP(Vector2i, x, y)
 
 SETGET_NUMBER_STRUCT(Vector3, double, x)
 SETGET_NUMBER_STRUCT(Vector3, double, y)
 SETGET_NUMBER_STRUCT(Vector3, double, z)
+#define SETGET_VEC3D(v, a, b, c) SETGET_STRUCT_FUNC(v, v, a##b##c, set_##a##b##c, get_##a##b##c)
+#define SETGET_VEC3DP(v, a, b, c) \
+	SETGET_VEC3D(v, a, a, a);     \
+	SETGET_VEC3D(v, a, a, b);     \
+	SETGET_VEC3D(v, a, a, c);     \
+	SETGET_VEC3D(v, a, b, a);     \
+	SETGET_VEC3D(v, a, b, b);     \
+	SETGET_VEC3D(v, a, b, c);     \
+	SETGET_VEC3D(v, a, c, a);     \
+	SETGET_VEC3D(v, a, c, b);     \
+	SETGET_VEC3D(v, a, c, c);     \
+	SETGET_VEC3D(v, b, a, a);     \
+	SETGET_VEC3D(v, b, a, b);     \
+	SETGET_VEC3D(v, b, a, c);     \
+	SETGET_VEC3D(v, b, b, a);     \
+	SETGET_VEC3D(v, b, b, b);     \
+	SETGET_VEC3D(v, b, b, c);     \
+	SETGET_VEC3D(v, b, c, a);     \
+	SETGET_VEC3D(v, b, c, b);     \
+	SETGET_VEC3D(v, b, c, c);     \
+	SETGET_VEC3D(v, c, a, a);     \
+	SETGET_VEC3D(v, c, a, b);     \
+	SETGET_VEC3D(v, c, a, c);     \
+	SETGET_VEC3D(v, c, b, a);     \
+	SETGET_VEC3D(v, c, b, b);     \
+	SETGET_VEC3D(v, c, b, c);     \
+	SETGET_VEC3D(v, c, c, a);     \
+	SETGET_VEC3D(v, c, c, b);     \
+	SETGET_VEC3D(v, c, c, c)
+SETGET_VEC2DMV(Vector3, Vector2, x, y)
+SETGET_VEC2DMV(Vector3, Vector2, x, z)
+SETGET_VEC2DMV(Vector3, Vector2, y, z)
+SETGET_VEC2DV(Vector3, Vector2, x, x)
+SETGET_VEC2DV(Vector3, Vector2, y, y)
+SETGET_VEC2DV(Vector3, Vector2, z, z)
+SETGET_VEC3DP(Vector3, x, y, z)
 
 SETGET_NUMBER_STRUCT(Vector3i, int64_t, x)
 SETGET_NUMBER_STRUCT(Vector3i, int64_t, y)
 SETGET_NUMBER_STRUCT(Vector3i, int64_t, z)
+SETGET_VEC2DMV(Vector3i, Vector2i, x, y)
+SETGET_VEC2DMV(Vector3i, Vector2i, x, z)
+SETGET_VEC2DMV(Vector3i, Vector2i, y, z)
+SETGET_VEC2DV(Vector3i, Vector2i, x, x)
+SETGET_VEC2DV(Vector3i, Vector2i, y, y)
+SETGET_VEC2DV(Vector3i, Vector2i, z, z)
+SETGET_VEC3DP(Vector3i, x, y, z)
 
 SETGET_NUMBER_STRUCT(Vector4, double, x)
 SETGET_NUMBER_STRUCT(Vector4, double, y)

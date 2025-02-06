@@ -30,6 +30,7 @@
 
 #include "vector3i.h"
 
+#include "core/math/vector2i.h"
 #include "core/math/vector3.h"
 #include "core/string/ustring.h"
 
@@ -76,3 +77,19 @@ Vector3i::operator String() const {
 Vector3i::operator Vector3() const {
 	return Vector3(x, y, z);
 }
+
+#define SETGET_2D(a, b)                                              \
+	Vector2i Vector3i::get_##a##b() const { return Vector2i(a, b); } \
+	void Vector3i::set_##a##b(const Vector2i &p_v) {                 \
+		a = p_v.x;                                                   \
+		b = p_v.y;                                                   \
+	}
+#define SETGET_2DM(a, b) SETGET_2D(a, b) SETGET_2D(b, a)
+SETGET_2DM(x, y)
+SETGET_2DM(x, z)
+SETGET_2DM(y, z)
+SETGET_2D(x, x)
+SETGET_2D(y, y)
+SETGET_2D(z, z)
+#undef SETGET_2D
+#undef SETGET_2DM

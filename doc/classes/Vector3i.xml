@@ -160,11 +160,83 @@
 		<member name="x" type="int" setter="" getter="" default="0">
 			The vector's X component. Also accessible by using the index position [code][0][/code].
 		</member>
+		<member name="xx" type="Vector2i" setter="" getter="" default="Vector2i(0, 0)">
+		</member>
+		<member name="xxx" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="xxy" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="xxz" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="xy" type="Vector2i" setter="" getter="" default="Vector2i(0, 0)">
+		</member>
+		<member name="xyx" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="xyy" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="xyz" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="xz" type="Vector2i" setter="" getter="" default="Vector2i(0, 0)">
+		</member>
+		<member name="xzx" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="xzy" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="xzz" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
 		<member name="y" type="int" setter="" getter="" default="0">
 			The vector's Y component. Also accessible by using the index position [code][1][/code].
 		</member>
+		<member name="yx" type="Vector2i" setter="" getter="" default="Vector2i(0, 0)">
+		</member>
+		<member name="yxx" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="yxy" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="yxz" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="yy" type="Vector2i" setter="" getter="" default="Vector2i(0, 0)">
+		</member>
+		<member name="yyx" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="yyy" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="yyz" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="yz" type="Vector2i" setter="" getter="" default="Vector2i(0, 0)">
+		</member>
+		<member name="yzx" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="yzy" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="yzz" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
 		<member name="z" type="int" setter="" getter="" default="0">
 			The vector's Z component. Also accessible by using the index position [code][2][/code].
+		</member>
+		<member name="zx" type="Vector2i" setter="" getter="" default="Vector2i(0, 0)">
+		</member>
+		<member name="zxx" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="zxy" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="zxz" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="zy" type="Vector2i" setter="" getter="" default="Vector2i(0, 0)">
+		</member>
+		<member name="zyx" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="zyy" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="zyz" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="zz" type="Vector2i" setter="" getter="" default="Vector2i(0, 0)">
+		</member>
+		<member name="zzx" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="zzy" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
+		</member>
+		<member name="zzz" type="Vector3i" setter="" getter="" default="Vector3i(0, 0, 0)">
 		</member>
 	</members>
 	<constants>

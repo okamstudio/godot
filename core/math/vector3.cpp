@@ -171,3 +171,19 @@ Vector3::operator String() const {
 Vector3::operator Vector3i() const {
 	return Vector3i(x, y, z);
 }
+
+#define SETGET_2D(a, b)                                           \
+	Vector2 Vector3::get_##a##b() const { return Vector2(a, b); } \
+	void Vector3::set_##a##b(const Vector2 &p_v) {                \
+		a = p_v.x;                                                \
+		b = p_v.y;                                                \
+	}
+#define SETGET_2DM(a, b) SETGET_2D(a, b) SETGET_2D(b, a)
+SETGET_2DM(x, y)
+SETGET_2DM(x, z)
+SETGET_2DM(y, z)
+SETGET_2D(x, x)
+SETGET_2D(y, y)
+SETGET_2D(z, z)
+#undef SETGET_2D
+#undef SETGET_2DM

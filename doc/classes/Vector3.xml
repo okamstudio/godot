@@ -413,11 +413,83 @@
 		<member name="x" type="float" setter="" getter="" default="0.0">
 			The vector's X component. Also accessible by using the index position [code][0][/code].
 		</member>
+		<member name="xx" type="Vector2" setter="" getter="" default="Vector2(0, 0)">
+		</member>
+		<member name="xxx" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="xxy" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="xxz" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="xy" type="Vector2" setter="" getter="" default="Vector2(0, 0)">
+		</member>
+		<member name="xyx" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="xyy" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="xyz" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="xz" type="Vector2" setter="" getter="" default="Vector2(0, 0)">
+		</member>
+		<member name="xzx" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="xzy" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="xzz" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
 		<member name="y" type="float" setter="" getter="" default="0.0">
 			The vector's Y component. Also accessible by using the index position [code][1][/code].
 		</member>
+		<member name="yx" type="Vector2" setter="" getter="" default="Vector2(0, 0)">
+		</member>
+		<member name="yxx" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="yxy" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="yxz" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="yy" type="Vector2" setter="" getter="" default="Vector2(0, 0)">
+		</member>
+		<member name="yyx" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="yyy" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="yyz" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="yz" type="Vector2" setter="" getter="" default="Vector2(0, 0)">
+		</member>
+		<member name="yzx" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="yzy" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="yzz" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
 		<member name="z" type="float" setter="" getter="" default="0.0">
 			The vector's Z component. Also accessible by using the index position [code][2][/code].
+		</member>
+		<member name="zx" type="Vector2" setter="" getter="" default="Vector2(0, 0)">
+		</member>
+		<member name="zxx" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="zxy" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="zxz" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="zy" type="Vector2" setter="" getter="" default="Vector2(0, 0)">
+		</member>
+		<member name="zyx" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="zyy" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="zyz" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="zz" type="Vector2" setter="" getter="" default="Vector2(0, 0)">
+		</member>
+		<member name="zzx" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="zzy" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="zzz" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
 		</member>
 	</members>
 	<constants>

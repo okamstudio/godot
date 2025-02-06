@@ -64,20 +64,68 @@ static void register_member(Variant::Type p_type, const StringName &p_member) {
 
 void register_named_setters_getters() {
 #define REGISTER_MEMBER(m_base_type, m_member) register_member<VariantSetGet_##m_base_type##_##m_member>(GetTypeInfo<m_base_type>::VARIANT_TYPE, #m_member)
+#define REGISTER_SWIZZLE_2DP(vector, a, b) \
+	REGISTER_MEMBER(vector, a);            \
+	REGISTER_MEMBER(vector, b);            \
+	REGISTER_MEMBER(vector, a##b);         \
+	REGISTER_MEMBER(vector, b##a);         \
+	REGISTER_MEMBER(vector, a##a);         \
+	REGISTER_MEMBER(vector, b##b);
+#define REGISTER_SWIZZLE_2DM(vector, a, b) \
+	REGISTER_MEMBER(vector, a##b);         \
+	REGISTER_MEMBER(vector, b##a)
+#define REGISTER_3D(vector, a, b, c) REGISTER_MEMBER(vector, a##b##c)
+#define REGISTER_3DP(v, a, b, c) \
+	REGISTER_MEMBER(v, a);       \
+	REGISTER_MEMBER(v, b);       \
+	REGISTER_MEMBER(v, c);       \
+	REGISTER_3D(v, a, a, a);     \
+	REGISTER_3D(v, a, a, b);     \
+	REGISTER_3D(v, a, a, c);     \
+	REGISTER_3D(v, a, b, a);     \
+	REGISTER_3D(v, a, b, b);     \
+	REGISTER_3D(v, a, b, c);     \
+	REGISTER_3D(v, a, c, a);     \
+	REGISTER_3D(v, a, c, b);     \
+	REGISTER_3D(v, a, c, c);     \
+	REGISTER_3D(v, b, a, a);     \
+	REGISTER_3D(v, b, a, b);     \
+	REGISTER_3D(v, b, a, c);     \
+	REGISTER_3D(v, b, b, a);     \
+	REGISTER_3D(v, b, b, b);     \
+	REGISTER_3D(v, b, b, c);     \
+	REGISTER_3D(v, b, c, a);     \
+	REGISTER_3D(v, b, c, b);     \
+	REGISTER_3D(v, b, c, c);     \
+	REGISTER_3D(v, c, a, a);     \
+	REGISTER_3D(v, c, a, b);     \
+	REGISTER_3D(v, c, a, c);     \
+	REGISTER_3D(v, c, b, a);     \
+	REGISTER_3D(v, c, b, b);     \
+	REGISTER_3D(v, c, b, c);     \
+	REGISTER_3D(v, c, c, a);     \
+	REGISTER_3D(v, c, c, b);     \
+	REGISTER_3D(v, c, c, c)
 
-	REGISTER_MEMBER(Vector2, x);
-	REGISTER_MEMBER(Vector2, y);
+	REGISTER_SWIZZLE_2DP(Vector2, x, y);
 
-	REGISTER_MEMBER(Vector2i, x);
-	REGISTER_MEMBER(Vector2i, y);
+	REGISTER_SWIZZLE_2DP(Vector2i, x, y);
 
-	REGISTER_MEMBER(Vector3, x);
-	REGISTER_MEMBER(Vector3, y);
-	REGISTER_MEMBER(Vector3, z);
+	REGISTER_3DP(Vector3, x, y, z);
+	REGISTER_SWIZZLE_2DM(Vector3, x, y);
+	REGISTER_SWIZZLE_2DM(Vector3, x, z);
+	REGISTER_SWIZZLE_2DM(Vector3, y, z);
+	REGISTER_MEMBER(Vector3, xx);
+	REGISTER_MEMBER(Vector3, yy);
+	REGISTER_MEMBER(Vector3, zz);
 
-	REGISTER_MEMBER(Vector3i, x);
-	REGISTER_MEMBER(Vector3i, y);
-	REGISTER_MEMBER(Vector3i, z);
+	REGISTER_3DP(Vector3i, x, y, z);
+	REGISTER_SWIZZLE_2DM(Vector3i, x, y);
+	REGISTER_SWIZZLE_2DM(Vector3i, x, z);
+	REGISTER_SWIZZLE_2DM(Vector3i, y, z);
+	REGISTER_MEMBER(Vector3i, xx);
+	REGISTER_MEMBER(Vector3i, yy);
+	REGISTER_MEMBER(Vector3i, zz);
 
 	REGISTER_MEMBER(Vector4, x);
 	REGISTER_MEMBER(Vector4, y);
