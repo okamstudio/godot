@@ -801,6 +801,22 @@ void Input::_parse_input_event_impl(const Ref<InputEvent> &p_event, bool p_is_em
 				button_event->set_button_mask(ev_bm);
 
 				_parse_input_event_impl(button_event, true);
+
+				// Reseting mouse position on release
+				// if we are emulating mouse from touch
+				if (!st->is_pressed()) {
+					Vector2 reset_position = Vector2(-1, -1);
+
+					Ref<InputEventMouseMotion> reset_mouse_event;
+					reset_mouse_event.instance();
+
+					reset_mouse_event->set_device(InputEvent::DEVICE_ID_TOUCH_MOUSE);
+					reset_mouse_event->set_position(reset_position);
+					reset_mouse_event->set_global_position(reset_position);
+					reset_mouse_event->set_button_mask(0);
+
+					_parse_input_event_impl(reset_mouse_event, true);
+				}
 			}
 		}
 	}
