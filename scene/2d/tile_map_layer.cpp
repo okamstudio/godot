@@ -1950,7 +1950,6 @@ void TileMapLayer::set_as_tile_map_internal_node(int p_index) {
 	ERR_FAIL_NULL(get_parent());
 	tile_map_node = Object::cast_to<TileMap>(get_parent());
 	set_use_parent_material(true);
-	force_parent_owned();
 	if (layer_index_in_tile_map_node != p_index) {
 		layer_index_in_tile_map_node = p_index;
 		dirty.flags[DIRTY_FLAGS_LAYER_INDEX_IN_TILE_MAP_NODE] = true;
