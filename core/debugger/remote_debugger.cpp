@@ -417,8 +417,12 @@ void RemoteDebugger::debug(bool p_can_continue, bool p_is_error_breakpoint) {
 	Array msg;
 	msg.push_back(p_can_continue);
 	msg.push_back(error_str);
-	ERR_FAIL_NULL(script_lang);
-	msg.push_back(script_lang->debug_get_stack_level_count() > 0);
+	if (script_lang == nullptr) {
+		WARN_PRINT("The running scene doesn't have any scripts to be debugged.");
+		msg.push_back(false);
+	} else {
+		msg.push_back(script_lang->debug_get_stack_level_count() > 0);
+	}
 	msg.push_back(Thread::get_caller_id() == Thread::get_main_id() ? String(RTR("Main Thread")) : itos(Thread::get_caller_id()));
 	if (allow_focus_steal_fn) {
 		allow_focus_steal_fn();
@@ -473,13 +477,16 @@ void RemoteDebugger::debug(bool p_can_continue, bool p_is_error_breakpoint) {
 
 			} else if (command == "get_stack_dump") {
 				DebuggerMarshalls::ScriptStackDump dump;
-				int slc = script_lang->debug_get_stack_level_count();
-				for (int i = 0; i < slc; i++) {
-					ScriptLanguage::StackInfo frame;
-					frame.file = script_lang->debug_get_stack_level_source(i);
-					frame.line = script_lang->debug_get_stack_level_line(i);
-					frame.func = script_lang->debug_get_stack_level_function(i);
-					dump.frames.push_back(frame);
+
+				if (script_lang != nullptr) {
+					int slc = script_lang->debug_get_stack_level_count();
+					for (int i = 0; i < slc; i++) {
+						ScriptLanguage::StackInfo frame;
+						frame.file = script_lang->debug_get_stack_level_source(i);
+						frame.line = script_lang->debug_get_stack_level_line(i);
+						frame.func = script_lang->debug_get_stack_level_function(i);
+						dump.frames.push_back(frame);
+					}
 				}
 				send_message("stack_dump", dump.serialize());
 
