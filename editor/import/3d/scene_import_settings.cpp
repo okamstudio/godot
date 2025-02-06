@@ -1344,7 +1344,7 @@ void SceneImportSettingsDialog::_notification(int p_what) {
 			light_2_switch->set_button_icon(theme_cache.light_2_icon);
 			light_rotate_switch->set_button_icon(theme_cache.rotate_icon);
 
-			animation_toggle_skeleton_visibility->set_button_icon(get_editor_theme_icon(SNAME("Skeleton3D")));
+			animation_toggle_skeleton_visibility->set_button_icon(get_editor_theme_icon(SNAME("SkeletonPreview")));
 		} break;
 
 		case NOTIFICATION_PROCESS: {
@@ -1740,7 +1740,7 @@ SceneImportSettingsDialog::SceneImportSettingsDialog() {
 	animation_toggle_skeleton_visibility = memnew(Button);
 	animation_hbox->add_child(animation_toggle_skeleton_visibility);
 	animation_toggle_skeleton_visibility->set_toggle_mode(true);
-	animation_toggle_skeleton_visibility->set_flat(true);
+	animation_toggle_skeleton_visibility->set_theme_type_variation("FlatButton");
 	animation_toggle_skeleton_visibility->set_focus_mode(Control::FOCUS_NONE);
 	animation_toggle_skeleton_visibility->set_tooltip_text(TTR("Toggle Animation Skeleton Visibility"));
 
