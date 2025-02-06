@@ -43,6 +43,18 @@
 		    results.push_back(result.get_string())
 		# The `results` array now contains "One", "Two", and "Three".
 		[/codeblock]
+		[b]Example of wrapping a string to a maximum number of characters using RegEx:[/b]
+		[codeblock]
+		static func wrap_string(p_string: String, p_wrap_length: int) -&gt; String:
+		    var regex := RegEx.new()
+		    regex.compile("(\\S{%d,}|.{1,%d})(?:\\s|$)" % [p_wrap_length, p_wrap_length])
+		    return regex.sub(p_string, "$1\n", true)
+		print(wrap_string("A billion years before our solar system formed...", 16))
+		# Would print:
+		# A billion years
+		# before our solar
+		# system formed...
+		[/codeblock]
 		[b]Note:[/b] Godot's regex implementation is based on the [url=https://www.pcre.org/]PCRE2[/url] library. You can view the full pattern reference [url=https://www.pcre.org/current/doc/html/pcre2pattern.html]here[/url].
 		[b]Tip:[/b] You can use [url=https://regexr.com/]Regexr[/url] to test regular expressions online.
 	</description>
