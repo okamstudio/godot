@@ -2056,7 +2056,7 @@ void ScriptEditor::_update_members_overview_visibility() {
 	if (!se) {
 		members_overview_alphabeta_sort_button->set_visible(false);
 		members_overview->set_visible(false);
-		overview_vbox->set_visible(false);
+		overview_vbox->set_visible(help_overview_enabled);
 		return;
 	}
 
