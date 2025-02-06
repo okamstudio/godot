@@ -89,6 +89,7 @@ bool GridMap::_set(const StringName &p_name, const Variant &p_value) {
 			if (is_inside_tree()) {
 				RS::get_singleton()->instance_set_scenario(bm.instance, get_world_3d()->get_scenario());
 				RS::get_singleton()->instance_set_transform(bm.instance, get_global_transform());
+				RS::get_singleton()->instance_set_layer_mask(bm.instance, get_rendering_layer_mask());
 			}
 			baked_meshes.push_back(bm);
 		}
@@ -264,6 +265,33 @@ RID GridMap::get_navigation_map() const {
 		return get_world_3d()->get_navigation_map();
 	}
 	return RID();
+}
+
+void GridMap::set_rendering_layer_mask(uint32_t p_mask) {
+	rendering_layers = p_mask;
+	_update_visibility();
+}
+
+uint32_t GridMap::get_rendering_layer_mask() const {
+	return rendering_layers;
+}
+
+void GridMap::set_rendering_layer_mask_value(int p_layer_number, bool p_value) {
+	ERR_FAIL_COND_MSG(p_layer_number < 1, "Render layer number must be between 1 and 20 inclusive.");
+	ERR_FAIL_COND_MSG(p_layer_number > 20, "Render layer number must be between 1 and 20 inclusive.");
+	uint32_t mask = get_rendering_layer_mask();
+	if (p_value) {
+		mask |= 1 << (p_layer_number - 1);
+	} else {
+		mask &= ~(1 << (p_layer_number - 1));
+	}
+	set_rendering_layer_mask(mask);
+}
+
+bool GridMap::get_rendering_layer_mask_value(int p_layer_number) const {
+	ERR_FAIL_COND_V_MSG(p_layer_number < 1, false, "Render layer number must be between 1 and 20 inclusive.");
+	ERR_FAIL_COND_V_MSG(p_layer_number > 20, false, "Render layer number must be between 1 and 20 inclusive.");
+	return rendering_layers & (1 << (p_layer_number - 1));
 }
 
 void GridMap::set_mesh_library(const Ref<MeshLibrary> &p_mesh_library) {
@@ -724,6 +752,7 @@ bool GridMap::_octant_update(const OctantKey &p_key) {
 			if (is_inside_tree()) {
 				RS::get_singleton()->instance_set_scenario(instance, get_world_3d()->get_scenario());
 				RS::get_singleton()->instance_set_transform(instance, get_global_transform());
+				RS::get_singleton()->instance_set_layer_mask(instance, get_rendering_layer_mask());
 			}
 
 			RS::ShadowCastingSetting cast_shadows = (RS::ShadowCastingSetting)mesh_library->get_item_mesh_cast_shadow(E.key);
@@ -788,6 +817,7 @@ void GridMap::_octant_enter_world(const OctantKey &p_key) {
 	for (int i = 0; i < g.multimesh_instances.size(); i++) {
 		RS::get_singleton()->instance_set_scenario(g.multimesh_instances[i].instance, get_world_3d()->get_scenario());
 		RS::get_singleton()->instance_set_transform(g.multimesh_instances[i].instance, get_global_transform());
+		RS::get_singleton()->instance_set_layer_mask(g.multimesh_instances[i].instance, get_rendering_layer_mask());
 	}
 
 	if (bake_navigation && mesh_library.is_valid()) {
@@ -929,6 +959,7 @@ void GridMap::_notification(int p_what) {
 			for (int i = 0; i < baked_meshes.size(); i++) {
 				RS::get_singleton()->instance_set_scenario(baked_meshes[i].instance, get_world_3d()->get_scenario());
 				RS::get_singleton()->instance_set_transform(baked_meshes[i].instance, get_global_transform());
+				RS::get_singleton()->instance_set_layer_mask(baked_meshes[i].instance, get_rendering_layer_mask());
 			}
 		} break;
 
@@ -987,11 +1018,13 @@ void GridMap::_update_visibility() {
 		for (int i = 0; i < octant->multimesh_instances.size(); i++) {
 			const Octant::MultimeshInstance &mi = octant->multimesh_instances[i];
 			RS::get_singleton()->instance_set_visible(mi.instance, is_visible_in_tree());
+			RS::get_singleton()->instance_set_layer_mask(mi.instance, get_rendering_layer_mask());
 		}
 	}
 
 	for (int i = 0; i < baked_meshes.size(); i++) {
 		RS::get_singleton()->instance_set_visible(baked_meshes[i].instance, is_visible_in_tree());
+		RS::get_singleton()->instance_set_layer_mask(baked_meshes[i].instance, get_rendering_layer_mask());
 	}
 }
 
@@ -1085,6 +1118,11 @@ void GridMap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_navigation_map", "navigation_map"), &GridMap::set_navigation_map);
 	ClassDB::bind_method(D_METHOD("get_navigation_map"), &GridMap::get_navigation_map);
 
+	ClassDB::bind_method(D_METHOD("set_rendering_layer_mask", "mask"), &GridMap::set_rendering_layer_mask);
+	ClassDB::bind_method(D_METHOD("get_rendering_layer_mask"), &GridMap::get_rendering_layer_mask);
+	ClassDB::bind_method(D_METHOD("set_rendering_layer_mask_value", "layer_number", "value"), &GridMap::set_rendering_layer_mask_value);
+	ClassDB::bind_method(D_METHOD("get_rendering_layer_mask_value", "layer_number"), &GridMap::get_rendering_layer_mask_value);
+
 	ClassDB::bind_method(D_METHOD("set_mesh_library", "mesh_library"), &GridMap::set_mesh_library);
 	ClassDB::bind_method(D_METHOD("get_mesh_library"), &GridMap::get_mesh_library);
 
@@ -1145,6 +1183,8 @@ void GridMap::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "collision_priority"), "set_collision_priority", "get_collision_priority");
 	ADD_GROUP("Navigation", "");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "bake_navigation"), "set_bake_navigation", "is_baking_navigation");
+	ADD_GROUP("Rendering", "rendering_");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "rendering_layers", PROPERTY_HINT_LAYERS_3D_RENDER), "set_rendering_layer_mask", "get_rendering_layer_mask");
 
 	BIND_CONSTANT(INVALID_CELL_ITEM);
 
@@ -1312,6 +1352,7 @@ void GridMap::make_baked_meshes(bool p_gen_lightmap_uv, float p_lightmap_uv_texe
 		if (is_inside_tree()) {
 			RS::get_singleton()->instance_set_scenario(bm.instance, get_world_3d()->get_scenario());
 			RS::get_singleton()->instance_set_transform(bm.instance, get_global_transform());
+			RS::get_singleton()->instance_set_layer_mask(bm.instance, get_rendering_layer_mask());
 		}
 
 		if (p_gen_lightmap_uv) {

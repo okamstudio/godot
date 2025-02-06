@@ -153,6 +153,7 @@ class GridMap : public Node3D {
 
 	uint32_t collision_layer = 1;
 	uint32_t collision_mask = 1;
+	uint32_t rendering_layers = 1;
 	real_t collision_priority = 1.0;
 	Ref<PhysicsMaterial> physics_material;
 	bool bake_navigation = false;
@@ -259,6 +260,12 @@ public:
 
 	void set_navigation_map(RID p_navigation_map);
 	RID get_navigation_map() const;
+
+	void set_rendering_layer_mask(uint32_t p_mask);
+	uint32_t get_rendering_layer_mask() const;
+
+	void set_rendering_layer_mask_value(int p_layer_number, bool p_enable);
+	bool get_rendering_layer_mask_value(int p_layer_number) const;
 
 	void set_mesh_library(const Ref<MeshLibrary> &p_mesh_library);
 	Ref<MeshLibrary> get_mesh_library() const;
