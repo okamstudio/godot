@@ -132,12 +132,19 @@ void AStarGrid2D::update() {
 	const int32_t end_x = region.get_end().x;
 	const int32_t end_y = region.get_end().y;
 	const Vector2 half_cell_size = cell_size / 2;
+
+	points.reserve(MAX(end_y - region.position.y, 0));
+	solid_mask.reserve(MAX(end_x - region.position.x + 2, 0) * MAX(end_y - region.position.y + 2, 0));
+
 	for (int32_t x = region.position.x; x < end_x + 2; x++) {
 		solid_mask.push_back(true);
 	}
 
+	LocalVector<Point> line;
+	line.reserve(MAX(end_x - region.position.x, 0));
+
 	for (int32_t y = region.position.y; y < end_y; y++) {
-		LocalVector<Point> line;
+		line.clear();
 		solid_mask.push_back(true);
 		for (int32_t x = region.position.x; x < end_x; x++) {
 			Vector2 v = offset;

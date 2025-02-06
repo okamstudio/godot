@@ -2167,6 +2167,7 @@ real_t ConvexHullComputer::compute(const Vector3 *p_coords, int32_t p_count, rea
 
 	LocalVector<ConvexHullInternal::Vertex *> old_vertices;
 	get_vertex_copy(hull.vertex_list, old_vertices);
+	vertices.reserve(old_vertices.size());
 	int32_t copied = 0;
 	while (copied < (int32_t)old_vertices.size()) {
 		ConvexHullInternal::Vertex *v = old_vertices[copied];

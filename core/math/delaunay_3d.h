@@ -248,6 +248,7 @@ public:
 			Simplex *root = memnew(Simplex(point_count + 0, point_count + 1, point_count + 2, point_count + 3));
 			root->SE = simplex_list.push_back(root);
 
+			root->grid_positions.reserve(ACCEL_GRID_SIZE * ACCEL_GRID_SIZE * ACCEL_GRID_SIZE);
 			for (uint32_t i = 0; i < ACCEL_GRID_SIZE; i++) {
 				for (uint32_t j = 0; j < ACCEL_GRID_SIZE; j++) {
 					for (uint32_t k = 0; k < ACCEL_GRID_SIZE; k++) {
@@ -338,6 +339,7 @@ public:
 					from = from.clampi(0, ACCEL_GRID_SIZE - 1);
 					to = to.clampi(0, ACCEL_GRID_SIZE - 1);
 
+					new_simplex->grid_positions.reserve(MAX(to.x - from.x + 1, 0) * MAX(to.y - from.y + 1, 0) * MAX(to.z - from.z + 1, 0));
 					for (int32_t x = from.x; x <= to.x; x++) {
 						for (int32_t y = from.y; y <= to.y; y++) {
 							for (int32_t z = from.z; z <= to.z; z++) {

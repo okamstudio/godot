@@ -866,6 +866,7 @@ Ref<Resource> ResourceLoader::_load_complete_inner(LoadToken &p_load_token, Erro
 		if (curr_load_task) {
 			// A task awaiting another => Let the awaiter accumulate the resource changed connections.
 			DEV_ASSERT(curr_load_task != load_task_ptr);
+			curr_load_task->resource_changed_connections.reserve(curr_load_task->resource_changed_connections.size() + load_task_ptr->resource_changed_connections.size());
 			for (const ThreadLoadTask::ResourceChangedConnection &rcc : load_task_ptr->resource_changed_connections) {
 				curr_load_task->resource_changed_connections.push_back(rcc);
 			}
