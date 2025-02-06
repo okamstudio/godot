@@ -834,7 +834,7 @@ LightmapGI::BakeError LightmapGI::_save_and_reimport_atlas_textures(const Ref<Li
 			texture_image->blit_rect(images[i * slices_per_texture + j], Rect2i(0, 0, slice_width, slice_height), Point2i(0, slice_height * j));
 		}
 
-		const String atlas_path = (texture_count > 1 ? p_base_name + "_" + itos(i) : p_base_name) + (p_is_shadowmask ? ".png" : ".exr");
+		const String atlas_path = (texture_count > 1 ? p_base_name + "_" + itos(i) : p_base_name) + (p_is_shadowmask ? ".webp" : ".exr");
 		const String config_path = atlas_path + ".import";
 
 		Ref<ConfigFile> config;
@@ -865,7 +865,19 @@ LightmapGI::BakeError LightmapGI::_save_and_reimport_atlas_textures(const Ref<Li
 		// Save the file.
 		Error save_err;
 		if (p_is_shadowmask) {
-			save_err = texture_image->save_png(atlas_path);
+			// Downsize the image if needed to fit within the WebP format limitations.
+			// In practice, the maximum usable texture size is typically 16384×16384,
+			// so this only changes the size by 1 pixel which is unnoticeable.
+			constexpr int WEBP_SIZE_LIMIT = 16383;
+			if (texture_image->get_width() > WEBP_SIZE_LIMIT) {
+				texture_image->resize(WEBP_SIZE_LIMIT, texture_image->get_height() * WEBP_SIZE_LIMIT / texture_image->get_width());
+			} else if (texture_image->get_height() > WEBP_SIZE_LIMIT) {
+				texture_image->resize(texture_image->get_width() * WEBP_SIZE_LIMIT / texture_image->get_height(), WEBP_SIZE_LIMIT);
+			}
+			// Save as lossless WebP instead of PNG to reduce file size in the project files.
+			// The exported project size will remain identical, but this reduces the size of the file
+			// that is committed to version control.
+			save_err = texture_image->save_webp(atlas_path);
 		} else {
 			save_err = texture_image->save_exr(atlas_path, false);
 		}
