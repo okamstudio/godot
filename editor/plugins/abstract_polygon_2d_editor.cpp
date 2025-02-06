@@ -232,6 +232,29 @@ void AbstractPolygon2DEditor::_wip_close() {
 	selected_point = Vertex();
 }
 
+bool AbstractPolygon2DEditor::_wip_undo() {
+	if (wip_active && selected_point.polygon == -1) {
+		if (wip.size() == 1) {
+			_wip_cancel();
+			return true;
+		} else if (wip.size() > selected_point.vertex) {
+			wip.remove_at(selected_point.vertex);
+			_wip_changed();
+			selected_point = wip.size() - 1;
+			canvas_item_editor->update_viewport();
+			return true;
+		}
+	} else {
+		const Vertex active_point = get_active_point();
+
+		if (active_point.valid()) {
+			remove_point(active_point);
+			return true;
+		}
+	}
+	return false;
+}
+
 void AbstractPolygon2DEditor::disable_polygon_editing(bool p_disable, const String &p_reason) {
 	_polygon_editing_enabled = !p_disable;
 
@@ -406,7 +429,7 @@ bool AbstractPolygon2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) 
 					}
 				}
 			} else if (mb->get_button_index() == MouseButton::RIGHT && mb->is_pressed() && wip_active) {
-				_wip_cancel();
+				return _wip_undo();
 			}
 		}
 	}
@@ -469,27 +492,14 @@ bool AbstractPolygon2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) 
 	Ref<InputEventKey> k = p_event;
 
 	if (k.is_valid() && k->is_pressed()) {
-		if (k->get_keycode() == Key::KEY_DELETE || k->get_keycode() == Key::BACKSPACE) {
-			if (wip_active && selected_point.polygon == -1) {
-				if (wip.size() > selected_point.vertex) {
-					wip.remove_at(selected_point.vertex);
-					_wip_changed();
-					selected_point = wip.size() - 1;
-					canvas_item_editor->update_viewport();
-					return true;
-				}
-			} else {
-				const Vertex active_point = get_active_point();
-
-				if (active_point.valid()) {
-					remove_point(active_point);
-					return true;
-				}
-			}
+		if (k->get_keycode() == Key::BACKSPACE) {
+			return _wip_undo();
 		} else if (wip_active && k->get_keycode() == Key::ENTER) {
 			_wip_close();
-		} else if (wip_active && k->get_keycode() == Key::ESCAPE) {
+			return true;
+		} else if (wip_active && (k->get_keycode() == Key::ESCAPE || k->get_keycode() == Key::KEY_DELETE)) {
 			_wip_cancel();
+			return true;
 		}
 	}
 

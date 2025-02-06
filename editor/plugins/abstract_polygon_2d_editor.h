@@ -105,6 +105,7 @@ protected:
 	virtual void _menu_option(int p_option);
 	void _wip_changed();
 	void _wip_close();
+	bool _wip_undo();
 	void _wip_cancel();
 
 	void _notification(int p_what);
