@@ -986,9 +986,6 @@ Vector2 VisualShader::get_node_position(Type p_type, int p_id) const {
 Ref<VisualShaderNode> VisualShader::get_node(Type p_type, int p_id) const {
 	ERR_FAIL_INDEX_V(p_type, TYPE_MAX, Ref<VisualShaderNode>());
 	const Graph *g = &graph[p_type];
-	if (!g->nodes.has(p_id)) {
-		return Ref<VisualShaderNode>();
-	}
 	ERR_FAIL_COND_V(!g->nodes.has(p_id), Ref<VisualShaderNode>());
 	return g->nodes[p_id].node;
 }
@@ -1055,10 +1052,8 @@ void VisualShader::replace_node(Type p_type, int p_id, const StringName &p_new_c
 	ERR_FAIL_COND(p_id < 2);
 	Graph *g = &graph[p_type];
 	ERR_FAIL_COND(!g->nodes.has(p_id));
+	ERR_FAIL_COND(g->nodes[p_id].node->get_class_name() == p_new_class);
 
-	if (g->nodes[p_id].node->get_class_name() == p_new_class) {
-		return;
-	}
 	VisualShaderNode *vsn = Object::cast_to<VisualShaderNode>(ClassDB::instantiate(p_new_class));
 	VisualShaderNode *prev_vsn = g->nodes[p_id].node.ptr();
 
@@ -1179,25 +1174,11 @@ bool VisualShader::can_connect_nodes(Type p_type, int p_from_node, int p_from_po
 	ERR_FAIL_INDEX_V(p_type, TYPE_MAX, false);
 	const Graph *g = &graph[p_type];
 
-	if (!g->nodes.has(p_from_node)) {
-		return false;
-	}
-
-	if (p_from_node == p_to_node) {
-		return false;
-	}
-
-	if (p_from_port < 0 || p_from_port >= g->nodes[p_from_node].node->get_expanded_output_port_count()) {
-		return false;
-	}
-
-	if (!g->nodes.has(p_to_node)) {
-		return false;
-	}
-
-	if (p_to_port < 0 || p_to_port >= g->nodes[p_to_node].node->get_input_port_count()) {
-		return false;
-	}
+	ERR_FAIL_COND_V(!g->nodes.has(p_from_node), false);
+	ERR_FAIL_COND_V(p_from_node == p_to_node, false);
+	ERR_FAIL_COND_V(p_from_port < 0 || p_from_port >= g->nodes[p_from_node].node->get_expanded_output_port_count(), false);
+	ERR_FAIL_COND_V(!g->nodes.has(p_to_node), false);
+	ERR_FAIL_COND_V(p_to_port < 0 || p_to_port >= g->nodes[p_to_node].node->get_input_port_count(), false);
 
 	VisualShaderNode::PortType from_port_type = g->nodes[p_from_node].node->get_output_port_type(p_from_port);
 	VisualShaderNode::PortType to_port_type = g->nodes[p_to_node].node->get_input_port_type(p_to_port);
@@ -1409,9 +1390,7 @@ void VisualShader::get_node_connections(Type p_type, List<Connection> *r_connect
 void VisualShader::set_mode(Mode p_mode) {
 	ERR_FAIL_INDEX_MSG(p_mode, Mode::MODE_MAX, vformat("Invalid shader mode: %d.", p_mode));
 
-	if (shader_mode == p_mode) {
-		return;
-	}
+	ERR_FAIL_COND(shader_mode == p_mode);
 
 	//erase input/output connections
 	modes.clear();
@@ -3350,7 +3329,7 @@ const VisualShaderNodeInput::Port VisualShaderNodeInput::ports[] = {
 	{ Shader::MODE_FOG, VisualShader::TYPE_FOG, VisualShaderNode::PORT_TYPE_VECTOR_3D, "uvw", "UVW" },
 	{ Shader::MODE_FOG, VisualShader::TYPE_FOG, VisualShaderNode::PORT_TYPE_VECTOR_3D, "world_position", "WORLD_POSITION" },
 
-	{ Shader::MODE_MAX, VisualShader::TYPE_MAX, VisualShaderNode::PORT_TYPE_TRANSFORM, nullptr, nullptr },
+	{ Shader::MODE_MAX, VisualShader::TYPE_MAX, VisualShaderNode::PORT_TYPE_MAX, nullptr, nullptr },
 };
 
 const VisualShaderNodeInput::Port VisualShaderNodeInput::preview_ports[] = {
@@ -3428,7 +3407,7 @@ const VisualShaderNodeInput::Port VisualShaderNodeInput::preview_ports[] = {
 
 	{ Shader::MODE_FOG, VisualShader::TYPE_FOG, VisualShaderNode::PORT_TYPE_SCALAR, "time", "TIME" },
 
-	{ Shader::MODE_MAX, VisualShader::TYPE_MAX, VisualShaderNode::PORT_TYPE_TRANSFORM, nullptr, nullptr },
+	{ Shader::MODE_MAX, VisualShader::TYPE_MAX, VisualShaderNode::PORT_TYPE_MAX, nullptr, nullptr },
 };
 
 int VisualShaderNodeInput::get_input_port_count() const {
@@ -3476,9 +3455,7 @@ bool VisualShaderNodeInput::is_output_port_expandable(int p_port) const {
 }
 
 String VisualShaderNodeInput::generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview) const {
-	if (get_output_port_type(0) == PORT_TYPE_SAMPLER) {
-		return "";
-	}
+	ERR_FAIL_COND_V(get_output_port_type(0) == PORT_TYPE_SAMPLER, "");
 
 	if (p_for_preview) {
 		int idx = 0;
