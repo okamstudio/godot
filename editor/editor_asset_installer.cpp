@@ -496,6 +496,7 @@ void EditorAssetInstaller::ok_pressed() {
 }
 
 void EditorAssetInstaller::_install_asset() {
+	Vector<String> plugins;
 	Ref<FileAccess> io_fa;
 	zlib_filefunc_def io = zipio_create_io(&io_fa);
 
@@ -553,6 +554,12 @@ void EditorAssetInstaller::_install_asset() {
 			Ref<FileAccess> f = FileAccess::open(target_path, FileAccess::WRITE);
 			if (f.is_valid()) {
 				f->store_buffer(uncomp_data.ptr(), uncomp_data.size());
+				if (target_path.begins_with("res://addons/")) {
+					Vector<String> separated = target_path.substr(13).split("/");
+					if (separated.size() == 2 && separated[1] == "plugin.cfg") {
+						plugins.push_back(target_path);
+					}
+				}
 			} else {
 				failed_files.push_back(target_path);
 			}
@@ -582,7 +589,19 @@ void EditorAssetInstaller::_install_asset() {
 		}
 	}
 
+	if (failed_files.is_empty() && !plugins.is_empty()) {
+		Callable sources_changed = callable_mp_static(&EditorAssetInstaller::_script_classes_updated).bind(plugins);
+
+		EditorFileSystem::get_singleton()->connect(SNAME("script_classes_updated"), sources_changed, CONNECT_ONE_SHOT);
+	}
+
 	EditorFileSystem::get_singleton()->scan_changes();
+}
+
+void EditorAssetInstaller::_script_classes_updated(Vector<String> plugins) {
+	for (const String &plugin : plugins) {
+		EditorNode::get_singleton()->set_addon_plugin_enabled(plugin, true, true);
+	}
 }
 
 void EditorAssetInstaller::set_asset_name(const String &p_asset_name) {
