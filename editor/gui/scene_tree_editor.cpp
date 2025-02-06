@@ -77,6 +77,62 @@ PackedStringArray SceneTreeEditor::_get_node_configuration_warnings(Node *p_node
 	return warnings;
 }
 
+void SceneTreeEditor::_cell_button_click_drag_begin(Object *p_item, int p_column, int p_id) {
+	if (p_id != BUTTON_VISIBILITY || connect_to_script_mode) {
+		return;
+	}
+
+	TreeItem *item = Object::cast_to<TreeItem>(p_item);
+	ERR_FAIL_NULL(item);
+
+	NodePath np = item->get_metadata(0);
+
+	Node *n = get_node(np);
+	ERR_FAIL_NULL(n);
+
+	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+	undo_redo->create_action(TTR("Toggle Visible"));
+	_toggle_visible(n);
+	bool v = bool(n->call("is_visible"));
+	n->call("set_visible", !v);
+}
+
+void SceneTreeEditor::_cell_button_click_drag_end(int p_start_id) {
+	if (p_start_id != BUTTON_VISIBILITY) {
+		return;
+	}
+
+	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+	undo_redo->commit_action();
+}
+
+void SceneTreeEditor::_cell_button_click_dragged(Object *p_start_item, int p_start_id, Object *p_item, int p_column, int p_id) {
+	if (p_start_id != BUTTON_VISIBILITY || p_id != BUTTON_VISIBILITY || connect_to_script_mode) {
+		return;
+	}
+
+	TreeItem *item = Object::cast_to<TreeItem>(p_item);
+	ERR_FAIL_NULL(item);
+	TreeItem *start_item = Object::cast_to<TreeItem>(p_start_item);
+	ERR_FAIL_NULL(start_item);
+
+	NodePath np = item->get_metadata(0);
+	NodePath start_np = start_item->get_metadata(0);
+
+	Node *n = get_node(np);
+	ERR_FAIL_NULL(n);
+	Node *start_n = get_node(start_np);
+	ERR_FAIL_NULL(start_n);
+
+	bool v = bool(n->call("is_visible"));
+	bool start_v = bool(start_n->call("is_visible"));
+
+	if (v != start_v) {
+		_toggle_visible(n);
+		n->call("set_visible", start_v);
+	}
+}
+
 void SceneTreeEditor::_cell_button_pressed(Object *p_item, int p_column, int p_id, MouseButton p_button) {
 	if (p_button != MouseButton::LEFT) {
 		return;
@@ -2100,6 +2156,9 @@ SceneTreeEditor::SceneTreeEditor(bool p_label, bool p_can_rename, bool p_can_ope
 	tree->connect("item_edited", callable_mp(this, &SceneTreeEditor::_edited));
 	tree->connect("multi_selected", callable_mp(this, &SceneTreeEditor::_cell_multi_selected));
 	tree->connect("button_clicked", callable_mp(this, &SceneTreeEditor::_cell_button_pressed));
+	tree->connect("button_click_dragged", callable_mp(this, &SceneTreeEditor::_cell_button_click_dragged));
+	tree->connect("button_click_drag_begin", callable_mp(this, &SceneTreeEditor::_cell_button_click_drag_begin));
+	tree->connect("button_click_drag_end", callable_mp(this, &SceneTreeEditor::_cell_button_click_drag_end));
 	tree->connect("nothing_selected", callable_mp(this, &SceneTreeEditor::_deselect_items));
 
 	error = memnew(AcceptDialog);

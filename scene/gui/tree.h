@@ -643,6 +643,10 @@ private:
 		TreeItem *hover_item = nullptr;
 		int hover_column = -1;
 		int hover_button_index_in_column = -1;
+		int hover_id = -1;
+
+		TreeItem *click_drag_last_hover_item = nullptr;
+		bool click_drag = false;
 
 		bool rtl = false;
 	} cache;

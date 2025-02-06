@@ -376,6 +376,30 @@
 		</member>
 	</members>
 	<signals>
+		<signal name="button_click_drag_begin">
+			<param index="0" name="item" type="TreeItem" />
+			<param index="1" name="column" type="int" />
+			<param index="2" name="id" type="int" />
+			<description>
+				Emitted when a button click-and-drag event begins.
+			</description>
+		</signal>
+		<signal name="button_click_drag_end">
+			<param index="0" name="start_id" type="int" />
+			<description>
+				Emitted when a button click-and-drag event ends.
+			</description>
+		</signal>
+		<signal name="button_click_dragged">
+			<param index="0" name="start_item" type="TreeItem" />
+			<param index="1" name="start_id" type="int" />
+			<param index="2" name="item" type="TreeItem" />
+			<param index="3" name="column" type="int" />
+			<param index="4" name="id" type="int" />
+			<description>
+				Emitted when a button is hovered during a click-and-drag event.
+			</description>
+		</signal>
 		<signal name="button_clicked">
 			<param index="0" name="item" type="TreeItem" />
 			<param index="1" name="column" type="int" />

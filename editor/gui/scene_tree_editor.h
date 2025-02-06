@@ -186,6 +186,9 @@ class SceneTreeEditor : public Control {
 	static void _bind_methods();
 
 	void _cell_button_pressed(Object *p_item, int p_column, int p_id, MouseButton p_button);
+	void _cell_button_click_drag_begin(Object *p_item, int p_column, int p_id);
+	void _cell_button_click_drag_end(int p_start_id);
+	void _cell_button_click_dragged(Object *p_start_item, int p_start_id, Object *p_item, int p_column, int p_id);
 	void _toggle_visible(Node *p_node);
 	void _cell_multi_selected(Object *p_object, int p_cell, bool p_selected);
 	void _update_selection(TreeItem *item);

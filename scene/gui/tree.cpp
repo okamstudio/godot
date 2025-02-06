@@ -2527,8 +2527,8 @@ int Tree::draw_item(const Point2i &p_pos, const Point2 &p_draw_ofs, const Size2 
 
 				Point2i button_ofs = Point2i(ofs + item_width_with_buttons - button_size.width, p_pos.y) - theme_cache.offset + p_draw_ofs;
 
-				bool should_draw_pressed = cache.click_type == Cache::CLICK_BUTTON && cache.click_item == p_item && cache.click_column == i && cache.click_index == j && !p_item->cells[i].buttons[j].disabled;
-				bool should_draw_hovered = !should_draw_pressed && !drop_mode_flags && cache.hover_item == p_item && cache.hover_column == i && cache.hover_button_index_in_column == j && !p_item->cells[i].buttons[j].disabled;
+				bool should_draw_pressed = cache.click_type == Cache::CLICK_BUTTON && cache.click_item == p_item && cache.click_column == i && cache.click_index == j && !p_item->cells[i].buttons[j].disabled && !cache.click_drag;
+				bool should_draw_hovered = !should_draw_pressed && !drop_mode_flags && cache.hover_item == p_item && cache.hover_column == i && cache.hover_button_index_in_column == j && !p_item->cells[i].buttons[j].disabled && !cache.click_drag;
 
 				if (should_draw_pressed || should_draw_hovered) {
 					Point2 od = button_ofs;
@@ -3777,6 +3777,18 @@ void Tree::gui_input(const Ref<InputEvent> &p_event) {
 			v_scroll->set_value(drag_from + drag_accum);
 			drag_speed = -mm->get_velocity().y;
 		}
+
+		if (cache.click_type == Cache::CLICK_BUTTON && cache.click_item != cache.hover_item && cache.hover_item != cache.click_drag_last_hover_item) {
+			if (!cache.click_drag) {
+				cache.click_drag = true;
+				emit_signal("button_click_drag_begin", cache.click_item, cache.click_column, cache.click_id);
+			}
+			if (cache.hover_button_index_in_column > -1 && cache.hover_column == cache.click_column) {
+				emit_signal("button_click_dragged", cache.click_item, cache.click_id, cache.hover_item, cache.hover_column, cache.hover_id);
+				queue_redraw();
+			}
+			cache.click_drag_last_hover_item = cache.hover_item;
+		}
 	}
 
 	Ref<InputEventMouseButton> mb = p_event;
@@ -3862,13 +3874,20 @@ void Tree::gui_input(const Ref<InputEvent> &p_event) {
 				}
 			}
 
-			if (cache.click_type == Cache::CLICK_BUTTON && cache.click_item != nullptr) {
+			if (cache.click_type == Cache::CLICK_BUTTON && cache.click_item != nullptr && !cache.click_drag) {
 				// make sure in case of wrong reference after reconstructing whole TreeItems
 				cache.click_item = get_item_at_position(cache.click_pos);
 				emit_signal("button_clicked", cache.click_item, cache.click_column, cache.click_id, mb->get_button_index());
 			}
 
 			cache.click_type = Cache::CLICK_NONE;
+			if (cache.click_drag) {
+				cache.click_drag = false;
+				cache.click_drag_last_hover_item = nullptr;
+				click_handled = true;
+				emit_signal("button_click_drag_end", cache.click_id);
+			}
+
 			cache.click_index = -1;
 			cache.click_id = -1;
 			cache.click_item = nullptr;
@@ -4072,7 +4091,7 @@ void Tree::_determine_hovered_item() {
 				mpos.y += v_scroll->get_value();
 			}
 
-			int col, h, section;
+			int col, h, section, id = -1;
 			TreeItem *it = _find_item_at_pos(root, mpos, col, h, section);
 
 			// Find possible hovered button in cell.
@@ -4135,6 +4154,7 @@ void Tree::_determine_hovered_item() {
 					Size2 size = b->get_size() + theme_cache.button_pressed->get_minimum_size();
 					if (cpos.x > col_width - size.width && col_button_index == -1) {
 						col_button_index = j;
+						id = c.buttons[j].id;
 					}
 					col_width -= size.width + theme_cache.button_margin;
 				}
@@ -4154,6 +4174,7 @@ void Tree::_determine_hovered_item() {
 			cache.hover_item = it;
 			cache.hover_column = col;
 			cache.hover_button_index_in_column = col_button_index;
+			cache.hover_id = id;
 
 			if (it != old_item || col != old_column) {
 				if (old_item && old_column >= old_item->cells.size()) {
@@ -4431,6 +4452,7 @@ void Tree::_notification(int p_what) {
 				cache.hover_item = nullptr;
 				cache.hover_column = -1;
 				cache.hover_button_index_in_column = -1;
+				cache.hover_id = -1;
 				queue_redraw();
 			}
 		} break;
@@ -6010,6 +6032,9 @@ void Tree::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("item_collapsed", PropertyInfo(Variant::OBJECT, "item", PROPERTY_HINT_RESOURCE_TYPE, "TreeItem")));
 	ADD_SIGNAL(MethodInfo("check_propagated_to_item", PropertyInfo(Variant::OBJECT, "item", PROPERTY_HINT_RESOURCE_TYPE, "TreeItem"), PropertyInfo(Variant::INT, "column")));
 	ADD_SIGNAL(MethodInfo("button_clicked", PropertyInfo(Variant::OBJECT, "item", PROPERTY_HINT_RESOURCE_TYPE, "TreeItem"), PropertyInfo(Variant::INT, "column"), PropertyInfo(Variant::INT, "id"), PropertyInfo(Variant::INT, "mouse_button_index")));
+	ADD_SIGNAL(MethodInfo("button_click_dragged", PropertyInfo(Variant::OBJECT, "start_item", PROPERTY_HINT_RESOURCE_TYPE, "TreeItem"), PropertyInfo(Variant::INT, "start_id"), PropertyInfo(Variant::OBJECT, "item", PROPERTY_HINT_RESOURCE_TYPE, "TreeItem"), PropertyInfo(Variant::INT, "column"), PropertyInfo(Variant::INT, "id")));
+	ADD_SIGNAL(MethodInfo("button_click_drag_begin", PropertyInfo(Variant::OBJECT, "item", PROPERTY_HINT_RESOURCE_TYPE, "TreeItem"), PropertyInfo(Variant::INT, "column"), PropertyInfo(Variant::INT, "id")));
+	ADD_SIGNAL(MethodInfo("button_click_drag_end", PropertyInfo(Variant::INT, "start_id")));
 	ADD_SIGNAL(MethodInfo("custom_popup_edited", PropertyInfo(Variant::BOOL, "arrow_clicked")));
 	ADD_SIGNAL(MethodInfo("item_activated"));
 	ADD_SIGNAL(MethodInfo("column_title_clicked", PropertyInfo(Variant::INT, "column"), PropertyInfo(Variant::INT, "mouse_button_index")));
