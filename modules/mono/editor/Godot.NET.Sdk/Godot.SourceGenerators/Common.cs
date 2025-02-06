@@ -137,6 +137,16 @@ namespace Godot.SourceGenerators
                 "The exported tool button is not a Callable. The '[ExportToolButton]' attribute is only supported on members of type Callable.",
                 helpLinkUri: string.Format(_helpLinkFormat, "GD0110"));
 
+        public static readonly DiagnosticDescriptor ToolsCanOnlyExportToolsRule =
+            new DiagnosticDescriptor(id: "GD0111",
+                title: "Tools can only export tools or native types",
+                messageFormat: "Tools can only export tools or native types",
+                category: "Usage",
+                DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                "Types with the '[Tool]' attribute should not export members of script types that do not have the '[Tool]' attribute.",
+                helpLinkUri: string.Format(_helpLinkFormat, "GD0111"));
+
         public static readonly DiagnosticDescriptor SignalDelegateMissingSuffixRule =
             new DiagnosticDescriptor(id: "GD0201",
                 title: "The name of the delegate must end with 'EventHandler'",

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -72,6 +73,8 @@ namespace Godot.SourceGenerators
             bool isNode = symbol.InheritsFrom("GodotSharp", GodotClasses.Node);
 
             bool isInnerClass = symbol.ContainingType != null;
+
+            bool isTool = symbol.SelfOrContainerHasToolAttribute();
 
             string uniqueHint = symbol.FullQualifiedNameOmitGlobal().SanitizeQualifiedNameForUniqueHint()
                                 + "_ScriptPropertyDefVal.generated";
@@ -205,6 +208,15 @@ namespace Godot.SourceGenerators
                     continue;
                 }
 
+                if (isTool && !MemberHasToolType(propertyType, marshalType.Value))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        Common.ToolsCanOnlyExportToolsRule,
+                        property.Locations.FirstLocationWithSourceTreeOrDefault()
+                    ));
+                    continue;
+                }
+
                 var propertyDeclarationSyntax = property.DeclaringSyntaxReferences
                     .Select(r => r.GetSyntax() as PropertyDeclarationSyntax).FirstOrDefault();
 
@@ -321,6 +333,15 @@ namespace Godot.SourceGenerators
                     continue;
                 }
 
+                if (isTool && !MemberHasToolType(fieldType, marshalType.Value))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        Common.ToolsCanOnlyExportToolsRule,
+                        field.Locations.FirstLocationWithSourceTreeOrDefault()
+                    ));
+                    continue;
+                }
+
                 EqualsValueClauseSyntax? initializer = field.DeclaringSyntaxReferences
                     .Select(r => r.GetSyntax())
                     .OfType<VariableDeclaratorSyntax>()
@@ -420,20 +441,34 @@ namespace Godot.SourceGenerators
 
         private static bool MemberHasNodeType(ITypeSymbol memberType, MarshalType marshalType)
         {
+            return MemberTypeHasPredicateMatch(
+                memberType,
+                marshalType,
+                static typeArgument => typeArgument.InheritsFrom("GodotSharp", GodotClasses.Node));
+        }
+
+        private static bool MemberHasToolType(ITypeSymbol memberType, MarshalType marshalType)
+        {
+            return MemberTypeHasPredicateMatch(
+                memberType,
+                marshalType,
+                static typeArgument => typeArgument.SelfOrContainerHasToolAttribute() || typeArgument.ContainingAssembly?.Name == "GodotTools");
+        }
+
+        private static bool MemberTypeHasPredicateMatch(ITypeSymbol memberType, MarshalType marshalType, Func<ITypeSymbol, bool> predicate)
+        {
             if (marshalType == MarshalType.GodotObjectOrDerived)
             {
-                return memberType.InheritsFrom("GodotSharp", GodotClasses.Node);
+                return predicate(memberType);
             }
             if (marshalType == MarshalType.GodotObjectOrDerivedArray)
             {
                 var elementType = ((IArrayTypeSymbol)memberType).ElementType;
-                return elementType.InheritsFrom("GodotSharp", GodotClasses.Node);
+                return predicate(elementType);
             }
             if (memberType is INamedTypeSymbol { IsGenericType: true } genericType)
             {
-                return genericType.TypeArguments
-                    .Any(static typeArgument
-                        => typeArgument.InheritsFrom("GodotSharp", GodotClasses.Node));
+                return genericType.TypeArguments.Any(predicate);
             }
 
             return false;
