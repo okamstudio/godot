@@ -808,9 +808,9 @@ Error ProjectSettings::_load_settings_text(const String &p_path) {
 	Error err;
 	Ref<FileAccess> f = FileAccess::open(p_path, FileAccess::READ, &err);
 
-	if (f.is_null()) {
-		// FIXME: Above 'err' error code is ERR_FILE_CANT_OPEN if the file is missing
-		// This needs to be streamlined if we want decent error reporting
+	if (err != OK) {
+		return err;
+	} else if (f.is_null()) {
 		return ERR_FILE_NOT_FOUND;
 	}
 
