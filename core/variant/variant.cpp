@@ -36,10 +36,6 @@
 #include "core/math/math_funcs.h"
 #include "core/variant/variant_parser.h"
 
-PagedAllocator<Variant::Pools::BucketSmall, true> Variant::Pools::_bucket_small;
-PagedAllocator<Variant::Pools::BucketMedium, true> Variant::Pools::_bucket_medium;
-PagedAllocator<Variant::Pools::BucketLarge, true> Variant::Pools::_bucket_large;
-
 String Variant::get_type_name(Variant::Type p_type) {
 	switch (p_type) {
 		case NIL: {

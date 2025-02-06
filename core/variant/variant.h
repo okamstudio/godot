@@ -55,8 +55,8 @@
 #include "core/os/keyboard.h"
 #include "core/string/node_path.h"
 #include "core/string/ustring.h"
-#include "core/templates/paged_allocator.h"
 #include "core/templates/rid.h"
+#include "core/templates/slab_allocator.h"
 #include "core/variant/array.h"
 #include "core/variant/callable.h"
 #include "core/variant/dictionary.h"
@@ -162,9 +162,9 @@ private:
 			Projection _projection;
 		};
 
-		static PagedAllocator<BucketSmall, true> _bucket_small;
-		static PagedAllocator<BucketMedium, true> _bucket_medium;
-		static PagedAllocator<BucketLarge, true> _bucket_large;
+		static inline ThreadSafeSlabAllocator<BucketSmall> _bucket_small;
+		static inline ThreadSafeSlabAllocator<BucketMedium> _bucket_medium;
+		static inline ThreadSafeSlabAllocator<BucketLarge> _bucket_large;
 	};
 
 	friend struct _VariantCall;
