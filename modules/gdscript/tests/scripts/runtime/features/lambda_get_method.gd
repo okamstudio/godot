@@ -10,7 +10,7 @@ func test():
 		foo()
 
 	print(lambda_self.get_method())  # Should print "test".
-	print(anon_lambda_self.get_method())  # Should print "<anonymous lambda>".
+	print(anon_lambda_self.get_method())  # Should print "<anonymous lambda(anon_lambda_self)>".
 
 	var lambda_non_self := func test() -> void:
 		pass
@@ -18,4 +18,4 @@ func test():
 		pass
 
 	print(lambda_non_self.get_method())  # Should print "test".
-	print(anon_lambda_non_self.get_method())  # Should print "<anonymous lambda>".
+	print(anon_lambda_non_self.get_method())  # Should print "<anonymous lambda(anon_lambda_non_self)>".

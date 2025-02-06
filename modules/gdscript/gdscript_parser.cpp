@@ -841,9 +841,8 @@ bool GDScriptParser::has_class(const GDScriptParser::ClassNode *p_class) const {
 GDScriptParser::ClassNode *GDScriptParser::parse_class(bool p_is_static) {
 	ClassNode *n_class = alloc_node<ClassNode>();
 
-	ClassNode *previous_class = current_class;
-	current_class = n_class;
-	n_class->outer = previous_class;
+	n_class->outer = current_class;
+	ScopedSet scoped_set_current_class(current_class, n_class);
 
 	if (consume(GDScriptTokenizer::Token::IDENTIFIER, R"(Expected identifier for the class name after "class".)")) {
 		n_class->identifier = parse_identifier();
@@ -867,7 +866,6 @@ GDScriptParser::ClassNode *GDScriptParser::parse_class(bool p_is_static) {
 	bool multiline = match(GDScriptTokenizer::Token::NEWLINE);
 
 	if (multiline && !consume(GDScriptTokenizer::Token::INDENT, R"(Expected indented block after class declaration.)")) {
-		current_class = previous_class;
 		complete_extents(n_class);
 		return n_class;
 	}
@@ -887,7 +885,6 @@ GDScriptParser::ClassNode *GDScriptParser::parse_class(bool p_is_static) {
 		consume(GDScriptTokenizer::Token::DEDENT, R"(Missing unindent at the end of the class body.)");
 	}
 
-	current_class = previous_class;
 	return n_class;
 }
 
@@ -1010,6 +1007,8 @@ void GDScriptParser::parse_class_member(T *(GDScriptParser::*p_parse_function)(b
 }
 
 void GDScriptParser::parse_class_body(bool p_is_multiline) {
+	ScopedSet scoped_set_current_variable(current_variable, nullptr);
+
 	bool class_end = false;
 	bool next_is_static = false;
 	while (!class_end && !is_at_end()) {
@@ -1109,6 +1108,8 @@ GDScriptParser::VariableNode *GDScriptParser::parse_variable(bool p_is_static) {
 
 GDScriptParser::VariableNode *GDScriptParser::parse_variable(bool p_is_static, bool p_allow_property) {
 	VariableNode *variable = alloc_node<VariableNode>();
+
+	ScopedSet scoped_set_current_variable(current_variable, variable);
 
 	if (!consume(GDScriptTokenizer::Token::IDENTIFIER, R"(Expected variable name after "var".)")) {
 		complete_extents(variable);
@@ -1346,6 +1347,8 @@ void GDScriptParser::parse_property_getter(VariableNode *p_variable) {
 GDScriptParser::ConstantNode *GDScriptParser::parse_constant(bool p_is_static) {
 	ConstantNode *constant = alloc_node<ConstantNode>();
 
+	ScopedSet scoped_set_current_variable(current_variable, constant);
+
 	if (!consume(GDScriptTokenizer::Token::IDENTIFIER, R"(Expected constant name after "const".)")) {
 		complete_extents(constant);
 		return nullptr;
@@ -1389,6 +1392,9 @@ GDScriptParser::ParameterNode *GDScriptParser::parse_parameter() {
 	}
 
 	ParameterNode *parameter = alloc_node<ParameterNode>();
+
+	ScopedSet scoped_set_current_variable(current_variable, parameter);
+
 	parameter->identifier = parse_identifier();
 
 	if (match(GDScriptTokenizer::Token::COLON)) {
@@ -1752,6 +1758,8 @@ bool GDScriptParser::register_annotation(const MethodInfo &p_info, uint32_t p_ta
 }
 
 GDScriptParser::SuiteNode *GDScriptParser::parse_suite(const String &p_context, SuiteNode *p_suite, bool p_for_lambda) {
+	ScopedSet scoped_set_current_variable(current_variable, nullptr);
+
 	SuiteNode *suite = p_suite != nullptr ? p_suite : alloc_node<SuiteNode>();
 	suite->parent_block = current_suite;
 	suite->parent_function = current_function;
@@ -3502,6 +3510,7 @@ GDScriptParser::ExpressionNode *GDScriptParser::parse_lambda(ExpressionNode *p_p
 	LambdaNode *lambda = alloc_node<LambdaNode>();
 	lambda->parent_function = current_function;
 	lambda->parent_lambda = current_lambda;
+	lambda->parent_variable = current_variable;
 
 	FunctionNode *function = alloc_node<FunctionNode>();
 	function->source_lambda = lambda;

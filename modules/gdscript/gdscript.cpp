@@ -1518,14 +1518,15 @@ GDScript::UpdatableFuncPtr::~UpdatableFuncPtr() {
 }
 
 void GDScript::_recurse_replace_function_ptrs(const HashMap<GDScriptFunction *, GDScriptFunction *> &p_replacements) const {
-	MutexLock lock(func_ptrs_to_update_mutex);
-	for (UpdatableFuncPtr *updatable : func_ptrs_to_update) {
-		HashMap<GDScriptFunction *, GDScriptFunction *>::ConstIterator replacement = p_replacements.find(updatable->ptr);
-		if (replacement) {
-			updatable->ptr = replacement->value;
-		} else {
-			// Probably a lambda from another reload, ignore.
-			updatable->ptr = nullptr;
+	{
+		MutexLock lock(func_ptrs_to_update_mutex);
+		for (UpdatableFuncPtr *updatable : func_ptrs_to_update) {
+			HashMap<GDScriptFunction *, GDScriptFunction *>::ConstIterator replacement = p_replacements.find(updatable->ptr);
+			if (replacement) {
+				updatable->ptr = replacement->value;
+			} else {
+				updatable->ptr = nullptr;
+			}
 		}
 	}
 

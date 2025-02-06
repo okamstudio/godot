@@ -36,6 +36,7 @@
 #include "gdscript_function.h"
 #include "gdscript_parser.h"
 
+#include "core/templates/hash_map.h"
 #include "core/templates/hash_set.h"
 
 class GDScriptCompiler {
@@ -44,34 +45,41 @@ class GDScriptCompiler {
 	HashSet<GDScript *> parsing_classes;
 	GDScript *main_script = nullptr;
 
-	struct FunctionLambdaInfo {
+public:
+	struct LambdaSourceInfo;
+
+	struct LambdaSourceInfoList {
+		HashMap<StringName, List<LambdaSourceInfo>> infos;
+
+		void collect_function_lambda_replacement_info(GDScriptFunction *p_func);
+	};
+
+	struct LambdaSourceInfo {
 		GDScriptFunction *function = nullptr;
 		GDScriptFunction *parent = nullptr;
 		GDScript *script = nullptr;
 		StringName name;
-		int line = 0;
-		int index = 0;
-		int depth = 0;
 		//uint64_t code_hash;
 		//int code_size;
-		int capture_count = 0;
+		bool is_static = false;
 		bool use_self = false;
+		int capture_count = 0;
 		int arg_count = 0;
 		int default_arg_count = 0;
-		//Vector<GDScriptDataType> argument_types;
-		//GDScriptDataType return_type;
-		Vector<FunctionLambdaInfo> sublambdas;
+		LambdaSourceInfoList sublambdas;
+
+		bool can_be_replaced_by(const LambdaSourceInfo &p_new_info) const;
 	};
 
 	struct ScriptLambdaInfo {
-		Vector<FunctionLambdaInfo> implicit_initializer_info;
-		Vector<FunctionLambdaInfo> implicit_ready_info;
-		Vector<FunctionLambdaInfo> static_initializer_info;
-		HashMap<StringName, Vector<FunctionLambdaInfo>> member_function_infos;
-		Vector<FunctionLambdaInfo> other_function_infos;
-		HashMap<StringName, ScriptLambdaInfo> subclass_info;
+		LambdaSourceInfoList initializers;
+		HashMap<StringName, LambdaSourceInfoList> member_functions;
+		HashMap<StringName, ScriptLambdaInfo> subclasses;
+
+		void collect_script_lambda_replacement_info(GDScript *p_script);
 	};
 
+private:
 	struct CodeGen {
 		GDScript *script = nullptr;
 		const GDScriptParser::ClassNode *class_node = nullptr;
@@ -161,13 +169,10 @@ class GDScriptCompiler {
 	Error _parse_setter_getter(GDScript *p_script, const GDScriptParser::ClassNode *p_class, const GDScriptParser::VariableNode *p_variable, bool p_is_setter);
 	Error _prepare_compilation(GDScript *p_script, const GDScriptParser::ClassNode *p_class, bool p_keep_state);
 	Error _compile_class(GDScript *p_script, const GDScriptParser::ClassNode *p_class, bool p_keep_state);
-	FunctionLambdaInfo _get_function_replacement_info(GDScriptFunction *p_func, int p_index = -1, int p_depth = 0, GDScriptFunction *p_parent_func = nullptr);
-	Vector<FunctionLambdaInfo> _get_function_lambda_replacement_info(GDScriptFunction *p_func, int p_depth = 0, GDScriptFunction *p_parent_func = nullptr);
-	ScriptLambdaInfo _get_script_lambda_replacement_info(GDScript *p_script);
-	bool _do_function_infos_match(const FunctionLambdaInfo &p_old_info, const FunctionLambdaInfo *p_new_info);
-	void _get_function_ptr_replacements(HashMap<GDScriptFunction *, GDScriptFunction *> &r_replacements, const FunctionLambdaInfo &p_old_info, const FunctionLambdaInfo *p_new_info);
-	void _get_function_ptr_replacements(HashMap<GDScriptFunction *, GDScriptFunction *> &r_replacements, const Vector<FunctionLambdaInfo> &p_old_infos, const Vector<FunctionLambdaInfo> *p_new_infos);
-	void _get_function_ptr_replacements(HashMap<GDScriptFunction *, GDScriptFunction *> &r_replacements, const ScriptLambdaInfo &p_old_info, const ScriptLambdaInfo *p_new_info);
+
+	static void _collect_function_ptr_replacements(HashMap<GDScriptFunction *, GDScriptFunction *> &r_replacements, LambdaSourceInfoList &p_old, LambdaSourceInfoList *p_new);
+	static void _collect_function_ptr_replacements(HashMap<GDScriptFunction *, GDScriptFunction *> &r_replacements, ScriptLambdaInfo &p_old_info, ScriptLambdaInfo *p_new_info);
+
 	int err_line = 0;
 	int err_column = 0;
 	StringName source;

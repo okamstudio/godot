@@ -1,0 +1,48 @@
+var member2 := func():
+	return "Member 2 Hotswap 2"
+
+var member1 := func():
+	return "Member 1 Hotswap 2"
+
+var local1: Callable
+var local2: Callable
+
+var param1: Callable
+var param2: Callable
+
+var anon1: Callable
+var anon2: Callable
+
+func test():
+	var _v2 = func(): return "Local 2 Hotswap 2"
+	var _v1 = func(): return "Local 1 Hotswap 2"
+	# local1 and local2 have already been set.
+
+	print(local1.call())
+	print(local2.call())
+
+	print(member1.call())
+	if member2:
+		print(member2.call())
+	else:
+		print(member2)
+
+	test_parameters()
+
+	print(param1.call())
+	print(param2.call())
+
+	# Only set anon2 here, anon1 has already been set.
+	# No way for compiler to tell that theyve been swapped, so anon1 and anon2's output will be swapped.
+	sink(func(): return "Anonymous 2 Hotswap 2")
+	sink(func(): return "Anonymous 1 Hotswap 2")
+
+	print(anon1.call())
+	print(anon2.call())
+
+func test_parameters(_v2 = func(): return "Param 2 Hotswap 2", _v1 = func(): return "Param 1 Hotswap 2"):
+	# param1 and param2 have already been set.
+	pass
+
+func sink(_v):
+	pass

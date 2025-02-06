@@ -202,19 +202,19 @@ int GDScriptTestRunner::run_tests() {
 		if (print_filenames) {
 			print_line(test.get_source_relative_filepath());
 		}
-		GDScriptTest::TestResult result = test.run_test();
-
-		String expected = FileAccess::get_file_as_string(test.get_output_file());
+		for (GDScriptTest::TestResult &result : test.run_test()) {
+			String expected = FileAccess::get_file_as_string(result.source_test->get_output_file());
 #ifndef DEBUG_ENABLED
-		expected = strip_warnings(expected);
+			expected = strip_warnings(expected);
 #endif
-		INFO(test.get_source_file());
-		if (!result.passed) {
-			INFO(expected);
-			failed++;
-		}
+			INFO(result.source_test->get_source_file());
+			if (!result.passed) {
+				INFO(expected);
+				failed++;
+			}
 
-		CHECK_MESSAGE(result.passed, (result.passed ? String() : result.output));
+			CHECK_MESSAGE(result.passed, (result.passed ? String() : result.output));
+		}
 	}
 
 	return failed;
@@ -299,7 +299,8 @@ bool GDScriptTestRunner::make_tests_for_dir(const String &p_dir) {
 				}
 #endif
 
-				String out_file = next.get_basename() + ".out";
+				String script_file_basename = next.get_basename();
+				String out_file = script_file_basename + ".out";
 				ERR_FAIL_COND_V_MSG(!is_generating && !dir->file_exists(out_file), false, "Could not find output file for " + next);
 
 				if (next.ends_with(".bin.gd")) {
@@ -314,6 +315,22 @@ bool GDScriptTestRunner::make_tests_for_dir(const String &p_dir) {
 					GDScriptTest test(current_dir.path_join(next), current_dir.path_join(out_file), source_dir);
 					if (binary_tokens) {
 						test.set_tokenizer_mode(GDScriptTest::TOKENIZER_BUFFER);
+					}
+					for (int i = 1; true; ++i) {
+						String hotswap_file = script_file_basename + ".swap" + String::num_int64(i);
+						if (!dir->file_exists(hotswap_file)) {
+							break;
+						}
+
+						// Arbitrary safety limit.
+						ERR_FAIL_COND_V_MSG(i >= 1000, false, "Too many hotswap files!");
+						String hotswap_out_file = hotswap_file + ".out";
+						ERR_FAIL_COND_V_MSG(!is_generating && !dir->file_exists(hotswap_out_file), false, "Could not find output file for " + hotswap_file);
+						GDScriptTest hotswap_test(current_dir.path_join(hotswap_file), current_dir.path_join(hotswap_out_file), source_dir);
+						if (binary_tokens) {
+							test.set_tokenizer_mode(GDScriptTest::TOKENIZER_BUFFER);
+						}
+						test.add_hotswap_test(hotswap_test);
 					}
 					tests.push_back(test);
 				}
@@ -526,27 +543,26 @@ String GDScriptTest::get_text_for_status(GDScriptTest::TestStatus p_status) cons
 	return "";
 }
 
-GDScriptTest::TestResult GDScriptTest::execute_test_code(bool p_is_generating) {
-	disable_stdout();
-
+GDScriptTest::TestResult GDScriptTest::execute_test_code(Ref<GDScript> &p_script, Object *&p_obj, Ref<RefCounted> &p_obj_ref, GDScriptInstance *&p_instance, bool p_is_hotreload, bool p_is_generating) {
 	TestResult result;
+	result.source_test = this;
 	result.status = GDTEST_OK;
 	result.output = String();
 	result.passed = false;
 
 	Error err = OK;
 
-	// Create script.
-	Ref<GDScript> script;
-	script.instantiate();
-	script->set_path(source_file);
+	if (p_script.is_null()) {
+		p_script.instantiate();
+	}
+	p_script->set_path(source_file);
 	if (tokenizer_mode == TOKENIZER_TEXT) {
-		err = script->load_source_code(source_file);
+		err = p_script->load_source_code(source_file);
 	} else {
 		String code = FileAccess::get_file_as_string(source_file, &err);
 		if (!err) {
 			Vector<uint8_t> buffer = GDScriptTokenizerBuffer::parse_code_string(code, GDScriptTokenizerBuffer::COMPRESS_ZSTD);
-			script->set_binary_tokens_source(buffer);
+			p_script->set_binary_tokens_source(buffer);
 		}
 	}
 	if (err != OK) {
@@ -559,9 +575,9 @@ GDScriptTest::TestResult GDScriptTest::execute_test_code(bool p_is_generating) {
 	// Test parsing.
 	GDScriptParser parser;
 	if (tokenizer_mode == TOKENIZER_TEXT) {
-		err = parser.parse(script->get_source_code(), source_file, false);
+		err = parser.parse(p_script->get_source_code(), source_file, false);
 	} else {
-		err = parser.parse_binary(script->get_binary_tokens_source(), source_file);
+		err = parser.parse_binary(p_script->get_binary_tokens_source(), source_file);
 	}
 	if (err != OK) {
 		enable_stdout();
@@ -608,7 +624,7 @@ GDScriptTest::TestResult GDScriptTest::execute_test_code(bool p_is_generating) {
 
 	// Test compiling.
 	GDScriptCompiler compiler;
-	err = compiler.compile(&parser, script.ptr(), false);
+	err = compiler.compile(&parser, p_script.ptr(), p_is_hotreload);
 	if (err != OK) {
 		enable_stdout();
 		result.status = GDTEST_COMPILER_ERROR;
@@ -632,7 +648,7 @@ GDScriptTest::TestResult GDScriptTest::execute_test_code(bool p_is_generating) {
 	}
 
 	// Test running.
-	const HashMap<StringName, GDScriptFunction *>::ConstIterator test_function_element = script->get_member_functions().find(GDScriptTestRunner::test_function_name);
+	const HashMap<StringName, GDScriptFunction *>::ConstIterator test_function_element = p_script->get_member_functions().find(GDScriptTestRunner::test_function_name);
 	if (!test_function_element) {
 		enable_stdout();
 		result.status = GDTEST_LOAD_ERROR;
@@ -649,7 +665,7 @@ GDScriptTest::TestResult GDScriptTest::execute_test_code(bool p_is_generating) {
 	add_print_handler(&_print_handler);
 	add_error_handler(&_error_handler);
 
-	err = script->reload();
+	err = p_script->reload(p_is_hotreload);
 	if (err) {
 		enable_stdout();
 		result.status = GDTEST_LOAD_ERROR;
@@ -658,18 +674,19 @@ GDScriptTest::TestResult GDScriptTest::execute_test_code(bool p_is_generating) {
 		ERR_FAIL_V_MSG(result, "\nCould not reload script: '" + source_file + "'");
 	}
 
-	// Create object instance for test.
-	Object *obj = ClassDB::instantiate(script->get_native()->get_name());
-	Ref<RefCounted> obj_ref;
-	if (obj->is_ref_counted()) {
-		obj_ref = Ref<RefCounted>(Object::cast_to<RefCounted>(obj));
+	if (!p_instance) {
+		// Create object instance for test.
+		p_obj = ClassDB::instantiate(p_script->get_native()->get_name());
+		if (p_obj->is_ref_counted()) {
+			p_obj_ref = Ref<RefCounted>(Object::cast_to<RefCounted>(p_obj));
+		}
+		p_obj->set_script(p_script);
+		p_instance = static_cast<GDScriptInstance *>(p_obj->get_script_instance());
 	}
-	obj->set_script(script);
-	GDScriptInstance *instance = static_cast<GDScriptInstance *>(obj->get_script_instance());
 
 	// Call test function.
 	Callable::CallError call_err;
-	instance->callp(GDScriptTestRunner::test_function_name, nullptr, 0, call_err);
+	p_instance->callp(GDScriptTestRunner::test_function_name, nullptr, 0, call_err);
 
 	// Tear down output handlers.
 	remove_print_handler(&_print_handler);
@@ -688,37 +705,59 @@ GDScriptTest::TestResult GDScriptTest::execute_test_code(bool p_is_generating) {
 		result.passed = check_output(result.output);
 	}
 
-	if (obj_ref.is_null()) {
+	return result;
+}
+
+Vector<GDScriptTest::TestResult> GDScriptTest::execute_test_code(bool p_is_generating) {
+	disable_stdout();
+
+	Ref<GDScript> script;
+	Object *obj = nullptr;
+	Ref<RefCounted> obj_ref;
+	GDScriptInstance *instance = nullptr;
+
+	Vector<TestResult> test_results;
+	test_results.push_back(execute_test_code(script, obj, obj_ref, instance, false, p_is_generating));
+
+	for (GDScriptTest &hotswap_test : hotswap_tests) {
+		test_results.push_back(hotswap_test.execute_test_code(script, obj, obj_ref, instance, true, p_is_generating));
+	}
+
+	if (obj && obj_ref.is_null()) {
 		memdelete(obj);
 	}
+	obj = nullptr;
+	obj_ref = nullptr;
+	instance = nullptr;
 
 	enable_stdout();
 
 	GDScriptCache::remove_script(script->get_path());
 
-	return result;
+	return test_results;
 }
 
-GDScriptTest::TestResult GDScriptTest::run_test() {
+Vector<GDScriptTest::TestResult> GDScriptTest::run_test() {
 	return execute_test_code(false);
 }
 
 bool GDScriptTest::generate_output() {
-	TestResult result = execute_test_code(true);
-	if (result.status == GDTEST_LOAD_ERROR) {
-		return false;
+	for (TestResult &result : execute_test_code(true)) {
+		if (result.status == GDTEST_LOAD_ERROR) {
+			return false;
+		}
+
+		Error err = OK;
+		Ref<FileAccess> out_file = FileAccess::open(result.source_test->output_file, FileAccess::WRITE, &err);
+		if (err != OK) {
+			return false;
+		}
+
+		String output = result.output.strip_edges(); // TODO: may be hacky.
+		output += "\n"; // Make sure to insert newline for CI static checks.
+
+		out_file->store_string(output);
 	}
-
-	Error err = OK;
-	Ref<FileAccess> out_file = FileAccess::open(output_file, FileAccess::WRITE, &err);
-	if (err != OK) {
-		return false;
-	}
-
-	String output = result.output.strip_edges(); // TODO: may be hacky.
-	output += "\n"; // Make sure to insert newline for CI static checks.
-
-	out_file->store_string(output);
 
 	return true;
 }

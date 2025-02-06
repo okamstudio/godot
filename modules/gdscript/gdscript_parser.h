@@ -935,6 +935,7 @@ public:
 		FunctionNode *function = nullptr;
 		FunctionNode *parent_function = nullptr;
 		LambdaNode *parent_lambda = nullptr;
+		AssignableNode *parent_variable = nullptr;
 		Vector<IdentifierNode *> captures;
 		HashMap<StringName, int> captures_indices;
 		bool use_self = false;
@@ -1329,6 +1330,22 @@ public:
 	};
 
 private:
+	template <typename T>
+	class ScopedSet {
+		T *var;
+		T old_value;
+
+	public:
+		template <typename TNew>
+		ScopedSet(T &p_var, const TNew &p_new_value) :
+				var(&p_var), old_value(p_var) {
+			p_var = p_new_value;
+		}
+		~ScopedSet() {
+			*var = old_value;
+		}
+	};
+
 	friend class GDScriptAnalyzer;
 	friend class GDScriptParserRef;
 
@@ -1370,6 +1387,7 @@ private:
 	FunctionNode *current_function = nullptr;
 	LambdaNode *current_lambda = nullptr;
 	SuiteNode *current_suite = nullptr;
+	AssignableNode *current_variable = nullptr;
 
 	CompletionContext completion_context;
 	CompletionCall completion_call;

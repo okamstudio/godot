@@ -57,6 +57,7 @@ public:
 	};
 
 	struct TestResult {
+		GDScriptTest *source_test;
 		TestStatus status;
 		String output;
 		bool passed;
@@ -80,6 +81,7 @@ private:
 	String source_file;
 	String output_file;
 	String base_dir;
+	Vector<GDScriptTest> hotswap_tests;
 
 	PrintHandlerList _print_handler;
 	ErrorHandlerList _error_handler;
@@ -91,18 +93,20 @@ private:
 	bool check_output(const String &p_output) const;
 	String get_text_for_status(TestStatus p_status) const;
 
-	TestResult execute_test_code(bool p_is_generating);
+	TestResult execute_test_code(Ref<GDScript> &p_script, Object *&p_obj, Ref<RefCounted> &p_obj_ref, GDScriptInstance *&p_instance, bool p_is_hotreload, bool p_is_generating);
+	Vector<TestResult> execute_test_code(bool p_is_generating);
 
 public:
 	static void print_handler(void *p_this, const String &p_message, bool p_error, bool p_rich);
 	static void error_handler(void *p_this, const char *p_function, const char *p_file, int p_line, const char *p_error, const char *p_explanation, bool p_editor_notify, ErrorHandlerType p_type);
-	TestResult run_test();
+	Vector<TestResult> run_test();
 	bool generate_output();
 
 	const String &get_source_file() const { return source_file; }
 	const String get_source_relative_filepath() const { return source_file.trim_prefix(base_dir); }
 	const String &get_output_file() const { return output_file; }
 
+	void add_hotswap_test(const GDScriptTest &hotswap_test) { hotswap_tests.push_back(hotswap_test); }
 	void set_tokenizer_mode(TokenizerMode p_tokenizer_mode) { tokenizer_mode = p_tokenizer_mode; }
 	TokenizerMode get_tokenizer_mode() const { return tokenizer_mode; }
 

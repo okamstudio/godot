@@ -2270,6 +2270,9 @@ GDScriptFunction *GDScriptCompiler::_parse_function(Error &r_error, GDScript *p_
 	if (p_func) {
 		if (p_func->identifier) {
 			func_name = p_func->identifier->name;
+		} else if (p_func->source_lambda && p_func->source_lambda->parent_variable) {
+			GDScriptParser::AssignableNode *parent_variable = p_func->source_lambda->parent_variable;
+			func_name = vformat("<anonymous lambda(%s)>", parent_variable->identifier->name);
 		} else {
 			func_name = "<anonymous lambda>";
 		}
@@ -3126,129 +3129,113 @@ void GDScriptCompiler::make_scripts(GDScript *p_script, const GDScriptParser::Cl
 	}
 }
 
-GDScriptCompiler::FunctionLambdaInfo GDScriptCompiler::_get_function_replacement_info(GDScriptFunction *p_func, int p_index, int p_depth, GDScriptFunction *p_parent_func) {
-	FunctionLambdaInfo info;
-	info.function = p_func;
-	info.parent = p_parent_func;
-	info.script = p_func->get_script();
-	info.name = p_func->get_name();
-	info.line = p_func->_initial_line;
-	info.index = p_index;
-	info.depth = p_depth;
-	info.capture_count = 0;
-	info.use_self = false;
-	info.arg_count = p_func->_argument_count;
-	info.default_arg_count = p_func->_default_arg_count;
-	info.sublambdas = _get_function_lambda_replacement_info(p_func, p_depth, p_parent_func);
-
-	ERR_FAIL_NULL_V(info.script, info);
-	GDScript::LambdaInfo *extra_info = info.script->lambda_info.getptr(p_func);
-	if (extra_info != nullptr) {
-		info.capture_count = extra_info->capture_count;
-		info.use_self = extra_info->use_self;
-	} else {
-		info.capture_count = 0;
-		info.use_self = false;
-	}
-
-	return info;
-}
-
-Vector<GDScriptCompiler::FunctionLambdaInfo> GDScriptCompiler::_get_function_lambda_replacement_info(GDScriptFunction *p_func, int p_depth, GDScriptFunction *p_parent_func) {
-	Vector<FunctionLambdaInfo> result;
-	// Only scrape the lambdas inside p_func.
+void GDScriptCompiler::LambdaSourceInfoList::collect_function_lambda_replacement_info(GDScriptFunction *p_func) {
+	// Only collect the lambdas inside.
 	for (int i = 0; i < p_func->lambdas.size(); ++i) {
-		result.push_back(_get_function_replacement_info(p_func->lambdas[i], i, p_depth + 1, p_func));
+		GDScriptFunction *lambda = p_func->lambdas[i];
+		LambdaSourceInfo &info = infos[lambda->get_name()].push_back({})->get();
+
+		info.function = lambda;
+		info.parent = p_func;
+		info.script = lambda->get_script();
+		info.name = lambda->get_name();
+		info.is_static = lambda->is_static();
+		info.use_self = false;
+		info.capture_count = 0;
+		info.arg_count = lambda->get_argument_count();
+		info.default_arg_count = lambda->get_default_argument_count();
+		info.sublambdas.collect_function_lambda_replacement_info(lambda);
+
+		if (info.script) {
+			GDScript::LambdaInfo *extra_info = info.script->lambda_info.getptr(lambda);
+			if (extra_info != nullptr) {
+				info.capture_count = extra_info->capture_count;
+				info.use_self = extra_info->use_self;
+			} else {
+				info.capture_count = 0;
+				info.use_self = false;
+			}
+		}
 	}
-	return result;
 }
 
-GDScriptCompiler::ScriptLambdaInfo GDScriptCompiler::_get_script_lambda_replacement_info(GDScript *p_script) {
-	ScriptLambdaInfo info;
-
+void GDScriptCompiler::ScriptLambdaInfo::collect_script_lambda_replacement_info(GDScript *p_script) {
 	if (p_script->implicit_initializer) {
-		info.implicit_initializer_info = _get_function_lambda_replacement_info(p_script->implicit_initializer);
+		initializers.collect_function_lambda_replacement_info(p_script->implicit_initializer);
 	}
 	if (p_script->implicit_ready) {
-		info.implicit_ready_info = _get_function_lambda_replacement_info(p_script->implicit_ready);
+		initializers.collect_function_lambda_replacement_info(p_script->implicit_ready);
 	}
 	if (p_script->static_initializer) {
-		info.static_initializer_info = _get_function_lambda_replacement_info(p_script->static_initializer);
+		initializers.collect_function_lambda_replacement_info(p_script->static_initializer);
 	}
 
 	for (const KeyValue<StringName, GDScriptFunction *> &E : p_script->member_functions) {
-		info.member_function_infos.insert(E.key, _get_function_lambda_replacement_info(E.value));
+		member_functions[E.key].collect_function_lambda_replacement_info(E.value);
 	}
 
 	for (const KeyValue<StringName, Ref<GDScript>> &KV : p_script->get_subclasses()) {
-		info.subclass_info.insert(KV.key, _get_script_lambda_replacement_info(KV.value.ptr()));
+		subclasses[KV.key].collect_script_lambda_replacement_info(KV.value.ptr());
 	}
-
-	return info;
 }
 
-bool GDScriptCompiler::_do_function_infos_match(const FunctionLambdaInfo &p_old_info, const FunctionLambdaInfo *p_new_info) {
-	if (p_new_info == nullptr) {
+bool GDScriptCompiler::LambdaSourceInfo::can_be_replaced_by(const LambdaSourceInfo &p_new_info) const {
+	if (p_new_info.capture_count != capture_count || p_new_info.use_self != use_self) {
 		return false;
 	}
 
-	if (p_new_info->capture_count != p_old_info.capture_count || p_new_info->use_self != p_old_info.use_self) {
+	if (p_new_info.script != script) {
 		return false;
 	}
 
-	int old_required_arg_count = p_old_info.arg_count - p_old_info.default_arg_count;
-	int new_required_arg_count = p_new_info->arg_count - p_new_info->default_arg_count;
-	if (new_required_arg_count > old_required_arg_count || p_new_info->arg_count < old_required_arg_count) {
+	int old_required_arg_count = arg_count - default_arg_count;
+	int new_required_arg_count = p_new_info.arg_count - p_new_info.default_arg_count;
+	if (new_required_arg_count > old_required_arg_count || p_new_info.arg_count < old_required_arg_count) {
 		return false;
 	}
 
 	return true;
 }
 
-void GDScriptCompiler::_get_function_ptr_replacements(HashMap<GDScriptFunction *, GDScriptFunction *> &r_replacements, const FunctionLambdaInfo &p_old_info, const FunctionLambdaInfo *p_new_info) {
-	ERR_FAIL_COND(r_replacements.has(p_old_info.function));
-	if (!_do_function_infos_match(p_old_info, p_new_info)) {
-		p_new_info = nullptr;
-	}
+void GDScriptCompiler::_collect_function_ptr_replacements(HashMap<GDScriptFunction *, GDScriptFunction *> &r_replacements, LambdaSourceInfoList &p_old, LambdaSourceInfoList *p_new) {
+	for (KeyValue<StringName, List<LambdaSourceInfo>> &old_named_infos : p_old.infos) {
+		HashMap<StringName, List<LambdaSourceInfo>>::Iterator new_named_infos_it = p_new->infos.find(old_named_infos.key);
+		bool sizes_equal = new_named_infos_it && new_named_infos_it->value.size() == old_named_infos.value.size();
 
-	r_replacements.insert(p_old_info.function, p_new_info != nullptr ? p_new_info->function : nullptr);
-	_get_function_ptr_replacements(r_replacements, p_old_info.sublambdas, p_new_info != nullptr ? &p_new_info->sublambdas : nullptr);
+		List<LambdaSourceInfo>::Element *old_info_E = old_named_infos.value.front();
+		List<LambdaSourceInfo>::Element *new_info_E = new_named_infos_it ? new_named_infos_it->value.front() : nullptr;
+
+		while (old_info_E) {
+			LambdaSourceInfo &old_info = old_info_E->get();
+			LambdaSourceInfo *new_info = nullptr;
+			if (new_info_E && sizes_equal) {
+				new_info = &new_info_E->get();
+			}
+
+			if (new_info && old_info.can_be_replaced_by(*new_info)) {
+				r_replacements[old_info.function] = new_info->function;
+			}
+
+			// This must be run on every `old_info.sublambdas` whether or not we have new info.
+			_collect_function_ptr_replacements(r_replacements, old_info.sublambdas, new_info ? &new_info->sublambdas : nullptr);
+			old_info_E = old_info_E->next();
+			if (new_info_E) {
+				new_info_E = new_info_E->next();
+			}
+		}
+	}
 }
 
-void GDScriptCompiler::_get_function_ptr_replacements(HashMap<GDScriptFunction *, GDScriptFunction *> &r_replacements, const Vector<FunctionLambdaInfo> &p_old_infos, const Vector<FunctionLambdaInfo> *p_new_infos) {
-	for (int i = 0; i < p_old_infos.size(); ++i) {
-		const FunctionLambdaInfo &old_info = p_old_infos[i];
-		const FunctionLambdaInfo *new_info = nullptr;
-		if (p_new_infos != nullptr && p_new_infos->size() == p_old_infos.size()) {
-			// For now only attempt if the size is the same.
-			new_info = &p_new_infos->get(i);
-		}
-		_get_function_ptr_replacements(r_replacements, old_info, new_info);
-	}
-}
+void GDScriptCompiler::_collect_function_ptr_replacements(HashMap<GDScriptFunction *, GDScriptFunction *> &r_replacements, ScriptLambdaInfo &p_old_info, ScriptLambdaInfo *p_new_info) {
+	_collect_function_ptr_replacements(r_replacements, p_old_info.initializers, p_new_info ? &p_new_info->initializers : nullptr);
 
-void GDScriptCompiler::_get_function_ptr_replacements(HashMap<GDScriptFunction *, GDScriptFunction *> &r_replacements, const ScriptLambdaInfo &p_old_info, const ScriptLambdaInfo *p_new_info) {
-	_get_function_ptr_replacements(r_replacements, p_old_info.implicit_initializer_info, p_new_info != nullptr ? &p_new_info->implicit_initializer_info : nullptr);
-	_get_function_ptr_replacements(r_replacements, p_old_info.implicit_ready_info, p_new_info != nullptr ? &p_new_info->implicit_ready_info : nullptr);
-	_get_function_ptr_replacements(r_replacements, p_old_info.static_initializer_info, p_new_info != nullptr ? &p_new_info->static_initializer_info : nullptr);
-
-	for (const KeyValue<StringName, Vector<FunctionLambdaInfo>> &old_kv : p_old_info.member_function_infos) {
-		_get_function_ptr_replacements(r_replacements, old_kv.value, p_new_info != nullptr ? p_new_info->member_function_infos.getptr(old_kv.key) : nullptr);
+	for (KeyValue<StringName, LambdaSourceInfoList> &old_kv : p_old_info.member_functions) {
+		_collect_function_ptr_replacements(r_replacements, old_kv.value, p_new_info ? p_new_info->member_functions.getptr(old_kv.key) : nullptr);
 	}
-	for (int i = 0; i < p_old_info.other_function_infos.size(); ++i) {
-		const FunctionLambdaInfo &old_other_info = p_old_info.other_function_infos[i];
-		const FunctionLambdaInfo *new_other_info = nullptr;
-		if (p_new_info != nullptr && p_new_info->other_function_infos.size() == p_old_info.other_function_infos.size()) {
-			// For now only attempt if the size is the same.
-			new_other_info = &p_new_info->other_function_infos[i];
-		}
-		// Needs to be called on all old lambdas, even if there's no replacement.
-		_get_function_ptr_replacements(r_replacements, old_other_info, new_other_info);
-	}
-	for (const KeyValue<StringName, ScriptLambdaInfo> &old_kv : p_old_info.subclass_info) {
-		const ScriptLambdaInfo &old_subinfo = old_kv.value;
-		const ScriptLambdaInfo *new_subinfo = p_new_info != nullptr ? p_new_info->subclass_info.getptr(old_kv.key) : nullptr;
-		_get_function_ptr_replacements(r_replacements, old_subinfo, new_subinfo);
+	for (KeyValue<StringName, ScriptLambdaInfo> &old_kv : p_old_info.subclasses) {
+		ScriptLambdaInfo &old_subinfo = old_kv.value;
+		ScriptLambdaInfo *new_subinfo = p_new_info ? p_new_info->subclasses.getptr(old_kv.key) : nullptr;
+		_collect_function_ptr_replacements(r_replacements, old_subinfo, new_subinfo);
 	}
 }
 
@@ -3262,7 +3249,8 @@ Error GDScriptCompiler::compile(const GDScriptParser *p_parser, GDScript *p_scri
 
 	source = p_script->get_path();
 
-	ScriptLambdaInfo old_lambda_info = _get_script_lambda_replacement_info(p_script);
+	ScriptLambdaInfo old_lambda_info;
+	old_lambda_info.collect_script_lambda_replacement_info(p_script);
 
 	// Create scripts for subclasses beforehand so they can be referenced
 	make_scripts(p_script, root, p_keep_state);
@@ -3279,10 +3267,11 @@ Error GDScriptCompiler::compile(const GDScriptParser *p_parser, GDScript *p_scri
 		return err;
 	}
 
-	ScriptLambdaInfo new_lambda_info = _get_script_lambda_replacement_info(p_script);
+	ScriptLambdaInfo new_lambda_info;
+	new_lambda_info.collect_script_lambda_replacement_info(p_script);
 
 	HashMap<GDScriptFunction *, GDScriptFunction *> func_ptr_replacements;
-	_get_function_ptr_replacements(func_ptr_replacements, old_lambda_info, &new_lambda_info);
+	_collect_function_ptr_replacements(func_ptr_replacements, old_lambda_info, &new_lambda_info);
 	main_script->_recurse_replace_function_ptrs(func_ptr_replacements);
 
 	if (has_static_data && !root->annotated_static_unload) {
