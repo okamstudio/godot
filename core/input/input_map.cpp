@@ -516,6 +516,7 @@ const HashMap<String, List<Ref<InputEvent>>> &InputMap::get_builtins() {
 	// ///// UI Text Input Shortcuts /////
 	inputs = List<Ref<InputEvent>>();
 	inputs.push_back(InputEventKey::create_reference(Key::SPACE | KeyModifierMask::CTRL));
+	inputs.push_back(InputEventKey::create_reference(Key::I | KeyModifierMask::CMD_OR_CTRL));
 	default_builtin_cache.insert("ui_text_completion_query", inputs);
 
 	inputs = List<Ref<InputEvent>>();
