@@ -45,7 +45,7 @@ uint32_t VariantCallable::hash() const {
 }
 
 String VariantCallable::get_as_text() const {
-	return vformat("%s::%s (Callable)", Variant::get_type_name(variant.get_type()), method);
+	return vformat("%s::%s", Variant::get_type_name(variant.get_type()), method);
 }
 
 CallableCustom::CompareEqualFunc VariantCallable::get_compare_equal_func() const {

@@ -55,7 +55,7 @@ String GDScriptUtilityCallable::get_as_text() const {
 			scope = "@GDScript";
 			break;
 	}
-	return vformat("%s::%s (Callable)", scope, function_name);
+	return vformat("%s::%s", scope, function_name);
 }
 
 CallableCustom::CompareEqualFunc GDScriptUtilityCallable::get_compare_equal_func() const {

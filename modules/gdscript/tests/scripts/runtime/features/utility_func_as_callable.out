@@ -1,6 +1,6 @@
 GDTEST_OK
-@GlobalScope::print (Callable)
-@GDScript::len (Callable)
+@GlobalScope::print
+@GDScript::len
 1 2 3
 1
 3
