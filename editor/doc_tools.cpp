@@ -497,7 +497,7 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 				}
 
 				if (properties_from_instance) {
-					if (E.name == "resource_local_to_scene" || E.name == "resource_name" || E.name == "resource_path" || E.name == "script" || E.name == "resource_scene_unique_id") {
+					if (E.name == "resource_local_to_scene" || E.name == "resource_name" || E.name == "resource_path" || E.name == "resource_scene_unique_id") {
 						// Don't include spurious properties from Object property list.
 						continue;
 					}
