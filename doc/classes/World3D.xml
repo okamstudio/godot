@@ -13,6 +13,9 @@
 		<member name="camera_attributes" type="CameraAttributes" setter="set_camera_attributes" getter="get_camera_attributes">
 			The default [CameraAttributes] resource to use if none set on the [Camera3D].
 		</member>
+		<member name="compositor" type="Compositor" setter="set_compositor" getter="get_compositor">
+			The default [Compositor] resource to use if none is set on the [Camera3D]. Will be replaced by the first [WorldEnvironment] registered to this World3D.
+		</member>
 		<member name="direct_space_state" type="PhysicsDirectSpaceState3D" setter="" getter="get_direct_space_state">
 			Direct access to the world's physics 3D space state. Used for querying current and potential collisions. When using multi-threaded physics, access is limited to [method Node._physics_process] in the main thread.
 		</member>
