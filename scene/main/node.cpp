@@ -1957,6 +1957,7 @@ void Node::reparent(Node *p_parent, bool p_keep_global_transform) {
 	ERR_THREAD_GUARD
 	ERR_FAIL_NULL(p_parent);
 	ERR_FAIL_NULL_MSG(data.parent, "Node needs a parent to be reparented.");
+	ERR_FAIL_COND_MSG(p_parent == this, vformat("Can't reparent '%s' to itself.", p_parent->get_name()));
 
 	if (p_parent == data.parent) {
 		return;
