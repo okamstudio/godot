@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+from misc.utility.scons_hints import *
+
+Import("env")
+Import("env_modules")
+
+env_csg_2d = env_modules.Clone()
+
+# Godot's own source files
+env_csg_2d.add_source_files(env.modules_sources, "*.cpp")
+if env.editor_build:
+    env_csg_2d.add_source_files(env.modules_sources, "editor/*.cpp")
