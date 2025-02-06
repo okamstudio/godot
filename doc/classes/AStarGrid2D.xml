@@ -47,10 +47,31 @@
 				Note that this function is hidden in the default [AStarGrid2D] class.
 			</description>
 		</method>
+		<method name="calculate_flow_field">
+			<return type="void" />
+			<param index="0" name="id" type="Vector2i" />
+			<param index="1" name="region" type="Rect2i" default="Rect2i(0, 0, 0, 0)" />
+			<param index="2" name="clear_previous_region" type="bool" default="true" />
+			<description>
+				Calculates a direction of flow field within a specified [param region] using simple Dijkstra algorithm.
+				[b]Note:[/b] If [param clear_previous_region] is [code]false[/code] the cleanup of the previous results on the region will not happen, see [method fill_flow_field_region] to clear it up manually.
+				[b]Note:[/b] If [param region] is empty, the whole grid will be used.
+				[b]Note:[/b] weight_scale parameter has no meaning for this method, use [method set_point_cost] to set a cost instead.
+			</description>
+		</method>
 		<method name="clear">
 			<return type="void" />
 			<description>
 				Clears the grid and sets the [member region] to [code]Rect2i(0, 0, 0, 0)[/code].
+			</description>
+		</method>
+		<method name="fill_flow_field_region">
+			<return type="void" />
+			<param index="0" name="region" type="Rect2i" />
+			<param index="1" name="value" type="Vector2" default="Vector2(0, 0)" />
+			<description>
+				Fills the given [param region] on the grid with the specified value for the flow directions.
+				[b]Note:[/b] Calling [method update] is not needed after the call of this function.
 			</description>
 		</method>
 		<method name="fill_solid_region">
@@ -71,6 +92,13 @@
 				[b]Note:[/b] Calling [method update] is not needed after the call of this function.
 			</description>
 		</method>
+		<method name="get_flow_direction" qualifiers="const">
+			<return type="Vector2" />
+			<param index="0" name="id" type="Vector2i" />
+			<description>
+				Returns a specified flow direction. Have meaningful value only after calling [method calculate_flow_field].
+			</description>
+		</method>
 		<method name="get_id_path">
 			<return type="Vector2i[]" />
 			<param index="0" name="from_id" type="Vector2i" />
@@ -80,6 +108,13 @@
 				Returns an array with the IDs of the points that form the path found by AStar2D between the given points. The array is ordered from the starting point to the ending point of the path.
 				If there is no valid path to the target, and [param allow_partial_path] is [code]true[/code], returns a path to the point closest to the target that can be reached.
 				[b]Note:[/b] When [param allow_partial_path] is [code]true[/code] and [param to_id] is solid the search may take an unusually long time to finish.
+			</description>
+		</method>
+		<method name="get_point_cost" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="id" type="Vector2i" />
+			<description>
+				Returns the cost of the point associated with the given [param id].
 			</description>
 		</method>
 		<method name="get_point_data_in_region" qualifiers="const">
@@ -141,6 +176,16 @@
 			<param index="0" name="id" type="Vector2i" />
 			<description>
 				Returns [code]true[/code] if a point is disabled for pathfinding. By default, all points are enabled.
+			</description>
+		</method>
+		<method name="set_point_cost">
+			<return type="void" />
+			<param index="0" name="id" type="Vector2i" />
+			<param index="1" name="cost" type="int" />
+			<description>
+				Sets the [param cost] for the point with the given [param id]. The [param cost] is used to calculate a flow field by [method calculate_flow_field] and must be within 1-254 range.
+				[b]Note:[/b] By default, the cost of each point is equal to 1.
+				[b]Note:[/b] Calling [method update] is not needed after the call of this function.
 			</description>
 		</method>
 		<method name="set_point_solid">

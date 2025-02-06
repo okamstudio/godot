@@ -387,7 +387,7 @@ AStarGrid2D::Point *AStarGrid2D::_forced_successor(int32_t p_x, int32_t p_y, int
 	return nullptr;
 }
 
-void AStarGrid2D::_get_nbors(Point *p_point, LocalVector<Point *> &r_nbors) {
+void AStarGrid2D::_get_nbors(Point *p_point, const Rect2i &p_region, LocalVector<Point *> &r_nbors) {
 	bool ts0 = false, td0 = false,
 		 ts1 = false, td1 = false,
 		 ts2 = false, td2 = false,
@@ -407,15 +407,15 @@ void AStarGrid2D::_get_nbors(Point *p_point, LocalVector<Point *> &r_nbors) {
 		bool has_left = false;
 		bool has_right = false;
 
-		if (p_point->id.x - 1 >= region.position.x) {
+		if (p_point->id.x - 1 >= p_region.position.x) {
 			left = _get_point_unchecked(p_point->id.x - 1, p_point->id.y);
 			has_left = true;
 		}
-		if (p_point->id.x + 1 < region.position.x + region.size.width) {
+		if (p_point->id.x + 1 < p_region.position.x + p_region.size.width) {
 			right = _get_point_unchecked(p_point->id.x + 1, p_point->id.y);
 			has_right = true;
 		}
-		if (p_point->id.y - 1 >= region.position.y) {
+		if (p_point->id.y - 1 >= p_region.position.y) {
 			top = _get_point_unchecked(p_point->id.x, p_point->id.y - 1);
 			if (has_left) {
 				top_left = _get_point_unchecked(p_point->id.x - 1, p_point->id.y - 1);
@@ -424,7 +424,7 @@ void AStarGrid2D::_get_nbors(Point *p_point, LocalVector<Point *> &r_nbors) {
 				top_right = _get_point_unchecked(p_point->id.x + 1, p_point->id.y - 1);
 			}
 		}
-		if (p_point->id.y + 1 < region.position.y + region.size.height) {
+		if (p_point->id.y + 1 < p_region.position.y + p_region.size.height) {
 			bottom = _get_point_unchecked(p_point->id.x, p_point->id.y + 1);
 			if (has_left) {
 				bottom_left = _get_point_unchecked(p_point->id.x - 1, p_point->id.y + 1);
@@ -529,7 +529,7 @@ bool AStarGrid2D::_solve(Point *p_begin_point, Point *p_end_point, bool p_allow_
 		p->closed_pass = pass; // Mark the point as closed.
 
 		LocalVector<Point *> nbors;
-		_get_nbors(p, nbors);
+		_get_nbors(p, region, nbors);
 
 		for (Point *e : nbors) {
 			real_t weight_scale = 1.0;
@@ -734,6 +734,121 @@ TypedArray<Vector2i> AStarGrid2D::get_id_path(const Vector2i &p_from_id, const V
 	return path;
 }
 
+Vector2 AStarGrid2D::get_flow_direction(const Vector2i &p_id) const {
+	ERR_FAIL_COND_V_MSG(dirty, Vector2(), "Grid is not initialized. Call the update method.");
+	ERR_FAIL_COND_V_MSG(!is_in_boundsv(p_id), Vector2(), vformat("Can't get point's flow direction. Point %s out of bounds %s.", p_id, region));
+	return _get_point_unchecked(p_id)->flow_direction;
+}
+
+void AStarGrid2D::set_point_cost(const Vector2i &p_id, int p_cost) {
+	ERR_FAIL_COND_MSG(dirty, "Grid is not initialized. Call the update method.");
+	ERR_FAIL_COND_MSG(!is_in_boundsv(p_id), vformat("Can't set point's cost. Point %s out of bounds %s.", p_id, region));
+	ERR_FAIL_COND_MSG(p_cost < 1 || p_cost > 254, "Can't set point's cost. Cost must be within (1-254) range.");
+	_get_point_unchecked(p_id)->cost = p_cost;
+}
+
+int AStarGrid2D::get_point_cost(const Vector2i &p_id) const {
+	ERR_FAIL_COND_V_MSG(dirty, 0, "Grid is not initialized. Call the update method.");
+	ERR_FAIL_COND_V_MSG(!is_in_boundsv(p_id), 0, vformat("Can't get point's cost. Point %s out of bounds %s.", p_id, region));
+	return _get_point_unchecked(p_id)->cost;
+}
+
+void AStarGrid2D::fill_flow_field_region(const Rect2i &p_region, const Vector2 &p_value) {
+	ERR_FAIL_COND_MSG(dirty, "Grid is not initialized. Call the update method.");
+
+	const Rect2i safe_region = p_region.intersection(region);
+	const int32_t end_x = safe_region.get_end().x;
+	const int32_t end_y = safe_region.get_end().y;
+
+	for (int32_t y = safe_region.position.y; y < end_y; y++) {
+		for (int32_t x = safe_region.position.x; x < end_x; x++) {
+			_get_point_unchecked(x, y)->flow_direction = p_value;
+		}
+	}
+}
+
+void AStarGrid2D::calculate_flow_field(const Vector2i &p_id, const Rect2i &p_region, bool p_clear_previous_region) {
+	ERR_FAIL_COND_MSG(dirty, "Grid is not initialized. Call the update method.");
+
+	Rect2i region_to_check;
+	if (p_region == Rect2i()) {
+		region_to_check = region;
+	} else {
+		region_to_check = p_region.intersection(region);
+	}
+
+	ERR_FAIL_COND_MSG(!region_to_check.has_point(p_id), vformat("Can't calculate flow field. Point %s out of bounds %s.", p_id, region_to_check));
+
+	if (p_clear_previous_region) {
+		const int32_t end_x = previous_ff_region.get_end().x;
+		const int32_t end_y = previous_ff_region.get_end().y;
+
+		for (int y = previous_ff_region.position.y; y < end_y; y++) {
+			for (int x = previous_ff_region.position.x; x < end_x; x++) {
+				_get_point_unchecked(x, y)->flow_direction = Vector2();
+			}
+		}
+	}
+	previous_ff_region = region_to_check;
+
+	LocalVector<uint32_t> values;
+	values.resize(region_to_check.size.x * region_to_check.size.y);
+
+	{
+		size_t index = 0U;
+		uint32_t *ptr = values.ptr();
+
+		const int32_t end_x = region_to_check.get_end().x;
+		const int32_t end_y = region_to_check.get_end().y;
+
+		for (int y = region_to_check.position.y; y < end_y; y++) {
+			for (int x = region_to_check.position.x; x < end_x; x++) {
+				ptr[index++] = UINT32_MAX;
+			}
+		}
+	}
+
+	LocalVector<Point *> nbors;
+	nbors.reserve(16);
+
+	LocalVector<Point *> open_list;
+
+	Point *target = _get_point(p_id.x, p_id.y);
+	values[_to_index(p_id, region_to_check)] = 0;
+	open_list.push_back(target);
+
+	while (!open_list.is_empty()) {
+		Point *p = open_list[open_list.size() - 1];
+		open_list.remove_at(open_list.size() - 1);
+
+		_get_nbors(p, region_to_check, nbors);
+
+		uint32_t value = values[_to_index(p->id, region_to_check)];
+
+		for (Point *e : nbors) {
+			uint32_t cost = value + e->cost;
+			size_t idx = _to_index(e->id, region_to_check);
+
+			if (cost < values[idx]) {
+				if (!open_list.has(e)) {
+					open_list.push_back(e);
+				}
+				values[idx] = cost;
+			}
+		}
+
+		for (Point *e : nbors) {
+			uint32_t nvalue = values[_to_index(e->id, region_to_check)];
+			if (nvalue < value) {
+				value = nvalue;
+				p->flow_direction = p->pos.direction_to(e->pos);
+			}
+		}
+
+		nbors.clear();
+	}
+}
+
 void AStarGrid2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_region", "region"), &AStarGrid2D::set_region);
 	ClassDB::bind_method(D_METHOD("get_region"), &AStarGrid2D::get_region);
@@ -761,6 +876,8 @@ void AStarGrid2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_point_solid", "id"), &AStarGrid2D::is_point_solid);
 	ClassDB::bind_method(D_METHOD("set_point_weight_scale", "id", "weight_scale"), &AStarGrid2D::set_point_weight_scale);
 	ClassDB::bind_method(D_METHOD("get_point_weight_scale", "id"), &AStarGrid2D::get_point_weight_scale);
+	ClassDB::bind_method(D_METHOD("set_point_cost", "id", "cost"), &AStarGrid2D::set_point_cost);
+	ClassDB::bind_method(D_METHOD("get_point_cost", "id"), &AStarGrid2D::get_point_cost);
 	ClassDB::bind_method(D_METHOD("fill_solid_region", "region", "solid"), &AStarGrid2D::fill_solid_region, DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("fill_weight_scale_region", "region", "weight_scale"), &AStarGrid2D::fill_weight_scale_region);
 	ClassDB::bind_method(D_METHOD("clear"), &AStarGrid2D::clear);
@@ -769,6 +886,10 @@ void AStarGrid2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_point_data_in_region", "region"), &AStarGrid2D::get_point_data_in_region);
 	ClassDB::bind_method(D_METHOD("get_point_path", "from_id", "to_id", "allow_partial_path"), &AStarGrid2D::get_point_path, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("get_id_path", "from_id", "to_id", "allow_partial_path"), &AStarGrid2D::get_id_path, DEFVAL(false));
+
+	ClassDB::bind_method(D_METHOD("get_flow_direction", "id"), &AStarGrid2D::get_flow_direction);
+	ClassDB::bind_method(D_METHOD("calculate_flow_field", "id", "region", "clear_previous_region"), &AStarGrid2D::calculate_flow_field, DEFVAL(Rect2i()), DEFVAL(true));
+	ClassDB::bind_method(D_METHOD("fill_flow_field_region", "region", "value"), &AStarGrid2D::fill_flow_field_region, DEFVAL(Vector2()));
 
 	GDVIRTUAL_BIND(_estimate_cost, "from_id", "end_id")
 	GDVIRTUAL_BIND(_compute_cost, "from_id", "to_id")

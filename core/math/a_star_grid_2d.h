@@ -91,6 +91,9 @@ private:
 		real_t abs_g_score = 0;
 		real_t abs_f_score = 0;
 
+		Vector2 flow_direction;
+		uint32_t cost = 1;
+
 		Point() {}
 
 		Point(const Vector2i &p_id, const Vector2 &p_pos) :
@@ -113,10 +116,15 @@ private:
 	LocalVector<LocalVector<Point>> points;
 	Point *end = nullptr;
 	Point *last_closest_point = nullptr;
+	Rect2i previous_ff_region;
 
 	uint64_t pass = 1;
 
 private: // Internal routines.
+	_FORCE_INLINE_ size_t _to_index(const Vector2i &p_id, const Rect2i &p_region) const {
+		return ((p_id.y - p_region.position.y) * p_region.size.x) + p_id.x - p_region.position.x;
+	}
+
 	_FORCE_INLINE_ size_t _to_mask_index(int32_t p_x, int32_t p_y) const {
 		return ((p_y - region.position.y + 1) * (region.size.x + 2)) + p_x - region.position.x + 1;
 	}
@@ -156,7 +164,7 @@ private: // Internal routines.
 		return &points[p_id.y - region.position.y][p_id.x - region.position.x];
 	}
 
-	void _get_nbors(Point *p_point, LocalVector<Point *> &r_nbors);
+	void _get_nbors(Point *p_point, const Rect2i &p_region, LocalVector<Point *> &r_nbors);
 	Point *_jump(Point *p_from, Point *p_to);
 	bool _solve(Point *p_begin_point, Point *p_end_point, bool p_allow_partial_path);
 	Point *_forced_successor(int32_t p_x, int32_t p_y, int32_t p_dx, int32_t p_dy, bool p_inclusive = false);
@@ -219,12 +227,19 @@ public:
 	void fill_solid_region(const Rect2i &p_region, bool p_solid = true);
 	void fill_weight_scale_region(const Rect2i &p_region, real_t p_weight_scale);
 
+	Vector2 get_flow_direction(const Vector2i &p_id) const;
+
+	void set_point_cost(const Vector2i &p_id, int p_cost);
+	int get_point_cost(const Vector2i &p_id) const;
+
 	void clear();
 
 	Vector2 get_point_position(const Vector2i &p_id) const;
 	TypedArray<Dictionary> get_point_data_in_region(const Rect2i &p_region) const;
 	Vector<Vector2> get_point_path(const Vector2i &p_from, const Vector2i &p_to, bool p_allow_partial_path = false);
 	TypedArray<Vector2i> get_id_path(const Vector2i &p_from, const Vector2i &p_to, bool p_allow_partial_path = false);
+	void calculate_flow_field(const Vector2i &p_id, const Rect2i &p_region = Rect2i(), bool p_clear_previous_region = true);
+	void fill_flow_field_region(const Rect2i &p_region, const Vector2 &p_value = Vector2());
 };
 
 VARIANT_ENUM_CAST(AStarGrid2D::DiagonalMode);
