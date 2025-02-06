@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <EnableDynamicLoading>true</EnableDynamicLoading>
+        <RootNamespace>WasmTest</RootNamespace>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <PackageReference Include="GodotSharp" Version="4.2.0" />
+        <PackageReference Include="Microsoft.NET.WebAssembly.Threading" Version="7.0.0" Condition="'$(WasmEnableThreading)' == 'true'" />
+    </ItemGroup>
+</Project>

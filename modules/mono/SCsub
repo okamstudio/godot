@@ -22,3 +22,27 @@ env_mono.add_source_files(env.modules_sources, "utils/*.cpp")
 if env.editor_build:
     env_mono.add_source_files(env.modules_sources, "editor/*.cpp")
     SConscript("editor/script_templates/SCsub")
+
+# Add WASM-specific sources
+if env['platform'] == 'web':
+    env_mono.add_source_files(env.modules_sources, [
+        "wasm/wasm_runtime.cpp",
+        "wasm/wasm_export_template.cpp"
+    ])
+    
+    # Copy web templates
+    if env['target'] == 'template_release' or env['target'] == 'template_debug':
+        env.Depends('#bin/godot', [
+            '#modules/mono/wasm/templates/index.html',
+            '#modules/mono/wasm/templates/dotnet.js'
+        ])
+        
+        def copy_wasm_templates(target, source, env):
+            templates_dir = os.path.join(os.path.dirname(str(target[0])), 'wasm_templates')
+            if not os.path.exists(templates_dir):
+                os.makedirs(templates_dir)
+            
+            for src in source:
+                shutil.copy2(str(src), templates_dir)
+        
+        env.AddPostAction('#bin/godot', copy_wasm_templates)

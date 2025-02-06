@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #333;
+        }
+        #canvas {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-family: sans-serif;
+        }
+        .progress {
+            width: 300px;
+            height: 20px;
+            background-color: #444;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: #738bd7;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" tabindex="1"></canvas>
+    <div id="loading">
+        <div>Loading Godot C# Game...</div>
+        <div class="progress">
+            <div class="progress-bar" id="progress"></div>
+        </div>
+    </div>
+
+    <script src="dotnet.js"></script>
+    <script src="godot.js"></script>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const loading = document.getElementById('loading');
+        const progress = document.getElementById('progress');
+
+        // Configure .NET runtime
+        const dotnetConfig = {
+            mainAssemblyName: '${assembly_name}',
+            assemblyRoot: '${assembly_root}',
+            assets: ${assets_list},
+            heapSize: ${heap_size},
+            enableThreading: ${enable_threading},
+            enableAOT: ${enable_aot}
+        };
+
+        // Configure Godot engine
+        const godotConfig = {
+            canvas: canvas,
+            canvasResizePolicy: 'project',
+            executable: 'game',
+            mainPack: '${main_pack}',
+            locale: '${locale}',
+            args: [],
+            onProgress: function(current, total) {
+                progress.style.width = (current / total * 100) + '%';
+            },
+            onLoad: function() {
+                loading.style.display = 'none';
+            }
+        };
+
+        // Initialize both runtimes
+        Promise.all([
+            dotnetRuntime.init(dotnetConfig),
+            godotRuntime.init(godotConfig)
+        ]).then(() => {
+            // Start the game
+            godotRuntime.start();
+        }).catch((error) => {
+            console.error('Failed to initialize:', error);
+            loading.innerHTML = '<div style="color: red">Failed to load the game. Please check console for details.</div>';
+        });
+    </script>
+</body>
+</html>
