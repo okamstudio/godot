@@ -46,6 +46,7 @@ public:
 	virtual float get_spinbox_arrow_step() const { return get_slider_step(); }
 	virtual String get_slider_label(int idx) const = 0;
 	virtual float get_slider_max(int idx) const = 0;
+	virtual bool get_allow_greater() const { return false; }
 	virtual float get_slider_value(int idx) const = 0;
 
 	virtual Color get_color() const = 0;
@@ -92,7 +93,8 @@ public:
 
 	virtual float get_slider_step() const override { return 1; }
 	virtual String get_slider_label(int idx) const override;
-	virtual float get_slider_max(int idx) const override;
+	virtual float get_slider_max(int idx) const override { return 255; }
+	virtual bool get_allow_greater() const override { return true; }
 	virtual float get_slider_value(int idx) const override;
 
 	virtual Color get_color() const override;
@@ -114,6 +116,7 @@ public:
 	virtual float get_spinbox_arrow_step() const override { return 0.01; }
 	virtual String get_slider_label(int idx) const override;
 	virtual float get_slider_max(int idx) const override;
+	virtual bool get_allow_greater() const override { return true; }
 	virtual float get_slider_value(int idx) const override;
 
 	virtual Color get_color() const override;

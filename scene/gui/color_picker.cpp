@@ -675,8 +675,9 @@ void ColorPicker::_update_color(bool p_update_sliders) {
 		for (int i = 0; i < current_slider_count; i++) {
 			sliders[i]->set_max(modes[current_mode]->get_slider_max(i));
 			sliders[i]->set_step(step);
-			values[i]->set_custom_arrow_step(spinbox_arrow_step);
 			sliders[i]->set_value(modes[current_mode]->get_slider_value(i));
+			values[i]->set_custom_arrow_step(spinbox_arrow_step);
+			values[i]->set_allow_greater(modes[current_mode]->get_allow_greater());
 		}
 		alpha_slider->set_max(modes[current_mode]->get_slider_max(current_slider_count));
 		alpha_slider->set_step(step);

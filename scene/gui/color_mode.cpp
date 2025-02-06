@@ -43,12 +43,6 @@ String ColorModeRGB::get_slider_label(int idx) const {
 	return labels[idx];
 }
 
-float ColorModeRGB::get_slider_max(int idx) const {
-	ERR_FAIL_INDEX_V_MSG(idx, 4, 0, "Couldn't get slider max value.");
-	Color color = color_picker->get_pick_color();
-	return next_power_of_2(MAX(255, color.components[idx] * 255.0)) - 1;
-}
-
 float ColorModeRGB::get_slider_value(int idx) const {
 	ERR_FAIL_INDEX_V_MSG(idx, 4, 0, "Couldn't get slider value.");
 	return color_picker->get_pick_color().components[idx] * 255;
