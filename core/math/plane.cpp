@@ -177,5 +177,8 @@ bool Plane::is_finite() const {
 }
 
 Plane::operator String() const {
-	return "[N: " + normal.operator String() + ", D: " + String::num_real(d, false) + "]";
+	return String::concat(
+			"[N: ", normal.operator String(),
+			", D: ", String::num_real(d, false),
+			"]");
 }

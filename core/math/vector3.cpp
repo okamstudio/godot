@@ -165,7 +165,12 @@ bool Vector3::is_finite() const {
 }
 
 Vector3::operator String() const {
-	return "(" + String::num_real(x, true) + ", " + String::num_real(y, true) + ", " + String::num_real(z, true) + ")";
+	return String::concat(
+			"(",
+			String::num_real(x, true), ", ",
+			String::num_real(y, true), ", ",
+			String::num_real(z, true),
+			")");
 }
 
 Vector3::operator Vector3i() const {

@@ -277,7 +277,13 @@ Quaternion Quaternion::spherical_cubic_interpolate_in_time(const Quaternion &p_b
 }
 
 Quaternion::operator String() const {
-	return "(" + String::num_real(x, false) + ", " + String::num_real(y, false) + ", " + String::num_real(z, false) + ", " + String::num_real(w, false) + ")";
+	return String::concat(
+			"(",
+			String::num_real(x, false), ", ",
+			String::num_real(y, false), ", ",
+			String::num_real(z, false), ", ",
+			String::num_real(w, false),
+			")");
 }
 
 Vector3 Quaternion::get_axis() const {
@@ -294,7 +300,7 @@ real_t Quaternion::get_angle() const {
 
 Quaternion::Quaternion(const Vector3 &p_axis, real_t p_angle) {
 #ifdef MATH_CHECKS
-	ERR_FAIL_COND_MSG(!p_axis.is_normalized(), "The axis Vector3 " + p_axis.operator String() + " must be normalized.");
+	ERR_FAIL_COND_MSG(!p_axis.is_normalized(), String::concat("The axis Vector3 ", p_axis.operator String(), " must be normalized."));
 #endif
 	real_t d = p_axis.length();
 	if (d == 0) {
