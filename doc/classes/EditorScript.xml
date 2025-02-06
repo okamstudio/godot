@@ -59,5 +59,11 @@
 				Returns the edited (current) scene's root [Node]. Equivalent of [method EditorInterface.get_edited_scene_root].
 			</description>
 		</method>
+		<method name="remove_root_node">
+			<return type="void" />
+			<description>
+				Removes the currently edited scene.
+			</description>
+		</method>
 	</methods>
 </class>

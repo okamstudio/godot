@@ -64,6 +64,12 @@ void EditorScript::add_root_node(Node *p_node) {
 	EditorSceneTabs::get_singleton()->update_scene_tabs();
 }
 
+void EditorScript::remove_root_node() {
+	EditorNode::get_singleton()->set_edited_scene(nullptr);
+	EditorUndoRedoManager::get_singleton()->set_history_as_saved(EditorNode::get_editor_data().get_current_edited_scene_history_id());
+	EditorSceneTabs::get_singleton()->update_scene_tabs();
+}
+
 Node *EditorScript::get_scene() const {
 	if (!EditorNode::get_singleton()) {
 		EditorNode::add_io_error("EditorScript::get_scene: " + TTR("Write your logic in the _run() method."));
@@ -83,6 +89,7 @@ void EditorScript::run() {
 
 void EditorScript::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("add_root_node", "node"), &EditorScript::add_root_node);
+	ClassDB::bind_method(D_METHOD("remove_root_node"), &EditorScript::remove_root_node);
 	ClassDB::bind_method(D_METHOD("get_scene"), &EditorScript::get_scene);
 	ClassDB::bind_method(D_METHOD("get_editor_interface"), &EditorScript::get_editor_interface);
 
