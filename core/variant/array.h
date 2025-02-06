@@ -148,6 +148,7 @@ public:
 	void sort();
 	void sort_custom(const Callable &p_callable);
 	void shuffle();
+	void swap(int p_first, int p_second);
 	int bsearch(const Variant &p_value, bool p_before = true) const;
 	int bsearch_custom(const Variant &p_value, const Callable &p_callable, bool p_before = true) const;
 	void reverse();

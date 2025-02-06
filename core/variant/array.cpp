@@ -713,6 +713,26 @@ void Array::shuffle() {
 	}
 }
 
+void Array::swap(int p_first, int p_second) {
+	ERR_FAIL_COND_MSG(_p->read_only, "Array is in read-only state.");
+	const int s = _p->array.size();
+	if (s < 2) {
+		return;
+	}
+	if (p_first < 0) {
+		p_first += s;
+	}
+	ERR_FAIL_INDEX(p_first, s);
+	if (p_second < 0) {
+		p_second += s;
+	}
+	ERR_FAIL_INDEX(p_second, s);
+	if (p_first == p_second) {
+		return;
+	}
+	SWAP(operator[](p_first), operator[](p_second));
+}
+
 int Array::bsearch(const Variant &p_value, bool p_before) const {
 	Variant value = p_value;
 	ERR_FAIL_COND_V(!_p->typed.validate(value, "binary search"), -1);

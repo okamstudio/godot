@@ -795,6 +795,14 @@
 				[b]Note:[/b] You should not randomize the return value of [param func], as the heapsort algorithm expects a consistent result. Randomizing the return value will result in unexpected behavior.
 			</description>
 		</method>
+		<method name="swap">
+			<return type="void" />
+			<param index="0" name="first" type="int" />
+			<param index="1" name="second" type="int" />
+			<description>
+				Swaps the elements at indices [param first] and [param second]. If either parameter is negative, the corresponding index is relative to the end of the array. If either parameter is out of bounds, this method fails.
+			</description>
+		</method>
 	</methods>
 	<operators>
 		<operator name="operator !=">
