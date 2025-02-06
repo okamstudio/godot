@@ -41,12 +41,14 @@ class RemoteTransform2D : public Node2D {
 	ObjectID cache;
 
 	bool use_global_coordinates = true;
+	bool use_parent_transform = false;
 	bool update_remote_position = true;
 	bool update_remote_rotation = true;
 	bool update_remote_scale = true;
 
 	void _update_remote();
 	void _update_cache();
+	void _update_notify_settings();
 	//void _node_exited_scene();
 protected:
 	static void _bind_methods();
@@ -58,6 +60,9 @@ public:
 
 	void set_use_global_coordinates(const bool p_enable);
 	bool get_use_global_coordinates() const;
+
+	void set_use_parent_transform(const bool p_enable);
+	bool get_use_parent_transform() const;
 
 	void set_update_position(const bool p_update);
 	bool get_update_position() const;

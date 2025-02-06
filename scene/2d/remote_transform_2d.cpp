@@ -42,6 +42,11 @@ void RemoteTransform2D::_update_cache() {
 	}
 }
 
+void RemoteTransform2D::_update_notify_settings() {
+	set_notify_transform(use_parent_transform || use_global_coordinates);
+	set_notify_local_transform(!(use_parent_transform || use_global_coordinates));
+}
+
 void RemoteTransform2D::_update_remote() {
 	if (!is_inside_tree()) {
 		return;
@@ -66,13 +71,21 @@ void RemoteTransform2D::_update_remote() {
 
 	//todo make faster
 	if (use_global_coordinates) {
+		Transform2D our_trans;
+		if (use_parent_transform) {
+			Node2D *parent = Object::cast_to<Node2D>(get_parent());
+			ERR_FAIL_NULL_MSG(parent, "RemoteTransform2D must have a valid Node2D parent if use_parent_transform is true");
+			our_trans = parent->get_global_transform();
+		} else {
+			our_trans = get_global_transform();
+		}
+
 		if (update_remote_position && update_remote_rotation && update_remote_scale) {
-			n->set_global_transform(get_global_transform());
+			n->set_global_transform(our_trans);
 			return;
 		}
 
 		Transform2D n_trans = n->get_global_transform();
-		Transform2D our_trans = get_global_transform();
 
 		// There are more steps in the operation of set_rotation, so avoid calling it.
 		Transform2D trans = update_remote_rotation ? our_trans : n_trans;
@@ -86,13 +99,21 @@ void RemoteTransform2D::_update_remote() {
 
 		n->set_global_transform(trans);
 	} else {
+		Transform2D our_trans;
+		if (use_parent_transform) {
+			Node2D *parent = Object::cast_to<Node2D>(get_parent());
+			ERR_FAIL_NULL_MSG(parent, "RemoteTransform2D must have a valid Node2D parent if use_parent_transform is true");
+			our_trans = parent->get_transform();
+		} else {
+			our_trans = get_transform();
+		}
+
 		if (update_remote_position && update_remote_rotation && update_remote_scale) {
-			n->set_transform(get_transform());
+			n->set_transform(our_trans);
 			return;
 		}
 
 		Transform2D n_trans = n->get_transform();
-		Transform2D our_trans = get_transform();
 
 		// There are more steps in the operation of set_rotation, so avoid calling it.
 		Transform2D trans = update_remote_rotation ? our_trans : n_trans;
@@ -133,6 +154,9 @@ void RemoteTransform2D::_notification(int p_what) {
 			if (cache.is_valid()) {
 				_update_remote();
 			}
+
+			//HACK! See https://github.com/godotengine/godot/issues/67640#issuecomment-1284370297
+			Point2 _ = get_global_position();
 		} break;
 	}
 }
@@ -161,13 +185,26 @@ void RemoteTransform2D::set_use_global_coordinates(const bool p_enable) {
 	}
 
 	use_global_coordinates = p_enable;
-	set_notify_transform(use_global_coordinates);
-	set_notify_local_transform(!use_global_coordinates);
+	_update_notify_settings();
 	_update_remote();
 }
 
 bool RemoteTransform2D::get_use_global_coordinates() const {
 	return use_global_coordinates;
+}
+
+void RemoteTransform2D::set_use_parent_transform(const bool p_enable) {
+	if (use_parent_transform == p_enable) {
+		return;
+	}
+
+	use_parent_transform = p_enable;
+	_update_notify_settings();
+	_update_remote();
+}
+
+bool RemoteTransform2D::get_use_parent_transform() const {
+	return use_parent_transform;
 }
 
 void RemoteTransform2D::set_update_position(const bool p_update) {
@@ -227,6 +264,8 @@ void RemoteTransform2D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_use_global_coordinates", "use_global_coordinates"), &RemoteTransform2D::set_use_global_coordinates);
 	ClassDB::bind_method(D_METHOD("get_use_global_coordinates"), &RemoteTransform2D::get_use_global_coordinates);
+	ClassDB::bind_method(D_METHOD("set_use_parent_transform", "use_parent_transform"), &RemoteTransform2D::set_use_parent_transform);
+	ClassDB::bind_method(D_METHOD("get_use_parent_transform"), &RemoteTransform2D::get_use_parent_transform);
 
 	ClassDB::bind_method(D_METHOD("set_update_position", "update_remote_position"), &RemoteTransform2D::set_update_position);
 	ClassDB::bind_method(D_METHOD("get_update_position"), &RemoteTransform2D::get_update_position);
@@ -237,6 +276,7 @@ void RemoteTransform2D::_bind_methods() {
 
 	ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "remote_path", PROPERTY_HINT_NODE_PATH_VALID_TYPES, "Node2D"), "set_remote_node", "get_remote_node");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "use_global_coordinates"), "set_use_global_coordinates", "get_use_global_coordinates");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "use_parent_transform"), "set_use_parent_transform", "get_use_parent_transform");
 
 	ADD_GROUP("Update", "update_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "update_position"), "set_update_position", "get_update_position");
@@ -245,7 +285,6 @@ void RemoteTransform2D::_bind_methods() {
 }
 
 RemoteTransform2D::RemoteTransform2D() {
-	set_notify_transform(use_global_coordinates);
-	set_notify_local_transform(!use_global_coordinates);
+	_update_notify_settings();
 	set_hide_clip_children(true);
 }

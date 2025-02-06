@@ -33,5 +33,8 @@
 		<member name="use_global_coordinates" type="bool" setter="set_use_global_coordinates" getter="get_use_global_coordinates" default="true">
 			If [code]true[/code], global coordinates are used. If [code]false[/code], local coordinates are used.
 		</member>
+		<member name="use_parent_transform" type="bool" setter="set_use_parent_transform" getter="get_use_parent_transform" default="false">
+			If [code]true[/code], propagates parent Node2D's transform or global_transform instead of this node's. If [code]false[/code], propagates this node's transform or global_transform.
+		</member>
 	</members>
 </class>
