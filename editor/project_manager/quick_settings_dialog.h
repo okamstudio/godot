@@ -31,7 +31,9 @@
 #ifndef QUICK_SETTINGS_DIALOG_H
 #define QUICK_SETTINGS_DIALOG_H
 
+#include "editor/gui/editor_file_dialog.h"
 #include "scene/gui/dialogs.h"
+#include "scene/gui/line_edit.h"
 
 class Button;
 class Label;
@@ -68,6 +70,10 @@ class QuickSettingsDialog : public AcceptDialog {
 	OptionButton *scale_option_button = nullptr;
 	OptionButton *network_mode_option_button = nullptr;
 	OptionButton *directory_naming_convention_button = nullptr;
+	HBoxContainer *default_project_path_container = nullptr;
+	LineEdit *default_project_path_edit = nullptr;
+	Button *default_project_path_button = nullptr;
+	EditorFileDialog *default_project_path_dialog = nullptr;
 
 	Label *custom_theme_label = nullptr;
 
@@ -78,6 +84,10 @@ class QuickSettingsDialog : public AcceptDialog {
 	void _scale_selected(int p_id);
 	void _network_mode_selected(int p_id);
 	void _directory_naming_convention_selected(int p_id);
+	void _default_project_path_changed(const String &p_path);
+	void _default_project_path_focus_exited();
+	void _default_project_path_button_pressed();
+	void _default_project_path_selected(const String &p_path);
 	void _set_setting_value(const String &p_setting, const Variant &p_value, bool p_restart_required = false);
 
 	Label *restart_required_label = nullptr;

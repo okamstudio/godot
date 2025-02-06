@@ -142,6 +142,12 @@ void QuickSettingsDialog::_update_current_values() {
 			}
 		}
 	}
+
+	// Default project path settings.
+	{
+		const String default_project_path = EDITOR_GET("filesystem/directories/default_project_path");
+		default_project_path_edit->set_text(default_project_path);
+	}
 }
 
 void QuickSettingsDialog::_add_setting_control(const String &p_text, Control *p_control) {
@@ -183,6 +189,24 @@ void QuickSettingsDialog::_directory_naming_convention_selected(int p_id) {
 	_set_setting_value("project_manager/directory_naming_convention", p_id);
 }
 
+void QuickSettingsDialog::_default_project_path_changed(const String &p_path) {
+	_set_setting_value("filesystem/directories/default_project_path", p_path);
+}
+
+void QuickSettingsDialog::_default_project_path_focus_exited() {
+	_default_project_path_changed(default_project_path_edit->get_text());
+}
+
+void QuickSettingsDialog::_default_project_path_button_pressed() {
+	default_project_path_dialog->set_current_dir(default_project_path_edit->get_text());
+	default_project_path_dialog->popup_file_dialog();
+}
+
+void QuickSettingsDialog::_default_project_path_selected(const String &p_path) {
+	default_project_path_edit->set_text(p_path);
+	_default_project_path_focus_exited();
+}
+
 void QuickSettingsDialog::_set_setting_value(const String &p_setting, const Variant &p_value, bool p_restart_required) {
 	EditorSettings::get_singleton()->set(p_setting, p_value);
 	EditorSettings::get_singleton()->notify_changes();
@@ -215,6 +239,8 @@ void QuickSettingsDialog::_notification(int p_what) {
 
 			restart_required_label->add_theme_color_override(SceneStringName(font_color), get_theme_color(SNAME("warning_color"), EditorStringName(Editor)));
 			custom_theme_label->add_theme_color_override(SceneStringName(font_color), get_theme_color(SNAME("font_placeholder_color"), EditorStringName(Editor)));
+
+			default_project_path_button->set_button_icon(get_editor_theme_icon(SNAME("FolderBrowse")));
 		} break;
 
 		case NOTIFICATION_VISIBILITY_CHANGED: {
@@ -328,6 +354,32 @@ QuickSettingsDialog::QuickSettingsDialog() {
 			}
 
 			_add_setting_control(TTR("Directory Naming Convention"), directory_naming_convention_button);
+		}
+
+		// Default project path options.
+		{
+			HBoxContainer *default_project_path_hb = memnew(HBoxContainer);
+
+			default_project_path_edit = memnew(LineEdit);
+			default_project_path_edit->connect("text_submitted", callable_mp(this, &QuickSettingsDialog::_default_project_path_changed));
+			default_project_path_edit->set_structured_text_bidi_override(TextServer::STRUCTURED_TEXT_FILE);
+			default_project_path_edit->connect(SceneStringName(focus_exited), callable_mp(this, &QuickSettingsDialog::_default_project_path_focus_exited));
+			default_project_path_edit->set_h_size_flags(Control::SizeFlags::SIZE_EXPAND_FILL);
+			default_project_path_hb->add_child(default_project_path_edit);
+
+			default_project_path_button = memnew(Button);
+			default_project_path_button->set_clip_text(true);
+			default_project_path_button->connect(SceneStringName(pressed), callable_mp(this, &QuickSettingsDialog::_default_project_path_button_pressed));
+			default_project_path_hb->add_child(default_project_path_button);
+
+			default_project_path_dialog = memnew(EditorFileDialog);
+			default_project_path_dialog->set_previews_enabled(false);
+			default_project_path_dialog->set_access(EditorFileDialog::ACCESS_FILESYSTEM);
+			default_project_path_dialog->set_file_mode(EditorFileDialog::FILE_MODE_OPEN_DIR);
+			default_project_path_dialog->connect("dir_selected", callable_mp(this, &QuickSettingsDialog::_default_project_path_selected));
+			add_child(default_project_path_dialog);
+
+			_add_setting_control(TTR("Default Project Path"), default_project_path_hb);
 		}
 
 		_update_current_values();
