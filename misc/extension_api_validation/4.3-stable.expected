@@ -309,3 +309,11 @@ Validate extension JSON: API was removed: classes/EditorSceneFormatImporter/meth
 
 This virtual method, and the internal public `get_import_flags`, were never used by the engine, since it was open sourced.
 So we're removing it despite the compat breakage as there's no way for users to rely on this affecting engine behavior.
+
+
+GH-99297
+--------
+Validate extension JSON: Error: Field 'classes/EditorTranslationParserPlugin/methods/_parse_file/arguments': size changed value in new API, from 3 to 1.
+Validate extension JSON: JSON file: Field was added in a way that breaks compatibility 'classes/EditorTranslationParserPlugin/methods/_parse_file': return_value
+
+Returning by argument reference is not safe in extensions, changed to returning as an Array and merged with `get_comments`. Compatibilikty method registered.

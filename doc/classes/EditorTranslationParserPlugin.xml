@@ -99,14 +99,6 @@
 	<tutorials>
 	</tutorials>
 	<methods>
-		<method name="_get_comments" qualifiers="virtual">
-			<return type="void" />
-			<param index="0" name="msgids_comment" type="String[]" />
-			<param index="1" name="msgids_context_plural_comment" type="String[]" />
-			<description>
-				If overridden, called after [method _parse_file] to get comments for the parsed entries. This method should fill the arrays with the same number of elements and in the same order as [method _parse_file].
-			</description>
-		</method>
 		<method name="_get_recognized_extensions" qualifiers="virtual const">
 			<return type="PackedStringArray" />
 			<description>
@@ -114,10 +106,8 @@
 			</description>
 		</method>
 		<method name="_parse_file" qualifiers="virtual">
-			<return type="void" />
+			<return type="PackedStringArray[]" />
 			<param index="0" name="path" type="String" />
-			<param index="1" name="msgids" type="String[]" />
-			<param index="2" name="msgids_context_plural" type="Array[]" />
 			<description>
 				Override this method to define a custom parsing logic to extract the translatable strings.
 			</description>

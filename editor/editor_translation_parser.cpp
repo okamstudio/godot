@@ -36,11 +36,57 @@
 
 EditorTranslationParser *EditorTranslationParser::singleton = nullptr;
 
-Error EditorTranslationParserPlugin::parse_file(const String &p_path, Vector<String> *r_ids, Vector<Vector<String>> *r_ids_ctx_plural) {
+Error EditorTranslationParserPlugin::parse_file(const String &p_path, Vector<String> *r_ids, Vector<String> *r_ctxts, Vector<String> *r_ids_plural, Vector<String> *r_comments) {
+	TypedArray<PackedStringArray> ret;
+
+	if (GDVIRTUAL_CALL(_parse_file, p_path, ret)) {
+		// Must contain at least one entry.
+		ERR_FAIL_COND_V_MSG(ret.is_empty(), ERR_INVALID_DATA, "TODO");
+
+		// Extract IDs.
+		const PackedStringArray ids = ret[0];
+		for (const String &id : ids) {
+			r_ids->push_back(id);
+		}
+
+		if (ret.size() == 1) {
+			return OK;
+		}
+
+		// Maybe extract contexts.
+		const PackedStringArray ctxts = ret[1];
+		for (const String &ctxt : ctxts) {
+			r_ctxts->push_back(ctxt);
+		}
+
+		if (ret.size() == 2) {
+			return OK;
+		}
+
+		// Maybe extract plural ids.
+		const PackedStringArray ids_plural = ret[2];
+		for (const String &id_plural : ids_plural) {
+			r_ids_plural->push_back(id_plural);
+		}
+
+		if (ret.size() == 3) {
+			return OK;
+		}
+
+		// Maybe extract comments.
+		const PackedStringArray comments = ret[3];
+		for (const String &comment : comments) {
+			r_comments->push_back(comment);
+		}
+
+		return OK;
+	}
+
+#ifndef DISABLE_DEPRECATED
 	TypedArray<String> ids;
 	TypedArray<Array> ids_ctx_plural;
 
-	if (GDVIRTUAL_CALL(_parse_file, p_path, ids, ids_ctx_plural)) {
+	if (GDVIRTUAL_CALL(_parse_file_bind_compat_99297, p_path, ids, ids_ctx_plural)) {
 		// Add user's extracted translatable messages.
 		for (int i = 0; i < ids.size(); i++) {
 			r_ids->append(ids[i]);
@@ -51,32 +97,16 @@ Error EditorTranslationParserPlugin::parse_file(const String &p_path, Vector<Str
 			Array arr = ids_ctx_plural[i];
 			ERR_FAIL_COND_V_MSG(arr.size() != 3, ERR_INVALID_DATA, "Array entries written into `msgids_context_plural` in `parse_file()` method should have the form [\"message\", \"context\", \"plural message\"]");
 
-			Vector<String> id_ctx_plural;
-			id_ctx_plural.push_back(arr[0]);
-			id_ctx_plural.push_back(arr[1]);
-			id_ctx_plural.push_back(arr[2]);
-			r_ids_ctx_plural->append(id_ctx_plural);
+			r_ids->push_back(arr[0]);
+			r_ctxts->push_back(arr[1]);
+			r_ids_plural->push_back(arr[2]);
 		}
 		return OK;
-	} else {
-		ERR_PRINT("Custom translation parser plugin's \"func parse_file(path, extracted_strings)\" is undefined.");
-		return ERR_UNAVAILABLE;
 	}
-}
+#endif // DISABLE_DEPRECATED
 
-void EditorTranslationParserPlugin::get_comments(Vector<String> *r_ids_comment, Vector<String> *r_ids_ctx_plural_comment) {
-	TypedArray<String> ids_comment;
-	TypedArray<String> ids_ctx_plural_comment;
-
-	if (GDVIRTUAL_CALL(_get_comments, ids_comment, ids_ctx_plural_comment)) {
-		for (int i = 0; i < ids_comment.size(); i++) {
-			r_ids_comment->append(ids_comment[i]);
-		}
-
-		for (int i = 0; i < ids_ctx_plural_comment.size(); i++) {
-			r_ids_ctx_plural_comment->append(ids_ctx_plural_comment[i]);
-		}
-	}
+	ERR_PRINT("Custom translation parser plugin's \"func parse_file(path, extracted_strings)\" is undefined.");
+	return ERR_UNAVAILABLE;
 }
 
 void EditorTranslationParserPlugin::get_recognized_extensions(List<String> *r_extensions) const {
@@ -91,9 +121,12 @@ void EditorTranslationParserPlugin::get_recognized_extensions(List<String> *r_ex
 }
 
 void EditorTranslationParserPlugin::_bind_methods() {
-	GDVIRTUAL_BIND(_parse_file, "path", "msgids", "msgids_context_plural");
-	GDVIRTUAL_BIND(_get_comments, "msgids_comment", "msgids_context_plural_comment");
+	GDVIRTUAL_BIND(_parse_file, "path");
 	GDVIRTUAL_BIND(_get_recognized_extensions);
+
+#ifndef DISABLE_DEPRECATED
+	GDVIRTUAL_BIND_COMPAT(_parse_file_bind_compat_99297, "path", "msgids", "msgids_context_plural");
+#endif
 }
 
 /////////////////////////
