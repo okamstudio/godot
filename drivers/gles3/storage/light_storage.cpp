@@ -1215,6 +1215,9 @@ void LightStorage::lightmap_set_shadowmask_textures(RID p_lightmap, RID p_shadow
 	ERR_FAIL_NULL(lightmap);
 	lightmap->shadow_texture = p_shadow;
 
+	Vector3i shadow_texture_size = GLES3::TextureStorage::get_singleton()->texture_get_size(lightmap->shadow_texture);
+	lightmap->shadow_texture_size = Vector2i(shadow_texture_size.x, shadow_texture_size.y);
+
 	GLuint tex = GLES3::TextureStorage::get_singleton()->texture_get_texid(lightmap->shadow_texture);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, tex);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

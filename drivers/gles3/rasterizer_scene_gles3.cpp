@@ -3398,6 +3398,9 @@ void RasterizerSceneGLES3::_render_list_template(RenderListParameters *p_params,
 							if (lightmap_bicubic_upscale) {
 								Vector2 light_texture_size(lm->light_texture_size.x, lm->light_texture_size.y);
 								material_storage->shaders.scene_shader.version_set_uniform(SceneShaderGLES3::LIGHTMAP_TEXTURE_SIZE, light_texture_size, shader->version, instance_variant, spec_constants);
+
+								Vector2 shadow_texture_size(lm->shadow_texture_size.x, lm->shadow_texture_size.y);
+								material_storage->shaders.scene_shader.version_set_uniform(SceneShaderGLES3::SHADOWMASK_TEXTURE_SIZE, shadow_texture_size, shader->version, instance_variant, spec_constants);
 							}
 
 							material_storage->shaders.scene_shader.version_set_uniform(SceneShaderGLES3::LIGHTMAP_SHADOWMASK_MODE, (uint32_t)lm->shadowmask_mode, shader->version, instance_variant, spec_constants);

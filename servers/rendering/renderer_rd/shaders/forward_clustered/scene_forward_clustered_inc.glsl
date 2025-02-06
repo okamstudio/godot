@@ -207,7 +207,8 @@ directional_lights;
 
 struct Lightmap {
 	mat3 normal_xform;
-	vec2 light_texture_size;
+	uvec2 light_texture_size;
+	uvec2 shadow_texture_size;
 	float exposure_normalization;
 	uint flags;
 };
