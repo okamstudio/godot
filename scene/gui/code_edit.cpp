@@ -95,11 +95,26 @@ void CodeEdit::_notification(int p_what) {
 
 			if (caret_visible) {
 				const bool draw_code_completion = code_completion_active && !code_completion_options.is_empty();
-				const bool draw_code_hint = !code_hint.is_empty();
+				const bool display_code_hint = !code_hint.is_empty() || code_hint_custom_control != nullptr;
 
 				/* Code hint */
 				Size2 code_hint_minsize;
-				if (draw_code_hint) {
+				if (code_hint_custom_control != nullptr) {
+					code_hint_minsize = code_hint_custom_control->get_combined_minimum_size();
+
+					//int offset = theme_cache.font->get_string_size(code_hint_lines[0].substr(0, code_hint_lines[0].find(String::chr(0xFFFF))), HORIZONTAL_ALIGNMENT_LEFT, -1, theme_cache.font_size).x;
+					if (code_hint_xpos == -0xFFFF) {
+						code_hint_xpos = get_caret_draw_pos().x /*- offset*/;
+					}
+					Point2 hint_ofs = Vector2(code_hint_xpos, get_caret_draw_pos().y);
+					if (code_hint_draw_below) {
+						hint_ofs.y += theme_cache.line_spacing / 2.0f;
+					} else {
+						hint_ofs.y -= (code_hint_minsize.y + row_height) - theme_cache.line_spacing;
+					}
+
+					code_hint_custom_control->set_position(hint_ofs);
+				} else if (!code_hint.is_empty()) {
 					const int font_height = theme_cache.font->get_height(theme_cache.font_size);
 
 					Vector<String> code_hint_lines = code_hint.split("\n");
@@ -166,7 +181,7 @@ void CodeEdit::_notification(int p_what) {
 					const int total_height = theme_cache.code_completion_style->get_minimum_size().y + code_completion_rect.size.height;
 					int min_y = caret_pos.y - row_height;
 					int max_y = caret_pos.y + row_height + total_height;
-					if (draw_code_hint) {
+					if (display_code_hint) {
 						if (code_hint_draw_below) {
 							max_y += code_hint_minsize.y;
 						} else {
@@ -178,12 +193,12 @@ void CodeEdit::_notification(int p_what) {
 					const bool can_fit_completion_below = (max_y <= get_size().height);
 					if (!can_fit_completion_below && can_fit_completion_above) {
 						code_completion_rect.position.y = (caret_pos.y - total_height - row_height) + theme_cache.line_spacing;
-						if (draw_code_hint && !code_hint_draw_below) {
+						if (display_code_hint && !code_hint_draw_below) {
 							code_completion_rect.position.y -= code_hint_minsize.y;
 						}
 					} else {
 						code_completion_rect.position.y = caret_pos.y + (theme_cache.line_spacing / 2.0f);
-						if (draw_code_hint && code_hint_draw_below) {
+						if (display_code_hint && code_hint_draw_below) {
 							code_completion_rect.position.y += code_hint_minsize.y;
 						}
 					}
@@ -388,6 +403,7 @@ void CodeEdit::gui_input(const Ref<InputEvent> &p_gui_input) {
 
 		cancel_code_completion();
 		set_code_hint("");
+		set_code_hint_custom_control(nullptr);
 
 		if (mb->is_pressed()) {
 			Vector2i mpos = mb->get_position();
@@ -595,8 +611,9 @@ void CodeEdit::gui_input(const Ref<InputEvent> &p_gui_input) {
 	}
 
 	/* MISC */
-	if (!code_hint.is_empty() && k->is_action("ui_cancel", true)) {
+	if ((!code_hint.is_empty() || code_hint_custom_control != nullptr) && k->is_action("ui_cancel", true)) {
 		set_code_hint("");
+		set_code_hint_custom_control(nullptr);
 		accept_event();
 		return;
 	}
@@ -645,6 +662,7 @@ void CodeEdit::gui_input(const Ref<InputEvent> &p_gui_input) {
 			k->is_action("ui_text_caret_page_up", true) ||
 			k->is_action("ui_text_caret_page_down", true)) {
 		set_code_hint("");
+		set_code_hint_custom_control(nullptr);
 	}
 
 	TextEdit::gui_input(p_gui_input);
@@ -2059,6 +2077,21 @@ void CodeEdit::set_code_hint(const String &p_hint) {
 		return;
 	}
 	code_hint = p_hint;
+	code_hint_xpos = -0xFFFF;
+	queue_redraw();
+}
+
+void CodeEdit::set_code_hint_custom_control(Control *p_control) {
+	if (code_hint_custom_control == p_control) {
+		return;
+	}
+	if (code_hint_custom_control != nullptr) {
+		code_hint_custom_control->queue_free();
+	}
+	code_hint_custom_control = p_control;
+	if (code_hint_custom_control != nullptr) {
+		add_child(p_control, false, INTERNAL_MODE_BACK);
+	}
 	code_hint_xpos = -0xFFFF;
 	queue_redraw();
 }

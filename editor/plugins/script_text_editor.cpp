@@ -875,15 +875,27 @@ void ScriptTextEditor::_code_complete_script(const String &p_code, List<ScriptLa
 	if (color_panel->is_visible()) {
 		return;
 	}
+
 	Node *base = get_tree()->get_edited_scene_root();
 	if (base) {
 		base = _find_node_for_script(base, base, script);
 	}
-	String hint;
-	Error err = script->get_language()->complete_code(p_code, script->get_path(), base, r_options, r_force, hint);
+
+	String call_hint;
+	int arg_index;
+	ScriptLanguage::LookupResult lookup_result;
+	lookup_result.type = ScriptLanguage::LOOKUP_RESULT_MAX;
+	Error err = script->get_language()->complete_code(p_code, script->get_path(), base, r_options, r_force, call_hint, arg_index, lookup_result);
 
 	if (err == OK) {
-		code_editor->get_text_editor()->set_code_hint(hint);
+		if (lookup_result.type != ScriptLanguage::LOOKUP_RESULT_MAX) {
+			const String doc_symbol = _doc_symbol_from_lookup_result(lookup_result.class_member, lookup_result);
+			EditorHelpBit *help_bit = memnew(EditorHelpBit(doc_symbol, String(), false, false, arg_index));
+			code_editor->get_text_editor()->set_code_hint_custom_control(help_bit);
+			help_bit->update_content_height();
+		} else {
+			code_editor->get_text_editor()->set_code_hint(call_hint);
+		}
 	}
 }
 
@@ -1102,6 +1114,95 @@ void ScriptTextEditor::_validate_symbol(const String &p_symbol) {
 	}
 }
 
+String ScriptTextEditor::_doc_symbol_from_lookup_result(const String &p_symbol, const ScriptLanguage::LookupResult &p_result) {
+	String class_name = p_result.class_name;
+	switch (p_result.type) {
+		case ScriptLanguage::LOOKUP_RESULT_CLASS: {
+			return "class|" + class_name + "|";
+		} break;
+		case ScriptLanguage::LOOKUP_RESULT_CLASS_CONSTANT: {
+			StringName cname = class_name;
+			while (ClassDB::class_exists(cname)) {
+				if (ClassDB::has_integer_constant(cname, p_result.class_member, true)) {
+					class_name = cname;
+					break;
+				}
+				cname = ClassDB::get_parent_class(cname);
+			}
+			return "constant|" + class_name + "|" + p_result.class_member;
+		} break;
+		case ScriptLanguage::LOOKUP_RESULT_CLASS_PROPERTY: {
+			StringName cname = class_name;
+			while (ClassDB::class_exists(cname)) {
+				if (ClassDB::has_property(cname, p_result.class_member, true)) {
+					class_name = cname;
+					break;
+				}
+				cname = ClassDB::get_parent_class(cname);
+			}
+			return "property|" + class_name + "|" + p_result.class_member;
+		} break;
+		case ScriptLanguage::LOOKUP_RESULT_CLASS_METHOD: {
+			StringName cname = class_name;
+			while (ClassDB::class_exists(cname)) {
+				if (ClassDB::has_method(cname, p_result.class_member, true)) {
+					class_name = cname;
+					break;
+				}
+				cname = ClassDB::get_parent_class(cname);
+			}
+			return "method|" + class_name + "|" + p_result.class_member;
+		} break;
+		case ScriptLanguage::LOOKUP_RESULT_CLASS_SIGNAL: {
+			StringName cname = class_name;
+			while (ClassDB::class_exists(cname)) {
+				if (ClassDB::has_signal(cname, p_result.class_member, true)) {
+					class_name = cname;
+					break;
+				}
+				cname = ClassDB::get_parent_class(cname);
+			}
+			return "signal|" + class_name + "|" + p_result.class_member;
+		} break;
+		case ScriptLanguage::LOOKUP_RESULT_CLASS_ENUM: {
+			StringName cname = class_name;
+			while (ClassDB::class_exists(cname)) {
+				if (ClassDB::has_enum(cname, p_result.class_member, true)) {
+					class_name = cname;
+					break;
+				}
+				cname = ClassDB::get_parent_class(cname);
+			}
+			return "enum|" + class_name + "|" + p_result.class_member;
+		} break;
+		case ScriptLanguage::LOOKUP_RESULT_CLASS_ANNOTATION: {
+			return "annotation|" + class_name + "|" + p_result.class_member;
+		} break;
+		case ScriptLanguage::LOOKUP_RESULT_LOCAL_CONSTANT:
+		case ScriptLanguage::LOOKUP_RESULT_LOCAL_VARIABLE: {
+			const String item_type = (p_result.type == ScriptLanguage::LOOKUP_RESULT_LOCAL_CONSTANT) ? "local_constant" : "local_variable";
+			Dictionary item_data;
+			item_data["description"] = p_result.description;
+			item_data["is_deprecated"] = p_result.is_deprecated;
+			item_data["deprecated_message"] = p_result.deprecated_message;
+			item_data["is_experimental"] = p_result.is_experimental;
+			item_data["experimental_message"] = p_result.experimental_message;
+			item_data["doc_type"] = p_result.doc_type;
+			item_data["enumeration"] = p_result.enumeration;
+			item_data["is_bitfield"] = p_result.is_bitfield;
+			item_data["value"] = p_result.value;
+			return item_type + "||" + p_symbol + "|" + JSON::stringify(item_data);
+		} break;
+		case ScriptLanguage::LOOKUP_RESULT_SCRIPT_LOCATION:
+		case ScriptLanguage::LOOKUP_RESULT_CLASS_TBD_GLOBALSCOPE: // Deprecated.
+		case ScriptLanguage::LOOKUP_RESULT_MAX: {
+			// Nothing to do.
+		} break;
+	}
+
+	return String();
+}
+
 void ScriptTextEditor::_show_symbol_tooltip(const String &p_symbol, int p_row, int p_column) {
 	if (p_symbol.begins_with("res://") || p_symbol.begins_with("uid://")) {
 		EditorHelpBitTooltip::show_tooltip(code_editor->get_text_editor(), "resource||" + p_symbol);
@@ -1118,89 +1219,7 @@ void ScriptTextEditor::_show_symbol_tooltip(const String &p_symbol, int p_row, i
 	const String code_text = code_editor->get_text_editor()->get_text_with_cursor_char(p_row, p_column);
 	const Error lc_error = script->get_language()->lookup_code(code_text, p_symbol, script->get_path(), base, result);
 	if (lc_error == OK) {
-		switch (result.type) {
-			case ScriptLanguage::LOOKUP_RESULT_CLASS: {
-				doc_symbol = "class|" + result.class_name + "|";
-			} break;
-			case ScriptLanguage::LOOKUP_RESULT_CLASS_CONSTANT: {
-				StringName cname = result.class_name;
-				while (ClassDB::class_exists(cname)) {
-					if (ClassDB::has_integer_constant(cname, result.class_member, true)) {
-						result.class_name = cname;
-						break;
-					}
-					cname = ClassDB::get_parent_class(cname);
-				}
-				doc_symbol = "constant|" + result.class_name + "|" + result.class_member;
-			} break;
-			case ScriptLanguage::LOOKUP_RESULT_CLASS_PROPERTY: {
-				StringName cname = result.class_name;
-				while (ClassDB::class_exists(cname)) {
-					if (ClassDB::has_property(cname, result.class_member, true)) {
-						result.class_name = cname;
-						break;
-					}
-					cname = ClassDB::get_parent_class(cname);
-				}
-				doc_symbol = "property|" + result.class_name + "|" + result.class_member;
-			} break;
-			case ScriptLanguage::LOOKUP_RESULT_CLASS_METHOD: {
-				StringName cname = result.class_name;
-				while (ClassDB::class_exists(cname)) {
-					if (ClassDB::has_method(cname, result.class_member, true)) {
-						result.class_name = cname;
-						break;
-					}
-					cname = ClassDB::get_parent_class(cname);
-				}
-				doc_symbol = "method|" + result.class_name + "|" + result.class_member;
-			} break;
-			case ScriptLanguage::LOOKUP_RESULT_CLASS_SIGNAL: {
-				StringName cname = result.class_name;
-				while (ClassDB::class_exists(cname)) {
-					if (ClassDB::has_signal(cname, result.class_member, true)) {
-						result.class_name = cname;
-						break;
-					}
-					cname = ClassDB::get_parent_class(cname);
-				}
-				doc_symbol = "signal|" + result.class_name + "|" + result.class_member;
-			} break;
-			case ScriptLanguage::LOOKUP_RESULT_CLASS_ENUM: {
-				StringName cname = result.class_name;
-				while (ClassDB::class_exists(cname)) {
-					if (ClassDB::has_enum(cname, result.class_member, true)) {
-						result.class_name = cname;
-						break;
-					}
-					cname = ClassDB::get_parent_class(cname);
-				}
-				doc_symbol = "enum|" + result.class_name + "|" + result.class_member;
-			} break;
-			case ScriptLanguage::LOOKUP_RESULT_CLASS_ANNOTATION: {
-				doc_symbol = "annotation|" + result.class_name + "|" + result.class_member;
-			} break;
-			case ScriptLanguage::LOOKUP_RESULT_LOCAL_CONSTANT:
-			case ScriptLanguage::LOOKUP_RESULT_LOCAL_VARIABLE: {
-				const String item_type = (result.type == ScriptLanguage::LOOKUP_RESULT_LOCAL_CONSTANT) ? "local_constant" : "local_variable";
-				Dictionary item_data;
-				item_data["description"] = result.description;
-				item_data["is_deprecated"] = result.is_deprecated;
-				item_data["deprecated_message"] = result.deprecated_message;
-				item_data["is_experimental"] = result.is_experimental;
-				item_data["experimental_message"] = result.experimental_message;
-				item_data["doc_type"] = result.doc_type;
-				item_data["enumeration"] = result.enumeration;
-				item_data["is_bitfield"] = result.is_bitfield;
-				item_data["value"] = result.value;
-				doc_symbol = item_type + "||" + p_symbol + "|" + JSON::stringify(item_data);
-			} break;
-			case ScriptLanguage::LOOKUP_RESULT_SCRIPT_LOCATION:
-			case ScriptLanguage::LOOKUP_RESULT_CLASS_TBD_GLOBALSCOPE: // Deprecated.
-			case ScriptLanguage::LOOKUP_RESULT_MAX: {
-				// Nothing to do.
-			} break;
-		}
+		doc_symbol = _doc_symbol_from_lookup_result(p_symbol, result);
 	}
 
 	String debug_value = EditorDebuggerNode::get_singleton()->get_var_value(p_symbol);

@@ -888,8 +888,12 @@ static void _get_directory_contents(EditorFileSystemDirectory *p_dir, HashMap<St
 	}
 }
 
-static void _find_annotation_arguments(const GDScriptParser::AnnotationNode *p_annotation, int p_argument, const String p_quote_style, HashMap<String, ScriptLanguage::CodeCompletionOption> &r_result, String &r_arghint) {
+static void _find_annotation_arguments(const GDScriptParser::AnnotationNode *p_annotation, int p_argument, const String p_quote_style, HashMap<String, ScriptLanguage::CodeCompletionOption> &r_result, String &r_arghint, ScriptLanguage::LookupResult &r_lookup_result) {
 	r_arghint = _make_arguments_hint(p_annotation->info->info, p_argument, true);
+	r_lookup_result.type = ScriptLanguage::LOOKUP_RESULT_CLASS_ANNOTATION;
+	r_lookup_result.class_name = "@GDScript";
+	r_lookup_result.class_member = p_annotation->name;
+
 	if (p_annotation->name == SNAME("@export_range")) {
 		if (p_argument == 3 || p_argument == 4 || p_argument == 5) {
 			// Slider hint.
@@ -2760,7 +2764,7 @@ static void _find_enumeration_candidates(GDScriptParser::CompletionContext &p_co
 	}
 }
 
-static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, const GDScriptCompletionIdentifier &p_base, const StringName &p_method, int p_argidx, bool p_static, HashMap<String, ScriptLanguage::CodeCompletionOption> &r_result, String &r_arghint) {
+static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, const GDScriptCompletionIdentifier &p_base, const StringName &p_method, int p_argidx, bool p_static, HashMap<String, ScriptLanguage::CodeCompletionOption> &r_result, String &r_arghint, ScriptLanguage::LookupResult &r_lookup_result) {
 	Variant base = p_base.value;
 	GDScriptParser::DataType base_type = p_base.type;
 
@@ -2780,6 +2784,15 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 
 							if (member.type == GDScriptParser::ClassNode::Member::FUNCTION) {
 								r_arghint = base_type.class_type->get_datatype().to_string() + " new" + _make_arguments_hint(member.function, p_argidx, true);
+
+								/*String type_name;
+								String enum_name;
+								GDScriptDocGen::doctype_from_gdtype(GDScriptAnalyzer::type_from_metatype(base_type), type_name, enum_name);
+
+								r_lookup_result.type = ScriptLanguage::LOOKUP_RESULT_CLASS_METHOD;
+								r_lookup_result.class_name = type_name;
+								r_lookup_result.class_member = "_init";*/
+
 								return;
 							}
 						}
@@ -2795,6 +2808,15 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 
 					if (member.type == GDScriptParser::ClassNode::Member::FUNCTION) {
 						r_arghint = _make_arguments_hint(member.function, p_argidx);
+
+						/*String type_name;
+						String enum_name;
+						GDScriptDocGen::doctype_from_gdtype(GDScriptAnalyzer::type_from_metatype(base_type), type_name, enum_name);
+
+						r_lookup_result.type = ScriptLanguage::LOOKUP_RESULT_CLASS_METHOD;
+						r_lookup_result.class_name = type_name;
+						r_lookup_result.class_member = p_method;*/
+
 						return;
 					}
 				}
@@ -2804,6 +2826,9 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 			case GDScriptParser::DataType::SCRIPT: {
 				if (base_type.script_type->is_valid() && base_type.script_type->has_method(p_method)) {
 					r_arghint = _make_arguments_hint(base_type.script_type->get_method_info(p_method), p_argidx);
+					/*r_lookup_result.type = ScriptLanguage::LOOKUP_RESULT_CLASS_METHOD;
+					r_lookup_result.class_name = base_type.script_type->get_doc_class_name();
+					r_lookup_result.class_member = p_method;*/
 					return;
 				}
 				Ref<Script> base_script = base_type.script_type->get_base_script();
@@ -2856,6 +2881,9 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 					}
 
 					r_arghint = _make_arguments_hint(info, p_argidx);
+					r_lookup_result.type = ScriptLanguage::LOOKUP_RESULT_CLASS_METHOD;
+					r_lookup_result.class_name = class_name;
+					r_lookup_result.class_member = p_method;
 				}
 
 				if (p_argidx == 1 && p_context.node && p_context.node->type == GDScriptParser::Node::CALL && ClassDB::is_parent_class(class_name, SNAME("Tween")) && p_method == SNAME("tween_property")) {
@@ -3000,6 +3028,9 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 				for (const MethodInfo &E : methods) {
 					if (E.name == p_method) {
 						r_arghint = _make_arguments_hint(E, p_argidx);
+						r_lookup_result.type = ScriptLanguage::LOOKUP_RESULT_CLASS_METHOD;
+						r_lookup_result.class_name = Variant::get_type_name(base_type.builtin_type);
+						r_lookup_result.class_member = p_method;
 						return;
 					}
 				}
@@ -3094,7 +3125,7 @@ static bool _get_subscript_type(GDScriptParser::CompletionContext &p_context, co
 	return false;
 }
 
-static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, const GDScriptParser::Node *p_call, int p_argidx, HashMap<String, ScriptLanguage::CodeCompletionOption> &r_result, bool &r_forced, String &r_arghint) {
+static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, const GDScriptParser::Node *p_call, int p_argidx, HashMap<String, ScriptLanguage::CodeCompletionOption> &r_result, bool &r_forced, String &r_arghint, ScriptLanguage::LookupResult &r_lookup_result) {
 	if (p_call->type == GDScriptParser::Node::PRELOAD) {
 		if (p_argidx == 0 && bool(EDITOR_GET("text_editor/completion/complete_file_paths"))) {
 			_get_directory_contents(EditorFileSystem::get_singleton()->get_filesystem(), r_result);
@@ -3102,6 +3133,9 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 
 		MethodInfo mi(PropertyInfo(Variant::OBJECT, "resource", PROPERTY_HINT_RESOURCE_TYPE, "Resource"), "preload", PropertyInfo(Variant::STRING, "path"));
 		r_arghint = _make_arguments_hint(mi, p_argidx);
+		r_lookup_result.type = ScriptLanguage::LOOKUP_RESULT_CLASS_METHOD;
+		r_lookup_result.class_name = "@GDScript";
+		r_lookup_result.class_member = "preload";
 		return;
 	} else if (p_call->type != GDScriptParser::Node::CALL) {
 		return;
@@ -3196,12 +3230,12 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 	GDScriptCompletionIdentifier ci;
 	ci.type = base_type;
 	ci.value = base;
-	_find_call_arguments(p_context, ci, call->function_name, p_argidx, _static, r_result, r_arghint);
+	_find_call_arguments(p_context, ci, call->function_name, p_argidx, _static, r_result, r_arghint, r_lookup_result);
 
 	r_forced = r_result.size() > 0;
 }
 
-::Error GDScriptLanguage::complete_code(const String &p_code, const String &p_path, Object *p_owner, List<ScriptLanguage::CodeCompletionOption> *r_options, bool &r_forced, String &r_call_hint) {
+::Error GDScriptLanguage::complete_code(const String &p_code, const String &p_path, Object *p_owner, List<ScriptLanguage::CodeCompletionOption> *r_options, bool &r_forced, String &r_call_hint, int &r_arg_index, LookupResult &r_lookup_result) {
 	const String quote_style = EDITOR_GET("text_editor/completion/use_single_quotes") ? "'" : "\"";
 
 	GDScriptParser parser;
@@ -3239,7 +3273,8 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 				break;
 			}
 			const GDScriptParser::AnnotationNode *annotation = static_cast<const GDScriptParser::AnnotationNode *>(completion_context.node);
-			_find_annotation_arguments(annotation, completion_context.current_argument, quote_style, options, r_call_hint);
+			r_arg_index = completion_context.current_argument;
+			_find_annotation_arguments(annotation, completion_context.current_argument, quote_style, options, r_call_hint, r_lookup_result);
 			r_forced = true;
 		} break;
 		case GDScriptParser::COMPLETION_BUILT_IN_TYPE_CONSTANT_OR_STATIC_METHOD: {
@@ -3448,7 +3483,8 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 			if (!completion_context.node) {
 				break;
 			}
-			_find_call_arguments(completion_context, completion_context.node, completion_context.current_argument, options, r_forced, r_call_hint);
+			r_arg_index = completion_context.current_argument;
+			_find_call_arguments(completion_context, completion_context.node, completion_context.current_argument, options, r_forced, r_call_hint, r_lookup_result);
 		} break;
 		case GDScriptParser::COMPLETION_OVERRIDE_METHOD: {
 			GDScriptParser::DataType native_type = completion_context.current_class->base_type;
@@ -3588,7 +3624,7 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 
 #else // !TOOLS_ENABLED
 
-Error GDScriptLanguage::complete_code(const String &p_code, const String &p_path, Object *p_owner, List<ScriptLanguage::CodeCompletionOption> *r_options, bool &r_forced, String &r_call_hint) {
+Error GDScriptLanguage::complete_code(const String &p_code, const String &p_path, Object *p_owner, List<ScriptLanguage::CodeCompletionOption> *r_options, bool &r_forced, String &r_call_hint, int &r_arg_index, LookupResult &r_lookup_result) {
 	return OK;
 }
 

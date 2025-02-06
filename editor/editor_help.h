@@ -293,6 +293,7 @@ class EditorHelpBit : public VBoxContainer {
 	RichTextLabel *content = nullptr;
 
 	bool use_class_prefix = false;
+	int arg_index = -1;
 
 	String symbol_doc_link;
 	String symbol_class_name;
@@ -330,7 +331,7 @@ public:
 	void set_content_height_limits(float p_min, float p_max);
 	void update_content_height();
 
-	EditorHelpBit(const String &p_symbol = String(), const String &p_prologue = String(), bool p_use_class_prefix = false, bool p_allow_selection = true);
+	EditorHelpBit(const String &p_symbol = String(), const String &p_prologue = String(), bool p_use_class_prefix = false, bool p_allow_selection = true, int p_arg_index = -1);
 };
 
 // Standard tooltips do not allow you to hover over them.

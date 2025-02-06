@@ -201,6 +201,7 @@ protected:
 	void _lookup_symbol(const String &p_symbol, int p_row, int p_column);
 	void _validate_symbol(const String &p_symbol);
 
+	static String _doc_symbol_from_lookup_result(const String &p_symbol, const ScriptLanguage::LookupResult &p_result);
 	void _show_symbol_tooltip(const String &p_symbol, int p_row, int p_column);
 
 	void _convert_case(CodeTextEditor::CaseStyle p_case);
