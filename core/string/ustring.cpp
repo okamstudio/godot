@@ -2108,14 +2108,9 @@ Error String::parse_utf8(const char *p_utf8, int p_len, bool p_skip_cr) {
 	}
 }
 
-CharString String::utf8() const {
-	int l = length();
-	if (!l) {
-		return CharString();
-	}
-
-	const char32_t *d = &operator[](0);
-	int fl = 0;
+static int _utf8_length(const String &s) {
+	int fl = 0, l = s.length();
+	const char32_t *d = s.ptr();
 	for (int i = 0; i < l; i++) {
 		uint32_t c = d[i];
 		if (c <= 0x7f) { // 7 bits.
@@ -2128,23 +2123,43 @@ CharString String::utf8() const {
 			fl += 4;
 		} else if (c <= 0x03ffffff) { // 26 bits
 			fl += 5;
-			print_unicode_error(vformat("Invalid unicode codepoint (%x)", c));
+			s.print_unicode_error(vformat("Invalid unicode codepoint (%x)", c));
 		} else if (c <= 0x7fffffff) { // 31 bits
 			fl += 6;
-			print_unicode_error(vformat("Invalid unicode codepoint (%x)", c));
+			s.print_unicode_error(vformat("Invalid unicode codepoint (%x)", c));
 		} else {
 			fl += 1;
-			print_unicode_error(vformat("Invalid unicode codepoint (%x), cannot represent as UTF-8", c), true);
+			s.print_unicode_error(vformat("Invalid unicode codepoint (%x), cannot represent as UTF-8", c), true);
 		}
 	}
+	return fl;
+}
+
+CharString String::utf8() const {
+	int l = length();
+	if (!l) {
+		return CharString();
+	}
+
+	int fl = _utf8_length(*this);
+	const bool is_ascii = (fl == l);
 
 	CharString utf8s;
 	if (fl == 0) {
 		return utf8s;
 	}
 
+	const char32_t *d = ptr();
 	utf8s.resize(fl + 1);
 	uint8_t *cdst = (uint8_t *)utf8s.get_data();
+
+	if (is_ascii) {
+		while (l--) {
+			*cdst++ = (uint8_t)*d++;
+		}
+		*cdst = '\0';
+		return utf8s;
+	}
 
 #define APPEND_CHAR(m_c) *(cdst++) = m_c
 
