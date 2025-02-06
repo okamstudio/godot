@@ -466,6 +466,10 @@ public:
 	int get_child_count(bool p_include_internal = true) const;
 	Node *get_child(int p_index, bool p_include_internal = true) const;
 	TypedArray<Node> get_children(bool p_include_internal = true) const;
+	TypedArray<Node> get_descendants(bool p_include_internal = true) const;
+	int get_descendant_count(bool p_include_internal = true) const;
+	TypedArray<Node> get_ancestors() const;
+	int get_ancestor_count() const;
 	bool has_node(const NodePath &p_path) const;
 	Node *get_node(const NodePath &p_path) const;
 	Node *get_node_or_null(const NodePath &p_path) const;
