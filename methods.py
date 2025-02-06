@@ -113,6 +113,14 @@ def add_module_version_string(self, s):
     self.module_version_string += "." + s
 
 
+def is_custom_branch_name(branch_name: str) -> bool:
+    """
+    Returns True if the branch name is a custom branch name (i.e. not a branch name used for official Godot maintenance such as "4.3"),
+    False otherwise.
+    """
+    return branch_name != "master" and not (branch_name[0].isdigit() and len(branch_name) == 3)
+
+
 def get_version_info(module_version_string="", silent=False):
     build_name = "custom_build"
     if os.getenv("BUILD_NAME") is not None:
@@ -144,6 +152,7 @@ def get_version_info(module_version_string="", silent=False):
 
     # Parse Git hash if we're in a Git repo.
     githash = ""
+    gitbranch = ""
     gitfolder = ".git"
 
     if os.path.isfile(".git"):
@@ -166,6 +175,9 @@ def get_version_info(module_version_string="", silent=False):
             if os.path.isfile(head):
                 with open(head, "r", encoding="utf-8") as file:
                     githash = file.readline().strip()
+                    branch = head.split("/")[-1]
+                    if is_custom_branch_name(branch):
+                        gitbranch = branch
             elif os.path.isfile(packedrefs):
                 # Git may pack refs into a single file. This code searches .git/packed-refs file for the current ref's hash.
                 # https://mirrors.edge.kernel.org/pub/software/scm/git/docs/git-pack-refs.html
@@ -175,11 +187,15 @@ def get_version_info(module_version_string="", silent=False):
                     (line_hash, line_ref) = line.split(" ")
                     if ref == line_ref:
                         githash = line_hash
+                        branch = line_ref.split("/")[-1]
+                        if is_custom_branch_name(branch):
+                            gitbranch = branch
                         break
         else:
             githash = head
 
     version_info["git_hash"] = githash
+    version_info["git_branch"] = gitbranch
     # Fallback to 0 as a timestamp (will be treated as "unknown" in the engine).
     version_info["git_timestamp"] = 0
 

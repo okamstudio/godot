@@ -208,6 +208,7 @@ def version_hash_builder(target, source, env):
 #include "core/version.h"
 
 const char *const VERSION_HASH = "{git_hash}";
+const char *const VERSION_GIT_BRANCH = "{git_branch}";
 const uint64_t VERSION_TIMESTAMP = {git_timestamp};
 """.format(**env.version_info)
         )

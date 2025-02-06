@@ -286,11 +286,15 @@ static String unescape_cmdline(const String &p_str) {
 }
 
 static String get_full_version_string() {
+	String branch = String::utf8(VERSION_GIT_BRANCH);
+	if (!branch.is_empty()) {
+		branch = "." + branch;
+	}
 	String hash = String(VERSION_HASH);
 	if (!hash.is_empty()) {
 		hash = "." + hash.left(9);
 	}
-	return String(VERSION_FULL_BUILD) + hash;
+	return String(VERSION_FULL_BUILD) + branch + hash;
 }
 
 #if defined(TOOLS_ENABLED) && defined(MODULE_GDSCRIPT_ENABLED)

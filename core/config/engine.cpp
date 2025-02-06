@@ -132,6 +132,9 @@ Dictionary Engine::get_version_info() const {
 	dict["status"] = VERSION_STATUS;
 	dict["build"] = VERSION_BUILD;
 
+	String branch = String::utf8(VERSION_GIT_BRANCH);
+	dict["branch"] = branch.is_empty() ? String("unknown") : branch;
+
 	String hash = String(VERSION_HASH);
 	dict["hash"] = hash.is_empty() ? String("unknown") : hash;
 

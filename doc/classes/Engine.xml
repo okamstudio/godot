@@ -165,7 +165,8 @@
 				- [code]hex[/code] - Full version encoded as a hexadecimal int with one byte (2 hex digits) per number (see example below);
 				- [code]status[/code] - Status (such as "beta", "rc1", "rc2", "stable", etc.) as a String;
 				- [code]build[/code] - Build name (e.g. "custom_build") as a String;
-				- [code]hash[/code] - Full Git commit hash as a String;
+				- [code]branch[/code] - Git commit branch name as a String (or "unknown" if not using a custom branch, or if the [code].git/[/code] folder isn't present at build-time);
+				- [code]hash[/code] - Full Git commit hash as a String (or "unknown" if the [code].git/[/code] folder isn't present at build-time);
 				- [code]timestamp[/code] - Holds the Git commit date UNIX timestamp in seconds as an int, or [code]0[/code] if unavailable;
 				- [code]string[/code] - [code]major[/code], [code]minor[/code], [code]patch[/code], [code]status[/code], and [code]build[/code] in a single String.
 				The [code]hex[/code] value is encoded as follows, from left to right: one byte for the major, one byte for the minor, one byte for the patch version. For example, "3.1.12" would be [code]0x03010C[/code].

@@ -34,16 +34,23 @@
 #include "core/version.h"
 
 String _get_version_string(EditorVersionButton::VersionFormat p_format) {
+	String branch = String::utf8(VERSION_GIT_BRANCH);
+	if (branch.length() != 0) {
+		// Trim branch name display if it's too long.
+		constexpr int MAX_BRANCH_NAME_LENGTH = 20;
+		branch = " " + vformat((branch.length() > MAX_BRANCH_NAME_LENGTH) ? "(%s...)" : "(%s)", branch.left(MAX_BRANCH_NAME_LENGTH));
+	}
+
 	String main;
 	switch (p_format) {
 		case EditorVersionButton::FORMAT_BASIC: {
-			return VERSION_FULL_CONFIG;
+			return VERSION_FULL_CONFIG + branch;
 		} break;
 		case EditorVersionButton::FORMAT_WITH_BUILD: {
-			main = "v" VERSION_FULL_BUILD;
+			main = "v" VERSION_FULL_BUILD + branch;
 		} break;
 		case EditorVersionButton::FORMAT_WITH_NAME_AND_BUILD: {
-			main = VERSION_FULL_NAME;
+			main = VERSION_FULL_NAME + branch;
 		} break;
 		default: {
 			ERR_FAIL_V_MSG(VERSION_FULL_NAME, "Unexpected format: " + itos(p_format));
@@ -54,6 +61,7 @@ String _get_version_string(EditorVersionButton::VersionFormat p_format) {
 	if (!hash.is_empty()) {
 		hash = vformat(" [%s]", hash.left(9));
 	}
+
 	return main + hash;
 }
 

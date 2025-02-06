@@ -38,11 +38,11 @@ class EditorVersionButton : public LinkButton {
 
 public:
 	enum VersionFormat {
-		// 4.3.2.stable
+		// 4.3.2.stable (branch)
 		FORMAT_BASIC,
-		// v4.3.2.stable.mono [HASH]
+		// v4.3.2.stable.mono (branch) [HASH]
 		FORMAT_WITH_BUILD,
-		// Godot Engine v4.3.2.stable.mono.official [HASH]
+		// Godot Engine v4.3.2.stable.mono.official (branch) [HASH]
 		FORMAT_WITH_NAME_AND_BUILD,
 	};
 
