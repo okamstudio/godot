@@ -4994,6 +4994,8 @@ void DisplayServerX11::process_events() {
 							last_click_ms = 0;
 							last_click_pos = Point2i(-100, -100);
 							last_click_button_index = MouseButton::NONE;
+							MouseButtonMask button_mask = mouse_button_to_mask(mb->get_button_index());
+							last_double_click_button_mask.set_flag(button_mask);
 							mb->set_double_click(true);
 						}
 
@@ -5007,6 +5009,12 @@ void DisplayServerX11::process_events() {
 					}
 				} else {
 					DEBUG_LOG_X11("[%u] ButtonRelease window=%lu (%u), button_index=%u \n", frame, event.xbutton.window, window_id, mb->get_button_index());
+
+					MouseButtonMask button_mask = mouse_button_to_mask(mb->get_button_index());
+					if (last_double_click_button_mask.has_flag(button_mask)) {
+						mb->set_double_click(true);
+						last_double_click_button_mask.clear_flag(button_mask);
+					}
 
 					WindowID window_id_other = INVALID_WINDOW_ID;
 					Window wd_other_x11_window;

@@ -626,6 +626,7 @@ class DisplayServerWindows : public DisplayServer {
 	void _mouse_update_mode();
 	int restore_mouse_trails = 0;
 
+	BitField<MouseButtonMask> last_double_click_button_mask;
 	bool use_raw_input = false;
 	bool drop_events = false;
 	bool in_dispatch_input_event = false;

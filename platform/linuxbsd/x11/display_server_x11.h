@@ -265,6 +265,7 @@ class DisplayServerX11 : public DisplayServer {
 	Point2i last_click_pos = Point2i(-100, -100);
 	uint64_t last_click_ms = 0;
 	MouseButton last_click_button_index = MouseButton::NONE;
+	BitField<MouseButtonMask> last_double_click_button_mask;
 	bool app_focused = false;
 	uint64_t time_since_no_focus = 0;
 

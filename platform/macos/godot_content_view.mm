@@ -386,7 +386,7 @@
 	mb->set_position(wd.mouse_pos);
 	mb->set_global_position(wd.mouse_pos);
 	mb->set_button_mask(ds->mouse_get_button_state());
-	if (!outofstream && index == MouseButton::LEFT && pressed) {
+	if (!outofstream) {
 		mb->set_double_click([event clickCount] == 2);
 	}
 

@@ -5359,6 +5359,11 @@ LRESULT DisplayServerWindows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 				case WM_LBUTTONUP: {
 					mb->set_pressed(false);
 					mb->set_button_index(MouseButton::LEFT);
+					MouseButtonMask mask = mouse_button_to_mask(MouseButton::LEFT);
+					if (last_double_click_button_mask.has_flag(mask)) {
+						mb->set_double_click(true);
+						last_double_click_button_mask.clear_flag(mask);
+					}
 				} break;
 				case WM_MBUTTONDOWN: {
 					mb->set_pressed(true);
@@ -5367,6 +5372,11 @@ LRESULT DisplayServerWindows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 				case WM_MBUTTONUP: {
 					mb->set_pressed(false);
 					mb->set_button_index(MouseButton::MIDDLE);
+					MouseButtonMask mask = mouse_button_to_mask(MouseButton::MIDDLE);
+					if (last_double_click_button_mask.has_flag(mask)) {
+						mb->set_double_click(true);
+						last_double_click_button_mask.clear_flag(mask);
+					}
 				} break;
 				case WM_RBUTTONDOWN: {
 					mb->set_pressed(true);
@@ -5375,21 +5385,29 @@ LRESULT DisplayServerWindows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 				case WM_RBUTTONUP: {
 					mb->set_pressed(false);
 					mb->set_button_index(MouseButton::RIGHT);
+					MouseButtonMask mask = mouse_button_to_mask(MouseButton::RIGHT);
+					if (last_double_click_button_mask.has_flag(mask)) {
+						mb->set_double_click(true);
+						last_double_click_button_mask.clear_flag(mask);
+					}
 				} break;
 				case WM_LBUTTONDBLCLK: {
 					mb->set_pressed(true);
 					mb->set_button_index(MouseButton::LEFT);
 					mb->set_double_click(true);
+					last_double_click_button_mask.set_flag(mouse_button_to_mask(MouseButton::LEFT));
 				} break;
 				case WM_RBUTTONDBLCLK: {
 					mb->set_pressed(true);
 					mb->set_button_index(MouseButton::RIGHT);
 					mb->set_double_click(true);
+					last_double_click_button_mask.set_flag(mouse_button_to_mask(MouseButton::RIGHT));
 				} break;
 				case WM_MBUTTONDBLCLK: {
 					mb->set_pressed(true);
 					mb->set_button_index(MouseButton::MIDDLE);
 					mb->set_double_click(true);
+					last_double_click_button_mask.set_flag(mouse_button_to_mask(MouseButton::MIDDLE));
 				} break;
 				case WM_MOUSEWHEEL: {
 					mb->set_pressed(true);
@@ -5429,18 +5447,27 @@ LRESULT DisplayServerWindows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 				} break;
 				case WM_XBUTTONUP: {
 					mb->set_pressed(false);
+					MouseButtonMask mask;
 					if (HIWORD(wParam) == XBUTTON1) {
 						mb->set_button_index(MouseButton::MB_XBUTTON1);
+						mask = mouse_button_to_mask(MouseButton::MB_XBUTTON1);
 					} else {
 						mb->set_button_index(MouseButton::MB_XBUTTON2);
+						mask = mouse_button_to_mask(MouseButton::MB_XBUTTON2);
+					}
+					if (last_double_click_button_mask.has_flag(mask)) {
+						mb->set_double_click(true);
+						last_double_click_button_mask.clear_flag(mask);
 					}
 				} break;
 				case WM_XBUTTONDBLCLK: {
 					mb->set_pressed(true);
 					if (HIWORD(wParam) == XBUTTON1) {
 						mb->set_button_index(MouseButton::MB_XBUTTON1);
+						last_double_click_button_mask.set_flag(mouse_button_to_mask(MouseButton::MB_XBUTTON1));
 					} else {
 						mb->set_button_index(MouseButton::MB_XBUTTON2);
+						last_double_click_button_mask.set_flag(mouse_button_to_mask(MouseButton::MB_XBUTTON2));
 					}
 					mb->set_double_click(true);
 				} break;
