@@ -17,7 +17,9 @@
 		</member>
 		<member name="texture" type="Texture3D" setter="set_texture" getter="get_texture">
 			The 3D texture to be used. Values are linearly interpolated between the texture's pixels.
+			Each color channel affects one axis: red for the local X axis, green for the local Y axis, blue for the local Z axis. The texture's alpha channel is ignored. A color of [code]Color(0.5, 0.5, 0.5)[/code] (50% gray) is considered to be a "neutral" value with no influence on any axis. Assuming the [GPUParticlesAttractor3D]'s strength is positive, a pure white color ([code]Color(1.0, 1.0, 1.0)[/code]) attracts particles towards local +X, +Y and +Z, while a pure black color ([code]Color(0.0, 0.0, 0.0)[/code]) attracts particles towards local -X, -Y and -Z.
 			[b]Note:[/b] To get better performance, the 3D texture's resolution should reflect the [member size] of the attractor. Since particle attraction is usually low-frequency data, the texture can be kept at a low resolution such as 64×64×64.
+			[b]Tip:[/b] [NoiseTexture3D] with a color ramp assigned ([member NoiseTexture3D.color_ramp]) can be useful for procedurally generated vector fields.
 		</member>
 	</members>
 </class>
