@@ -166,7 +166,7 @@ void RotatedFileLogger::rotate_file() {
 			clear_old_backups();
 		}
 	} else {
-		Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_USERDATA);
+		Ref<DirAccess> da = DirAccess::create_for_path(base_path);
 		if (da.is_valid()) {
 			da->make_dir_recursive(base_path.get_base_dir());
 		}
