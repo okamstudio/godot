@@ -103,6 +103,70 @@ TEST_CASE("[SceneTree][Path2D] Curve setter and getter") {
 
 	memdelete(test_path);
 }
+	
+TEST_CASE("[SceneTree][Path2D] _edit_get_rect check") {
+	SUBCASE("Invalid curve") {
+		Path2D *test_path = memnew(Path2D);
+		Rect2 test_rect_1 = test_path->_edit_get_rect();
+		Rect2 test_rect_2 = Rect2(0, 0, 0, 0);
+        	CHECK(test_rect_1 == test_rect_2);
+		memdelete(test_path);
+    }
+	SUBCASE("Valid curve with points") {
+		Path2D *test_path = memnew(Path2D);
+		Ref <Curve2D> *test_curve = memnew(Curve2D);
+		Vector2 p0 = Vector2(40, 30);
+		test_curve->add_point(p0);
+		test_path->set_curve(test_curve);
+		Rect2 test_rect_1 = test_path->_edit_get_rect();
+		CHECK(test_rect_1 != Rect2(0, 0, 0, 0));
+		memdelete(test_path);
+    }
+}
+
+TEST_CASE("[SceneTree][Path2D] _edit_use_rect check") {
+	SUBCASE("Invalid curve") {
+		Path2D *test_path = memnew(Path2D);
+        	CHECK(test_path->_edit_use_rect() == false);
+		memdelete(test_path);
+    }
+	SUBCASE("Valid curve with points") {
+		Path2D *test_path = memnew(Path2D);
+		Ref <Curve2D> *test_curve = memnew(Curve2D);
+		test_curve->set_point_count(1);
+		test_path->set_curve(test_curve);
+		CHECK(test_path->_edit_use_rect() == true);
+		memdelete(test_path);
+    }
+}
+
+TEST_CASE("[SceneTree][Path2D] _edit_is_selected_on_click check") {
+	SUBCASE("Null curve") {
+		Path2D *test_path = memnew(Path2D);
+		Vector2 p0 = Vector2(0, 0);
+		CHECK(test_path->_edit_is_selected_on_click(p0, 0.0) == false);
+		memdelete(test_path);
+	}
+	SUBCASE("Curve with points - Curve selected") {
+		Path2D *test_path = memnew(Path2D);
+		Ref <Curve2D> *test_curve = memnew(Curve2D);
+		Vector2 p0 = Vector2(0, 0);
+		test_curve->add_point(p0);
+		test_path->set_curve(test_curve);
+		CHECK(test_path->_edit_is_selected_on_click(p0, 1.0) == true);
+		memdelete(test_path);
+	}
+	SUBCASE("Curve with points - Curve not selected") {
+		Path2D *test_path = memnew(Path2D);
+		Ref <Curve2D> *test_curve = memnew(Curve2D);
+		Vector2 p0 = Vector2(0, 0);
+		test_curve->add_point(p0);
+		test_path->set_curve(test_curve);
+		Vector2 outside_point = Vector2(50,50);
+		CHECK(test_path->_edit_is_selected_on_click(outside_point, 1.0) == false);
+		memdelete(test_path);
+	}
+}
 
 } // namespace TestPath2D
 
