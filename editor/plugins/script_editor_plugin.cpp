@@ -526,7 +526,7 @@ void ScriptEditor::_goto_script_line2(int p_line) {
 void ScriptEditor::_goto_script_line(Ref<RefCounted> p_script, int p_line) {
 	Ref<Script> scr = Object::cast_to<Script>(*p_script);
 	if (scr.is_valid() && (scr->has_source_code() || scr->get_path().is_resource_file())) {
-		if (edit(p_script, p_line, 0)) {
+		if (edit(p_script, p_line, 0, true, true)) {
 			EditorNode::get_singleton()->push_item(p_script.ptr());
 
 			ScriptEditorBase *current = _get_current_editor();
@@ -2461,7 +2461,7 @@ Error ScriptEditor::_save_text_file(Ref<TextFile> p_text_file, const String &p_p
 	return OK;
 }
 
-bool ScriptEditor::edit(const Ref<Resource> &p_resource, int p_line, int p_col, bool p_grab_focus) {
+bool ScriptEditor::edit(const Ref<Resource> &p_resource, int p_line, int p_col, bool p_grab_focus, bool ignore_external_debug_check) {
 	if (p_resource.is_null()) {
 		return false;
 	}
@@ -2487,9 +2487,8 @@ bool ScriptEditor::edit(const Ref<Resource> &p_resource, int p_line, int p_col, 
 		return false;
 	}
 
-	if (use_external_editor &&
-			(EditorDebuggerNode::get_singleton()->get_dump_stack_script() != p_resource || EditorDebuggerNode::get_singleton()->get_debug_with_external_editor()) &&
-			p_resource->get_path().is_resource_file()) {
+	if (use_external_editor && p_resource->get_path().is_resource_file() &&
+			((EditorDebuggerNode::get_singleton()->get_dump_stack_script() != p_resource || EditorDebuggerNode::get_singleton()->get_debug_with_external_editor()) || ignore_external_debug_check)) {
 		String path = EDITOR_GET("text_editor/external/exec_path");
 		String flags = EDITOR_GET("text_editor/external/exec_flags");
 
@@ -3848,7 +3847,7 @@ bool ScriptEditor::script_goto_method(Ref<Script> p_script, const String &p_meth
 		return false;
 	}
 
-	return edit(p_script, line, 0);
+	return edit(p_script, line, 0, true, true);
 }
 
 void ScriptEditor::set_live_auto_reload_running_scripts(bool p_enabled) {
