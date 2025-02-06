@@ -129,6 +129,7 @@ public:
 	void handles_intersect_ray(Camera3D *p_camera, const Vector2 &p_point, bool p_shift_pressed, int &r_id, bool &r_secondary);
 	bool intersect_ray(Camera3D *p_camera, const Point2 &p_point, Vector3 &r_pos, Vector3 &r_normal);
 	bool is_subgizmo_selected(int p_id) const;
+	bool is_gizmo_valid() const;
 	Vector<int> get_subgizmo_selection() const;
 
 	virtual void clear() override;

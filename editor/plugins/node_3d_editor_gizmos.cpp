@@ -769,6 +769,10 @@ bool EditorNode3DGizmo::is_subgizmo_selected(int p_id) const {
 	return ed->is_current_selected_gizmo(this) && ed->is_subgizmo_selected(p_id);
 }
 
+bool EditorNode3DGizmo::is_gizmo_valid() const {
+	return valid;
+}
+
 Vector<int> EditorNode3DGizmo::get_subgizmo_selection() const {
 	Vector<int> ret;
 
@@ -1010,6 +1014,8 @@ Ref<StandardMaterial3D> EditorNode3DGizmoPlugin::get_material(const String &p_na
 	if (p_gizmo.is_null() || materials[p_name].size() == 1) {
 		return materials[p_name][0];
 	}
+
+	ERR_FAIL_COND_V(!p_gizmo->is_gizmo_valid(), Ref<StandardMaterial3D>());
 
 	int index = (p_gizmo->is_selected() ? 1 : 0) + (p_gizmo->is_editable() ? 2 : 0);
 
