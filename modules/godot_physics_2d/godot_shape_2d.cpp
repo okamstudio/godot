@@ -559,13 +559,24 @@ bool GodotConvexPolygonShape2D::intersect_segment(const Vector2 &p_begin, const 
 
 real_t GodotConvexPolygonShape2D::get_moment_of_inertia(real_t p_mass, const Size2 &p_scale) const {
 	ERR_FAIL_COND_V_MSG(point_count == 0, 0, "Convex polygon shape has no points.");
-	Rect2 aabb_new;
-	aabb_new.position = points[0].pos * p_scale;
+	real_t inertia = 0.;
+	real_t area = 0.;
+	Vector2 pos1;
+	Vector2 pos2;
+	real_t a;
 	for (int i = 0; i < point_count; i++) {
-		aabb_new.expand_to(points[i].pos * p_scale);
+		pos1 = points[i].pos * p_scale;
+		if (i < point_count - 1) {
+			pos2 = points[i + 1].pos * p_scale;
+		} else {
+			pos2 = points[0].pos * p_scale;
+		}
+		a = pos1.x * pos2.y - pos2.x * pos1.y;
+		inertia += a * (pos1.dot(pos1) + pos1.dot(pos2) + pos2.dot(pos2));
+		area += a / 2.;
 	}
 
-	return p_mass * aabb_new.size.dot(aabb_new.size) / 12.0;
+	return p_mass * inertia / (12. * area);
 }
 
 void GodotConvexPolygonShape2D::set_data(const Variant &p_data) {
