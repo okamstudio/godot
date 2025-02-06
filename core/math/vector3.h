@@ -501,14 +501,12 @@ real_t Vector3::length_squared() const {
 }
 
 void Vector3::normalize() {
-	real_t lengthsq = length_squared();
-	if (lengthsq == 0) {
-		x = y = z = 0;
-	} else {
-		real_t length = Math::sqrt(lengthsq);
-		x /= length;
-		y /= length;
-		z /= length;
+	real_t len = length_squared();
+	if (len != 0) {
+		len = 1 / Math::sqrt(len);
+		x *= len;
+		y *= len;
+		z *= len;
 	}
 }
 
