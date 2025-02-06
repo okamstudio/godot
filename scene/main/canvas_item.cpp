@@ -920,13 +920,22 @@ void CanvasItem::draw_polygon(const Vector<Point2> &p_points, const Vector<Color
 	ERR_THREAD_GUARD;
 	ERR_DRAW_GUARD;
 
-	const Ref<AtlasTexture> atlas = p_texture;
+	Ref<AtlasTexture> atlas = p_texture;
 	if (atlas.is_valid() && atlas->get_atlas().is_valid()) {
-		const Ref<Texture2D> &texture = atlas->get_atlas();
+		Ref<Texture2D> texture = atlas;
+		Rect2 atlas_region;
+		Rect2 dr;
+
+		do {
+			atlas->get_rect_region(dr, atlas_region, dr, atlas_region);
+			texture = atlas->get_atlas();
+			atlas = texture;
+		} while (atlas.is_valid() && atlas->get_atlas().is_valid());
+
 		const Vector2 atlas_size = texture->get_size();
 
-		const Vector2 remap_min = atlas->get_region().position / atlas_size;
-		const Vector2 remap_max = atlas->get_region().get_end() / atlas_size;
+		const Vector2 remap_min = atlas_region.position / atlas_size;
+		const Vector2 remap_max = atlas_region.get_end() / atlas_size;
 
 		PackedVector2Array uvs = p_uvs;
 		for (Vector2 &p : uvs) {
