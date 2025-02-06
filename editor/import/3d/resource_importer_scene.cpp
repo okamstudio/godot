@@ -1334,8 +1334,15 @@ Node *ResourceImporterScene::_post_fix_animations(Node *p_node, Node *p_root, co
 					//fill with default values
 					List<ImportOption> iopts;
 					get_internal_import_options(INTERNAL_IMPORT_CATEGORY_ANIMATION, &iopts);
+					bool has_slices = true;
+					String slice_str = "slice_" + itos((int)anim_settings["slices/amount"] + 1);
 					for (const ImportOption &F : iopts) {
-						if (!anim_settings.has(F.option.name)) {
+						bool is_slice = F.option.name.begins_with("slice_");
+						if (has_slices && F.option.name.begins_with(slice_str)) {
+							has_slices = false;
+						}
+
+						if (!anim_settings.has(F.option.name) && (!is_slice || has_slices)) {
 							anim_settings[F.option.name] = F.default_value;
 						}
 					}
@@ -1768,8 +1775,15 @@ Node *ResourceImporterScene::_post_fix_node(Node *p_node, Node *p_root, HashMap<
 						//fill with default values
 						List<ImportOption> iopts;
 						get_internal_import_options(INTERNAL_IMPORT_CATEGORY_ANIMATION, &iopts);
+						bool has_slices = true;
+						String slice_str = "slice_" + itos((int)anim_settings["slices/amount"] + 1);
 						for (const ImportOption &F : iopts) {
-							if (!anim_settings.has(F.option.name)) {
+							bool is_slice = F.option.name.begins_with("slice_");
+							if (has_slices && F.option.name.begins_with(slice_str)) {
+								has_slices = false;
+							}
+
+							if (!anim_settings.has(F.option.name) && (!is_slice || has_slices)) {
 								anim_settings[F.option.name] = F.default_value;
 							}
 						}
