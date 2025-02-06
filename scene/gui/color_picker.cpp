@@ -1748,9 +1748,34 @@ void ColorPicker::_pick_button_pressed() {
 
 void ColorPicker::_target_gui_input(const Ref<InputEvent> &p_event) {
 	const Ref<InputEventMouseButton> mouse_event = p_event;
-	if (mouse_event.is_valid() && mouse_event->is_pressed()) {
+	if (mouse_event.is_null()) {
+		return;
+	}
+	if (mouse_event->get_button_index() == MouseButton::LEFT) {
+		if (mouse_event->is_pressed()) {
+			picker_window->hide();
+			_pick_finished();
+		}
+	} else if (mouse_event->get_button_index() == MouseButton::RIGHT) {
+		set_pick_color(old_color); // Cancel.
+		is_picking_color = false;
+		set_process_internal(false);
 		picker_window->hide();
-		_pick_finished();
+	} else {
+		Window *w = picker_window->get_parent_visible_window();
+		while (w) {
+			Point2i win_mpos = w->get_mouse_position(); // Mouse position local to the window.
+			Size2i win_size = w->get_size();
+			if (win_mpos.x >= 0 && win_mpos.y >= 0 && win_mpos.x <= win_size.x && win_mpos.y <= win_size.y) {
+				// Mouse event inside window bounds, forward this event to the window.
+				Ref<InputEventMouseButton> new_ev = p_event->duplicate();
+				new_ev->set_position(win_mpos);
+				new_ev->set_global_position(win_mpos);
+				w->push_input(new_ev, true);
+				return;
+			}
+			w = w->get_parent_visible_window();
+		}
 	}
 }
 
