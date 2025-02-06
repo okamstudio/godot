@@ -784,6 +784,7 @@
 		</member>
 		<member name="debug/shapes/paths/geometry_width" type="float" setter="" getter="" default="2.0">
 			Line width of the curve path geometry, visible when "Visible Paths" is enabled in the Debug menu.
+			[b]Note:[/b] This setting is only effective in 2D. For 3D, set [member rendering/driver/line_drawing/width] instead.
 		</member>
 		<member name="display/display_server/driver" type="String" setter="" getter="">
 			Sets the driver to be used by the display server. This property can not be edited directly, instead, set the driver using the platform-specific overrides.
@@ -2593,6 +2594,12 @@
 		<member name="rendering/driver/depth_prepass/enable" type="bool" setter="" getter="" default="true">
 			If [code]true[/code], performs a previous depth pass before rendering 3D materials. This increases performance significantly in scenes with high overdraw, when complex materials and lighting are used. However, in scenes with few occluded surfaces, the depth prepass may reduce performance. If your game is viewed from a fixed angle that makes it easy to avoid overdraw (such as top-down or side-scrolling perspective), consider disabling the depth prepass to improve performance. This setting can be changed at run-time to optimize performance depending on the scene currently being viewed.
 			[b]Note:[/b] Depth prepass is only supported when using the Forward+ or Compatibility rendering method. When using the Mobile rendering method, there is no depth prepass performed.
+		</member>
+		<member name="rendering/driver/line_drawing/width" type="float" setter="" getter="" default="1.0">
+			The thickness of all hardware-based 3D lines (in pixels). This thickness does not depend on distance from the camera. This setting affects all lines drawn in 3D, including gizmos in the editor and debug draw options. This can be increased to make debug drawing more visible, particularly when using a high-resolution viewport or on hiDPI displays.
+			[b]Note:[/b] This setting is only implemented in the Forward+ and Mobile renderers. In the Compatibility renderer, drawn lines are always 1 pixel thick.
+			[b]Note:[/b] This setting requires the hardware to support drawing lines thicker than 1 pixel. This is usually supported on Windows and Linux, rarely supported on Android, and not supported on macOS and iOS.
+			[b]Note:[/b] This setting does not affect lines drawn in 2D. For [Path2D] debug drawing, adjust [member debug/shapes/paths/geometry_width] instead.
 		</member>
 		<member name="rendering/driver/threads/thread_model" type="int" setter="" getter="" default="1" experimental="This setting has several known bugs which can lead to crashing, especially when using particles or resizing the window. Not recommended for use in production at this stage.">
 			The thread model to use for rendering. Rendering on a thread may improve performance, but synchronizing to the main thread can cause a bit more jitter.

@@ -247,7 +247,8 @@ void SceneShaderForwardMobile::ShaderData::_create_pipeline(PipelineKey p_pipeli
 			"SPEC PACKED #2:", p_pipeline_key.shader_specialization.packed_2,
 			"SPEC PACKED #3:", p_pipeline_key.shader_specialization.packed_3,
 			"RENDER PASS:", p_pipeline_key.render_pass,
-			"WIREFRAME:", p_pipeline_key.wireframe);
+			"WIREFRAME:", p_pipeline_key.wireframe,
+			"LINE WIDTH:", p_pipeline_key.line_width);
 #endif
 
 	RD::PipelineColorBlendState::Attachment blend_attachment = blend_mode_to_blend_attachment(BlendMode(blend_mode));
@@ -281,6 +282,7 @@ void SceneShaderForwardMobile::ShaderData::_create_pipeline(PipelineKey p_pipeli
 	RD::PipelineRasterizationState raster_state;
 	raster_state.cull_mode = p_pipeline_key.cull_mode;
 	raster_state.wireframe = wireframe || p_pipeline_key.wireframe;
+	raster_state.line_width = p_pipeline_key.line_width;
 
 	RD::PipelineMultisampleState multisample_state;
 	multisample_state.sample_count = RD::get_singleton()->framebuffer_format_get_texture_samples(p_pipeline_key.framebuffer_format_id, 0);

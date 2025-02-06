@@ -163,6 +163,7 @@ private:
 	void _pre_opaque_render(RenderDataRD *p_render_data);
 
 	uint64_t lightmap_texture_array_version = 0xFFFFFFFF;
+	float line_width = 1.0f;
 
 	void _update_render_base_uniform_set();
 

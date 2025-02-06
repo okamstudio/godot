@@ -2279,6 +2279,7 @@ void RenderForwardMobile::_render_list_template(RenderingDevice::DrawListID p_dr
 
 		pipeline_key.framebuffer_format_id = framebuffer_format;
 		pipeline_key.wireframe = p_params->force_wireframe;
+		pipeline_key.line_width = line_width;
 		pipeline_key.render_pass = p_params->subpass;
 		pipeline_key.ubershader = 0;
 
@@ -3194,6 +3195,8 @@ void RenderForwardMobile::_update_shader_quality_settings() {
 
 RenderForwardMobile::RenderForwardMobile() {
 	singleton = this;
+
+	line_width = float(GLOBAL_GET("rendering/driver/line_drawing/width"));
 
 	sky.set_texture_format(_render_buffers_get_color_format());
 

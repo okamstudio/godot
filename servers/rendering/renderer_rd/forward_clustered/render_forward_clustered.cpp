@@ -485,6 +485,7 @@ void RenderForwardClustered::_render_list_template(RenderingDevice::DrawListID p
 
 		pipeline_key.framebuffer_format_id = framebuffer_format;
 		pipeline_key.wireframe = p_params->force_wireframe;
+		pipeline_key.line_width = line_width;
 		pipeline_key.ubershader = 0;
 
 		const RD::PolygonCullMode cull_mode = shader->get_cull_mode_from_cull_variant(cull_variant);
@@ -4455,6 +4456,7 @@ void RenderForwardClustered::_mesh_compile_pipelines_for_surface(const SurfacePi
 	pipeline_key.cull_mode = RD::POLYGON_CULL_DISABLED;
 	pipeline_key.primitive_type = mesh_storage->mesh_surface_get_primitive(p_surface.mesh_surface);
 	pipeline_key.wireframe = false;
+	pipeline_key.line_width = 1;
 
 	// Grab the shader and surface used for most passes.
 	const uint32_t multiview_iterations = multiview_enabled ? 2 : 1;
@@ -4848,6 +4850,8 @@ void RenderForwardClustered::_update_shader_quality_settings() {
 
 RenderForwardClustered::RenderForwardClustered() {
 	singleton = this;
+
+	line_width = float(GLOBAL_GET("rendering/driver/line_drawing/width"));
 
 	/* SCENE SHADER */
 

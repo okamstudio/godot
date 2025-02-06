@@ -164,6 +164,7 @@ public:
 			ShaderVersion version = SHADER_VERSION_MAX;
 			uint32_t render_pass = 0;
 			uint32_t wireframe = false;
+			float line_width = 1.0f;
 			uint32_t ubershader = false;
 
 			uint32_t hash() const {
@@ -177,6 +178,7 @@ public:
 				h = hash_murmur3_one_32(version, h);
 				h = hash_murmur3_one_32(render_pass, h);
 				h = hash_murmur3_one_32(wireframe, h);
+				h = hash_murmur3_one_32(line_width, h);
 				h = hash_murmur3_one_32(ubershader, h);
 				return hash_fmix32(h);
 			}

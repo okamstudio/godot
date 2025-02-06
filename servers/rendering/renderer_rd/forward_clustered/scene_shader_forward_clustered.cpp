@@ -287,7 +287,8 @@ void SceneShaderForwardClustered::ShaderData::_create_pipeline(PipelineKey p_pip
 			"VERSION:", p_pipeline_key.version,
 			"PASS FLAGS:", p_pipeline_key.color_pass_flags,
 			"SPEC PACKED #0:", p_pipeline_key.shader_specialization.packed_0,
-			"WIREFRAME:", p_pipeline_key.wireframe);
+			"WIREFRAME:", p_pipeline_key.wireframe,
+			"LINE WIDTH:", p_pipeline_key.line_width);
 #endif
 
 	// Color pass -> attachment 0: Color/Diffuse, attachment 1: Separate Specular, attachment 2: Motion Vectors
@@ -305,7 +306,6 @@ void SceneShaderForwardClustered::ShaderData::_create_pipeline(PipelineKey p_pip
 		depth_stencil_state.depth_compare_operator = RD::COMPARE_OP_GREATER_OR_EQUAL;
 		depth_stencil_state.enable_depth_write = depth_draw != DEPTH_DRAW_DISABLED ? true : false;
 	}
-	bool depth_pre_pass_enabled = bool(GLOBAL_GET("rendering/driver/depth_prepass/enable"));
 
 	RD::RenderPrimitive primitive_rd_table[RS::PRIMITIVE_MAX] = {
 		RD::RENDER_PRIMITIVE_POINTS,
@@ -320,6 +320,7 @@ void SceneShaderForwardClustered::ShaderData::_create_pipeline(PipelineKey p_pip
 	RD::PipelineRasterizationState raster_state;
 	raster_state.cull_mode = p_pipeline_key.cull_mode;
 	raster_state.wireframe = wireframe || p_pipeline_key.wireframe;
+	raster_state.line_width = p_pipeline_key.line_width;
 
 	RD::PipelineMultisampleState multisample_state;
 	multisample_state.sample_count = RD::get_singleton()->framebuffer_format_get_texture_samples(p_pipeline_key.framebuffer_format_id, 0);
@@ -342,6 +343,7 @@ void SceneShaderForwardClustered::ShaderData::_create_pipeline(PipelineKey p_pip
 		} else {
 			blend_state = blend_state_color_opaque;
 
+			const bool depth_pre_pass_enabled = bool(GLOBAL_GET("rendering/driver/depth_prepass/enable"));
 			if (depth_pre_pass_enabled) {
 				// We already have a depth from the depth pre-pass, there is no need to write it again.
 				// In addition we can use COMPARE_OP_EQUAL instead of COMPARE_OP_LESS_OR_EQUAL.
