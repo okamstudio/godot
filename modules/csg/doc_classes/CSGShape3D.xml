@@ -48,6 +48,12 @@
 				Returns an [Array] with two elements, the first is the [Transform3D] of this node and the second is the root [Mesh] of this node. Only works when this node is the root shape.
 			</description>
 		</method>
+		<method name="get_root_collision_instance" qualifiers="const">
+			<return type="RID" />
+			<description>
+				Returns the [RID] of the root shape's collision resource. If the root shape's [member use_collision] is [code]false[/code] then an empty RID is returned.
+			</description>
+		</method>
 		<method name="is_root_shape" qualifiers="const">
 			<return type="bool" />
 			<description>

@@ -4385,6 +4385,10 @@ void _insert_rid_recursive(Node *node, HashSet<RID> &rids) {
 		rids.insert(co->get_rid());
 	}
 
+	if (node->is_class("CSGShape3D")) {
+		rids.insert(node->call("get_root_collision_instance"));
+	}
+
 	for (int i = 0; i < node->get_child_count(); i++) {
 		Node *child = node->get_child(i);
 		_insert_rid_recursive(child, rids);
