@@ -428,8 +428,6 @@ public:
 
 	// Global relations.
 
-	bool is_top_level_control() const;
-
 	Control *get_parent_control() const;
 	Window *get_parent_window() const;
 	Control *get_root_parent_control() const;
