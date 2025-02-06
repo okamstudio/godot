@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ColorUtils" inherits="Object" version="4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		A set of color conversion utilities.
+	</brief_description>
+	<description>
+		This class features static methods for converting to and from various color spaces.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="from_abgr32" qualifiers="static">
+			<return type="Color" />
+			<param index="0" name="abgr" type="int" />
+			<description>
+				Converts a 32-bit [int] containing ABGR to a [Color].
+			</description>
+		</method>
+		<method name="from_abgr64" qualifiers="static">
+			<return type="Color" />
+			<param index="0" name="abgr" type="int" />
+			<description>
+				Converts a 64-bit [int] containing ABGR to a [Color].
+			</description>
+		</method>
+		<method name="from_argb32" qualifiers="static">
+			<return type="Color" />
+			<param index="0" name="argb" type="int" />
+			<description>
+				Converts a 32-bit [int] containing ARGB to a [Color].
+			</description>
+		</method>
+		<method name="from_argb64" qualifiers="static">
+			<return type="Color" />
+			<param index="0" name="argb" type="int" />
+			<description>
+				Converts a 64-bit [int] containing ARGB to a [Color].
+			</description>
+		</method>
+		<method name="from_hsl" qualifiers="static">
+			<return type="Color" />
+			<param index="0" name="hsl" type="Vector3" />
+			<description>
+				Converts a [Vector3] containing [url=https://en.wikipedia.org/wiki/HSL_and_HSV]HSL[/url] to a [Color].
+			</description>
+		</method>
+		<method name="from_hsv" qualifiers="static">
+			<return type="Color" />
+			<param index="0" name="hsv" type="Vector3" />
+			<description>
+				Converts a [Vector3] containing [url=https://en.wikipedia.org/wiki/HSL_and_HSV]HSV[/url] to a [Color].
+			</description>
+		</method>
+		<method name="from_html" qualifiers="static">
+			<return type="Color" />
+			<param index="0" name="html" type="String" />
+			<description>
+				Returns a new color from [param html], an HTML hexadecimal color string. [param html] is not case-sensitive, and may be prefixed by a hash sign ([code]#[/code]).
+				[param html] must be a valid three-digit or six-digit hexadecimal color string, and may contain an alpha channel value. If [param html] does not contain an alpha channel value, an alpha channel value of 1.0 is applied. If [param html] is invalid, returns an empty color.
+			</description>
+		</method>
+		<method name="from_name" qualifiers="static">
+			<return type="Color" />
+			<param index="0" name="name" type="String" />
+			<description>
+				Gets a [Color] by its [param name]. [param name] is not case-sensitive, and ignores all characters except letters.
+				The standardized color set is based on the [url=https://en.wikipedia.org/wiki/X11_color_names]X11 color names[/url], with the addition of TRANSPARENT.
+			</description>
+		</method>
+		<method name="from_ok_hsl" qualifiers="static">
+			<return type="Color" />
+			<param index="0" name="hsl" type="Vector3" />
+			<description>
+				Converts a [Vector3] containing [url=https://bottosson.github.io/posts/colorpicker]OK HSL[/url] to a [Color].
+			</description>
+		</method>
+		<method name="from_ok_hsv" qualifiers="static">
+			<return type="Color" />
+			<param index="0" name="hsv" type="Vector3" />
+			<description>
+				Converts a [Vector3] containing [url=https://bottosson.github.io/posts/colorpicker]OK HSV[/url] to a [Color].
+			</description>
+		</method>
+		<method name="from_rgba32" qualifiers="static">
+			<return type="Color" />
+			<param index="0" name="rgba" type="int" />
+			<description>
+				Converts a 32-bit [int] containing RGBA to a [Color].
+			</description>
+		</method>
+		<method name="from_rgba64" qualifiers="static">
+			<return type="Color" />
+			<param index="0" name="rgba" type="int" />
+			<description>
+				Converts a 64-bit [int] containing RGBA to a [Color].
+			</description>
+		</method>
+		<method name="from_rgbe9995" qualifiers="static">
+			<return type="Color" />
+			<param index="0" name="rgbe" type="int" />
+			<description>
+				Decodes a [Color] from an RGBE9995 format integer. See [constant Image.FORMAT_RGBE9995].
+			</description>
+		</method>
+		<method name="from_string" qualifiers="static">
+			<return type="Color" />
+			<param index="0" name="string" type="String" />
+			<param index="1" name="default" type="Color" default="Color(0, 0, 0, 1)" />
+			<description>
+				Creates a [Color] from the given string, which can be either an HTML color code or a named color (case-insensitive). Returns [param default] if the color cannot be inferred from the string.
+			</description>
+		</method>
+		<method name="html_is_valid" qualifiers="static">
+			<return type="bool" />
+			<param index="0" name="html" type="String" />
+			<description>
+				Returns [code]true[/code] if [param html] is a valid HTML hexadecimal color string. The string must be a hexadecimal value (case-insensitive) of either 3, 4, 6 or 8 digits, and may be prefixed by a hash sign ([code]#[/code]). This method is identical to [method String.is_valid_html_color].
+			</description>
+		</method>
+		<method name="linear_to_srgb" qualifiers="static">
+			<return type="Color" />
+			<param index="0" name="color" type="Color" />
+			<description>
+				Returns the [param color] converted to the [url=https://en.wikipedia.org/wiki/SRGB]sRGB[/url] color space. This method assumes the original color is in the linear color space.
+				See also [method srgb_to_linear] which performs the opposite operation.
+			</description>
+		</method>
+		<method name="name_is_valid" qualifiers="static">
+			<return type="bool" />
+			<param index="0" name="name" type="String" />
+			<description>
+				Returns [code]true[/code] if [param name] is a valid color name (case-insensitive).
+			</description>
+		</method>
+		<method name="srgb_to_linear" qualifiers="static">
+			<return type="Color" />
+			<param index="0" name="color" type="Color" />
+			<description>
+				Returns the [param color] converted to the linear color space. This method assumes the original color is in the [url=https://en.wikipedia.org/wiki/SRGB]sRGB[/url] color space.
+				See also [method linear_to_srgb] which performs the opposite operation.
+			</description>
+		</method>
+		<method name="to_abgr32" qualifiers="static">
+			<return type="int" />
+			<param index="0" name="color" type="Color" />
+			<description>
+				Converts a [Color] to a 32-bit [int] containing ABGR.
+			</description>
+		</method>
+		<method name="to_abgr64" qualifiers="static">
+			<return type="int" />
+			<param index="0" name="color" type="Color" />
+			<description>
+				Converts a [Color] to a 64-bit [int] containing ABGR.
+			</description>
+		</method>
+		<method name="to_argb32" qualifiers="static">
+			<return type="int" />
+			<param index="0" name="color" type="Color" />
+			<description>
+				Converts a [Color] to a 32-bit [int] containing ARGB.
+			</description>
+		</method>
+		<method name="to_argb64" qualifiers="static">
+			<return type="int" />
+			<param index="0" name="color" type="Color" />
+			<description>
+				Converts a [Color] to a 64-bit [int] containing ARGB.
+			</description>
+		</method>
+		<method name="to_hsl" qualifiers="static">
+			<return type="Vector3" />
+			<param index="0" name="color" type="Color" />
+			<description>
+				Converts a [Color] to a [Vector3] containing [url=https://en.wikipedia.org/wiki/HSL_and_HSV]HSL[/url].
+			</description>
+		</method>
+		<method name="to_hsv" qualifiers="static">
+			<return type="Vector3" />
+			<param index="0" name="color" type="Color" />
+			<description>
+				Converts a [Color] to a [Vector3] containing [url=https://en.wikipedia.org/wiki/HSL_and_HSV]HSV[/url].
+			</description>
+		</method>
+		<method name="to_html" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="color" type="Color" />
+			<param index="1" name="with_alpha" type="bool" default="true" />
+			<description>
+				Returns the color converted to an HTML hexadecimal color [String] in RGBA format, without the hash ([code]#[/code]) prefix.
+				Setting [param with_alpha] to [code]false[/code], excludes alpha from the hexadecimal string, using RGB format instead of RGBA format.
+			</description>
+		</method>
+		<method name="to_ok_hsl" qualifiers="static">
+			<return type="Vector3" />
+			<param index="0" name="color" type="Color" />
+			<description>
+				Converts a [Color] to a [Vector3] containing [url=https://bottosson.github.io/posts/colorpicker]OK HSL[/url].
+			</description>
+		</method>
+		<method name="to_ok_hsv" qualifiers="static">
+			<return type="Vector3" />
+			<param index="0" name="color" type="Color" />
+			<description>
+				Converts a [Color] to a [Vector3] containing [url=https://bottosson.github.io/posts/colorpicker]OK HSV[/url].
+			</description>
+		</method>
+		<method name="to_rgba32" qualifiers="static">
+			<return type="int" />
+			<param index="0" name="color" type="Color" />
+			<description>
+				Converts a [Color] to a 32-bit [int] containing RGBA.
+			</description>
+		</method>
+		<method name="to_rgba64" qualifiers="static">
+			<return type="int" />
+			<param index="0" name="color" type="Color" />
+			<description>
+				Converts a [Color] to a 64-bit [int] containing RGBA.
+			</description>
+		</method>
+		<method name="to_rgbe9995" qualifiers="static">
+			<return type="int" />
+			<param index="0" name="color" type="Color" />
+			<description>
+				Encodes a [Color] to an RGBE9995 format integer. See [constant Image.FORMAT_RGBE9995].
+			</description>
+		</method>
+	</methods>
+</class>
