@@ -166,14 +166,19 @@ void RotatedFileLogger::rotate_file() {
 			clear_old_backups();
 		}
 	} else {
-		Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_USERDATA);
+		Ref<DirAccess> da = DirAccess::create_for_path(base_path);
 		if (da.is_valid()) {
 			da->make_dir_recursive(base_path.get_base_dir());
 		}
 	}
 
-	file = FileAccess::open(base_path, FileAccess::WRITE);
-	file->detach_from_objectdb(); // Note: This FileAccess instance will exist longer than ObjectDB, therefore can't be registered in ObjectDB.
+	Error err = OK;
+	file = FileAccess::open(base_path, FileAccess::WRITE, &err);
+	if (file.is_valid() && err == OK) {
+		file->detach_from_objectdb(); // Note: This FileAccess instance will exist longer than ObjectDB, therefore can't be registered in ObjectDB.
+	} else {
+		ERR_FAIL_MSG(vformat("Error: %s. Unable to open log file %s for writing", error_names[err], base_path));
+	}
 }
 
 RotatedFileLogger::RotatedFileLogger(const String &p_base_path, int p_max_files) :
