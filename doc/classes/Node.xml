@@ -299,6 +299,14 @@
 				[b]Note:[/b] As this method walks upwards in the scene tree, it can be slow in large, deeply nested nodes. Consider storing a reference to the found node in a variable. Alternatively, use [method get_node] with unique names (see [member unique_name_in_owner]).
 			</description>
 		</method>
+		<method name="find_parent_by_class_or_null" qualifiers="const">
+			<return type="Node" />
+			<param index="0" name="class_name" type="String" />
+			<description>
+				Finds the first parent of the current node whose class matches [param class_name] as in [method Object.is_class].
+				If no match is found, null is returned.
+			</description>
+		</method>
 		<method name="get_child" qualifiers="const">
 			<return type="Node" />
 			<param index="0" name="idx" type="int" />

@@ -477,6 +477,7 @@ public:
 	virtual void reparent(Node *p_parent, bool p_keep_global_transform = true);
 	Node *get_parent() const;
 	Node *find_parent(const String &p_pattern) const;
+	Node *find_parent_by_class_or_null(const String &class_name) const;
 
 	Window *get_window() const;
 	Window *get_last_exclusive_window() const;

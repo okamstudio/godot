@@ -5745,6 +5745,21 @@ void CanvasItemEditorPlugin::edit(Object *p_object) {
 }
 
 bool CanvasItemEditorPlugin::handles(Object *p_object) const {
+	// Let's handle the current node if it's part of a SubViewport, which in turn is the child of a CanvasItem.
+	// That way we don't keep going back to the 3D editor when the user probably wants to stay in the 2D editor.
+	Node *node = Object::cast_to<Node>(p_object);
+	if (node != nullptr && node->is_inside_tree() && node->get_tree()->get_edited_scene_root() != node) {
+		if (node->is_class("SubViewport")) {
+			// If a SubViewport is selected, let's try to keep the current editor
+			return canvas_item_editor->is_visible();
+		}
+
+		Node *parent = node->find_parent_by_class_or_null("SubViewport");
+		if (parent != nullptr) {
+			return parent->get_parent()->is_class("CanvasItem");
+		}
+	}
+
 	return p_object->is_class("CanvasItem");
 }
 
