@@ -100,7 +100,7 @@ bool CharacterBody3D::move_and_slide() {
 		}
 
 		PhysicsServer3D::MotionResult floor_result;
-		if (move_and_collide(parameters, floor_result, false, false)) {
+		if (move_and_collide(parameters, floor_result, false)) {
 			motion_results.push_back(floor_result);
 
 			CollisionState result_state;
@@ -161,7 +161,7 @@ void CharacterBody3D::_move_and_slide_grounded(double p_delta, bool p_was_on_flo
 		parameters.recovery_as_collision = true; // Also report collisions generated only from recovery.
 
 		PhysicsServer3D::MotionResult result;
-		bool collided = move_and_collide(parameters, result, false, !sliding_enabled);
+		bool collided = move_and_collide(parameters, result, false);
 
 		last_motion = result.travel;
 
@@ -407,7 +407,7 @@ void CharacterBody3D::_move_and_slide_floating(double p_delta) {
 		parameters.recovery_as_collision = true; // Also report collisions generated only from recovery.
 
 		PhysicsServer3D::MotionResult result;
-		bool collided = move_and_collide(parameters, result, false, false);
+		bool collided = move_and_collide(parameters, result, false);
 
 		last_motion = result.travel;
 
@@ -463,22 +463,13 @@ void CharacterBody3D::apply_floor_snap() {
 	parameters.collide_separation_ray = true;
 
 	PhysicsServer3D::MotionResult result;
-	if (move_and_collide(parameters, result, true, false)) {
+	if (move_and_collide(parameters, result, true)) {
 		CollisionState result_state;
 		// Apply direction for floor only.
 		_set_collision_direction(result, result_state, CollisionState(true, false, false));
 
-		if (result_state.floor) {
-			// Ensure that we only move the body along the up axis, because
-			// move_and_collide may stray the object a bit when getting it unstuck.
-			// Canceling this motion should not affect move_and_slide, as previous
-			// calls to move_and_collide already took care of freeing the body.
-			if (result.travel.length() > margin) {
-				result.travel = up_direction * up_direction.dot(result.travel);
-			} else {
-				result.travel = Vector3();
-			}
-
+		// Only move the body if we are not close enough already.
+		if (result_state.floor && result.travel.length() > margin) {
 			parameters.from.origin += result.travel;
 			set_global_transform(parameters.from);
 		}
@@ -507,6 +498,9 @@ bool CharacterBody3D::_on_floor_if_snapped(bool p_was_on_floor, bool p_vel_dir_f
 	parameters.collide_separation_ray = true;
 
 	PhysicsServer3D::MotionResult result;
+	// We only want to know if there is a floor under the body,
+	// so an accurate resolution is not needed.
+	// Don't use p_cancel_sliding to speed things up a little.
 	if (move_and_collide(parameters, result, true, false)) {
 		CollisionState result_state;
 		// Don't apply direction for any type.

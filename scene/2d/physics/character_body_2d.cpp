@@ -81,7 +81,7 @@ bool CharacterBody2D::move_and_slide() {
 		}
 
 		PhysicsServer2D::MotionResult floor_result;
-		if (move_and_collide(parameters, floor_result, false, false)) {
+		if (move_and_collide(parameters, floor_result, false)) {
 			motion_results.push_back(floor_result);
 			_set_collision_direction(floor_result);
 		}
@@ -138,7 +138,7 @@ void CharacterBody2D::_move_and_slide_grounded(double p_delta, bool p_was_on_flo
 		Vector2 prev_position = parameters.from.columns[2];
 
 		PhysicsServer2D::MotionResult result;
-		bool collided = move_and_collide(parameters, result, false, !sliding_enabled);
+		bool collided = move_and_collide(parameters, result, false);
 
 		last_motion = result.travel;
 
@@ -293,7 +293,7 @@ void CharacterBody2D::_move_and_slide_floating(double p_delta) {
 		parameters.recovery_as_collision = true; // Also report collisions generated only from recovery.
 
 		PhysicsServer2D::MotionResult result;
-		bool collided = move_and_collide(parameters, result, false, false);
+		bool collided = move_and_collide(parameters, result, false);
 
 		last_motion = result.travel;
 
@@ -345,25 +345,18 @@ void CharacterBody2D::_apply_floor_snap(bool p_wall_as_floor) {
 	parameters.collide_separation_ray = true;
 
 	PhysicsServer2D::MotionResult result;
-	if (move_and_collide(parameters, result, true, false)) {
+	if (move_and_collide(parameters, result, true)) {
 		if ((result.get_angle(up_direction) <= floor_max_angle + FLOOR_ANGLE_THRESHOLD) ||
 				(p_wall_as_floor && result.get_angle(-up_direction) > floor_max_angle + FLOOR_ANGLE_THRESHOLD)) {
 			on_floor = true;
 			floor_normal = result.collision_normal;
 			_set_platform_data(result);
 
-			// Ensure that we only move the body along the up axis, because
-			// move_and_collide may stray the object a bit when getting it unstuck.
-			// Canceling this motion should not affect move_and_slide, as previous
-			// calls to move_and_collide already took care of freeing the body.
+			// Only move the body if we are not close enough already.
 			if (result.travel.length() > margin) {
-				result.travel = up_direction * up_direction.dot(result.travel);
-			} else {
-				result.travel = Vector2();
+				parameters.from.columns[2] += result.travel;
+				set_global_transform(parameters.from);
 			}
-
-			parameters.from.columns[2] += result.travel;
-			set_global_transform(parameters.from);
 		}
 	}
 }
@@ -389,6 +382,9 @@ bool CharacterBody2D::_on_floor_if_snapped(bool p_was_on_floor, bool p_vel_dir_f
 	parameters.collide_separation_ray = true;
 
 	PhysicsServer2D::MotionResult result;
+	// We only want to know if there is a floor under the body,
+	// so an accurate resolution is not needed.
+	// Don't use p_cancel_sliding to speed things up a little.
 	if (move_and_collide(parameters, result, true, false)) {
 		if (result.get_angle(up_direction) <= floor_max_angle + FLOOR_ANGLE_THRESHOLD) {
 			return true;
