@@ -2875,16 +2875,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 				file->add_filter("*." + extension, extension.to_upper());
 			}
 
-			if (!scene->get_scene_file_path().is_empty()) {
-				String path = scene->get_scene_file_path();
-				file->set_current_path(path);
-				if (extensions.size()) {
-					String ext = path.get_extension().to_lower();
-					if (extensions.find(ext) == nullptr) {
-						file->set_current_path(path.replacen("." + ext, "." + extensions.front()->get()));
-					}
-				}
-			} else if (extensions.size()) {
+			if (extensions.size()) {
 				String root_name = scene->get_name();
 				root_name = EditorNode::adjust_scene_name_casing(root_name);
 				file->set_current_path(root_name + "." + extensions.front()->get().to_lower());
