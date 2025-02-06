@@ -212,7 +212,7 @@ public:
 	typedef bool (*QueryResultCallback)(uint32_t p_index, void *p_userdata);
 
 	void query_aabb(const AABB &p_aabb, QueryResultCallback p_result_callback, void *p_userdata);
-	void query_ray(const Vector3 &p_from, const Vector3 &p_to, QueryResultCallback p_result_callback, void *p_userdata);
+	void query_ray(const Vector3 &p_from, const Vector3 &p_dir, real_t p_dist, QueryResultCallback p_result_callback, void *p_userdata);
 
 protected:
 	virtual void _shapes_changed() override;
@@ -259,7 +259,7 @@ public:
 	virtual Vector3 get_support(const Vector3 &p_normal) const override { return Vector3(); }
 	virtual void get_supports(const Vector3 &p_normal, int p_max, Vector3 *r_supports, int &r_amount, FeatureType &r_type) const override { r_amount = 0; }
 
-	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_end, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
+	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_dir, real_t p_dist, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
 	virtual bool intersect_point(const Vector3 &p_point) const override;
 	virtual Vector3 get_closest_point_to(const Vector3 &p_point) const override;
 	virtual Vector3 get_moment_of_inertia(real_t p_mass) const override { return Vector3(); }

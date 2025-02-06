@@ -1275,8 +1275,10 @@ Vector<ObjectID> RendererSceneCull::instances_cull_ray(const Vector3 &p_from, co
 	};
 
 	CullRay cull_ray;
-	scenario->indexers[Scenario::INDEXER_GEOMETRY].ray_query(p_from, p_to, cull_ray);
-	scenario->indexers[Scenario::INDEXER_VOLUMES].ray_query(p_from, p_to, cull_ray);
+	Vector3 segment = p_to - p_from;
+	real_t length = segment.length();
+	scenario->indexers[Scenario::INDEXER_GEOMETRY].ray_query(p_from, segment / length, length, cull_ray);
+	scenario->indexers[Scenario::INDEXER_VOLUMES].ray_query(p_from, segment / length, length, cull_ray);
 	return cull_ray.instances;
 }
 

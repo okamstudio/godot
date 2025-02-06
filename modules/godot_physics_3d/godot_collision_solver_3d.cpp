@@ -97,17 +97,21 @@ bool GodotCollisionSolver3D::solve_separation_ray(const GodotShape3D *p_shape_A,
 	const GodotSeparationRayShape3D *ray = static_cast<const GodotSeparationRayShape3D *>(p_shape_A);
 
 	Vector3 from = p_transform_A.origin;
-	Vector3 to = from + p_transform_A.basis.get_column(2) * (ray->get_length() + p_margin);
-	Vector3 support_A = to;
+	Vector3 dir = p_transform_A.basis.get_column(2);
+	real_t distance = ray->get_length() + p_margin;
+	Vector3 support_A = from + dir * distance;
 
 	Transform3D ai = p_transform_B.affine_inverse();
 
 	from = ai.xform(from);
-	to = ai.xform(to);
+	dir = p_transform_B.basis.transposed().xform(dir);
+	real_t dir_length = dir.length();
+	dir /= dir_length;
+	distance *= dir_length;
 
 	Vector3 p, n;
 	int fi = -1;
-	if (!p_shape_B->intersect_segment(from, to, p, n, fi, true)) {
+	if (!p_shape_B->intersect_segment(from, dir, distance, p, n, fi, true)) {
 		return false;
 	}
 
@@ -117,7 +121,7 @@ bool GodotCollisionSolver3D::solve_separation_ray(const GodotShape3D *p_shape_A,
 	}
 
 	// Discard contacts in the wrong direction.
-	if (n.dot(from - to) < CMP_EPSILON) {
+	if (n.dot(dir) * distance < CMP_EPSILON) {
 		return false;
 	}
 

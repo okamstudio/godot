@@ -209,7 +209,6 @@ bool GodotBodyPair3D::_test_ccd(real_t p_step, GodotBody3D *p_A, int p_shape_A, 
 		supports_A[i] = p_xform_A.xform(supports_A[i]);
 
 		Vector3 from = supports_A[i];
-		Vector3 to = from + motion;
 
 		Transform3D from_inv = predicted_xform_B.affine_inverse();
 
@@ -217,11 +216,12 @@ bool GodotBodyPair3D::_test_ccd(real_t p_step, GodotBody3D *p_A, int p_shape_A, 
 		// At high speeds, this may mean we're actually casting from well behind the body instead of inside it, which is odd.
 		// But it still works out.
 		Vector3 local_from = from_inv.xform(from - motion * 0.1);
-		Vector3 local_to = from_inv.xform(to);
+		Vector3 local_motion = predicted_xform_B.basis.transposed().xform(motion * 1.1);
+		real_t local_motion_length = local_motion.length();
 
 		Vector3 rpos, rnorm;
 		int fi = -1;
-		if (p_B->get_shape(p_shape_B)->intersect_segment(local_from, local_to, rpos, rnorm, fi, true)) {
+		if (p_B->get_shape(p_shape_B)->intersect_segment(local_from, local_motion / local_motion_length, local_motion_length, rpos, rnorm, fi, true)) {
 			float hit_length = local_from.distance_to(rpos);
 			if (hit_length < segment_hit_length) {
 				segment_support_idx = i;

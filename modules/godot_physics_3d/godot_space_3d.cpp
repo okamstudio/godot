@@ -112,9 +112,12 @@ bool GodotPhysicsDirectSpaceState3D::intersect_ray(const RayParameters &p_parame
 
 	Vector3 begin, end;
 	Vector3 normal;
+	real_t distance;
 	begin = p_parameters.from;
 	end = p_parameters.to;
-	normal = (end - begin).normalized();
+	normal = end - begin;
+	distance = normal.length();
+	normal /= distance;
 
 	int amount = space->broadphase->cull_segment(begin, end, space->intersection_query_results, GodotSpace3D::INTERSECTION_QUERY_MAX, space->intersection_query_subindex_results);
 
@@ -144,9 +147,13 @@ bool GodotPhysicsDirectSpaceState3D::intersect_ray(const RayParameters &p_parame
 
 		int shape_idx = space->intersection_query_subindex_results[i];
 		Transform3D inv_xform = col_obj->get_shape_inv_transform(shape_idx) * col_obj->get_inv_transform();
+		Basis basis = col_obj->get_transform().basis * col_obj->get_shape_transform(shape_idx).basis;
 
 		Vector3 local_from = inv_xform.xform(begin);
-		Vector3 local_to = inv_xform.xform(end);
+		Vector3 local_normal = basis.transposed().xform(normal);
+		real_t local_length = local_normal.length();
+		local_normal /= local_length;
+		real_t local_distance = distance * local_length;
 
 		const GodotShape3D *shape = col_obj->get_shape(shape_idx);
 
@@ -169,7 +176,7 @@ bool GodotPhysicsDirectSpaceState3D::intersect_ray(const RayParameters &p_parame
 			}
 		}
 
-		if (shape->intersect_segment(local_from, local_to, shape_point, shape_normal, shape_face_index, p_parameters.hit_back_faces)) {
+		if (shape->intersect_segment(local_from, local_normal, local_distance, shape_point, shape_normal, shape_face_index, p_parameters.hit_back_faces)) {
 			Transform3D xform = col_obj->get_transform() * col_obj->get_shape_transform(shape_idx);
 			shape_point = xform.xform(shape_point);
 

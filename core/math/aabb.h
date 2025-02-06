@@ -73,12 +73,27 @@ struct [[nodiscard]] AABB {
 	AABB intersection(const AABB &p_aabb) const; ///get box where two intersect, empty if no intersection occurs
 	_FORCE_INLINE_ bool smits_intersect_ray(const Vector3 &p_from, const Vector3 &p_dir, real_t p_t0, real_t p_t1) const;
 
-	bool intersects_segment(const Vector3 &p_from, const Vector3 &p_to, Vector3 *r_intersection_point = nullptr, Vector3 *r_normal = nullptr) const;
+	bool intersects_segment(const Vector3 &p_from, const Vector3 &p_to, Vector3 *r_intersection_point = nullptr, Vector3 *r_normal = nullptr) const {
+		Vector3 segment = p_to - p_from;
+		real_t length = segment.length();
+		Vector3 ray = Math::is_equal_approx(length, 0) ? Vector3() : segment / length;
+		bool inside;
+		bool inter = find_intersects_ray(p_from, ray, inside, r_intersection_point, r_normal, length);
+		if (inter && inside) {
+			if (r_intersection_point != nullptr) {
+				*r_intersection_point = p_from;
+			}
+			if (r_normal != nullptr) {
+				*r_normal = Vector3();
+			}
+		}
+		return inter;
+	}
 	bool intersects_ray(const Vector3 &p_from, const Vector3 &p_dir) const {
 		bool inside;
 		return find_intersects_ray(p_from, p_dir, inside);
 	}
-	bool find_intersects_ray(const Vector3 &p_from, const Vector3 &p_dir, bool &r_inside, Vector3 *r_intersection_point = nullptr, Vector3 *r_normal = nullptr) const;
+	bool find_intersects_ray(const Vector3 &p_from, const Vector3 &p_dir, bool &r_inside, Vector3 *r_intersection_point = nullptr, Vector3 *r_normal = nullptr, real_t p_max_distance = 0) const;
 
 	_FORCE_INLINE_ bool intersects_convex_shape(const Plane *p_planes, int p_plane_count, const Vector3 *p_points, int p_point_count) const;
 	_FORCE_INLINE_ bool inside_convex_shape(const Plane *p_planes, int p_plane_count) const;

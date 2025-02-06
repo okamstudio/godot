@@ -122,7 +122,7 @@ AABB AABB::intersection(const AABB &p_aabb) const {
 // The caller can therefore decide when INSIDE whether to use the
 // backtracked intersection, or use p_from as the intersection, and
 // carry on progressing without e.g. reflecting against the normal.
-bool AABB::find_intersects_ray(const Vector3 &p_from, const Vector3 &p_dir, bool &r_inside, Vector3 *r_intersection_point, Vector3 *r_normal) const {
+bool AABB::find_intersects_ray(const Vector3 &p_from, const Vector3 &p_dir, bool &r_inside, Vector3 *r_intersection_point, Vector3 *r_normal, real_t p_max_distance) const {
 #ifdef MATH_CHECKS
 	if (unlikely(size.x < 0 || size.y < 0 || size.z < 0)) {
 		ERR_PRINT("AABB size is negative, this is not supported. Use AABB.abs() to get an AABB with a positive size.");
@@ -159,7 +159,7 @@ bool AABB::find_intersects_ray(const Vector3 &p_from, const Vector3 &p_dir, bool
 				}
 				tmax = t2;
 			}
-			if (tmin > tmax) {
+			if (tmin > tmax || (p_max_distance > 0 && tmin > p_max_distance)) {
 				return false;
 			}
 		}
@@ -180,71 +180,6 @@ bool AABB::find_intersects_ray(const Vector3 &p_from, const Vector3 &p_dir, bool
 	if (r_normal) {
 		*r_normal = Vector3();
 		(*r_normal)[axis] = (p_dir[axis] >= 0) ? -1 : 1;
-	}
-
-	return true;
-}
-
-bool AABB::intersects_segment(const Vector3 &p_from, const Vector3 &p_to, Vector3 *r_intersection_point, Vector3 *r_normal) const {
-#ifdef MATH_CHECKS
-	if (unlikely(size.x < 0 || size.y < 0 || size.z < 0)) {
-		ERR_PRINT("AABB size is negative, this is not supported. Use AABB.abs() to get an AABB with a positive size.");
-	}
-#endif
-	real_t min = 0, max = 1;
-	int axis = 0;
-	real_t sign = 0;
-
-	for (int i = 0; i < 3; i++) {
-		real_t seg_from = p_from[i];
-		real_t seg_to = p_to[i];
-		real_t box_begin = position[i];
-		real_t box_end = box_begin + size[i];
-		real_t cmin, cmax;
-		real_t csign;
-
-		if (seg_from < seg_to) {
-			if (seg_from > box_end || seg_to < box_begin) {
-				return false;
-			}
-			real_t length = seg_to - seg_from;
-			cmin = (seg_from < box_begin) ? ((box_begin - seg_from) / length) : 0;
-			cmax = (seg_to > box_end) ? ((box_end - seg_from) / length) : 1;
-			csign = -1.0;
-
-		} else {
-			if (seg_to > box_end || seg_from < box_begin) {
-				return false;
-			}
-			real_t length = seg_to - seg_from;
-			cmin = (seg_from > box_end) ? (box_end - seg_from) / length : 0;
-			cmax = (seg_to < box_begin) ? (box_begin - seg_from) / length : 1;
-			csign = 1.0;
-		}
-
-		if (cmin > min) {
-			min = cmin;
-			axis = i;
-			sign = csign;
-		}
-		if (cmax < max) {
-			max = cmax;
-		}
-		if (max < min) {
-			return false;
-		}
-	}
-
-	Vector3 rel = p_to - p_from;
-
-	if (r_normal) {
-		Vector3 normal;
-		normal[axis] = sign;
-		*r_normal = normal;
-	}
-
-	if (r_intersection_point) {
-		*r_intersection_point = p_from + rel * min;
 	}
 
 	return true;

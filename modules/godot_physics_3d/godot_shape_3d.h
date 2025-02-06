@@ -80,7 +80,7 @@ public:
 	virtual Vector3 get_support(const Vector3 &p_normal) const;
 	virtual void get_supports(const Vector3 &p_normal, int p_max, Vector3 *r_supports, int &r_amount, FeatureType &r_type) const = 0;
 	virtual Vector3 get_closest_point_to(const Vector3 &p_point) const = 0;
-	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_end, Vector3 &r_point, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const = 0;
+	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_dir, real_t p_dist, Vector3 &r_point, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const = 0;
 	virtual bool intersect_point(const Vector3 &p_point) const = 0;
 	virtual Vector3 get_moment_of_inertia(real_t p_mass) const = 0;
 
@@ -126,7 +126,7 @@ public:
 	virtual Vector3 get_support(const Vector3 &p_normal) const override;
 	virtual void get_supports(const Vector3 &p_normal, int p_max, Vector3 *r_supports, int &r_amount, FeatureType &r_type) const override { r_amount = 0; }
 
-	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_end, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
+	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_dir, real_t p_dist, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
 	virtual bool intersect_point(const Vector3 &p_point) const override;
 	virtual Vector3 get_closest_point_to(const Vector3 &p_point) const override;
 	virtual Vector3 get_moment_of_inertia(real_t p_mass) const override;
@@ -153,7 +153,7 @@ public:
 	virtual Vector3 get_support(const Vector3 &p_normal) const override;
 	virtual void get_supports(const Vector3 &p_normal, int p_max, Vector3 *r_supports, int &r_amount, FeatureType &r_type) const override;
 
-	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_end, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
+	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_dir, real_t p_dist, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
 	virtual bool intersect_point(const Vector3 &p_point) const override;
 	virtual Vector3 get_closest_point_to(const Vector3 &p_point) const override;
 
@@ -180,7 +180,7 @@ public:
 	virtual void project_range(const Vector3 &p_normal, const Transform3D &p_transform, real_t &r_min, real_t &r_max) const override;
 	virtual Vector3 get_support(const Vector3 &p_normal) const override;
 	virtual void get_supports(const Vector3 &p_normal, int p_max, Vector3 *r_supports, int &r_amount, FeatureType &r_type) const override;
-	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_end, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
+	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_dir, real_t p_dist, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
 	virtual bool intersect_point(const Vector3 &p_point) const override;
 	virtual Vector3 get_closest_point_to(const Vector3 &p_point) const override;
 
@@ -205,7 +205,7 @@ public:
 	virtual void project_range(const Vector3 &p_normal, const Transform3D &p_transform, real_t &r_min, real_t &r_max) const override;
 	virtual Vector3 get_support(const Vector3 &p_normal) const override;
 	virtual void get_supports(const Vector3 &p_normal, int p_max, Vector3 *r_supports, int &r_amount, FeatureType &r_type) const override;
-	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_end, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
+	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_dir, real_t p_dist, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
 	virtual bool intersect_point(const Vector3 &p_point) const override;
 	virtual Vector3 get_closest_point_to(const Vector3 &p_point) const override;
 
@@ -234,7 +234,7 @@ public:
 	virtual void project_range(const Vector3 &p_normal, const Transform3D &p_transform, real_t &r_min, real_t &r_max) const override;
 	virtual Vector3 get_support(const Vector3 &p_normal) const override;
 	virtual void get_supports(const Vector3 &p_normal, int p_max, Vector3 *r_supports, int &r_amount, FeatureType &r_type) const override;
-	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_end, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
+	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_dir, real_t p_dist, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
 	virtual bool intersect_point(const Vector3 &p_point) const override;
 	virtual Vector3 get_closest_point_to(const Vector3 &p_point) const override;
 
@@ -263,7 +263,7 @@ public:
 	virtual void project_range(const Vector3 &p_normal, const Transform3D &p_transform, real_t &r_min, real_t &r_max) const override;
 	virtual Vector3 get_support(const Vector3 &p_normal) const override;
 	virtual void get_supports(const Vector3 &p_normal, int p_max, Vector3 *r_supports, int &r_amount, FeatureType &r_type) const override;
-	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_end, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
+	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_dir, real_t p_dist, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
 	virtual bool intersect_point(const Vector3 &p_point) const override;
 	virtual Vector3 get_closest_point_to(const Vector3 &p_point) const override;
 
@@ -290,7 +290,7 @@ public:
 	virtual void project_range(const Vector3 &p_normal, const Transform3D &p_transform, real_t &r_min, real_t &r_max) const override;
 	virtual Vector3 get_support(const Vector3 &p_normal) const override;
 	virtual void get_supports(const Vector3 &p_normal, int p_max, Vector3 *r_supports, int &r_amount, FeatureType &r_type) const override;
-	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_end, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
+	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_dir, real_t p_dist, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
 	virtual bool intersect_point(const Vector3 &p_point) const override;
 	virtual Vector3 get_closest_point_to(const Vector3 &p_point) const override;
 
@@ -338,7 +338,7 @@ struct GodotConcavePolygonShape3D : public GodotConcaveShape3D {
 
 	struct _SegmentCullParams {
 		Vector3 from;
-		Vector3 to;
+		real_t dist;
 		Vector3 dir;
 		const Face *faces = nullptr;
 		const Vector3 *vertices = nullptr;
@@ -369,7 +369,7 @@ public:
 	virtual void project_range(const Vector3 &p_normal, const Transform3D &p_transform, real_t &r_min, real_t &r_max) const override;
 	virtual Vector3 get_support(const Vector3 &p_normal) const override;
 
-	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_end, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
+	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_dir, real_t p_dist, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
 	virtual bool intersect_point(const Vector3 &p_point) const override;
 	virtual Vector3 get_closest_point_to(const Vector3 &p_point) const override;
 
@@ -419,7 +419,7 @@ struct GodotHeightMapShape3D : public GodotConcaveShape3D {
 	void _build_accelerator();
 
 	template <typename ProcessFunction>
-	bool _intersect_grid_segment(ProcessFunction &p_process, const Vector3 &p_begin, const Vector3 &p_end, int p_width, int p_depth, const Vector3 &offset, Vector3 &r_point, Vector3 &r_normal) const;
+	bool _intersect_grid_segment(ProcessFunction &p_process, const Vector3 &p_begin, const Vector3 &p_dir, real_t p_dist, int p_width, int p_depth, const Vector3 &offset, Vector3 &r_point, Vector3 &r_normal) const;
 
 	void _setup(const Vector<real_t> &p_heights, int p_width, int p_depth, real_t p_min_height, real_t p_max_height);
 
@@ -432,7 +432,7 @@ public:
 
 	virtual void project_range(const Vector3 &p_normal, const Transform3D &p_transform, real_t &r_min, real_t &r_max) const override;
 	virtual Vector3 get_support(const Vector3 &p_normal) const override;
-	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_end, Vector3 &r_point, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
+	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_dir, real_t p_dist, Vector3 &r_point, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
 	virtual bool intersect_point(const Vector3 &p_point) const override;
 
 	virtual Vector3 get_closest_point_to(const Vector3 &p_point) const override;
@@ -460,7 +460,7 @@ struct GodotFaceShape3D : public GodotShape3D {
 	virtual void project_range(const Vector3 &p_normal, const Transform3D &p_transform, real_t &r_min, real_t &r_max) const override;
 	virtual Vector3 get_support(const Vector3 &p_normal) const override;
 	virtual void get_supports(const Vector3 &p_normal, int p_max, Vector3 *r_supports, int &r_amount, FeatureType &r_type) const override;
-	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_end, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
+	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_dir, real_t p_dist, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override;
 	virtual bool intersect_point(const Vector3 &p_point) const override;
 	virtual Vector3 get_closest_point_to(const Vector3 &p_point) const override;
 
@@ -499,7 +499,7 @@ struct GodotMotionShape3D : public GodotShape3D {
 	}
 
 	virtual void get_supports(const Vector3 &p_normal, int p_max, Vector3 *r_supports, int &r_amount, FeatureType &r_type) const override { r_amount = 0; }
-	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_end, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override { return false; }
+	virtual bool intersect_segment(const Vector3 &p_begin, const Vector3 &p_dir, real_t p_dist, Vector3 &r_result, Vector3 &r_normal, int &r_face_index, bool p_hit_back_faces) const override { return false; }
 	virtual bool intersect_point(const Vector3 &p_point) const override { return false; }
 	virtual Vector3 get_closest_point_to(const Vector3 &p_point) const override { return p_point; }
 

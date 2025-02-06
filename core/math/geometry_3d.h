@@ -42,7 +42,7 @@ public:
 	static void get_closest_points_between_segments(const Vector3 &p_p0, const Vector3 &p_p1, const Vector3 &p_q0, const Vector3 &p_q1, Vector3 &r_ps, Vector3 &r_qt);
 	static real_t get_closest_distance_between_segments(const Vector3 &p_p0, const Vector3 &p_p1, const Vector3 &p_q0, const Vector3 &p_q1);
 
-	static inline bool ray_intersects_triangle(const Vector3 &p_from, const Vector3 &p_dir, const Vector3 &p_v0, const Vector3 &p_v1, const Vector3 &p_v2, Vector3 *r_res = nullptr) {
+	static inline bool ray_intersects_triangle(const Vector3 &p_from, const Vector3 &p_dir, const Vector3 &p_v0, const Vector3 &p_v1, const Vector3 &p_v2, Vector3 *r_res = nullptr, real_t p_dist = 0.0) {
 		Vector3 e1 = p_v1 - p_v0;
 		Vector3 e2 = p_v2 - p_v0;
 		Vector3 h = p_dir.cross(e2);
@@ -72,65 +72,28 @@ public:
 		// the intersection point is on the line.
 		real_t t = f * e2.dot(q);
 
-		if (t > 0.00001f) { // ray intersection
+		if (t > (real_t)CMP_EPSILON && (p_dist <= 0 || t <= p_dist)) { // ray intersection and check if distance is within boundary if provided
 			if (r_res) {
 				*r_res = p_from + p_dir * t;
 			}
 			return true;
-		} else { // This means that there is a line intersection but not a ray intersection.
-			return false;
 		}
+		return false;
 	}
 
 	static inline bool segment_intersects_triangle(const Vector3 &p_from, const Vector3 &p_to, const Vector3 &p_v0, const Vector3 &p_v1, const Vector3 &p_v2, Vector3 *r_res = nullptr) {
-		Vector3 rel = p_to - p_from;
-		Vector3 e1 = p_v1 - p_v0;
-		Vector3 e2 = p_v2 - p_v0;
-		Vector3 h = rel.cross(e2);
-		real_t a = e1.dot(h);
-		if (Math::is_zero_approx(a)) { // Parallel test.
+		Vector3 segment = p_to - p_from;
+		real_t length = segment.length();
+		if (unlikely(Math::is_equal_approx(length, 0))) {
 			return false;
 		}
-
-		real_t f = 1.0f / a;
-
-		Vector3 s = p_from - p_v0;
-		real_t u = f * s.dot(h);
-
-		if ((u < 0.0f) || (u > 1.0f)) {
-			return false;
-		}
-
-		Vector3 q = s.cross(e1);
-
-		real_t v = f * rel.dot(q);
-
-		if ((v < 0.0f) || (u + v > 1.0f)) {
-			return false;
-		}
-
-		// At this stage we can compute t to find out where
-		// the intersection point is on the line.
-		real_t t = f * e2.dot(q);
-
-		if (t > (real_t)CMP_EPSILON && t <= 1.0f) { // Ray intersection.
-			if (r_res) {
-				*r_res = p_from + rel * t;
-			}
-			return true;
-		} else { // This means that there is a line intersection but not a ray intersection.
-			return false;
-		}
+		Vector3 ray = segment / length;
+		return ray_intersects_triangle(p_from, ray, p_v0, p_v1, p_v2, r_res, length);
 	}
 
-	static inline bool segment_intersects_sphere(const Vector3 &p_from, const Vector3 &p_to, const Vector3 &p_sphere_pos, real_t p_sphere_radius, Vector3 *r_res = nullptr, Vector3 *r_norm = nullptr) {
+	static inline bool ray_intersects_sphere(const Vector3 &p_from, const Vector3 &p_dir, const Vector3 &p_sphere_pos, real_t p_sphere_radius, Vector3 *r_res = nullptr, Vector3 *r_norm = nullptr, real_t p_dist = 0.0) {
 		Vector3 sphere_pos = p_sphere_pos - p_from;
-		Vector3 rel = (p_to - p_from);
-		real_t rel_l = rel.length();
-		if (rel_l < (real_t)CMP_EPSILON) {
-			return false; // Both points are the same.
-		}
-		Vector3 normal = rel / rel_l;
+		Vector3 normal = p_dir;
 
 		real_t sphere_d = normal.dot(sphere_pos);
 
@@ -148,7 +111,7 @@ public:
 		}
 
 		// Check in segment.
-		if (inters_d < 0 || inters_d > rel_l) {
+		if (inters_d < 0 || (p_dist > 0 && inters_d > p_dist)) {
 			return false;
 		}
 
@@ -164,20 +127,24 @@ public:
 		return true;
 	}
 
-	static inline bool segment_intersects_cylinder(const Vector3 &p_from, const Vector3 &p_to, real_t p_height, real_t p_radius, Vector3 *r_res = nullptr, Vector3 *r_norm = nullptr, int p_cylinder_axis = 2) {
-		Vector3 rel = (p_to - p_from);
-		real_t rel_l = rel.length();
-		if (rel_l < (real_t)CMP_EPSILON) {
-			return false; // Both points are the same.
+	static inline bool segment_intersects_sphere(const Vector3 &p_from, const Vector3 &p_to, const Vector3 &p_sphere_pos, real_t p_sphere_radius, Vector3 *r_res = nullptr, Vector3 *r_norm = nullptr) {
+		Vector3 segment = p_to - p_from;
+		real_t length = segment.length();
+		if (unlikely(Math::is_equal_approx(length, 0))) {
+			return false;
 		}
+		Vector3 ray = segment / length;
+		return ray_intersects_sphere(p_from, ray, p_sphere_pos, p_sphere_radius, r_res, r_norm, length);
+	}
 
+	static inline bool ray_intersects_cylinder(const Vector3 &p_from, const Vector3 &p_dir, real_t p_height, real_t p_radius, Vector3 *r_res = nullptr, Vector3 *r_norm = nullptr, int p_cylinder_axis = 2, real_t p_dist = 0.0) {
 		ERR_FAIL_COND_V(p_cylinder_axis < 0, false);
 		ERR_FAIL_COND_V(p_cylinder_axis > 2, false);
 		Vector3 cylinder_axis;
 		cylinder_axis[p_cylinder_axis] = 1.0f;
 
 		// First check if they are parallel.
-		Vector3 normal = (rel / rel_l);
+		Vector3 normal = p_dir;
 		Vector3 crs = normal.cross(cylinder_axis);
 		real_t crs_l = crs.length();
 
@@ -202,55 +169,47 @@ public:
 		if (w2 < (real_t)CMP_EPSILON) {
 			return false; // Avoid numerical error.
 		}
-		Size2 size(Math::sqrt(w2), p_height * 0.5f);
+		Size2 size_2d(Math::sqrt(w2), p_height * 0.5f);
 
 		Vector3 side_dir = axis_dir.cross(cylinder_axis).normalized();
 
-		Vector2 from2D(side_dir.dot(p_from), p_from[p_cylinder_axis]);
-		Vector2 to2D(side_dir.dot(p_to), p_to[p_cylinder_axis]);
+		Vector2 from_2d(side_dir.dot(p_from), p_from[p_cylinder_axis]);
+		Vector2 dir_2d(side_dir.dot(p_dir), p_dir[p_cylinder_axis]);
 
-		real_t min = 0, max = 1;
-
-		int axis = -1;
+		real_t tmin = -1e20;
+		real_t tmax = 1e20;
+		int axis = 0;
 
 		for (int i = 0; i < 2; i++) {
-			real_t seg_from = from2D[i];
-			real_t seg_to = to2D[i];
-			real_t box_begin = -size[i];
-			real_t box_end = size[i];
-			real_t cmin, cmax;
-
-			if (seg_from < seg_to) {
-				if (seg_from > box_end || seg_to < box_begin) {
+			if (dir_2d[i] == 0) {
+				if ((from_2d[i] < -size_2d[i]) || (from_2d[i] > size_2d[i])) {
 					return false;
 				}
-				real_t length = seg_to - seg_from;
-				cmin = (seg_from < box_begin) ? ((box_begin - seg_from) / length) : 0;
-				cmax = (seg_to > box_end) ? ((box_end - seg_from) / length) : 1;
+			} else { // ray not parallel to bounds in this direction
+				real_t t1 = (-size_2d[i] - from_2d[i]) / dir_2d[i];
+				real_t t2 = (size_2d[i] - from_2d[i]) / dir_2d[i];
 
-			} else {
-				if (seg_to > box_end || seg_from < box_begin) {
+				if (t1 > t2) {
+					SWAP(t1, t2);
+				}
+				if (t1 >= tmin) {
+					tmin = t1;
+					axis = i;
+				}
+				if (t2 < tmax) {
+					if (t2 < 0) {
+						return false;
+					}
+					tmax = t2;
+				}
+				if (tmin > tmax || (p_dist > 0 && tmin > p_dist)) {
 					return false;
 				}
-				real_t length = seg_to - seg_from;
-				cmin = (seg_from > box_end) ? (box_end - seg_from) / length : 0;
-				cmax = (seg_to < box_begin) ? (box_begin - seg_from) / length : 1;
-			}
-
-			if (cmin > min) {
-				min = cmin;
-				axis = i;
-			}
-			if (cmax < max) {
-				max = cmax;
-			}
-			if (max < min) {
-				return false;
 			}
 		}
 
 		// Convert to 3D again.
-		Vector3 result = p_from + (rel * min);
+		Vector3 result = p_from + p_dir * tmin;
 		Vector3 res_normal = result;
 
 		if (axis == 0) {
@@ -274,17 +233,20 @@ public:
 		return true;
 	}
 
-	static bool segment_intersects_convex(const Vector3 &p_from, const Vector3 &p_to, const Plane *p_planes, int p_plane_count, Vector3 *p_res, Vector3 *p_norm) {
-		real_t min = -1e20, max = 1e20;
-
-		Vector3 rel = p_to - p_from;
-		real_t rel_l = rel.length();
-
-		if (rel_l < (real_t)CMP_EPSILON) {
+	static inline bool segment_intersects_cylinder(const Vector3 &p_from, const Vector3 &p_to, real_t p_height, real_t p_radius, Vector3 *r_res = nullptr, Vector3 *r_norm = nullptr, int p_cylinder_axis = 2) {
+		Vector3 segment = p_to - p_from;
+		real_t length = segment.length();
+		if (unlikely(Math::is_equal_approx(length, 0))) {
 			return false;
 		}
+		Vector3 ray = segment / length;
+		return ray_intersects_cylinder(p_from, ray, p_height, p_radius, r_res, r_norm, p_cylinder_axis, length);
+	}
 
-		Vector3 dir = rel / rel_l;
+	static bool ray_intersects_convex(const Vector3 &p_from, const Vector3 &p_dir, const Plane *p_planes, int p_plane_count, Vector3 *r_res, Vector3 *r_norm, real_t p_dist = 0.0) {
+		real_t min = -1e20, max = 1e20;
+
+		Vector3 dir = p_dir;
 
 		int min_index = -1;
 
@@ -313,18 +275,28 @@ public:
 			}
 		}
 
-		if (max <= min || min < 0 || min > rel_l || min_index == -1) { // Exit conditions.
+		if (max <= min || min < 0 || (p_dist > 0 && min > p_dist) || min_index == -1) { // Exit conditions.
 			return false; // No intersection.
 		}
 
-		if (p_res) {
-			*p_res = p_from + dir * min;
+		if (r_res) {
+			*r_res = p_from + dir * min;
 		}
-		if (p_norm) {
-			*p_norm = p_planes[min_index].normal;
+		if (r_norm) {
+			*r_norm = p_planes[min_index].normal;
 		}
 
 		return true;
+	}
+
+	static inline bool segment_intersects_convex(const Vector3 &p_from, const Vector3 &p_to, const Plane *p_planes, int p_plane_count, Vector3 *r_res, Vector3 *r_norm) {
+		Vector3 segment = p_to - p_from;
+		real_t length = segment.length();
+		if (unlikely(Math::is_equal_approx(length, 0))) {
+			return false;
+		}
+		Vector3 ray = segment / length;
+		return ray_intersects_convex(p_from, ray, p_planes, p_plane_count, r_res, r_norm, length);
 	}
 
 	static Vector3 get_closest_point_to_segment(const Vector3 &p_point, const Vector3 *p_segment) {
