@@ -985,6 +985,10 @@ void GraphEdit::_top_connection_layer_input(const Ref<InputEvent> &p_ev) {
 						// Check disconnect.
 						for (const Ref<Connection> &conn : connection_map[graph_node->get_name()]) {
 							if (conn->from_node == graph_node->get_name() && conn->from_port == j) {
+								// If there is a hovered connection, let it have disconnect priority
+								if (hovered_connection.is_valid() && conn != hovered_connection) {
+									continue;
+								}
 								Node *to = get_node(NodePath(conn->to_node));
 								if (Object::cast_to<GraphNode>(to)) {
 									connecting_from_node = conn->to_node;
@@ -1042,6 +1046,10 @@ void GraphEdit::_top_connection_layer_input(const Ref<InputEvent> &p_ev) {
 						// Check disconnect.
 						for (const Ref<Connection> &conn : connection_map[graph_node->get_name()]) {
 							if (conn->to_node == graph_node->get_name() && conn->to_port == j) {
+								// If there is a hovered connection, let it have disconnect priority
+								if (hovered_connection.is_valid() && conn != hovered_connection) {
+									continue;
+								}
 								Node *fr = get_node(NodePath(conn->from_node));
 								if (Object::cast_to<GraphNode>(fr)) {
 									connecting_from_node = conn->from_node;
