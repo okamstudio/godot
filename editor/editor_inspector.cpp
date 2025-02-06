@@ -3487,7 +3487,7 @@ void EditorInspector::update_tree() {
 				if (class_name_components[i].begins_with("page_size") && class_name_components[i].get_slice_count("=") == 2) {
 					page_size = class_name_components[i].get_slice("=", 1).to_int();
 				} else if (class_name_components[i].begins_with("add_button_text") && class_name_components[i].get_slice_count("=") == 2) {
-					add_button_text = class_name_components[i].get_slice("=", 1).strip_edges();
+					add_button_text = tr(class_name_components[i].get_slice("=", 1).strip_edges());
 				} else if (class_name_components[i] == "static") {
 					movable = false;
 				} else if (class_name_components[i] == "const") {
