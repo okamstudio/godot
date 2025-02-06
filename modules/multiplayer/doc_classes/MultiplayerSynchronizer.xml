@@ -75,12 +75,12 @@
 	<signals>
 		<signal name="delta_synchronized">
 			<description>
-				Emitted when a new delta synchronization state is received by this synchronizer after the properties have been updated.
+				Emitted when a new delta synchronization state is received by this synchronizer after the properties have been updated. This signal is only emitted when properties set to replicate "On Change" are synchronized.
 			</description>
 		</signal>
 		<signal name="synchronized">
 			<description>
-				Emitted when a new synchronization state is received by this synchronizer after the properties have been updated.
+				Emitted when a new synchronization state is received by this synchronizer after the properties have been updated. This signal is only emitted when properties set to replicate "Always" are synchronized.
 			</description>
 		</signal>
 		<signal name="visibility_changed">
