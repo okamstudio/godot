@@ -931,6 +931,7 @@ void FileDialog::update_file_list() {
 		// Select the first file from list if nothing is selected.
 		if (tree->get_root() && tree->get_root()->get_first_child() && tree->get_selected() == nullptr) {
 			tree->get_root()->get_first_child()->select(0);
+			_tree_selected();
 		}
 	}
 }
@@ -949,6 +950,7 @@ void FileDialog::_filename_filter_changed() {
 void FileDialog::_tree_select_first() {
 	if (tree->get_root() && tree->get_root()->get_first_child()) {
 		tree->get_root()->get_first_child()->select(0);
+		_tree_selected();
 	}
 }
 
