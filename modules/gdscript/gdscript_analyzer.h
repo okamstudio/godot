@@ -113,7 +113,7 @@ class GDScriptAnalyzer {
 	void reduce_preload(GDScriptParser::PreloadNode *p_preload);
 	void reduce_self(GDScriptParser::SelfNode *p_self);
 	void reduce_subscript(GDScriptParser::SubscriptNode *p_subscript, bool p_can_be_pseudo_type = false);
-	void reduce_ternary_op(GDScriptParser::TernaryOpNode *p_ternary_op, bool p_is_root = false);
+	void reduce_ternary_op(GDScriptParser::TernaryOpNode *p_ternary_op, bool p_is_root = false, const GDScriptParser::DataType *p_expected_type = nullptr);
 	void reduce_type_test(GDScriptParser::TypeTestNode *p_type_test);
 	void reduce_unary_op(GDScriptParser::UnaryOpNode *p_unary_op);
 

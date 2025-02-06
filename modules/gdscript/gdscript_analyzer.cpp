@@ -2524,6 +2524,9 @@ void GDScriptAnalyzer::resolve_return(GDScriptParser::ReturnNode *p_return) {
 			if (!is_type_compatible(expected_type, result, true, p_return)) {
 				downgrade_node_type_source(p_return);
 			}
+			if (p_return->return_value->type == GDScriptParser::Node::TERNARY_OPERATOR) {
+				reduce_ternary_op(static_cast<GDScriptParser::TernaryOpNode *>(p_return->return_value), false, &expected_type);
+			}
 		} else if (!is_type_compatible(expected_type, result, true, p_return)) {
 			mark_node_unsafe(p_return);
 			if (!is_type_compatible(result, expected_type)) {
@@ -5072,7 +5075,7 @@ void GDScriptAnalyzer::reduce_subscript(GDScriptParser::SubscriptNode *p_subscri
 	p_subscript->set_datatype(result_type);
 }
 
-void GDScriptAnalyzer::reduce_ternary_op(GDScriptParser::TernaryOpNode *p_ternary_op, bool p_is_root) {
+void GDScriptAnalyzer::reduce_ternary_op(GDScriptParser::TernaryOpNode *p_ternary_op, bool p_is_root, const GDScriptParser::DataType *p_expected_type) {
 	reduce_expression(p_ternary_op->condition);
 	reduce_expression(p_ternary_op->true_expr, p_is_root);
 	reduce_expression(p_ternary_op->false_expr, p_is_root);
@@ -5099,6 +5102,19 @@ void GDScriptAnalyzer::reduce_ternary_op(GDScriptParser::TernaryOpNode *p_ternar
 		false_type = p_ternary_op->false_expr->get_datatype();
 	} else {
 		false_type.kind = GDScriptParser::DataType::VARIANT;
+	}
+
+	if (p_expected_type) {
+		if (true_type.is_variant() && p_ternary_op->true_expr->type == GDScriptParser::Node::TERNARY_OPERATOR) {
+			reduce_ternary_op(static_cast<GDScriptParser::TernaryOpNode *>(p_ternary_op->true_expr), false, p_expected_type);
+		} else if (!is_type_compatible(*p_expected_type, true_type, true, p_ternary_op)) {
+			push_error(vformat(R"(Cannot return value of type "%s" in the true expression because the function return type is "%s".)", true_type.to_string(), p_expected_type->to_string()), p_ternary_op);
+		}
+		if (false_type.is_variant() && p_ternary_op->false_expr->type == GDScriptParser::Node::TERNARY_OPERATOR) {
+			reduce_ternary_op(static_cast<GDScriptParser::TernaryOpNode *>(p_ternary_op->false_expr), false, p_expected_type);
+		} else if (!is_type_compatible(*p_expected_type, false_type, true, p_ternary_op)) {
+			push_error(vformat(R"(Cannot return value of type "%s" in the false expression because the function return type is "%s".)", false_type.to_string(), p_expected_type->to_string()), p_ternary_op);
+		}
 	}
 
 	if (true_type.is_variant() || false_type.is_variant()) {

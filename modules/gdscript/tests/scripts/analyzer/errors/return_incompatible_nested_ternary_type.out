@@ -1,0 +1,2 @@
+GDTEST_ANALYZER_ERROR
+Cannot return value of type "String" in the false expression because the function return type is "int".
