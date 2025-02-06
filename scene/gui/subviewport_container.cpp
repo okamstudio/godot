@@ -79,6 +79,14 @@ void SubViewportContainer::set_stretch_shrink(int p_shrink) {
 	queue_redraw();
 }
 
+void SubViewportContainer::set_send_input_to_all_viewports(bool p_enable) {
+	send_input_event_to_all_viewports = p_enable;
+}
+
+bool SubViewportContainer::is_send_input_to_all_viewports_enabled() {
+	return send_input_event_to_all_viewports;
+}
+
 void SubViewportContainer::recalc_force_viewport_sizes() {
 	if (!stretch) {
 		return;
@@ -126,8 +134,6 @@ void SubViewportContainer::_notification(int p_what) {
 				} else {
 					c->set_update_mode(SubViewport::UPDATE_DISABLED);
 				}
-
-				c->set_handle_input_locally(false); //do not handle input locally here
 			}
 		} break;
 
@@ -227,13 +233,24 @@ void SubViewportContainer::gui_input(const Ref<InputEvent> &p_event) {
 }
 
 void SubViewportContainer::_send_event_to_viewports(const Ref<InputEvent> &p_event) {
-	for (int i = 0; i < get_child_count(); i++) {
+	bool is_handled = false;
+	// The input order is consistent with the display order, so that the topmost SubViewport receives the input events first.
+	for (int i = get_child_count() - 1; i >= 0; i--) {
 		SubViewport *c = Object::cast_to<SubViewport>(get_child(i));
 		if (!c || c->is_input_disabled()) {
 			continue;
 		}
 
 		c->push_input(p_event);
+		if (c->is_input_handled()) {
+			is_handled = true;
+			if (!send_input_event_to_all_viewports) {
+				break;
+			}
+		}
+	}
+	if (is_handled) {
+		get_viewport()->set_input_as_handled();
 	}
 }
 
@@ -297,9 +314,13 @@ void SubViewportContainer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_mouse_target", "amount"), &SubViewportContainer::set_mouse_target);
 	ClassDB::bind_method(D_METHOD("is_mouse_target_enabled"), &SubViewportContainer::is_mouse_target_enabled);
 
+	ClassDB::bind_method(D_METHOD("set_send_input_to_all_viewports", "enable"), &SubViewportContainer::set_send_input_to_all_viewports);
+	ClassDB::bind_method(D_METHOD("is_send_input_to_all_viewports_enabled"), &SubViewportContainer::is_send_input_to_all_viewports_enabled);
+
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "stretch"), "set_stretch", "is_stretch_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "stretch_shrink", PROPERTY_HINT_RANGE, "1,32,1,or_greater"), "set_stretch_shrink", "get_stretch_shrink");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "mouse_target"), "set_mouse_target", "is_mouse_target_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "send_input_to_all_viewports"), "set_send_input_to_all_viewports", "is_send_input_to_all_viewports_enabled");
 
 	GDVIRTUAL_BIND(_propagate_input_event, "event");
 }

@@ -279,7 +279,6 @@ private:
 	Transform3D physics_last_camera_transform;
 	ObjectID physics_last_id;
 
-	bool handle_input_locally = true;
 	bool local_input_handled = false;
 
 	Ref<World2D> world_2d;
@@ -644,8 +643,10 @@ public:
 	void set_input_as_handled();
 	bool is_input_handled() const;
 
+#ifndef DISABLE_DEPRECATED
 	void set_handle_input_locally(bool p_enable);
 	bool is_handling_input_locally() const;
+#endif // DISABLE_DEPRECATED
 
 	bool gui_is_dragging() const;
 	bool gui_is_drag_successful() const;

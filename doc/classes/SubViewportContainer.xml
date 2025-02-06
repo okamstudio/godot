@@ -4,7 +4,7 @@
 		A container used for displaying the contents of a [SubViewport].
 	</brief_description>
 	<description>
-		A container that displays the contents of underlying [SubViewport] child nodes. It uses the combined size of the [SubViewport]s as minimum size, unless [member stretch] is enabled.
+		An interface that displays the contents of underlying [SubViewport] child nodes and handles input event propagation. It uses the combined size of the [SubViewport]s as minimum size, unless [member stretch] is enabled.
 		[b]Note:[/b] Changing a [SubViewportContainer]'s [member Control.scale] will cause its contents to appear distorted. To change its visual size without causing distortion, adjust the node's margins instead (if it's not already in a container).
 		[b]Note:[/b] The [SubViewportContainer] forwards mouse-enter and mouse-exit notifications to its sub-viewports.
 	</description>
@@ -25,6 +25,9 @@
 			Configure, if either the [SubViewportContainer] or alternatively the [Control] nodes of its [SubViewport] children should be available as targets of mouse-related functionalities, like identifying the drop target in drag-and-drop operations or cursor shape of hovered [Control] node.
 			If [code]false[/code], the [Control] nodes inside its [SubViewport] children are considered as targets.
 			If [code]true[/code], the [SubViewportContainer] itself will be considered as a target.
+		</member>
+		<member name="send_input_to_all_viewports" type="bool" setter="set_send_input_to_all_viewports" getter="is_send_input_to_all_viewports_enabled" default="false">
+			If [code]true[/code], input events will be sent to all child [SubViewport] nodes. If [code]false[/code], when a child [SubViewport] sets an input event to handled, it will not be sent to additional child [SubViewport] nodes.
 		</member>
 		<member name="stretch" type="bool" setter="set_stretch" getter="is_stretch_enabled" default="false">
 			If [code]true[/code], the sub-viewport will be automatically resized to the control's size.

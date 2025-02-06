@@ -763,14 +763,6 @@ void Viewport::_process_picking() {
 
 	while (physics_picking_events.size()) {
 		local_input_handled = false;
-		if (!handle_input_locally) {
-			Viewport *vp = this;
-			while (!Object::cast_to<Window>(vp) && vp->get_parent()) {
-				vp = vp->get_parent()->get_viewport();
-			}
-			vp->local_input_handled = false;
-		}
-
 		Ref<InputEvent> ev = physics_picking_events.front()->get();
 		physics_picking_events.pop_front();
 
@@ -3238,16 +3230,6 @@ void Viewport::push_input(const Ref<InputEvent> &p_event, bool p_local_coords) {
 	}
 
 	local_input_handled = false;
-	if (!handle_input_locally) {
-		Viewport *vp = this;
-		while (true) {
-			if (Object::cast_to<Window>(vp) || !vp->get_parent()) {
-				break;
-			}
-			vp = vp->get_parent()->get_viewport();
-		}
-		vp->local_input_handled = false;
-	}
 
 	Ref<InputEvent> ev;
 	if (!p_local_coords) {
@@ -3659,57 +3641,22 @@ void Viewport::gui_cancel_drag() {
 
 void Viewport::set_input_as_handled() {
 	ERR_MAIN_THREAD_GUARD;
-	if (!handle_input_locally) {
-		ERR_FAIL_COND(!is_inside_tree());
-		Viewport *vp = this;
-		while (true) {
-			if (Object::cast_to<Window>(vp)) {
-				break;
-			}
-			if (!vp->get_parent()) {
-				break;
-			}
-			vp = vp->get_parent()->get_viewport();
-		}
-		if (vp != this) {
-			vp->set_input_as_handled();
-			return;
-		}
-	}
-
 	local_input_handled = true;
 }
 
 bool Viewport::is_input_handled() const {
 	ERR_READ_THREAD_GUARD_V(false);
-	if (!handle_input_locally) {
-		ERR_FAIL_COND_V(!is_inside_tree(), false);
-		const Viewport *vp = this;
-		while (true) {
-			if (Object::cast_to<Window>(vp)) {
-				break;
-			}
-			if (!vp->get_parent()) {
-				break;
-			}
-			vp = vp->get_parent()->get_viewport();
-		}
-		if (vp != this) {
-			return vp->is_input_handled();
-		}
-	}
 	return local_input_handled;
 }
 
+#ifndef DISABLE_DEPRECATED
 void Viewport::set_handle_input_locally(bool p_enable) {
-	ERR_MAIN_THREAD_GUARD;
-	handle_input_locally = p_enable;
 }
 
 bool Viewport::is_handling_input_locally() const {
-	ERR_READ_THREAD_GUARD_V(false);
-	return handle_input_locally;
+	return true; // Now viewports always handle input locally.
 }
+#endif // DISABLE_DEPRECATED
 
 void Viewport::set_default_canvas_item_texture_filter(DefaultCanvasItemTextureFilter p_filter) {
 	ERR_MAIN_THREAD_GUARD;
@@ -4857,8 +4804,10 @@ void Viewport::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_input_as_handled"), &Viewport::set_input_as_handled);
 	ClassDB::bind_method(D_METHOD("is_input_handled"), &Viewport::is_input_handled);
 
+#ifndef DISABLE_DEPRECATED
 	ClassDB::bind_method(D_METHOD("set_handle_input_locally", "enable"), &Viewport::set_handle_input_locally);
 	ClassDB::bind_method(D_METHOD("is_handling_input_locally"), &Viewport::is_handling_input_locally);
+#endif // DISABLE_DEPRECATED
 
 	ClassDB::bind_method(D_METHOD("set_default_canvas_item_texture_filter", "mode"), &Viewport::set_default_canvas_item_texture_filter);
 	ClassDB::bind_method(D_METHOD("get_default_canvas_item_texture_filter"), &Viewport::get_default_canvas_item_texture_filter);
@@ -4942,7 +4891,9 @@ void Viewport::_bind_methods() {
 #endif // _3D_DISABLED
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "world_2d", PROPERTY_HINT_RESOURCE_TYPE, "World2D", PROPERTY_USAGE_NONE), "set_world_2d", "get_world_2d");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "transparent_bg"), "set_transparent_background", "has_transparent_background");
+#ifndef DISABLE_DEPRECATED
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "handle_input_locally"), "set_handle_input_locally", "is_handling_input_locally");
+#endif // DISABLE_DEPRECATED
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "snap_2d_transforms_to_pixel"), "set_snap_2d_transforms_to_pixel", "is_snap_2d_transforms_to_pixel_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "snap_2d_vertices_to_pixel"), "set_snap_2d_vertices_to_pixel", "is_snap_2d_vertices_to_pixel_enabled");
 	ADD_GROUP("Rendering", "");
