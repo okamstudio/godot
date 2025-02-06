@@ -1350,7 +1350,12 @@ Node *ResourceImporterScene::_post_fix_animations(Node *p_node, Node *p_root, co
 
 				if (saved_anim != anim) {
 					Ref<AnimationLibrary> al = ap->get_animation_library(ap->find_animation_library(anim));
-					al->add_animation(name, saved_anim); //replace
+					String an = String(name);
+					int ai = an.rfind("/");
+					if (ai >= 0 && ai + 1 < an.size() && an.substr(0, ai + 1) == al->get_name() + "/") {
+						an = an.substr(ai + 1);
+					}
+					al->add_animation(StringName(an), saved_anim); //replace
 				}
 			}
 		}
