@@ -341,7 +341,7 @@ Variant Array::back() const {
 
 Variant Array::pick_random() const {
 	ERR_FAIL_COND_V_MSG(_p->array.is_empty(), Variant(), "Can't take value from empty array.");
-	return operator[](Math::rand() % _p->array.size());
+	return operator[](Math::random(0, _p->array.size() - 1));
 }
 
 int Array::find(const Variant &p_value, int p_from) const {
