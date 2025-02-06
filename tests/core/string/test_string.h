@@ -166,11 +166,11 @@ TEST_CASE("[String] UTF8 with CR") {
 	CHECK(no_cr == base.replace("\r", ""));
 }
 
-TEST_CASE("[String] Invalid UTF8 (non-standard)") {
+TEST_CASE("[String] Invalid UTF8 (non shortest form sequence)") {
 	ERR_PRINT_OFF
-	static const uint8_t u8str[] = { 0x45, 0xE3, 0x81, 0x8A, 0xE3, 0x82, 0x88, 0xE3, 0x81, 0x86, 0xF0, 0x9F, 0x8E, 0xA4, 0xF0, 0x82, 0x82, 0xAC, 0xED, 0xA0, 0x81, 0 };
-	//                               +     +2                +2                +2                +3                      overlong +3             unpaired +2
-	static const char32_t u32str[] = { 0x45, 0x304A, 0x3088, 0x3046, 0x1F3A4, 0x20AC, 0xFFFD, 0 };
+	// Examples from the unicode standard : 3.9 Unicode Encoding Forms - Table 3.8.
+	static const uint8_t u8str[] = { 0xC0, 0xAF, 0xE0, 0x80, 0xBF, 0xF0, 0x81, 0x82, 0x41, 0 };
+	static const char32_t u32str[] = { 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0x41, 0 };
 	String s;
 	Error err = s.parse_utf8((const char *)u8str);
 	CHECK(err == ERR_INVALID_DATA);
@@ -181,11 +181,41 @@ TEST_CASE("[String] Invalid UTF8 (non-standard)") {
 	ERR_PRINT_ON
 }
 
-TEST_CASE("[String] Invalid UTF8 (unrecoverable)") {
+TEST_CASE("[String] Invalid UTF8 (ill formed sequences for surrogates)") {
 	ERR_PRINT_OFF
-	static const uint8_t u8str[] = { 0x45, 0xE3, 0x81, 0x8A, 0x8F, 0xE3, 0xE3, 0x98, 0x8F, 0xE3, 0x82, 0x88, 0xE3, 0x81, 0x86, 0xC0, 0x80, 0xF0, 0x9F, 0x8E, 0xA4, 0xF0, 0x82, 0x82, 0xAC, 0xED, 0xA0, 0x81, 0 };
-	//                               +     +2                inv   +2    inv   inv   inv   +2                +2                ovl NUL +1  +3                      overlong +3             unpaired +2
-	static const char32_t u32str[] = { 0x45, 0x304A, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0x3088, 0x3046, 0xFFFD, 0x1F3A4, 0x20AC, 0xFFFD, 0 };
+	// Examples from the unicode standard : 3.9 Unicode Encoding Forms - Table 3.9.
+	static const uint8_t u8str[] = { 0xED, 0xA0, 0x80, 0xED, 0xBF, 0xBF, 0xED, 0xAF, 0x41, 0 };
+	static const char32_t u32str[] = { 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0x41, 0 };
+	String s;
+	Error err = s.parse_utf8((const char *)u8str);
+	CHECK(err == ERR_INVALID_DATA);
+	CHECK(s == u32str);
+
+	CharString cs = (const char *)u8str;
+	CHECK(String::utf8(cs) == s);
+	ERR_PRINT_ON
+}
+
+TEST_CASE("[String] Invalid UTF8 (other ill formed sequences)") {
+	ERR_PRINT_OFF
+	// Examples from the unicode standard : 3.9 Unicode Encoding Forms - Table 3.10.
+	static const uint8_t u8str[] = { 0xF4, 0x91, 0x92, 0x93, 0xFF, 0x41, 0x80, 0xBF, 0x42, 0 };
+	static const char32_t u32str[] = { 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0x41, 0xFFFD, 0xFFFD, 0x42, 0 };
+	String s;
+	Error err = s.parse_utf8((const char *)u8str);
+	CHECK(err == ERR_INVALID_DATA);
+	CHECK(s == u32str);
+
+	CharString cs = (const char *)u8str;
+	CHECK(String::utf8(cs) == s);
+	ERR_PRINT_ON
+}
+
+TEST_CASE("[String] Invalid UTF8 (truncated sequences)") {
+	ERR_PRINT_OFF
+	// Examples from the unicode standard : 3.9 Unicode Encoding Forms - Table 3.11.
+	static const uint8_t u8str[] = { 0xE1, 0x80, 0xE2, 0xF0, 0x91, 0x92, 0xF1, 0xBF, 0x41, 0 };
+	static const char32_t u32str[] = { 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0x41, 0 };
 	String s;
 	Error err = s.parse_utf8((const char *)u8str);
 	CHECK(err == ERR_INVALID_DATA);
