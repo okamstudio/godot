@@ -1508,8 +1508,8 @@ void SceneTree::_flush_scene_change() {
 		prev_scene = nullptr;
 	}
 	current_scene = pending_new_scene;
-	root->add_child(pending_new_scene);
 	pending_new_scene = nullptr;
+	root->add_child(current_scene);
 	// Update display for cursor instantly.
 	root->update_mouse_cursor_state();
 }
