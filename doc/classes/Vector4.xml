@@ -181,7 +181,9 @@
 			<param index="0" name="to" type="Vector4" />
 			<param index="1" name="weight" type="float" />
 			<description>
-				Returns the result of the linear interpolation between this vector and [param to] by amount [param weight]. [param weight] is on the range of [code]0.0[/code] to [code]1.0[/code], representing the amount of interpolation.
+				Returns the result of the linear interpolation between this vector and [param to] by amount [param weight].
+				To perform interpolation, [param weight] should be between [code]0.0[/code] and [code]1.0[/code] (inclusive). However, values outside this range are allowed and can be used to perform [i]extrapolation[/i]. If this is not desired, use [method @GlobalScope.clampf] to limit [param weight].
+				See also [method @GlobalScope.lerp].
 			</description>
 		</method>
 		<method name="max" qualifiers="const">

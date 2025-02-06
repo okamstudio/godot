@@ -145,7 +145,8 @@
 			<param index="1" name="weight" type="float" />
 			<description>
 				Returns the result of the linear interpolation between this transform and [param xform] by the given [param weight].
-				The [param weight] should be between [code]0.0[/code] and [code]1.0[/code] (inclusive). Values outside this range are allowed and can be used to perform [i]extrapolation[/i] instead.
+				To perform interpolation, [param weight] should be between [code]0.0[/code] and [code]1.0[/code] (inclusive). However, values outside this range are allowed and can be used to perform [i]extrapolation[/i]. If this is not desired, use [method @GlobalScope.clampf] to limit [param weight].
+				See also [method @GlobalScope.lerp].
 			</description>
 		</method>
 		<method name="inverse" qualifiers="const">
