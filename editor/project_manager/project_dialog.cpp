@@ -193,7 +193,8 @@ void ProjectDialog::_validate_path() {
 	String home_dir = OS::get_singleton()->get_environment("HOME");
 #endif
 	String documents_dir = OS::get_singleton()->get_system_dir(OS::SYSTEM_DIR_DOCUMENTS);
-	if (target_path == home_dir || target_path == documents_dir) {
+	String default_dir = String(EditorSettings::get_singleton()->get("filesystem/directories/default_project_path"));
+	if (target_path == home_dir || target_path == documents_dir || target_path == default_dir) {
 		_set_message(TTR("You cannot save a project at the selected path. Please create a subfolder or choose a new path."), MESSAGE_ERROR, target_path_input_type);
 		return;
 	}
