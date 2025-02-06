@@ -2416,7 +2416,7 @@ void RendererSceneCull::_light_instance_setup_directional_shadow(int p_shadow_in
 			cull.shadows[p_shadow_index].cascades[i].split = distances[i + 1];
 			cull.shadows[p_shadow_index].cascades[i].shadow_texel_size = radius * 2.0 / texture_size;
 			cull.shadows[p_shadow_index].cascades[i].bias_scale = (z_max - z_min_cam);
-			cull.shadows[p_shadow_index].cascades[i].range_begin = z_max;
+			cull.shadows[p_shadow_index].cascades[i].range_begin = pancake_size;
 			cull.shadows[p_shadow_index].cascades[i].uv_scale = uv_scale;
 		}
 	}
