@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="AudioEffectSampleRate" inherits="AudioEffect" version="4.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Adds a sample rate audio effect to an Audio bus.
+	</brief_description>
+	<description>
+		Reduces the input audio's sample rate, without interpolating the output. Also known as "sample &amp; hold", or a type of "bitcrush".
+		[b]Note:[/b] To reduce an audio signal's bit depth, use the "LoFi" mode in [AudioEffectDistortion].
+	</description>
+	<tutorials>
+		<link title="Audio buses">$DOCS_URL/tutorials/audio/audio_buses.html</link>
+	</tutorials>
+	<members>
+		<member name="mix" type="float" setter="set_mix" getter="get_mix" default="1.0">
+			Linear fade between dry/wet signals. Value can range from 0 to 1.
+		</member>
+		<member name="rate" type="float" setter="set_rate" getter="get_rate" default="11025.0">
+			Sample rate (in Hz) that input audio will be resampled to. Value must be at least 1, and should be less than [method AudioServer.get_mix_rate] to result in any audible effect.
+		</member>
+	</members>
+</class>
