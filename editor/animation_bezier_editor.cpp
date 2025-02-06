@@ -629,7 +629,7 @@ bool AnimationBezierTrackEdit::_is_track_displayed(int p_track_index) {
 		return false;
 	}
 
-	if (is_filtered) {
+	if (is_filtered && EditorNode::get_singleton()->get_editor_selection()->get_selected_nodes().size() > 0) {
 		String path = animation->track_get_path(p_track_index);
 		if (root && root->has_node(path)) {
 			Node *node = root->get_node(path);

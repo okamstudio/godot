@@ -806,6 +806,7 @@ class AnimationTrackEditor : public VBoxContainer {
 	void _view_group_toggle();
 	Button *view_group = nullptr;
 	Button *selected_filter = nullptr;
+	TypedArray<Node> nodes_filtered;
 
 	void _auto_fit();
 	void _auto_fit_bezier();

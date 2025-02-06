@@ -4850,6 +4850,12 @@ void AnimationTrackEditor::_update_tracks() {
 
 	bool use_grouping = !view_group->is_pressed();
 	bool use_filter = selected_filter->is_pressed();
+	bool use_filter_cache = false;
+	if (EditorNode::get_singleton()->get_editor_selection()->get_selected_nodes().size() > 0) { //selecting keyframes on UI clears get_editor_selection() which causes a bug in the filter
+		nodes_filtered.clear(); // will use selected nodes instead of cached ones
+	} else {
+		use_filter_cache = true; // use cached nodes since editor might high deselected them
+	}
 
 	for (int i = 0; i < animation->get_track_count(); i++) {
 		AnimationTrackEdit *track_edit = nullptr;
@@ -4858,14 +4864,21 @@ void AnimationTrackEditor::_update_tracks() {
 
 		if (use_filter) {
 			NodePath path = animation->track_get_path(i);
-
 			if (root) {
 				Node *node = root->get_node_or_null(path);
 				if (!node) {
 					continue; // No node, no filter.
 				}
-				if (!EditorNode::get_singleton()->get_editor_selection()->is_selected(node)) {
-					continue; // Skip track due to not selected.
+				if (!use_filter_cache) {
+					if (!EditorNode::get_singleton()->get_editor_selection()->is_selected(node)) {
+						continue; // Skip track due to not selected.
+					} else {
+						nodes_filtered.append(node);
+					}
+				} else {
+					if (!nodes_filtered.has(node)) {
+						continue; // Skip track due to not cached in filtered nodes.
+					}
 				}
 			}
 		}
