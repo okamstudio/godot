@@ -443,15 +443,10 @@ void ShaderTextEditor::_code_complete_script(const String &p_code, List<ScriptLa
 }
 
 void ShaderTextEditor::_validate_script() {
-	emit_signal(CoreStringName(script_changed)); // Ensure to notify that it changed, so it is applied
-
-	String code;
+	String code = get_text_editor()->get_text();
 
 	if (shader.is_valid()) {
 		_check_shader_mode();
-		code = shader->get_code();
-	} else {
-		code = shader_inc->get_code();
 	}
 
 	ShaderPreprocessor preprocessor;
@@ -566,6 +561,8 @@ void ShaderTextEditor::_validate_script() {
 			get_text_editor()->set_line_background_color(err_line - 1, marked_line_color);
 		} else {
 			set_error("");
+			// After there is no compile error, ensure to notify that it changed, so it is applied.
+			emit_signal(SNAME("script_changed"));
 		}
 
 		if (warnings.size() > 0 || last_compile_result != OK) {
