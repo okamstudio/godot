@@ -323,6 +323,8 @@ void RendererViewport::_draw_viewport(Viewport *p_viewport) {
 		}
 	}
 
+	bool can_draw_3d = RSG::scene->is_camera(p_viewport->camera) && !p_viewport->disable_3d;
+
 	if (RSG::scene->is_scenario(p_viewport->scenario)) {
 		RID environment = RSG::scene->scenario_get_environment(p_viewport->scenario);
 		if (RSG::scene->is_environment(environment)) {
@@ -333,10 +335,16 @@ void RendererViewport::_draw_viewport(Viewport *p_viewport) {
 				// The scene renderer will still copy over the last frame, so we need to clear the render target.
 				force_clear_render_target = true;
 			}
+
+			// Calculate the frames needed for volumetric fog to converge
+			if (p_viewport->size != p_viewport->old_size && can_draw_3d) {
+				p_viewport->old_size = p_viewport->size;
+				float temporal_amount = RSG::scene->environment_get_volumetric_fog_temporal_reprojection_amount(environment);
+				float convergence_threshold = 0.01f;
+				p_viewport->frames_needed = Math::ceil(Math::log(convergence_threshold) / Math::log(temporal_amount));
+			}
 		}
 	}
-
-	bool can_draw_3d = RSG::scene->is_camera(p_viewport->camera) && !p_viewport->disable_3d;
 
 	if ((scenario_draw_canvas_bg || can_draw_3d) && !p_viewport->render_buffers.is_valid()) {
 		//wants to draw 3D but there is no render buffer, create
@@ -352,6 +360,12 @@ void RendererViewport::_draw_viewport(Viewport *p_viewport) {
 		if (p_viewport->clear_mode == RS::VIEWPORT_CLEAR_ONLY_NEXT_FRAME) {
 			p_viewport->clear_mode = RS::VIEWPORT_CLEAR_NEVER;
 		}
+	}
+
+	// Redraw until volumetric fog converges
+	if (p_viewport->frames_needed > 0 && can_draw_3d) {
+		_draw_3d(p_viewport);
+		p_viewport->frames_needed--;
 	}
 
 	if (!scenario_draw_canvas_bg && can_draw_3d) {

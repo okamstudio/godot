@@ -53,8 +53,11 @@ public:
 		// use xr interface to override camera positioning and projection matrices and control output
 		bool use_xr = false;
 
+		int frames_needed;
+
 		Size2i internal_size;
 		Size2i size;
+		Size2i old_size;
 		uint32_t view_count;
 		RID camera;
 		RID scenario;
