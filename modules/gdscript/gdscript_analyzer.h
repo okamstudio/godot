@@ -66,6 +66,11 @@ class GDScriptAnalyzer {
 
 	void get_class_node_current_scope_classes(GDScriptParser::ClassNode *p_node, List<GDScriptParser::ClassNode *> *p_list, GDScriptParser::Node *p_source);
 
+#ifdef DEBUG_ENABLED
+	void check_access_private_member(GDScriptParser::IdentifierNode *p_identifier, const bool p_is_call = false);
+	void warn_unused_private_protected_class_variable(const GDScriptParser::Node *p_node, const GDScriptParser::IdentifierNode *p_identifier);
+#endif
+
 	Error resolve_class_inheritance(GDScriptParser::ClassNode *p_class, const GDScriptParser::Node *p_source = nullptr);
 	Error resolve_class_inheritance(GDScriptParser::ClassNode *p_class, bool p_recursive);
 	GDScriptParser::DataType resolve_datatype(GDScriptParser::TypeNode *p_type);

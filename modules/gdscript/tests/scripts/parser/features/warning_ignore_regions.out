@@ -1,6 +1,8 @@
 GDTEST_OK
-~~ WARNING at line 3: (UNUSED_PRIVATE_CLASS_VARIABLE) The class variable "_a" is declared but never used in the class.
-~~ WARNING at line 8: (UNUSED_PRIVATE_CLASS_VARIABLE) The class variable "_d" is declared but never used in the class.
-~~ WARNING at line 13: (UNUSED_VARIABLE) The local variable "a" is declared but never used in the block. If this is intended, prefix it with an underscore: "_a".
-~~ WARNING at line 18: (UNUSED_VARIABLE) The local variable "d" is declared but never used in the block. If this is intended, prefix it with an underscore: "_d".
-~~ WARNING at line 22: (NARROWING_CONVERSION) Narrowing conversion (float is converted to int and loses precision).
+~~ WARNING at line 3: (UNUSED_PROTECTED_CLASS_VARIABLE) The class variable "_a" is declared but never used in the class.
+~~ WARNING at line 8: (UNUSED_PROTECTED_CLASS_VARIABLE) The class variable "_d" is declared but never used in the class.
+~~ WARNING at line 10: (UNUSED_PRIVATE_CLASS_VARIABLE) The class variable "__e" is declared but never used in the class.
+~~ WARNING at line 15: (UNUSED_PRIVATE_CLASS_VARIABLE) The class variable "__h" is declared but never used in the class.
+~~ WARNING at line 20: (UNUSED_VARIABLE) The local variable "a" is declared but never used in the block. If this is intended, prefix it with an underscore: "_a".
+~~ WARNING at line 25: (UNUSED_VARIABLE) The local variable "d" is declared but never used in the block. If this is intended, prefix it with an underscore: "_d".
+~~ WARNING at line 29: (NARROWING_CONVERSION) Narrowing conversion (float is converted to int and loses precision).

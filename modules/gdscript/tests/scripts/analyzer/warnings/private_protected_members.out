@@ -1,0 +1,19 @@
+GDTEST_OK
+~~ WARNING at line 39: (ACCESSING_PROTECTED_MEMBER) Trying accessing the member "_static_a" prefixed with "_", which would be a protected member.
+~~ WARNING at line 40: (ACCESSING_PRIVATE_MEMBER) Trying accessing the member "__static_b" prefixed with "__", which would be a private member.
+~~ WARNING at line 41: (ACCESSING_PROTECTED_MEMBER) Trying accessing the member "_a" prefixed with "_", which would be a protected member.
+~~ WARNING at line 42: (ACCESSING_PRIVATE_MEMBER) Trying accessing the member "__b" prefixed with "__", which would be a private member.
+~~ WARNING at line 43: (CALLING_PROTECTED_METHOD) Trying calling the method "_call_a()" prefixed with "_", which would be a protected method.
+~~ WARNING at line 44: (CALLING_PRIVATE_METHOD) Trying calling the method "__call_b()" prefixed with "__", which would be a private method.
+~~ WARNING at line 47: (CALLING_PROTECTED_METHOD) Trying calling the method "_call_a_ret()" prefixed with "_", which would be a protected method.
+~~ WARNING at line 49: (CALLING_PRIVATE_METHOD) Trying calling the method "__call_b_ret()" prefixed with "__", which would be a private method.
+~~ WARNING at line 51: (CALLING_PROTECTED_METHOD) Trying calling the method "_static_call_a()" prefixed with "_", which would be a protected method.
+~~ WARNING at line 52: (CALLING_PRIVATE_METHOD) Trying calling the method "__static_call_b()" prefixed with "__", which would be a private method.
+~~ WARNING at line 54: (CALLING_PROTECTED_METHOD) Trying calling the method "_static_call_a_ret()" prefixed with "_", which would be a protected method.
+~~ WARNING at line 56: (CALLING_PRIVATE_METHOD) Trying calling the method "__static_call_b_ret()" prefixed with "__", which would be a private method.
+~~ WARNING at line 61: (ACCESSING_PRIVATE_MEMBER) Trying accessing the member "__static_b" prefixed with "__", which would be a private member.
+~~ WARNING at line 63: (ACCESSING_PRIVATE_MEMBER) Trying accessing the member "__b" prefixed with "__", which would be a private member.
+~~ WARNING at line 65: (CALLING_PRIVATE_METHOD) Trying calling the method "__call_b()" prefixed with "__", which would be a private method.
+~~ WARNING at line 70: (CALLING_PRIVATE_METHOD) Trying calling the method "__call_b_ret()" prefixed with "__", which would be a private method.
+~~ WARNING at line 73: (CALLING_PRIVATE_METHOD) Trying calling the method "__static_call_b()" prefixed with "__", which would be a private method.
+~~ WARNING at line 77: (CALLING_PRIVATE_METHOD) Trying calling the method "__static_call_b_ret()" prefixed with "__", which would be a private method.

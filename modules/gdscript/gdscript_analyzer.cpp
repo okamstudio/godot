@@ -341,6 +341,54 @@ void GDScriptAnalyzer::get_class_node_current_scope_classes(GDScriptParser::Clas
 	}
 }
 
+#ifdef DEBUG_ENABLED
+void GDScriptAnalyzer::check_access_private_member(GDScriptParser::IdentifierNode *p_identifier, const bool p_is_call) {
+	if (p_identifier == nullptr) {
+		return;
+	}
+	GDScriptParser::IdentifierNode::IdentifierAccess identifier_access = p_identifier->get_access();
+	if (identifier_access == GDScriptParser::IdentifierNode::IdentifierAccess::ACCESS_PUBLIC) {
+		return;
+	}
+	if (parser->current_class->get_datatype().kind != GDScriptParser::DataType::CLASS && parser->current_class->get_datatype().kind != GDScriptParser::DataType::SCRIPT) {
+		return;
+	}
+	if (parser->current_function && parser->current_function->body && parser->current_function->body->has_local(p_identifier->name)) {
+		return;
+	}
+
+	bool has_member = parser->current_class->has_member(p_identifier->name);
+	if (has_member) {
+		return;
+	}
+	if (identifier_access == GDScriptParser::IdentifierNode::IdentifierAccess::ACCESS_PRIVATE) {
+		parser->push_warning(p_identifier, p_is_call ? GDScriptWarning::CALLING_PRIVATE_METHOD : GDScriptWarning::ACCESSING_PRIVATE_MEMBER, p_identifier->name);
+		return;
+	}
+
+	bool access_valid_protected_member = false;
+	GDScriptParser::ClassNode *base_class = parser->current_class->base_type.class_type;
+	while (base_class != nullptr) {
+		if (base_class->has_member(p_identifier->name)) {
+			access_valid_protected_member = true;
+			break;
+		}
+		base_class = base_class->base_type.class_type;
+	}
+	if (!access_valid_protected_member && identifier_access == GDScriptParser::IdentifierNode::IdentifierAccess::ACCESS_PROTECTED) {
+		parser->push_warning(p_identifier, p_is_call ? GDScriptWarning::CALLING_PROTECTED_METHOD : GDScriptWarning::ACCESSING_PROTECTED_MEMBER, p_identifier->name);
+	}
+}
+
+void GDScriptAnalyzer::warn_unused_private_protected_class_variable(const GDScriptParser::Node *p_node, const GDScriptParser::IdentifierNode *p_identifier) {
+	GDScriptParser::IdentifierNode::IdentifierAccess identifier_access = p_identifier->get_access();
+	if (identifier_access == GDScriptParser::IdentifierNode::IdentifierAccess::ACCESS_PUBLIC) {
+		return;
+	}
+	parser->push_warning(p_node, identifier_access == GDScriptParser::IdentifierNode::IdentifierAccess::ACCESS_PRIVATE ? GDScriptWarning::UNUSED_PRIVATE_CLASS_VARIABLE : GDScriptWarning::UNUSED_PROTECTED_CLASS_VARIABLE, p_identifier->name);
+}
+#endif // DEBUG_ENABLED
+
 Error GDScriptAnalyzer::resolve_class_inheritance(GDScriptParser::ClassNode *p_class, const GDScriptParser::Node *p_source) {
 	if (p_source == nullptr && parser->has_class(p_class)) {
 		p_source = p_class;
@@ -1435,8 +1483,8 @@ void GDScriptAnalyzer::resolve_class_body(GDScriptParser::ClassNode *p_class, co
 		GDScriptParser::ClassNode::Member member = p_class->members[i];
 		if (member.type == GDScriptParser::ClassNode::Member::VARIABLE) {
 #ifdef DEBUG_ENABLED
-			if (member.variable->usages == 0 && String(member.variable->identifier->name).begins_with("_")) {
-				parser->push_warning(member.variable->identifier, GDScriptWarning::UNUSED_PRIVATE_CLASS_VARIABLE, member.variable->identifier->name);
+			if (member.variable->usages == 0) {
+				warn_unused_private_protected_class_variable(member.variable->identifier, member.variable->identifier);
 			}
 #endif
 
@@ -3510,10 +3558,19 @@ void GDScriptAnalyzer::reduce_call(GDScriptParser::CallNode *p_call, bool p_is_a
 		if (p_call->callee == nullptr && current_lambda != nullptr) {
 			push_error("Cannot use `super()` inside a lambda.", p_call);
 		}
+
+#ifdef DEBUG_ENABLED
+		GDScriptParser::IdentifierNode *identifier = static_cast<GDScriptParser::IdentifierNode *>(p_call->callee);
+		check_access_private_member(identifier, true);
+#endif
 	} else if (callee_type == GDScriptParser::Node::IDENTIFIER) {
 		base_type = parser->current_class->get_datatype();
 		base_type.is_meta_type = false;
 		is_self = true;
+#ifdef DEBUG_ENABLED
+		GDScriptParser::IdentifierNode *identifier = static_cast<GDScriptParser::IdentifierNode *>(p_call->callee);
+		check_access_private_member(identifier, true);
+#endif
 	} else if (callee_type == GDScriptParser::Node::SUBSCRIPT) {
 		GDScriptParser::SubscriptNode *subscript = static_cast<GDScriptParser::SubscriptNode *>(p_call->callee);
 		if (subscript->base == nullptr) {
@@ -3547,6 +3604,9 @@ void GDScriptAnalyzer::reduce_call(GDScriptParser::CallNode *p_call, bool p_is_a
 			base_type = subscript->base->get_datatype();
 			is_self = subscript->base->type == GDScriptParser::Node::SELF;
 		}
+#ifdef DEBUG_ENABLED
+		check_access_private_member(subscript->attribute, true);
+#endif
 	} else {
 		// Invalid call. Error already sent in parser.
 		// TODO: Could check if Callable here too.
@@ -4468,7 +4528,9 @@ void GDScriptAnalyzer::reduce_identifier(GDScriptParser::IdentifierNode *p_ident
 				function_test = function_test->source_lambda->parent_function;
 			}
 		}
-
+#ifdef DEBUG_ENABLED
+		check_access_private_member(p_identifier);
+#endif
 		return;
 	}
 
@@ -4830,6 +4892,9 @@ void GDScriptAnalyzer::reduce_subscript(GDScriptParser::SubscriptNode *p_subscri
 			}
 			result_type.kind = GDScriptParser::DataType::VARIANT;
 		}
+#ifdef DEBUG_ENABLED
+		check_access_private_member(p_subscript->attribute);
+#endif
 	} else {
 		if (p_subscript->index == nullptr) {
 			return;

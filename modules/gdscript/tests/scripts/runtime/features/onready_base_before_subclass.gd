@@ -14,5 +14,6 @@ class B extends A:
 
 func test():
 	var node := B.new()
+	@warning_ignore("calling_protected_method")
 	node._ready()
 	node.free()

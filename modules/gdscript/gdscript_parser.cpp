@@ -98,6 +98,8 @@ GDScriptParser::GDScriptParser() {
 		register_annotation(MethodInfo("@static_unload"), AnnotationInfo::SCRIPT, &GDScriptParser::static_unload_annotation);
 		// Onready annotation.
 		register_annotation(MethodInfo("@onready"), AnnotationInfo::VARIABLE, &GDScriptParser::onready_annotation);
+
+		// register_annotation(MethodInfo("@virtual"), AnnotationInfo::FUNCTION, &GDScriptParser::virtual_annotation);
 		// Export annotations.
 		register_annotation(MethodInfo("@export"), AnnotationInfo::VARIABLE, &GDScriptParser::export_annotations<PROPERTY_HINT_NONE, Variant::NIL>);
 		register_annotation(MethodInfo("@export_enum", PropertyInfo(Variant::STRING, "names")), AnnotationInfo::VARIABLE, &GDScriptParser::export_annotations<PROPERTY_HINT_ENUM, Variant::NIL>, varray(), true);
@@ -4282,6 +4284,16 @@ bool GDScriptParser::onready_annotation(AnnotationNode *p_annotation, Node *p_ta
 	current_class->onready_used = true;
 	return true;
 }
+// bool GDScriptParser::virtual_annotation(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class) {
+//	ERR_FAIL_COND_V_MSG(p_target->type != Node::FUNCTION, false, R"("@virtual" annotation can only be applied to class methods.)");
+//	FunctionNode *method = static_cast<FunctionNode *>(p_target);
+//	if (method->is_virtual) {
+//		push_error(R"("@virtual" annotation can only be applied to a method once.)", p_annotation);
+//		return false;
+//	}
+//	method->is_virtual = true;
+//	return true;
+// }
 
 static String _get_annotation_error_string(const StringName &p_annotation_name, const Vector<Variant::Type> &p_expected_types, const GDScriptParser::DataType &p_provided_type) {
 	Vector<String> types;

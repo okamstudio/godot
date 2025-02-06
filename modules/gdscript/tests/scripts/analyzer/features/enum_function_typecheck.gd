@@ -26,7 +26,6 @@ class InnerClass:
 		print("Inner")
 
 		var o := EnumFunctionTypecheckOuterClass.new()
-
 		_d = o.outer_outer_no_class(EnumFunctionTypecheckOuterClass.MyEnum.V1)
 		print()
 		_d = o.outer_outer_class(EnumFunctionTypecheckOuterClass.MyEnum.V1)

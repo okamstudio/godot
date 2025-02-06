@@ -10,7 +10,9 @@ class A extends Node:
 	var get_node_default_without_onready = $Node
 
 @warning_ignore("unused_private_class_variable")
-var _unused_private_class_variable
+var __unused_private_class_variable
+@warning_ignore("unused_protected_class_variable")
+var _unused_protected_class_variable
 
 @warning_ignore("onready_with_export")
 @onready @export var onready_with_export = 1
@@ -36,7 +38,7 @@ func test_warnings(unused_private_class_variable):
 	print(unassigned_variable)
 
 	var _unassigned_variable_op_assign
-	@warning_ignore("unassigned_variable_op_assign")
+	@warning_ignore("unassigned_variable_op_assign", "accessing_protected_member")
 	_unassigned_variable_op_assign += t
 
 	@warning_ignore("unused_variable")
@@ -150,6 +152,86 @@ func test_unsafe_void_return() -> void:
 @warning_ignore("native_method_override")
 func get_class():
 	pass
+
+class AccessTestA:
+	@warning_ignore("unused_protected_class_variable")
+	static var _static_a = null
+	@warning_ignore("unused_private_class_variable")
+	static var __static_b = null
+
+	@warning_ignore("unused_protected_class_variable")
+	var _a = null
+	@warning_ignore("unused_private_class_variable")
+	var __b = null
+
+	func _call_a():
+		pass
+
+	func __call_b():
+		pass
+
+	func _call_a_ret():
+		return null
+
+	func __call_b_ret():
+		return null
+
+	static func _static_call_a():
+		pass
+
+	static func __static_call_b():
+		pass
+
+	static func _static_call_a_ret():
+		return null
+
+	static func __static_call_b_ret():
+		return null
+
+class AccessTestB:
+	func _init():
+		var cls_a = AccessTestA.new()
+		@warning_ignore("accessing_protected_member")
+		AccessTestA._static_a = null
+		@warning_ignore("accessing_private_member")
+		AccessTestA.__static_b = null
+		@warning_ignore("accessing_protected_member")
+		cls_a._a = null
+		@warning_ignore("accessing_private_member")
+		cls_a.__b = null
+		@warning_ignore("calling_protected_method")
+		cls_a._call_a()
+		@warning_ignore("calling_private_method")
+		cls_a.__call_b()
+
+		@warning_ignore("unused_variable", "calling_protected_method")
+		var t1 = cls_a._call_a_ret()
+		@warning_ignore("unused_variable", "calling_private_method")
+		var t2 = cls_a.__call_b_ret()
+		@warning_ignore("calling_protected_method")
+		AccessTestA._static_call_a()
+		@warning_ignore("calling_private_method")
+		AccessTestA.__static_call_b()
+		@warning_ignore("unused_variable", "calling_protected_method")
+		var t3 = AccessTestA._static_call_a_ret()
+		@warning_ignore("unused_variable", "calling_private_method")
+		var t4 = AccessTestA.__static_call_b_ret()
+
+class AccessTestC extends AccessTestA:
+	func _init():
+		@warning_ignore("accessing_private_member")
+		AccessTestA.__static_b = null
+		@warning_ignore("accessing_private_member")
+		__b = null
+		@warning_ignore("calling_private_method")
+		__call_b()
+
+		@warning_ignore("unused_variable", "calling_private_method")
+		var t1 = __call_b_ret()
+		@warning_ignore("calling_private_method")
+		AccessTestA.__static_call_b()
+		@warning_ignore("unused_variable", "calling_private_method")
+		var t2 = AccessTestA.__static_call_b_ret()
 
 # We don't want to execute it because of errors, just analyze.
 func test():

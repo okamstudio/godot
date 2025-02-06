@@ -1,3 +1,5 @@
 GDTEST_OK
-~~ WARNING at line 3: (UNUSED_PRIVATE_CLASS_VARIABLE) The class variable "_a" is declared but never used in the class.
-~~ WARNING at line 7: (UNUSED_PRIVATE_CLASS_VARIABLE) The class variable "_d" is declared but never used in the class.
+~~ WARNING at line 3: (UNUSED_PROTECTED_CLASS_VARIABLE) The class variable "_a" is declared but never used in the class.
+~~ WARNING at line 7: (UNUSED_PROTECTED_CLASS_VARIABLE) The class variable "_d" is declared but never used in the class.
+~~ WARNING at line 9: (UNUSED_PRIVATE_CLASS_VARIABLE) The class variable "__e" is declared but never used in the class.
+~~ WARNING at line 13: (UNUSED_PRIVATE_CLASS_VARIABLE) The class variable "__h" is declared but never used in the class.

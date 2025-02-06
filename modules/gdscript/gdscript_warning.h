@@ -50,7 +50,8 @@ public:
 		UNASSIGNED_VARIABLE_OP_ASSIGN, // Variable never assigned but used in an assignment operation (+=, *=, etc).
 		UNUSED_VARIABLE, // Local variable is declared but never used.
 		UNUSED_LOCAL_CONSTANT, // Local constant is declared but never used.
-		UNUSED_PRIVATE_CLASS_VARIABLE, // Class variable is declared private ("_" prefix) but never used in the class.
+		UNUSED_PRIVATE_CLASS_VARIABLE, // Class variable is declared private ("__" prefix) but never used in the class.
+		UNUSED_PROTECTED_CLASS_VARIABLE, // Class variable is declared private ("__" prefix) but never used in the class.
 		UNUSED_PARAMETER, // Function parameter is never used.
 		UNUSED_SIGNAL, // Signal is defined but never explicitly used in the class.
 		SHADOWED_VARIABLE, // A local variable/constant shadows a current class member.
@@ -90,6 +91,10 @@ public:
 		NATIVE_METHOD_OVERRIDE, // The script method overrides a native one, this may not work as intended.
 		GET_NODE_DEFAULT_WITHOUT_ONREADY, // A class variable uses `get_node()` (or the `$` notation) as its default value, but does not use the @onready annotation.
 		ONREADY_WITH_EXPORT, // The `@onready` annotation will set the value after `@export` which is likely not intended.
+		ACCESSING_PRIVATE_MEMBER, // A member prefixed with `__` is being accessed, whether the member exists or not.
+		CALLING_PRIVATE_METHOD, // A method prefixed with `__` is being called, whether the method exists or not.
+		ACCESSING_PROTECTED_MEMBER, // A member prefixed with `_` is being accessed, whether the member exists or not.
+		CALLING_PROTECTED_METHOD, // A method prefixed with `_` is being called, whether the method exists or not.
 #ifndef DISABLE_DEPRECATED
 		PROPERTY_USED_AS_FUNCTION, // Function not found, but there's a property with the same name.
 		CONSTANT_USED_AS_FUNCTION, // Function not found, but there's a constant with the same name.
@@ -108,6 +113,7 @@ public:
 		WARN, // UNUSED_VARIABLE
 		WARN, // UNUSED_LOCAL_CONSTANT
 		WARN, // UNUSED_PRIVATE_CLASS_VARIABLE
+		WARN, // UNUSED_PROTECTED_CLASS_VARIABLE
 		WARN, // UNUSED_PARAMETER
 		WARN, // UNUSED_SIGNAL
 		WARN, // SHADOWED_VARIABLE
@@ -147,6 +153,10 @@ public:
 		ERROR, // NATIVE_METHOD_OVERRIDE // May not work as expected.
 		ERROR, // GET_NODE_DEFAULT_WITHOUT_ONREADY // May not work as expected.
 		ERROR, // ONREADY_WITH_EXPORT // May not work as expected.
+		WARN, // ACCESSING_PRIVATE_MEMBER
+		WARN, // CALLING_PRIVATE_METHOD
+		WARN, // ACCESSING_PROTECTED_MEMBER
+		WARN, // CALLING_PROTECTED_METHOD
 #ifndef DISABLE_DEPRECATED
 		WARN, // PROPERTY_USED_AS_FUNCTION
 		WARN, // CONSTANT_USED_AS_FUNCTION

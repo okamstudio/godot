@@ -5,6 +5,7 @@ class BaseClass:
 class SuperClassMethodsRecognized extends BaseClass:
 	func _init():
 		# Recognizes super class methods.
+		@warning_ignore("calling_protected_method")
 		var _x = _get_property_list()
 
 class SuperMethodsRecognized extends BaseClass:
@@ -16,6 +17,8 @@ class SuperMethodsRecognized extends BaseClass:
 
 func test():
 	var test1 = SuperClassMethodsRecognized.new()
+	@warning_ignore("calling_protected_method")
 	print(test1._get_property_list()) # Calls base class's method.
 	var test2 = SuperMethodsRecognized.new()
+	@warning_ignore("calling_protected_method")
 	print(test2._get_property_list())
