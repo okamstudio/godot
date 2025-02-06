@@ -271,9 +271,8 @@ void FileAccessWindows::_close() {
 			}
 		}
 
+		ERR_FAIL_COND_MSG(rename_error, save_path + ": " + "Safe save failed. This may be a permissions problem, but also may happen because you are running a paranoid antivirus. If this is the case, please switch to Windows Defender or disable the 'safe save' option in editor settings. This makes it work, but increases the risk of file corruption in a crash.");
 		save_path = "";
-
-		ERR_FAIL_COND_MSG(rename_error, "Safe save failed. This may be a permissions problem, but also may happen because you are running a paranoid antivirus. If this is the case, please switch to Windows Defender or disable the 'safe save' option in editor settings. This makes it work, but increases the risk of file corruption in a crash.");
 	}
 }
 
