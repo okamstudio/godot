@@ -58,7 +58,7 @@ private:
 
 	void _remote_object_selected(ObjectID p_id);
 	void _on_expression_input_changed(const String &p_expression);
-	void _on_debugger_breaked(bool p_breaked, bool p_can_debug);
+	void _on_stack_dump(const Array &stack_info);
 	void _on_debugger_clear_execution(Ref<Script> p_stack_script);
 
 protected:

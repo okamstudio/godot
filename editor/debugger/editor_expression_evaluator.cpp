@@ -81,9 +81,12 @@ void EditorExpressionEvaluator::_on_expression_input_changed(const String &p_exp
 	evaluate_btn->set_disabled(p_expression.is_empty());
 }
 
-void EditorExpressionEvaluator::_on_debugger_breaked(bool p_breaked, bool p_can_debug) {
-	expression_input->set_editable(p_breaked);
-	evaluate_btn->set_disabled(!p_breaked);
+void EditorExpressionEvaluator::_on_stack_dump(const Array &stack_info) {
+	if (stack_info.is_empty()) {
+		return;
+	}
+	expression_input->set_editable(true);
+	evaluate_btn->set_disabled(false);
 }
 
 void EditorExpressionEvaluator::_on_debugger_clear_execution(Ref<Script> p_stack_script) {
@@ -94,7 +97,7 @@ void EditorExpressionEvaluator::_on_debugger_clear_execution(Ref<Script> p_stack
 void EditorExpressionEvaluator::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_READY: {
-			EditorDebuggerNode::get_singleton()->connect("breaked", callable_mp(this, &EditorExpressionEvaluator::_on_debugger_breaked));
+			editor_debugger->connect("stack_dump", callable_mp(this, &EditorExpressionEvaluator::_on_stack_dump));
 			EditorDebuggerNode::get_singleton()->connect("clear_execution", callable_mp(this, &EditorExpressionEvaluator::_on_debugger_clear_execution));
 		} break;
 	}
