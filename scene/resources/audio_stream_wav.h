@@ -180,6 +180,7 @@ public:
 	}
 	virtual Ref<AudioSample> generate_sample() const override;
 
+#ifndef DISABLE_DEPRECATED
 	static void _compress_ima_adpcm(const Vector<float> &p_data, Vector<uint8_t> &r_dst_data) {
 		static const int16_t _ima_adpcm_step_table[89] = {
 			7, 8, 9, 10, 11, 12, 13, 14, 16, 17,
@@ -270,6 +271,7 @@ public:
 			}
 		}
 	}
+#endif
 
 	static void _compress_qoa(const Vector<float> &p_data, Vector<uint8_t> &dst_data, qoa_desc *p_desc) {
 		uint32_t frames_len = (p_desc->samples + QOA_FRAME_LEN - 1) / QOA_FRAME_LEN * (QOA_LMS_LEN * 4 * p_desc->channels + 8);

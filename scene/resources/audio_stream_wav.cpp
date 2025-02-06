@@ -37,6 +37,7 @@ const float TRIM_DB_LIMIT = -50;
 const int TRIM_FADE_OUT_FRAMES = 500;
 
 void AudioStreamPlaybackWAV::start(double p_from_pos) {
+#ifndef DISABLE_DEPRECATED
 	if (base->format == AudioStreamWAV::FORMAT_IMA_ADPCM) {
 		//no seeking in IMA_ADPCM
 		for (int i = 0; i < 2; i++) {
@@ -51,8 +52,11 @@ void AudioStreamPlaybackWAV::start(double p_from_pos) {
 
 		offset = 0;
 	} else {
+#endif
 		seek(p_from_pos);
+#ifndef DISABLE_DEPRECATED
 	}
+#endif
 
 	sign = 1;
 	active = true;
@@ -75,9 +79,11 @@ double AudioStreamPlaybackWAV::get_playback_position() const {
 }
 
 void AudioStreamPlaybackWAV::seek(double p_time) {
+#ifndef DISABLE_DEPRECATED
 	if (base->format == AudioStreamWAV::FORMAT_IMA_ADPCM) {
 		return; //no seeking in ima-adpcm
 	}
+#endif
 
 	double max = base->get_length();
 	if (p_time < 0) {
@@ -101,6 +107,7 @@ void AudioStreamPlaybackWAV::do_resample(const Depth *p_src, AudioFrame *p_dst, 
 			pos <<= 1;
 		}
 
+#ifndef DISABLE_DEPRECATED
 		if (is_ima_adpcm) {
 			int64_t sample_pos = pos + p_ima_adpcm[0].window_ofs;
 
@@ -176,6 +183,7 @@ void AudioStreamPlaybackWAV::do_resample(const Depth *p_src, AudioFrame *p_dst, 
 			}
 
 		} else {
+#endif // DISABLE_DEPRECATED
 			if (is_qoa) {
 				if (pos != p_qoa->cache_pos) { // Prevents triple decoding on lower mix rates.
 					for (int i = 0; i < 2; i++) {
@@ -252,7 +260,9 @@ void AudioStreamPlaybackWAV::do_resample(const Depth *p_src, AudioFrame *p_dst, 
 			if (is_stereo) {
 				final_r = final_r + ((next_r - final_r) * frac >> MIX_FRAC_BITS);
 			}
+#ifndef DISABLE_DEPRECATED
 		}
+#endif
 
 		if (!is_stereo) {
 			final_r = final; //copy to right channel if stereo
@@ -327,6 +337,7 @@ int AudioStreamPlaybackWAV::mix(AudioFrame *p_buffer, float p_rate_scale, int p_
 	const uint8_t *data = base->data.ptr() + AudioStreamWAV::DATA_PAD;
 	AudioFrame *dst_buff = p_buffer;
 
+#ifndef DISABLE_DEPRECATED
 	if (format == AudioStreamWAV::FORMAT_IMA_ADPCM) {
 		if (loop_format != AudioStreamWAV::LOOP_DISABLED) {
 			ima_adpcm[0].loop_pos = loop_begin_fp >> MIX_FRAC_BITS;
@@ -334,6 +345,7 @@ int AudioStreamPlaybackWAV::mix(AudioFrame *p_buffer, float p_rate_scale, int p_
 			loop_format = AudioStreamWAV::LOOP_FORWARD;
 		}
 	}
+#endif
 
 	while (todo > 0) {
 		int64_t limit = 0;
@@ -374,7 +386,7 @@ int AudioStreamPlaybackWAV::mix(AudioFrame *p_buffer, float p_rate_scale, int p_
 					sign *= -1;
 				} else {
 					/* go to loop-begin */
-
+#ifndef DISABLE_DEPRECATED
 					if (format == AudioStreamWAV::FORMAT_IMA_ADPCM) {
 						for (int i = 0; i < 2; i++) {
 							ima_adpcm[i].step_index = ima_adpcm[i].loop_step_index;
@@ -383,8 +395,11 @@ int AudioStreamPlaybackWAV::mix(AudioFrame *p_buffer, float p_rate_scale, int p_
 						}
 						offset = loop_begin_fp;
 					} else {
+#endif
 						offset = loop_begin_fp + (offset - loop_end_fp);
+#ifndef DISABLE_DEPRECATED
 					}
+#endif
 				}
 			} else {
 				/* no loop, check for end of sample */
@@ -412,7 +427,7 @@ int AudioStreamPlaybackWAV::mix(AudioFrame *p_buffer, float p_rate_scale, int p_
 
 		todo -= target;
 
-		switch (base->format) {
+		switch (format) {
 			case AudioStreamWAV::FORMAT_8_BITS: {
 				if (is_stereo) {
 					do_resample<int8_t, true, false, false>((int8_t *)data, dst_buff, offset, increment, target, ima_adpcm, &qoa);
@@ -1100,6 +1115,8 @@ Ref<AudioStreamWAV> AudioStreamWAV::load_from_buffer(const Vector<uint8_t> &p_st
 	AudioStreamWAV::Format dst_format;
 
 	if (compression == 1) {
+#ifndef DISABLE_DEPRECATED
+		WARN_DEPRECATED_MSG("IMA ADPCM compression is deprecated. Consider using Quite OK Audio instead.");
 		dst_format = AudioStreamWAV::FORMAT_IMA_ADPCM;
 		if (format_channels == 1) {
 			_compress_ima_adpcm(data, dst_data);
@@ -1135,7 +1152,9 @@ Ref<AudioStreamWAV> AudioStreamWAV::load_from_buffer(const Vector<uint8_t> &p_st
 				w[i * 2 + 1] = rr[i];
 			}
 		}
-
+#else
+		ERR_FAIL_V_MSG(Ref<AudioStreamWAV>(), "This build was compiled without deprecated features. IMA ADPCM is not available.");
+#endif
 	} else if (compression == 2) {
 		dst_format = AudioStreamWAV::FORMAT_QOA;
 
