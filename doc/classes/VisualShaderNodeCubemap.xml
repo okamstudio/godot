@@ -4,7 +4,7 @@
 		A [Cubemap] sampling node to be used within the visual shader graph.
 	</brief_description>
 	<description>
-		Translated to [code]texture(cubemap, vec3)[/code] in the shader language. Returns a color vector and alpha channel as scalar.
+		Translated to [code]texture(cubemap, vec3)[/code] in the GDShader language. Returns a color vector and alpha channel as scalar.
 	</description>
 	<tutorials>
 	</tutorials>

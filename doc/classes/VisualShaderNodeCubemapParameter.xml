@@ -4,7 +4,7 @@
 		A [Cubemap] parameter node to be used within the visual shader graph.
 	</brief_description>
 	<description>
-		Translated to [code]uniform samplerCube[/code] in the shader language. The output value can be used as port for [VisualShaderNodeCubemap].
+		Translated to [code]uniform samplerCube[/code] in the GDShader language. The output value can be used as port for [VisualShaderNodeCubemap].
 	</description>
 	<tutorials>
 	</tutorials>

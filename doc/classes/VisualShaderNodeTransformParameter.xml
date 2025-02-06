@@ -4,7 +4,7 @@
 		A [Transform3D] parameter for use within the visual shader graph.
 	</brief_description>
 	<description>
-		Translated to [code]uniform mat4[/code] in the shader language.
+		Translated to [code]uniform mat4[/code] in the GDShader language.
 	</description>
 	<tutorials>
 	</tutorials>

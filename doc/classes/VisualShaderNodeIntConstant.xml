@@ -4,7 +4,7 @@
 		A scalar integer constant to be used within the visual shader graph.
 	</brief_description>
 	<description>
-		Translated to [code skip-lint]int[/code] in the shader language.
+		Translated to [code skip-lint]int[/code] in the GDShader language.
 	</description>
 	<tutorials>
 	</tutorials>

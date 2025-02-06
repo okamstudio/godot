@@ -18,7 +18,7 @@
 			Negates the [code]x[/code] using [code]-(x)[/code].
 		</constant>
 		<constant name="FUNC_BITWISE_NOT" value="1" enum="Function">
-			Returns the result of bitwise [code]NOT[/code] operation on the integer. Translates to [code]~a[/code] in the Godot Shader Language.
+			Returns the result of bitwise [code]NOT[/code] operation on the integer. Translates to [code]~a[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_MAX" value="2" enum="Function">
 			Represents the size of the [enum Function] enum.

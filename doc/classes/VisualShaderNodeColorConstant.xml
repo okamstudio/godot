@@ -5,7 +5,7 @@
 	</brief_description>
 	<description>
 		Has two output ports representing RGB and alpha channels of [Color].
-		Translated to [code]vec3 rgb[/code] and [code]float alpha[/code] in the shader language.
+		Translated to [code]vec3 rgb[/code] and [code]float alpha[/code] in the GDShader language.
 	</description>
 	<tutorials>
 	</tutorials>

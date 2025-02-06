@@ -4,7 +4,7 @@
 		Performs an SDF (signed-distance field) normal texture lookup within the visual shader graph.
 	</brief_description>
 	<description>
-		Translates to [code]texture_sdf_normal(sdf_pos)[/code] in the shader language.
+		Translates to [code]texture_sdf_normal(sdf_pos)[/code] in the GDShader language.
 	</description>
 	<tutorials>
 	</tutorials>

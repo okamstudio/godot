@@ -4,7 +4,7 @@
 		Linearly interpolates between two values within the visual shader graph.
 	</brief_description>
 	<description>
-		Translates to [code]mix(a, b, weight)[/code] in the shader language.
+		Translates to [code]mix(a, b, weight)[/code] in the GDShader language.
 	</description>
 	<tutorials>
 	</tutorials>

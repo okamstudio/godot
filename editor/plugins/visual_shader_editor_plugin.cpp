@@ -6965,7 +6965,7 @@ VisualShaderEditor::VisualShaderEditor() {
 
 	// INPUT
 
-	const String translation_gdsl = "\n\n" + TTR("Translated to '%s' in Godot Shading Language.");
+	const String translation_gdsl = "\n\n" + TTR("Translated to '%s' in the GDShader language.");
 	const String input_param_shader_modes = TTR("'%s' input parameter for all shader modes.") + translation_gdsl;
 
 	// NODE3D-FOR-ALL

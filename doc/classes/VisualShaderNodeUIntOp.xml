@@ -30,25 +30,25 @@
 			Calculates the remainder of two numbers using [code]a % b[/code].
 		</constant>
 		<constant name="OP_MAX" value="5" enum="Operator">
-			Returns the greater of two numbers. Translates to [code]max(a, b)[/code] in the Godot Shader Language.
+			Returns the greater of two numbers. Translates to [code]max(a, b)[/code] in the GDShader language.
 		</constant>
 		<constant name="OP_MIN" value="6" enum="Operator">
-			Returns the lesser of two numbers. Translates to [code]max(a, b)[/code] in the Godot Shader Language.
+			Returns the lesser of two numbers. Translates to [code]max(a, b)[/code] in the GDShader language.
 		</constant>
 		<constant name="OP_BITWISE_AND" value="7" enum="Operator">
-			Returns the result of bitwise [code]AND[/code] operation on the integer. Translates to [code]a &amp; b[/code] in the Godot Shader Language.
+			Returns the result of bitwise [code]AND[/code] operation on the integer. Translates to [code]a &amp; b[/code] in the GDShader language.
 		</constant>
 		<constant name="OP_BITWISE_OR" value="8" enum="Operator">
-			Returns the result of bitwise [code]OR[/code] operation for two integers. Translates to [code]a | b[/code] in the Godot Shader Language.
+			Returns the result of bitwise [code]OR[/code] operation for two integers. Translates to [code]a | b[/code] in the GDShader language.
 		</constant>
 		<constant name="OP_BITWISE_XOR" value="9" enum="Operator">
-			Returns the result of bitwise [code]XOR[/code] operation for two integers. Translates to [code]a ^ b[/code] in the Godot Shader Language.
+			Returns the result of bitwise [code]XOR[/code] operation for two integers. Translates to [code]a ^ b[/code] in the GDShader language.
 		</constant>
 		<constant name="OP_BITWISE_LEFT_SHIFT" value="10" enum="Operator">
-			Returns the result of bitwise left shift operation on the integer. Translates to [code]a &lt;&lt; b[/code] in the Godot Shader Language.
+			Returns the result of bitwise left shift operation on the integer. Translates to [code]a &lt;&lt; b[/code] in the GDShader language.
 		</constant>
 		<constant name="OP_BITWISE_RIGHT_SHIFT" value="11" enum="Operator">
-			Returns the result of bitwise right shift operation on the integer. Translates to [code]a &gt;&gt; b[/code] in the Godot Shader Language.
+			Returns the result of bitwise right shift operation on the integer. Translates to [code]a &gt;&gt; b[/code] in the GDShader language.
 		</constant>
 		<constant name="OP_ENUM_SIZE" value="12" enum="Operator">
 			Represents the size of the [enum Operator] enum.

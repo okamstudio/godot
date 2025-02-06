@@ -13,7 +13,7 @@
 		<method name="get_input_real_name" qualifiers="const">
 			<return type="String" />
 			<description>
-				Returns a translated name of the current constant in the Godot Shader Language. E.g. [code]"ALBEDO"[/code] if the [member input_name] equal to [code]"albedo"[/code].
+				Returns a translated name of the current constant in the GDShader language. E.g. [code]"ALBEDO"[/code] if the [member input_name] equal to [code]"albedo"[/code].
 			</description>
 		</method>
 	</methods>

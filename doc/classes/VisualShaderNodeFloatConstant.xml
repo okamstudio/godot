@@ -4,7 +4,7 @@
 		A scalar floating-point constant to be used within the visual shader graph.
 	</brief_description>
 	<description>
-		Translated to [code skip-lint]float[/code] in the shader language.
+		Translated to [code skip-lint]float[/code] in the GDShader language.
 	</description>
 	<tutorials>
 	</tutorials>

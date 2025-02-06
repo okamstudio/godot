@@ -4,7 +4,7 @@
 		Calculates a dot product of two vectors within the visual shader graph.
 	</brief_description>
 	<description>
-		Translates to [code]dot(a, b)[/code] in the shader language.
+		Translates to [code]dot(a, b)[/code] in the GDShader language.
 	</description>
 	<tutorials>
 	</tutorials>

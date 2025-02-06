@@ -4,7 +4,7 @@
 		Provides a 2D texture parameter within the visual shader graph.
 	</brief_description>
 	<description>
-		Translated to [code]uniform sampler2D[/code] in the shader language.
+		Translated to [code]uniform sampler2D[/code] in the GDShader language.
 	</description>
 	<tutorials>
 	</tutorials>

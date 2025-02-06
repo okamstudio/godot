@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="VisualShaderNodeExpression" inherits="VisualShaderNodeGroupBase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
 	<brief_description>
-		A custom visual shader graph expression written in Godot Shading Language.
+		A custom visual shader graph expression written in the GDShader language.
 	</brief_description>
 	<description>
-		Custom Godot Shading Language expression, with a custom number of input and output ports.
+		Custom GDShader expression, with a custom number of input and output ports.
 		The provided code is directly injected into the graph's matching shader function ([code]vertex[/code], [code]fragment[/code], or [code]light[/code]), so it cannot be used to declare functions, varyings, uniforms, or global constants. See [VisualShaderNodeGlobalExpression] for such global definitions.
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="expression" type="String" setter="set_expression" getter="get_expression" default="&quot;&quot;">
-			An expression in Godot Shading Language, which will be injected at the start of the graph's matching shader function ([code]vertex[/code], [code]fragment[/code], or [code]light[/code]), and thus cannot be used to declare functions, varyings, uniforms, or global constants.
+			An expression in the GDShader language, which will be injected at the start of the graph's matching shader function ([code]vertex[/code], [code]fragment[/code], or [code]light[/code]), and thus cannot be used to declare functions, varyings, uniforms, or global constants.
 		</member>
 	</members>
 </class>

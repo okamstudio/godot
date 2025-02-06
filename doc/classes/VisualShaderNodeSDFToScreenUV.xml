@@ -4,7 +4,7 @@
 		A function to convert an SDF (signed-distance field) to screen UV, to be used within the visual shader graph.
 	</brief_description>
 	<description>
-		Translates to [code]sdf_to_screen_uv(sdf_pos)[/code] in the shader language.
+		Translates to [code]sdf_to_screen_uv(sdf_pos)[/code] in the GDShader language.
 	</description>
 	<tutorials>
 	</tutorials>

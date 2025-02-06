@@ -15,58 +15,58 @@
 	</members>
 	<constants>
 		<constant name="FUNC_SIN" value="0" enum="Function">
-			Returns the sine of the parameter. Translates to [code]sin(x)[/code] in the Godot Shader Language.
+			Returns the sine of the parameter. Translates to [code]sin(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_COS" value="1" enum="Function">
-			Returns the cosine of the parameter. Translates to [code]cos(x)[/code] in the Godot Shader Language.
+			Returns the cosine of the parameter. Translates to [code]cos(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_TAN" value="2" enum="Function">
-			Returns the tangent of the parameter. Translates to [code]tan(x)[/code] in the Godot Shader Language.
+			Returns the tangent of the parameter. Translates to [code]tan(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_ASIN" value="3" enum="Function">
-			Returns the arc-sine of the parameter. Translates to [code]asin(x)[/code] in the Godot Shader Language.
+			Returns the arc-sine of the parameter. Translates to [code]asin(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_ACOS" value="4" enum="Function">
-			Returns the arc-cosine of the parameter. Translates to [code]acos(x)[/code] in the Godot Shader Language.
+			Returns the arc-cosine of the parameter. Translates to [code]acos(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_ATAN" value="5" enum="Function">
-			Returns the arc-tangent of the parameter. Translates to [code]atan(x)[/code] in the Godot Shader Language.
+			Returns the arc-tangent of the parameter. Translates to [code]atan(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_SINH" value="6" enum="Function">
-			Returns the hyperbolic sine of the parameter. Translates to [code]sinh(x)[/code] in the Godot Shader Language.
+			Returns the hyperbolic sine of the parameter. Translates to [code]sinh(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_COSH" value="7" enum="Function">
-			Returns the hyperbolic cosine of the parameter. Translates to [code]cosh(x)[/code] in the Godot Shader Language.
+			Returns the hyperbolic cosine of the parameter. Translates to [code]cosh(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_TANH" value="8" enum="Function">
-			Returns the hyperbolic tangent of the parameter. Translates to [code]tanh(x)[/code] in the Godot Shader Language.
+			Returns the hyperbolic tangent of the parameter. Translates to [code]tanh(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_LOG" value="9" enum="Function">
-			Returns the natural logarithm of the parameter. Translates to [code]log(x)[/code] in the Godot Shader Language.
+			Returns the natural logarithm of the parameter. Translates to [code]log(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_EXP" value="10" enum="Function">
-			Returns the natural exponentiation of the parameter. Translates to [code]exp(x)[/code] in the Godot Shader Language.
+			Returns the natural exponentiation of the parameter. Translates to [code]exp(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_SQRT" value="11" enum="Function">
-			Returns the square root of the parameter. Translates to [code]sqrt(x)[/code] in the Godot Shader Language.
+			Returns the square root of the parameter. Translates to [code]sqrt(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_ABS" value="12" enum="Function">
-			Returns the absolute value of the parameter. Translates to [code]abs(x)[/code] in the Godot Shader Language.
+			Returns the absolute value of the parameter. Translates to [code]abs(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_SIGN" value="13" enum="Function">
-			Extracts the sign of the parameter. Translates to [code]sign(x)[/code] in the Godot Shader Language.
+			Extracts the sign of the parameter. Translates to [code]sign(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_FLOOR" value="14" enum="Function">
-			Finds the nearest integer less than or equal to the parameter. Translates to [code]floor(x)[/code] in the Godot Shader Language.
+			Finds the nearest integer less than or equal to the parameter. Translates to [code]floor(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_ROUND" value="15" enum="Function">
-			Finds the nearest integer to the parameter. Translates to [code]round(x)[/code] in the Godot Shader Language.
+			Finds the nearest integer to the parameter. Translates to [code]round(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_CEIL" value="16" enum="Function">
-			Finds the nearest integer that is greater than or equal to the parameter. Translates to [code]ceil(x)[/code] in the Godot Shader Language.
+			Finds the nearest integer that is greater than or equal to the parameter. Translates to [code]ceil(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_FRACT" value="17" enum="Function">
-			Computes the fractional part of the argument. Translates to [code]fract(x)[/code] in the Godot Shader Language.
+			Computes the fractional part of the argument. Translates to [code]fract(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_SATURATE" value="18" enum="Function">
 			Clamps the value between [code]0.0[/code] and [code]1.0[/code] using [code]min(max(x, 0.0), 1.0)[/code].
@@ -75,37 +75,37 @@
 			Negates the [code]x[/code] using [code]-(x)[/code].
 		</constant>
 		<constant name="FUNC_ACOSH" value="20" enum="Function">
-			Returns the arc-hyperbolic-cosine of the parameter. Translates to [code]acosh(x)[/code] in the Godot Shader Language.
+			Returns the arc-hyperbolic-cosine of the parameter. Translates to [code]acosh(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_ASINH" value="21" enum="Function">
-			Returns the arc-hyperbolic-sine of the parameter. Translates to [code]asinh(x)[/code] in the Godot Shader Language.
+			Returns the arc-hyperbolic-sine of the parameter. Translates to [code]asinh(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_ATANH" value="22" enum="Function">
-			Returns the arc-hyperbolic-tangent of the parameter. Translates to [code]atanh(x)[/code] in the Godot Shader Language.
+			Returns the arc-hyperbolic-tangent of the parameter. Translates to [code]atanh(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_DEGREES" value="23" enum="Function">
-			Convert a quantity in radians to degrees. Translates to [code]degrees(x)[/code] in the Godot Shader Language.
+			Convert a quantity in radians to degrees. Translates to [code]degrees(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_EXP2" value="24" enum="Function">
-			Returns 2 raised by the power of the parameter. Translates to [code]exp2(x)[/code] in the Godot Shader Language.
+			Returns 2 raised by the power of the parameter. Translates to [code]exp2(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_INVERSE_SQRT" value="25" enum="Function">
-			Returns the inverse of the square root of the parameter. Translates to [code]inversesqrt(x)[/code] in the Godot Shader Language.
+			Returns the inverse of the square root of the parameter. Translates to [code]inversesqrt(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_LOG2" value="26" enum="Function">
-			Returns the base 2 logarithm of the parameter. Translates to [code]log2(x)[/code] in the Godot Shader Language.
+			Returns the base 2 logarithm of the parameter. Translates to [code]log2(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_RADIANS" value="27" enum="Function">
-			Convert a quantity in degrees to radians. Translates to [code]radians(x)[/code] in the Godot Shader Language.
+			Convert a quantity in degrees to radians. Translates to [code]radians(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_RECIPROCAL" value="28" enum="Function">
 			Finds reciprocal value of dividing 1 by [code]x[/code] (i.e. [code]1 / x[/code]).
 		</constant>
 		<constant name="FUNC_ROUNDEVEN" value="29" enum="Function">
-			Finds the nearest even integer to the parameter. Translates to [code]roundEven(x)[/code] in the Godot Shader Language.
+			Finds the nearest even integer to the parameter. Translates to [code]roundEven(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_TRUNC" value="30" enum="Function">
-			Returns a value equal to the nearest integer to [code]x[/code] whose absolute value is not larger than the absolute value of [code]x[/code]. Translates to [code]trunc(x)[/code] in the Godot Shader Language.
+			Returns a value equal to the nearest integer to [code]x[/code] whose absolute value is not larger than the absolute value of [code]x[/code]. Translates to [code]trunc(x)[/code] in the GDShader language.
 		</constant>
 		<constant name="FUNC_ONEMINUS" value="31" enum="Function">
 			Subtracts scalar [code]x[/code] from 1 (i.e. [code]1 - x[/code]).

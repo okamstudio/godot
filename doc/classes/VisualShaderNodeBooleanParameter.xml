@@ -4,7 +4,7 @@
 		A boolean parameter to be used within the visual shader graph.
 	</brief_description>
 	<description>
-		Translated to [code]uniform bool[/code] in the shader language.
+		Translated to [code]uniform bool[/code] in the GDShader language.
 	</description>
 	<tutorials>
 	</tutorials>
