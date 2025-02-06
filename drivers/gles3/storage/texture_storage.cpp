@@ -538,7 +538,7 @@ Ref<Image> TextureStorage::_get_gl_image_and_format(const Ref<Image> &p_image, I
 		case Image::FORMAT_RGTC_R: {
 			if (config->rgtc_supported) {
 				r_gl_internal_format = _EXT_COMPRESSED_RED_RGTC1_EXT;
-				r_gl_format = GL_RGBA;
+				r_gl_format = GL_RED;
 				r_gl_type = GL_UNSIGNED_BYTE;
 				r_compressed = true;
 			} else {
@@ -548,7 +548,7 @@ Ref<Image> TextureStorage::_get_gl_image_and_format(const Ref<Image> &p_image, I
 		case Image::FORMAT_RGTC_RG: {
 			if (config->rgtc_supported) {
 				r_gl_internal_format = _EXT_COMPRESSED_RED_GREEN_RGTC2_EXT;
-				r_gl_format = GL_RGBA;
+				r_gl_format = GL_RG;
 				r_gl_type = GL_UNSIGNED_BYTE;
 				r_compressed = true;
 			} else {
