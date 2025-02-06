@@ -1593,11 +1593,6 @@ String String::to_lower() const {
 	return lower;
 }
 
-String String::chr(char32_t p_char) {
-	char32_t c[2] = { p_char, 0 };
-	return String(c);
-}
-
 String String::num(double p_num, int p_decimals) {
 	if (Math::is_nan(p_num)) {
 		return "nan";

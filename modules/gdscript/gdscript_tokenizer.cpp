@@ -1337,7 +1337,7 @@ void GDScriptTokenizerText::check_indent() {
 }
 
 String GDScriptTokenizerText::_get_indent_char_name(char32_t ch) {
-	ERR_FAIL_COND_V(ch != ' ' && ch != '\t', String(&ch, 1).c_escape());
+	ERR_FAIL_COND_V(ch != ' ' && ch != '\t', String::chr(ch).c_escape());
 
 	return ch == ' ' ? "space" : "tab";
 }

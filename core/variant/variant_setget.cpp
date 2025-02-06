@@ -768,8 +768,7 @@ struct VariantIndexedSetGet_String {
 			*oob = true;
 			return;
 		}
-		char32_t result = (*VariantGetInternalPtr<String>::get_ptr(base))[index];
-		*value = String(&result, 1);
+		*value = String::chr((*VariantGetInternalPtr<String>::get_ptr(base))[index]);
 		*oob = false;
 	}
 	static void ptr_get(const void *base, int64_t index, void *member) {
@@ -779,8 +778,7 @@ struct VariantIndexedSetGet_String {
 			index += v.length();
 		}
 		OOB_TEST(index, v.length());
-		char32_t c = v[index];
-		PtrToArg<String>::encode(String(&c, 1), member);
+		PtrToArg<String>::encode(String::chr(v[index]), member);
 	}
 	static void set(Variant *base, int64_t index, const Variant *value, bool *valid, bool *oob) {
 		if (value->get_type() != Variant::STRING) {
