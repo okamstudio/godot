@@ -76,11 +76,11 @@ void EditorAudioBus::_notification(int p_what) {
 			Ref<Texture2D> active_bus_texture = get_editor_theme_icon(SNAME("BusVuActive"));
 			for (int i = 0; i < CHANNELS_MAX; i++) {
 				channel[i].vu_l->set_under_texture(active_bus_texture);
-				channel[i].vu_l->set_tint_under(Color(0.75, 0.75, 0.75));
+				channel[i].vu_l->set_tint_under(Color(0.4, 0.4, 0.4));
 				channel[i].vu_l->set_progress_texture(active_bus_texture);
 
 				channel[i].vu_r->set_under_texture(active_bus_texture);
-				channel[i].vu_r->set_tint_under(Color(0.75, 0.75, 0.75));
+				channel[i].vu_r->set_tint_under(Color(0.4, 0.4, 0.4));
 				channel[i].vu_r->set_progress_texture(active_bus_texture);
 				channel[i].prev_active = true;
 			}
