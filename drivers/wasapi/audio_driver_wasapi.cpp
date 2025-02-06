@@ -908,7 +908,7 @@ void AudioDriverWASAPI::thread_func(void *p_udata) {
 
 					// fixme: Only works for floating point atm
 					for (UINT32 j = 0; j < num_frames_available; j++) {
-						int32_t l, r;
+						int32_t l = 0, r = 0;
 
 						if (flags & AUDCLNT_BUFFERFLAGS_SILENT) {
 							l = r = 0;
@@ -918,6 +918,29 @@ void AudioDriverWASAPI::thread_func(void *p_udata) {
 								r = read_sample(ad->audio_input.format_tag, ad->audio_input.bits_per_sample, data, j * 2 + 1);
 							} else if (ad->audio_input.channels == 1) {
 								l = r = read_sample(ad->audio_input.format_tag, ad->audio_input.bits_per_sample, data, j);
+							} else if (ad->audio_input.channels >= 2) {
+								int64_t ltemp = 0, rtemp = 0;
+								int channels = ad->audio_input.channels;
+								for (int ch = 0; ch < channels - 1; ch++) {
+									int32_t sample = read_sample(ad->audio_input.format_tag, ad->audio_input.bits_per_sample, data, j * channels + ch);
+									if (ch % 2 == 0) {
+										rtemp += sample;
+									} else {
+										ltemp += sample;
+									}
+								}
+								int32_t last_sample = read_sample(ad->audio_input.format_tag, ad->audio_input.bits_per_sample, data, j * channels + (channels - 1));
+								r += last_sample;
+								if (channels % 2 != 0) {
+									ltemp += last_sample;
+									ltemp /= ((channels + 1) / 2);
+									rtemp /= ((channels + 1) / 2);
+								} else {
+									ltemp /= (channels / 2);
+									rtemp /= (channels / 2);
+								}
+								l = static_cast<int32_t>(ltemp);
+								r = static_cast<int32_t>(rtemp);
 							} else {
 								l = r = 0;
 								ERR_PRINT("WASAPI: unsupported channel count in microphone!");
