@@ -199,7 +199,8 @@
 	</methods>
 	<members>
 		<member name="lightmap_size_hint" type="Vector2i" setter="set_lightmap_size_hint" getter="get_lightmap_size_hint" default="Vector2i(0, 0)">
-			Sets a hint to be used for lightmap resolution.
+			The texture size to use in the lightmap's UV space to represent the mesh's baked lighting. Higher values will make the lighting more detailed, while also allowing smaller albedo/emission texture details to be taken into account for global illumination. This is multiplied by [member GeometryInstance3D.gi_lightmap_scale]. If [member lightmap_size_hint] is set to [code]Vector2i(0, 0)[/code], the engine falls back to a size of 64×64.
+			[b]Note:[/b] Do not set [member lightmap_size_hint] manually on imported meshes or [PrimitiveMesh]es with the [member PrimitiveMesh.add_uv2] property set to [code]true[/code], as changes will be lost when the mesh is reimported or regenerated.
 		</member>
 	</members>
 	<constants>

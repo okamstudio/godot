@@ -803,7 +803,9 @@ void Mesh::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_aabb"), &Mesh::get_aabb);
 	ClassDB::bind_method(D_METHOD("get_faces"), &Mesh::_get_faces);
 
-	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2I, "lightmap_size_hint"), "set_lightmap_size_hint", "get_lightmap_size_hint");
+	// Lightmap Size Hint is set on import or when modifying a PrimitiveMesh's size, so manual changes to it are often lost.
+	// However, being able to see it for debugging purposes is useful, so it's visible as a read-only property.
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2I, "lightmap_size_hint", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY), "set_lightmap_size_hint", "get_lightmap_size_hint");
 
 	ClassDB::bind_method(D_METHOD("get_surface_count"), &Mesh::get_surface_count);
 	ClassDB::bind_method(D_METHOD("surface_get_arrays", "surf_idx"), &Mesh::surface_get_arrays);
