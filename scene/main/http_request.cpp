@@ -85,18 +85,17 @@ bool HTTPRequest::has_header(const PackedStringArray &p_headers, const String &p
 String HTTPRequest::get_header_value(const PackedStringArray &p_headers, const String &p_header_name) {
 	String value = "";
 
-	String lowwer_case_header_name = p_header_name.to_lower();
+	String lower_case_header_name = p_header_name.to_lower();
 	for (int i = 0; i < p_headers.size(); i++) {
 		if (p_headers[i].find_char(':') > 0) {
 			Vector<String> parts = p_headers[i].split(":", false, 1);
-			if (parts.size() > 1 && parts[0].strip_edges().to_lower() == lowwer_case_header_name) {
-				value = parts[1].strip_edges();
-				break;
+			if (parts.size() > 1 && parts[0].strip_edges().to_lower() == lower_case_header_name) {
+				value = value + parts[1].strip_edges() + "; ";
 			}
 		}
 	}
 
-	return value;
+	return value.trim_suffix("; ");
 }
 
 Error HTTPRequest::request(const String &p_url, const Vector<String> &p_custom_headers, HTTPClient::Method p_method, const String &p_request_data) {
@@ -600,6 +599,24 @@ void HTTPRequest::set_tls_options(const Ref<TLSOptions> &p_options) {
 	tls_options = p_options;
 }
 
+Dictionary HTTPRequest::get_dictionary_from_headers(const PackedStringArray &p_headers) {
+	Dictionary ret;
+	for (const String &s : p_headers) {
+		int sp = s.find(":");
+		if (sp == -1) {
+			continue;
+		}
+		String key = s.substr(0, sp).strip_edges().to_lower();
+		String value = s.substr(sp + 1, s.length()).strip_edges();
+		if (ret.has(key)) {
+			value = (String)ret[key] + "; " + value;
+		}
+		ret[key] = value;
+	}
+
+	return ret;
+}
+
 void HTTPRequest::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("request", "url", "custom_headers", "method", "request_data"), &HTTPRequest::request, DEFVAL(PackedStringArray()), DEFVAL(HTTPClient::METHOD_GET), DEFVAL(String()));
 	ClassDB::bind_method(D_METHOD("request_raw", "url", "custom_headers", "method", "request_data_raw"), &HTTPRequest::request_raw, DEFVAL(PackedStringArray()), DEFVAL(HTTPClient::METHOD_GET), DEFVAL(PackedByteArray()));
@@ -634,6 +651,11 @@ void HTTPRequest::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_http_proxy", "host", "port"), &HTTPRequest::set_http_proxy);
 	ClassDB::bind_method(D_METHOD("set_https_proxy", "host", "port"), &HTTPRequest::set_https_proxy);
+
+	ClassDB::bind_static_method("HTTPRequest", D_METHOD("has_header", "headers", "header_name"), &HTTPRequest::has_header);
+	ClassDB::bind_static_method("HTTPRequest", D_METHOD("get_header_value", "headers", "header_name"), &HTTPRequest::get_header_value);
+
+	ClassDB::bind_static_method("HTTPRequest", D_METHOD("get_dictionary_from_headers", "headers"), &HTTPRequest::get_dictionary_from_headers);
 
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "download_file", PROPERTY_HINT_FILE), "set_download_file", "get_download_file");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "download_chunk_size", PROPERTY_HINT_RANGE, "256,16777216,suffix:B"), "set_download_chunk_size", "get_download_chunk_size");
