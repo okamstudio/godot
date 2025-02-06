@@ -121,12 +121,9 @@ void SubViewportContainer::_notification(int p_what) {
 					continue;
 				}
 
-				if (is_visible_in_tree()) {
-					c->set_update_mode(SubViewport::UPDATE_ALWAYS);
-				} else {
+				if (!is_visible_in_tree()) {
 					c->set_update_mode(SubViewport::UPDATE_DISABLED);
 				}
-
 				c->set_handle_input_locally(false); //do not handle input locally here
 			}
 		} break;
