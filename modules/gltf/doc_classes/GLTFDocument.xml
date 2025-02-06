@@ -126,6 +126,9 @@
 			How to process the root node during export. See [enum RootNodeMode] for details. The default and recommended value is [constant ROOT_NODE_MODE_SINGLE_ROOT].
 			[b]Note:[/b] Regardless of how the glTF file is exported, when importing, the root node type and name can be overridden in the scene import settings tab.
 		</member>
+		<member name="visibility_mode" type="int" setter="set_visibility_mode" getter="get_visibility_mode" enum="GLTFDocument.VisibilityMode" default="0">
+			How to deal with node visibility during export. This setting does nothing if all nodes are visible. See [enum VisibilityMode] for details. The default and recommended value is [constant VISIBILITY_MODE_INCLUDE_REQUIRED], which uses the [code]KHR_node_visibility[/code] extension.
+		</member>
 	</members>
 	<constants>
 		<constant name="ROOT_NODE_MODE_SINGLE_ROOT" value="0" enum="RootNodeMode">
@@ -136,6 +139,15 @@
 		</constant>
 		<constant name="ROOT_NODE_MODE_MULTI_ROOT" value="2" enum="RootNodeMode">
 			Treat the Godot scene's root node as the name of the glTF scene, and add all of its children as root nodes of the glTF file. This uses only vanilla glTF features. This avoids an extra root node, but only the name of the Godot scene's root node will be preserved, as it will not be saved as a node.
+		</constant>
+		<constant name="VISIBILITY_MODE_INCLUDE_REQUIRED" value="0" enum="VisibilityMode">
+			If the scene contains any non-visible nodes, include them, mark them as non-visible with [code]KHR_node_visibility[/code], and require that importers respect their non-visibility. Downside: If the importer does not support [code]KHR_node_visibility[/code], the file cannot be imported.
+		</constant>
+		<constant name="VISIBILITY_MODE_INCLUDE_OPTIONAL" value="1" enum="VisibilityMode">
+			If the scene contains any non-visible nodes, include them, mark them as non-visible with [code]KHR_node_visibility[/code], and do not impose any requirements on importers. Downside: If the importer does not support [code]KHR_node_visibility[/code], invisible objects will be visible.
+		</constant>
+		<constant name="VISIBILITY_MODE_EXCLUDE" value="2" enum="VisibilityMode">
+			If the scene contains any non-visible nodes, do not include them in the export. This is the same as the behavior in Godot 4.3 and earlier. Downside: Invisible nodes will not exist in the exported file.
 		</constant>
 	</constants>
 </class>

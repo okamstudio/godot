@@ -60,6 +60,8 @@ void GLTFNode::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("append_child_index", "child_index"), &GLTFNode::append_child_index);
 	ClassDB::bind_method(D_METHOD("get_light"), &GLTFNode::get_light);
 	ClassDB::bind_method(D_METHOD("set_light", "light"), &GLTFNode::set_light);
+	ClassDB::bind_method(D_METHOD("get_visible"), &GLTFNode::get_visible);
+	ClassDB::bind_method(D_METHOD("set_visible", "visible"), &GLTFNode::set_visible);
 	ClassDB::bind_method(D_METHOD("get_additional_data", "extension_name"), &GLTFNode::get_additional_data);
 	ClassDB::bind_method(D_METHOD("set_additional_data", "extension_name", "additional_data"), &GLTFNode::set_additional_data);
 	ClassDB::bind_method(D_METHOD("get_scene_node_path", "gltf_state", "handle_skeletons"), &GLTFNode::get_scene_node_path, DEFVAL(true));
@@ -77,6 +79,7 @@ void GLTFNode::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "scale"), "set_scale", "get_scale"); // Vector3
 	ADD_PROPERTY(PropertyInfo(Variant::PACKED_INT32_ARRAY, "children"), "set_children", "get_children"); // Vector<int>
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "light"), "set_light", "get_light"); // GLTFLightIndex
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "visible"), "set_visible", "get_visible"); // bool
 }
 
 String GLTFNode::get_original_name() {
@@ -184,6 +187,14 @@ GLTFLightIndex GLTFNode::get_light() {
 
 void GLTFNode::set_light(GLTFLightIndex p_light) {
 	light = p_light;
+}
+
+bool GLTFNode::get_visible() {
+	return visible;
+}
+
+void GLTFNode::set_visible(bool p_visible) {
+	visible = p_visible;
 }
 
 Variant GLTFNode::get_additional_data(const StringName &p_extension_name) {

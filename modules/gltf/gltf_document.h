@@ -66,6 +66,11 @@ public:
 		ROOT_NODE_MODE_KEEP_ROOT,
 		ROOT_NODE_MODE_MULTI_ROOT,
 	};
+	enum VisibilityMode {
+		VISIBILITY_MODE_INCLUDE_REQUIRED,
+		VISIBILITY_MODE_INCLUDE_OPTIONAL,
+		VISIBILITY_MODE_EXCLUDE,
+	};
 
 private:
 	int _naming_version = 1;
@@ -73,6 +78,7 @@ private:
 	float _lossy_quality = 0.75f;
 	Ref<GLTFDocumentExtension> _image_save_extension;
 	RootNodeMode _root_node_mode = RootNodeMode::ROOT_NODE_MODE_SINGLE_ROOT;
+	VisibilityMode _visibility_mode = VisibilityMode::VISIBILITY_MODE_INCLUDE_REQUIRED;
 
 protected:
 	static void _bind_methods();
@@ -100,6 +106,8 @@ public:
 	float get_lossy_quality() const;
 	void set_root_node_mode(RootNodeMode p_root_node_mode);
 	RootNodeMode get_root_node_mode() const;
+	void set_visibility_mode(VisibilityMode p_visibility_mode);
+	VisibilityMode get_visibility_mode() const;
 	static String _gen_unique_name_static(HashSet<String> &r_unique_names, const String &p_name);
 
 private:
@@ -388,5 +396,6 @@ public:
 };
 
 VARIANT_ENUM_CAST(GLTFDocument::RootNodeMode);
+VARIANT_ENUM_CAST(GLTFDocument::VisibilityMode);
 
 #endif // GLTF_DOCUMENT_H

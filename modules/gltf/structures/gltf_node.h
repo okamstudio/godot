@@ -51,6 +51,7 @@ private:
 	GLTFSkinIndex skin = -1;
 	GLTFSkeletonIndex skeleton = -1;
 	bool joint = false;
+	bool visible = true;
 	Vector<int> children;
 	GLTFLightIndex light = -1;
 	Dictionary additional_data;
@@ -101,6 +102,9 @@ public:
 
 	GLTFLightIndex get_light();
 	void set_light(GLTFLightIndex p_light);
+
+	bool get_visible();
+	void set_visible(bool p_visible);
 
 	Variant get_additional_data(const StringName &p_extension_name);
 	bool has_additional_data(const StringName &p_extension_name);

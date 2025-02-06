@@ -83,6 +83,9 @@
 		<member name="skin" type="int" setter="set_skin" getter="get_skin" default="-1">
 			If this glTF node has a skin, the index of the [GLTFSkin] in the [GLTFState] that describes the skin's properties. If -1, this node does not have a skin.
 		</member>
+		<member name="visible" type="bool" setter="set_visible" getter="get_visible" default="true">
+			If [code]true[/code], the GLTF node is visible. If [code]false[/code], the GLTF node is not visible. This is translated to the [member Node3D.visible] property in the Godot scene, and is exported to [code]KHR_node_visibility[/code] when [code]false[/code].
+		</member>
 		<member name="xform" type="Transform3D" setter="set_xform" getter="get_xform" default="Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)">
 			The transform of the glTF node relative to its parent. This property is usually unused since the position, rotation, and scale properties are preferred.
 		</member>

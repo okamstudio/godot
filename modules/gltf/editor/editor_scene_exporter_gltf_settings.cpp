@@ -50,6 +50,10 @@ bool EditorSceneExporterGLTFSettings::_set(const StringName &p_name, const Varia
 		_document->set_root_node_mode((GLTFDocument::RootNodeMode)(int64_t)p_value);
 		return true;
 	}
+	if (p_name == StringName("visibility_mode")) {
+		_document->set_visibility_mode((GLTFDocument::VisibilityMode)(int64_t)p_value);
+		return true;
+	}
 	return false;
 }
 
@@ -68,6 +72,10 @@ bool EditorSceneExporterGLTFSettings::_get(const StringName &p_name, Variant &r_
 	}
 	if (p_name == StringName("root_node_mode")) {
 		r_ret = _document->get_root_node_mode();
+		return true;
+	}
+	if (p_name == StringName("visibility_mode")) {
+		r_ret = _document->get_visibility_mode();
 		return true;
 	}
 	return false;
@@ -128,6 +136,21 @@ String get_friendly_config_prefix(Ref<GLTFDocumentExtension> p_extension) {
 	return "Unknown GLTFDocumentExtension";
 }
 
+bool is_any_node_invisible(Node *p_node) {
+	if (p_node->has_method("is_visible")) {
+		bool visible = p_node->call("is_visible");
+		if (!visible) {
+			return true;
+		}
+	}
+	for (int i = 0; i < p_node->get_child_count(); i++) {
+		if (is_any_node_invisible(p_node->get_child(i))) {
+			return true;
+		}
+	}
+	return false;
+}
+
 // Run this before popping up the export settings, because the extensions may have changed.
 void EditorSceneExporterGLTFSettings::generate_property_list(Ref<GLTFDocument> p_document, Node *p_root) {
 	_property_list.clear();
@@ -168,6 +191,11 @@ void EditorSceneExporterGLTFSettings::generate_property_list(Ref<GLTFDocument> p
 	_property_list.push_back(lossy_quality_prop);
 	PropertyInfo root_node_mode_prop = PropertyInfo(Variant::INT, "root_node_mode", PROPERTY_HINT_ENUM, "Single Root,Keep Root,Multi Root");
 	_property_list.push_back(root_node_mode_prop);
+	// If the scene contains any non-visible nodes, show the visibility mode setting.
+	if (p_root != nullptr && is_any_node_invisible(p_root)) {
+		PropertyInfo visibility_mode_prop = PropertyInfo(Variant::INT, "visibility_mode", PROPERTY_HINT_ENUM, "Include & Required,Include & Optional,Exclude");
+		_property_list.push_back(visibility_mode_prop);
+	}
 }
 
 String EditorSceneExporterGLTFSettings::get_copyright() const {
