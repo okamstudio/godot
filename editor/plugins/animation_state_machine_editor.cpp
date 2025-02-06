@@ -1911,8 +1911,6 @@ AnimationNodeStateMachineEditor::AnimationNodeStateMachineEditor() {
 	error_panel->add_child(error_label);
 	error_panel->hide();
 
-	set_custom_minimum_size(Size2(0, 300 * EDSCALE));
-
 	menu = memnew(PopupMenu);
 	add_child(menu);
 	menu->connect(SceneStringName(id_pressed), callable_mp(this, &AnimationNodeStateMachineEditor::_add_menu_type));

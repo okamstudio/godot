@@ -250,7 +250,7 @@ ThemeEditorPreview::ThemeEditorPreview() {
 	picker_button->connect(SceneStringName(pressed), callable_mp(this, &ThemeEditorPreview::_picker_button_cbk));
 
 	MarginContainer *preview_body = memnew(MarginContainer);
-	preview_body->set_custom_minimum_size(Size2(480, 0) * EDSCALE);
+	preview_body->set_custom_minimum_size(Size2(200, 0) * EDSCALE);
 	preview_body->set_v_size_flags(SIZE_EXPAND_FILL);
 	add_child(preview_body);
 

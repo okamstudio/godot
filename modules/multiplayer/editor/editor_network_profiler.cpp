@@ -35,6 +35,7 @@
 #include "editor/gui/editor_run_bar.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/gui/check_box.h"
+#include "scene/gui/flow_container.h"
 
 void EditorNetworkProfiler::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("enable_profiling", PropertyInfo(Variant::BOOL, "enable")));
@@ -297,30 +298,33 @@ bool EditorNetworkProfiler::is_profiling() {
 }
 
 EditorNetworkProfiler::EditorNetworkProfiler() {
-	HBoxContainer *hb = memnew(HBoxContainer);
-	hb->add_theme_constant_override("separation", 8 * EDSCALE);
-	add_child(hb);
+	FlowContainer *container = memnew(FlowContainer);
+	container->add_theme_constant_override(SNAME("h_separation"), 8 * EDSCALE);
+	container->add_theme_constant_override(SNAME("v_separation"), 2 * EDSCALE);
+	add_child(container);
 
 	activate = memnew(Button);
 	activate->set_toggle_mode(true);
 	activate->set_text(TTR("Start"));
 	activate->set_disabled(true);
 	activate->connect(SceneStringName(pressed), callable_mp(this, &EditorNetworkProfiler::_activate_pressed));
-	hb->add_child(activate);
+	container->add_child(activate);
 
 	clear_button = memnew(Button);
 	clear_button->set_text(TTR("Clear"));
 	clear_button->set_disabled(true);
 	clear_button->connect(SceneStringName(pressed), callable_mp(this, &EditorNetworkProfiler::_clear_pressed));
-	hb->add_child(clear_button);
+	container->add_child(clear_button);
 
 	CheckBox *autostart_checkbox = memnew(CheckBox);
 	autostart_checkbox->set_text(TTR("Autostart"));
 	autostart_checkbox->set_pressed(EditorSettings::get_singleton()->get_project_metadata("debug_options", "autostart_network_profiler", false));
 	autostart_checkbox->connect(SceneStringName(toggled), callable_mp(this, &EditorNetworkProfiler::_autostart_toggled));
-	hb->add_child(autostart_checkbox);
+	container->add_child(autostart_checkbox);
 
-	hb->add_spacer();
+	HBoxContainer *hb = memnew(HBoxContainer);
+	hb->add_theme_constant_override(SNAME("separation"), 8 * EDSCALE);
+	container->add_child(hb);
 
 	Label *lb = memnew(Label);
 	// TRANSLATORS: This is the label for the network profiler's incoming bandwidth.
@@ -346,7 +350,7 @@ EditorNetworkProfiler::EditorNetworkProfiler() {
 	outgoing_bandwidth_text->set_editable(false);
 	outgoing_bandwidth_text->set_custom_minimum_size(Size2(120, 0) * EDSCALE);
 	outgoing_bandwidth_text->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_RIGHT);
-	hb->add_child(outgoing_bandwidth_text);
+	container->add_child(outgoing_bandwidth_text);
 
 	// Set initial texts in the incoming/outgoing bandwidth labels
 	set_bandwidth(0, 0);
@@ -359,7 +363,7 @@ EditorNetworkProfiler::EditorNetworkProfiler() {
 
 	// RPC
 	counters_display = memnew(Tree);
-	counters_display->set_custom_minimum_size(Size2(320, 0) * EDSCALE);
+	counters_display->set_custom_minimum_size(Size2(280, 0) * EDSCALE);
 	counters_display->set_v_size_flags(SIZE_EXPAND_FILL);
 	counters_display->set_h_size_flags(SIZE_EXPAND_FILL);
 	counters_display->set_hide_folding(true);
@@ -382,7 +386,7 @@ EditorNetworkProfiler::EditorNetworkProfiler() {
 
 	// Replication
 	replication_display = memnew(Tree);
-	replication_display->set_custom_minimum_size(Size2(320, 0) * EDSCALE);
+	replication_display->set_custom_minimum_size(Size2(280, 0) * EDSCALE);
 	replication_display->set_v_size_flags(SIZE_EXPAND_FILL);
 	replication_display->set_h_size_flags(SIZE_EXPAND_FILL);
 	replication_display->set_hide_folding(true);

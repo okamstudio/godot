@@ -916,6 +916,7 @@ TileSetEditor::TileSetEditor() {
 	no_source_selected_label->set_text(TTR("No TileSet source selected. Select or create a TileSet source.\nYou can create a new source by using the Add button on the left or by dropping a tileset texture onto the source list."));
 	no_source_selected_label->set_h_size_flags(SIZE_EXPAND_FILL);
 	no_source_selected_label->set_v_size_flags(SIZE_EXPAND_FILL);
+	no_source_selected_label->set_autowrap_mode(TextServer::AUTOWRAP_WORD_SMART);
 	no_source_selected_label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
 	no_source_selected_label->set_vertical_alignment(VERTICAL_ALIGNMENT_CENTER);
 	split_container_right_side->add_child(no_source_selected_label);

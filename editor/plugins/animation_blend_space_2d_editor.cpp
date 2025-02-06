@@ -1072,7 +1072,8 @@ AnimationNodeBlendSpace2DEditor::AnimationNodeBlendSpace2DEditor() {
 	error_label = memnew(Label);
 	error_panel->add_child(error_label);
 
-	set_custom_minimum_size(Size2(0, 300 * EDSCALE));
+	set_custom_minimum_size(Size2(0, 150 * EDSCALE));
+	set_size(Size2(0, 300 * EDSCALE));
 
 	menu = memnew(PopupMenu);
 	add_child(menu);

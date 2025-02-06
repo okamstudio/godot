@@ -7533,9 +7533,11 @@ AnimationTrackEditor::AnimationTrackEditor() {
 	timeline_scroll->set_v_size_flags(SIZE_EXPAND_FILL);
 
 	timeline_vbox = memnew(VBoxContainer);
-	timeline_scroll->add_child(timeline_vbox);
+	timeline_vbox->set_size(Size2(0, 150) * EDSCALE);
+	timeline_vbox->set_custom_minimum_size(Size2(0, 100) * EDSCALE);
 	timeline_vbox->set_v_size_flags(SIZE_EXPAND_FILL);
 	timeline_vbox->set_h_size_flags(SIZE_EXPAND_FILL);
+	timeline_scroll->add_child(timeline_vbox);
 
 	info_message = memnew(Label);
 	info_message->set_text(TTR("Select an AnimationPlayer node to create and edit animations."));
@@ -7592,8 +7594,6 @@ AnimationTrackEditor::AnimationTrackEditor() {
 	bezier_edit->set_timeline(timeline);
 	bezier_edit->hide();
 	bezier_edit->set_v_size_flags(SIZE_EXPAND_FILL);
-
-	timeline_vbox->set_custom_minimum_size(Size2(0, 150) * EDSCALE);
 
 	hscroll = memnew(HScrollBar);
 	hscroll->share(timeline);

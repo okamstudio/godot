@@ -1923,7 +1923,6 @@ void SpriteFramesEditor::_node_removed(Node *p_node) {
 SpriteFramesEditor::SpriteFramesEditor() {
 	VBoxContainer *vbc_animlist = memnew(VBoxContainer);
 	add_child(vbc_animlist);
-	vbc_animlist->set_custom_minimum_size(Size2(150, 0) * EDSCALE);
 
 	VBoxContainer *sub_vb = memnew(VBoxContainer);
 	vbc_animlist->add_margin_child(TTR("Animations:"), sub_vb, true);
@@ -2526,7 +2525,8 @@ void SpriteFramesEditorPlugin::make_visible(bool p_visible) {
 
 SpriteFramesEditorPlugin::SpriteFramesEditorPlugin() {
 	frames_editor = memnew(SpriteFramesEditor);
-	frames_editor->set_custom_minimum_size(Size2(0, 300) * EDSCALE);
+	frames_editor->set_size(Size2(0, 300) * EDSCALE);
+	frames_editor->set_custom_minimum_size(Size2(0, 200) * EDSCALE);
 	button = EditorNode::get_bottom_panel()->add_item(TTR("SpriteFrames"), frames_editor, ED_SHORTCUT_AND_COMMAND("bottom_panels/toggle_sprite_frames_bottom_panel", TTRC("Toggle SpriteFrames Bottom Panel")));
 	button->hide();
 }

@@ -4158,7 +4158,7 @@ ScriptEditor::ScriptEditor(WindowWrapper *p_wrapper) {
 	script_list = memnew(ItemList);
 	script_list->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
 	scripts_vbox->add_child(script_list);
-	script_list->set_custom_minimum_size(Size2(100, 60) * EDSCALE); //need to give a bit of limit to avoid it from disappearing
+	script_list->set_custom_minimum_size(Size2(100, 40) * EDSCALE); // Nneed to give a bit of limit to avoid it from disappearing.
 	script_list->set_v_size_flags(SIZE_EXPAND_FILL);
 	script_list->set_theme_type_variation("ItemListSecondary");
 	script_split->set_split_offset(200 * EDSCALE);
@@ -4172,7 +4172,6 @@ ScriptEditor::ScriptEditor(WindowWrapper *p_wrapper) {
 	context_menu->connect(SceneStringName(id_pressed), callable_mp(this, &ScriptEditor::_menu_option));
 
 	overview_vbox = memnew(VBoxContainer);
-	overview_vbox->set_custom_minimum_size(Size2(0, 90));
 	overview_vbox->set_v_size_flags(SIZE_EXPAND_FILL);
 
 	list_split->add_child(overview_vbox);
@@ -4208,7 +4207,7 @@ ScriptEditor::ScriptEditor(WindowWrapper *p_wrapper) {
 	overview_vbox->add_child(members_overview);
 
 	members_overview->set_allow_reselect(true);
-	members_overview->set_custom_minimum_size(Size2(0, 60) * EDSCALE); //need to give a bit of limit to avoid it from disappearing
+	members_overview->set_custom_minimum_size(Size2(0, 40) * EDSCALE); // Need to give a bit of limit to avoid it from disappearing.
 	members_overview->set_v_size_flags(SIZE_EXPAND_FILL);
 	members_overview->set_allow_rmb_select(true);
 
@@ -4217,7 +4216,7 @@ ScriptEditor::ScriptEditor(WindowWrapper *p_wrapper) {
 	help_overview->set_theme_type_variation("ItemListSecondary");
 	overview_vbox->add_child(help_overview);
 	help_overview->set_allow_reselect(true);
-	help_overview->set_custom_minimum_size(Size2(0, 60) * EDSCALE); //need to give a bit of limit to avoid it from disappearing
+	help_overview->set_custom_minimum_size(Size2(0, 40) * EDSCALE); // Need to give a bit of limit to avoid it from disappearing.
 	help_overview->set_v_size_flags(SIZE_EXPAND_FILL);
 
 	VBoxContainer *code_editor_container = memnew(VBoxContainer);

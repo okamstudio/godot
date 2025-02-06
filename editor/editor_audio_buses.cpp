@@ -1337,7 +1337,8 @@ EditorAudioBuses::EditorAudioBuses() {
 
 	bus_scroll = memnew(ScrollContainer);
 	bus_scroll->set_v_size_flags(SIZE_EXPAND_FILL);
-	bus_scroll->set_vertical_scroll_mode(ScrollContainer::SCROLL_MODE_DISABLED);
+	bus_scroll->set_custom_minimum_size(Size2(0, 200) * EDSCALE);
+	bus_scroll->set_size(Size2(0, 350) * EDSCALE);
 	add_child(bus_scroll);
 	bus_hb = memnew(HBoxContainer);
 	bus_hb->set_v_size_flags(SIZE_EXPAND_FILL);

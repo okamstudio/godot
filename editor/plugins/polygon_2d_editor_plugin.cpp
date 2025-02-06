@@ -43,6 +43,7 @@
 #include "scene/2d/skeleton_2d.h"
 #include "scene/gui/check_box.h"
 #include "scene/gui/dialogs.h"
+#include "scene/gui/flow_container.h"
 #include "scene/gui/label.h"
 #include "scene/gui/menu_button.h"
 #include "scene/gui/panel.h"
@@ -866,7 +867,7 @@ void Polygon2DEditor::_canvas_input(const Ref<InputEvent> &p_input) {
 					bone_paint_pos = mm->get_position();
 				} break;
 				default: {
-				}
+				} break;
 			}
 
 			if (bone_painting) {
@@ -1279,11 +1280,18 @@ Polygon2DEditor::Polygon2DEditor() {
 	polygon_edit = memnew(VBoxContainer);
 	HBoxContainer *toolbar = memnew(HBoxContainer);
 
+	FlowContainer *container = memnew(FlowContainer);
+	container->set_h_size_flags(SIZE_EXPAND_FILL);
+	toolbar->add_child(container);
+
+	HBoxContainer *hb_mode = memnew(HBoxContainer);
+	container->add_child(hb_mode);
+
 	Ref<ButtonGroup> mode_button_group;
 	mode_button_group.instantiate();
 	for (int i = 0; i < MODE_MAX; i++) {
 		mode_buttons[i] = memnew(Button);
-		toolbar->add_child(mode_buttons[i]);
+		hb_mode->add_child(mode_buttons[i]);
 		mode_buttons[i]->set_toggle_mode(true);
 		mode_buttons[i]->set_button_group(mode_button_group);
 		mode_buttons[i]->connect(SceneStringName(pressed), callable_mp(this, &Polygon2DEditor::_select_mode).bind(i));
@@ -1293,14 +1301,14 @@ Polygon2DEditor::Polygon2DEditor() {
 	mode_buttons[MODE_UV]->set_text(TTR("UV"));
 	mode_buttons[MODE_BONES]->set_text(TTR("Bones"));
 
-	toolbar->add_child(memnew(VSeparator));
+	hb_mode->add_child(memnew(VSeparator));
 
 	polygon_edit->add_child(toolbar);
 	for (int i = 0; i < ACTION_MAX; i++) {
 		action_buttons[i] = memnew(Button);
 		action_buttons[i]->set_theme_type_variation(SceneStringName(FlatButton));
 		action_buttons[i]->set_toggle_mode(true);
-		toolbar->add_child(action_buttons[i]);
+		container->add_child(action_buttons[i]);
 		action_buttons[i]->connect(SceneStringName(pressed), callable_mp(this, &Polygon2DEditor::_set_action).bind(i));
 		action_buttons[i]->set_focus_mode(FOCUS_NONE);
 	}
@@ -1320,7 +1328,7 @@ Polygon2DEditor::Polygon2DEditor() {
 	action_buttons[ACTION_CLEAR_WEIGHT]->set_tooltip_text(TTR("Unpaint weights with specified intensity."));
 
 	bone_paint_strength = memnew(HSlider);
-	toolbar->add_child(bone_paint_strength);
+	container->add_child(bone_paint_strength);
 	bone_paint_strength->set_custom_minimum_size(Size2(75 * EDSCALE, 0));
 	bone_paint_strength->set_v_size_flags(SIZE_SHRINK_CENTER);
 	bone_paint_strength->set_min(0);
@@ -1329,9 +1337,9 @@ Polygon2DEditor::Polygon2DEditor() {
 	bone_paint_strength->set_value(0.5);
 
 	bone_paint_radius_label = memnew(Label(TTR("Radius:")));
-	toolbar->add_child(bone_paint_radius_label);
+	container->add_child(bone_paint_radius_label);
 	bone_paint_radius = memnew(SpinBox);
-	toolbar->add_child(bone_paint_radius);
+	container->add_child(bone_paint_radius);
 
 	bone_paint_radius->set_min(1);
 	bone_paint_radius->set_max(100);
@@ -1345,7 +1353,8 @@ Polygon2DEditor::Polygon2DEditor() {
 	canvas_background = memnew(Panel);
 	uv_main_hsc->add_child(canvas_background);
 	canvas_background->set_h_size_flags(SIZE_EXPAND_FILL);
-	canvas_background->set_custom_minimum_size(Size2(200, 200) * EDSCALE);
+	canvas_background->set_size(Size2(200, 200) * EDSCALE);
+	canvas_background->set_custom_minimum_size(Size2(200, 100) * EDSCALE);
 	canvas_background->set_clip_contents(true);
 
 	preview_polygon = memnew(Polygon2D);
@@ -1355,12 +1364,14 @@ Polygon2DEditor::Polygon2DEditor() {
 	canvas_background->add_child(canvas);
 	canvas->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
 
-	Control *space = memnew(Control);
-	toolbar->add_child(space);
-	space->set_h_size_flags(SIZE_EXPAND_FILL);
+	HBoxContainer *hb = memnew(HBoxContainer);
+	hb->set_v_size_flags(SIZE_SHRINK_BEGIN);
+	toolbar->add_child(hb);
+
+	hb->add_spacer();
 
 	edit_menu = memnew(MenuButton);
-	toolbar->add_child(edit_menu);
+	hb->add_child(edit_menu);
 	edit_menu->set_flat(false);
 	edit_menu->set_theme_type_variation("FlatMenuButton");
 	edit_menu->set_text(TTR("Edit"));
@@ -1372,11 +1383,11 @@ Polygon2DEditor::Polygon2DEditor() {
 	edit_menu->get_popup()->add_item(TTR("Grid Settings"), MENU_GRID_SETTINGS);
 	edit_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp(this, &Polygon2DEditor::_edit_menu_option));
 
-	toolbar->add_child(memnew(VSeparator));
+	hb->add_child(memnew(VSeparator));
 
 	b_snap_enable = memnew(Button);
 	b_snap_enable->set_theme_type_variation(SceneStringName(FlatButton));
-	toolbar->add_child(b_snap_enable);
+	hb->add_child(b_snap_enable);
 	b_snap_enable->set_text(TTR("Snap"));
 	b_snap_enable->set_focus_mode(FOCUS_NONE);
 	b_snap_enable->set_toggle_mode(true);
@@ -1386,7 +1397,7 @@ Polygon2DEditor::Polygon2DEditor() {
 
 	b_snap_grid = memnew(Button);
 	b_snap_grid->set_theme_type_variation(SceneStringName(FlatButton));
-	toolbar->add_child(b_snap_grid);
+	hb->add_child(b_snap_grid);
 	b_snap_grid->set_text(TTR("Grid"));
 	b_snap_grid->set_focus_mode(FOCUS_NONE);
 	b_snap_grid->set_toggle_mode(true);

@@ -829,10 +829,12 @@ ShaderEditorPlugin::ShaderEditorPlugin() {
 	shader_list->set_allow_rmb_select(true);
 	SET_DRAG_FORWARDING_GCD(shader_list, ShaderEditorPlugin);
 
+	left_panel->set_size(Size2(100, 300) * EDSCALE);
+	left_panel->set_custom_minimum_size(Size2(100, 220) * EDSCALE);
 	main_split->add_child(left_panel);
-	left_panel->set_custom_minimum_size(Size2(100, 300) * EDSCALE);
 
 	shader_tabs = memnew(TabContainer);
+	shader_tabs->set_custom_minimum_size(Size2(410, 220) * EDSCALE);
 	shader_tabs->set_tabs_visible(false);
 	shader_tabs->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	main_split->add_child(shader_tabs);
