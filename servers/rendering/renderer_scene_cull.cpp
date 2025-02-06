@@ -2912,12 +2912,20 @@ void RendererSceneCull::_scene_cull(CullData &cull_data, InstanceCullResult &cul
 			if ((LAYER_CHECK && IN_FRUSTUM(cull_data.cull->frustum) && VIS_CHECK && !OCCLUSION_CULLED) || (cull_data.scenario->instance_data[i].flags & InstanceData::FLAG_IGNORE_ALL_CULLING)) {
 				uint32_t base_type = idata.flags & InstanceData::FLAG_BASE_TYPE_MASK;
 				if (base_type == RS::INSTANCE_LIGHT) {
-					cull_result.lights.push_back(idata.instance);
-					cull_result.light_instances.push_back(RID::from_uint64(idata.instance_data_rid));
-					if (cull_data.shadow_atlas.is_valid() && RSG::light_storage->light_has_shadow(idata.base_rid)) {
-						RSG::light_storage->light_instance_mark_visible(RID::from_uint64(idata.instance_data_rid)); //mark it visible for shadow allocation later
+					bool is_light_energy_culled = false;
+
+					RenderingServer::LightType light_type = RSG::light_storage->light_get_type(idata.base_rid);
+					if (light_type == RenderingServer::LIGHT_OMNI || light_type == RenderingServer::LIGHT_SPOT) {
+						is_light_energy_culled = RSG::light_storage->light_get_param(idata.base_rid, RS::LIGHT_PARAM_ENERGY) <= CMP_EPSILON;
 					}
 
+					if (!is_light_energy_culled) {
+						cull_result.lights.push_back(idata.instance);
+						cull_result.light_instances.push_back(RID::from_uint64(idata.instance_data_rid));
+						if (cull_data.shadow_atlas.is_valid() && RSG::light_storage->light_has_shadow(idata.base_rid)) {
+							RSG::light_storage->light_instance_mark_visible(RID::from_uint64(idata.instance_data_rid)); //mark it visible for shadow allocation later
+						}
+					}
 				} else if (base_type == RS::INSTANCE_REFLECTION_PROBE) {
 					if (cull_data.render_reflection_probe != idata.instance) {
 						//avoid entering The Matrix
