@@ -158,6 +158,8 @@ void ScrollContainer::gui_input(const Ref<InputEvent> &p_gui_input) {
 			}
 
 			if (scroll_value_modified && (v_scroll->get_value() != prev_v_scroll || h_scroll->get_value() != prev_h_scroll)) {
+				propagate_notification(NOTIFICATION_SCROLL_BEGIN);
+				emit_signal(SNAME("scroll_started"));
 				accept_event(); // Accept event if scroll changed.
 				return;
 			}
@@ -232,6 +234,8 @@ void ScrollContainer::gui_input(const Ref<InputEvent> &p_gui_input) {
 		}
 
 		if (v_scroll->get_value() != prev_v_scroll || h_scroll->get_value() != prev_h_scroll) {
+			propagate_notification(NOTIFICATION_SCROLL_BEGIN);
+			emit_signal(SNAME("scroll_started"));
 			accept_event(); // Accept event if scroll changed.
 		}
 		return;
