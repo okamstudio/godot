@@ -688,6 +688,7 @@ void Camera3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_doppler_tracking", "mode"), &Camera3D::set_doppler_tracking);
 	ClassDB::bind_method(D_METHOD("get_doppler_tracking"), &Camera3D::get_doppler_tracking);
 	ClassDB::bind_method(D_METHOD("get_frustum"), &Camera3D::_get_frustum);
+	ClassDB::bind_method(D_METHOD("get_frustum_plane_intersection", "plane"), &Camera3D::get_frustum_plane_intersection);
 	ClassDB::bind_method(D_METHOD("is_position_in_frustum", "world_point"), &Camera3D::is_position_in_frustum);
 	ClassDB::bind_method(D_METHOD("get_camera_rid"), &Camera3D::get_camera);
 	ClassDB::bind_method(D_METHOD("get_pyramid_shape_rid"), &Camera3D::get_pyramid_shape_rid);
@@ -825,6 +826,43 @@ bool Camera3D::is_position_in_frustum(const Vector3 &p_position) const {
 		}
 	}
 	return true;
+}
+
+Vector<Vector3> Camera3D::get_frustum_plane_intersection(const Plane &p_plane) const {
+	ERR_FAIL_COND_V_MSG(!is_inside_tree(), Vector<Vector3>(), "Camera is not inside scene.");
+
+	Size2 viewport_size = get_viewport()->get_visible_rect().size;
+
+	Projection cm;
+
+	if (mode == PROJECTION_ORTHOGONAL) {
+		cm.set_orthogonal(size, viewport_size.aspect(), _near, _far, keep_aspect == KEEP_WIDTH);
+	} else {
+		cm.set_perspective(fov, viewport_size.aspect(), _near, _far, keep_aspect == KEEP_WIDTH);
+	}
+
+	Vector3 endpoints[8];
+	cm.get_frustum_endpoints(get_camera_transform(), endpoints);
+
+	Vector<Vector3> intersections;
+
+	for (int i = 0; i < 4; i++) {
+		Vector3 intersection;
+		// Near to far intersection.
+		if (p_plane.intersects_segment(endpoints[i], endpoints[i + 4], &intersection)) {
+			intersections.push_back(intersection);
+		}
+		// Near to near intersection.
+		if (p_plane.intersects_segment(endpoints[i], endpoints[(i + 1) % 4], &intersection)) {
+			intersections.push_back(intersection);
+		}
+		// Far to far intersection.
+		if (p_plane.intersects_segment(endpoints[i + 4], endpoints[((i + 1) % 4) + 4], &intersection)) {
+			intersections.push_back(intersection);
+		}
+	}
+
+	return intersections;
 }
 
 void Camera3D::set_v_offset(real_t p_offset) {

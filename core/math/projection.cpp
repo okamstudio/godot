@@ -480,7 +480,20 @@ Vector2 Projection::get_far_plane_half_extents() const {
 	return Vector2(res.x, res.y);
 }
 
-bool Projection::get_endpoints(const Transform3D &p_transform, Vector3 *p_8points) const {
+_FORCE_INLINE_ bool find_intersections(const Vector<Plane> &p_planes, const Projection::Planes p_intersections[][3], const Transform3D &p_transform, Vector3 *r_8points) {
+	for (int i = 0; i < 8; i++) {
+		Vector3 point;
+		Plane a = p_planes[p_intersections[i][0]];
+		Plane b = p_planes[p_intersections[i][1]];
+		Plane c = p_planes[p_intersections[i][2]];
+		bool res = a.intersect_3(b, c, &point);
+		ERR_FAIL_COND_V(!res, false);
+		r_8points[i] = p_transform.xform(point);
+	}
+	return true;
+}
+
+bool Projection::get_endpoints(const Transform3D &p_transform, Vector3 *r_8points) const {
 	Vector<Plane> planes = get_projection_planes(Transform3D());
 	const Planes intersections[8][3] = {
 		{ PLANE_FAR, PLANE_LEFT, PLANE_TOP },
@@ -492,18 +505,22 @@ bool Projection::get_endpoints(const Transform3D &p_transform, Vector3 *p_8point
 		{ PLANE_NEAR, PLANE_RIGHT, PLANE_TOP },
 		{ PLANE_NEAR, PLANE_RIGHT, PLANE_BOTTOM },
 	};
+	return find_intersections(planes, intersections, p_transform, r_8points);
+}
 
-	for (int i = 0; i < 8; i++) {
-		Vector3 point;
-		Plane a = planes[intersections[i][0]];
-		Plane b = planes[intersections[i][1]];
-		Plane c = planes[intersections[i][2]];
-		bool res = a.intersect_3(b, c, &point);
-		ERR_FAIL_COND_V(!res, false);
-		p_8points[i] = p_transform.xform(point);
-	}
-
-	return true;
+bool Projection::get_frustum_endpoints(const Transform3D &p_transform, Vector3 *r_8points) const {
+	Vector<Plane> planes = get_projection_planes(Transform3D());
+	const Planes intersections[8][3] = {
+		{ PLANE_NEAR, PLANE_LEFT, PLANE_TOP },
+		{ PLANE_NEAR, PLANE_TOP, PLANE_RIGHT },
+		{ PLANE_NEAR, PLANE_RIGHT, PLANE_BOTTOM },
+		{ PLANE_NEAR, PLANE_BOTTOM, PLANE_LEFT },
+		{ PLANE_FAR, PLANE_LEFT, PLANE_TOP },
+		{ PLANE_FAR, PLANE_TOP, PLANE_RIGHT },
+		{ PLANE_FAR, PLANE_RIGHT, PLANE_BOTTOM },
+		{ PLANE_FAR, PLANE_BOTTOM, PLANE_LEFT },
+	};
+	return find_intersections(planes, intersections, p_transform, r_8points);
 }
 
 Vector<Plane> Projection::get_projection_planes(const Transform3D &p_transform) const {

@@ -48,6 +48,13 @@
 				Returns the camera's frustum planes in world space units as an array of [Plane]s in the following order: near, far, left, top, right, bottom. Not to be confused with [member frustum_offset].
 			</description>
 		</method>
+		<method name="get_frustum_plane_intersection" qualifiers="const">
+			<return type="PackedVector3Array" />
+			<param index="0" name="plane" type="Plane" />
+			<description>
+				Returns the points of intersection between camera's frustum planes and [param plane] in world space.
+			</description>
+		</method>
 		<method name="get_pyramid_shape_rid">
 			<return type="RID" />
 			<description>

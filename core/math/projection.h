@@ -108,7 +108,8 @@ struct [[nodiscard]] Projection {
 
 	Vector<Plane> get_projection_planes(const Transform3D &p_transform) const;
 
-	bool get_endpoints(const Transform3D &p_transform, Vector3 *p_8points) const;
+	bool get_endpoints(const Transform3D &p_transform, Vector3 *r_8points) const;
+	bool get_frustum_endpoints(const Transform3D &p_transform, Vector3 *r_8points) const;
 	Vector2 get_viewport_half_extents() const;
 	Vector2 get_far_plane_half_extents() const;
 

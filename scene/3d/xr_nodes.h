@@ -61,6 +61,7 @@ public:
 	virtual Point2 unproject_position(const Vector3 &p_pos) const override;
 	virtual Vector3 project_position(const Point2 &p_point, real_t p_z_depth) const override;
 	virtual Vector<Plane> get_frustum() const override;
+	virtual Vector<Vector3> get_frustum_plane_intersection(const Plane &p_plane) const override;
 
 	XRCamera3D();
 	~XRCamera3D();

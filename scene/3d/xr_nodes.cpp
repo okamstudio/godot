@@ -195,6 +195,47 @@ Vector<Plane> XRCamera3D::get_frustum() const {
 	return cm.get_projection_planes(get_camera_transform());
 }
 
+Vector<Vector3> XRCamera3D::get_frustum_plane_intersection(const Plane &p_plane) const {
+	// Get our XRServer.
+	XRServer *xr_server = XRServer::get_singleton();
+	ERR_FAIL_NULL_V(xr_server, Vector<Vector3>());
+
+	Ref<XRInterface> xr_interface = xr_server->get_primary_interface();
+	if (xr_interface.is_null()) {
+		// We might be in the editor or have VR turned off, just call superclass.
+		return Camera3D::get_frustum_plane_intersection(p_plane);
+	}
+
+	ERR_FAIL_COND_V(!is_inside_world(), Vector<Vector3>());
+
+	Size2 viewport_size = get_viewport()->get_visible_rect().size;
+	// TODO: Just use the first view for now, this is mostly for debugging so we may look into using our combined projection here.
+	Projection cm = xr_interface->get_projection_for_view(0, viewport_size.aspect(), get_near(), get_far());
+
+	Vector3 endpoints[8];
+	cm.get_frustum_endpoints(get_camera_transform(), endpoints);
+
+	Vector<Vector3> intersections;
+
+	for (int i = 0; i < 4; i++) {
+		Vector3 intersection;
+		// Near to far intersection.
+		if (p_plane.intersects_segment(endpoints[i], endpoints[i + 4], &intersection)) {
+			intersections.push_back(intersection);
+		}
+		// Near to near intersection.
+		if (p_plane.intersects_segment(endpoints[i], endpoints[(i + 1) % 4], &intersection)) {
+			intersections.push_back(intersection);
+		}
+		// Far to far intersection.
+		if (p_plane.intersects_segment(endpoints[i + 4], endpoints[((i + 1) % 4) + 4], &intersection)) {
+			intersections.push_back(intersection);
+		}
+	}
+
+	return intersections;
+}
+
 XRCamera3D::XRCamera3D() {
 	XRServer *xr_server = XRServer::get_singleton();
 	ERR_FAIL_NULL(xr_server);

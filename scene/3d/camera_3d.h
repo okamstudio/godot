@@ -193,6 +193,7 @@ public:
 	bool get_cull_mask_value(int p_layer_number) const;
 
 	virtual Vector<Plane> get_frustum() const;
+	virtual Vector<Vector3> get_frustum_plane_intersection(const Plane &p_plane) const;
 	bool is_position_in_frustum(const Vector3 &p_position) const;
 
 	void set_environment(const Ref<Environment> &p_environment);
