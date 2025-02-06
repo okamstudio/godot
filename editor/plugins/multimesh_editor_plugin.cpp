@@ -194,7 +194,7 @@ void MultiMeshEditor::_populate() {
 
 		Vector3 pos = face.get_random_point_inside();
 		Vector3 normal = face.get_plane().normal;
-		Vector3 op_axis = (face.vertex[0] - face.vertex[1]).normalized();
+		Vector3 op_axis = Vector3(0, 0, -1);
 
 		Transform3D xform;
 
