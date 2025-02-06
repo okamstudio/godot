@@ -233,11 +233,25 @@ Error FileAccessWindows::open_internal(const String &p_path, int p_mode_flags) {
 	}
 }
 
+void FileAccessWindows::_sync() {
+	ERR_FAIL_NULL(f);
+
+	fflush(f);
+	int fd = _fileno(f);
+	ERR_FAIL_COND(fd < 0);
+	HANDLE hf = (HANDLE)_get_osfhandle(fd);
+	ERR_FAIL_COND(hf == INVALID_HANDLE_VALUE);
+	ERR_FAIL_COND(!FlushFileBuffers(hf));
+}
+
 void FileAccessWindows::_close() {
 	if (!f) {
 		return;
 	}
 
+	if (!save_path.is_empty()) {
+		_sync();
+	}
 	fclose(f);
 	f = nullptr;
 

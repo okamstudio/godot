@@ -48,6 +48,7 @@ class FileAccessWindows : public FileAccess {
 	String path_src;
 	String save_path;
 
+	void _sync();
 	void _close();
 
 	static HashSet<String> invalid_files;

@@ -37,6 +37,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -166,11 +167,32 @@ Error FileAccessUnix::open_internal(const String &p_path, int p_mode_flags) {
 	return OK;
 }
 
+void FileAccessUnix::_sync() {
+	ERR_FAIL_NULL(f);
+
+	fflush(f);
+	int fd = fileno(f);
+	ERR_FAIL_COND(fd < 0);
+
+#ifdef __APPLE__
+	fcntl(fd, F_BARRIERFSYNC);
+#else
+	int fsync_error;
+	do {
+		fsync_error = fsync(fd);
+	} while (fsync_error < 0 && errno == EINTR);
+	ERR_FAIL_COND_MSG(fsync_error < 0, strerror(errno));
+#endif
+}
+
 void FileAccessUnix::_close() {
 	if (!f) {
 		return;
 	}
 
+	if (!save_path.is_empty()) {
+		_sync();
+	}
 	fclose(f);
 	f = nullptr;
 
