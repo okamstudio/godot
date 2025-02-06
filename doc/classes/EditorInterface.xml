@@ -43,6 +43,20 @@
 				Edits the given [Script]. The line and column on which to open the script can also be specified. The script will be open with the user-configured editor for the script's language which may be an external editor.
 			</description>
 		</method>
+		<method name="find_resource_conversion_plugin_for_resource">
+			<return type="Array" />
+			<param index="0" name="for_resource" type="Resource" />
+			<description>
+				Returns an [Array] of [EditorResourceConversionPlugin] that can handle the [param for_resource].
+			</description>
+		</method>
+		<method name="find_resource_conversion_plugin_for_type_name">
+			<return type="Array" />
+			<param index="0" name="type" type="String" />
+			<description>
+				Returns an [Array] of [EditorResourceConversionPlugin] that can handle the [param type].
+			</description>
+		</method>
 		<method name="get_base_control" qualifiers="const">
 			<return type="Control" />
 			<description>

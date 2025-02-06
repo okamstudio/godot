@@ -715,6 +715,9 @@ public:
 class VisualShaderConversionPlugin : public EditorResourceConversionPlugin {
 	GDCLASS(VisualShaderConversionPlugin, EditorResourceConversionPlugin);
 
+protected:
+	static void _bind_methods();
+
 public:
 	virtual String converts_to() const override;
 	virtual bool handles(const Ref<Resource> &p_resource) const override;

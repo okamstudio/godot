@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="VisualShaderConversionPlugin" inherits="EditorResourceConversionPlugin" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Plugin for converting from [VisualShader] to [Shader].
+	</brief_description>
+	<description>
+		[VisualShaderConversionPlugin] is invoked when the context menu is brought up for a [VisualShader] in the editor inspector.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="convert" qualifiers="const">
+			<return type="Resource" />
+			<param index="0" name="resource" type="Resource" />
+			<description>
+				Takes an input [Resource] expected to be of type [VisualShader] and converts it to [Shader] in [method converts_to]. The returned [Resource] is the resulting [Shader] of the conversion, and the input [Resource] remains unchanged.
+			</description>
+		</method>
+		<method name="converts_to" qualifiers="const">
+			<return type="String" />
+			<description>
+				Returns "Shader" which is the class name [Shader] this plugin converts the source resource [VisualShader] to.
+			</description>
+		</method>
+		<method name="handles" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="resource" type="Resource" />
+			<description>
+				Called to determine whether a particular [Resource] can be converted to the [Shader] resource type by this plugin. Will return false if the particular [Resource] is not of type [VisualShader].
+			</description>
+		</method>
+	</methods>
+</class>

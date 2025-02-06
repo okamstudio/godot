@@ -48,6 +48,7 @@
 #include "editor/gui/editor_toaster.h"
 #include "editor/gui/scene_tree_editor.h"
 #include "editor/inspector_dock.h"
+#include "editor/plugins/editor_resource_conversion_plugin.h"
 #include "editor/plugins/node_3d_editor_plugin.h"
 #include "editor/property_selector.h"
 #include "editor/themes/editor_scale.h"
@@ -366,6 +367,36 @@ void EditorInterface::set_plugin_enabled(const String &p_plugin, bool p_enabled)
 
 bool EditorInterface::is_plugin_enabled(const String &p_plugin) const {
 	return EditorNode::get_singleton()->is_addon_plugin_enabled(p_plugin);
+}
+
+Array EditorInterface::find_resource_conversion_plugin_for_resource(const Ref<Resource> &p_for_resource) {
+	Array ret = Array();
+	Vector<Ref<EditorResourceConversionPlugin>> converters = EditorNode::get_singleton()->find_resource_conversion_plugin_for_resource(p_for_resource);
+
+	if (converters.is_empty()) {
+		return ret;
+	}
+
+	for (int i = 0; i < converters.size(); i++) {
+		ret.push_back(converters[i]);
+	}
+
+	return ret;
+}
+
+Array EditorInterface::find_resource_conversion_plugin_for_type_name(const String &p_type) {
+	Array ret = Array();
+	Vector<Ref<EditorResourceConversionPlugin>> converters = EditorNode::get_singleton()->find_resource_conversion_plugin_for_type_name(p_type);
+
+	if (converters.is_empty()) {
+		return ret;
+	}
+
+	for (int i = 0; i < converters.size(); i++) {
+		ret.push_back(converters[i]);
+	}
+
+	return ret;
 }
 
 // Editor GUI.
@@ -774,6 +805,8 @@ void EditorInterface::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_plugin_enabled", "plugin", "enabled"), &EditorInterface::set_plugin_enabled);
 	ClassDB::bind_method(D_METHOD("is_plugin_enabled", "plugin"), &EditorInterface::is_plugin_enabled);
+	ClassDB::bind_method(D_METHOD("find_resource_conversion_plugin_for_resource", "for_resource"), &EditorInterface::find_resource_conversion_plugin_for_resource);
+	ClassDB::bind_method(D_METHOD("find_resource_conversion_plugin_for_type_name", "type"), &EditorInterface::find_resource_conversion_plugin_for_type_name);
 
 	// Editor GUI.
 

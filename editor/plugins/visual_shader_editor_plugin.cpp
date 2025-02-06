@@ -33,6 +33,7 @@
 #include "core/config/project_settings.h"
 #include "core/io/resource_loader.h"
 #include "core/math/math_defs.h"
+#include "core/object/class_db.h"
 #include "core/os/keyboard.h"
 #include "editor/editor_node.h"
 #include "editor/editor_properties.h"
@@ -8255,6 +8256,12 @@ void VisualShaderNodePortPreview::_notification(int p_what) {
 }
 
 //////////////////////////////////
+
+void VisualShaderConversionPlugin::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("converts_to"), &VisualShaderConversionPlugin::converts_to);
+	ClassDB::bind_method(D_METHOD("handles", "resource"), &VisualShaderConversionPlugin::handles);
+	ClassDB::bind_method(D_METHOD("convert", "resource"), &VisualShaderConversionPlugin::convert);
+}
 
 String VisualShaderConversionPlugin::converts_to() const {
 	return "Shader";
