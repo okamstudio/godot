@@ -127,6 +127,14 @@ bool AudioStreamPlaylist::has_loop() const {
 	return loop;
 }
 
+void AudioStreamPlaylist::set_loop_clip(bool p_loop) {
+	loop_clip = p_loop;
+}
+
+bool AudioStreamPlaylist::has_loop_clip() const {
+	return loop_clip;
+}
+
 void AudioStreamPlaylist::_validate_property(PropertyInfo &r_property) const {
 	String prop = r_property.name;
 	if (prop != "stream_count" && prop.begins_with("stream_")) {
@@ -154,9 +162,12 @@ void AudioStreamPlaylist::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_loop", "loop"), &AudioStreamPlaylist::set_loop);
 	ClassDB::bind_method(D_METHOD("has_loop"), &AudioStreamPlaylist::has_loop);
+	ClassDB::bind_method(D_METHOD("set_loop_clip", "loop"), &AudioStreamPlaylist::set_loop_clip);
+	ClassDB::bind_method(D_METHOD("has_loop_clip"), &AudioStreamPlaylist::has_loop_clip);
 
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "shuffle"), "set_shuffle", "get_shuffle");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "loop"), "set_loop", "has_loop");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "loop_clip"), "set_loop_clip", "has_loop_clip");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "fade_time", PROPERTY_HINT_RANGE, "0,1,0.01,suffix:s"), "set_fade_time", "get_fade_time");
 
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "stream_count", PROPERTY_HINT_RANGE, "0," + itos(MAX_STREAMS), PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_ARRAY, "Streams,stream_,unfoldable,page_size=999,add_button_text=" + String(RTR("Add Stream"))), "set_stream_count", "get_stream_count");
@@ -279,11 +290,21 @@ int AudioStreamPlaybackPlaylist::mix(AudioFrame *p_buffer, float p_rate_scale, i
 		for (int i = 0; i < to_mix; i++) {
 			*p_buffer = mix_buffer[i];
 			stream_todo -= time_dec;
-			if (stream_todo < 0) {
+			if (stream_todo < 0 || next_stream != -1) {
 				//find next stream.
 				int prev = play_order[play_index];
 
 				for (int j = 0; j < playlist->stream_count; j++) {
+					if (next_stream != -1) {
+						// Manually changed streams, exit
+						play_index = next_stream;
+						next_stream = -1;
+						break;
+					}
+					if (playlist->has_loop_clip()) {
+						// Don't advance if looping audio clip, exit
+						break;
+					}
 					play_index++;
 					if (play_index >= playlist->stream_count) {
 						// No loop, exit.
@@ -389,6 +410,41 @@ bool AudioStreamPlaybackPlaylist::is_playing() const {
 	return active;
 }
 
+void AudioStreamPlaybackPlaylist::change_clip(int stream_index) {
+	ERR_FAIL_INDEX(stream_index, playlist->stream_count);
+	next_stream = stream_index;
+}
+
+void AudioStreamPlaybackPlaylist::next_clip() {
+	next_stream = play_index + 1;
+
+	if (next_stream >= playlist->stream_count) {
+		if (!playlist->loop) {
+			// If playlist doesn't loop, don't change clips
+			next_stream = -1;
+		} else {
+			next_stream = 0;
+		}
+	}
+}
+
+void AudioStreamPlaybackPlaylist::previous_clip() {
+	next_stream = play_index - 1;
+
+	if (next_stream < 0) {
+		if (!playlist->loop) {
+			// If playlist doesn't loop, don't change clips
+			next_stream = -1;
+		} else {
+			next_stream = playlist->stream_count - 1;
+		}
+	}
+}
+
+int AudioStreamPlaybackPlaylist::get_current_clip_index() {
+	return play_order[play_index];
+}
+
 void AudioStreamPlaybackPlaylist::_update_playback_instances() {
 	stop();
 
@@ -399,4 +455,11 @@ void AudioStreamPlaybackPlaylist::_update_playback_instances() {
 			playback[i].unref();
 		}
 	}
+}
+
+void AudioStreamPlaybackPlaylist::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("change_clip", "clip_index"), &AudioStreamPlaybackPlaylist::change_clip);
+	ClassDB::bind_method(D_METHOD("next_clip"), &AudioStreamPlaybackPlaylist::next_clip);
+	ClassDB::bind_method(D_METHOD("previous_clip"), &AudioStreamPlaybackPlaylist::previous_clip);
+	ClassDB::bind_method(D_METHOD("get_current_clip_index"), &AudioStreamPlaybackPlaylist::get_current_clip_index);
 }

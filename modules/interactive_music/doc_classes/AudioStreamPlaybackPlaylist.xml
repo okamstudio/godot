@@ -7,4 +7,33 @@
 	</description>
 	<tutorials>
 	</tutorials>
+	<methods>
+		<method name="change_clip">
+			<return type="void" />
+			<param index="0" name="clip_index" type="int" />
+			<description>
+				Changes to a specific clip within the playlist (by index). Sends an error to the console if [param clip_index] is out of bounds.
+			</description>
+		</method>
+		<method name="get_current_clip_index">
+			<return type="int" />
+			<description>
+				Get the currently playing audio clip index.
+			</description>
+		</method>
+		<method name="next_clip">
+			<return type="void" />
+			<description>
+				Play the next clip. The next random clip is played if [member AudioStreamPlaylist.shuffle] is enabled.
+				If [member AudioStreamPlaylist.loop] is disabled and is the last already, nothing will happen.
+			</description>
+		</method>
+		<method name="previous_clip">
+			<return type="void" />
+			<description>
+				Play the previous clip. The previous random clip is played if [member AudioStreamPlaylist.shuffle] is enabled.
+				If [member AudioStreamPlaylist.loop] is disabled and is the first already, nothing will happen.
+			</description>
+		</method>
+	</methods>
 </class>

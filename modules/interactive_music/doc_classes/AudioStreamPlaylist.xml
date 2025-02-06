@@ -37,6 +37,9 @@
 		<member name="loop" type="bool" setter="set_loop" getter="has_loop" default="true">
 			If [code]true[/code], the playlist will loop, otherwise the playlist will end when the last stream is finished.
 		</member>
+		<member name="loop_clip" type="bool" setter="set_loop_clip" getter="has_loop_clip" default="false">
+			If [code]true[/code], the audio clip will loop, otherwise when the clip ends, the next one is played. The audio file loop import setting is not used inside the playlist.
+		</member>
 		<member name="shuffle" type="bool" setter="set_shuffle" getter="get_shuffle" default="false">
 			If [code]true[/code], the playlist will shuffle each time playback starts and each time it loops.
 		</member>
