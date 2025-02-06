@@ -39,7 +39,9 @@ void GridContainer::_notification(int p_what) {
 			RBMap<int, int> col_minw; // Max of min_width of all controls in each col (indexed by col).
 			RBMap<int, int> row_minh; // Max of min_height of all controls in each row (indexed by row).
 			RBSet<int> col_expanded; // Columns which have the SIZE_EXPAND flag set.
+			RBMap<int, real_t> col_stretch_ratio; // Max stretch ratio for expanded columns.
 			RBSet<int> row_expanded; // Rows which have the SIZE_EXPAND flag set.
+			RBMap<int, real_t> row_stretch_ratio; // Max stretch ratio for expanded rows.
 
 			// Compute the per-column/per-row data.
 			int valid_controls_index = 0;
@@ -66,10 +68,20 @@ void GridContainer::_notification(int p_what) {
 				}
 
 				if (c->get_h_size_flags().has_flag(SIZE_EXPAND)) {
-					col_expanded.insert(col);
+					if (!col_expanded.has(col)) {
+						col_expanded.insert(col);
+						col_stretch_ratio[col] = c->get_stretch_ratio();
+					} else {
+						col_stretch_ratio[col] = MAX(col_stretch_ratio[col], c->get_stretch_ratio());
+					}
 				}
 				if (c->get_v_size_flags().has_flag(SIZE_EXPAND)) {
-					row_expanded.insert(row);
+					if (!row_expanded.has(row)) {
+						row_expanded.insert(row);
+						row_stretch_ratio[row] = c->get_stretch_ratio();
+					} else {
+						row_stretch_ratio[row] = MAX(row_stretch_ratio[row], c->get_stretch_ratio());
+					}
 				}
 			}
 
@@ -98,7 +110,7 @@ void GridContainer::_notification(int p_what) {
 			remaining_space.width -= theme_cache.h_separation * MAX(max_col - 1, 0);
 
 			bool can_fit = false;
-			while (!can_fit && col_expanded.size() > 0) {
+			while (!can_fit && !col_expanded.is_empty()) {
 				// Check if all minwidth constraints are OK if we use the remaining space.
 				can_fit = true;
 				int max_index = col_expanded.front()->get();
@@ -119,7 +131,7 @@ void GridContainer::_notification(int p_what) {
 			}
 
 			can_fit = false;
-			while (!can_fit && row_expanded.size() > 0) {
+			while (!can_fit && !row_expanded.is_empty()) {
 				// Check if all minheight constraints are OK if we use the remaining space.
 				can_fit = true;
 				int max_index = row_expanded.front()->get();
@@ -140,17 +152,33 @@ void GridContainer::_notification(int p_what) {
 			}
 
 			// Finally, fit the nodes.
+			real_t col_all_stretch = 0;
+			for (const int &col : col_expanded) {
+				col_all_stretch += col_stretch_ratio[col];
+			}
+			if (Math::is_zero_approx(col_all_stretch)) {
+				col_all_stretch = col_expanded.size();
+			}
+
 			int col_remaining_pixel = 0;
 			int col_expand = 0;
-			if (col_expanded.size() > 0) {
-				col_expand = remaining_space.width / col_expanded.size();
+			if (!col_expanded.is_empty()) {
+				col_expand = remaining_space.width / col_all_stretch;
 				col_remaining_pixel = remaining_space.width - col_expanded.size() * col_expand;
+			}
+
+			real_t row_all_stretch = 0;
+			for (const int &row : row_expanded) {
+				row_all_stretch += row_stretch_ratio[row];
+			}
+			if (Math::is_zero_approx(row_all_stretch)) {
+				row_all_stretch = row_expanded.size();
 			}
 
 			int row_remaining_pixel = 0;
 			int row_expand = 0;
-			if (row_expanded.size() > 0) {
-				row_expand = remaining_space.height / row_expanded.size();
+			if (!row_expanded.is_empty()) {
+				row_expand = remaining_space.height / row_all_stretch;
 				row_remaining_pixel = remaining_space.height - row_expanded.size() * row_expand;
 			}
 
@@ -207,7 +235,9 @@ void GridContainer::_notification(int p_what) {
 					}
 				}
 
-				Size2 s(col_expanded.has(col) ? col_expand : col_minw[col], row_expanded.has(row) ? row_expand : row_minh[row]);
+				Size2 s(
+						col_expanded.has(col) ? col_expand * col_stretch_ratio[col] : col_minw[col],
+						row_expanded.has(row) ? row_expand * row_stretch_ratio[row] : row_minh[row]);
 
 				// Add the remaining pixel to the expanding columns and rows, starting from left and top.
 				if (col_expanded.has(col) && col < col_remaining_pixel_index) {
