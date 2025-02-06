@@ -42,6 +42,12 @@
 				Creates a placeholder version of this resource ([PlaceholderMaterial]).
 			</description>
 		</method>
+		<method name="get_shader_rid" qualifiers="const">
+			<return type="RID" />
+			<description>
+				Returns the RID of the [Material]'s [Shader]. If you inherit from [Material] and create a custom material, you can override the [method _get_shader_rid] method to return the RID of your custom shader.
+			</description>
+		</method>
 		<method name="inspect_native_shader_code">
 			<return type="void" />
 			<description>
