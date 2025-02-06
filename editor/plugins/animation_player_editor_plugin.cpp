@@ -1422,7 +1422,7 @@ void AnimationPlayerEditor::_list_changed() {
 }
 
 void AnimationPlayerEditor::_current_animation_changed(const String &p_name) {
-	if (is_visible_in_tree()) {
+	if (is_visible_in_tree() && player) {
 		if (p_name.is_empty()) {
 			// Means [stop].
 			frame->set_value(0);
