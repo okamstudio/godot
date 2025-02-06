@@ -479,4 +479,208 @@ public:
 		}                                                                                        \
 	} while (false)
 
+template <typename T>
+struct GDApprox {
+	GDApprox(T p_value) :
+			epsilon{ std::numeric_limits<real_t>::epsilon() * 100 }, scale{ 1.0 }, value{ p_value } {}
+
+	GDApprox operator()(T p_value) const {
+		GDApprox approx(p_value);
+		approx.epsilon(epsilon);
+		approx.scale(scale);
+		return approx;
+	}
+
+	GDApprox &with_epsilon(real_t p_epsilon) {
+		epsilon = p_epsilon;
+		return *this;
+	}
+
+	GDApprox &with_scale(real_t p_scale) {
+		scale = p_scale;
+		return *this;
+	}
+
+	friend bool operator==(real_t lhs, const GDApprox &rhs) {
+		return std::fabs(lhs - rhs.value) <
+				rhs.epsilon * (rhs.scale + std::max<double>(std::fabs(lhs), std::fabs(rhs.value)));
+	}
+
+	friend bool operator==(Vector2 lhs, const GDApprox &rhs) {
+		return std::fabs(lhs.x - rhs.value.x) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.x), std::fabs(rhs.value.x))) &&
+				std::fabs(lhs.y - rhs.value.y) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.y), std::fabs(rhs.value.y)));
+	}
+
+	friend bool operator==(Vector3 lhs, const GDApprox &rhs) {
+		return std::fabs(lhs.x - rhs.value.x) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.x), std::fabs(rhs.value.x))) &&
+				std::fabs(lhs.y - rhs.value.y) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.y), std::fabs(rhs.value.y))) &&
+				std::fabs(lhs.z - rhs.value.z) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.z), std::fabs(rhs.value.z)));
+	}
+
+	friend bool operator==(Vector4 lhs, const GDApprox &rhs) {
+		return std::fabs(lhs.x - rhs.value.x) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.x), std::fabs(rhs.value.x))) &&
+				std::fabs(lhs.y - rhs.value.y) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.y), std::fabs(rhs.value.y))) &&
+				std::fabs(lhs.z - rhs.value.z) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.z), std::fabs(rhs.value.z))) &&
+				std::fabs(lhs.w - rhs.value.w) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.w), std::fabs(rhs.value.w)));
+	}
+
+	friend bool operator==(Color lhs, const GDApprox &rhs) {
+		return std::fabs(lhs.r - rhs.value.r) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.r), std::fabs(rhs.value.r))) &&
+				std::fabs(lhs.g - rhs.value.g) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.g), std::fabs(rhs.value.g))) &&
+				std::fabs(lhs.b - rhs.value.b) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.b), std::fabs(rhs.value.b))) &&
+				std::fabs(lhs.a - rhs.value.a) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.a), std::fabs(rhs.value.a)));
+	}
+
+	friend bool operator==(Rect2 lhs, const GDApprox &rhs) {
+		return std::fabs(lhs.position.x - rhs.value.position.x) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.position.x), std::fabs(rhs.value.position.x))) &&
+				std::fabs(lhs.position.y - rhs.value.position.y) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.position.y), std::fabs(rhs.value.position.y))) &&
+				std::fabs(lhs.size.x - rhs.value.size.x) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.size.x), std::fabs(rhs.value.size.x))) &&
+				std::fabs(lhs.size.y - rhs.value.size.y) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.size.y), std::fabs(rhs.value.size.y)));
+	}
+
+	friend bool operator==(Quaternion lhs, const GDApprox &rhs) {
+		return std::fabs(lhs.x - rhs.value.x) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.x), std::fabs(rhs.value.x))) &&
+				std::fabs(lhs.y - rhs.value.y) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.y), std::fabs(rhs.value.y))) &&
+				std::fabs(lhs.z - rhs.value.z) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.z), std::fabs(rhs.value.z))) &&
+				std::fabs(lhs.w - rhs.value.w) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.w), std::fabs(rhs.value.w)));
+	}
+
+	friend bool operator==(Plane lhs, const GDApprox &rhs) {
+		return std::fabs(lhs.normal.x - rhs.value.normal.x) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.normal.x), std::fabs(rhs.value.normal.x))) &&
+				std::fabs(lhs.normal.y - rhs.value.normal.y) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.normal.y), std::fabs(rhs.value.normal.y))) &&
+				std::fabs(lhs.normal.z - rhs.value.normal.z) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.normal.z), std::fabs(rhs.value.normal.z))) &&
+				std::fabs(lhs.d - rhs.value.d) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.d), std::fabs(rhs.value.d)));
+	}
+
+	friend bool operator==(Transform2D lhs, const GDApprox &rhs) {
+		return std::fabs(lhs.columns[0].x - rhs.value.columns[0].x) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.columns[0].x), std::fabs(rhs.value.columns[0].x))) &&
+				std::fabs(lhs.columns[0].y - rhs.value.columns[0].y) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.columns[0].y), std::fabs(rhs.value.columns[0].y))) &&
+				std::fabs(lhs.columns[1].x - rhs.value.columns[1].x) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.columns[1].x), std::fabs(rhs.value.columns[1].x))) &&
+				std::fabs(lhs.columns[1].y - rhs.value.columns[1].y) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.columns[1].y), std::fabs(rhs.value.columns[1].y))) &&
+				std::fabs(lhs.columns[2].x - rhs.value.columns[2].x) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.columns[2].x), std::fabs(rhs.value.columns[2].x))) &&
+				std::fabs(lhs.columns[2].y - rhs.value.columns[2].y) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.columns[2].y), std::fabs(rhs.value.columns[2].y)));
+	}
+
+	friend bool operator==(Basis lhs, const GDApprox &rhs) {
+		return std::fabs(lhs.rows[0].x - rhs.value.rows[0].x) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.rows[0].x), std::fabs(rhs.value.rows[0].x))) &&
+				std::fabs(lhs.rows[0].y - rhs.value.rows[0].y) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.rows[0].y), std::fabs(rhs.value.rows[0].y))) &&
+				std::fabs(lhs.rows[0].z - rhs.value.rows[0].z) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.rows[0].z), std::fabs(rhs.value.rows[0].z))) &&
+				std::fabs(lhs.rows[1].x - rhs.value.rows[1].x) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.rows[1].x), std::fabs(rhs.value.rows[1].x))) &&
+				std::fabs(lhs.rows[1].y - rhs.value.rows[1].y) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.rows[1].y), std::fabs(rhs.value.rows[1].y))) &&
+				std::fabs(lhs.rows[1].z - rhs.value.rows[1].z) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.rows[1].z), std::fabs(rhs.value.rows[1].z))) &&
+				std::fabs(lhs.rows[2].x - rhs.value.rows[2].x) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.rows[2].x), std::fabs(rhs.value.rows[2].x))) &&
+				std::fabs(lhs.rows[2].y - rhs.value.rows[2].y) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.rows[2].y), std::fabs(rhs.value.rows[2].y))) &&
+				std::fabs(lhs.rows[2].z - rhs.value.rows[2].z) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.rows[2].z), std::fabs(rhs.value.rows[2].z)));
+	}
+
+	friend bool operator==(Transform3D lhs, const GDApprox &rhs) {
+		return std::fabs(lhs.basis.rows[0].x - rhs.value.basis.rows[0].x) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.basis.rows[0].x), std::fabs(rhs.value.basis.rows[0].x))) &&
+				std::fabs(lhs.basis.rows[0].y - rhs.value.basis.rows[0].y) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.basis.rows[0].y), std::fabs(rhs.value.basis.rows[0].y))) &&
+				std::fabs(lhs.basis.rows[0].z - rhs.value.basis.rows[0].z) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.basis.rows[0].z), std::fabs(rhs.value.basis.rows[0].z))) &&
+				std::fabs(lhs.basis.rows[1].x - rhs.value.basis.rows[1].x) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.basis.rows[1].x), std::fabs(rhs.value.basis.rows[1].x))) &&
+				std::fabs(lhs.basis.rows[1].y - rhs.value.basis.rows[1].y) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.basis.rows[1].y), std::fabs(rhs.value.basis.rows[1].y))) &&
+				std::fabs(lhs.basis.rows[1].z - rhs.value.basis.rows[1].z) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.basis.rows[1].z), std::fabs(rhs.value.basis.rows[1].z))) &&
+				std::fabs(lhs.basis.rows[2].x - rhs.value.basis.rows[2].x) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.basis.rows[2].x), std::fabs(rhs.value.basis.rows[2].x))) &&
+				std::fabs(lhs.basis.rows[2].y - rhs.value.basis.rows[2].y) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.basis.rows[2].y), std::fabs(rhs.value.basis.rows[2].y))) &&
+				std::fabs(lhs.basis.rows[2].z - rhs.value.basis.rows[2].z) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.basis.rows[2].z), std::fabs(rhs.value.basis.rows[2].z))) &&
+				std::fabs(lhs.origin.x - rhs.value.origin.x) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.origin.x), std::fabs(rhs.value.origin.x))) &&
+				std::fabs(lhs.origin.y - rhs.value.origin.y) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.origin.y), std::fabs(rhs.value.origin.y))) &&
+				std::fabs(lhs.origin.z - rhs.value.origin.z) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.origin.z), std::fabs(rhs.value.origin.z)));
+	}
+
+	friend bool operator==(AABB lhs, const GDApprox &rhs) {
+		return std::fabs(lhs.position.x - rhs.value.position.x) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.position.x), std::fabs(rhs.value.position.x))) &&
+				std::fabs(lhs.position.y - rhs.value.position.y) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.position.y), std::fabs(rhs.value.position.y))) &&
+				std::fabs(lhs.position.z - rhs.value.position.z) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.position.z), std::fabs(rhs.value.position.z))) &&
+				std::fabs(lhs.size.x - rhs.value.size.x) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.size.x), std::fabs(rhs.value.size.x))) &&
+				std::fabs(lhs.size.y - rhs.value.size.y) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.size.y), std::fabs(rhs.value.size.y))) &&
+				std::fabs(lhs.size.z - rhs.value.size.z) <
+				rhs.epsilon * (rhs.scale + std::max<real_t>(std::fabs(lhs.size.z), std::fabs(rhs.value.size.z)));
+	}
+
+	friend bool operator==(const GDApprox &lhs, T rhs) { return operator==(rhs, lhs); }
+	friend bool operator!=(T lhs, const GDApprox &rhs) { return !operator==(lhs, rhs); }
+	friend bool operator!=(const GDApprox &lhs, T rhs) { return !operator==(rhs, lhs); }
+	friend bool operator<=(T lhs, const GDApprox &rhs) { return lhs < rhs.value || lhs == rhs; }
+	friend bool operator<=(const GDApprox &lhs, T rhs) { return lhs.value < rhs || lhs == rhs; }
+	friend bool operator>=(T lhs, const GDApprox &rhs) { return lhs > rhs.value || lhs == rhs; }
+	friend bool operator>=(const GDApprox &lhs, T rhs) { return lhs.value > rhs || lhs == rhs; }
+	friend bool operator<(T lhs, const GDApprox &rhs) { return lhs < rhs.value && lhs != rhs; }
+	friend bool operator<(const GDApprox &lhs, T rhs) { return lhs.value < rhs && lhs != rhs; }
+	friend bool operator>(T lhs, const GDApprox &rhs) { return lhs > rhs.value && lhs != rhs; }
+	friend bool operator>(const GDApprox &lhs, T rhs) { return lhs.value > rhs && lhs != rhs; }
+
+	real_t epsilon;
+	real_t scale;
+	T value;
+};
+
+// Define a macro alias for the GDApprox helper type to improve code readability and conformance.
+#define APPROX(cond) GDApprox(cond)
+
+namespace doctest {
+template <typename T>
+std::ostream &operator<<(std::ostream &os, const GDApprox<T> &value) {
+	os << toString(value.value) << String("(approximately, with epsilon:") << toString(value.epsilon) << ")";
+	return os;
+}
+} // namespace doctest
+
 #endif // TEST_MACROS_H

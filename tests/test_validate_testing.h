@@ -202,6 +202,117 @@ TEST_SUITE("Validate tests") {
 
 		REQUIRE(ed.has_error);
 	}
+	TEST_CASE("GDApprox helper") {
+		real_t epsilon = 0.00001;
+
+		// real_t.
+		CHECK(0.2 == GDApprox(0.2));
+		CHECK(0.2 == GDApprox(0.2 + 0.5 * epsilon).with_epsilon(epsilon));
+		CHECK(0.2 == GDApprox(0.2 - 0.5 * epsilon).with_epsilon(epsilon));
+		CHECK_FALSE(0.2 == GDApprox(0.2 + 1.5 * epsilon).with_epsilon(epsilon));
+		CHECK_FALSE(0.2 == GDApprox(0.2 - 1.5 * epsilon).with_epsilon(epsilon));
+		CHECK(0.2 != GDApprox(0.2 + 1.5 * epsilon).with_epsilon(epsilon));
+		CHECK_FALSE(0.2 != GDApprox(0.2).with_epsilon(epsilon));
+		CHECK(0.2 <= GDApprox(0.2 - 0.5 * epsilon).with_epsilon(epsilon));
+		CHECK_FALSE(0.2 <= GDApprox(0.2 - 1.5 * epsilon).with_epsilon(epsilon));
+		CHECK(0.2 >= GDApprox(0.2 + 0.5 * epsilon).with_epsilon(epsilon));
+		CHECK_FALSE(0.2 >= GDApprox(0.2 + 1.5 * epsilon).with_epsilon(epsilon));
+
+		// Vector2.
+		CHECK(Vector2(0.2, 0.4) == GDApprox(Vector2(0.2, 0.4)));
+		CHECK(Vector2(0.2, 0.4) == GDApprox(Vector2(0.2 + 0.5 * epsilon, 0.4 + 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK(Vector2(0.2, 0.4) == GDApprox(Vector2(0.2 - 0.5 * epsilon, 0.4 - 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Vector2(0.2, 0.4) == GDApprox(Vector2(0.2 + 1.5 * epsilon, 0.4 + 1.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Vector2(0.2, 0.4) == GDApprox(Vector2(0.2 - 1.5 * epsilon, 0.4 - 1.5 * epsilon)).with_epsilon(epsilon));
+		CHECK(Vector2(0.2, 0.4) != GDApprox(Vector2(0.2 + 1.5 * epsilon, 0.4 + 1.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Vector2(0.2, 0.4) != GDApprox(Vector2(0.2, 0.4)).with_epsilon(epsilon));
+		CHECK(Vector2(0.2, 0.4) <= GDApprox(Vector2(0.2 - 0.5 * epsilon, 0.4 - 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Vector2(0.2, 0.4) <= GDApprox(Vector2(0.2 - 1.5 * epsilon, 0.4 - 1.5 * epsilon)).with_epsilon(epsilon));
+		CHECK(Vector2(0.2, 0.4) >= GDApprox(Vector2(0.2 + 0.5 * epsilon, 0.4 + 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Vector2(0.2, 0.4) >= GDApprox(Vector2(0.2 + 1.5 * epsilon, 0.4 + 1.5 * epsilon)).with_epsilon(epsilon));
+
+		// Vector3.
+		CHECK(Vector3(0.2, 0.4, 0.6) == GDApprox(Vector3(0.2, 0.4, 0.6)));
+		CHECK(Vector3(0.2, 0.4, 0.6) == GDApprox(Vector3(0.2 + 0.5 * epsilon, 0.4 + 0.5 * epsilon, 0.6 + 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK(Vector3(0.2, 0.4, 0.6) == GDApprox(Vector3(0.2 - 0.5 * epsilon, 0.4 - 0.5 * epsilon, 0.6 - 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Vector3(0.2, 0.4, 0.6) == GDApprox(Vector3(0.2 + 1.5 * epsilon, 0.4 + 1.5 * epsilon, 0.6 + 1.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Vector3(0.2, 0.4, 0.6) == GDApprox(Vector3(0.2 - 1.5 * epsilon, 0.4 - 1.5 * epsilon, 0.6 - 1.5 * epsilon)).with_epsilon(epsilon));
+		CHECK(Vector3(0.2, 0.4, 0.6) != GDApprox(Vector3(0.2 + 1.5 * epsilon, 0.4 + 1.5 * epsilon, 0.6 + 1.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Vector3(0.2, 0.4, 0.6) != GDApprox(Vector3(0.2, 0.4, 0.6)).with_epsilon(epsilon));
+		CHECK(Vector3(0.2, 0.4, 0.6) <= GDApprox(Vector3(0.2 - 0.5 * epsilon, 0.4 - 0.5 * epsilon, 0.6 - 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Vector3(0.2, 0.4, 0.6) <= GDApprox(Vector3(0.2 - 1.5 * epsilon, 0.4 - 1.5 * epsilon, 0.6 - 1.5 * epsilon)).with_epsilon(epsilon));
+		CHECK(Vector3(0.2, 0.4, 0.6) >= GDApprox(Vector3(0.2 + 0.5 * epsilon, 0.4 + 0.5 * epsilon, 0.6 + 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Vector3(0.2, 0.4, 0.6) >= GDApprox(Vector3(0.2 + 1.5 * epsilon, 0.4 + 1.5 * epsilon, 0.6 + 1.5 * epsilon)).with_epsilon(epsilon));
+
+		// Vector4.
+		CHECK(Vector4(0.2, 0.4, 0.6, 0.8) == GDApprox(Vector4(0.2, 0.4, 0.6, 0.8)));
+		CHECK(Vector4(0.2, 0.4, 0.6, 0.8) == GDApprox(Vector4(0.2 + 0.5 * epsilon, 0.4 + 0.5 * epsilon, 0.6 + 0.5 * epsilon, 0.8 + 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK(Vector4(0.2, 0.4, 0.6, 0.8) == GDApprox(Vector4(0.2 - 0.5 * epsilon, 0.4 - 0.5 * epsilon, 0.6 - 0.5 * epsilon, 0.8 - 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Vector4(0.2, 0.4, 0.6, 0.8) == GDApprox(Vector4(0.2 + 1.5 * epsilon, 0.4 + 1.5 * epsilon, 0.6 + 1.5 * epsilon, 0.8 + 1.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Vector4(0.2, 0.4, 0.6, 0.8) == GDApprox(Vector4(0.2 - 1.5 * epsilon, 0.4 - 1.5 * epsilon, 0.6 - 1.5 * epsilon, 0.8 - 1.5 * epsilon)).with_epsilon(epsilon));
+		CHECK(Vector4(0.2, 0.4, 0.6, 0.8) != GDApprox(Vector4(0.2 + 1.5 * epsilon, 0.4 + 1.5 * epsilon, 0.6 + 1.5 * epsilon, 0.8 + 1.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Vector4(0.2, 0.4, 0.6, 0.8) != GDApprox(Vector4(0.2, 0.4, 0.6, 0.8)).with_epsilon(epsilon));
+		CHECK(Vector4(0.2, 0.4, 0.6, 0.8) <= GDApprox(Vector4(0.2 - 0.5 * epsilon, 0.4 - 0.5 * epsilon, 0.6 - 0.5 * epsilon, 0.8 - 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Vector4(0.2, 0.4, 0.6, 0.8) <= GDApprox(Vector4(0.2 - 1.5 * epsilon, 0.4 - 1.5 * epsilon, 0.6 - 1.5 * epsilon, 0.8 - 1.5 * epsilon)).with_epsilon(epsilon));
+		CHECK(Vector4(0.2, 0.4, 0.6, 0.8) >= GDApprox(Vector4(0.2 + 0.5 * epsilon, 0.4 + 0.5 * epsilon, 0.6 + 0.5 * epsilon, 0.8 + 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Vector4(0.2, 0.4, 0.6, 0.8) >= GDApprox(Vector4(0.2 + 1.5 * epsilon, 0.4 + 1.5 * epsilon, 0.6 + 1.5 * epsilon, 0.8 + 1.5 * epsilon)).with_epsilon(epsilon));
+
+		// Color.
+		CHECK(Color(0.2, 0.4, 0.6, 0.8) == GDApprox(Color(0.2, 0.4, 0.6, 0.8)));
+		CHECK(Color(0.2, 0.4, 0.6, 0.8) == GDApprox(Color(0.2 + 0.5 * epsilon, 0.4 + 0.5 * epsilon, 0.6 + 0.5 * epsilon, 0.8 + 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK(Color(0.2, 0.4, 0.6, 0.8) == GDApprox(Color(0.2 - 0.5 * epsilon, 0.4 - 0.5 * epsilon, 0.6 - 0.5 * epsilon, 0.8 - 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Color(0.2, 0.4, 0.6, 0.8) == GDApprox(Color(0.2 + 1.5 * epsilon, 0.4 + 1.5 * epsilon, 0.6 + 1.5 * epsilon, 0.8 + 1.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Color(0.2, 0.4, 0.6, 0.8) == GDApprox(Color(0.2 - 1.5 * epsilon, 0.4 - 1.5 * epsilon, 0.6 - 1.5 * epsilon, 0.8 - 1.5 * epsilon)).with_epsilon(epsilon));
+
+		// Rect2.
+		CHECK(Rect2(0.2, 0.4, 0.6, 0.8) == GDApprox(Rect2(0.2, 0.4, 0.6, 0.8)));
+		CHECK(Rect2(0.2, 0.4, 0.6, 0.8) == GDApprox(Rect2(0.2 + 0.5 * epsilon, 0.4 + 0.5 * epsilon, 0.6 + 0.5 * epsilon, 0.8 + 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK(Rect2(0.2, 0.4, 0.6, 0.8) == GDApprox(Rect2(0.2 - 0.5 * epsilon, 0.4 - 0.5 * epsilon, 0.6 - 0.5 * epsilon, 0.8 - 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Rect2(0.2, 0.4, 0.6, 0.8) == GDApprox(Rect2(0.2 + 1.5 * epsilon, 0.4 + 1.5 * epsilon, 0.6 + 1.5 * epsilon, 0.8 + 1.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Rect2(0.2, 0.4, 0.6, 0.8) == GDApprox(Rect2(0.2 - 1.5 * epsilon, 0.4 - 1.5 * epsilon, 0.6 - 1.5 * epsilon, 0.8 - 1.5 * epsilon)).with_epsilon(epsilon));
+
+		// Quaternion.
+		CHECK(Quaternion(0.2, 0.4, 0.6, 0.8) == GDApprox(Quaternion(0.2, 0.4, 0.6, 0.8)));
+		CHECK(Quaternion(0.2, 0.4, 0.6, 0.8) == GDApprox(Quaternion(0.2 + 0.5 * epsilon, 0.4 + 0.5 * epsilon, 0.6 + 0.5 * epsilon, 0.8 + 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK(Quaternion(0.2, 0.4, 0.6, 0.8) == GDApprox(Quaternion(0.2 - 0.5 * epsilon, 0.4 - 0.5 * epsilon, 0.6 - 0.5 * epsilon, 0.8 - 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Quaternion(0.2, 0.4, 0.6, 0.8) == GDApprox(Quaternion(0.2 + 1.5 * epsilon, 0.4 + 1.5 * epsilon, 0.6 + 1.5 * epsilon, 0.8 + 1.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Quaternion(0.2, 0.4, 0.6, 0.8) == GDApprox(Quaternion(0.2 - 1.5 * epsilon, 0.4 - 1.5 * epsilon, 0.6 - 1.5 * epsilon, 0.8 - 1.5 * epsilon)).with_epsilon(epsilon));
+
+		// Plane.
+		CHECK(Plane(0.2, 0.4, 0.6, 0.8) == GDApprox(Plane(0.2, 0.4, 0.6, 0.8)));
+		CHECK(Plane(0.2, 0.4, 0.6, 0.8) == GDApprox(Plane(0.2 + 0.5 * epsilon, 0.4 + 0.5 * epsilon, 0.6 + 0.5 * epsilon, 0.8 + 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK(Plane(0.2, 0.4, 0.6, 0.8) == GDApprox(Plane(0.2 - 0.5 * epsilon, 0.4 - 0.5 * epsilon, 0.6 - 0.5 * epsilon, 0.8 - 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Plane(0.2, 0.4, 0.6, 0.8) == GDApprox(Plane(0.2 + 1.5 * epsilon, 0.4 + 1.5 * epsilon, 0.6 + 1.5 * epsilon, 0.8 + 1.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Plane(0.2, 0.4, 0.6, 0.8) == GDApprox(Plane(0.2 - 1.5 * epsilon, 0.4 - 1.5 * epsilon, 0.6 - 1.5 * epsilon, 0.8 - 1.5 * epsilon)).with_epsilon(epsilon));
+
+		// Transform2D.
+		CHECK(Transform2D(0.2, Vector2(0.4, 0.6)) == GDApprox(Transform2D(0.2, Vector2(0.4, 0.6))));
+		CHECK(Transform2D(0.2, Vector2(0.4, 0.6)) == GDApprox(Transform2D(0.2 + 0.1 * epsilon, Vector2(0.4 + 0.5 * epsilon, 0.6 + 0.5 * epsilon))).with_epsilon(epsilon));
+		CHECK(Transform2D(0.2, Vector2(0.4, 0.6)) == GDApprox(Transform2D(0.2 - 0.1 * epsilon, Vector2(0.4 - 0.5 * epsilon, 0.6 - 0.5 * epsilon))).with_epsilon(epsilon));
+		CHECK_FALSE(Transform2D(0.2, Vector2(0.4, 0.6)) == GDApprox(Transform2D(0.2 + 0.5 * epsilon, Vector2(0.4 + 1.5 * epsilon, 0.6 + 1.5 * epsilon))).with_epsilon(epsilon));
+		CHECK_FALSE(Transform2D(0.2, Vector2(0.4, 0.6)) == GDApprox(Transform2D(0.2 - 0.5 * epsilon, Vector2(0.4 - 1.5 * epsilon, 0.6 - 1.5 * epsilon))).with_epsilon(epsilon));
+
+		// Basis.
+		CHECK(Basis(0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8) == GDApprox(Basis(0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8)));
+		CHECK(Basis(0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8) == GDApprox(Basis(0.2 + 0.5 * epsilon, 0.4 + 0.5 * epsilon, 0.6 + 0.5 * epsilon, 0.8 + 0.5 * epsilon, 1.0 + 0.5 * epsilon, 1.2 + 0.5 * epsilon, 1.4 + 0.5 * epsilon, 1.6 + 0.5 * epsilon, 1.8 + 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK(Basis(0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8) == GDApprox(Basis(0.2 - 0.5 * epsilon, 0.4 - 0.5 * epsilon, 0.6 - 0.5 * epsilon, 0.8 - 0.5 * epsilon, 1.0 - 0.5 * epsilon, 1.2 - 0.5 * epsilon, 1.4 - 0.5 * epsilon, 1.6 - 0.5 * epsilon, 1.8 - 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Basis(0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8) == GDApprox(Basis(0.2 + 1.5 * epsilon, 0.4 + 1.5 * epsilon, 0.6 + 1.5 * epsilon, 0.8 + 1.5 * epsilon, 1.0 + 1.5 * epsilon, 1.2 + 1.5 * epsilon, 1.4 + 1.5 * epsilon, 1.6 + 1.5 * epsilon, 1.8 + 1.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Basis(0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8) == GDApprox(Basis(0.2 - 1.5 * epsilon, 0.4 - 1.5 * epsilon, 0.6 - 1.5 * epsilon, 0.8 - 1.5 * epsilon, 1.0 - 1.5 * epsilon, 1.2 - 1.5 * epsilon, 1.4 - 1.5 * epsilon, 1.6 - 1.5 * epsilon, 1.8 - 1.5 * epsilon)).with_epsilon(epsilon));
+
+		// Transform3D.
+		CHECK(Transform3D(0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4) == GDApprox(Transform3D(0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4)));
+		CHECK(Transform3D(0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4) == GDApprox(Transform3D(0.2 + 0.5 * epsilon, 0.4 + 0.5 * epsilon, 0.6 + 0.5 * epsilon, 0.8 + 0.5 * epsilon, 1.0 + 0.5 * epsilon, 1.2 + 0.5 * epsilon, 1.4 + 0.5 * epsilon, 1.6 + 0.5 * epsilon, 1.8 + 0.5 * epsilon, 2.0 + 0.5 * epsilon, 2.2 + 0.5 * epsilon, 2.4 + 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK(Transform3D(0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4) == GDApprox(Transform3D(0.2 - 0.5 * epsilon, 0.4 - 0.5 * epsilon, 0.6 - 0.5 * epsilon, 0.8 - 0.5 * epsilon, 1.0 - 0.5 * epsilon, 1.2 - 0.5 * epsilon, 1.4 - 0.5 * epsilon, 1.6 - 0.5 * epsilon, 1.8 - 0.5 * epsilon, 2.0 - 0.5 * epsilon, 2.2 - 0.5 * epsilon, 2.4 - 0.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Transform3D(0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4) == GDApprox(Transform3D(0.2 + 1.5 * epsilon, 0.4 + 1.5 * epsilon, 0.6 + 1.5 * epsilon, 0.8 + 1.5 * epsilon, 1.0 + 1.5 * epsilon, 1.2 + 1.5 * epsilon, 1.4 + 1.5 * epsilon, 1.6 + 1.5 * epsilon, 1.8 + 1.5 * epsilon, 2.0 + 1.5 * epsilon, 2.2 + 1.5 * epsilon, 2.4 + 1.5 * epsilon)).with_epsilon(epsilon));
+		CHECK_FALSE(Transform3D(0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4) == GDApprox(Transform3D(0.2 - 1.5 * epsilon, 0.4 - 1.5 * epsilon, 0.6 - 1.5 * epsilon, 0.8 - 1.5 * epsilon, 1.0 - 1.5 * epsilon, 1.2 - 1.5 * epsilon, 1.4 - 1.5 * epsilon, 1.6 - 1.5 * epsilon, 1.8 - 1.5 * epsilon, 2.0 - 1.5 * epsilon, 2.2 - 1.5 * epsilon, 2.4 - 1.5 * epsilon)).with_epsilon(epsilon));
+
+		// AABB.
+		CHECK(AABB(Vector3(0.2, 0.4, 0.6), Vector3(0.8, 1.0, 1.2)) == GDApprox(AABB(Vector3(0.2, 0.4, 0.6), Vector3(0.8, 1.0, 1.2))));
+		CHECK(AABB(Vector3(0.2, 0.4, 0.6), Vector3(0.8, 1.0, 1.2)) == GDApprox(AABB(Vector3(0.2 + 0.5 * epsilon, 0.4 + 0.5 * epsilon, 0.6 + 0.5 * epsilon), Vector3(0.8 + 0.5 * epsilon, 1.0 + 0.5 * epsilon, 1.2 + 0.5 * epsilon))).with_epsilon(epsilon));
+		CHECK(AABB(Vector3(0.2, 0.4, 0.6), Vector3(0.8, 1.0, 1.2)) == GDApprox(AABB(Vector3(0.2 - 0.5 * epsilon, 0.4 - 0.5 * epsilon, 0.6 - 0.5 * epsilon), Vector3(0.8 - 0.5 * epsilon, 1.0 - 0.5 * epsilon, 1.2 - 0.5 * epsilon))).with_epsilon(epsilon));
+		CHECK_FALSE(AABB(Vector3(0.2, 0.4, 0.6), Vector3(0.8, 1.0, 1.2)) == GDApprox(AABB(Vector3(0.2 + 1.5 * epsilon, 0.4 + 1.5 * epsilon, 0.6 + 1.5 * epsilon), Vector3(0.8 + 1.5 * epsilon, 1.0 + 1.5 * epsilon, 1.2 + 1.5 * epsilon))).with_epsilon(epsilon));
+		CHECK_FALSE(AABB(Vector3(0.2, 0.4, 0.6), Vector3(0.8, 1.0, 1.2)) == GDApprox(AABB(Vector3(0.2 - 1.5 * epsilon, 0.4 - 1.5 * epsilon, 0.6 - 1.5 * epsilon), Vector3(0.8 - 1.5 * epsilon, 1.0 - 1.5 * epsilon, 1.2 - 1.5 * epsilon))).with_epsilon(epsilon));
+	}
 }
 
 #endif // TEST_VALIDATE_TESTING_H
