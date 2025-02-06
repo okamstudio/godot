@@ -293,6 +293,7 @@ void RetargetModifier3D::_retarget_global_pose() {
 	}
 
 	LocalVector<Transform3D> source_poses;
+	source_poses.reserve(source_bone_ids.size());
 	if (influence < 1.0) {
 		for (int source_bone_id : source_bone_ids) {
 			source_poses.push_back(source_bone_id < 0 ? Transform3D() : source_skeleton->get_bone_global_rest(source_bone_id).interpolate_with(source_skeleton->get_bone_global_pose(source_bone_id), influence));
@@ -327,6 +328,7 @@ void RetargetModifier3D::_retarget_pose() {
 	}
 
 	LocalVector<Transform3D> source_poses;
+	source_poses.reserve(source_bone_ids.size());
 	if (influence < 1.0) {
 		for (int source_bone_id : source_bone_ids) {
 			source_poses.push_back(source_bone_id < 0 ? Transform3D() : source_skeleton->get_bone_rest(source_bone_id).interpolate_with(source_skeleton->get_bone_pose(source_bone_id), influence));

@@ -1182,11 +1182,13 @@ void Skeleton3D::_process_modifiers() {
 		real_t influence = mod->get_influence();
 		if (influence < 1.0) {
 			LocalVector<Transform3D> old_poses;
+			old_poses.reserve(get_bone_count());
 			for (int i = 0; i < get_bone_count(); i++) {
 				old_poses.push_back(get_bone_pose(i));
 			}
 			mod->process_modification();
 			LocalVector<Transform3D> new_poses;
+			new_poses.reserve(get_bone_count());
 			for (int i = 0; i < get_bone_count(); i++) {
 				new_poses.push_back(get_bone_pose(i));
 			}

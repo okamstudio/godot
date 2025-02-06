@@ -3088,6 +3088,7 @@ Error DisplayServerWindows::dialog_show(String p_title, String p_description, Ve
 	Char16String title = p_title.utf16();
 	Char16String message = p_description.utf16();
 	LocalVector<Char16String> buttons;
+	buttons.reserve(p_buttons.size());
 	for (String s : p_buttons) {
 		buttons.push_back(s.utf16());
 	}
@@ -7051,6 +7052,7 @@ void DisplayServerWindows::register_windows_driver() {
 
 DisplayServerWindows::~DisplayServerWindows() {
 	LocalVector<List<FileDialogData *>::Element *> to_remove;
+	to_remove.reserve(file_dialogs.size());
 	for (List<FileDialogData *>::Element *E = file_dialogs.front(); E; E = E->next()) {
 		FileDialogData *fd = E->get();
 		if (fd->listener_thread.is_started()) {

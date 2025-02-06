@@ -226,6 +226,7 @@ static bool _collect_inheritance_chain(const Ref<SceneState> &p_state, const Nod
 	}
 
 	if (inheritance_states.size() > 0) {
+		r_states_stack.reserve(r_states_stack.size() + inheritance_states.size());
 		for (int i = inheritance_states.size() - 1; i >= 0; --i) {
 			r_states_stack.push_back(inheritance_states[i]);
 		}

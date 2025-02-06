@@ -1054,6 +1054,7 @@ void SurfaceTool::append_from(const Ref<Mesh> &p_existing, int p_surface, const 
 		vertex_array.push_back(v);
 	}
 
+	index_array.reserve(index_array.size() + nindices.size());
 	for (const int &index : nindices) {
 		int dst_index = index + vfrom;
 		index_array.push_back(dst_index);

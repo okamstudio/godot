@@ -2445,6 +2445,7 @@ RDD::RenderPassID RenderingDevice::_render_pass_create(RenderingDeviceDriver *p_
 
 	LocalVector<RDD::Attachment> attachments;
 	LocalVector<uint32_t> attachment_remap;
+	attachment_remap.reserve(p_attachments.size());
 
 	for (int i = 0; i < p_attachments.size(); i++) {
 		if (p_attachments[i].usage_flags == AttachmentFormat::UNUSED_ATTACHMENT) {
@@ -2510,6 +2511,9 @@ RDD::RenderPassID RenderingDevice::_render_pass_create(RenderingDeviceDriver *p_
 	for (int i = 0; i < p_passes.size(); i++) {
 		const FramebufferPass *pass = &p_passes[i];
 		RDD::Subpass &subpass = subpasses[i];
+		subpass.color_references.reserve(pass->color_attachments.size());
+		subpass.input_references.reserve(pass->input_attachments.size());
+		subpass.resolve_references.reserve(pass->resolve_attachments.size());
 
 		TextureSamples texture_samples = TEXTURE_SAMPLES_1;
 		bool is_multisample_first = true;
@@ -2696,6 +2700,8 @@ RenderingDevice::FramebufferFormatID RenderingDevice::framebuffer_format_create_
 	Vector<TextureSamples> samples;
 	LocalVector<RDD::AttachmentLoadOp> load_ops;
 	LocalVector<RDD::AttachmentStoreOp> store_ops;
+	load_ops.reserve(p_attachments.size());
+	store_ops.reserve(p_attachments.size());
 	for (int64_t i = 0; i < p_attachments.size(); i++) {
 		load_ops.push_back(RDD::ATTACHMENT_LOAD_OP_CLEAR);
 		store_ops.push_back(RDD::ATTACHMENT_STORE_OP_STORE);
@@ -2835,6 +2841,7 @@ RID RenderingDevice::framebuffer_create_multipass(const Vector<RID> &p_texture_a
 	Vector<AttachmentFormat> attachments;
 	LocalVector<RDD::TextureID> textures;
 	LocalVector<RDG::ResourceTracker *> trackers;
+	trackers.reserve(p_texture_attachments.size());
 	attachments.resize(p_texture_attachments.size());
 	Size2i size;
 	bool size_set = false;
@@ -3471,6 +3478,7 @@ RID RenderingDevice::uniform_set_create(const Collection &p_uniforms, RID p_shad
 		RDD::BoundUniform &driver_uniform = driver_uniforms[i];
 		driver_uniform.type = uniform.uniform_type;
 		driver_uniform.binding = uniform.binding;
+		driver_uniform.ids.reserve(uniform.get_id_count());
 
 		// Mark immutable samplers to be skipped when creating uniform set.
 		driver_uniform.immutable_sampler = uniform.immutable_sampler;

@@ -3764,6 +3764,7 @@ void RasterizerSceneGLES3::_render_uv2(const PagedArray<RenderGeometryInstance *
 		glDepthFunc(GL_GREATER);
 
 		TightLocalVector<GLenum> draw_buffers;
+		draw_buffers.reserve(4);
 		draw_buffers.push_back(GL_COLOR_ATTACHMENT0);
 		draw_buffers.push_back(GL_COLOR_ATTACHMENT1);
 		draw_buffers.push_back(GL_COLOR_ATTACHMENT2);

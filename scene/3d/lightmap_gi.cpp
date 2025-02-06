@@ -1129,6 +1129,7 @@ LightmapGI::BakeError LightmapGI::bake(Node *p_from_node, String p_image_data_pa
 
 		LocalVector<Vector3> new_probe_positions;
 		HashMap<Vector3i, bool> positions_used;
+		new_probe_positions.reserve(8);
 		for (uint32_t i = 0; i < 8; i++) { //insert bounding endpoints
 			Vector3i pos;
 			if (i & 1) {
@@ -1360,6 +1361,8 @@ LightmapGI::BakeError LightmapGI::bake(Node *p_from_node, String p_image_data_pa
 		LocalVector<Plane> bsp_planes;
 		LocalVector<int32_t> bsp_simplex_indices;
 		PackedInt32Array tetrahedrons;
+		bsp_simplices.reserve(solved_simplices.size());
+		bsp_simplex_indices.reserve(solved_simplices.size());
 
 		for (int i = 0; i < solved_simplices.size(); i++) {
 			//Prepare a special representation of the simplex, which uses a BSP Tree

@@ -2184,6 +2184,7 @@ Error ArrayMesh::lightmap_unwrap_cached(const Transform3D &p_base_transform, flo
 
 	//create surfacetools for each surface..
 	LocalVector<Ref<SurfaceTool>> surfaces_tools;
+	surfaces_tools.reserve(lightmap_surfaces.size());
 
 	for (int i = 0; i < lightmap_surfaces.size(); i++) {
 		Ref<SurfaceTool> st;
