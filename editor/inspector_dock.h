@@ -125,6 +125,7 @@ class InspectorDock : public VBoxContainer {
 	void _info_pressed();
 	void _resource_created();
 	void _resource_selected(const Ref<Resource> &p_res, const String &p_property);
+	void _file_renamed(const String &p_old_file, const String &p_new_file);
 	void _edit_forward();
 	void _edit_back();
 	void _menu_collapseall();

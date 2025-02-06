@@ -44,6 +44,13 @@
 				Emitted when the given [param file] was removed.
 			</description>
 		</signal>
+		<signal name="file_renamed">
+			<param index="0" name="old_file" type="String" />
+			<param index="1" name="new_file" type="String" />
+			<description>
+				Emitted when a file is renamed from [param old_file] to [param new_file].
+			</description>
+		</signal>
 		<signal name="files_moved">
 			<param index="0" name="old_file" type="String" />
 			<param index="1" name="new_file" type="String" />

@@ -393,6 +393,10 @@ void InspectorDock::_resource_selected(const Ref<Resource> &p_res, const String 
 	EditorNode::get_singleton()->push_item(r.operator->(), p_property);
 }
 
+void InspectorDock::_file_renamed(const String &p_old_file, const String &p_new_file) {
+	object_selector->update_path();
+}
+
 void InspectorDock::_edit_forward() {
 	if (EditorNode::get_singleton()->get_editor_selection_history()->next()) {
 		EditorNode::get_singleton()->edit_current();
@@ -723,6 +727,7 @@ InspectorDock::InspectorDock(EditorData &p_editor_data) {
 	add_child(subresource_hb);
 	object_selector = memnew(EditorObjectSelector(EditorNode::get_singleton()->get_editor_selection_history()));
 	object_selector->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	object_selector->connect("file_renamed", callable_mp(this, &InspectorDock::_file_renamed));
 	subresource_hb->add_child(object_selector);
 
 	open_docs_button = memnew(Button);
