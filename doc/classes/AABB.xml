@@ -26,6 +26,7 @@
 			<param index="0" name="from" type="AABB" />
 			<description>
 				Constructs an [AABB] as a copy of the given [AABB].
+				[b]Note:[/b] In C#, this constructor is not available.
 			</description>
 		</constructor>
 		<constructor name="AABB">

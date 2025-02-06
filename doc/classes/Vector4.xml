@@ -23,6 +23,7 @@
 			<param index="0" name="from" type="Vector4" />
 			<description>
 				Constructs a [Vector4] as a copy of the given [Vector4].
+				[b]Note:[/b] In C#, this constructor is not available.
 			</description>
 		</constructor>
 		<constructor name="Vector4">

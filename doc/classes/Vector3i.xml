@@ -25,6 +25,7 @@
 			<param index="0" name="from" type="Vector3i" />
 			<description>
 				Constructs a [Vector3i] as a copy of the given [Vector3i].
+				[b]Note:[/b] In C#, this constructor is not available.
 			</description>
 		</constructor>
 		<constructor name="Vector3i">

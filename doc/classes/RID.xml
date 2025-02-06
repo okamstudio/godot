@@ -22,6 +22,7 @@
 			<param index="0" name="from" type="RID" />
 			<description>
 				Constructs a [RID] as a copy of the given [RID].
+				[b]Note:[/b] In C#, this constructor is not available.
 			</description>
 		</constructor>
 	</constructors>

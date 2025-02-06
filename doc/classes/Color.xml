@@ -43,6 +43,7 @@
 			<param index="0" name="from" type="Color" />
 			<description>
 				Constructs a [Color] as a copy of the given [Color].
+				[b]Note:[/b] In C#, this constructor is not available.
 			</description>
 		</constructor>
 		<constructor name="Color">

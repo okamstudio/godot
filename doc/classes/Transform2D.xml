@@ -28,6 +28,7 @@
 			<param index="0" name="from" type="Transform2D" />
 			<description>
 				Constructs a [Transform2D] as a copy of the given [Transform2D].
+				[b]Note:[/b] In C#, this constructor is not available.
 			</description>
 		</constructor>
 		<constructor name="Transform2D">

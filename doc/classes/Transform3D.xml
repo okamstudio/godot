@@ -29,6 +29,7 @@
 			<param index="0" name="from" type="Transform3D" />
 			<description>
 				Constructs a [Transform3D] as a copy of the given [Transform3D].
+				[b]Note:[/b] In C#, this constructor is not available.
 			</description>
 		</constructor>
 		<constructor name="Transform3D">

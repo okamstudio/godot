@@ -38,6 +38,7 @@
 			<param index="0" name="from" type="Basis" />
 			<description>
 				Constructs a [Basis] as a copy of the given [Basis].
+				[b]Note:[/b] In C#, this constructor is not available.
 			</description>
 		</constructor>
 		<constructor name="Basis">

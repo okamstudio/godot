@@ -26,6 +26,7 @@
 			<param index="0" name="from" type="Rect2" />
 			<description>
 				Constructs a [Rect2] as a copy of the given [Rect2].
+				[b]Note:[/b] In C#, this constructor is not available.
 			</description>
 		</constructor>
 		<constructor name="Rect2">
