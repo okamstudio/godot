@@ -617,7 +617,7 @@ public:
 	};
 
 	struct AttachmentReference {
-		static const uint32_t UNUSED = 0xffffffff;
+		static constexpr uint32_t UNUSED = 0xffffffff;
 		uint32_t attachment = UNUSED;
 		TextureLayout layout = TEXTURE_LAYOUT_UNDEFINED;
 		BitField<TextureAspectBits> aspect;
