@@ -57,6 +57,8 @@ void FramebufferCacheRD::_framebuffer_invalidation_callback(void *p_userdata) {
 }
 
 RID FramebufferCacheRD::get_cache_multipass_array(const TypedArray<RID> &p_textures, const TypedArray<RDFramebufferPass> &p_passes, uint32_t p_views) {
+	ERR_FAIL_NULL_V(RD::get_singleton(), RID());
+
 	Vector<RID> textures;
 	Vector<RD::FramebufferPass> passes;
 
