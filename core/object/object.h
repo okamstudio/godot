@@ -768,6 +768,11 @@ protected:
 
 	bool _disconnect(const StringName &p_signal, const Callable &p_callable, bool p_force = false);
 
+	// When a multi-threaded guard is required.
+	virtual bool _mt_disconnect(const StringName &p_signal, const Callable &p_callable, bool p_force = false) {
+		return _disconnect(p_signal, p_callable, p_force);
+	}
+
 #ifdef TOOLS_ENABLED
 	struct VirtualMethodTracker {
 		void **method;
@@ -933,18 +938,18 @@ public:
 		return emit_signalp(p_name, sizeof...(p_args) == 0 ? nullptr : (const Variant **)argptrs, sizeof...(p_args));
 	}
 
-	MTVIRTUAL Error emit_signalp(const StringName &p_name, const Variant **p_args, int p_argcount);
-	MTVIRTUAL bool has_signal(const StringName &p_name) const;
-	MTVIRTUAL void get_signal_list(List<MethodInfo> *p_signals) const;
-	MTVIRTUAL void get_signal_connection_list(const StringName &p_signal, List<Connection> *p_connections) const;
-	MTVIRTUAL void get_all_signal_connections(List<Connection> *p_connections) const;
-	MTVIRTUAL int get_persistent_signal_connection_count() const;
-	MTVIRTUAL void get_signals_connected_to_this(List<Connection> *p_connections) const;
+	virtual Error emit_signalp(const StringName &p_name, const Variant **p_args, int p_argcount);
+	virtual bool has_signal(const StringName &p_name) const;
+	virtual void get_signal_list(List<MethodInfo> *p_signals) const;
+	virtual void get_signal_connection_list(const StringName &p_signal, List<Connection> *p_connections) const;
+	virtual void get_all_signal_connections(List<Connection> *p_connections) const;
+	virtual int get_persistent_signal_connection_count() const;
+	virtual void get_signals_connected_to_this(List<Connection> *p_connections) const;
 
-	MTVIRTUAL Error connect(const StringName &p_signal, const Callable &p_callable, uint32_t p_flags = 0);
-	MTVIRTUAL void disconnect(const StringName &p_signal, const Callable &p_callable);
-	MTVIRTUAL bool is_connected(const StringName &p_signal, const Callable &p_callable) const;
-	MTVIRTUAL bool has_connections(const StringName &p_signal) const;
+	virtual Error connect(const StringName &p_signal, const Callable &p_callable, uint32_t p_flags = 0);
+	virtual void disconnect(const StringName &p_signal, const Callable &p_callable);
+	virtual bool is_connected(const StringName &p_signal, const Callable &p_callable) const;
+	virtual bool has_connections(const StringName &p_signal) const;
 
 	template <typename... VarArgs>
 	void call_deferred(const StringName &p_name, VarArgs... p_args) {

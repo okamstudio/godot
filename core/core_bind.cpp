@@ -1310,6 +1310,61 @@ void Mutex::unlock() {
 	mutex.unlock();
 }
 
+bool Mutex::_mt_disconnect(const StringName &p_signal, const Callable &p_callable, bool p_force) {
+	MutexLock lock(mutex);
+	return Object::_disconnect(p_signal, p_callable, p_force);
+}
+
+Error Mutex::emit_signalp(const StringName &p_name, const Variant **p_args, int p_argcount) {
+	MutexLock lock(mutex);
+	return Object::emit_signalp(p_name, p_args, p_argcount);
+}
+
+bool Mutex::has_signal(const StringName &p_name) const {
+	MutexLock lock(mutex);
+	return Object::has_signal(p_name);
+}
+
+void Mutex::get_signal_list(List<MethodInfo> *p_signals) const {
+	MutexLock lock(mutex);
+	Object::get_signal_list(p_signals);
+}
+
+void Mutex::get_signal_connection_list(const StringName &p_signal, List<Connection> *p_connections) const {
+	MutexLock lock(mutex);
+	Object::get_signal_connection_list(p_signal, p_connections);
+}
+
+void Mutex::get_all_signal_connections(List<Connection> *p_connections) const {
+	MutexLock lock(mutex);
+	Object::get_all_signal_connections(p_connections);
+}
+
+int Mutex::get_persistent_signal_connection_count() const {
+	MutexLock lock(mutex);
+	return Object::get_persistent_signal_connection_count();
+}
+
+void Mutex::get_signals_connected_to_this(List<Connection> *p_connections) const {
+	MutexLock lock(mutex);
+	Object::get_signals_connected_to_this(p_connections);
+}
+
+Error Mutex::connect(const StringName &p_signal, const Callable &p_callable, uint32_t p_flags) {
+	MutexLock lock(mutex);
+	return Object::connect(p_signal, p_callable, p_flags);
+}
+
+void Mutex::disconnect(const StringName &p_signal, const Callable &p_callable) {
+	MutexLock lock(mutex);
+	Object::disconnect(p_signal, p_callable);
+}
+
+bool Mutex::is_connected(const StringName &p_signal, const Callable &p_callable) const {
+	MutexLock lock(mutex);
+	return Object::is_connected(p_signal, p_callable);
+}
+
 void Mutex::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("lock"), &Mutex::lock);
 	ClassDB::bind_method(D_METHOD("try_lock"), &Mutex::try_lock);

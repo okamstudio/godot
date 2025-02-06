@@ -10,6 +10,8 @@
 		[b]Warning:[/b] To ensure proper cleanup without crashes or deadlocks, the following conditions must be met:
 		- When a [Mutex]'s reference count reaches zero and it is therefore destroyed, no threads (including the one on which the destruction will happen) must have it locked.
 		- When a [Thread]'s reference count reaches zero and it is therefore destroyed, it must not have any mutex locked.
+
+		[b]Note:[/b] You can now use `add_user_signal` on mutexes to create thread-safe signals on them.
 	</description>
 	<tutorials>
 		<link title="Using multiple threads">$DOCS_URL/tutorials/performance/using_multiple_threads.html</link>

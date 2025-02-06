@@ -407,10 +407,25 @@ class Mutex : public RefCounted {
 
 	static void _bind_methods();
 
+protected:
+	virtual bool _mt_disconnect(const StringName &p_signal, const Callable &p_callable, bool p_force = false) override;
+
 public:
 	void lock();
 	bool try_lock();
 	void unlock();
+
+	virtual Error emit_signalp(const StringName &p_name, const Variant **p_args, int p_argcount) override;
+	virtual bool has_signal(const StringName &p_name) const override;
+	virtual void get_signal_list(List<MethodInfo> *p_signals) const override;
+	virtual void get_signal_connection_list(const StringName &p_signal, List<Connection> *p_connections) const override;
+	virtual void get_all_signal_connections(List<Connection> *p_connections) const override;
+	virtual int get_persistent_signal_connection_count() const override;
+	virtual void get_signals_connected_to_this(List<Connection> *p_connections) const override;
+
+	virtual Error connect(const StringName &p_signal, const Callable &p_callable, uint32_t p_flags = 0) override;
+	virtual void disconnect(const StringName &p_signal, const Callable &p_callable) override;
+	virtual bool is_connected(const StringName &p_signal, const Callable &p_callable) const override;
 };
 
 class Semaphore : public RefCounted {

@@ -2189,7 +2189,7 @@ Object::~Object() {
 		Object *obj = c.callable.get_object();
 		bool disconnected = false;
 		if (likely(obj)) {
-			disconnected = c.signal.get_object()->_disconnect(c.signal.get_name(), c.callable, true);
+			disconnected = c.signal.get_object()->_mt_disconnect(c.signal.get_name(), c.callable, true);
 		}
 		if (unlikely(!disconnected)) {
 			// If the disconnect has failed, abandon the connection to avoid getting trapped in an infinite loop here.
