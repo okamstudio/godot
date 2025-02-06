@@ -101,6 +101,7 @@ static const char *token_names[] = {
 	"match", // MATCH,
 	"when", // WHEN,
 	// Keywords
+	"abstract", // ABSTRACT,
 	"as", // AS,
 	"assert", // ASSERT,
 	"await", // AWAIT,
@@ -495,6 +496,7 @@ GDScriptTokenizer::Token GDScriptTokenizerText::annotation() {
 
 #define KEYWORDS(KEYWORD_GROUP, KEYWORD)     \
 	KEYWORD_GROUP('a')                       \
+	KEYWORD("abstract", Token::ABSTRACT)     \
 	KEYWORD("as", Token::AS)                 \
 	KEYWORD("and", Token::AND)               \
 	KEYWORD("assert", Token::ASSERT)         \

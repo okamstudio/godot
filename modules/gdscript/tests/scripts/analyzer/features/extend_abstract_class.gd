@@ -8,5 +8,13 @@ class B extends A:
 class C extends CanvasItem:
 	pass
 
+abstract
+class X:
+	pass
+
+class Y extends X:
+	func test() -> String:
+		return "ok"
+
 func test():
-	print('ok')
+	print(Y.new().test())

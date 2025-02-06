@@ -748,6 +748,7 @@ public:
 		ClassNode *outer = nullptr;
 		bool extends_used = false;
 		bool onready_used = false;
+		bool is_abstract = false;
 		bool has_static_data = false;
 		bool annotated_static_unload = false;
 		String extends_path;
@@ -1488,16 +1489,16 @@ private:
 
 	// Main blocks.
 	void parse_program();
-	ClassNode *parse_class(bool p_is_static);
+	ClassNode *parse_class(bool p_is_abstract, bool p_is_static);
 	void parse_class_name();
 	void parse_extends();
-	void parse_class_body(bool p_is_multiline);
+	void parse_class_body(bool p_is_abstract, bool p_is_multiline);
 	template <typename T>
-	void parse_class_member(T *(GDScriptParser::*p_parse_function)(bool), AnnotationInfo::TargetKind p_target, const String &p_member_kind, bool p_is_static = false);
-	SignalNode *parse_signal(bool p_is_static);
-	EnumNode *parse_enum(bool p_is_static);
+	void parse_class_member(T *(GDScriptParser::*p_parse_function)(bool, bool), AnnotationInfo::TargetKind p_target, const String &p_member_kind, bool p_is_abstract = false, bool p_is_static = false);
+	SignalNode *parse_signal(bool p_is_abstract, bool p_is_static);
+	EnumNode *parse_enum(bool p_is_abstract, bool p_is_static);
 	ParameterNode *parse_parameter();
-	FunctionNode *parse_function(bool p_is_static);
+	FunctionNode *parse_function(bool p_is_abstract, bool p_is_static);
 	void parse_function_signature(FunctionNode *p_function, SuiteNode *p_body, const String &p_type);
 	SuiteNode *parse_suite(const String &p_context, SuiteNode *p_suite = nullptr, bool p_for_lambda = false);
 	// Annotations
@@ -1521,12 +1522,12 @@ private:
 	bool rpc_annotation(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class);
 	// Statements.
 	Node *parse_statement();
-	VariableNode *parse_variable(bool p_is_static);
-	VariableNode *parse_variable(bool p_is_static, bool p_allow_property);
+	VariableNode *parse_variable(bool p_is_abstract, bool p_is_static);
+	VariableNode *parse_variable(bool p_is_abstract, bool p_is_static, bool p_allow_property);
 	VariableNode *parse_property(VariableNode *p_variable, bool p_need_indent);
 	void parse_property_getter(VariableNode *p_variable);
 	void parse_property_setter(VariableNode *p_variable);
-	ConstantNode *parse_constant(bool p_is_static);
+	ConstantNode *parse_constant(bool p_is_abstract, bool p_is_static);
 	AssertNode *parse_assert();
 	BreakNode *parse_break();
 	ContinueNode *parse_continue();
