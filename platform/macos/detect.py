@@ -106,35 +106,36 @@ def configure(env: "SConsEnvironment"):
     if ccache_path != "":
         ccache_path = ccache_path + " "
 
-    if "osxcross" not in env:  # regular native build
-        if env["macports_clang"] != "no":
-            mpprefix = os.environ.get("MACPORTS_PREFIX", "/opt/local")
-            mpclangver = env["macports_clang"]
-            env["CC"] = mpprefix + "/libexec/llvm-" + mpclangver + "/bin/clang"
-            env["CXX"] = mpprefix + "/libexec/llvm-" + mpclangver + "/bin/clang++"
-            env["AR"] = mpprefix + "/libexec/llvm-" + mpclangver + "/bin/llvm-ar"
-            env["RANLIB"] = mpprefix + "/libexec/llvm-" + mpclangver + "/bin/llvm-ranlib"
-            env["AS"] = mpprefix + "/libexec/llvm-" + mpclangver + "/bin/llvm-as"
-        else:
-            env["CC"] = ccache_path + "clang"
-            env["CXX"] = ccache_path + "clang++"
+    if env["platform_tools"]:
+        if "osxcross" not in env:  # regular native build
+            if env["macports_clang"] != "no":
+                mpprefix = os.environ.get("MACPORTS_PREFIX", "/opt/local")
+                mpclangver = env["macports_clang"]
+                env["CC"] = mpprefix + "/libexec/llvm-" + mpclangver + "/bin/clang"
+                env["CXX"] = mpprefix + "/libexec/llvm-" + mpclangver + "/bin/clang++"
+                env["AR"] = mpprefix + "/libexec/llvm-" + mpclangver + "/bin/llvm-ar"
+                env["RANLIB"] = mpprefix + "/libexec/llvm-" + mpclangver + "/bin/llvm-ranlib"
+                env["AS"] = mpprefix + "/libexec/llvm-" + mpclangver + "/bin/llvm-as"
+            else:
+                env["CC"] = ccache_path + "clang"
+                env["CXX"] = ccache_path + "clang++"
 
-        detect_darwin_sdk_path("macos", env)
-        env.Append(CCFLAGS=["-isysroot", "$MACOS_SDK_PATH"])
-        env.Append(LINKFLAGS=["-isysroot", "$MACOS_SDK_PATH"])
+            detect_darwin_sdk_path("macos", env)
+            env.Append(CCFLAGS=["-isysroot", "$MACOS_SDK_PATH"])
+            env.Append(LINKFLAGS=["-isysroot", "$MACOS_SDK_PATH"])
 
-    else:  # osxcross build
-        root = os.environ.get("OSXCROSS_ROOT", "")
-        if env["arch"] == "arm64":
-            basecmd = root + "/target/bin/arm64-apple-" + env["osxcross_sdk"] + "-"
-        else:
-            basecmd = root + "/target/bin/x86_64-apple-" + env["osxcross_sdk"] + "-"
+        else:  # osxcross build
+            root = os.environ.get("OSXCROSS_ROOT", "")
+            if env["arch"] == "arm64":
+                basecmd = root + "/target/bin/arm64-apple-" + env["osxcross_sdk"] + "-"
+            else:
+                basecmd = root + "/target/bin/x86_64-apple-" + env["osxcross_sdk"] + "-"
 
-        env["CC"] = ccache_path + basecmd + "cc"
-        env["CXX"] = ccache_path + basecmd + "c++"
-        env["AR"] = basecmd + "ar"
-        env["RANLIB"] = basecmd + "ranlib"
-        env["AS"] = basecmd + "as"
+            env["CC"] = ccache_path + basecmd + "cc"
+            env["CXX"] = ccache_path + basecmd + "c++"
+            env["AR"] = basecmd + "ar"
+            env["RANLIB"] = basecmd + "ranlib"
+            env["AS"] = basecmd + "as"
 
     # LTO
 

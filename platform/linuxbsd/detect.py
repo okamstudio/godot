@@ -105,7 +105,7 @@ def configure(env: "SConsEnvironment"):
         env["use_llvm"] = True
 
     if env["use_llvm"]:
-        if "clang++" not in os.path.basename(env["CXX"]):
+        if env["platform_tools"] and "clang++" not in os.path.basename(env["CXX"]):
             env["CC"] = "clang"
             env["CXX"] = "clang++"
         env.extra_suffix = ".llvm" + env.extra_suffix
@@ -201,7 +201,7 @@ def configure(env: "SConsEnvironment"):
             env.Append(CCFLAGS=["-flto"])
             env.Append(LINKFLAGS=["-flto"])
 
-        if not env["use_llvm"]:
+        if env["platform_tools"] and not env["use_llvm"]:
             env["RANLIB"] = "gcc-ranlib"
             env["AR"] = "gcc-ar"
 

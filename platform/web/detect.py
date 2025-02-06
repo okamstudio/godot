@@ -174,11 +174,11 @@ def configure(env: "SConsEnvironment"):
     # Closure compiler extern and support for ecmascript specs (const, let, etc).
     env["ENV"]["EMCC_CLOSURE_ARGS"] = "--language_in ECMASCRIPT_2021"
 
-    env["CC"] = "emcc"
-    env["CXX"] = "em++"
-
-    env["AR"] = "emar"
-    env["RANLIB"] = "emranlib"
+    if env["platform_tools"]:
+        env["CC"] = "emcc"
+        env["CXX"] = "em++"
+        env["AR"] = "emar"
+        env["RANLIB"] = "emranlib"
 
     # Use TempFileMunge since some AR invocations are too long for cmd.exe.
     # Use POSIX-style paths, required with TempFileMunge.
