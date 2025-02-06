@@ -135,7 +135,7 @@ static String _interpstr(SL::DataInterpolation p_interp) {
 	return "";
 }
 
-static String _prestr(SL::DataPrecision p_pres, bool p_force_highp = false) {
+static String _prestr(SL::DataPrecision p_pres, bool p_force_highp) {
 	switch (p_pres) {
 		case SL::PRECISION_LOWP:
 			return "lowp ";
@@ -364,7 +364,7 @@ void ShaderCompiler::_dump_function_deps(const SL::ShaderNode *p_node, const Str
 			if (fnode->arguments[i].type == SL::TYPE_STRUCT) {
 				header += _qualstr(fnode->arguments[i].qualifier) + _mkid(fnode->arguments[i].struct_name) + " " + _mkid(fnode->arguments[i].name);
 			} else {
-				header += _qualstr(fnode->arguments[i].qualifier) + _prestr(fnode->arguments[i].precision) + _typestr(fnode->arguments[i].type) + " " + _mkid(fnode->arguments[i].name);
+				header += _qualstr(fnode->arguments[i].qualifier) + _prestr(fnode->arguments[i].precision, ShaderLanguage::is_float_type(fnode->arguments[i].type)) + _typestr(fnode->arguments[i].type) + " " + _mkid(fnode->arguments[i].name);
 			}
 			if (fnode->arguments[i].array_size > 0) {
 				header += "[";
@@ -483,7 +483,7 @@ String ShaderCompiler::_dump_node_code(const SL::Node *p_node, int p_level, Gene
 					if (m->datatype == SL::TYPE_STRUCT) {
 						struct_code += _mkid(m->struct_name);
 					} else {
-						struct_code += _prestr(m->precision);
+						struct_code += _prestr(m->precision, ShaderLanguage::is_float_type(m->datatype));
 						struct_code += _typestr(m->datatype);
 					}
 					struct_code += " ";
@@ -725,7 +725,7 @@ String ShaderCompiler::_dump_node_code(const SL::Node *p_node, int p_level, Gene
 			if (var_frag_to_light.size() > 0) {
 				String gcode = "\n\nstruct {\n";
 				for (const Pair<StringName, SL::ShaderNode::Varying> &E : var_frag_to_light) {
-					gcode += "\t" + _prestr(E.second.precision) + _typestr(E.second.type) + " " + _mkid(E.first);
+					gcode += "\t" + _prestr(E.second.precision, ShaderLanguage::is_float_type(E.second.type)) + _typestr(E.second.type) + " " + _mkid(E.first);
 					if (E.second.array_size > 0) {
 						gcode += "[";
 						gcode += itos(E.second.array_size);
@@ -832,7 +832,7 @@ String ShaderCompiler::_dump_node_code(const SL::Node *p_node, int p_level, Gene
 			if (vdnode->datatype == SL::TYPE_STRUCT) {
 				declaration += _mkid(vdnode->struct_name);
 			} else {
-				declaration += _prestr(vdnode->precision) + _typestr(vdnode->datatype);
+				declaration += _prestr(vdnode->precision, ShaderLanguage::is_float_type(vdnode->datatype)) + _typestr(vdnode->datatype);
 			}
 			declaration += " ";
 			for (int i = 0; i < vdnode->declarations.size(); i++) {

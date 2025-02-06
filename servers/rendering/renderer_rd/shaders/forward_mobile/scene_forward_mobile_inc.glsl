@@ -308,9 +308,9 @@ struct InstanceData {
 	uvec2 spot_lights; // 08 - 120
 	uvec2 decals; // 08 - 128
 
-	vec4 compressed_aabb_position_pad; // 16 - 144 // Only .xyz is used. .w is padding.
-	vec4 compressed_aabb_size_pad; // 16 - 160 // Only .xyz is used. .w is padding.
-	vec4 uv_scale; // 16 - 176
+	highp vec4 compressed_aabb_position_pad; // 16 - 144 // Only .xyz is used. .w is padding.
+	highp vec4 compressed_aabb_size_pad; // 16 - 160 // Only .xyz is used. .w is padding.
+	highp vec4 uv_scale; // 16 - 176
 };
 
 layout(set = 1, binding = 1, std430) buffer restrict readonly InstanceDataBuffer {

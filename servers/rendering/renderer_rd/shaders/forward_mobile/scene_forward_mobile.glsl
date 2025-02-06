@@ -4,6 +4,9 @@
 
 #VERSION_DEFINES
 
+// Default to relaxed precision.
+precision mediump float;
+
 /* Include our forward mobile UBOs definitions etc. */
 #include "scene_forward_mobile_inc.glsl"
 
@@ -13,43 +16,43 @@
 /* INPUT ATTRIBS */
 
 // Always contains vertex position in XYZ, can contain tangent angle in W.
-layout(location = 0) in vec4 vertex_angle_attrib;
+layout(location = 0) in highp vec4 vertex_angle_attrib;
 
 //only for pure render depth when normal is not used
 
 #ifdef NORMAL_USED
 // Contains Normal/Axis in RG, can contain tangent in BA.
-layout(location = 1) in vec4 axis_tangent_attrib;
+layout(location = 1) in highp vec4 axis_tangent_attrib;
 #endif
 
 // Location 2 is unused.
 
 #if defined(COLOR_USED)
-layout(location = 3) in vec4 color_attrib;
+layout(location = 3) in highp vec4 color_attrib;
 #endif
 
 #ifdef UV_USED
-layout(location = 4) in vec2 uv_attrib;
+layout(location = 4) in highp vec2 uv_attrib;
 #endif
 
 #if defined(UV2_USED) || defined(USE_LIGHTMAP) || defined(MODE_RENDER_MATERIAL)
-layout(location = 5) in vec2 uv2_attrib;
+layout(location = 5) in highp vec2 uv2_attrib;
 #endif // MODE_RENDER_MATERIAL
 
 #if defined(CUSTOM0_USED)
-layout(location = 6) in vec4 custom0_attrib;
+layout(location = 6) in highp vec4 custom0_attrib;
 #endif
 
 #if defined(CUSTOM1_USED)
-layout(location = 7) in vec4 custom1_attrib;
+layout(location = 7) in highp vec4 custom1_attrib;
 #endif
 
 #if defined(CUSTOM2_USED)
-layout(location = 8) in vec4 custom2_attrib;
+layout(location = 8) in highp vec4 custom2_attrib;
 #endif
 
 #if defined(CUSTOM3_USED)
-layout(location = 9) in vec4 custom3_attrib;
+layout(location = 9) in highp vec4 custom3_attrib;
 #endif
 
 #if defined(BONES_USED) || defined(USE_PARTICLE_TRAILS)
@@ -57,7 +60,7 @@ layout(location = 10) in uvec4 bone_attrib;
 #endif
 
 #if defined(WEIGHTS_USED) || defined(USE_PARTICLE_TRAILS)
-layout(location = 11) in vec4 weight_attrib;
+layout(location = 11) in highp vec4 weight_attrib;
 #endif
 
 vec3 oct_to_vec3(vec2 e) {
@@ -79,31 +82,31 @@ void axis_angle_to_tbn(vec3 axis, float angle, out vec3 tangent, out vec3 binorm
 
 /* Varyings */
 
-layout(location = 0) highp out vec3 vertex_interp;
+layout(location = 0) out highp vec3 vertex_interp;
 
 #ifdef NORMAL_USED
-layout(location = 1) mediump out vec3 normal_interp;
+layout(location = 1) out vec3 normal_interp;
 #endif
 
 #if defined(COLOR_USED)
-layout(location = 2) mediump out vec4 color_interp;
+layout(location = 2) out vec4 color_interp;
 #endif
 
 #ifdef UV_USED
-layout(location = 3) mediump out vec2 uv_interp;
+layout(location = 3) out vec2 uv_interp;
 #endif
 
 #if defined(UV2_USED) || defined(USE_LIGHTMAP)
-layout(location = 4) mediump out vec2 uv2_interp;
+layout(location = 4) out vec2 uv2_interp;
 #endif
 
 #if defined(TANGENT_USED) || defined(NORMAL_MAP_USED) || defined(LIGHT_ANISOTROPY_USED)
-layout(location = 5) mediump out vec3 tangent_interp;
-layout(location = 6) mediump out vec3 binormal_interp;
+layout(location = 5) out vec3 tangent_interp;
+layout(location = 6) out vec3 binormal_interp;
 #endif
 #if !defined(MODE_RENDER_DEPTH) && !defined(MODE_UNSHADED) && defined(USE_VERTEX_LIGHTING)
-layout(location = 7) highp out vec4 diffuse_light_interp;
-layout(location = 8) highp out vec4 specular_light_interp;
+layout(location = 7) out highp vec4 diffuse_light_interp;
+layout(location = 8) out highp vec4 specular_light_interp;
 
 #include "../scene_forward_vertex_lights_inc.glsl"
 #endif // !defined(MODE_RENDER_DEPTH) && !defined(MODE_UNSHADED) && defined(USE_VERTEX_LIGHTING)
@@ -570,6 +573,9 @@ void main() {
 
 #VERSION_DEFINES
 
+// Default to relaxed precision.
+precision mediump float;
+
 #define SHADER_IS_SRGB false
 #define SHADER_SPACE_FAR 0.0
 
@@ -578,37 +584,37 @@ void main() {
 
 /* Varyings */
 
-layout(location = 0) highp in vec3 vertex_interp;
+layout(location = 0) in highp vec3 vertex_interp;
 
 #ifdef NORMAL_USED
-layout(location = 1) mediump in vec3 normal_interp;
+layout(location = 1) in vec3 normal_interp;
 #endif
 
 #if defined(COLOR_USED)
-layout(location = 2) mediump in vec4 color_interp;
+layout(location = 2) in vec4 color_interp;
 #endif
 
 #ifdef UV_USED
-layout(location = 3) mediump in vec2 uv_interp;
+layout(location = 3) in vec2 uv_interp;
 #endif
 
 #if defined(UV2_USED) || defined(USE_LIGHTMAP)
-layout(location = 4) mediump in vec2 uv2_interp;
+layout(location = 4) in vec2 uv2_interp;
 #endif
 
 #if defined(TANGENT_USED) || defined(NORMAL_MAP_USED) || defined(LIGHT_ANISOTROPY_USED)
-layout(location = 5) mediump in vec3 tangent_interp;
-layout(location = 6) mediump in vec3 binormal_interp;
+layout(location = 5) in vec3 tangent_interp;
+layout(location = 6) in vec3 binormal_interp;
 #endif
 
 #if !defined(MODE_RENDER_DEPTH) && !defined(MODE_UNSHADED) && defined(USE_VERTEX_LIGHTING)
-layout(location = 7) highp in vec4 diffuse_light_interp;
-layout(location = 8) highp in vec4 specular_light_interp;
+layout(location = 7) in highp vec4 diffuse_light_interp;
+layout(location = 8) in highp vec4 specular_light_interp;
 #endif
 
 #ifdef MODE_DUAL_PARABOLOID
 
-layout(location = 9) highp in float dp_clip;
+layout(location = 9) in highp float dp_clip;
 
 #endif
 
