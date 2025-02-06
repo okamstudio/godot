@@ -168,11 +168,11 @@ void RenderSceneBuffersGLES3::configure(const RenderSceneBuffersConfiguration *p
 	} else if (scaling_3d_mode != RS::VIEWPORT_SCALING_3D_MODE_OFF && internal_size == target_size) {
 		// If size matches, we won't use scaling.
 		scaling_3d_mode = RS::VIEWPORT_SCALING_3D_MODE_OFF;
-	} else if (scaling_3d_mode != RS::VIEWPORT_SCALING_3D_MODE_OFF && scaling_3d_mode != RS::VIEWPORT_SCALING_3D_MODE_BILINEAR) {
-		// We only support bilinear scaling atm.
-		WARN_PRINT_ONCE("GLES only supports bilinear scaling.");
+	} else if (scaling_3d_mode != RS::VIEWPORT_SCALING_3D_MODE_OFF && !(scaling_3d_mode == RS::VIEWPORT_SCALING_3D_MODE_BILINEAR || scaling_3d_mode == RS::VIEWPORT_SCALING_3D_MODE_NEAREST)) {
+		WARN_PRINT_ONCE("The Compatibility rendering method only supports bilinear and nearest-neighbor scaling. Falling back to bilinear scaling.");
 		scaling_3d_mode = RS::VIEWPORT_SCALING_3D_MODE_BILINEAR;
 	}
+	// Nearest/bilinear scaling decision is handled in `RasterizerSceneGLES3::_render_post_processing()`.
 
 	// Check if we support MSAA.
 	if (msaa3d.mode != RS::VIEWPORT_MSAA_DISABLED && internal_size.x == 0 && internal_size.y == 0) {
