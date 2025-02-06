@@ -124,6 +124,8 @@ String GDScriptWarning::get_message() const {
 			return "Assert statement will raise an error because the expression is always false.";
 		case INTEGER_DIVISION:
 			return "Integer division, decimal part will be discarded.";
+		case FLOAT_COMPARISON:
+			return "Direct floating-point comparison (this may not evaluate to `true` as you expect). Instead, use `is_equal_approx()` or `is_zero_approx()` for an approximate but predictable comparison.";
 		case NARROWING_CONVERSION:
 			return "Narrowing conversion (float is converted to int and loses precision).";
 		case INT_AS_ENUM_WITHOUT_CAST:
@@ -224,6 +226,7 @@ String GDScriptWarning::get_name_from_code(Code p_code) {
 		"ASSERT_ALWAYS_TRUE",
 		"ASSERT_ALWAYS_FALSE",
 		"INTEGER_DIVISION",
+		"FLOAT_COMPARISON",
 		"NARROWING_CONVERSION",
 		"INT_AS_ENUM_WITHOUT_CAST",
 		"INT_AS_ENUM_WITHOUT_MATCH",

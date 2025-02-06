@@ -3057,6 +3057,20 @@ void GDScriptAnalyzer::reduce_binary_op(GDScriptParser::BinaryOpNode *p_binary_o
 	if (p_binary_op->variant_op == Variant::OP_DIVIDE && left_type.builtin_type == Variant::INT && right_type.builtin_type == Variant::INT) {
 		parser->push_warning(p_binary_op, GDScriptWarning::INTEGER_DIVISION);
 	}
+
+	const bool number_to_float_direct_comparison =
+			(p_binary_op->variant_op == Variant::OP_EQUAL || p_binary_op->variant_op == Variant::OP_NOT_EQUAL) &&
+			(left_type.builtin_type == Variant::INT || left_type.builtin_type == Variant::FLOAT) &&
+			right_type.builtin_type == Variant::FLOAT;
+	const bool float_to_number_direct_comparison =
+			(p_binary_op->variant_op == Variant::OP_EQUAL || p_binary_op->variant_op == Variant::OP_NOT_EQUAL) &&
+			left_type.builtin_type == Variant::FLOAT &&
+			(right_type.builtin_type == Variant::INT || right_type.builtin_type == Variant::FLOAT);
+
+	if (number_to_float_direct_comparison || float_to_number_direct_comparison) {
+		// GDScript allows comparing floats with integers with implicit conversion, but the precision issue remains nonetheless.
+		parser->push_warning(p_binary_op, GDScriptWarning::FLOAT_COMPARISON);
+	}
 #endif
 
 	if (p_binary_op->left_operand->is_constant && p_binary_op->right_operand->is_constant) {

@@ -76,6 +76,7 @@ public:
 		ASSERT_ALWAYS_TRUE, // Expression for assert argument is always true.
 		ASSERT_ALWAYS_FALSE, // Expression for assert argument is always false.
 		INTEGER_DIVISION, // Integer divide by integer, decimal part is discarded.
+		FLOAT_COMPARISON, // Floating-point number is compared with another number using `==` or `!=`, leading to inconsistent results.
 		NARROWING_CONVERSION, // Float value into an integer slot, precision is lost.
 		INT_AS_ENUM_WITHOUT_CAST, // An integer value was used as an enum value without casting.
 		INT_AS_ENUM_WITHOUT_MATCH, // An integer value was used as an enum value without matching enum member.
@@ -133,6 +134,7 @@ public:
 		WARN, // ASSERT_ALWAYS_TRUE
 		WARN, // ASSERT_ALWAYS_FALSE
 		WARN, // INTEGER_DIVISION
+		WARN, // FLOAT_COMPARISON
 		WARN, // NARROWING_CONVERSION
 		WARN, // INT_AS_ENUM_WITHOUT_CAST
 		WARN, // INT_AS_ENUM_WITHOUT_MATCH

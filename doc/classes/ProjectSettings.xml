@@ -506,6 +506,9 @@
 		<member name="debug/gdscript/warnings/exclude_addons" type="bool" setter="" getter="" default="true">
 			If [code]true[/code], scripts in the [code]res://addons[/code] folder will not generate warnings.
 		</member>
+		<member name="debug/gdscript/warnings/float_comparison" type="int" setter="" getter="" default="1">
+			If [code]true[/code], enables warnings when comparing a floating-point value with another floating-point value or an integer value. Due to the limitations of floating-point math, such comparisons may not always evaluate to [code]true[/code] as you expect. Instead, [method @GlobalScope.is_equal_approx] or [method @GlobalScope.is_zero_approx] should be used to perform reliable floating-point number comparisons.
+		</member>
 		<member name="debug/gdscript/warnings/function_used_as_property" type="int" setter="" getter="" default="1" deprecated="This warning is never produced. When a function is used as a property, a [Callable] is returned.">
 			When set to [code]warn[/code] or [code]error[/code], produces a warning or an error respectively when using a function as if it is a property.
 		</member>
