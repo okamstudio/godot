@@ -488,6 +488,23 @@ namespace Godot
         }
 
         /// <summary>
+        /// Returns the result of the component-wise minimum between
+        /// this vector and <paramref name="with"/>.
+        /// Equivalent to <c>new Vector3(Mathf.Min(X, with), Mathf.Min(Y, with), Mathf.Min(Z, with))</c>.
+        /// </summary>
+        /// <param name="with">The other value to use.</param>
+        /// <returns>The resulting minimum vector.</returns>
+        public readonly Vector3 Min(real_t with)
+        {
+            return new Vector3
+            (
+                Mathf.Min(X, with),
+                Mathf.Min(Y, with),
+                Mathf.Min(Z, with)
+            );
+        }
+
+        /// <summary>
         /// Returns the axis of the vector's highest value. See <see cref="Axis"/>.
         /// If all components are equal, this method returns <see cref="Axis.X"/>.
         /// </summary>
@@ -749,6 +766,50 @@ namespace Godot
                 Mathf.Snapped(Y, step),
                 Mathf.Snapped(Z, step)
             );
+        }
+
+        /// <summary>
+        /// Returns the octahedral-encoded (oct32) form of this Vector3 as a Vector2. Since a Vector2 occupies 1/3 less memory compared to Vector3,
+        /// this form of compression can be used to pass greater amounts of normalized Vector3s without increasing storage or memory requirements.
+        /// See also <see cref="Normalized()"/>, <see cref="OctahedronDecode(Vector2)"/>.
+        /// Note: OctahedronEncode can only be used for normalized vectors. OctahedronEncode does not check whether this Vector3 is normalized,
+        /// and will return a value that does not decompress to the original value if the Vector3 is not normalized.
+		/// Note: Octahedral compression is lossy, although visual differences are rarely perceptible in real world scenarios.
+        /// </summary>
+        /// <returns>The encoded Vector2.</returns>
+        public readonly Vector2 OctahedronEncode()
+        {
+            Vector3 n = this;
+            n /= Mathf.Abs(n.X) + Mathf.Abs(n.Y) + Mathf.Abs(n.Z);
+            Vector2 o;
+            if (n.Z >= 0.0f)
+            {
+                o.X = n.X;
+                o.Y = n.Y;
+            }
+            else
+            {
+                o.X = (1.0f - Mathf.Abs(n.Y)) * (n.X >= 0.0f ? 1.0f : -1.0f);
+                o.Y = (1.0f - Mathf.Abs(n.X)) * (n.Y >= 0.0f ? 1.0f : -1.0f);
+            }
+            o.X = o.X * 0.5f + 0.5f;
+            o.Y = o.Y * 0.5f + 0.5f;
+            return o;
+        }
+
+        /// <summary>
+        /// Returns the Vector3 from an octahedral-compressed form created using <see cref="OctahedronEncode()"/> (stored as a Vector2).
+        /// </summary>
+        /// <param name="oct">Encoded Vector2</param>
+        /// <returns>The decoded normalized Vector3.</returns>
+        public static Vector3 OctahedronDecode(Vector2 oct)
+        {
+            var f = new Vector2(oct.X * 2.0f - 1.0f, oct.Y * 2.0f - 1.0f);
+            var n = new Vector3(f.X, f.Y, 1.0f - Mathf.Abs(f.X) - Mathf.Abs(f.Y));
+            real_t t = Mathf.Clamp(-n.Z, 0.0f, 1.0f);
+            n.X += n.X >= 0 ? -t : t;
+            n.Y += n.Y >= 0 ? -t : t;
+            return n.Normalized();
         }
 
         // Constants
