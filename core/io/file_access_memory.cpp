@@ -131,10 +131,6 @@ uint64_t FileAccessMemory::get_buffer(uint8_t *p_dst, uint64_t p_length) const {
 	uint64_t left = length - pos;
 	uint64_t read = MIN(p_length, left);
 
-	if (read < p_length) {
-		WARN_PRINT("Reading less data than requested");
-	}
-
 	memcpy(p_dst, &data[pos], read);
 	pos += read;
 
