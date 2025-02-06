@@ -290,22 +290,26 @@ AnimationNode::NodeTimeInfo AnimationNode::_blend_node(Ref<AnimationNode> p_node
 		}
 	}
 
-	String new_path;
 	AnimationNode *new_parent;
 
-	// This is the slowest part of processing, but as strings process in powers of 2, and the paths always exist, it will not result in that many allocations.
 	if (p_new_parent) {
 		new_parent = p_new_parent;
-		new_path = String(node_state.base_path) + String(p_subpath) + "/";
 	} else {
 		ERR_FAIL_NULL_V(node_state.parent, NodeTimeInfo());
 		new_parent = node_state.parent;
-		new_path = String(new_parent->node_state.base_path) + String(p_subpath) + "/";
+	}
+
+	StringName &base_path = p_new_parent != nullptr ? node_state.base_path : new_parent->node_state.base_path;
+
+	if (unlikely(base_path != p_node->current_base_path || p_subpath != p_node->current_subpath)) {
+		p_node->current_base_path = base_path;
+		p_node->current_subpath = p_subpath;
+		String new_path = String(base_path) + String(p_subpath) + "/";
+		p_node->set_node_state_base_path(std::move(new_path));
 	}
 
 	// This process, which depends on p_sync is needed to process sync correctly in the case of
 	// that a synced AnimationNodeSync exists under the un-synced AnimationNodeSync.
-	p_node->set_node_state_base_path(new_path);
 	p_node->node_state.parent = new_parent;
 	if (!p_playback_info.seeked && !p_sync && !any_valid) {
 		p_playback_info.delta = 0.0;

@@ -125,6 +125,8 @@ public:
 
 private:
 	mutable AHashMap<StringName, int> property_cache;
+	StringName current_base_path;
+	StringName current_subpath;
 
 public:
 	void set_node_state_base_path(const StringName p_base_path) {
