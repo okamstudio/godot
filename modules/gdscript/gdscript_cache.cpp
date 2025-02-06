@@ -46,6 +46,10 @@ String GDScriptParserRef::get_path() const {
 	return path;
 }
 
+void GDScriptParserRef::set_path(const String &p_path) {
+	path = p_path;
+}
+
 uint32_t GDScriptParserRef::get_source_hash() const {
 	return source_hash;
 }
@@ -134,9 +138,15 @@ void GDScriptParserRef::clear() {
 }
 
 GDScriptParserRef::~GDScriptParserRef() {
+#ifdef TOOLS_ENABLED
+	bool remove_from_map = !parser || !parser->is_for_export();
+#else
+	bool remove_from_map = true;
+#endif
+
 	clear();
 
-	if (!abandoned) {
+	if (remove_from_map && !abandoned) {
 		MutexLock lock(GDScriptCache::singleton->mutex);
 		GDScriptCache::singleton->parser_map.erase(path);
 	}

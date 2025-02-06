@@ -132,6 +132,8 @@ GDScriptParser::GDScriptParser() {
 		register_annotation(MethodInfo("@warning_ignore_restore", PropertyInfo(Variant::STRING, "warning")), AnnotationInfo::STANDALONE, &GDScriptParser::warning_ignore_region_annotations, varray(), true);
 		// Networking.
 		register_annotation(MethodInfo("@rpc", PropertyInfo(Variant::STRING, "mode"), PropertyInfo(Variant::STRING, "sync"), PropertyInfo(Variant::STRING, "transfer_mode"), PropertyInfo(Variant::INT, "transfer_channel")), AnnotationInfo::FUNCTION, &GDScriptParser::rpc_annotation, varray("authority", "call_remote", "unreliable", 0));
+		// Preprocessing.
+		register_annotation(MethodInfo("@if_features", PropertyInfo(Variant::STRING, "feature")), AnnotationInfo::FUNCTION, &GDScriptParser::if_features_annotation, varray(Variant()), true);
 	}
 
 #ifdef DEBUG_ENABLED
@@ -944,11 +946,22 @@ void GDScriptParser::parse_class_member(T *(GDScriptParser::*p_parse_function)(b
 
 	// Consume annotations.
 	List<AnnotationNode *> annotations;
+#ifdef TOOLS_ENABLED
+	constexpr bool parsing_function = std::is_same_v<T, FunctionNode>;
+	AnnotationNode *if_features = nullptr;
+#endif
 	while (!annotation_stack.is_empty()) {
 		AnnotationNode *last_annotation = annotation_stack.back()->get();
 		if (last_annotation->applies_to(p_target)) {
 			annotations.push_front(last_annotation);
 			annotation_stack.pop_back();
+#ifdef TOOLS_ENABLED
+			if constexpr (parsing_function) {
+				if (last_annotation->name == StringName("@if_features")) {
+					if_features = last_annotation;
+				}
+			}
+#endif
 		} else {
 			push_error(vformat(R"(Annotation "%s" cannot be applied to a %s.)", last_annotation->name, p_member_kind));
 			clear_unused_annotations();
@@ -994,6 +1007,32 @@ void GDScriptParser::parse_class_member(T *(GDScriptParser::*p_parse_function)(b
 	}
 
 	min_member_doc_line = member->end_line + 1; // Prevent multiple members from using the same doc comment.
+
+	if constexpr (parsing_function) {
+		if (if_features) {
+			// Mark this one as a default implementation if the annotation provides no features.
+			member->if_features.is_default_impl = if_features->arguments.is_empty();
+
+			// Let the first default one with of same name fully in.
+			// The others are added so they are parsed, but not indexed so name clash error is avoided.
+			HashMap<StringName, int>::Iterator E = current_class->members_indices.find(member->identifier->name);
+			if (E) {
+				// Member with that name already exists.
+				const ClassNode::Member &existing = current_class->members[E->value];
+				if (existing.type == ClassNode::Member::FUNCTION) { // Otherwise, an error is raised anyway.
+					// HACK: Compare compatibility of functions via TreePrinter.
+					const String &existing_str = TreePrinter().strinfigy_function_declaration(existing.function);
+					const String &incoming_str = TreePrinter().strinfigy_function_declaration(member);
+					if (existing_str != incoming_str) {
+						push_error(vformat(R"(%s "%s" does not match the signature of a previously declared function of the same name.)", p_member_kind.capitalize(), member->identifier->name), member->identifier);
+					} else {
+						current_class->add_if_features_potential_candidate(member);
+					}
+					return;
+				}
+			}
+		}
+	}
 #endif // TOOLS_ENABLED
 
 	if (member->identifier != nullptr) {
@@ -4975,6 +5014,108 @@ bool GDScriptParser::warning_ignore_region_annotations(AnnotationNode *p_annotat
 #endif // DEBUG_ENABLED
 }
 
+bool GDScriptParser::if_features_annotation(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class) {
+#if defined(TOOLS_ENABLED)
+	ERR_FAIL_COND_V_MSG(p_target->type != Node::FUNCTION, false, vformat(R"("%s" annotation can only be applied to functions.)", p_annotation->name));
+
+	FunctionNode *function = static_cast<FunctionNode *>(p_target);
+	if (function->if_features.used) {
+		push_error("The @if_features annotation can only be used once per function.");
+		return false;
+	}
+
+	function->if_features.used = true;
+
+	thread_local LocalVector<String> features;
+	features.clear();
+	for (const ExpressionNode *arg : p_annotation->arguments) {
+		DEV_ASSERT(arg->reduced);
+		if (arg->reduced_value.get_type() == Variant::STRING) {
+			features.push_back(arg->reduced_value);
+		} else {
+			push_error("The arguments to @if_features must be strings.");
+			return false;
+		}
+	}
+
+	// There's nothing to process unless we're exporting or running in the editor.
+	// Sadly, we can't tell for sure if the script is being run in the editor or just being edited.
+	// We only know for sure it's the latter if this parsing is done for completion reasons.
+	if (for_edition) {
+		return true;
+	}
+
+	// The idea is to keep the first one fitting, with only the default possibly overridden by another one coming later.
+
+	FunctionNode *target_function = static_cast<FunctionNode *>(p_target);
+	const StringName &function_name = target_function->identifier->name;
+
+	auto _check_incoming_fits = [&]() -> bool {
+		if (features.is_empty()) {
+			return false; // Defaults are considered non-fitting.
+		}
+		bool fitting = true;
+		for (const String &feature : features) {
+			if (for_export) {
+				// Export time in editor build.
+				if (!export_features.has(feature)) {
+					fitting = false;
+					break;
+				}
+			} else {
+				// Run-on-editor.
+				if (!OS::get_singleton()->has_feature(feature)) {
+					fitting = false;
+					break;
+				}
+			}
+		}
+		return fitting;
+	};
+
+	if (target_function->if_features.potential_candidate_index == -1) {
+		// Chosen one at parsing time because it was the first one found. Only keep if fitting.
+		if (!_check_incoming_fits()) {
+			HashMap<StringName, int>::Iterator E = p_class->members_indices.find(function_name);
+			int64_t current_match_index = E->value;
+			target_function->if_features.potential_candidate_index = current_match_index;
+			p_class->members_indices.remove(E);
+		}
+	} else {
+		HashMap<StringName, int>::Iterator E = p_class->members_indices.find(function_name);
+		if ((bool)E) {
+			// There's a current one. Override if current is default and incoming fits.
+			bool current_match_is_default = p_class->members[E->value].function->if_features.is_default_impl;
+			if (current_match_is_default && _check_incoming_fits()) {
+				E->value = target_function->if_features.potential_candidate_index;
+				target_function->if_features.potential_candidate_index = -1;
+			}
+		} else {
+			// Incoming fits and there's no current chosen. Pick if it's default or fits.
+			if (target_function->if_features.is_default_impl || _check_incoming_fits()) {
+				p_class->members_indices.insert(function_name, target_function->if_features.potential_candidate_index);
+				target_function->if_features.potential_candidate_index = -1;
+			}
+		}
+	}
+#endif
+
+	return true;
+}
+
+#ifdef TOOLS_ENABLED
+void GDScriptParser::collect_unfitting_functions(ClassNode *p_class, LocalVector<Pair<ClassNode *, FunctionNode *>> &r_functions) {
+	for (const ClassNode::Member &member : p_class->members) {
+		if (member.type == ClassNode::Member::CLASS) {
+			collect_unfitting_functions(member.m_class, r_functions);
+		}
+		if (member.type == ClassNode::Member::FUNCTION && member.function->if_features.potential_candidate_index != -1) {
+			r_functions.push_back(Pair(p_class, member.function));
+		}
+	}
+}
+#endif
+
 bool GDScriptParser::rpc_annotation(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class) {
 	ERR_FAIL_COND_V_MSG(p_target->type != Node::FUNCTION, false, vformat(R"("%s" annotation can only be applied to functions.)", p_annotation->name));
 
@@ -5833,9 +5974,11 @@ void GDScriptParser::TreePrinter::print_for(ForNode *p_for) {
 	decrease_indent();
 }
 
-void GDScriptParser::TreePrinter::print_function(FunctionNode *p_function, const String &p_context) {
-	for (const AnnotationNode *E : p_function->annotations) {
-		print_annotation(E);
+void GDScriptParser::TreePrinter::print_function(FunctionNode *p_function, const String &p_context, bool p_signature_only) {
+	if (!p_signature_only) {
+		for (const AnnotationNode *E : p_function->annotations) {
+			print_annotation(E);
+		}
 	}
 	if (p_function->is_static) {
 		push_text("Static ");
@@ -5854,10 +5997,17 @@ void GDScriptParser::TreePrinter::print_function(FunctionNode *p_function, const
 		}
 		print_parameter(p_function->parameters[i]);
 	}
-	push_line(" ) :");
-	increase_indent();
-	print_suite(p_function->body);
-	decrease_indent();
+	push_text(" ) ");
+	if (p_function->return_type) {
+		push_text("-> ");
+		print_type(p_function->return_type);
+	}
+	if (!p_signature_only) {
+		push_line(" :");
+		increase_indent();
+		print_suite(p_function->body);
+		decrease_indent();
+	}
 }
 
 void GDScriptParser::TreePrinter::print_get_node(GetNodeNode *p_get_node) {
@@ -6276,6 +6426,11 @@ void GDScriptParser::TreePrinter::print_tree(const GDScriptParser &p_parser) {
 	print_class(p_parser.get_tree());
 
 	print_line(String(printed));
+}
+
+String GDScriptParser::TreePrinter::strinfigy_function_declaration(FunctionNode *p_function) {
+	print_function(p_function, "Function", true);
+	return String(printed);
 }
 
 #endif // DEBUG_ENABLED

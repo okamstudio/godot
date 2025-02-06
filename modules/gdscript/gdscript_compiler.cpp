@@ -2947,6 +2947,12 @@ Error GDScriptCompiler::_compile_class(GDScript *p_script, const GDScriptParser:
 		const GDScriptParser::ClassNode::Member &member = p_class->members[i];
 		if (member.type == member.FUNCTION) {
 			const GDScriptParser::FunctionNode *function = member.function;
+#ifdef TOOLS_ENABLED
+			// Ignore unfitting @if_features-decorated functions.
+			if (function->if_features.potential_candidate_index != -1) {
+				continue;
+			}
+#endif
 			Error err = OK;
 			_parse_function(err, p_script, p_class, function);
 			if (err) {

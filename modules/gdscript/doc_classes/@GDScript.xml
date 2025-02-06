@@ -730,6 +730,17 @@
 				[b]Note:[/b] Unlike most other annotations, the argument of the [annotation @icon] annotation must be a string literal (constant expressions are not supported).
 			</description>
 		</annotation>
+		<annotation name="@if_features" qualifiers="vararg">
+			<return type="void" />
+			<param index="0" name="feature" type="String" default="null" />
+			<description>
+				Marks the following function to be taken into account only if all the features passed as arguments are declared by the platform or export preset.
+				This is meant to be applied to a set of functions with the same name so at runtime you have a single implementation of some feature according to the features supported. All the functions in such a set must have the exact same signature.
+				If the annotation has no features specified, it's considered a default one as so it's only used if none of the other functions with the same name are proper fits.
+				At runtime from an editor build, the features are checked at the moment the script is parsed, against what the OS advertises.
+				At export time, the features are checked against the target platform's OS as well as the list of custom features specified in an export preset. Moreover, [b]the functions not matching the features, are removed from the source code[/b] so the exported project won't contain them at all.
+			</description>
+		</annotation>
 		<annotation name="@onready">
 			<return type="void" />
 			<description>

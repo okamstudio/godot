@@ -67,6 +67,7 @@ private:
 public:
 	Status get_status() const;
 	String get_path() const;
+	void set_path(const String &p_path);
 	uint32_t get_source_hash() const;
 	GDScriptParser *get_parser();
 	GDScriptAnalyzer *get_analyzer();
