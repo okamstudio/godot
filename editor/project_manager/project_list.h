@@ -264,6 +264,8 @@ public:
 
 	void select_project(int p_index);
 	void select_first_visible_project();
+	void select_all_visible_projects();
+	void deselect_all_visible_projects();
 	Vector<Item> get_selected_projects() const;
 	const HashSet<String> &get_selected_project_keys() const;
 	int get_single_selected_index() const;

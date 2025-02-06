@@ -1043,6 +1043,22 @@ void ProjectList::select_first_visible_project() {
 	}
 }
 
+void ProjectList::deselect_all_visible_projects() {
+	for (int i = 0; i < _projects.size(); i++) {
+		if (_projects[i].control->is_visible()) {
+			_deselect_project_nocheck(i);
+		}
+	}
+}
+
+void ProjectList::select_all_visible_projects() {
+	for (int i = 0; i < _projects.size(); i++) {
+		if (_projects[i].control->is_visible()) {
+			_select_project_nocheck(i);
+		}
+	}
+}
+
 Vector<ProjectList::Item> ProjectList::get_selected_projects() const {
 	Vector<Item> items;
 	if (_selected_project_paths.size() == 0) {

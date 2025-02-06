@@ -1105,6 +1105,16 @@ void ProjectManager::shortcut_input(const Ref<InputEvent> &p_ev) {
 					keycode_handled = false;
 				}
 			} break;
+			case Key::A: {
+				if (k->is_command_or_control_pressed()) {
+					if (k->is_shift_pressed()) {
+						project_list->deselect_all_visible_projects();
+					} else {
+						project_list->select_all_visible_projects();
+					}
+					_update_project_buttons();
+				}
+			} break;
 			default: {
 				keycode_handled = false;
 			} break;
