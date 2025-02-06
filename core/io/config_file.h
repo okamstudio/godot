@@ -39,7 +39,15 @@
 class ConfigFile : public RefCounted {
 	GDCLASS(ConfigFile, RefCounted);
 
-	HashMap<String, HashMap<String, Variant>> values;
+	struct Entry {
+		Variant value;
+		String comment;
+	};
+
+	HashMap<String, HashMap<String, Entry>> entries;
+
+	void _create_entry_if_needed(const String &p_section, const String &p_key);
+	String _get_entry_as_string(const String &p_key, const Entry &p_entry) const;
 
 	PackedStringArray _get_sections() const;
 	PackedStringArray _get_section_keys(const String &p_section) const;
@@ -54,15 +62,20 @@ protected:
 public:
 	void set_value(const String &p_section, const String &p_key, const Variant &p_value);
 	Variant get_value(const String &p_section, const String &p_key, const Variant &p_default = Variant()) const;
+	
+	void set_section_key_comment(const String &p_section, const String &p_key, const String &p_comment);
+	String get_section_key_comment(const String &p_section, const String &p_key) const;
 
 	bool has_section(const String &p_section) const;
 	bool has_section_key(const String &p_section, const String &p_key) const;
+	bool has_section_key_comment(const String &p_section, const String &p_key) const;
 
 	void get_sections(List<String> *r_sections) const;
 	void get_section_keys(const String &p_section, List<String> *r_keys) const;
 
 	void erase_section(const String &p_section);
 	void erase_section_key(const String &p_section, const String &p_key);
+	void erase_section_key_comment(const String &p_section, const String &p_key);
 
 	Error save(const String &p_path);
 	Error load(const String &p_path);

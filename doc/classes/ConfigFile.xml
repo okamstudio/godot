@@ -84,6 +84,45 @@
 		}
 		[/csharp]
 		[/codeblocks]
+		If a game's difficulty is enumerated, the example below shows how the game's configuration file could store a comment as a guide to each value:
+		[codeblocks]
+		[gdscript]
+		enum Difficulty {
+		    CASUAL = 0,
+		    NORMAL = 1,
+		    HARD = 2,
+		    SAFETY = 3,
+		}
+
+		var player_difficulty = Difficulty.NORMAL
+
+		func create_config():
+		    var config = ConfigFile.new()
+		    config.set_value("game", "difficulty", player_difficulty)
+		    config.set_section_key_comment("game", "difficulty", "0: Casual\n1: Normal\n2: Hard\n3: Safety")
+
+		    config.save("user://game_config.ini")
+		[/gdscript]
+		[csharp]
+		public enum Difficulty {
+		    Casual = 0,
+		    Normal = 1,
+		    Hard = 2,
+		    Safety = 3,
+		};
+
+		public var PlayerDifficulty = Difficulty.Normal;
+
+		public void CreateConfig()
+		{
+		    var config = new ConfigFile();
+		    config.SetValue("Game", "Difficulty", PlayerDifficulty);
+		    config.SetSectionKeyComment("Game", "Difficulty", "0: Casual\n1: Normal\n2: Hard\n3: Safety");
+
+		    config.Save("user://GameConfig.ini");
+		}
+		[/csharp]
+		[/codeblocks]
 		Any operation that mutates the ConfigFile such as [method set_value], [method clear], or [method erase_section], only changes what is loaded in memory. If you want to write the change to a file, you have to save the changes with [method save], [method save_encrypted], or [method save_encrypted_pass].
 		Keep in mind that section and property names can't contain spaces. Anything after a space will be ignored on save and on load.
 		ConfigFiles can also contain manually written comment lines starting with a semicolon ([code];[/code]). Those lines will be ignored when parsing the file. Note that comments will be lost when saving the ConfigFile. This can still be useful for dedicated server configuration files, which are typically never overwritten without explicit user action.
@@ -117,6 +156,22 @@
 			<param index="1" name="key" type="String" />
 			<description>
 				Deletes the specified key in a section. Raises an error if either the section or the key do not exist.
+			</description>
+		</method>
+		<method name="erase_section_key_comment">
+			<return type="void" />
+			<param index="0" name="section" type="String" />
+			<param index="1" name="key" type="String" />
+			<description>
+				Blanks out the comment pertaining to a specified key in a section. Raises an error if either the section or the key do not exist.
+			</description>
+		</method>
+		<method name="get_section_key_comment" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="section" type="String" />
+			<param index="1" name="key" type="String" />
+			<description>
+				Returns the comment associated with the specified section and key. If either the section or the key do not exist, an error is raised, and an empty string is returned.
 			</description>
 		</method>
 		<method name="get_section_keys" qualifiers="const">
@@ -154,6 +209,14 @@
 			<param index="1" name="key" type="String" />
 			<description>
 				Returns [code]true[/code] if the specified section-key pair exists.
+			</description>
+		</method>
+		<method name="has_section_key_comment" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="section" type="String" />
+			<param index="1" name="key" type="String" />
+			<description>
+				Returns [code]true[/code] if the specified section-key pair exists and a comment is written for it.
 			</description>
 		</method>
 		<method name="load">
@@ -216,6 +279,15 @@
 			<description>
 				Saves the contents of the [ConfigFile] object to the AES-256 encrypted file specified as a parameter, using the provided [param password] to encrypt it. The output file uses an INI-style structure.
 				Returns [constant OK] on success, or one of the other [enum Error] values if the operation failed.
+			</description>
+		</method>
+		<method name="set_section_key_comment">
+			<return type="void" />
+			<param index="0" name="section" type="String" />
+			<param index="1" name="key" type="String" />
+			<param index="2" name="comment" type="String" />
+			<description>
+				Assigns a comment to the specified key of the specified section. If either the section or the key do not exist, an error is raised.
 			</description>
 		</method>
 		<method name="set_value">

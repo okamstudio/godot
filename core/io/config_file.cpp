@@ -60,80 +60,155 @@ PackedStringArray ConfigFile::_get_section_keys(const String &p_section) const {
 	return arr;
 }
 
+void ConfigFile::_create_entry_if_needed(const String &p_section, const String &p_key) {
+	if (!entries.has(p_section)) {
+		entries.insert(p_section, HashMap<String, Entry>(), p_section.is_empty());
+	}
+	if (!entries[p_section].has(p_key)) {
+		entries[p_section].insert(p_key, Entry());
+	}
+}
+
+String ConfigFile::_get_entry_as_string(const String &p_key, const Entry &p_entry) const {
+	String estr;
+
+	if (!p_entry.comment.is_empty()) {
+		PackedStringArray lines = p_entry.comment.split("\n", true); // allow empty for multi-line separation in detailed comments
+		
+		// marker for removing the empty front lines
+		int first_populated_line = -1;
+
+		// remove empty lines in the back
+		for (int i = lines.size() - 1; i > -1; i--) {
+			if (lines[i].strip_edges().is_empty()) {
+				if (first_populated_line == -1) {
+					lines.remove_at(i);
+				}
+			} else {
+				first_populated_line = i;
+			}
+		}
+		// remove empty lines in the front
+		for (int i = first_populated_line; i > -1; i--) {
+			if (lines[i].strip_edges().is_empty()) {
+				lines.remove_at(i);
+			}
+		}
+
+		if (!lines.is_empty()) {
+			for (int i = 0; i < lines.size(); i++) {
+				String line = lines[i].strip_edges(false, true); // no reason to keep the right edge i think?
+				estr += ("; " + line + "\n"); // it should be ok to always indent the comment, right? maybe make the auto-indentation a project setting...
+			}
+		}
+	}
+
+	String vstr;
+	VariantWriter::write_to_string(p_entry.value, vstr);
+	estr += (p_key.property_name_encode() + "=" + vstr + "\n");
+
+	return estr;
+}
+
 void ConfigFile::set_value(const String &p_section, const String &p_key, const Variant &p_value) {
 	if (p_value.get_type() == Variant::NIL) { // Erase key.
-		if (!values.has(p_section)) {
+		if (!entries.has(p_section)) {
 			return;
 		}
 
-		values[p_section].erase(p_key);
-		if (values[p_section].is_empty()) {
-			values.erase(p_section);
+		entries[p_section].erase(p_key);
+		if (entries[p_section].is_empty()) {
+			entries.erase(p_section);
 		}
 	} else {
-		if (!values.has(p_section)) {
-			// Insert section-less keys at the beginning.
-			values.insert(p_section, HashMap<String, Variant>(), p_section.is_empty());
-		}
-
-		values[p_section][p_key] = p_value;
+		_create_entry_if_needed(p_section, p_key);
+		entries[p_section][p_key].value = p_value;
 	}
 }
 
 Variant ConfigFile::get_value(const String &p_section, const String &p_key, const Variant &p_default) const {
-	if (!values.has(p_section) || !values[p_section].has(p_key)) {
+	if (!entries.has(p_section) || !entries[p_section].has(p_key)) {
 		ERR_FAIL_COND_V_MSG(p_default.get_type() == Variant::NIL, Variant(),
 				vformat("Couldn't find the given section \"%s\" and key \"%s\", and no default was given.", p_section, p_key));
 		return p_default;
 	}
 
-	return values[p_section][p_key];
+	return entries[p_section][p_key].value;
+}
+
+void ConfigFile::set_section_key_comment(const String &p_section, const String &p_key, const String &p_comment) {
+	// It might not be desirable to give an error for this case. For example, assigning a comment to a value previously made null would break...
+	ERR_FAIL_COND_MSG(!has_section_key(p_section, p_key), vformat("Couldn't find the given section \"%s\" and key \"%s\".", p_section, p_key));
+	entries[p_section][p_key].comment = p_comment;
+}
+
+String ConfigFile::get_section_key_comment(const String &p_section, const String &p_key) const {
+	ERR_FAIL_COND_V_MSG(
+			!entries.has(p_section) || !entries[p_section].has(p_key),
+			String(),
+			vformat("Couldn't find the given section \"%s\" and key \"%s\".", p_section, p_key));
+
+	return entries[p_section][p_key].comment;
 }
 
 bool ConfigFile::has_section(const String &p_section) const {
-	return values.has(p_section);
+	return entries.has(p_section);
 }
 
 bool ConfigFile::has_section_key(const String &p_section, const String &p_key) const {
-	if (!values.has(p_section)) {
+	if (!entries.has(p_section)) {
 		return false;
 	}
-	return values[p_section].has(p_key);
+	return entries[p_section].has(p_key);
+}
+
+bool ConfigFile::has_section_key_comment(const String &p_section, const String &p_key) const {
+	if (!has_section_key(p_section, p_key)) {
+		return false;
+	}
+	return !entries[p_section][p_key].comment.is_empty();
 }
 
 void ConfigFile::get_sections(List<String> *r_sections) const {
-	for (const KeyValue<String, HashMap<String, Variant>> &E : values) {
+	for (const KeyValue<String, HashMap<String, Entry>> &E : entries) {
 		r_sections->push_back(E.key);
 	}
 }
 
 void ConfigFile::get_section_keys(const String &p_section, List<String> *r_keys) const {
-	ERR_FAIL_COND_MSG(!values.has(p_section), vformat("Cannot get keys from nonexistent section \"%s\".", p_section));
+	ERR_FAIL_COND_MSG(!entries.has(p_section), vformat("Cannot get keys from nonexistent section \"%s\".", p_section));
 
-	for (const KeyValue<String, Variant> &E : values[p_section]) {
+	for (const KeyValue<String, Entry> &E : entries[p_section]) {
 		r_keys->push_back(E.key);
 	}
 }
 
 void ConfigFile::erase_section(const String &p_section) {
-	ERR_FAIL_COND_MSG(!values.has(p_section), vformat("Cannot erase nonexistent section \"%s\".", p_section));
-	values.erase(p_section);
+	ERR_FAIL_COND_MSG(!entries.has(p_section), vformat("Cannot erase nonexistent section \"%s\".", p_section));
+	entries.erase(p_section);
 }
 
 void ConfigFile::erase_section_key(const String &p_section, const String &p_key) {
-	ERR_FAIL_COND_MSG(!values.has(p_section), vformat("Cannot erase key \"%s\" from nonexistent section \"%s\".", p_key, p_section));
-	ERR_FAIL_COND_MSG(!values[p_section].has(p_key), vformat("Cannot erase nonexistent key \"%s\" from section \"%s\".", p_key, p_section));
+	ERR_FAIL_COND_MSG(!entries.has(p_section), vformat("Cannot erase key \"%s\" from nonexistent section \"%s\".", p_key, p_section));
+	ERR_FAIL_COND_MSG(!entries[p_section].has(p_key), vformat("Cannot erase nonexistent key \"%s\" from section \"%s\".", p_key, p_section));
 
-	values[p_section].erase(p_key);
-	if (values[p_section].is_empty()) {
-		values.erase(p_section);
+	entries[p_section].erase(p_key);
+	if (entries[p_section].is_empty()) {
+		entries.erase(p_section);
 	}
+}
+
+void ConfigFile::erase_section_key_comment(const String &p_section, const String &p_key) {
+	ERR_FAIL_COND_MSG(!entries.has(p_section), vformat("Cannot erase comment from nonexistent section \"%s\".", p_section));
+	ERR_FAIL_COND_MSG(!entries[p_section].has(p_key), vformat("Cannot erase comment from nonexistent key \"%s\" in section \"%s\".", p_key, p_section));
+
+	entries[p_section][p_key].comment = String();
 }
 
 String ConfigFile::encode_to_text() const {
 	StringBuilder sb;
 	bool first = true;
-	for (const KeyValue<String, HashMap<String, Variant>> &E : values) {
+	for (const KeyValue<String, HashMap<String, Entry>> &E : entries) {
 		if (first) {
 			first = false;
 		} else {
@@ -143,10 +218,8 @@ String ConfigFile::encode_to_text() const {
 			sb.append("[" + E.key + "]\n\n");
 		}
 
-		for (const KeyValue<String, Variant> &F : E.value) {
-			String vstr;
-			VariantWriter::write_to_string(F.value, vstr);
-			sb.append(F.key.property_name_encode() + "=" + vstr + "\n");
+		for (const KeyValue<String, Entry> &F : E.value) {
+			sb.append(_get_entry_as_string(F.key, F.value));
 		}
 	}
 	return sb.as_string();
@@ -200,7 +273,7 @@ Error ConfigFile::save_encrypted_pass(const String &p_path, const String &p_pass
 
 Error ConfigFile::_internal_save(Ref<FileAccess> file) {
 	bool first = true;
-	for (const KeyValue<String, HashMap<String, Variant>> &E : values) {
+	for (const KeyValue<String, HashMap<String, Entry>> &E : entries) {
 		if (first) {
 			first = false;
 		} else {
@@ -210,10 +283,8 @@ Error ConfigFile::_internal_save(Ref<FileAccess> file) {
 			file->store_string("[" + E.key.replace("]", "\\]") + "]\n\n");
 		}
 
-		for (const KeyValue<String, Variant> &F : E.value) {
-			String vstr;
-			VariantWriter::write_to_string(F.value, vstr);
-			file->store_string(F.key.property_name_encode() + "=" + vstr + "\n");
+		for (const KeyValue<String, Entry> &F : E.value) {
+			file->store_string(_get_entry_as_string(F.key, F.value));
 		}
 	}
 
@@ -315,21 +386,26 @@ Error ConfigFile::_parse(const String &p_path, VariantParser::Stream *p_stream) 
 }
 
 void ConfigFile::clear() {
-	values.clear();
+	entries.clear();
 }
 
 void ConfigFile::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_value", "section", "key", "value"), &ConfigFile::set_value);
 	ClassDB::bind_method(D_METHOD("get_value", "section", "key", "default"), &ConfigFile::get_value, DEFVAL(Variant()));
 
+	ClassDB::bind_method(D_METHOD("set_section_key_comment", "section", "key", "comment"), &ConfigFile::set_section_key_comment);
+	ClassDB::bind_method(D_METHOD("get_section_key_comment", "section", "key"), &ConfigFile::get_section_key_comment);
+
 	ClassDB::bind_method(D_METHOD("has_section", "section"), &ConfigFile::has_section);
 	ClassDB::bind_method(D_METHOD("has_section_key", "section", "key"), &ConfigFile::has_section_key);
+	ClassDB::bind_method(D_METHOD("has_section_key_comment", "section", "key"), &ConfigFile::has_section_key_comment);
 
 	ClassDB::bind_method(D_METHOD("get_sections"), &ConfigFile::_get_sections);
 	ClassDB::bind_method(D_METHOD("get_section_keys", "section"), &ConfigFile::_get_section_keys);
 
 	ClassDB::bind_method(D_METHOD("erase_section", "section"), &ConfigFile::erase_section);
 	ClassDB::bind_method(D_METHOD("erase_section_key", "section", "key"), &ConfigFile::erase_section_key);
+	ClassDB::bind_method(D_METHOD("erase_section_key_comment", "section", "key"), &ConfigFile::erase_section_key_comment);
 
 	ClassDB::bind_method(D_METHOD("load", "path"), &ConfigFile::load);
 	ClassDB::bind_method(D_METHOD("parse", "data"), &ConfigFile::parse);
