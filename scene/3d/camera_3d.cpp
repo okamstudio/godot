@@ -296,7 +296,7 @@ Transform3D Camera3D::get_camera_transform() const {
 }
 
 Projection Camera3D::_get_camera_projection(real_t p_near) const {
-	Size2 viewport_size = get_viewport()->get_visible_rect().size;
+	Size2 viewport_size = get_viewport()->get_camera_rect_size();
 	Projection cm;
 
 	switch (mode) {
@@ -307,7 +307,7 @@ Projection Camera3D::_get_camera_projection(real_t p_near) const {
 			cm.set_orthogonal(size, viewport_size.aspect(), p_near, _far, keep_aspect == KEEP_WIDTH);
 		} break;
 		case PROJECTION_FRUSTUM: {
-			cm.set_frustum(size, viewport_size.aspect(), frustum_offset, p_near, _far);
+			cm.set_frustum(size, viewport_size.aspect(), frustum_offset, p_near, _far, keep_aspect == KEEP_WIDTH);
 		} break;
 	}
 
@@ -436,8 +436,12 @@ Vector3 Camera3D::project_local_ray_normal(const Point2 &p_pos) const {
 		ray = Vector3(0, 0, -1);
 	} else {
 		Projection cm = _get_camera_projection(_near);
-		Vector2 screen_he = cm.get_viewport_half_extents();
-		ray = Vector3(((cpos.x / viewport_size.width) * 2.0 - 1.0) * screen_he.x, ((1.0 - (cpos.y / viewport_size.height)) * 2.0 - 1.0) * screen_he.y, -_near).normalized();
+		Vector2 top_right = cm.get_viewport_half_extents();
+		Vector2 offset = Vector2();
+		if (mode == PROJECTION_FRUSTUM) {
+			offset = frustum_offset;
+		}
+		ray = Vector3(((cpos.x / viewport_size.width) * 2.0 - 1.0) * (top_right.x - offset.x) + offset.x, ((1.0 - (cpos.y / viewport_size.height)) * 2.0 - 1.0) * (top_right.y - offset.y) + offset.y, -_near).normalized();
 	}
 
 	return ray;
@@ -533,12 +537,19 @@ Vector3 Camera3D::project_position(const Point2 &p_point, real_t p_z_depth) cons
 	Plane z_slice(Vector3(0, 0, 1), -p_z_depth);
 	Vector3 res;
 	z_slice.intersect_3(cm.get_projection_plane(Projection::Planes::PLANE_RIGHT), cm.get_projection_plane(Projection::Planes::PLANE_TOP), &res);
-	Vector2 vp_he(res.x, res.y);
+	Vector2 top_right(res.x, res.y);
 
 	Vector2 point;
 	point.x = (p_point.x / viewport_size.x) * 2.0 - 1.0;
 	point.y = (1.0 - (p_point.y / viewport_size.y)) * 2.0 - 1.0;
-	point *= vp_he;
+
+	if (mode == PROJECTION_FRUSTUM) {
+		Vector2 offset_at_z_depth = frustum_offset * p_z_depth / _near;
+		point *= (top_right - offset_at_z_depth);
+		point += offset_at_z_depth;
+	} else {
+		point *= top_right;
+	}
 
 	Vector3 p(point.x, point.y, -p_z_depth);
 

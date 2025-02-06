@@ -115,6 +115,99 @@ TEST_CASE("[SceneTree][Camera3D] Getters and setters") {
 		CHECK(test_camera->get_size() == size);
 	}
 
+	SUBCASE("Frustum planes") {
+		constexpr real_t sqrt2_half = 1.41421356237 / 2;
+
+		constexpr real_t fov = 90.0, size = 6.0;
+		constexpr real_t near1 = 0.1, near2 = 0.5;
+		constexpr real_t far1 = 11.0, far2 = 15.0;
+
+		SubViewport *mock_viewport = memnew(SubViewport);
+
+		mock_viewport->set_size(Vector2i(512, 512)); // aspect 1
+		SceneTree::get_singleton()->get_root()->add_child(mock_viewport);
+		mock_viewport->add_child(test_camera);
+
+		Vector<Plane> planes;
+
+		test_camera->set_perspective(fov, near1, far1);
+		planes = test_camera->get_frustum();
+		CHECK(planes[Projection::PLANE_NEAR].normalized().is_equal_approx(Plane(0, 0, 1, -near1)));
+		CAPTURE(far1); // FIXME
+		CAPTURE(planes[Projection::PLANE_FAR]); // FIXME
+		CAPTURE(planes[Projection::PLANE_FAR].normalized()); // FIXME
+		CHECK(planes[Projection::PLANE_FAR].normalized().is_equal_approx(Plane(0, 0, -1, far1)));
+		CHECK(planes[Projection::PLANE_LEFT].normalized().is_equal_approx(Plane(-sqrt2_half, 0, sqrt2_half, 0)));
+		CHECK(planes[Projection::PLANE_TOP].normalized().is_equal_approx(Plane(0, sqrt2_half, sqrt2_half, 0)));
+		CHECK(planes[Projection::PLANE_RIGHT].normalized().is_equal_approx(Plane(sqrt2_half, 0, sqrt2_half, 0)));
+		CHECK(planes[Projection::PLANE_BOTTOM].normalized().is_equal_approx(Plane(0, -sqrt2_half, sqrt2_half, 0)));
+
+		test_camera->set_orthogonal(size, near2, far2);
+		planes = test_camera->get_frustum();
+		CHECK(planes[Projection::PLANE_NEAR].normalized().is_equal_approx(Plane(0, 0, 1, -near2)));
+		CHECK(planes[Projection::PLANE_FAR].normalized().is_equal_approx(Plane(0, 0, -1, far2)));
+		CHECK(planes[Projection::PLANE_LEFT].normalized().is_equal_approx(Plane(-1, 0, 0, size / 2)));
+		CHECK(planes[Projection::PLANE_TOP].normalized().is_equal_approx(Plane(0, 1, 0, size / 2)));
+		CHECK(planes[Projection::PLANE_RIGHT].normalized().is_equal_approx(Plane(1, 0, 0, size / 2)));
+		CHECK(planes[Projection::PLANE_BOTTOM].normalized().is_equal_approx(Plane(0, -1, 0, size / 2)));
+
+		mock_viewport->remove_child(test_camera);
+		memdelete(mock_viewport);
+	}
+
+	SUBCASE("Frustum points") {
+		constexpr real_t fov = 90.0, size = 6.0;
+		constexpr real_t near1 = 0.1, near2 = 0.5;
+		constexpr real_t far1 = 11.0, far2 = 15.0;
+		const real_t tan_fov = Math::tan(Math::deg_to_rad(fov / 2));
+
+		SubViewport *mock_viewport = memnew(SubViewport);
+
+		mock_viewport->set_size(Vector2i(512, 512)); // aspect 1
+		SceneTree::get_singleton()->get_root()->add_child(mock_viewport);
+		mock_viewport->add_child(test_camera);
+
+		Vector<Vector3> points;
+
+		test_camera->set_perspective(fov, near1, far1);
+		points = test_camera->get_near_plane_points();
+		CHECK(points[0].is_equal_approx(Vector3())); // CENTER
+		CHECK(points[1].is_equal_approx(Vector3(-tan_fov, tan_fov, -1) * near1)); // NEAR, LEFT, TOP
+		CHECK(points[2].is_equal_approx(Vector3(-tan_fov, -tan_fov, -1) * near1)); // NEAR, LEFT, BOTTOM
+		CHECK(points[3].is_equal_approx(Vector3(tan_fov, tan_fov, -1) * near1)); // NEAR, RIGHT, TOP
+		CHECK(points[4].is_equal_approx(Vector3(tan_fov, -tan_fov, -1) * near1)); // NEAR, RIGHT, BOTTOM
+
+		test_camera->set_orthogonal(size, near2, far2);
+		points = test_camera->get_near_plane_points();
+		CHECK(points[0].is_equal_approx(Vector3())); // CENTER
+		CHECK(points[1].is_equal_approx(Vector3(-size / 2, size / 2, -near2))); //NEAR, LEFT, TOP
+		CHECK(points[2].is_equal_approx(Vector3(-size / 2, -size / 2, -near2))); //NEAR, LEFT, BOTTOM
+		CHECK(points[3].is_equal_approx(Vector3(size / 2, size / 2, -near2))); //NEAR, RIGHT, TOP
+		CHECK(points[4].is_equal_approx(Vector3(size / 2, -size / 2, -near2))); //NEAR, RIGHT, BOTTOM
+
+		// Overriding the viewport's 2d size should not influence the result
+
+		mock_viewport->set_size_2d_override(mock_viewport->get_size() * 2);
+
+		test_camera->set_perspective(fov, near1, far1);
+		points = test_camera->get_near_plane_points();
+		CHECK(points[0].is_equal_approx(Vector3())); // CENTER
+		CHECK(points[1].is_equal_approx(Vector3(-tan_fov, tan_fov, -1) * near1)); // NEAR, LEFT, TOP
+		CHECK(points[2].is_equal_approx(Vector3(-tan_fov, -tan_fov, -1) * near1)); // NEAR, LEFT, BOTTOM
+		CHECK(points[3].is_equal_approx(Vector3(tan_fov, tan_fov, -1) * near1)); // NEAR, RIGHT, TOP
+		CHECK(points[4].is_equal_approx(Vector3(tan_fov, -tan_fov, -1) * near1)); // NEAR, RIGHT, BOTTOM
+
+		test_camera->set_orthogonal(size, near2, far2);
+		points = test_camera->get_near_plane_points();
+		CHECK(points[0].is_equal_approx(Vector3())); // CENTER
+		CHECK(points[1].is_equal_approx(Vector3(-size / 2, size / 2, -near2))); //NEAR, LEFT, TOP
+		CHECK(points[2].is_equal_approx(Vector3(-size / 2, -size / 2, -near2))); //NEAR, LEFT, BOTTOM
+		CHECK(points[3].is_equal_approx(Vector3(size / 2, size / 2, -near2))); //NEAR, RIGHT, TOP
+		CHECK(points[4].is_equal_approx(Vector3(size / 2, -size / 2, -near2))); //NEAR, RIGHT, BOTTOM
+		mock_viewport->remove_child(test_camera);
+		memdelete(mock_viewport);
+	}
+
 	SUBCASE("Doppler tracking") {
 		test_camera->set_doppler_tracking(Camera3D::DopplerTracking::DOPPLER_TRACKING_IDLE_STEP);
 		CHECK(test_camera->get_doppler_tracking() == Camera3D::DopplerTracking::DOPPLER_TRACKING_IDLE_STEP);
@@ -182,6 +275,22 @@ TEST_CASE("[SceneTree][Camera3D] Position queries") {
 			CHECK_FALSE(test_camera->is_position_in_frustum(test_camera->get_global_position() + offset4));
 			// offset5 is beyond the far plane, so it is not in frustum.
 			CHECK_FALSE(test_camera->is_position_in_frustum(test_camera->get_global_position() + offset5));
+
+			// Overriding the viewport's 2d size should not influence the result
+
+			mock_viewport->set_size_2d_override(mock_viewport->get_size() / 10);
+			CHECK_FALSE(test_camera->is_position_in_frustum(test_camera->get_global_position() + offset1));
+			CHECK(test_camera->is_position_in_frustum(test_camera->get_global_position() + offset2));
+			CHECK_FALSE(test_camera->is_position_in_frustum(test_camera->get_global_position() + offset3));
+			CHECK_FALSE(test_camera->is_position_in_frustum(test_camera->get_global_position() + offset4));
+			CHECK_FALSE(test_camera->is_position_in_frustum(test_camera->get_global_position() + offset5));
+
+			mock_viewport->set_size_2d_override(mock_viewport->get_size() * 10);
+			CHECK_FALSE(test_camera->is_position_in_frustum(test_camera->get_global_position() + offset1));
+			CHECK(test_camera->is_position_in_frustum(test_camera->get_global_position() + offset2));
+			CHECK_FALSE(test_camera->is_position_in_frustum(test_camera->get_global_position() + offset3));
+			CHECK_FALSE(test_camera->is_position_in_frustum(test_camera->get_global_position() + offset4));
+			CHECK_FALSE(test_camera->is_position_in_frustum(test_camera->get_global_position() + offset5));
 		}
 	}
 
@@ -214,46 +323,107 @@ TEST_CASE("[SceneTree][Camera3D] Position queries") {
 	memdelete(mock_viewport);
 }
 
-TEST_CASE("[SceneTree][Camera3D] Project/Unproject position") {
+// This template enables testing different combinations of Camera3D's KeepAspect, Viewport's size and size_2d_override in a programmatic way
+// 1/ It exploits the fact that an XY-sized viewport with keep HEIGHT is the 45° mirror of an YX-sized viewport with keep WIDTH :
+//    If aspect is KEEP_WIDTH, Extents::size and Extents::remap_xy() mirror X and Y
+// 2/ If width_override is not 0, Extents::remap_xy() scales Vector2s to keep them at same relative position as if there were no override
+//
+// These 2 effects combined allow testing multiple combinations with the same input and reference values :
+// - Create a TEST_CASE_TEMPLATE and set all the template parameter combinations you want to test
+// - Use T::size, T::keep_aspect, T::is_2d_override and T::size_override to setup your Viewport and Camera3D accordingly
+// - In your CHECKs, wrap all the Vector2s and Vector3s that depend linearly on the viewport's size with T::remap_xy()
+//
+// See below test cases for concrete examples
+
+template <Camera3D::KeepAspect aspect, int width, int height, int width_override>
+struct Extents {
+	static constexpr Camera3D::KeepAspect keep_aspect = aspect;
+	static constexpr bool is_2d_override = width_override != 0;
+	static constexpr float override_scale = is_2d_override ? float(width_override) / float(width) : 1;
+	static const Vector2 size;
+	static const Vector2 size_override;
+
+	static Vector3 remap_xy(Vector3 vec) {
+		return keep_aspect == Camera3D::KeepAspect::KEEP_WIDTH ? Vector3(Math::abs(vec.y) * SIGN(vec.x), Math::abs(vec.x) * SIGN(vec.y), vec.z) : vec;
+	}
+
+	static Vector2 remap_xy(Vector2 vec) {
+		return override_scale * (keep_aspect == Camera3D::KeepAspect::KEEP_WIDTH ? Vector2(Math::abs(vec.y) * SIGN(vec.x), Math::abs(vec.x) * SIGN(vec.y)) : vec);
+	}
+};
+
+template <Camera3D::KeepAspect aspect, int width, int height, int width_override>
+const Vector2 Extents<aspect, width, height, width_override>::size = aspect == Camera3D::KeepAspect::KEEP_WIDTH ? Vector2(height, width) : Vector2(width, height);
+
+template <Camera3D::KeepAspect aspect, int width, int height, int width_override>
+const Vector2 Extents<aspect, width, height, width_override>::size_override = is_2d_override ? size * float(width_override) / float(width) : Vector2();
+
+TEST_CASE_TEMPLATE("[SceneTree][Camera3D] Project/Unproject position", T,
+		Extents<Camera3D::KeepAspect::KEEP_HEIGHT, 400, 200, 0>,
+		Extents<Camera3D::KeepAspect::KEEP_HEIGHT, 400, 200, 200>,
+		Extents<Camera3D::KeepAspect::KEEP_WIDTH, 400, 200, 0>,
+		Extents<Camera3D::KeepAspect::KEEP_WIDTH, 400, 200, 100>) {
 	// Cameras need a viewport to know how to compute their frustums, so we make a fake one here.
 	Camera3D *test_camera = memnew(Camera3D);
 	SubViewport *mock_viewport = memnew(SubViewport);
-	// 4:2.
-	mock_viewport->set_size(Vector2(400, 200));
+	mock_viewport->set_size(T::size);
 	SceneTree::get_singleton()->get_root()->add_child(mock_viewport);
 	mock_viewport->add_child(test_camera);
 	test_camera->set_global_position(Vector3(0, 0, 0));
 	test_camera->set_global_rotation(Vector3(0, 0, 0));
-	test_camera->set_keep_aspect_mode(Camera3D::KeepAspect::KEEP_HEIGHT);
+	test_camera->set_keep_aspect_mode(T::keep_aspect);
+	mock_viewport->set_size_2d_override(T::size_override);
+	mock_viewport->set_size_2d_override_stretch(T::is_2d_override);
+
+	CAPTURE(T::size);
+	CAPTURE(T::keep_aspect);
+	CAPTURE(T::is_2d_override);
+	CAPTURE(T::size_override);
 
 	SUBCASE("project_position") {
 		SUBCASE("Orthogonal projection") {
 			test_camera->set_orthogonal(5.0f, 0.5f, 1000.0f);
 			// Center.
-			CHECK(test_camera->project_position(Vector2(200, 100), 0.5f).is_equal_approx(Vector3(0, 0, -0.5f)));
-			CHECK(test_camera->project_position(Vector2(200, 100), test_camera->get_far()).is_equal_approx(Vector3(0, 0, -test_camera->get_far())));
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(200, 100)), 0.5f).is_equal_approx(T::remap_xy(Vector3(0, 0, -0.5f))));
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(200, 100)), test_camera->get_far()).is_equal_approx(T::remap_xy(Vector3(0, 0, -test_camera->get_far()))));
 			// Top left.
-			CHECK(test_camera->project_position(Vector2(0, 0), 1.5f).is_equal_approx(Vector3(-5.0f, 2.5f, -1.5f)));
-			CHECK(test_camera->project_position(Vector2(0, 0), test_camera->get_near()).is_equal_approx(Vector3(-5.0f, 2.5f, -test_camera->get_near())));
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(0, 0)), 1.5f).is_equal_approx(T::remap_xy(Vector3(-5.0f, 2.5f, -1.5f))));
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(0, 0)), test_camera->get_near()).is_equal_approx(T::remap_xy(Vector3(-5.0f, 2.5f, -test_camera->get_near()))));
 			// Bottom right.
-			CHECK(test_camera->project_position(Vector2(400, 200), 5.0f).is_equal_approx(Vector3(5.0f, -2.5f, -5.0f)));
-			CHECK(test_camera->project_position(Vector2(400, 200), test_camera->get_far()).is_equal_approx(Vector3(5.0f, -2.5f, -test_camera->get_far())));
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(400, 200)), 5.0f).is_equal_approx(T::remap_xy(Vector3(5.0f, -2.5f, -5.0f))));
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(400, 200)), test_camera->get_far()).is_equal_approx(T::remap_xy(Vector3(5.0f, -2.5f, -test_camera->get_far()))));
 		}
 
 		SUBCASE("Perspective projection") {
 			test_camera->set_perspective(120.0f, 0.5f, 1000.0f);
 			// Center.
-			CHECK(test_camera->project_position(Vector2(200, 100), 0.5f).is_equal_approx(Vector3(0, 0, -0.5f)));
-			CHECK(test_camera->project_position(Vector2(200, 100), 100.0f).is_equal_approx(Vector3(0, 0, -100.0f)));
-			CHECK(test_camera->project_position(Vector2(200, 100), test_camera->get_far()).is_equal_approx(Vector3(0, 0, -1.0f) * test_camera->get_far()));
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(200, 100)), 0.5f).is_equal_approx(T::remap_xy(Vector3(0, 0, -0.5f))));
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(200, 100)), 100.0f).is_equal_approx(T::remap_xy(Vector3(0, 0, -100.0f))));
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(200, 100)), test_camera->get_far()).is_equal_approx(T::remap_xy(Vector3(0, 0, -1.0f) * test_camera->get_far())));
 			// 3/4th way to Top left.
-			CHECK(test_camera->project_position(Vector2(100, 50), 0.5f).is_equal_approx(Vector3(-SQRT3 * 0.5f, SQRT3 * 0.25f, -0.5f)));
-			CHECK(test_camera->project_position(Vector2(100, 50), 1.0f).is_equal_approx(Vector3(-SQRT3, SQRT3 * 0.5f, -1.0f)));
-			CHECK(test_camera->project_position(Vector2(100, 50), test_camera->get_near()).is_equal_approx(Vector3(-SQRT3, SQRT3 * 0.5f, -1.0f) * test_camera->get_near()));
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(100, 50)), 0.5f).is_equal_approx(T::remap_xy(Vector3(-SQRT3 * 0.5f, SQRT3 * 0.25f, -0.5f))));
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(100, 50)), 1.0f).is_equal_approx(T::remap_xy(Vector3(-SQRT3, SQRT3 * 0.5f, -1.0f))));
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(100, 50)), test_camera->get_near()).is_equal_approx(T::remap_xy(Vector3(-SQRT3, SQRT3 * 0.5f, -1.0f) * test_camera->get_near())));
 			// 3/4th way to Bottom right.
-			CHECK(test_camera->project_position(Vector2(300, 150), 0.5f).is_equal_approx(Vector3(SQRT3 * 0.5f, -SQRT3 * 0.25f, -0.5f)));
-			CHECK(test_camera->project_position(Vector2(300, 150), 1.0f).is_equal_approx(Vector3(SQRT3, -SQRT3 * 0.5f, -1.0f)));
-			CHECK(test_camera->project_position(Vector2(300, 150), test_camera->get_far()).is_equal_approx(Vector3(SQRT3, -SQRT3 * 0.5f, -1.0f) * test_camera->get_far()));
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(300, 150)), 0.5f).is_equal_approx(T::remap_xy(Vector3(SQRT3 * 0.5f, -SQRT3 * 0.25f, -0.5f))));
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(300, 150)), 1.0f).is_equal_approx(T::remap_xy(Vector3(SQRT3, -SQRT3 * 0.5f, -1.0f))));
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(300, 150)), test_camera->get_far()).is_equal_approx(T::remap_xy(Vector3(SQRT3, -SQRT3 * 0.5f, -1.0f) * test_camera->get_far())));
+		}
+
+		SUBCASE("Frustum projection") {
+			test_camera->set_frustum(SQRT3, Vector2(4.0f, -7.0f), 0.5f, 1000.0f);
+			// Center.
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(200, 100)), 0.5f).is_equal_approx(Vector3(4.0f, -7.0f, -0.5f)));
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(200, 100)), 100.0f).is_equal_approx(Vector3(8.0f, -14.0f, -1.0f) * 100.0f));
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(200, 100)), test_camera->get_far()).is_equal_approx(Vector3(8.0f, -14.0f, -1.0f) * test_camera->get_far()));
+			// 3/4th way to Top left.
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(100, 50)), 0.5f).is_equal_approx(T::remap_xy(Vector3(-SQRT3 * 0.5f, SQRT3 * 0.25f, 0.0f)) + Vector3(4.0f, -7.0f, -0.5f)));
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(100, 50)), 1.0f).is_equal_approx(T::remap_xy(Vector3(-SQRT3, SQRT3 * 0.5f, 0.0f)) + Vector3(8.0f, -14.0f, -1.0f)));
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(100, 50)), test_camera->get_near()).is_equal_approx((T::remap_xy(Vector3(-SQRT3, SQRT3 * 0.5f, 0.0f)) + Vector3(8.0f, -14.0f, -1.0f)) * test_camera->get_near()));
+			// 3/4th way to Bottom right.
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(300, 150)), 0.5f).is_equal_approx(T::remap_xy(Vector3(SQRT3 * 0.5f, -SQRT3 * 0.25f, 0.0f)) + Vector3(4.0f, -7.0f, -0.5f)));
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(300, 150)), 1.0f).is_equal_approx(T::remap_xy(Vector3(SQRT3, -SQRT3 * 0.5f, 0.0f)) + Vector3(8.0f, -14.0f, -1.0f)));
+			CHECK(test_camera->project_position(T::remap_xy(Vector2(300, 150)), test_camera->get_far()).is_equal_approx((T::remap_xy(Vector3(SQRT3, -SQRT3 * 0.5f, 0.0f)) + Vector3(8.0f, -14.0f, -1.0f)) * test_camera->get_far()));
 		}
 	}
 
@@ -262,24 +432,37 @@ TEST_CASE("[SceneTree][Camera3D] Project/Unproject position") {
 		SUBCASE("Orthogonal projection") {
 			test_camera->set_orthogonal(5.0f, 0.5f, 1000.0f);
 			// Center
-			CHECK(test_camera->unproject_position(Vector3(0, 0, -0.5f)).is_equal_approx(Vector2(200, 100)));
+			CHECK(test_camera->unproject_position(T::remap_xy(Vector3(0, 0, -0.5f))).is_equal_approx(T::remap_xy(Vector2(200, 100))));
 			// Top left
-			CHECK(test_camera->unproject_position(Vector3(-5.0f, 2.5f, -1.5f)).is_equal_approx(Vector2(0, 0)));
+			CHECK(test_camera->unproject_position(T::remap_xy(Vector3(-5.0f, 2.5f, -1.5f))).is_equal_approx(T::remap_xy(Vector2(0, 0))));
 			// Bottom right
-			CHECK(test_camera->unproject_position(Vector3(5.0f, -2.5f, -5.0f)).is_equal_approx(Vector2(400, 200)));
+			CHECK(test_camera->unproject_position(T::remap_xy(Vector3(5.0f, -2.5f, -5.0f))).is_equal_approx(T::remap_xy(Vector2(400, 200))));
 		}
 
 		SUBCASE("Perspective projection") {
 			test_camera->set_perspective(120.0f, 0.5f, 1000.0f);
 			// Center.
-			CHECK(test_camera->unproject_position(Vector3(0, 0, -0.5f)).is_equal_approx(Vector2(200, 100)));
-			CHECK(test_camera->unproject_position(Vector3(0, 0, -100.0f)).is_equal_approx(Vector2(200, 100)));
+			CHECK(test_camera->unproject_position(T::remap_xy(Vector3(0, 0, -0.5f))).is_equal_approx(T::remap_xy(Vector2(200, 100))));
+			CHECK(test_camera->unproject_position(T::remap_xy(Vector3(0, 0, -100.0f))).is_equal_approx(T::remap_xy(Vector2(200, 100))));
 			// 3/4th way to Top left.
-			WARN(test_camera->unproject_position(Vector3(-SQRT3 * 0.5f, SQRT3 * 0.25f, -0.5f)).is_equal_approx(Vector2(100, 50)));
-			WARN(test_camera->unproject_position(Vector3(-SQRT3, SQRT3 * 0.5f, -1.0f)).is_equal_approx(Vector2(100, 50)));
+			CHECK(test_camera->unproject_position(T::remap_xy(Vector3(-SQRT3 * 0.5f, SQRT3 * 0.25f, -0.5f))).is_equal_approx(T::remap_xy(Vector2(100, 50))));
+			CHECK(test_camera->unproject_position(T::remap_xy(Vector3(-SQRT3, SQRT3 * 0.5f, -1.0f))).is_equal_approx(T::remap_xy(Vector2(100, 50))));
 			// 3/4th way to Bottom right.
-			CHECK(test_camera->unproject_position(Vector3(SQRT3 * 0.5f, -SQRT3 * 0.25f, -0.5f)).is_equal_approx(Vector2(300, 150)));
-			CHECK(test_camera->unproject_position(Vector3(SQRT3, -SQRT3 * 0.5f, -1.0f)).is_equal_approx(Vector2(300, 150)));
+			CHECK(test_camera->unproject_position(T::remap_xy(Vector3(SQRT3 * 0.5f, -SQRT3 * 0.25f, -0.5f))).is_equal_approx(T::remap_xy(Vector2(300, 150))));
+			CHECK(test_camera->unproject_position(T::remap_xy(Vector3(SQRT3, -SQRT3 * 0.5f, -1.0f))).is_equal_approx(T::remap_xy(Vector2(300, 150))));
+		}
+
+		SUBCASE("Frustum projection") {
+			test_camera->set_frustum(SQRT3, Vector2(4.0f, -7.0f), 0.5f, 1000.0f);
+			// Center.
+			CHECK(test_camera->unproject_position(Vector3(4.0f, -7.0f, -0.5f)).is_equal_approx(T::remap_xy(Vector2(200, 100))));
+			CHECK(test_camera->unproject_position(Vector3(800.0f, -1400.0f, -100.0f)).is_equal_approx(T::remap_xy(Vector2(200, 100))));
+			// 3/4th way to Top left.
+			CHECK(test_camera->unproject_position(T::remap_xy(Vector3(-SQRT3 * 0.5f, SQRT3 * 0.25f, 0.0f)) + Vector3(4.0f, -7.0f, -0.5f)).is_equal_approx(T::remap_xy(Vector2(100, 50))));
+			CHECK(test_camera->unproject_position(T::remap_xy(Vector3(-SQRT3, SQRT3 * 0.5f, 0.0f)) + Vector3(8.0f, -14.0f, -1.0f)).is_equal_approx(T::remap_xy(Vector2(100, 50))));
+			// 3/4th way to Bottom right.
+			CHECK(test_camera->unproject_position(T::remap_xy(Vector3(SQRT3 * 0.5f, -SQRT3 * 0.25f, 0.0f)) + Vector3(4.0f, -7.0f, -0.5f)).is_equal_approx(T::remap_xy(Vector2(300, 150))));
+			CHECK(test_camera->unproject_position(T::remap_xy(Vector3(SQRT3, -SQRT3 * 0.5f, 0.0f)) + Vector3(8.0f, -14.0f, -1.0f)).is_equal_approx(T::remap_xy(Vector2(300, 150))));
 		}
 	}
 
@@ -287,37 +470,58 @@ TEST_CASE("[SceneTree][Camera3D] Project/Unproject position") {
 	memdelete(mock_viewport);
 }
 
-TEST_CASE("[SceneTree][Camera3D] Project ray") {
+TEST_CASE_TEMPLATE("[SceneTree][Camera3D] Project ray", T,
+		Extents<Camera3D::KeepAspect::KEEP_HEIGHT, 400, 200, 0>,
+		Extents<Camera3D::KeepAspect::KEEP_HEIGHT, 400, 200, 200>,
+		Extents<Camera3D::KeepAspect::KEEP_WIDTH, 400, 200, 0>,
+		Extents<Camera3D::KeepAspect::KEEP_WIDTH, 400, 200, 100>) {
 	// Cameras need a viewport to know how to compute their frustums, so we make a fake one here.
 	Camera3D *test_camera = memnew(Camera3D);
 	SubViewport *mock_viewport = memnew(SubViewport);
 	// 4:2.
-	mock_viewport->set_size(Vector2(400, 200));
+	mock_viewport->set_size(T::size);
 	SceneTree::get_singleton()->get_root()->add_child(mock_viewport);
 	mock_viewport->add_child(test_camera);
 	test_camera->set_global_position(Vector3(0, 0, 0));
 	test_camera->set_global_rotation(Vector3(0, 0, 0));
-	test_camera->set_keep_aspect_mode(Camera3D::KeepAspect::KEEP_HEIGHT);
+	test_camera->set_keep_aspect_mode(T::keep_aspect);
+	mock_viewport->set_size_2d_override(T::size_override);
+	mock_viewport->set_size_2d_override_stretch(T::is_2d_override);
+
+	CAPTURE(T::size);
+	CAPTURE(T::keep_aspect);
+	CAPTURE(T::is_2d_override);
+	CAPTURE(T::size_override);
 
 	SUBCASE("project_ray_origin") {
 		SUBCASE("Orthogonal projection") {
 			test_camera->set_orthogonal(5.0f, 0.5f, 1000.0f);
 			// Center.
-			CHECK(test_camera->project_ray_origin(Vector2(200, 100)).is_equal_approx(Vector3(0, 0, -0.5f)));
+			CHECK(test_camera->project_ray_origin(T::remap_xy(Vector2(200, 100))).is_equal_approx(T::remap_xy(Vector3(0, 0, -0.5f))));
 			// Top left.
-			CHECK(test_camera->project_ray_origin(Vector2(0, 0)).is_equal_approx(Vector3(-5.0f, 2.5f, -0.5f)));
+			CHECK(test_camera->project_ray_origin(T::remap_xy(Vector2(0, 0))).is_equal_approx(T::remap_xy(Vector3(-5.0f, 2.5f, -0.5f))));
 			// Bottom right.
-			CHECK(test_camera->project_ray_origin(Vector2(400, 200)).is_equal_approx(Vector3(5.0f, -2.5f, -0.5f)));
+			CHECK(test_camera->project_ray_origin(T::remap_xy(Vector2(400, 200))).is_equal_approx(T::remap_xy(Vector3(5.0f, -2.5f, -0.5f))));
 		}
 
 		SUBCASE("Perspective projection") {
 			test_camera->set_perspective(120.0f, 0.5f, 1000.0f);
 			// Center.
-			CHECK(test_camera->project_ray_origin(Vector2(200, 100)).is_equal_approx(Vector3(0, 0, 0)));
+			CHECK(test_camera->project_ray_origin(T::remap_xy(Vector2(200, 100))).is_equal_approx(T::remap_xy(Vector3(0, 0, 0))));
 			// Top left.
-			CHECK(test_camera->project_ray_origin(Vector2(0, 0)).is_equal_approx(Vector3(0, 0, 0)));
+			CHECK(test_camera->project_ray_origin(T::remap_xy(Vector2(0, 0))).is_equal_approx(T::remap_xy(Vector3(0, 0, 0))));
 			// Bottom right.
-			CHECK(test_camera->project_ray_origin(Vector2(400, 200)).is_equal_approx(Vector3(0, 0, 0)));
+			CHECK(test_camera->project_ray_origin(T::remap_xy(Vector2(400, 200))).is_equal_approx(T::remap_xy(Vector3(0, 0, 0))));
+		}
+
+		SUBCASE("Frustum projection") {
+			test_camera->set_frustum(SQRT3, Vector2(4.0f, -7.0f), 0.5f, 1000.0f);
+			// Center.
+			CHECK(test_camera->project_ray_origin(T::remap_xy(Vector2(200, 100))).is_equal_approx(T::remap_xy(Vector3(0, 0, 0))));
+			// Top left.
+			CHECK(test_camera->project_ray_origin(T::remap_xy(Vector2(0, 0))).is_equal_approx(T::remap_xy(Vector3(0, 0, 0))));
+			// Bottom right.
+			CHECK(test_camera->project_ray_origin(T::remap_xy(Vector2(400, 200))).is_equal_approx(T::remap_xy(Vector3(0, 0, 0))));
 		}
 	}
 
@@ -325,21 +529,31 @@ TEST_CASE("[SceneTree][Camera3D] Project ray") {
 		SUBCASE("Orthogonal projection") {
 			test_camera->set_orthogonal(5.0f, 0.5f, 1000.0f);
 			// Center.
-			CHECK(test_camera->project_ray_normal(Vector2(200, 100)).is_equal_approx(Vector3(0, 0, -1)));
+			CHECK(test_camera->project_ray_normal(T::remap_xy(Vector2(200, 100))).is_equal_approx(T::remap_xy(Vector3(0, 0, -1))));
 			// Top left.
-			CHECK(test_camera->project_ray_normal(Vector2(0, 0)).is_equal_approx(Vector3(0, 0, -1)));
+			CHECK(test_camera->project_ray_normal(T::remap_xy(Vector2(0, 0))).is_equal_approx(T::remap_xy(Vector3(0, 0, -1))));
 			// Bottom right.
-			CHECK(test_camera->project_ray_normal(Vector2(400, 200)).is_equal_approx(Vector3(0, 0, -1)));
+			CHECK(test_camera->project_ray_normal(T::remap_xy(Vector2(400, 200))).is_equal_approx(T::remap_xy(Vector3(0, 0, -1))));
 		}
 
 		SUBCASE("Perspective projection") {
 			test_camera->set_perspective(120.0f, 0.5f, 1000.0f);
 			// Center.
-			CHECK(test_camera->project_ray_normal(Vector2(200, 100)).is_equal_approx(Vector3(0, 0, -1)));
+			CHECK(test_camera->project_ray_normal(T::remap_xy(Vector2(200, 100))).is_equal_approx(T::remap_xy(Vector3(0, 0, -1))));
 			// Top left.
-			CHECK(test_camera->project_ray_normal(Vector2(0, 0)).is_equal_approx(Vector3(-SQRT3, SQRT3 / 2, -0.5f).normalized()));
+			CHECK(test_camera->project_ray_normal(T::remap_xy(Vector2(0, 0))).is_equal_approx(T::remap_xy(Vector3(-SQRT3, SQRT3 / 2, -0.5f).normalized())));
 			// Bottom right.
-			CHECK(test_camera->project_ray_normal(Vector2(400, 200)).is_equal_approx(Vector3(SQRT3, -SQRT3 / 2, -0.5f).normalized()));
+			CHECK(test_camera->project_ray_normal(T::remap_xy(Vector2(400, 200))).is_equal_approx(T::remap_xy(Vector3(SQRT3, -SQRT3 / 2, -0.5f).normalized())));
+		}
+
+		SUBCASE("Frustum projection") {
+			test_camera->set_frustum(SQRT3, Vector2(4.0f, -7.0f), 0.5f, 1000.0f);
+			// Center.
+			CHECK(test_camera->project_ray_normal(T::remap_xy(Vector2(200, 100))).is_equal_approx(Vector3(4.0f, -7.0f, -0.5f).normalized()));
+			// Top left.
+			CHECK(test_camera->project_ray_normal(T::remap_xy(Vector2(0, 0))).is_equal_approx((T::remap_xy(Vector3(-SQRT3, SQRT3 / 2, 0.0f)) + Vector3(4.0f, -7.0f, -0.5f)).normalized()));
+			// Bottom right.
+			CHECK(test_camera->project_ray_normal(T::remap_xy(Vector2(400, 200))).is_equal_approx((T::remap_xy(Vector3(SQRT3, -SQRT3 / 2, 0.0f)) + Vector3(4.0f, -7.0f, -0.5f)).normalized()));
 		}
 	}
 
@@ -349,21 +563,31 @@ TEST_CASE("[SceneTree][Camera3D] Project ray") {
 		SUBCASE("Orthogonal projection") {
 			test_camera->set_orthogonal(5.0f, 0.5f, 1000.0f);
 			// Center.
-			CHECK(test_camera->project_local_ray_normal(Vector2(200, 100)).is_equal_approx(Vector3(0, 0, -1)));
+			CHECK(test_camera->project_local_ray_normal(T::remap_xy(Vector2(200, 100))).is_equal_approx(T::remap_xy(Vector3(0, 0, -1))));
 			// Top left.
-			CHECK(test_camera->project_local_ray_normal(Vector2(0, 0)).is_equal_approx(Vector3(0, 0, -1)));
+			CHECK(test_camera->project_local_ray_normal(T::remap_xy(Vector2(0, 0))).is_equal_approx(T::remap_xy(Vector3(0, 0, -1))));
 			// Bottom right.
-			CHECK(test_camera->project_local_ray_normal(Vector2(400, 200)).is_equal_approx(Vector3(0, 0, -1)));
+			CHECK(test_camera->project_local_ray_normal(T::remap_xy(Vector2(400, 200))).is_equal_approx(T::remap_xy(Vector3(0, 0, -1))));
 		}
 
 		SUBCASE("Perspective projection") {
 			test_camera->set_perspective(120.0f, 0.5f, 1000.0f);
 			// Center.
-			CHECK(test_camera->project_local_ray_normal(Vector2(200, 100)).is_equal_approx(Vector3(0, 0, -1)));
+			CHECK(test_camera->project_local_ray_normal(T::remap_xy(Vector2(200, 100))).is_equal_approx(T::remap_xy(Vector3(0, 0, -1))));
 			// Top left.
-			CHECK(test_camera->project_local_ray_normal(Vector2(0, 0)).is_equal_approx(Vector3(-SQRT3, SQRT3 / 2, -0.5f).normalized()));
+			CHECK(test_camera->project_local_ray_normal(T::remap_xy(Vector2(0, 0))).is_equal_approx(T::remap_xy(Vector3(-SQRT3, SQRT3 / 2, -0.5f).normalized())));
 			// Bottom right.
-			CHECK(test_camera->project_local_ray_normal(Vector2(400, 200)).is_equal_approx(Vector3(SQRT3, -SQRT3 / 2, -0.5f).normalized()));
+			CHECK(test_camera->project_local_ray_normal(T::remap_xy(Vector2(400, 200))).is_equal_approx(T::remap_xy(Vector3(SQRT3, -SQRT3 / 2, -0.5f).normalized())));
+		}
+
+		SUBCASE("Frustum projection") {
+			test_camera->set_frustum(SQRT3, Vector2(4.0f, -7.0f), 0.5f, 1000.0f);
+			// Center.
+			CHECK(test_camera->project_local_ray_normal(T::remap_xy(Vector2(200, 100))).is_equal_approx(Vector3(4.0f, -7.0f, -0.5f).normalized()));
+			// Top left.
+			CHECK(test_camera->project_local_ray_normal(T::remap_xy(Vector2(0, 0))).is_equal_approx((T::remap_xy(Vector3(-SQRT3, SQRT3 / 2, 0.0f)) + Vector3(4.0f, -7.0f, -0.5f)).normalized()));
+			// Bottom right.
+			CHECK(test_camera->project_local_ray_normal(T::remap_xy(Vector2(400, 200))).is_equal_approx((T::remap_xy(Vector3(SQRT3, -SQRT3 / 2, 0.0f)) + Vector3(4.0f, -7.0f, -0.5f)).normalized()));
 		}
 	}
 
