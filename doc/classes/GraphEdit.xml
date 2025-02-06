@@ -421,6 +421,7 @@
 			<param index="3" name="to_port" type="int" />
 			<description>
 				Emitted to the GraphEdit when the connection between the [param from_port] of the [param from_node] [GraphNode] and the [param to_port] of the [param to_node] [GraphNode] is attempted to be created.
+				To obtain [GraphElement] nodes from [param from_node] and [param to_node], use [code]get_node(from_node)[/code] and [code]get_node(to_node)[/code].
 			</description>
 		</signal>
 		<signal name="connection_to_empty">
@@ -429,6 +430,7 @@
 			<param index="2" name="release_position" type="Vector2" />
 			<description>
 				Emitted when user drags a connection from an output port into the empty space of the graph.
+				To obtain [GraphElement] nodes from [param from_node] use [code]get_node(from_node)[/code].
 			</description>
 		</signal>
 		<signal name="copy_nodes_request">
@@ -455,6 +457,7 @@
 			<param index="3" name="to_port" type="int" />
 			<description>
 				Emitted to the GraphEdit when the connection between [param from_port] of [param from_node] [GraphNode] and [param to_port] of [param to_node] [GraphNode] is attempted to be removed.
+				To obtain [GraphElement] nodes from [param from_node] and [param to_node], use [code]get_node(from_node)[/code] and [code]get_node(to_node)[/code].
 			</description>
 		</signal>
 		<signal name="duplicate_nodes_request">
