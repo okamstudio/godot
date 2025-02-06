@@ -1,0 +1,6 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 8: Cannot include a value of type "String" as "int".
+>> ERROR at line 8: Cannot have an element of type "String" in an array of type "Array[int]".
+>> ERROR at line 9: Cannot assign a value of type Array[float] to variable "array_2" with specified type Array[int].
+>> ERROR at line 10: Cannot have an element of type "int" in an array of type "Array[Object]".
+>> ERROR at line 11: Invalid argument for "expect_typed()" function: argument 1 should be "Array[int]" but is "Array[float]".

@@ -1,3 +1,0 @@
-GDTEST_ANALYZER_ERROR
->> ERROR at line 2: Cannot include a value of type "String" as "int".
->> ERROR at line 2: Cannot have an element of type "String" in an array of type "Array[int]".

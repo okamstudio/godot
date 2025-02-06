@@ -1,2 +1,0 @@
-GDTEST_ANALYZER_ERROR
->> ERROR at line 6: Cannot call non-static function "non_static()" from a static variable initializer.

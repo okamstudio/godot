@@ -1,2 +1,0 @@
-GDTEST_ANALYZER_ERROR
->> ERROR at line 6: Invalid argument for "expect_typed()" function: argument 1 should be "Dictionary[int, int]" but is "Dictionary[float, float]".

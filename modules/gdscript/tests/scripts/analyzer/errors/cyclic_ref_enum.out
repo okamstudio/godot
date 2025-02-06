@@ -1,3 +1,0 @@
-GDTEST_ANALYZER_ERROR
->> ERROR at line 5: Could not resolve member "E1": Cyclic reference.
->> ERROR at line 5: Enum values must be constant.

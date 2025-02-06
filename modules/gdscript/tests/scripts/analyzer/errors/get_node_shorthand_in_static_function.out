@@ -1,2 +1,0 @@
-GDTEST_ANALYZER_ERROR
->> ERROR at line 6: Cannot use shorthand "get_node()" notation ("$") in a static function.

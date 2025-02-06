@@ -1,0 +1,6 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 9: Cannot construct native class "Time" because it is an engine singleton.
+>> ERROR at line 10: Native class "InstancePlaceholder" cannot be constructed as it is abstract.
+>> ERROR at line 10: Name "new" is a Callable. You can call it with "new.call()" instead.
+>> ERROR at line 11: Class "invalid_instantiation.gd::B" cannot be constructed as it is based on abstract native class "InstancePlaceholder".
+>> ERROR at line 11: Name "new" is a Callable. You can call it with "new.call()" instead.

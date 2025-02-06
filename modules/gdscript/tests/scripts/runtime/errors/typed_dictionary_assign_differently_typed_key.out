@@ -1,5 +1,0 @@
-GDTEST_RUNTIME_ERROR
->> ERROR: Method/function failed. Returning: false
->>   Attempted to set a variable of type 'String' into a TypedDictionary.Key of type 'int'.
->> ERROR: Condition "!_p->typed_key.validate(key, "set")" is true. Returning: false
->> SCRIPT ERROR at runtime/errors/typed_dictionary_assign_differently_typed_key.gd:6 on test(): Invalid assignment of property or key 'key' with value of type 'int' on a base object of type 'Dictionary[int, int]'.

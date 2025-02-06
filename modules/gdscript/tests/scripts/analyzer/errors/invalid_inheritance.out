@@ -1,0 +1,8 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 10: Constant "CONSTANT" is not a preloaded script or class.
+>> ERROR at line 13: Cannot use variable "variable" in extends chain.
+>> ERROR at line 17: Cannot inherit native class "Time" because it is an engine singleton.
+>> ERROR at line 20: Cannot get nested types for extension from non-GDScript type "RefCounted".
+>> ERROR at line 23: Could not find nested type "UnknownClass".
+>> ERROR at line 26: Identifier "CONSTANT" is not a preloaded script or class.
+>> ERROR at line 29: Cyclic inheritance.

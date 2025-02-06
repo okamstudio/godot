@@ -1,0 +1,4 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 7: Expression in match pattern must be a constant expression, an identifier, or an attribute access ("A.B").
+>> ERROR at line 9: Identifier "b" not declared in the current scope.
+>> ERROR at line 12: Expression in match pattern must be a constant expression, an identifier, or an attribute access ("A.B").

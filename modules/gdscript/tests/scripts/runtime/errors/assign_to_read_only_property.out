@@ -1,6 +1,6 @@
 GDTEST_RUNTIME_ERROR
-~~ WARNING at line 9: (UNSAFE_CALL_ARGUMENT) The argument 1 of the function "subtest_attribute()" requires the subtype "Variant" but the supertype "Variant" was provided.
-~~ WARNING at line 10: (UNSAFE_CALL_ARGUMENT) The argument 1 of the function "subtest_variable_index()" requires the subtype "Variant" but the supertype "Variant" was provided.
+~~ WARNING at line 11: (UNSAFE_CALL_ARGUMENT) The argument 1 of the function "subtest_attribute()" requires the subtype "Variant" but the supertype "Variant" was provided.
+~~ WARNING at line 12: (UNSAFE_CALL_ARGUMENT) The argument 1 of the function "subtest_variable_index()" requires the subtype "Variant" but the supertype "Variant" was provided.
 >> ERROR: Required virtual method PhysicsDirectBodyState3DExtension::_get_center_of_mass must be overridden before calling.
 >> SCRIPT ERROR at runtime/errors/assign_to_read_only_property.gd:2 on subtest_attribute(): Cannot set value into property "center_of_mass" (on base "PhysicsDirectBodyState3DExtension") because it is read-only.
->> SCRIPT ERROR at runtime/errors/assign_to_read_only_property.gd:5 on subtest_variable_index(): Cannot set value into property "center_of_mass" (on base "PhysicsDirectBodyState3DExtension") because it is read-only.
+>> SCRIPT ERROR at runtime/errors/assign_to_read_only_property.gd:6 on subtest_variable_index(): Cannot set value into property "center_of_mass" (on base "PhysicsDirectBodyState3DExtension") because it is read-only.

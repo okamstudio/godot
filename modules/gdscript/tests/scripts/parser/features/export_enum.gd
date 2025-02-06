@@ -32,4 +32,4 @@ var temp_packed_string_array: PackedStringArray
 func test():
 	for property in get_property_list():
 		if str(property.name).begins_with("test_"):
-			Utils.print_property_extended_info(property, self)
+			print(Utils.get_property_extended_info(property, self))

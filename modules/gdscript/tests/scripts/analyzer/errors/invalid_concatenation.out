@@ -1,0 +1,4 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 2: Invalid operands to operator +, bool and bool.
+>> ERROR at line 3: Invalid operands "Dictionary" and "Dictionary" for "+" operator.
+>> ERROR at line 4: Invalid operands "String" and "Array" for "+" operator.

@@ -1,0 +1,11 @@
+GDTEST_RUNTIME_ERROR
+~~ WARNING at line 29: (UNSAFE_CALL_ARGUMENT) The argument 1 of the function "expect_typed()" requires the subtype "Array[int]" but the supertype "Variant" was provided.
+>> SCRIPT ERROR at runtime/errors/typed_array.gd:10 on subtest_assign_basic_to_typed(): Trying to assign an array of type "Array" to a variable of type "Array[int]".
+>> SCRIPT ERROR at runtime/errors/typed_array.gd:15 on subtest_assign_basic_to_differently_typed(): Trying to assign an array of type "Array[float]" to a variable of type "Array[int]".
+>> ERROR: Condition "!other_script->inherits_script(script)" is true. Returning: false
+>>   Attempted to assign an object into a TypedArray, that does not inherit from 'GDScript'.
+>> ERROR: Method/function failed.
+>>   Unable to convert array index 0 from "Object" to "Object".
+end subtest_assign_wrong_to_typed
+>> SCRIPT ERROR at runtime/errors/typed_array.gd:24 on subtest_pass_basic_to_typed(): Invalid type in function 'expect_typed' in base 'RefCounted (typed_array.gd)'. The array of argument 1 (Array) does not have the same element type as the expected typed array argument.
+>> SCRIPT ERROR at runtime/errors/typed_array.gd:29 on subtest_pass_basic_to_differently_typed(): Invalid type in function 'expect_typed' in base 'RefCounted (typed_array.gd)'. The array of argument 1 (Array[float]) does not have the same element type as the expected typed array argument.

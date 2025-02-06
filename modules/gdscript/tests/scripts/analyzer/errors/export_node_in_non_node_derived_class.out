@@ -1,0 +1,3 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 6: Node export is only supported in Node-derived classes, but the current class inherits "Resource".
+>> ERROR at line 7: Node export is only supported in Node-derived classes, but the current class inherits "Resource".

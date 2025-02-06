@@ -1,0 +1,10 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 14: Unable to iterate on value of type "bool".
+>> ERROR at line 18: Expression is of type "int" so it can't be of type "String".
+>> ERROR at line 25: Expression is of type "int" so it can't be of type "String".
+>> ERROR at line 30: Expression is of type "float" so it can't be of type "String".
+>> ERROR at line 37: Expression is of type "int" so it can't be of type "String".
+>> ERROR at line 42: Expression is of type "float" so it can't be of type "String".
+>> ERROR at line 47: Expression is of type "String" so it can't be of type "int".
+>> ERROR at line 53: Expression is of type "int" so it can't be of type "String".
+>> ERROR at line 58: Expression is of type "StringName" so it can't be of type "int".

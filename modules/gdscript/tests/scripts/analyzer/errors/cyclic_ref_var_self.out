@@ -1,3 +1,0 @@
-GDTEST_ANALYZER_ERROR
->> ERROR at line 1: Could not resolve member "v1": Cyclic reference.
->> ERROR at line 1: Could not resolve type for variable "v1".

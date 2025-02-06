@@ -1,0 +1,13 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 18: The function signature doesn't match the parent. Parent signature is "f1(int) -> int".
+>> ERROR at line 19: The function signature doesn't match the parent. Parent signature is "f2(int) -> int".
+>> ERROR at line 20: The function signature doesn't match the parent. Parent signature is "f3(int = <default>) -> int".
+>> ERROR at line 21: The function signature doesn't match the parent. Parent signature is "f4(int) -> int".
+>> ERROR at line 22: The function signature doesn't match the parent. Parent signature is "f5() -> int".
+>> ERROR at line 24: The function signature doesn't match the parent. Parent signature is "g1(Object) -> Variant".
+>> ERROR at line 25: The function signature doesn't match the parent. Parent signature is "g2(Variant) -> Variant".
+>> ERROR at line 26: The function signature doesn't match the parent. Parent signature is "g3(int) -> Variant".
+>> ERROR at line 28: The function signature doesn't match the parent. Parent signature is "h1() -> Node".
+>> ERROR at line 29: The function signature doesn't match the parent. Parent signature is "h2() -> Node".
+>> ERROR at line 30: The function signature doesn't match the parent. Parent signature is "h3() -> Node".
+>> ERROR at line 31: The function signature doesn't match the parent. Parent signature is "h4() -> float".

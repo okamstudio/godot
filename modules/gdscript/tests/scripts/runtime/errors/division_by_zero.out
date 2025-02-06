@@ -1,3 +1,8 @@
 GDTEST_RUNTIME_ERROR
-~~ WARNING at line 2: (UNUSED_VARIABLE) The local variable "integer" is declared but never used in the block. If this is intended, prefix it with an underscore: "_integer".
->> SCRIPT ERROR at runtime/errors/division_by_zero.gd:3 on test(): Division by zero error in operator '/'.
+>> SCRIPT ERROR at runtime/errors/division_by_zero.gd:3 on subtest_int(): Division by zero error in operator '/'.
+>> SCRIPT ERROR at runtime/errors/division_by_zero.gd:8 on subtest_vector2i(): Division by zero error in operator '/'.
+>> SCRIPT ERROR at runtime/errors/division_by_zero.gd:13 on subtest_vector3i(): Division by zero error in operator '/'.
+>> SCRIPT ERROR at runtime/errors/division_by_zero.gd:18 on subtest_vector4i(): Division by zero error in operator '/'.
+>> SCRIPT ERROR at runtime/errors/division_by_zero.gd:23 on subtest_vector2i_div_int(): Division by zero error in operator '/'.
+>> SCRIPT ERROR at runtime/errors/division_by_zero.gd:28 on subtest_vector3i_div_int(): Division by zero error in operator '/'.
+>> SCRIPT ERROR at runtime/errors/division_by_zero.gd:33 on subtest_vector4i_div_int(): Division by zero error in operator '/'.

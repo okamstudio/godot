@@ -1,2 +1,0 @@
-GDTEST_ANALYZER_ERROR
->> ERROR at line 1: Cannot get nested types for extension from non-GDScript type "RefCounted".

@@ -1,0 +1,9 @@
+GDTEST_RUNTIME_ERROR
+>> ERROR: Condition "_p->read_only" is true. Returning: false
+>>   Dictionary is in read-only state.
+>> SCRIPT ERROR at runtime/errors/constant_collections.gd:7 on subtest_constant_array(): Invalid assignment on read-only value (on base: 'Dictionary').
+>> SCRIPT ERROR at runtime/errors/constant_collections.gd:13 on subtest_constant_dictionary(): Invalid assignment on read-only value (on base: 'Array').
+>> SCRIPT ERROR at runtime/errors/constant_collections.gd:19 on subtest_readonly_array(): Invalid assignment on read-only value (on base: 'Array').
+>> ERROR: Condition "_p->read_only" is true. Returning: false
+>>   Dictionary is in read-only state.
+>> SCRIPT ERROR at runtime/errors/constant_collections.gd:25 on subtest_readonly_dictionary(): Invalid assignment on read-only value (on base: 'Dictionary').

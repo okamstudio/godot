@@ -55,4 +55,4 @@ const PreloadedUnnamedClass = preload("./export_variable_unnamed.notest.gd")
 func test():
 	for property in get_property_list():
 		if str(property.name).begins_with("test_"):
-			Utils.print_property_extended_info(property, self)
+			print(Utils.get_property_extended_info(property, self))

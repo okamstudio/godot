@@ -1,3 +1,0 @@
-GDTEST_ANALYZER_ERROR
->> ERROR at line 9: Cannot assign a value of type "enum_class_var_assign_with_wrong_enum_type.gd.MyOtherEnum" as "enum_class_var_assign_with_wrong_enum_type.gd.MyEnum".
->> ERROR at line 9: Value of type "enum_class_var_assign_with_wrong_enum_type.gd.MyOtherEnum" cannot be assigned to a variable of type "enum_class_var_assign_with_wrong_enum_type.gd.MyEnum".

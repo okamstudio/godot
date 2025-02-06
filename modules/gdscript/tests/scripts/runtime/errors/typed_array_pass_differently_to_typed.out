@@ -1,3 +1,0 @@
-GDTEST_RUNTIME_ERROR
-~~ WARNING at line 6: (UNSAFE_CALL_ARGUMENT) The argument 1 of the function "expect_typed()" requires the subtype "Array[int]" but the supertype "Variant" was provided.
->> SCRIPT ERROR at runtime/errors/typed_array_pass_differently_to_typed.gd:6 on test(): Invalid type in function 'expect_typed' in base 'RefCounted (typed_array_pass_differently_to_typed.gd)'. The array of argument 1 (Array[float]) does not have the same element type as the expected typed array argument.

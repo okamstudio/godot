@@ -1,0 +1,6 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 8: Cannot include a value of type "String" as "int".
+>> ERROR at line 8: Cannot have a key of type "String" in a dictionary of type "Dictionary[int, int]".
+>> ERROR at line 9: Cannot assign a value of type Dictionary[float, float] to variable "dict_2" with specified type Dictionary[int, int].
+>> ERROR at line 10: Cannot have a key of type "int" in a dictionary of type "Dictionary[Object, Object]".
+>> ERROR at line 11: Invalid argument for "expect_typed()" function: argument 1 should be "Dictionary[int, int]" but is "Dictionary[float, float]".

@@ -1,2 +1,0 @@
-GDTEST_RUNTIME_ERROR
->> SCRIPT ERROR at runtime/errors/typed_array_assign_basic_to_typed.gd:3 on test(): Trying to assign an array of type "Array" to a variable of type "Array[int]".

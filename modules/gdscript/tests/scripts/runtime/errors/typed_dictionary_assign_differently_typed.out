@@ -1,2 +1,0 @@
-GDTEST_RUNTIME_ERROR
->> SCRIPT ERROR at runtime/errors/typed_dictionary_assign_differently_typed.gd:3 on test(): Trying to assign a dictionary of type "Dictionary[float, float]" to a variable of type "Dictionary[int, int]".

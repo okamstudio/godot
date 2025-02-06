@@ -1,2 +1,0 @@
-GDTEST_ANALYZER_ERROR
->> ERROR at line 2: Cannot infer the type of "inferred" variable because the value doesn't have a set type.

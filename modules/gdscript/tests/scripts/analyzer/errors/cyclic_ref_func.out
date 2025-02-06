@@ -1,3 +1,0 @@
-GDTEST_ANALYZER_ERROR
->> ERROR at line 8: Could not resolve member "f1": Cyclic reference.
->> ERROR at line 8: Cannot infer the type of "p" parameter because the value doesn't have a set type.

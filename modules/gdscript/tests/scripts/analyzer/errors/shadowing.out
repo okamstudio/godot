@@ -1,0 +1,6 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 5: The member "V" already exists in parent class A.
+>> ERROR at line 7: Class "Vector2" hides a built-in type.
+>> ERROR at line 8: The member "Vector2i" cannot have the same name as a builtin type.
+>> ERROR at line 9: The member "Vector3" cannot have the same name as a builtin type.
+>> ERROR at line 10: The member "Vector3i" cannot have the same name as a builtin type.
