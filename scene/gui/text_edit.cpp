@@ -4079,10 +4079,24 @@ void TextEdit::end_complex_operation() {
 	undo_stack.back()->get().end_carets = carets;
 	if (undo_stack.back()->get().chain_forward) {
 		undo_stack.back()->get().chain_forward = false;
+		emit_signal(SNAME("operation_done"), undo_stack.back()->get().from_line, undo_stack.back()->get().to_line);
 		return;
 	}
 
-	undo_stack.back()->get().chain_backward = true;
+	int min_line = undo_stack.back()->get().from_line;
+	int max_line = undo_stack.back()->get().to_line;
+
+	List<TextOperation>::Element *op = undo_stack.back();
+	op->get().chain_backward = true;
+	while (op) {
+		min_line = MIN(min_line, op->get().from_line);
+		max_line = MIN(max_line, op->get().to_line);
+		if (op->get().chain_forward) {
+			break;
+		}
+		op = op->prev();
+	}
+	emit_signal(SNAME("operation_done"), min_line, max_line);
 }
 
 bool TextEdit::has_undo() const {
@@ -4097,6 +4111,41 @@ bool TextEdit::has_redo() const {
 	return undo_stack_pos != nullptr;
 }
 
+int TextEdit::get_undo_count() const {
+	if (undo_stack_pos == nullptr) {
+		int pending = current_op.type == TextOperation::TYPE_NONE ? 0 : 1;
+		return undo_stack.size() + pending;
+	}
+	return undo_stack.size() - undo_stack_idx;
+}
+
+int TextEdit::get_redo_count() const {
+	return undo_stack_idx;
+}
+
+int TextEdit::get_prev_version() const {
+	if (undo_stack.is_empty()) {
+		return -1;
+	}
+	if (current_op.type != TextOperation::TYPE_NONE) {
+		return current_op.prev_version;
+	}
+	const List<TextOperation>::Element *pos = undo_stack_pos;
+	if (pos == nullptr) {
+		pos = undo_stack.back();
+	} else {
+		pos = pos->prev();
+	}
+	if (pos == nullptr) {
+		return -1;
+	}
+	if (pos->get().chain_backward) {
+		while (pos && !pos->get().chain_forward) {
+			pos = pos->prev();
+		}
+	}
+	return pos ? pos->get().prev_version : -5;
+}
 void TextEdit::undo() {
 	if (!editable) {
 		return;
@@ -4113,11 +4162,13 @@ void TextEdit::undo() {
 		}
 
 		undo_stack_pos = undo_stack.back();
+		undo_stack_idx = 1;
 
 	} else if (undo_stack_pos == undo_stack.front()) {
 		return; // At the bottom of the undo stack.
 	} else {
 		undo_stack_pos = undo_stack_pos->prev();
+		undo_stack_idx += 1;
 	}
 
 	deselect();
@@ -4126,11 +4177,12 @@ void TextEdit::undo() {
 	_do_text_op(op, true);
 
 	current_op.version = op.prev_version;
-	if (undo_stack_pos->get().chain_backward) {
+	if (undo_stack_pos->get().chain_backward && !undo_stack_pos->get().chain_forward) {
 		// This was part of a complex operation, undo until the chain forward at the start of the complex operation.
 		while (true) {
 			ERR_BREAK(!undo_stack_pos->prev());
 			undo_stack_pos = undo_stack_pos->prev();
+			undo_stack_idx += 1;
 			op = undo_stack_pos->get();
 			_do_text_op(op, true);
 			current_op.version = op.prev_version;
@@ -4181,11 +4233,12 @@ void TextEdit::redo() {
 	TextOperation op = undo_stack_pos->get();
 	_do_text_op(op, false);
 	current_op.version = op.version;
-	if (undo_stack_pos->get().chain_forward) {
+	if (undo_stack_pos->get().chain_forward && !undo_stack_pos->get().chain_backward) {
 		// This was part of a complex operation, redo until the chain backward at the end of the complex operation.
 		while (true) {
 			ERR_BREAK(!undo_stack_pos->next());
 			undo_stack_pos = undo_stack_pos->next();
+			undo_stack_idx -= 1;
 			op = undo_stack_pos->get();
 			_do_text_op(op, false);
 			current_op.version = op.version;
@@ -4208,6 +4261,7 @@ void TextEdit::redo() {
 
 	carets = undo_stack_pos->get().end_carets;
 	undo_stack_pos = undo_stack_pos->next();
+	undo_stack_idx -= 1;
 
 	_unhide_carets();
 
@@ -4222,6 +4276,7 @@ void TextEdit::clear_undo_history() {
 	saved_version = 0;
 	current_op.type = TextOperation::TYPE_NONE;
 	undo_stack_pos = nullptr;
+	undo_stack_idx = 0;
 	undo_stack.clear();
 }
 
@@ -6615,6 +6670,9 @@ void TextEdit::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("has_undo"), &TextEdit::has_undo);
 	ClassDB::bind_method(D_METHOD("has_redo"), &TextEdit::has_redo);
+	ClassDB::bind_method(D_METHOD("get_undo_count"), &TextEdit::get_undo_count);
+	ClassDB::bind_method(D_METHOD("get_redo_count"), &TextEdit::get_redo_count);
+	ClassDB::bind_method(D_METHOD("get_prev_version"), &TextEdit::get_prev_version);
 	ClassDB::bind_method(D_METHOD("undo"), &TextEdit::undo);
 	ClassDB::bind_method(D_METHOD("redo"), &TextEdit::redo);
 	ClassDB::bind_method(D_METHOD("clear_undo_history"), &TextEdit::clear_undo_history);
@@ -6966,6 +7024,7 @@ void TextEdit::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("text_set"));
 	ADD_SIGNAL(MethodInfo("text_changed"));
 	ADD_SIGNAL(MethodInfo("lines_edited_from", PropertyInfo(Variant::INT, "from_line"), PropertyInfo(Variant::INT, "to_line")));
+	ADD_SIGNAL(MethodInfo("operation_done", PropertyInfo(Variant::INT, "from_line"), PropertyInfo(Variant::INT, "to_line")));
 
 	/* Caret. */
 	ADD_SIGNAL(MethodInfo("caret_changed"));
@@ -7454,7 +7513,36 @@ void TextEdit::_push_current_op() {
 		next_operation_is_complex = false;
 	}
 
-	undo_stack.push_back(current_op);
+	TextOperation *last = !undo_stack.is_empty() ? &undo_stack.back()->get() : nullptr;
+	// merge simple edits of the same kind and same logical operation, but only if we're not going to thrash anything
+	if (last && last->type == current_op.type && (current_op.type == TextOperation::TYPE_INSERT || current_op.type == TextOperation::TYPE_REMOVE) && !current_op.chain_forward && complex_operation_count > 0
+			// careful: multicursor edits have their actions split up and the inputs associated with a given caret are not directly adjacent in the undo buffer!
+			// so, we can only easily merge single-caret edits
+			&& last->start_carets.size() == 1 && last->end_carets.size() == 1 && current_op.start_carets.size() == 1 && current_op.end_carets.size() == 1 && last->end_carets[0].line == current_op.start_carets[0].line) {
+		auto merge_info = [](TextOperation &a, TextOperation &b) {
+			a.from_line = MIN(a.from_line, b.from_line);
+			a.from_column = MIN(a.from_column, b.from_column);
+			a.to_line = MAX(a.to_line, b.to_line);
+			a.to_column = MAX(a.to_column, b.to_column);
+			a.version = b.version;
+			a.chain_backward = b.chain_backward;
+			a.end_carets = b.end_carets;
+		};
+		if ((current_op.type == TextOperation::TYPE_INSERT && last->end_carets[0].column + 1 == current_op.start_carets[0].column)
+				// for delete key inputs, the cursor doesn't move between the end of the first and the start of the second input; also, the 'deleted text' is on the right instead of the left
+				|| (current_op.type == TextOperation::TYPE_REMOVE && last->end_carets[0].column == current_op.start_carets[0].column)) {
+			merge_info(undo_stack.back()->get(), current_op);
+			last->text += current_op.text;
+		} else if (current_op.type == TextOperation::TYPE_REMOVE && last->end_carets[0].column - 1 == current_op.start_carets[0].column) {
+			merge_info(undo_stack.back()->get(), current_op);
+			last->text = current_op.text + last->text;
+		} else {
+			undo_stack.push_back(current_op);
+		}
+	} else {
+		undo_stack.push_back(current_op);
+	}
+
 	current_op.type = TextOperation::TYPE_NONE;
 	current_op.text = "";
 	current_op.chain_forward = false;
@@ -7495,6 +7583,7 @@ void TextEdit::_clear_redo() {
 		undo_stack_pos = undo_stack_pos->next();
 		undo_stack.erase(elem);
 	}
+	undo_stack_idx = 0;
 }
 
 /* Search */
