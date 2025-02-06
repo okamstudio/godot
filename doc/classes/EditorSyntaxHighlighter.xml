@@ -13,13 +13,13 @@
 		<method name="_get_name" qualifiers="virtual const">
 			<return type="String" />
 			<description>
-				Virtual method which can be overridden to return the syntax highlighter name.
+				Virtual method which can be overridden to return the syntax highlighter name. This is a name that is displayed in the editor when selecting between syntax highlighters, e.g. [code]Markdown[/code].
 			</description>
 		</method>
 		<method name="_get_supported_languages" qualifiers="virtual const">
 			<return type="PackedStringArray" />
 			<description>
-				Virtual method which can be overridden to return the supported language names.
+				Virtual method which can be overridden to return the supported file extensions. This method should return a list of file extensions without the leading period, e.g. [code]PackedStringArray(["md", "markdown"])[/code].
 			</description>
 		</method>
 	</methods>
