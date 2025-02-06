@@ -34,6 +34,10 @@ namespace GodotTools.ProjectEditor
             if (sanitizedName != name)
                 mainGroup.AddProperty("RootNamespace", sanitizedName);
 
+            // Nest .uid file in .cs file.
+            var itemGroup = root.AddItemGroup();
+            itemGroup.AddItem("None", "**\\*.uid");
+
             return root;
         }
 
