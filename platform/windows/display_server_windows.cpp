@@ -2986,7 +2986,8 @@ Error DisplayServerWindows::embed_process(WindowID p_window, OS::ProcessID p_pid
 	// (e.g., a screen to the left of the main screen).
 	const Rect2i adjusted_rect = Rect2i(p_rect.position + _get_screens_origin(), p_rect.size);
 
-	SetWindowPos(ep->window_handle, nullptr, adjusted_rect.position.x, adjusted_rect.position.y, adjusted_rect.size.x, adjusted_rect.size.y, SWP_NOZORDER | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
+	// Use HWND_BOTTOM to prevent reordering of the embedded window over another popup.
+	SetWindowPos(ep->window_handle, HWND_BOTTOM, adjusted_rect.position.x, adjusted_rect.position.y, adjusted_rect.size.x, adjusted_rect.size.y, SWP_NOZORDER | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
 
 	if (ep->is_visible != p_visible) {
 		if (p_visible) {
