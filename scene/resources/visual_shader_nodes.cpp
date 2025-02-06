@@ -6797,34 +6797,34 @@ String VisualShaderNodeTextureParameterTriplanar::generate_global_per_node(Shade
 	String code;
 
 	code += "// " + get_caption() + "\n";
-	code += "	vec4 triplanar_texture(sampler2D p_sampler, vec3 p_weights, vec3 p_triplanar_pos) {\n";
-	code += "		vec4 samp = vec4(0.0);\n";
-	code += "		samp += texture(p_sampler, p_triplanar_pos.xy) * p_weights.z;\n";
-	code += "		samp += texture(p_sampler, p_triplanar_pos.xz) * p_weights.y;\n";
-	code += "		samp += texture(p_sampler, p_triplanar_pos.zy * vec2(-1.0, 1.0)) * p_weights.x;\n";
-	code += "		return samp;\n";
-	code += "	}\n";
-	code += "\n";
-	code += "	uniform vec3 triplanar_scale = vec3(1.0, 1.0, 1.0);\n";
-	code += "	uniform vec3 triplanar_offset;\n";
-	code += "	uniform float triplanar_sharpness = 0.5;\n";
-	code += "\n";
-	code += "	varying vec3 triplanar_power_normal;\n";
-	code += "	varying vec3 triplanar_pos;\n";
+	code += "vec4 triplanar_texture(sampler2D p_sampler, vec3 p_weights, vec3 p_triplanar_pos) {\n";
+	code += "	vec4 samp = vec4(0.0);\n";
+	code += "	samp += texture(p_sampler, p_triplanar_pos.xy) * p_weights.z;\n";
+	code += "	samp += texture(p_sampler, p_triplanar_pos.xz) * p_weights.y;\n";
+	code += "	samp += texture(p_sampler, p_triplanar_pos.zy * vec2(-1.0, 1.0)) * p_weights.x;\n";
+	code += "	return samp;\n";
+	code += "}\n";
 
 	return code;
 }
 
-String VisualShaderNodeTextureParameterTriplanar::generate_global_per_func(Shader::Mode p_mode, VisualShader::Type p_type, int p_id) const {
+String VisualShaderNodeTextureParameterTriplanar::generate_global_per_func_multi(Shader::Mode p_mode, VisualShader::Type p_type, int p_id) const {
 	String code;
 
 	if (p_type == VisualShader::TYPE_VERTEX) {
+		int index = get_index();
+
+		String index_string;
+		if (index > 0) {
+			index_string = itos(index);
+		}
+
 		code += "// " + get_caption() + "\n";
 		code += "	{\n";
-		code += "		triplanar_power_normal = pow(abs(NORMAL), vec3(triplanar_sharpness));\n";
-		code += "		triplanar_power_normal /= dot(triplanar_power_normal, vec3(1.0));\n";
-		code += "		triplanar_pos = VERTEX * triplanar_scale + triplanar_offset;\n";
-		code += "		triplanar_pos *= vec3(1.0, -1.0, 1.0);\n";
+		code += vformat("		triplanar_power_normal%s = pow(abs(NORMAL), vec3(triplanar_sharpness%s));\n", index_string, index_string);
+		code += vformat("		triplanar_power_normal%s /= dot(triplanar_power_normal%s, vec3(1.0));\n", index_string, index_string);
+		code += vformat("		triplanar_pos%s = VERTEX * triplanar_scale%s + triplanar_offset%s;\n", index_string, index_string, index_string);
+		code += vformat("		triplanar_pos%s *= vec3(1.0, -1.0, 1.0);\n", index_string);
 		code += "	}\n";
 	}
 
@@ -6833,21 +6833,42 @@ String VisualShaderNodeTextureParameterTriplanar::generate_global_per_func(Shade
 
 String VisualShaderNodeTextureParameterTriplanar::generate_global(Shader::Mode p_mode, VisualShader::Type p_type, int p_id) const {
 	String code = _get_qual_str() + "uniform sampler2D " + get_parameter_name();
+	int index = get_index();
+
 	code += get_sampler_hint(texture_type, color_default, texture_filter, texture_repeat, texture_source);
 	code += ";\n";
+
+	String index_string;
+	if (index > 0) {
+		index_string = itos(index);
+	}
+
+	code += vformat("uniform vec3 triplanar_scale%s = vec3(1.0, 1.0, 1.0);\n", index_string);
+	code += vformat("uniform vec3 triplanar_offset%s;\n", index_string);
+	code += vformat("uniform float triplanar_sharpness%s = 0.5;\n", index_string);
+	code += vformat("varying vec3 triplanar_power_normal%s;\n", index_string);
+	code += vformat("varying vec3 triplanar_pos%s;\n", index_string);
+	code += "\n";
+
 	return code;
 }
 
 String VisualShaderNodeTextureParameterTriplanar::generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview) const {
 	String id = get_parameter_name();
+	int index = get_index();
+
+	String index_string;
+	if (index > 0) {
+		index_string = itos(index);
+	}
 
 	String code;
 	if (p_input_vars[0].is_empty() && p_input_vars[1].is_empty()) {
-		code += "	" + p_output_vars[0] + " = triplanar_texture(" + id + ", triplanar_power_normal, triplanar_pos);\n";
+		code += "	" + p_output_vars[0] + " = triplanar_texture(" + id + vformat(", triplanar_power_normal%s, triplanar_pos%s);\n", index_string, index_string);
 	} else if (!p_input_vars[0].is_empty() && p_input_vars[1].is_empty()) {
-		code += "	" + p_output_vars[0] + " = triplanar_texture(" + id + ", " + p_input_vars[0] + ", triplanar_pos);\n";
+		code += "	" + p_output_vars[0] + " = triplanar_texture(" + id + ", " + p_input_vars[0] + vformat(", triplanar_pos%s);\n", index_string);
 	} else if (p_input_vars[0].is_empty() && !p_input_vars[1].is_empty()) {
-		code += "	" + p_output_vars[0] + " = triplanar_texture(" + id + ", triplanar_power_normal, " + p_input_vars[1] + ");\n";
+		code += "	" + p_output_vars[0] + " = triplanar_texture(" + id + vformat(", triplanar_power_normal%s, ", index_string) + p_input_vars[1] + ");\n";
 	} else {
 		code += "	" + p_output_vars[0] + " = triplanar_texture(" + id + ", " + p_input_vars[0] + ", " + p_input_vars[1] + ");\n";
 	}

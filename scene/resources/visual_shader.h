@@ -377,6 +377,7 @@ public:
 	virtual String generate_global(Shader::Mode p_mode, VisualShader::Type p_type, int p_id) const;
 	virtual String generate_global_per_node(Shader::Mode p_mode, int p_id) const;
 	virtual String generate_global_per_func(Shader::Mode p_mode, VisualShader::Type p_type, int p_id) const;
+	virtual String generate_global_per_func_multi(Shader::Mode p_mode, VisualShader::Type p_type, int p_id) const;
 	// If no output is connected, the output var passed will be empty. If no input is connected and input is NIL, the input var passed will be empty.
 	virtual String generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview = false) const = 0;
 
@@ -625,6 +626,8 @@ public:
 
 	virtual bool is_qualifier_supported(Qualifier p_qual) const = 0;
 	virtual bool is_convertible_to_constant() const = 0;
+
+	int get_index() const;
 
 	virtual Vector<StringName> get_editable_properties() const override;
 	virtual String get_warning(Shader::Mode p_mode, VisualShader::Type p_type) const override;

@@ -2629,7 +2629,7 @@ public:
 	virtual bool is_input_port_default(int p_port, Shader::Mode p_mode) const override;
 
 	virtual String generate_global_per_node(Shader::Mode p_mode, int p_id) const override;
-	virtual String generate_global_per_func(Shader::Mode p_mode, VisualShader::Type p_type, int p_id) const override;
+	virtual String generate_global_per_func_multi(Shader::Mode p_mode, VisualShader::Type p_type, int p_id) const override;
 	virtual String generate_global(Shader::Mode p_mode, VisualShader::Type p_type, int p_id) const override;
 	virtual String generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview = false) const override;
 

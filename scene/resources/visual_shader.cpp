@@ -37,6 +37,10 @@
 #include "visual_shader_nodes.h"
 #include "visual_shader_particle_nodes.h"
 
+#ifdef MODULE_REGEX_ENABLED
+#include "modules/regex/regex.h"
+#endif // MODULE_REGEX_ENABLED
+
 String make_unique_id(VisualShader::Type p_type, int p_id, const String &p_name) {
 	static const char *typepf[VisualShader::TYPE_MAX] = { "vtx", "frg", "lgt", "start", "process", "collide", "start_custom", "process_custom", "sky", "fog" };
 	return p_name + "_" + String(typepf[p_type]) + "_" + itos(p_id);
@@ -377,6 +381,10 @@ String VisualShaderNode::generate_global_per_node(Shader::Mode p_mode, int p_id)
 }
 
 String VisualShaderNode::generate_global_per_func(Shader::Mode p_mode, VisualShader::Type p_type, int p_id) const {
+	return String();
+}
+
+String VisualShaderNode::generate_global_per_func_multi(Shader::Mode p_mode, VisualShader::Type p_type, int p_id) const {
 	return String();
 }
 
@@ -2010,12 +2018,17 @@ Error VisualShader::_write_node(Type type, StringBuilder *p_global_code, StringB
 			if (p_global_code_per_node) {
 				*p_global_code_per_node += vsnode->generate_global_per_node(get_mode(), p_node);
 			}
-			for (int i = 0; i < TYPE_MAX; i++) {
-				if (p_global_code_per_func) {
+			if (p_global_code_per_func) {
+				for (int i = 0; i < TYPE_MAX; i++) {
 					(*p_global_code_per_func)[Type(i)] += vsnode->generate_global_per_func(get_mode(), Type(i), p_node);
 				}
 			}
 			r_classes.insert(class_name);
+		}
+		if (p_global_code_per_func) {
+			for (int i = 0; i < TYPE_MAX; i++) {
+				(*p_global_code_per_func)[Type(i)] += vsnode->generate_global_per_func_multi(get_mode(), Type(i), p_node);
+			}
 		}
 	}
 
@@ -4331,6 +4344,35 @@ String VisualShaderNodeParameter::get_warning(Shader::Mode p_mode, VisualShader:
 	}
 
 	return String();
+}
+
+int VisualShaderNodeParameter::get_index() const {
+#ifdef MODULE_REGEX_ENABLED
+	RegEx regex = RegEx("\\d+$");
+	Ref<RegExMatch> match = regex.search(parameter_name);
+	if (match.is_null()) {
+		return 0;
+	}
+	return match->get_strings()[0].to_int();
+#else
+	String buffer;
+	for (int i = 0; i < parameter_name.length(); i++) {
+		int index = parameter_name.length() - i - 1;
+		String ch = parameter_name.substr(index, 1);
+
+		if (ch.is_valid_int()) {
+			buffer += ch;
+		} else {
+			break;
+		}
+	}
+
+	if (buffer.is_empty()) {
+		return 0;
+	}
+
+	return buffer.reverse().to_int();
+#endif // MODULE_REGEX_ENABLED
 }
 
 Vector<StringName> VisualShaderNodeParameter::get_editable_properties() const {
