@@ -712,7 +712,12 @@ void EditorThemeManager::_populate_standard_styles(const Ref<EditorTheme> &p_the
 			style_tooltip->set_shadow_size(0);
 			style_tooltip->set_content_margin_all(p_config.base_margin * EDSCALE * 0.5);
 			style_tooltip->set_bg_color(p_config.dark_color_3 * Color(0.8, 0.8, 0.8, 0.9));
-			style_tooltip->set_border_width_all(0);
+			if (p_config.draw_extra_borders) {
+				style_tooltip->set_border_width_all(Math::round(EDSCALE));
+				style_tooltip->set_border_color(p_config.extra_border_color_2);
+			} else {
+				style_tooltip->set_border_width_all(0);
+			}
 			p_theme->set_stylebox(SceneStringName(panel), "TooltipPanel", style_tooltip);
 		}
 
@@ -2428,6 +2433,13 @@ void EditorThemeManager::_populate_editor_styles(const Ref<EditorTheme> &p_theme
 		Ref<StyleBoxFlat> style = p_config.tree_panel_style->duplicate();
 		style->set_bg_color(p_config.dark_theme ? style->get_bg_color().lightened(0.04) : style->get_bg_color().darkened(0.04));
 		style->set_border_color(p_config.dark_theme ? style->get_border_color().lightened(0.04) : style->get_border_color().darkened(0.04));
+		if (p_config.draw_extra_borders) {
+			// A tooltip border is already drawn for all tooltips when Draw Extra Borders is enabled.
+			// Hide borders that don't serve in drawing a line between the title and content to prevent the border from being doubled.
+			style->set_border_width(SIDE_TOP, 0);
+			style->set_border_width(SIDE_LEFT, 0);
+			style->set_border_width(SIDE_RIGHT, 0);
+		}
 		style->set_corner_radius(CORNER_BOTTOM_LEFT, 0);
 		style->set_corner_radius(CORNER_BOTTOM_RIGHT, 0);
 
@@ -2438,6 +2450,13 @@ void EditorThemeManager::_populate_editor_styles(const Ref<EditorTheme> &p_theme
 	// EditorHelpBitContent.
 	{
 		Ref<StyleBoxFlat> style = p_config.tree_panel_style->duplicate();
+		if (p_config.draw_extra_borders) {
+			// A tooltip border is already drawn for all tooltips when Draw Extra Borders is enabled.
+			// Hide borders that don't serve in drawing a line between the title and content to prevent the border from being doubled.
+			style->set_border_width(SIDE_BOTTOM, 0);
+			style->set_border_width(SIDE_LEFT, 0);
+			style->set_border_width(SIDE_RIGHT, 0);
+		}
 		style->set_corner_radius(CORNER_TOP_LEFT, 0);
 		style->set_corner_radius(CORNER_TOP_RIGHT, 0);
 
