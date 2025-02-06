@@ -3875,7 +3875,7 @@ void AnimationTrackEditor::update_keying() {
 	EditorSelectionHistory *editor_history = EditorNode::get_singleton()->get_editor_selection_history();
 	if (is_visible_in_tree() && animation.is_valid() && editor_history->get_path_size() > 0) {
 		Object *obj = ObjectDB::get_instance(editor_history->get_path_object(0));
-		keying_enabled = Object::cast_to<Node>(obj) != nullptr || Object::cast_to<MultiNodeEdit>(obj) != nullptr;
+		keying_enabled = (Object::cast_to<Node>(obj) != nullptr || Object::cast_to<MultiNodeEdit>(obj) != nullptr) && !read_only;
 	}
 
 	if (keying_enabled == keying) {
@@ -4067,7 +4067,13 @@ void AnimationTrackEditor::make_insert_queue() {
 void AnimationTrackEditor::commit_insert_queue() {
 	bool reset_allowed = true;
 	AnimationPlayer *player = AnimationPlayerEditor::get_singleton()->get_player();
-	if (player->has_animation(SceneStringName(RESET)) && player->get_animation(SceneStringName(RESET)) == animation) {
+
+	Ref<Animation> reset_animation;
+	if (player->has_animation(SceneStringName(RESET))) {
+		reset_animation = player->get_animation(SceneStringName(RESET));
+	}
+
+	if (reset_animation.is_valid() && reset_animation == animation) {
 		// Avoid messing with the reset animation itself.
 		reset_allowed = false;
 	} else {
@@ -4075,12 +4081,31 @@ void AnimationTrackEditor::commit_insert_queue() {
 		for (const AnimationTrackEditor::InsertData &E : insert_data) {
 			if (track_type_is_resettable(E.type)) {
 				some_resettable = true;
-				break;
+
+				// Check if we already have a matching reset track.
+				if (reset_animation.is_valid()) {
+					for (int idx = 0; idx < reset_animation->get_track_count(); idx++) {
+						if (reset_animation->track_get_path(idx) == E.path && reset_animation->track_get_type(idx) == E.type) {
+							some_resettable = false;
+							break;
+						}
+					}
+				}
+
+				if (some_resettable) {
+					break;
+				}
 			}
 		}
+
 		if (!some_resettable) {
 			reset_allowed = false;
 		}
+	}
+
+	// Check if we are permitted to edit the RESET animation.
+	if (reset_allowed && reset_animation.is_valid()) {
+		reset_allowed = !EditorNode::get_singleton()->is_resource_read_only(reset_animation);
 	}
 
 	// Organize insert data.
@@ -4142,6 +4167,8 @@ void AnimationTrackEditor::commit_insert_queue() {
 		insert_confirm->set_ok_button_text(TTR("Create"));
 		insert_confirm->popup_centered();
 	} else {
+		all_bezier = false;
+		reset_allowed = false;
 		_insert_track(reset_allowed && EDITOR_GET("editors/animation/default_create_reset_tracks"), all_bezier && EDITOR_GET("editors/animation/default_create_bezier_tracks"));
 	}
 
