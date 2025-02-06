@@ -39,6 +39,9 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#if !defined(__FreeBSD__) && !defined(__OpenBSD__) && !defined(__NetBSD__) && !defined(WEB_ENABLED)
+#include <sys/xattr.h>
+#endif
 #include <unistd.h>
 
 #if defined(TOOLS_ENABLED)
@@ -435,6 +438,117 @@ Error FileAccessUnix::_set_read_only_attribute(const String &p_file, bool p_ro) 
 #else
 	return ERR_UNAVAILABLE;
 #endif
+}
+
+PackedByteArray FileAccessUnix::_get_extended_attribute(const String &p_file, const String &p_attribute_name) {
+	ERR_FAIL_COND_V(p_attribute_name.is_empty(), PackedByteArray());
+
+	String file = fix_path(p_file);
+	PackedByteArray data;
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(WEB_ENABLED)
+	// Not supported.
+#elif defined(__APPLE__)
+	CharString attr_name = p_attribute_name.utf8();
+	ssize_t attr_size = getxattr(file.utf8().get_data(), attr_name.get_data(), nullptr, 0, 0, 0);
+	if (attr_size <= 0) {
+		return PackedByteArray();
+	}
+
+	data.resize(attr_size);
+	attr_size = getxattr(file.utf8().get_data(), attr_name.get_data(), (void *)data.ptrw(), data.size(), 0, 0);
+	ERR_FAIL_COND_V_MSG(attr_size != data.size(), PackedByteArray(), "Failed to set extended attributes for: " + p_file);
+#else
+	CharString attr_name = ("user." + p_attribute_name).utf8();
+	ssize_t attr_size = getxattr(file.utf8().get_data(), attr_name.get_data(), nullptr, 0);
+	if (attr_size <= 0) {
+		return PackedByteArray();
+	}
+
+	data.resize(attr_size);
+	attr_size = getxattr(file.utf8().get_data(), attr_name.get_data(), (void *)data.ptrw(), data.size());
+	ERR_FAIL_COND_V_MSG(attr_size != data.size(), PackedByteArray(), "Failed to set extended attributes for: " + p_file);
+#endif
+	return data;
+}
+
+Error FileAccessUnix::_set_extended_attribute(const String &p_file, const String &p_attribute_name, const PackedByteArray &p_data) {
+	ERR_FAIL_COND_V(p_attribute_name.is_empty(), FAILED);
+
+	String file = fix_path(p_file);
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(WEB_ENABLED)
+	// Not supported.
+#elif defined(__APPLE__)
+	int err = setxattr(file.utf8().get_data(), p_attribute_name.utf8().get_data(), (const void *)p_data.ptr(), p_data.size(), 0, 0);
+	if (err != 0) {
+		return FAILED;
+	}
+#else
+	int err = setxattr(file.utf8().get_data(), ("user." + p_attribute_name).utf8().get_data(), (const void *)p_data.ptr(), p_data.size(), 0);
+	if (err != 0) {
+		return FAILED;
+	}
+#endif
+	return OK;
+}
+
+Error FileAccessUnix::_remove_extended_attribute(const String &p_file, const String &p_attribute_name) {
+	ERR_FAIL_COND_V(p_attribute_name.is_empty(), FAILED);
+
+	String file = fix_path(p_file);
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(WEB_ENABLED)
+	// Not supported.
+#elif defined(__APPLE__)
+	int err = removexattr(file.utf8().get_data(), p_attribute_name.utf8().get_data(), 0);
+	if (err != 0) {
+		return FAILED;
+	}
+#else
+	int err = removexattr(file.utf8().get_data(), ("user." + p_attribute_name).utf8().get_data());
+	if (err != 0) {
+		return FAILED;
+	}
+#endif
+	return OK;
+}
+
+PackedStringArray FileAccessUnix::_get_extended_attributes_list(const String &p_file) {
+	PackedStringArray ret;
+	String file = fix_path(p_file);
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(WEB_ENABLED)
+	// Not supported.
+#elif defined(__APPLE__)
+	size_t size = listxattr(file.utf8().get_data(), nullptr, 0, 0);
+	if (size > 0) {
+		PackedByteArray data;
+		data.resize(size);
+		listxattr(file.utf8().get_data(), (char *)data.ptrw(), data.size(), 0);
+		int64_t start = 0;
+		for (int64_t x = 0; x < data.size(); x++) {
+			if (x != start && data[x] == 0) {
+				ret.push_back(String::utf8((const char *)(data.ptr() + start), x - start));
+				start = x + 1;
+			}
+		}
+	}
+#else
+	size_t size = listxattr(file.utf8().get_data(), nullptr, 0);
+	if (size > 0) {
+		PackedByteArray data;
+		data.resize(size);
+		listxattr(file.utf8().get_data(), (char *)data.ptrw(), data.size());
+		int64_t start = 0;
+		for (int64_t x = 0; x < data.size(); x++) {
+			if (x != start && data[x] == 0) {
+				String name = String::utf8((const char *)(data.ptr() + start), x - start);
+				if (name.begins_with("user.")) {
+					ret.push_back(name.trim_prefix("user."));
+				}
+				start = x + 1;
+			}
+		}
+	}
+#endif
+	return ret;
 }
 
 void FileAccessUnix::close() {

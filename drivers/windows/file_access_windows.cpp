@@ -509,6 +509,104 @@ Error FileAccessWindows::_set_read_only_attribute(const String &p_file, bool p_r
 	return OK;
 }
 
+PackedByteArray FileAccessWindows::_get_extended_attribute(const String &p_file, const String &p_attribute_name) {
+	ERR_FAIL_COND_V(p_attribute_name.is_empty(), PackedByteArray());
+
+	String file = fix_path(p_file);
+	file += ":" + p_attribute_name;
+	const Char16String &file_utf16 = file.utf16();
+
+	PackedByteArray data;
+	HANDLE h = CreateFileW((LPCWSTR)file_utf16.get_data(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+	if (h != INVALID_HANDLE_VALUE) {
+		size_t bytes_in_buffer = 0;
+		const int CHUNK_SIZE = 4096;
+
+		DWORD read = 0;
+		for (;;) {
+			data.resize(bytes_in_buffer + CHUNK_SIZE);
+			bool success = ReadFile(h, data.ptrw() + bytes_in_buffer, CHUNK_SIZE, &read, nullptr);
+			if (!success || read == 0) {
+				break;
+			}
+			bytes_in_buffer += read;
+		}
+		data.resize(bytes_in_buffer);
+		CloseHandle(h);
+	}
+	return data;
+}
+
+Error FileAccessWindows::_set_extended_attribute(const String &p_file, const String &p_attribute_name, const PackedByteArray &p_data) {
+	ERR_FAIL_COND_V(p_attribute_name.is_empty(), FAILED);
+
+	String file = fix_path(p_file);
+	file += ":" + p_attribute_name;
+	const Char16String &file_utf16 = file.utf16();
+
+	PackedByteArray data;
+	HANDLE h = CreateFileW((LPCWSTR)file_utf16.get_data(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+	if (h == INVALID_HANDLE_VALUE) {
+		return FAILED;
+	}
+
+	DWORD written = 0;
+	bool ok = true;
+	if (p_data.size() > 0) {
+		ok = WriteFile(h, p_data.ptr(), p_data.size(), &written, nullptr);
+	}
+	CloseHandle(h);
+
+	ERR_FAIL_COND_V_MSG(!ok || written != p_data.size(), FAILED, "Failed to set extended attributes for: " + p_file);
+
+	return OK;
+}
+
+Error FileAccessWindows::_remove_extended_attribute(const String &p_file, const String &p_attribute_name) {
+	ERR_FAIL_COND_V(p_attribute_name.is_empty(), FAILED);
+
+	String file = fix_path(p_file);
+	file += ":" + p_attribute_name;
+	const Char16String &file_utf16 = file.utf16();
+
+	return DeleteFileW((LPCWSTR)(file_utf16.get_data())) != 0 ? OK : FAILED;
+}
+
+PackedStringArray FileAccessWindows::_get_extended_attributes_list(const String &p_file) {
+	PackedStringArray ret;
+	String file = fix_path(p_file);
+
+	char info_block[65536] = {};
+	PFILE_STREAM_INFO stream_info = (PFILE_STREAM_INFO)info_block;
+
+	HANDLE h = CreateFileW((LPCWSTR)file.utf16().get_data(), 0, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
+	if (h == INVALID_HANDLE_VALUE) {
+		return ret;
+	}
+	BOOL out = GetFileInformationByHandleEx(h, FileStreamInfo, info_block, sizeof(info_block));
+	CloseHandle(h);
+	if (!out) {
+		return ret;
+	}
+	while (true) {
+		if (stream_info->StreamNameLength != 0) {
+			String name = String::utf16((const char16_t *)stream_info->StreamName, stream_info->StreamNameLength / sizeof(WCHAR));
+			if (name.ends_with(":$DATA")) {
+				name = name.trim_prefix(":").trim_suffix(":$DATA");
+				if (!name.is_empty()) {
+					ret.push_back(name);
+				}
+			}
+		}
+		if (stream_info->NextEntryOffset == 0) {
+			break;
+		}
+		stream_info = (PFILE_STREAM_INFO)((LPBYTE)stream_info + stream_info->NextEntryOffset);
+	}
+
+	return ret;
+}
+
 void FileAccessWindows::close() {
 	_close();
 }

@@ -98,6 +98,11 @@ public:
 	virtual bool _get_read_only_attribute(const String &p_file) = 0;
 	virtual Error _set_read_only_attribute(const String &p_file, bool p_ro) = 0;
 
+	virtual PackedByteArray _get_extended_attribute(const String &p_file, const String &p_attribute_name) { return PackedByteArray(); }
+	virtual Error _set_extended_attribute(const String &p_file, const String &p_attribute_name, const PackedByteArray &p_data) { return ERR_UNAVAILABLE; }
+	virtual Error _remove_extended_attribute(const String &p_file, const String &p_attribute_name) { return ERR_UNAVAILABLE; }
+	virtual PackedStringArray _get_extended_attributes_list(const String &p_file) { return PackedStringArray(); }
+
 protected:
 	static void _bind_methods();
 
@@ -246,6 +251,13 @@ public:
 	static Error set_hidden_attribute(const String &p_file, bool p_hidden);
 	static bool get_read_only_attribute(const String &p_file);
 	static Error set_read_only_attribute(const String &p_file, bool p_ro);
+
+	static PackedByteArray get_extended_attribute(const String &p_file, const String &p_attribute_name);
+	static String get_extended_attribute_string(const String &p_file, const String &p_attribute_name);
+	static Error set_extended_attribute(const String &p_file, const String &p_attribute_name, const PackedByteArray &p_data);
+	static Error set_extended_attribute_string(const String &p_file, const String &p_attribute_name, const String &p_data);
+	static Error remove_extended_attribute(const String &p_file, const String &p_attribute_name);
+	static PackedStringArray get_extended_attributes_list(const String &p_file);
 
 	static void set_backup_save(bool p_enable) { backup_save = p_enable; }
 	static bool is_backup_save_enabled() { return backup_save; }
