@@ -47,6 +47,39 @@ void AnimationLibraryEditor::set_animation_mixer(Object *p_mixer) {
 	mixer = Object::cast_to<AnimationMixer>(p_mixer);
 }
 
+void AnimationLibraryEditor::_remove_selected_items() {
+	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+	undo_redo->create_action(TTR("Remove Selected Animation Resources"));
+
+	LocalVector<StringName> lib_names;
+	for (TreeItem *item : selected_libraries) {
+		const StringName lib_name = item->get_metadata(0);
+		Ref<AnimationLibrary> al = mixer->get_animation_library(lib_name);
+		lib_names.push_back(lib_name);
+
+		undo_redo->add_do_method(mixer, "remove_animation_library", lib_name);
+		undo_redo->add_undo_method(mixer, "add_animation_library", lib_name, al);
+	}
+
+	for (TreeItem *item : selected_animations) {
+		const StringName lib_name = item->get_parent()->get_metadata(0);
+		if (lib_names.has(lib_name)) {
+			continue; // It will be removed with the library itself, skip.
+		}
+
+		Ref<AnimationLibrary> al = mixer->get_animation_library(lib_name);
+		const StringName anim_name = item->get_metadata(0);
+		Ref<Animation> anim = al->get_animation(anim_name);
+
+		undo_redo->add_do_method(al.ptr(), "remove_animation", anim_name);
+		undo_redo->add_undo_method(al.ptr(), "add_animation", anim_name, anim);
+	}
+
+	undo_redo->add_do_method(this, "_update_editor", mixer);
+	undo_redo->add_undo_method(this, "_update_editor", mixer);
+	undo_redo->commit_action();
+}
+
 void AnimationLibraryEditor::_add_library() {
 	add_library_dialog->set_title(TTR("Library Name:"));
 	add_library_name->set_text("");
@@ -151,12 +184,16 @@ void AnimationLibraryEditor::_load_library() {
 }
 
 void AnimationLibraryEditor::_file_popup_selected(int p_id) {
-	Ref<AnimationLibrary> al = mixer->get_animation_library(file_dialog_library);
+	Ref<AnimationLibrary> al;
 	Ref<Animation> anim;
-	if (file_dialog_animation != StringName()) {
-		anim = al->get_animation(file_dialog_animation);
-		ERR_FAIL_COND(anim.is_null());
+	if (p_id != FILE_MENU_MAKE_SELECTED_UNIQUE) {
+		al = mixer->get_animation_library(file_dialog_library);
+		if (file_dialog_animation != StringName()) {
+			anim = al->get_animation(file_dialog_animation);
+			ERR_FAIL_COND(anim.is_null());
+		}
 	}
+
 	switch (p_id) {
 		case FILE_MENU_SAVE_LIBRARY: {
 			if (al->get_path().is_resource_file() && !FileAccess::exists(al->get_path() + ".import")) {
@@ -205,6 +242,7 @@ void AnimationLibraryEditor::_file_popup_selected(int p_id) {
 			file_dialog->popup_centered_ratio();
 			file_dialog_action = FILE_DIALOG_ACTION_SAVE_LIBRARY;
 		} break;
+
 		case FILE_MENU_MAKE_LIBRARY_UNIQUE: {
 			StringName lib_name = file_dialog_library;
 			List<StringName> animation_list;
@@ -230,8 +268,8 @@ void AnimationLibraryEditor::_file_popup_selected(int p_id) {
 			undo_redo->commit_action();
 
 			update_tree();
-
 		} break;
+
 		case FILE_MENU_EDIT_LIBRARY: {
 			EditorNode::get_singleton()->push_item(al.ptr());
 		} break;
@@ -283,6 +321,7 @@ void AnimationLibraryEditor::_file_popup_selected(int p_id) {
 			file_dialog->popup_centered_ratio();
 			file_dialog_action = FILE_DIALOG_ACTION_SAVE_ANIMATION;
 		} break;
+
 		case FILE_MENU_MAKE_ANIMATION_UNIQUE: {
 			StringName anim_name = file_dialog_animation;
 
@@ -300,8 +339,57 @@ void AnimationLibraryEditor::_file_popup_selected(int p_id) {
 
 			update_tree();
 		} break;
+
 		case FILE_MENU_EDIT_ANIMATION: {
 			EditorNode::get_singleton()->push_item(anim.ptr());
+		} break;
+
+		case FILE_MENU_MAKE_SELECTED_UNIQUE: {
+			EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+			undo_redo->create_action(TTR("Make Animation Resources Unique"));
+
+			HashMap<StringName, Ref<AnimationLibrary>> libsd;
+			for (TreeItem *item : selected_libraries) {
+				const StringName lib_name = item->get_metadata(0);
+				al = mixer->get_animation_library(lib_name);
+				List<StringName> animation_list;
+				al->get_animation_list(&animation_list);
+
+				Ref<AnimationLibrary> ald = memnew(AnimationLibrary);
+				for (const StringName &animation_name : animation_list) {
+					Ref<Animation> animation = al->get_animation(animation_name);
+					if (EditorNode::get_singleton()->is_resource_read_only(animation)) {
+						animation = animation->duplicate();
+					}
+					ald->add_animation(animation_name, animation);
+				}
+				libsd[lib_name] = ald;
+
+				undo_redo->add_do_method(mixer, "remove_animation_library", lib_name);
+				undo_redo->add_do_method(mixer, "add_animation_library", lib_name, ald);
+				undo_redo->add_undo_method(mixer, "remove_animation_library", lib_name);
+				undo_redo->add_undo_method(mixer, "add_animation_library", lib_name, al);
+			}
+
+			for (const TreeItem *item : selected_animations) {
+				const StringName lib_name = item->get_parent()->get_metadata(0);
+				al = libsd.has(lib_name) ? libsd[lib_name] : mixer->get_animation_library(lib_name);
+				const StringName anim_name = item->get_metadata(0);
+				anim = al->get_animation(anim_name);
+				ERR_CONTINUE(anim.is_null());
+
+				Ref<Animation> animd = anim->duplicate();
+				undo_redo->add_do_method(al.ptr(), "remove_animation", anim_name);
+				undo_redo->add_do_method(al.ptr(), "add_animation", anim_name, animd);
+				undo_redo->add_undo_method(al.ptr(), "remove_animation", anim_name);
+				undo_redo->add_undo_method(al.ptr(), "add_animation", anim_name, anim);
+			}
+
+			undo_redo->add_do_method(this, "_update_editor", mixer);
+			undo_redo->add_undo_method(this, "_update_editor", mixer);
+			undo_redo->commit_action();
+
+			update_tree();
 		} break;
 	}
 }
@@ -528,7 +616,28 @@ void AnimationLibraryEditor::_item_renamed() {
 }
 
 void AnimationLibraryEditor::_button_pressed(TreeItem *p_item, int p_column, int p_id, MouseButton p_button) {
-	if (p_item->get_parent() == tree->get_root()) {
+	TreeItem *root = tree->get_root();
+
+	selected_libraries.clear();
+	selected_animations.clear();
+	TreeItem *item = tree->get_next_selected(root);
+	while (item) {
+		if (item->get_parent() == root) {
+			selected_libraries.push_back(item);
+		} else {
+			selected_animations.push_back(item);
+		}
+		item = tree->get_next_selected(item);
+	}
+	if (!selected_animations.has(p_item) && !selected_libraries.has(p_item)) {
+		if (p_item->get_parent() == root) {
+			selected_libraries.push_back(p_item);
+		} else {
+			selected_animations.insert(0, p_item);
+		}
+	}
+
+	if (p_item->get_parent() == root) {
 		// Library
 		StringName lib_name = p_item->get_metadata(0);
 		Ref<AnimationLibrary> al = mixer->get_animation_library(lib_name);
@@ -569,7 +678,7 @@ void AnimationLibraryEditor::_button_pressed(TreeItem *p_item, int p_column, int
 				}
 
 				if (!anim->get_path().is_resource_file()) {
-					anim = anim->duplicate(); // Users simply dont care about referencing, so making a copy works better here.
+					anim = anim->duplicate(); // Users simply don't care about referencing, so making a copy works better here.
 				}
 
 				String base_name;
@@ -598,12 +707,17 @@ void AnimationLibraryEditor::_button_pressed(TreeItem *p_item, int p_column, int
 			} break;
 			case LIB_BUTTON_FILE: {
 				file_popup->clear();
-				file_popup->add_item(TTR("Save"), FILE_MENU_SAVE_LIBRARY);
-				file_popup->add_item(TTR("Save As"), FILE_MENU_SAVE_AS_LIBRARY);
-				file_popup->add_separator();
-				file_popup->add_item(TTR("Make Unique"), FILE_MENU_MAKE_LIBRARY_UNIQUE);
-				file_popup->add_separator();
-				file_popup->add_item(TTR("Open in Inspector"), FILE_MENU_EDIT_LIBRARY);
+				if (selected_animations.size() + selected_libraries.size() <= 1) {
+					file_popup->add_item(TTR("Save"), FILE_MENU_SAVE_LIBRARY);
+					file_popup->add_item(TTR("Save As"), FILE_MENU_SAVE_AS_LIBRARY);
+					file_popup->add_separator();
+					file_popup->add_item(TTR("Make Unique"), FILE_MENU_MAKE_LIBRARY_UNIQUE);
+					file_popup->add_separator();
+					file_popup->add_item(TTR("Open in Inspector"), FILE_MENU_EDIT_LIBRARY);
+				} else {
+					file_popup->add_item(TTR("Make Unique"), FILE_MENU_MAKE_SELECTED_UNIQUE);
+				}
+
 				Rect2 pos = tree->get_item_rect(p_item, 1, 0);
 				Vector2 popup_pos = tree->get_screen_transform().xform(pos.position + Vector2(0, pos.size.height));
 				file_popup->popup(Rect2(popup_pos, Size2()));
@@ -612,16 +726,19 @@ void AnimationLibraryEditor::_button_pressed(TreeItem *p_item, int p_column, int
 				file_dialog_library = lib_name;
 			} break;
 			case LIB_BUTTON_DELETE: {
-				EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
-				undo_redo->create_action(vformat(TTR("Remove Animation Library: %s"), lib_name));
-				undo_redo->add_do_method(mixer, "remove_animation_library", lib_name);
-				undo_redo->add_undo_method(mixer, "add_animation_library", lib_name, al);
-				undo_redo->add_do_method(this, "_update_editor", mixer);
-				undo_redo->add_undo_method(this, "_update_editor", mixer);
-				undo_redo->commit_action();
+				if (selected_animations.size() + selected_libraries.size() <= 1) {
+					EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+					undo_redo->create_action(vformat(TTR("Remove Animation Library: %s"), lib_name));
+					undo_redo->add_do_method(mixer, "remove_animation_library", lib_name);
+					undo_redo->add_undo_method(mixer, "add_animation_library", lib_name, al);
+					undo_redo->add_do_method(this, "_update_editor", mixer);
+					undo_redo->add_undo_method(this, "_update_editor", mixer);
+					undo_redo->commit_action();
+				} else {
+					_remove_selected_items();
+				}
 			} break;
 		}
-
 	} else {
 		// Animation
 		StringName lib_name = p_item->get_parent()->get_metadata(0);
@@ -632,18 +749,23 @@ void AnimationLibraryEditor::_button_pressed(TreeItem *p_item, int p_column, int
 		switch (p_id) {
 			case ANIM_BUTTON_COPY: {
 				if (anim->get_name() == "") {
-					anim->set_name(anim_name); // Keep the name around
+					anim->set_name(anim_name); // Keep the name around.
 				}
 				EditorSettings::get_singleton()->set_resource_clipboard(anim);
 			} break;
 			case ANIM_BUTTON_FILE: {
 				file_popup->clear();
-				file_popup->add_item(TTR("Save"), FILE_MENU_SAVE_ANIMATION);
-				file_popup->add_item(TTR("Save As"), FILE_MENU_SAVE_AS_ANIMATION);
-				file_popup->add_separator();
-				file_popup->add_item(TTR("Make Unique"), FILE_MENU_MAKE_ANIMATION_UNIQUE);
-				file_popup->add_separator();
-				file_popup->add_item(TTR("Open in Inspector"), FILE_MENU_EDIT_ANIMATION);
+				if (selected_animations.size() + selected_libraries.size() <= 1) {
+					file_popup->add_item(TTR("Save"), FILE_MENU_SAVE_ANIMATION);
+					file_popup->add_item(TTR("Save As"), FILE_MENU_SAVE_AS_ANIMATION);
+					file_popup->add_separator();
+					file_popup->add_item(TTR("Make Unique"), FILE_MENU_MAKE_ANIMATION_UNIQUE);
+					file_popup->add_separator();
+					file_popup->add_item(TTR("Open in Inspector"), FILE_MENU_EDIT_ANIMATION);
+				} else {
+					file_popup->add_item(TTR("Make Unique"), FILE_MENU_MAKE_SELECTED_UNIQUE);
+				}
+
 				Rect2 pos = tree->get_item_rect(p_item, 1, 0);
 				Vector2 popup_pos = tree->get_screen_transform().xform(pos.position + Vector2(0, pos.size.height));
 				file_popup->popup(Rect2(popup_pos, Size2()));
@@ -653,13 +775,17 @@ void AnimationLibraryEditor::_button_pressed(TreeItem *p_item, int p_column, int
 
 			} break;
 			case ANIM_BUTTON_DELETE: {
-				EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
-				undo_redo->create_action(vformat(TTR("Remove Animation from Library: %s"), anim_name));
-				undo_redo->add_do_method(al.ptr(), "remove_animation", anim_name);
-				undo_redo->add_undo_method(al.ptr(), "add_animation", anim_name, anim);
-				undo_redo->add_do_method(this, "_update_editor", mixer);
-				undo_redo->add_undo_method(this, "_update_editor", mixer);
-				undo_redo->commit_action();
+				if (selected_animations.size() + selected_libraries.size() <= 1) {
+					EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+					undo_redo->create_action(vformat(TTR("Remove Animation from Library: %s"), anim_name));
+					undo_redo->add_do_method(al.ptr(), "remove_animation", anim_name);
+					undo_redo->add_undo_method(al.ptr(), "add_animation", anim_name, anim);
+					undo_redo->add_do_method(this, "_update_editor", mixer);
+					undo_redo->add_undo_method(this, "_update_editor", mixer);
+					undo_redo->commit_action();
+				} else {
+					_remove_selected_items();
+				}
 			} break;
 		}
 	}
@@ -721,6 +847,7 @@ void AnimationLibraryEditor::update_tree() {
 		}
 
 		libitem->set_editable(0, true);
+		libitem->set_selectable(1, false);
 		libitem->set_metadata(0, K);
 		libitem->set_icon(0, get_editor_theme_icon("AnimationLibrary"));
 
@@ -739,6 +866,7 @@ void AnimationLibraryEditor::update_tree() {
 			TreeItem *anitem = tree->create_item(libitem);
 			anitem->set_text(0, L);
 			anitem->set_editable(0, !animation_library_is_foreign);
+			anitem->set_selectable(1, false);
 			anitem->set_metadata(0, L);
 			anitem->set_icon(0, get_editor_theme_icon("Animation"));
 			anitem->add_button(0, get_editor_theme_icon("ActionCopy"), ANIM_BUTTON_COPY, animation_library_is_foreign, TTR("Copy animation to clipboard."));
@@ -1056,6 +1184,7 @@ AnimationLibraryEditor::AnimationLibraryEditor() {
 	tree->set_column_expand(1, false);
 	tree->set_hide_root(true);
 	tree->set_hide_folding(false);
+	tree->set_select_mode(Tree::SELECT_MULTI);
 	tree->set_v_size_flags(Control::SIZE_EXPAND_FILL);
 
 	tree->connect("item_edited", callable_mp(this, &AnimationLibraryEditor::_item_renamed));

@@ -67,6 +67,8 @@ class AnimationLibraryEditor : public AcceptDialog {
 		FILE_MENU_SAVE_AS_ANIMATION,
 		FILE_MENU_MAKE_ANIMATION_UNIQUE,
 		FILE_MENU_EDIT_ANIMATION,
+
+		FILE_MENU_MAKE_SELECTED_UNIQUE,
 	};
 
 	enum FileDialogAction {
@@ -80,6 +82,9 @@ class AnimationLibraryEditor : public AcceptDialog {
 
 	StringName file_dialog_animation;
 	StringName file_dialog_library;
+
+	LocalVector<TreeItem *> selected_libraries;
+	LocalVector<TreeItem *> selected_animations;
 
 	Button *new_library_button = nullptr;
 	Button *load_library_button = nullptr;
@@ -96,6 +101,8 @@ class AnimationLibraryEditor : public AcceptDialog {
 	Tree *tree = nullptr;
 
 	AnimationMixer *mixer = nullptr;
+
+	void _remove_selected_items();
 
 	void _add_library();
 	void _add_library_validate(const String &p_name);
