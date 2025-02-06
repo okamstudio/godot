@@ -31,6 +31,7 @@
 #include "editor_properties.h"
 
 #include "core/config/project_settings.h"
+#include "core/input/input_map.h"
 #include "editor/create_dialog.h"
 #include "editor/editor_node.h"
 #include "editor/editor_properties_array_dict.h"
@@ -3503,6 +3504,37 @@ static EditorPropertyRangeHint _parse_range_hint(PropertyHint p_hint, const Stri
 	return hint;
 }
 
+EditorProperty *get_input_action_editor(const String &p_hint_text) {
+	// TODO: Should probably use a better editor GUI with a search bar.
+	EditorPropertyTextEnum *editor = memnew(EditorPropertyTextEnum);
+	Vector<String> options;
+	Vector<String> builtin_options;
+	List<PropertyInfo> pinfo;
+	ProjectSettings::get_singleton()->get_property_list(&pinfo);
+	Vector<String> hints = p_hint_text.split(",", false);
+
+	HashMap<String, List<Ref<InputEvent>>> builtins = InputMap::get_singleton()->get_builtins();
+	bool show_builtin = hints.has("show_builtin");
+
+	for (const PropertyInfo &pi : pinfo) {
+		if (!pi.name.begins_with("input/")) {
+			continue;
+		}
+
+		const String action_name = pi.name.get_slicec('/', 1);
+		if (builtins.has(action_name)) {
+			if (show_builtin) {
+				builtin_options.append(action_name);
+			}
+		} else {
+			options.append(action_name);
+		}
+	}
+	options.append_array(builtin_options);
+	editor->setup(options, false, hints.has("loose_mode"));
+	return editor;
+}
+
 EditorProperty *EditorInspectorDefaultPlugin::get_editor_for_property(Object *p_object, const Variant::Type p_type, const String &p_path, const PropertyHint p_hint, const String &p_hint_text, const BitField<PropertyUsageFlags> p_usage, const bool p_wide) {
 	double default_float_step = EDITOR_GET("interface/inspector/default_float_step");
 
@@ -3613,6 +3645,8 @@ EditorProperty *EditorInspectorDefaultPlugin::get_editor_for_property(Object *p_
 				Vector<String> options = p_hint_text.split(",", false);
 				editor->setup(options, false, (p_hint == PROPERTY_HINT_ENUM_SUGGESTION));
 				return editor;
+			} else if (p_hint == PROPERTY_HINT_INPUT_NAME) {
+				return get_input_action_editor(p_hint_text);
 			} else if (p_hint == PROPERTY_HINT_MULTILINE_TEXT) {
 				EditorPropertyMultilineText *editor = memnew(EditorPropertyMultilineText);
 				return editor;
@@ -3765,6 +3799,8 @@ EditorProperty *EditorInspectorDefaultPlugin::get_editor_for_property(Object *p_
 				Vector<String> options = p_hint_text.split(",", false);
 				editor->setup(options, true, (p_hint == PROPERTY_HINT_ENUM_SUGGESTION));
 				return editor;
+			} else if (p_hint == PROPERTY_HINT_INPUT_NAME) {
+				return get_input_action_editor(p_hint_text);
 			} else {
 				EditorPropertyText *editor = memnew(EditorPropertyText);
 				if (p_hint == PROPERTY_HINT_PLACEHOLDER_TEXT) {
