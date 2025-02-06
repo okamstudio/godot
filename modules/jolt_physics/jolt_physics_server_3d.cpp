@@ -862,11 +862,22 @@ void JoltPhysicsServer3D::body_remove_collision_exception(RID p_body, RID p_exce
 }
 
 void JoltPhysicsServer3D::body_get_collision_exceptions(RID p_body, List<RID> *p_exceptions) {
-	const JoltBody3D *body = body_owner.get_or_null(p_body);
+	JoltBody3D *body = body_owner.get_or_null(p_body);
 	ERR_FAIL_NULL(body);
 
-	for (const RID &exception : body->get_collision_exceptions()) {
-		p_exceptions->push_back(exception);
+	const LocalVector<RID> &exceptions = body->get_collision_exceptions();
+	LocalVector<RID> invalid_exceptions;
+	for (uint32_t i = 0; i < exceptions.size(); i++) {
+		RID exception = exceptions[i];
+		if (body_owner.owns(exception)) {
+			p_exceptions->push_back(exception);
+		} else {
+			invalid_exceptions.push_back(exception);
+		}
+	}
+
+	for (RID invalid_body : invalid_exceptions) {
+		body->remove_collision_exception(invalid_body);
 	}
 }
 

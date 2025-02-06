@@ -924,8 +924,19 @@ void GodotPhysicsServer2D::body_get_collision_exceptions(RID p_body, List<RID> *
 	GodotBody2D *body = body_owner.get_or_null(p_body);
 	ERR_FAIL_NULL(body);
 
-	for (int i = 0; i < body->get_exceptions().size(); i++) {
-		p_exceptions->push_back(body->get_exceptions()[i]);
+	const VSet<RID> &exceptions = body->get_exceptions();
+	LocalVector<RID> invalid_exceptions;
+	for (int i = 0; i < exceptions.size(); i++) {
+		RID exception = exceptions[i];
+		if (body_owner.owns(exception)) {
+			p_exceptions->push_back(exception);
+		} else {
+			invalid_exceptions.push_back(exception);
+		}
+	}
+
+	for (RID invalid_body : invalid_exceptions) {
+		body->remove_exception(invalid_body);
 	}
 }
 
