@@ -6376,22 +6376,20 @@ void Node3DEditor::_generate_selection_boxes() {
 		st_xray->add_vertex(b);
 	}
 
-	Ref<StandardMaterial3D> mat = memnew(StandardMaterial3D);
-	mat->set_shading_mode(StandardMaterial3D::SHADING_MODE_UNSHADED);
-	mat->set_flag(StandardMaterial3D::FLAG_DISABLE_FOG, true);
+	selection_box_mat->set_shading_mode(StandardMaterial3D::SHADING_MODE_UNSHADED);
+	selection_box_mat->set_flag(StandardMaterial3D::FLAG_DISABLE_FOG, true);
 	const Color selection_box_color = EDITOR_GET("editors/3d/selection_box_color");
-	mat->set_albedo(selection_box_color);
-	mat->set_transparency(StandardMaterial3D::TRANSPARENCY_ALPHA);
-	st->set_material(mat);
+	selection_box_mat->set_albedo(selection_box_color);
+	selection_box_mat->set_transparency(StandardMaterial3D::TRANSPARENCY_ALPHA);
+	st->set_material(selection_box_mat);
 	selection_box = st->commit();
 
-	Ref<StandardMaterial3D> mat_xray = memnew(StandardMaterial3D);
-	mat_xray->set_shading_mode(StandardMaterial3D::SHADING_MODE_UNSHADED);
-	mat_xray->set_flag(StandardMaterial3D::FLAG_DISABLE_FOG, true);
-	mat_xray->set_flag(StandardMaterial3D::FLAG_DISABLE_DEPTH_TEST, true);
-	mat_xray->set_albedo(selection_box_color * Color(1, 1, 1, 0.15));
-	mat_xray->set_transparency(StandardMaterial3D::TRANSPARENCY_ALPHA);
-	st_xray->set_material(mat_xray);
+	selection_box_mat_xray->set_shading_mode(StandardMaterial3D::SHADING_MODE_UNSHADED);
+	selection_box_mat_xray->set_flag(StandardMaterial3D::FLAG_DISABLE_FOG, true);
+	selection_box_mat_xray->set_flag(StandardMaterial3D::FLAG_DISABLE_DEPTH_TEST, true);
+	selection_box_mat_xray->set_albedo(selection_box_color * Color(1, 1, 1, 0.15));
+	selection_box_mat_xray->set_transparency(StandardMaterial3D::TRANSPARENCY_ALPHA);
+	st_xray->set_material(selection_box_mat_xray);
 	selection_box_xray = st_xray->commit();
 }
 
@@ -8220,8 +8218,15 @@ void Node3DEditor::_notification(int p_what) {
 		} break;
 
 		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
-			// Update grid color by rebuilding grid.
 			if (EditorSettings::get_singleton()->check_changed_settings_in_group("editors/3d")) {
+				const Color selection_box_color = EDITOR_GET("editors/3d/selection_box_color");
+
+				if (selection_box_color != selection_box_mat->get_albedo()) {
+					selection_box_mat->set_albedo(selection_box_color);
+					selection_box_mat_xray->set_albedo(selection_box_color * Color(1, 1, 1, 0.15));
+				}
+
+				// Update grid color by rebuilding grid.
 				_finish_grid();
 				_init_grid();
 			}
