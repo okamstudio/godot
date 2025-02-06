@@ -93,6 +93,10 @@ Variant EditorPropertyArrayObject::get_array() {
 	return array;
 }
 
+String EditorPropertyArrayObject::get_property_name_for_index(int p_index) const {
+	return "indices/" + itos(p_index);
+}
+
 EditorPropertyArrayObject::EditorPropertyArrayObject() {
 }
 
@@ -882,6 +886,31 @@ void EditorPropertyArray::_reorder_button_up() {
 		array.call("insert", reorder_to_index, value_to_move);
 
 		slots[reorder_to_index % page_length].reorder_button->grab_focus();
+
+		bool last_folding = object->editor_is_section_unfolded(object->get_property_name_for_index(reorder_slot.index));
+		int direction = SIGN(reorder_slot.index - reorder_to_index);
+		for (int i = reorder_to_index; i != reorder_slot.index; i += direction) {
+			String property_name = object->get_property_name_for_index(i);
+
+			bool current_folding = object->editor_is_section_unfolded(property_name);
+
+			EditorPropertyResource *epres = Object::cast_to<EditorPropertyResource>(slots[i % page_length].prop);
+			if (epres && !last_folding) {
+				epres->fold_resource();
+			} else {
+				object->editor_set_section_unfold(property_name, last_folding);
+			}
+
+			last_folding = current_folding;
+		}
+
+		EditorPropertyResource *epres = Object::cast_to<EditorPropertyResource>(reorder_slot.prop);
+		if (epres && !last_folding) {
+			epres->fold_resource();
+		} else {
+			object->editor_set_section_unfold(object->get_property_name_for_index(reorder_slot.index), last_folding);
+		}
+
 		emit_changed(get_edited_property(), array);
 	}
 

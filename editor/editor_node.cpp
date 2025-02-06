@@ -2401,14 +2401,24 @@ void EditorNode::edit_item(Object *p_object, Object *p_editing_owner) {
 			continue;
 		}
 
-		// If plugin is already associated with another owner, remove it from there first.
+		List<EditorPropertyResource *> to_fold;
 		for (KeyValue<ObjectID, HashSet<EditorPlugin *>> &kv : active_plugins) {
 			if (kv.key != owner_id) {
 				EditorPropertyResource *epres = Object::cast_to<EditorPropertyResource>(ObjectDB::get_instance(kv.key));
 				if (epres && kv.value.has(plugin)) {
 					// If it's resource property editing the same resource type, fold it.
-					epres->fold_resource();
+					to_fold.push_back(epres);
 				}
+			}
+		}
+
+		for (EditorPropertyResource *epres : to_fold) {
+			epres->fold_resource();
+		}
+
+		// If plugin is already associated with another owner, remove it from there first.
+		for (KeyValue<ObjectID, HashSet<EditorPlugin *>> &kv : active_plugins) {
+			if (kv.key != owner_id) {
 				kv.value.erase(plugin);
 			}
 		}

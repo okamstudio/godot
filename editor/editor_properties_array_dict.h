@@ -55,6 +55,8 @@ public:
 	void set_array(const Variant &p_array);
 	Variant get_array();
 
+	String get_property_name_for_index(int p_index) const;
+
 	EditorPropertyArrayObject();
 };
 
@@ -106,7 +108,7 @@ class EditorPropertyArray : public EditorProperty {
 		Button *reorder_button = nullptr;
 
 		void set_index(int p_idx) {
-			String prop_name = "indices/" + itos(p_idx);
+			String prop_name = object->get_property_name_for_index(p_idx);
 			prop->set_object_and_property(object.ptr(), prop_name);
 			prop->set_label(itos(p_idx));
 			index = p_idx;
