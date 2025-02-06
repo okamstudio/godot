@@ -80,6 +80,12 @@
 				[b]Note:[/b] If a thread has started executing the [Callable] but is yet to finish, it won't be counted.
 			</description>
 		</method>
+		<method name="get_thread_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the number of worker threads of the pool.
+			</description>
+		</method>
 		<method name="is_group_task_completed" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="group_id" type="int" />
