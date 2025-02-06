@@ -197,9 +197,9 @@ public:
 			_cowdata(std::move(p_str._cowdata)) {}
 	_FORCE_INLINE_ void operator=(const Char16String &p_str) { _cowdata._ref(p_str._cowdata); }
 	_FORCE_INLINE_ void operator=(Char16String &&p_str) { _cowdata = std::move(p_str._cowdata); }
-	_FORCE_INLINE_ Char16String(const char16_t *p_cstr) { copy_from(p_cstr); }
+	_FORCE_INLINE_ Char16String(const char16_t *p_cstr) { copy_from(StrRange<char16_t>::from_c_str(p_cstr)); }
 
-	void operator=(const char16_t *p_cstr);
+	void operator=(const char16_t *p_cstr) { copy_from(StrRange<char16_t>::from_c_str(p_cstr)); }
 	bool operator<(const Char16String &p_right) const;
 	Char16String &operator+=(char16_t p_char);
 	int length() const { return size() ? size() - 1 : 0; }
@@ -208,7 +208,7 @@ public:
 	explicit operator StrRange<char16_t>() const { return StrRange(get_data(), length()); }
 
 protected:
-	void copy_from(const char16_t *p_cstr);
+	Error copy_from(const StrRange<char16_t> &p_cstr);
 };
 
 /*************************************************************************/
@@ -242,9 +242,9 @@ public:
 			_cowdata(std::move(p_str._cowdata)) {}
 	_FORCE_INLINE_ void operator=(const CharString &p_str) { _cowdata._ref(p_str._cowdata); }
 	_FORCE_INLINE_ void operator=(CharString &&p_str) { _cowdata = std::move(p_str._cowdata); }
-	_FORCE_INLINE_ CharString(const char *p_cstr) { copy_from(p_cstr); }
+	_FORCE_INLINE_ CharString(const char *p_cstr) { copy_from(StrRange<char>::from_c_str(p_cstr)); }
 
-	void operator=(const char *p_cstr);
+	void operator=(const char *p_cstr) { copy_from(StrRange<char>::from_c_str(p_cstr)); }
 	bool operator<(const CharString &p_right) const;
 	bool operator==(const CharString &p_right) const;
 	CharString &operator+=(char p_char);
@@ -254,7 +254,7 @@ public:
 	explicit operator StrRange<char>() const { return StrRange(get_data(), length()); }
 
 protected:
-	void copy_from(const char *p_cstr);
+	Error copy_from(const StrRange<char> &p_cstr);
 };
 
 /*************************************************************************/
