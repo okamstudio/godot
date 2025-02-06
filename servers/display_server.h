@@ -577,6 +577,7 @@ public:
 	virtual void enable_for_stealing_focus(OS::ProcessID pid);
 
 	virtual Error embed_process(WindowID p_window, OS::ProcessID p_pid, const Rect2i &p_rect, bool p_visible, bool p_grab_focus);
+	virtual Error request_close_embedded_process(OS::ProcessID p_pid);
 	virtual Error remove_embedded_process(OS::ProcessID p_pid);
 	virtual OS::ProcessID get_focused_process_id();
 

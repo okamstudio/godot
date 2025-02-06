@@ -76,6 +76,7 @@ protected:
 public:
 	void embed_process(OS::ProcessID p_pid);
 	void reset();
+	void request_close();
 
 	void set_window_size(const Size2i p_window_size);
 	void set_keep_aspect(bool p_keep_aspect);

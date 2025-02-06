@@ -679,6 +679,11 @@ Error DisplayServer::embed_process(WindowID p_window, OS::ProcessID p_pid, const
 	return ERR_UNAVAILABLE;
 }
 
+Error DisplayServer::request_close_embedded_process(OS::ProcessID p_pid) {
+	WARN_PRINT("Embedded process not supported by this display server.");
+	return ERR_UNAVAILABLE;
+}
+
 Error DisplayServer::remove_embedded_process(OS::ProcessID p_pid) {
 	WARN_PRINT("Embedded process not supported by this display server.");
 	return ERR_UNAVAILABLE;

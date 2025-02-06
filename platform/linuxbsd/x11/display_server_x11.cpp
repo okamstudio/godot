@@ -5926,7 +5926,7 @@ Error DisplayServerX11::embed_process(WindowID p_window, OS::ProcessID p_pid, co
 	return OK;
 }
 
-Error DisplayServerX11::remove_embedded_process(OS::ProcessID p_pid) {
+Error DisplayServerX11::request_close_embedded_process(OS::ProcessID p_pid) {
 	_THREAD_SAFE_METHOD_
 
 	if (!embedded_processes.has(p_pid)) {
@@ -5955,6 +5955,20 @@ Error DisplayServerX11::remove_embedded_process(OS::ProcessID p_pid) {
 
 	// Restore default error handler.
 	XSetErrorHandler(oldHandler);
+
+	return OK;
+}
+
+Error DisplayServerX11::remove_embedded_process(OS::ProcessID p_pid) {
+	_THREAD_SAFE_METHOD_
+
+	if (!embedded_processes.has(p_pid)) {
+		return ERR_DOES_NOT_EXIST;
+	}
+
+	EmbeddedProcessData *ep = embedded_processes.get(p_pid);
+
+	request_close_embedded_process(p_pid);
 
 	embedded_processes.erase(p_pid);
 	memdelete(ep);

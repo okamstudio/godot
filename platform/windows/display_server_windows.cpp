@@ -3004,7 +3004,7 @@ Error DisplayServerWindows::embed_process(WindowID p_window, OS::ProcessID p_pid
 	return OK;
 }
 
-Error DisplayServerWindows::remove_embedded_process(OS::ProcessID p_pid) {
+Error DisplayServerWindows::request_close_embedded_process(OS::ProcessID p_pid) {
 	_THREAD_SAFE_METHOD_
 
 	if (!embedded_processes.has(p_pid)) {
@@ -3015,6 +3015,20 @@ Error DisplayServerWindows::remove_embedded_process(OS::ProcessID p_pid) {
 
 	// Send a close message to gracefully close the process.
 	PostMessage(ep->window_handle, WM_CLOSE, 0, 0);
+
+	return OK;
+}
+
+Error DisplayServerWindows::remove_embedded_process(OS::ProcessID p_pid) {
+	_THREAD_SAFE_METHOD_
+
+	if (!embedded_processes.has(p_pid)) {
+		return ERR_DOES_NOT_EXIST;
+	}
+
+	EmbeddedProcessData *ep = embedded_processes.get(p_pid);
+
+	request_close_embedded_process(p_pid);
 
 	// This is a workaround to ensure the parent window correctly regains focus after the
 	// embedded window is closed. When the embedded window is closed while it has focus,

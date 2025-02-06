@@ -798,16 +798,17 @@ void GameView::_window_close_request() {
 	// Before the parent window closed, we close the embedded game. That prevents
 	// the embedded game to be seen without a parent window for a fraction of second.
 	if (EditorRunBar::get_singleton()->is_playing() && (embedded_process->is_embedding_completed() || embedded_process->is_embedding_in_progress())) {
-		// Try to gracefully close the window. That way, the NOTIFICATION_WM_CLOSE_REQUEST
-		// notification should be propagated in the game process.
-		embedded_process->reset();
-
 		// When the embedding is not complete, we need to kill the process.
 		// If the game is paused, the close request will not be processed by the game, so it's better to kill the process.
 		if (paused || embedded_process->is_embedding_in_progress()) {
+			embedded_process->reset();
 			// Call deferred to prevent the _stop_pressed callback to be executed before the wrapper window
 			// actually closes.
 			callable_mp(EditorRunBar::get_singleton(), &EditorRunBar::stop_playing).call_deferred();
+		} else {
+			// Try to gracefully close the window. That way, the NOTIFICATION_WM_CLOSE_REQUEST
+			// notification should be propagated in the game process.
+			embedded_process->request_close();
 		}
 	}
 }
