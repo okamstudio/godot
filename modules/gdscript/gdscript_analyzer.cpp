@@ -4531,6 +4531,25 @@ void GDScriptAnalyzer::reduce_identifier(GDScriptParser::IdentifierNode *p_ident
 								}
 							}
 						}
+					} else {
+						// Singleton name exists but does not yet have a node assigned, assume that is because we
+						// are currently in the process of loading it. If this is the first script loaded in the scene,
+						// temporarily write its path as a value for the singleton so other scripts loaded as
+						// dependencies can use it to resolve the type of the singleton identifier.
+						String autoload_script_path;
+						if (constant.is_string()) {
+							autoload_script_path = static_cast<String>(constant);
+						} else {
+							autoload_script_path = parser->script_path;
+							GDScriptLanguage::get_singleton()->add_named_global_constant(name, autoload_script_path);
+						}
+						Ref<GDScriptParserRef> singl_parser = parser->get_depended_parser_for(autoload_script_path);
+						if (singl_parser.is_valid()) {
+							Error err = singl_parser->raise_status(GDScriptParserRef::INHERITANCE_SOLVED);
+							if (err == OK) {
+								result = type_from_metatype(singl_parser->get_parser()->head->get_datatype());
+							}
+						}
 					}
 				}
 			}
