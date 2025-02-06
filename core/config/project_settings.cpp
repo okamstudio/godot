@@ -1452,8 +1452,8 @@ void ProjectSettings::_add_builtin_input_map() {
 			Array events;
 
 			// Convert list of input events into array
-			for (List<Ref<InputEvent>>::Element *I = E.value.front(); I; I = I->next()) {
-				events.push_back(I->get());
+			for (const Ref<InputEvent> &event : E.value) {
+				events.push_back(event);
 			}
 
 			Dictionary action;

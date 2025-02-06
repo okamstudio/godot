@@ -72,8 +72,8 @@ Error ENetConnection::create_host(int p_max_peers, int p_max_channels, int p_in_
 
 void ENetConnection::destroy() {
 	ERR_FAIL_NULL_MSG(host, "Host already destroyed.");
-	for (List<Ref<ENetPacketPeer>>::Element *E = peers.front(); E; E = E->next()) {
-		E->get()->_on_disconnect();
+	for (const Ref<ENetPacketPeer> &peer : peers) {
+		peer->_on_disconnect();
 	}
 	peers.clear();
 	enet_host_destroy(host);

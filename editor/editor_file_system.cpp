@@ -1080,15 +1080,15 @@ int EditorFileSystem::_scan_new_dir(ScannedDirectory *p_dir, Ref<DirAccess> &da)
 
 	int nb_files_total_scan = 0;
 
-	for (List<String>::Element *E = dirs.front(); E; E = E->next()) {
-		if (da->change_dir(E->get()) == OK) {
+	for (const String &dir : dirs) {
+		if (da->change_dir(dir) == OK) {
 			String d = da->get_current_dir();
 
 			if (d == cd || !d.begins_with(cd)) {
 				da->change_dir(cd); //avoid recursion
 			} else {
 				ScannedDirectory *sd = memnew(ScannedDirectory);
-				sd->name = E->get();
+				sd->name = dir;
 				sd->full_path = p_dir->full_path.path_join(sd->name);
 
 				nb_files_total_scan += _scan_new_dir(sd, da);
@@ -1098,7 +1098,7 @@ int EditorFileSystem::_scan_new_dir(ScannedDirectory *p_dir, Ref<DirAccess> &da)
 				da->change_dir("..");
 			}
 		} else {
-			ERR_PRINT("Cannot go into subdir '" + E->get() + "'.");
+			ERR_PRINT("Cannot go into subdir '" + dir + "'.");
 		}
 	}
 

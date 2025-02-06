@@ -970,14 +970,14 @@ Dictionary GDExtensionAPIDump::generate_extension_api(bool p_include_docs) {
 					Array values;
 					List<StringName> enum_constant_list;
 					ClassDB::get_enum_constants(class_name, F, &enum_constant_list, true);
-					for (List<StringName>::Element *G = enum_constant_list.front(); G; G = G->next()) {
+					for (const StringName &G : enum_constant_list) {
 						Dictionary d3;
-						d3["name"] = String(G->get());
-						d3["value"] = ClassDB::get_integer_constant(class_name, G->get());
+						d3["name"] = String(G);
+						d3["value"] = ClassDB::get_integer_constant(class_name, G);
 
 						if (p_include_docs) {
 							for (const DocData::ConstantDoc &constant_doc : class_doc->constants) {
-								if (constant_doc.name == G->get()) {
+								if (constant_doc.name == G) {
 									d3["description"] = fix_doc_description(constant_doc.description);
 									break;
 								}

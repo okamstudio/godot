@@ -502,9 +502,7 @@ void NavMeshGenerator2D::generator_bake_from_source_geometry_data(Ref<Navigation
 	Vector<Vector<int>> new_polygons;
 
 	HashMap<Vector2, int> points;
-	for (List<TPPLPoly>::Element *I = tppl_out_polygon.front(); I; I = I->next()) {
-		TPPLPoly &tp = I->get();
-
+	for (const TPPLPoly &tp : tppl_out_polygon) {
 		Vector<int> new_polygon;
 
 		for (int64_t i = 0; i < tp.GetNumPoints(); i++) {

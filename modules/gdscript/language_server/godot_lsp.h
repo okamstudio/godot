@@ -1874,7 +1874,7 @@ struct GodotNativeClassInfo {
 	const DocData::ClassDoc *class_doc = nullptr;
 	const ClassDB::ClassInfo *class_info = nullptr;
 
-	Dictionary to_json() {
+	Dictionary to_json() const {
 		Dictionary dict;
 		dict["name"] = name;
 		dict["inherits"] = class_doc->inherits;
@@ -1889,11 +1889,11 @@ struct GodotCapabilities {
 	 */
 	List<GodotNativeClassInfo> native_classes;
 
-	Dictionary to_json() {
+	Dictionary to_json() const {
 		Dictionary dict;
 		Array classes;
-		for (List<GodotNativeClassInfo>::Element *E = native_classes.front(); E; E = E->next()) {
-			classes.push_back(E->get().to_json());
+		for (const GodotNativeClassInfo &E : native_classes) {
+			classes.push_back(E.to_json());
 		}
 		dict["native_classes"] = classes;
 		return dict;

@@ -256,8 +256,7 @@ void AnimationPlayer::_process_playback_data(PlaybackData &cd, double p_delta, f
 float AnimationPlayer::get_current_blend_amount() {
 	Playback &c = playback;
 	float blend = 1.0;
-	for (List<Blend>::Element *E = c.blend.front(); E; E = E->next()) {
-		Blend &b = E->get();
+	for (const Blend &b : c.blend) {
 		blend = blend - b.blend_left;
 	}
 	return MAX(0, blend);

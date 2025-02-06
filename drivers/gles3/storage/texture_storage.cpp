@@ -1468,8 +1468,8 @@ void TextureStorage::texture_debug_usage(List<RS::TextureInfo> *r_info) {
 	List<RID> textures;
 	texture_owner.get_owned_list(&textures);
 
-	for (List<RID>::Element *E = textures.front(); E; E = E->next()) {
-		Texture *t = texture_owner.get_or_null(E->get());
+	for (const RID &rid : textures) {
+		Texture *t = texture_owner.get_or_null(rid);
 		if (!t) {
 			continue;
 		}

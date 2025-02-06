@@ -523,8 +523,8 @@ void DynamicFontImportSettingsDialog::_variation_add() {
 	import_variation_data->owner = this;
 	ERR_FAIL_COND(import_variation_data.is_null());
 
-	for (List<ResourceImporter::ImportOption>::Element *E = options_variations.front(); E; E = E->next()) {
-		import_variation_data->defaults[E->get().option.name] = E->get().default_value;
+	for (const ResourceImporter::ImportOption &E : options_variations) {
+		import_variation_data->defaults[E.option.name] = E.default_value;
 	}
 
 	import_variation_data->options = options_variations;
@@ -1124,8 +1124,8 @@ void DynamicFontImportSettingsDialog::open_settings(const String &p_path) {
 
 	text_settings_data->owner = this;
 
-	for (List<ResourceImporter::ImportOption>::Element *F = options_text.front(); F; F = F->next()) {
-		text_settings_data->defaults[F->get().option.name] = F->get().default_value;
+	for (const ResourceImporter::ImportOption &F : options_text) {
+		text_settings_data->defaults[F.option.name] = F.default_value;
 	}
 
 	text_settings_data->fd = font_main;
@@ -1144,8 +1144,8 @@ void DynamicFontImportSettingsDialog::open_settings(const String &p_path) {
 
 	import_settings_data->settings.clear();
 	import_settings_data->defaults.clear();
-	for (List<ResourceImporter::ImportOption>::Element *E = options_general.front(); E; E = E->next()) {
-		import_settings_data->defaults[E->get().option.name] = E->get().default_value;
+	for (const ResourceImporter::ImportOption &E : options_general) {
+		import_settings_data->defaults[E.option.name] = E.default_value;
 	}
 
 	Ref<ConfigFile> config;
@@ -1157,8 +1157,7 @@ void DynamicFontImportSettingsDialog::open_settings(const String &p_path) {
 	if (err == OK) {
 		List<String> keys;
 		config->get_section_keys("params", &keys);
-		for (List<String>::Element *E = keys.front(); E; E = E->next()) {
-			String key = E->get();
+		for (const String &key : keys) {
 			print_verbose(String("    ") + key + " == " + String(config->get_value("params", key)));
 			if (key == "preload") {
 				Array preload_configurations = config->get_value("params", key);
@@ -1185,8 +1184,8 @@ void DynamicFontImportSettingsDialog::open_settings(const String &p_path) {
 					ERR_FAIL_COND(import_variation_data_custom.is_null());
 
 					import_variation_data_custom->owner = this;
-					for (List<ResourceImporter::ImportOption>::Element *F = options_variations.front(); F; F = F->next()) {
-						import_variation_data_custom->defaults[F->get().option.name] = F->get().default_value;
+					for (const ResourceImporter::ImportOption &F : options_variations) {
+						import_variation_data_custom->defaults[F.option.name] = F.default_value;
 					}
 
 					import_variation_data_custom->fd = font_main;
