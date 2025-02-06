@@ -28,10 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OS_MACOS_H
-#define OS_MACOS_H
-
-#include "crash_handler_macos.h"
+#import "crash_handler_macos.h"
 
 #include "core/input/input.h"
 #import "drivers/apple/joypad_apple.h"
@@ -137,5 +134,3 @@ public:
 	OS_MacOS();
 	~OS_MacOS();
 };
-
-#endif // OS_MACOS_H

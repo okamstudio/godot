@@ -28,9 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENDERING_CONTEXT_DRIVER_VULKAN_IOS_H
-#define RENDERING_CONTEXT_DRIVER_VULKAN_IOS_H
-
 #ifdef VULKAN_ENABLED
 
 #include "drivers/vulkan/rendering_context_driver_vulkan.h"
@@ -54,5 +51,3 @@ public:
 };
 
 #endif // VULKAN_ENABLED
-
-#endif // RENDERING_CONTEXT_DRIVER_VULKAN_IOS_H

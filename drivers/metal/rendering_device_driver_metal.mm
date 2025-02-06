@@ -53,10 +53,10 @@
 #import "pixel_formats.h"
 #import "rendering_context_driver_metal.h"
 
-#import "core/io/compression.h"
-#import "core/io/marshalls.h"
-#import "core/string/ustring.h"
-#import "core/templates/hash_map.h"
+#include "core/io/compression.h"
+#include "core/io/marshalls.h"
+#include "core/string/ustring.h"
+#include "core/templates/hash_map.h"
 
 #import <Metal/MTLTexture.h>
 #import <Metal/Metal.h>

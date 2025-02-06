@@ -28,9 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef IOS_TERMINAL_LOGGER_H
-#define IOS_TERMINAL_LOGGER_H
-
 #ifdef IOS_ENABLED
 
 #include "core/io/logger.h"
@@ -41,5 +38,3 @@ public:
 };
 
 #endif // IOS_ENABLED
-
-#endif // IOS_TERMINAL_LOGGER_H

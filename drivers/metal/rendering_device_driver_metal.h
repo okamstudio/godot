@@ -28,12 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENDERING_DEVICE_DRIVER_METAL_H
-#define RENDERING_DEVICE_DRIVER_METAL_H
-
 #import "metal_objects.h"
 
-#import "servers/rendering/rendering_device_driver.h"
+#include "servers/rendering/rendering_device_driver.h"
 
 #import <Metal/Metal.h>
 #import <variant>
@@ -444,5 +441,3 @@ public:
 	RenderingDeviceDriverMetal(RenderingContextDriverMetal *p_context_driver);
 	~RenderingDeviceDriverMetal();
 };
-
-#endif // RENDERING_DEVICE_DRIVER_METAL_H

@@ -28,9 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef AUDIO_DRIVER_COREAUDIO_H
-#define AUDIO_DRIVER_COREAUDIO_H
-
 #ifdef COREAUDIO_ENABLED
 
 #include "servers/audio_server.h"
@@ -126,5 +123,3 @@ public:
 };
 
 #endif // COREAUDIO_ENABLED
-
-#endif // AUDIO_DRIVER_COREAUDIO_H

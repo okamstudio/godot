@@ -28,9 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef DISPLAY_SERVER_IOS_H
-#define DISPLAY_SERVER_IOS_H
-
 #include "core/input/input.h"
 #include "servers/display_server.h"
 
@@ -45,7 +42,7 @@
 #endif // VULKAN_ENABLED
 
 #if defined(METAL_ENABLED)
-#include "drivers/metal/rendering_context_driver_metal.h"
+#import "drivers/metal/rendering_context_driver_metal.h"
 #endif // METAL_ENABLED
 #endif // RD_ENABLED
 
@@ -235,5 +232,3 @@ public:
 	void resize_window(CGSize size);
 	virtual void swap_buffers() override {}
 };
-
-#endif // DISPLAY_SERVER_IOS_H

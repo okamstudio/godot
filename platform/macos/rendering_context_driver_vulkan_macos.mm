@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "rendering_context_driver_vulkan_macos.h"
+#import "rendering_context_driver_vulkan_macos.h"
 
 #ifdef VULKAN_ENABLED
 

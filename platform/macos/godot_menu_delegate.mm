@@ -28,12 +28,12 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "godot_menu_delegate.h"
+#import "godot_menu_delegate.h"
 
-#include "display_server_macos.h"
-#include "godot_menu_item.h"
-#include "key_mapping_macos.h"
-#include "native_menu_macos.h"
+#import "display_server_macos.h"
+#import "godot_menu_item.h"
+#import "key_mapping_macos.h"
+#import "native_menu_macos.h"
 
 @implementation GodotMenuDelegate
 

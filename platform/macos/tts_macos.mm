@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "tts_macos.h"
+#import "tts_macos.h"
 
 @implementation TTS_MacOS
 

@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "godot_menu_item.h"
+#import "godot_menu_item.h"
 
 @implementation GodotMenuItem
 

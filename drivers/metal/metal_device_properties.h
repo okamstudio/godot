@@ -48,10 +48,7 @@
 /* permissions and limitations under the License.                         */
 /**************************************************************************/
 
-#ifndef METAL_DEVICE_PROPERTIES_H
-#define METAL_DEVICE_PROPERTIES_H
-
-#import "servers/rendering/rendering_device.h"
+#include "servers/rendering/rendering_device.h"
 
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
@@ -151,5 +148,3 @@ public:
 private:
 	static const SampleCount sample_count[RenderingDevice::TextureSamples::TEXTURE_SAMPLES_MAX];
 };
-
-#endif // METAL_DEVICE_PROPERTIES_H

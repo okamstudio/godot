@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "key_mapping_macos.h"
+#import "key_mapping_macos.h"
 
 #include "core/templates/hash_map.h"
 #include "core/templates/hash_set.h"

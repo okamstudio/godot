@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "crash_handler_macos.h"
+#import "crash_handler_macos.h"
 
 #include "core/config/project_settings.h"
 #include "core/os/os.h"
@@ -50,8 +50,8 @@
 #include <signal.h>
 #include <stdlib.h>
 
-#include <mach-o/dyld.h>
-#include <mach-o/getsect.h>
+#import <mach-o/dyld.h>
+#import <mach-o/getsect.h>
 
 static uint64_t load_address() {
 	const struct segment_command_64 *cmd = getsegbyname("__TEXT");

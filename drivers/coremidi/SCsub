@@ -4,4 +4,4 @@ from misc.utility.scons_hints import *
 Import("env")
 
 # Driver source files
-env.add_source_files(env.drivers_sources, "*.cpp")
+env.add_source_files(env.drivers_sources, "*.mm")

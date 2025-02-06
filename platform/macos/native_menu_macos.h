@@ -28,9 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef NATIVE_MENU_MACOS_H
-#define NATIVE_MENU_MACOS_H
-
 #include "core/templates/hash_map.h"
 #include "core/templates/rid_owner.h"
 #include "servers/display/native_menu.h"
@@ -160,5 +157,3 @@ public:
 	NativeMenuMacOS();
 	~NativeMenuMacOS();
 };
-
-#endif // NATIVE_MENU_MACOS_H

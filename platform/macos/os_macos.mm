@@ -28,13 +28,13 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "os_macos.h"
+#import "os_macos.h"
 
-#include "dir_access_macos.h"
-#include "display_server_macos.h"
-#include "godot_application.h"
-#include "godot_application_delegate.h"
-#include "macos_terminal_logger.h"
+#import "dir_access_macos.h"
+#import "display_server_macos.h"
+#import "godot_application.h"
+#import "godot_application_delegate.h"
+#import "macos_terminal_logger.h"
 
 #include "core/crypto/crypto_core.h"
 #include "core/version_generated.gen.h"
@@ -42,7 +42,7 @@
 
 #include <dlfcn.h>
 #include <libproc.h>
-#include <mach-o/dyld.h>
+#import <mach-o/dyld.h>
 #include <os/log.h>
 #include <sys/sysctl.h>
 

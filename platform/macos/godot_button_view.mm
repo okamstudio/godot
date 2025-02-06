@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "godot_button_view.h"
+#import "godot_button_view.h"
 
 @implementation GodotButtonView
 

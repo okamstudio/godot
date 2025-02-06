@@ -28,4 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
+#ifndef PLATFORM_CONFIG_H
+#define PLATFORM_CONFIG_H
+
 #include <alloca.h>
+
+#endif // PLATFORM_CONFIG_H

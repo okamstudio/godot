@@ -31,7 +31,8 @@ if env["platform"] in ["macos", "ios"]:
     SConscript("apple/SCsub")
 # Midi drivers
 SConscript("alsamidi/SCsub")
-SConscript("coremidi/SCsub")
+if env["platform"] in ["macos", "ios"]:
+    SConscript("coremidi/SCsub")
 SConscript("winmidi/SCsub")
 
 # Graphics drivers

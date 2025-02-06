@@ -28,11 +28,11 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "godot_application_delegate.h"
+#import "godot_application_delegate.h"
 
-#include "display_server_macos.h"
-#include "native_menu_macos.h"
-#include "os_macos.h"
+#import "display_server_macos.h"
+#import "native_menu_macos.h"
+#import "os_macos.h"
 
 @implementation GodotApplicationDelegate
 

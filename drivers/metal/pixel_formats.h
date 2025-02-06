@@ -48,16 +48,13 @@
 /* permissions and limitations under the License.                         */
 /**************************************************************************/
 
-#ifndef PIXEL_FORMATS_H
-#define PIXEL_FORMATS_H
-
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
 #import "inflection_map.h"
 #import "metal_device_properties.h"
 
-#import "servers/rendering/rendering_device.h"
+#include "servers/rendering/rendering_device.h"
 
 #import <Metal/Metal.h>
 
@@ -409,5 +406,3 @@ protected:
 };
 
 #pragma clang diagnostic pop
-
-#endif // PIXEL_FORMATS_H
