@@ -324,6 +324,41 @@ public:
 		int32_t transfer_worker_index = -1;
 		uint64_t transfer_worker_operation = 0;
 
+		Texture duplicate_as_shared_texture() const {
+			Texture texture;
+			texture.driver_id = driver_id;
+			texture.type = type;
+			texture.format = format;
+			texture.samples = samples;
+			texture.slice_type = slice_type;
+			texture.slice_rect = slice_rect;
+			texture.width = width;
+			texture.height = height;
+			texture.depth = depth;
+			texture.layers = layers;
+			texture.mipmaps = mipmaps;
+			texture.usage_flags = usage_flags;
+			texture.base_mipmap = base_mipmap;
+			texture.base_layer = base_layer;
+
+			texture.allowed_shared_formats = allowed_shared_formats;
+
+			texture.is_resolve_buffer = is_resolve_buffer;
+			texture.has_initial_data = has_initial_data;
+
+			texture.read_aspect_flags = read_aspect_flags;
+			texture.barrier_aspect_flags = barrier_aspect_flags;
+			texture.bound = bound;
+			texture.owner = owner;
+
+			texture.draw_tracker = draw_tracker;
+			// `slice_trackers` is only used by the owner and it can be expensive to copy.
+			texture.shared_fallback = shared_fallback;
+			texture.transfer_worker_index = transfer_worker_index;
+			texture.transfer_worker_operation = transfer_worker_operation;
+			return texture;
+		}
+
 		RDD::TextureSubresourceRange barrier_range() const {
 			RDD::TextureSubresourceRange r;
 			r.aspect = barrier_aspect_flags;
