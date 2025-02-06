@@ -88,6 +88,33 @@
 			<param index="3" name="c" type="Vector3" />
 			<description>
 				Returns a [Vector3] containing weights based on how close a 3D position ([param point]) is to a triangle's different vertices ([param a], [param b] and [param c]). This is useful for interpolating between the data of different vertices in a triangle. One example use case is using this to smoothly rotate over a mesh instead of relying solely on face normals.
+				[param a], [param b] and [param c] must form a valid triangle and [param point] must be coplanar with the [param a][param b][param c] triangle. Returns an empty [Vector3] if [param a][param b][param c] does not form a valid triangle. Returns invalid weights if [param point] is not coplanar with the [param a][param b][param c] triangle.
+				[codeblock]
+				var a = Vector3(1, 1, 0)
+				var b = Vector3(1, 1, 1)
+				var c = Vector3(2, 1, 0)
+				var point = Vector3(1.5, 1, 0.5)
+				var w = get_triangle_barycentric_coords(point, a, b, c)
+				# w is Vector3(0, 0.5, 0.5)
+				# w contains valid weights
+
+				var a = Vector3(0, 0, 0)
+				var b = Vector3(0, 0, 1)
+				var c = Vector3(1, 0, 0)
+				var point = Vector3(0.5, 0, 2)
+				var w = get_triangle_barycentric_coords(point, a, b, c)
+				# w is Vector3(-1.5, 2, 0.5)
+				# w contains valid weights
+
+				var a = Vector3(0, 0, 0)
+				var b = Vector3(0, 0, 1)
+				var c = Vector3(1, 0, 0)
+				# point is not coplanar with the triangle
+				var point = Vector3(3, 1, 1)
+				var w = get_triangle_barycentric_coords(point, a, b, c)
+				# w is Vector3(-3, 1, 3)
+				# w contains invalid weights
+				[/codeblock]
 				[url=https://en.wikipedia.org/wiki/Barycentric_coordinate_system]Here is a more detailed explanation of barycentric coordinates.[/url]
 			</description>
 		</method>
