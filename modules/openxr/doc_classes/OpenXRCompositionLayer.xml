@@ -53,10 +53,109 @@
 			The sort order for this composition layer. Higher numbers will be shown in front of lower numbers.
 			[b]Note:[/b] This will have no effect if a fallback mesh is being used.
 		</member>
+		<member name="swapchain_state_alpha_swizzle" type="int" setter="set_alpha_swizzle" getter="get_alpha_swizzle" enum="OpenXRCompositionLayer.Swizzle" default="3">
+			The swizzle value for the alpha channel of the swapchain state.
+			[b]Note:[/b] This property only has an effect on devices that support the OpenXR XR_FB_swapchain_update_state OpenGLES/Vulkan extensions.
+		</member>
+		<member name="swapchain_state_blue_swizzle" type="int" setter="set_blue_swizzle" getter="get_blue_swizzle" enum="OpenXRCompositionLayer.Swizzle" default="2">
+			The swizzle value for the blue channel of the swapchain state.
+			[b]Note:[/b] This property only has an effect on devices that support the OpenXR XR_FB_swapchain_update_state OpenGLES/Vulkan extensions.
+		</member>
+		<member name="swapchain_state_border_color" type="Color" setter="set_border_color" getter="get_border_color" default="Color(0, 0, 0, 0)">
+			The border color of the swapchain state that is used when the wrap mode clamps to the border.
+			[b]Note:[/b] This property only has an effect on devices that support the OpenXR XR_FB_swapchain_update_state OpenGLES/Vulkan extensions.
+		</member>
+		<member name="swapchain_state_green_swizzle" type="int" setter="set_green_swizzle" getter="get_green_swizzle" enum="OpenXRCompositionLayer.Swizzle" default="1">
+			The swizzle value for the green channel of the swapchain state.
+			[b]Note:[/b] This property only has an effect on devices that support the OpenXR XR_FB_swapchain_update_state OpenGLES/Vulkan extensions.
+		</member>
+		<member name="swapchain_state_horizontal_wrap" type="int" setter="set_horizontal_wrap" getter="get_horizontal_wrap" enum="OpenXRCompositionLayer.Wrap" default="0">
+			The horizontal wrap mode of the swapchain state.
+			[b]Note:[/b] This property only has an effect on devices that support the OpenXR XR_FB_swapchain_update_state OpenGLES/Vulkan extensions.
+		</member>
+		<member name="swapchain_state_mag_filter" type="int" setter="set_mag_filter" getter="get_mag_filter" enum="OpenXRCompositionLayer.Filter" default="1">
+			The magnification filter of the swapchain state.
+			[b]Note:[/b] This property only has an effect on devices that support the OpenXR XR_FB_swapchain_update_state OpenGLES/Vulkan extensions.
+		</member>
+		<member name="swapchain_state_max_anisotropy" type="float" setter="set_max_anisotropy" getter="get_max_anisotropy" default="1.0">
+			The max anisotropy of the swapchain state.
+			[b]Note:[/b] This property only has an effect on devices that support the OpenXR XR_FB_swapchain_update_state OpenGLES/Vulkan extensions.
+		</member>
+		<member name="swapchain_state_min_filter" type="int" setter="set_min_filter" getter="get_min_filter" enum="OpenXRCompositionLayer.Filter" default="1">
+			The minification filter of the swapchain state.
+			[b]Note:[/b] This property only has an effect on devices that support the OpenXR XR_FB_swapchain_update_state OpenGLES/Vulkan extensions.
+		</member>
+		<member name="swapchain_state_mipmap_mode" type="int" setter="set_mipmap_mode" getter="get_mipmap_mode" enum="OpenXRCompositionLayer.MipmapMode" default="2">
+			The mipmap mode of the swapchain state.
+			[b]Note:[/b] This property only has an effect on devices that support the OpenXR XR_FB_swapchain_update_state OpenGLES/Vulkan extensions.
+		</member>
+		<member name="swapchain_state_red_swizzle" type="int" setter="set_red_swizzle" getter="get_red_swizzle" enum="OpenXRCompositionLayer.Swizzle" default="0">
+			The swizzle value for the red channel of the swapchain state.
+			[b]Note:[/b] This property only has an effect on devices that support the OpenXR XR_FB_swapchain_update_state OpenGLES/Vulkan extensions.
+		</member>
+		<member name="swapchain_state_vertical_wrap" type="int" setter="set_vertical_wrap" getter="get_vertical_wrap" enum="OpenXRCompositionLayer.Wrap" default="0">
+			The vertical wrap mode of the swapchain state.
+			[b]Note:[/b] This property only has an effect on devices that support the OpenXR XR_FB_swapchain_update_state OpenGLES/Vulkan extensions.
+		</member>
 		<member name="use_android_surface" type="bool" setter="set_use_android_surface" getter="get_use_android_surface" default="false">
 			If enabled, an Android surface will be created (with the dimensions from [member android_surface_size]) which will provide the 2D content for the composition layer, rather than using [member layer_viewport].
 			See [method get_android_surface] for information about how to get the surface so that your application can draw to it.
 			[b]Note:[/b] This will only work in Android builds.
 		</member>
 	</members>
+	<constants>
+		<constant name="FILTER_NEAREST" value="0" enum="Filter">
+			Perform nearest-neighbor filtering when sampling the texture.
+		</constant>
+		<constant name="FILTER_LINEAR" value="1" enum="Filter">
+			Perform linear filtering when sampling the texture.
+		</constant>
+		<constant name="FILTER_CUBIC" value="2" enum="Filter">
+			Perform cubic filtering when sampling the texture.
+		</constant>
+		<constant name="MIPMAP_MODE_DISABLED" value="0" enum="MipmapMode">
+			Disable mipmapping.
+			[b]Note:[/b] Mipmapping can only be disabled in the compatibility renderer.
+		</constant>
+		<constant name="MIPMAP_MODE_NEAREST" value="1" enum="MipmapMode">
+			Use the mipmap of the nearest resolution.
+		</constant>
+		<constant name="MIPMAP_MODE_LINEAR" value="2" enum="MipmapMode">
+			Use linear interpolation of the two mipmaps of the nearest resolution.
+		</constant>
+		<constant name="WRAP_CLAMP_TO_BORDER" value="0" enum="Wrap">
+			Clamp the texture to its specified border color.
+		</constant>
+		<constant name="WRAP_CLAMP_TO_EDGE" value="1" enum="Wrap">
+			Clamp the texture to its edge color.
+		</constant>
+		<constant name="WRAP_REPEAT" value="2" enum="Wrap">
+			Repeat the texture infinitely.
+		</constant>
+		<constant name="WRAP_MIRRORED_REPEAT" value="3" enum="Wrap">
+			Repeat the texture infinitely, mirroring it on each repeat.
+		</constant>
+		<constant name="WRAP_MIRROR_CLAMP_TO_EDGE" value="4" enum="Wrap">
+			Mirror the texture once and then clamp the texture to its edge color.
+			[b]Note:[/b] This wrap mode is not available in the compatibility renderer.
+		</constant>
+		<constant name="SWIZZLE_RED" value="0" enum="Swizzle">
+			Maps a color channel to the value of the red channel.
+		</constant>
+		<constant name="SWIZZLE_GREEN" value="1" enum="Swizzle">
+			Maps a color channel to the value of the green channel.
+		</constant>
+		<constant name="SWIZZLE_BLUE" value="2" enum="Swizzle">
+			Maps a color channel to the value of the blue channel.
+		</constant>
+		<constant name="SWIZZLE_ALPHA" value="3" enum="Swizzle">
+			Maps a color channel to the value of the alpha channel.
+		</constant>
+		<constant name="SWIZZLE_ZERO" value="4" enum="Swizzle">
+			Maps a color channel to the value of zero.
+		</constant>
+		<constant name="SWIZZLE_ONE" value="5" enum="Swizzle">
+			Maps a color channel to the value of one.
+		</constant>
+	</constants>
 </class>

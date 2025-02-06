@@ -96,7 +96,44 @@ private:
 #endif
 };
 
+struct SwapchainState;
+
 class OpenXRViewportCompositionLayerProvider {
+public:
+	// Must be identical to Filter enum definition in OpenXRCompositionLayer.
+	enum Filter {
+		FILTER_NEAREST,
+		FILTER_LINEAR,
+		FILTER_CUBIC,
+	};
+
+	// Must be identical to MipmapMode enum definition in OpenXRCompositionLayer.
+	enum MipmapMode {
+		MIPMAP_MODE_DISABLED,
+		MIPMAP_MODE_NEAREST,
+		MIPMAP_MODE_LINEAR,
+	};
+
+	// Must be identical to Wrap enum definition in OpenXRCompositionLayer.
+	enum Wrap {
+		WRAP_CLAMP_TO_BORDER,
+		WRAP_CLAMP_TO_EDGE,
+		WRAP_REPEAT,
+		WRAP_MIRRORED_REPEAT,
+		WRAP_MIRROR_CLAMP_TO_EDGE,
+	};
+
+	// Must be identical to Swizzle enum definition in OpenXRCompositionLayer.
+	enum Swizzle {
+		SWIZZLE_RED,
+		SWIZZLE_GREEN,
+		SWIZZLE_BLUE,
+		SWIZZLE_ALPHA,
+		SWIZZLE_ZERO,
+		SWIZZLE_ONE,
+	};
+
+private:
 	XrCompositionLayerBaseHeader *composition_layer = nullptr;
 	int sort_order = 1;
 	bool alpha_blend = false;
@@ -130,6 +167,8 @@ class OpenXRViewportCompositionLayerProvider {
 	void update_swapchain_sub_image(XrSwapchainSubImage &r_swapchain_sub_image);
 	void free_swapchain();
 
+	SwapchainState *swapchain_state;
+
 #ifdef ANDROID_ENABLED
 	void create_android_surface();
 #endif
@@ -156,8 +195,26 @@ public:
 	void on_pre_render();
 	XrCompositionLayerBaseHeader *get_composition_layer();
 
+	void update_swapchain_state();
+	SwapchainState *get_swapchain_state();
+
 	OpenXRViewportCompositionLayerProvider(XrCompositionLayerBaseHeader *p_composition_layer);
 	~OpenXRViewportCompositionLayerProvider();
+};
+
+struct SwapchainState {
+	OpenXRViewportCompositionLayerProvider::Filter min_filter = OpenXRViewportCompositionLayerProvider::Filter::FILTER_LINEAR;
+	OpenXRViewportCompositionLayerProvider::Filter mag_filter = OpenXRViewportCompositionLayerProvider::Filter::FILTER_LINEAR;
+	OpenXRViewportCompositionLayerProvider::MipmapMode mipmap_mode = OpenXRViewportCompositionLayerProvider::MipmapMode::MIPMAP_MODE_LINEAR;
+	OpenXRViewportCompositionLayerProvider::Wrap horizontal_wrap = OpenXRViewportCompositionLayerProvider::Wrap::WRAP_CLAMP_TO_BORDER;
+	OpenXRViewportCompositionLayerProvider::Wrap vertical_wrap = OpenXRViewportCompositionLayerProvider::Wrap::WRAP_CLAMP_TO_BORDER;
+	OpenXRViewportCompositionLayerProvider::Swizzle red_swizzle = OpenXRViewportCompositionLayerProvider::Swizzle::SWIZZLE_RED;
+	OpenXRViewportCompositionLayerProvider::Swizzle green_swizzle = OpenXRViewportCompositionLayerProvider::Swizzle::SWIZZLE_GREEN;
+	OpenXRViewportCompositionLayerProvider::Swizzle blue_swizzle = OpenXRViewportCompositionLayerProvider::Swizzle::SWIZZLE_BLUE;
+	OpenXRViewportCompositionLayerProvider::Swizzle alpha_swizzle = OpenXRViewportCompositionLayerProvider::Swizzle::SWIZZLE_ALPHA;
+	float max_anisotropy = 1.0;
+	Color border_color = { 0.0, 0.0, 0.0, 0.0 };
+	bool dirty = false;
 };
 
 #endif // OPENXR_COMPOSITION_LAYER_EXTENSION_H

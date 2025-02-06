@@ -42,10 +42,46 @@ class OpenXRAPI;
 class OpenXRCompositionLayerExtension;
 class OpenXRViewportCompositionLayerProvider;
 class SubViewport;
+struct SwapchainState;
 
 class OpenXRCompositionLayer : public Node3D {
 	GDCLASS(OpenXRCompositionLayer, Node3D);
 
+public:
+	// Must be identical to Filter enum definition in OpenXRViewportCompositionLayerProvider.
+	enum Filter {
+		FILTER_NEAREST,
+		FILTER_LINEAR,
+		FILTER_CUBIC,
+	};
+
+	// Must be identical to MipmapMode enum definition in OpenXRViewportCompositionLayerProvider.
+	enum MipmapMode {
+		MIPMAP_MODE_DISABLED,
+		MIPMAP_MODE_NEAREST,
+		MIPMAP_MODE_LINEAR,
+	};
+
+	// Must be identical to Wrap enum definition in OpenXRViewportCompositionLayerProvider.
+	enum Wrap {
+		WRAP_CLAMP_TO_BORDER,
+		WRAP_CLAMP_TO_EDGE,
+		WRAP_REPEAT,
+		WRAP_MIRRORED_REPEAT,
+		WRAP_MIRROR_CLAMP_TO_EDGE,
+	};
+
+	// Must be identical to Swizzle enum definition in OpenXRViewportCompositionLayerProvider.
+	enum Swizzle {
+		SWIZZLE_RED,
+		SWIZZLE_GREEN,
+		SWIZZLE_BLUE,
+		SWIZZLE_ALPHA,
+		SWIZZLE_ZERO,
+		SWIZZLE_ONE,
+	};
+
+private:
 	XrCompositionLayerBaseHeader *composition_layer_base_header = nullptr;
 	OpenXRViewportCompositionLayerProvider *openxr_layer_provider = nullptr;
 
@@ -56,6 +92,8 @@ class OpenXRCompositionLayer : public Node3D {
 	MeshInstance3D *fallback = nullptr;
 	bool should_update_fallback_mesh = false;
 	bool openxr_session_running = false;
+
+	SwapchainState *swapchain_state;
 
 	Dictionary extension_property_values;
 
@@ -115,11 +153,49 @@ public:
 	Ref<JavaObject> get_android_surface();
 	bool is_natively_supported() const;
 
+	void set_min_filter(Filter p_mode);
+	Filter get_min_filter();
+
+	void set_mag_filter(Filter p_mode);
+	Filter get_mag_filter();
+
+	void set_mipmap_mode(MipmapMode p_mode);
+	MipmapMode get_mipmap_mode();
+
+	void set_horizontal_wrap(Wrap p_mode);
+	Wrap get_horizontal_wrap();
+
+	void set_vertical_wrap(Wrap p_mode);
+	Wrap get_vertical_wrap();
+
+	void set_red_swizzle(Swizzle p_mode);
+	Swizzle get_red_swizzle();
+
+	void set_green_swizzle(Swizzle p_mode);
+	Swizzle get_green_swizzle();
+
+	void set_blue_swizzle(Swizzle p_mode);
+	Swizzle get_blue_swizzle();
+
+	void set_alpha_swizzle(Swizzle p_mode);
+	Swizzle get_alpha_swizzle();
+
+	void set_max_anisotropy(float p_value);
+	float get_max_anisotropy();
+
+	void set_border_color(Color p_color);
+	Color get_border_color();
+
 	virtual PackedStringArray get_configuration_warnings() const override;
 
 	virtual Vector2 intersects_ray(const Vector3 &p_origin, const Vector3 &p_direction) const;
 
 	~OpenXRCompositionLayer();
 };
+
+VARIANT_ENUM_CAST(OpenXRCompositionLayer::Filter)
+VARIANT_ENUM_CAST(OpenXRCompositionLayer::MipmapMode)
+VARIANT_ENUM_CAST(OpenXRCompositionLayer::Wrap)
+VARIANT_ENUM_CAST(OpenXRCompositionLayer::Swizzle)
 
 #endif // OPENXR_COMPOSITION_LAYER_H
