@@ -87,7 +87,7 @@ void SpriteBase3D::_notification(int p_what) {
 	}
 }
 
-void SpriteBase3D::draw_texture_rect(Ref<Texture2D> p_texture, Rect2 p_dst_rect, Rect2 p_src_rect) {
+void SpriteBase3D::draw_texture_rect(Ref<Texture2D> p_texture, Rect2 p_dst_rect, Rect2 p_src_rect, bool p_force_repeat) {
 	ERR_FAIL_COND(p_texture.is_null());
 
 	Rect2 final_rect;
@@ -268,7 +268,7 @@ void SpriteBase3D::draw_texture_rect(Ref<Texture2D> p_texture, Rect2 p_dst_rect,
 	}
 
 	RID shader_rid;
-	StandardMaterial3D::get_material_for_2d(get_draw_flag(FLAG_SHADED), mat_transparency, get_draw_flag(FLAG_DOUBLE_SIDED), get_billboard_mode() == StandardMaterial3D::BILLBOARD_ENABLED, get_billboard_mode() == StandardMaterial3D::BILLBOARD_FIXED_Y, false, get_draw_flag(FLAG_DISABLE_DEPTH_TEST), get_draw_flag(FLAG_FIXED_SIZE), get_texture_filter(), alpha_antialiasing_mode, &shader_rid);
+	StandardMaterial3D::get_material_for_2d(get_draw_flag(FLAG_SHADED), mat_transparency, get_draw_flag(FLAG_DOUBLE_SIDED), get_billboard_mode() == StandardMaterial3D::BILLBOARD_ENABLED, get_billboard_mode() == StandardMaterial3D::BILLBOARD_FIXED_Y, false, get_draw_flag(FLAG_DISABLE_DEPTH_TEST), get_draw_flag(FLAG_FIXED_SIZE), get_draw_flag(FLAG_USE_TEXTURE_REPEAT) || p_force_repeat, get_texture_filter(), alpha_antialiasing_mode, &shader_rid);
 
 	if (last_shader != shader_rid) {
 		RS::get_singleton()->material_set_shader(get_material(), shader_rid);
@@ -654,6 +654,7 @@ void SpriteBase3D::_bind_methods() {
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "double_sided"), "set_draw_flag", "get_draw_flag", FLAG_DOUBLE_SIDED);
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "no_depth_test"), "set_draw_flag", "get_draw_flag", FLAG_DISABLE_DEPTH_TEST);
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "fixed_size"), "set_draw_flag", "get_draw_flag", FLAG_FIXED_SIZE);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_repeat"), "set_draw_flag", "get_draw_flag", FLAG_USE_TEXTURE_REPEAT);
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "alpha_cut", PROPERTY_HINT_ENUM, "Disabled,Discard,Opaque Pre-Pass,Alpha Hash"), "set_alpha_cut_mode", "get_alpha_cut_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "alpha_scissor_threshold", PROPERTY_HINT_RANGE, "0,1,0.001"), "set_alpha_scissor_threshold", "get_alpha_scissor_threshold");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "alpha_hash_scale", PROPERTY_HINT_RANGE, "0,2,0.01"), "set_alpha_hash_scale", "get_alpha_hash_scale");
@@ -667,6 +668,7 @@ void SpriteBase3D::_bind_methods() {
 	BIND_ENUM_CONSTANT(FLAG_DOUBLE_SIDED);
 	BIND_ENUM_CONSTANT(FLAG_DISABLE_DEPTH_TEST);
 	BIND_ENUM_CONSTANT(FLAG_FIXED_SIZE);
+	BIND_ENUM_CONSTANT(FLAG_USE_TEXTURE_REPEAT);
 	BIND_ENUM_CONSTANT(FLAG_MAX);
 
 	BIND_ENUM_CONSTANT(ALPHA_CUT_DISABLED);
@@ -788,7 +790,8 @@ void Sprite3D::_draw() {
 	Rect2 src_rect(base_rect.position + frame_offset, frame_size);
 	Rect2 dst_rect(dst_offset, frame_size);
 
-	draw_texture_rect(texture, dst_rect, src_rect);
+	const bool auto_repeat = (region_rect.size.x > tsize.x) || (region_rect.size.y > tsize.y);
+	draw_texture_rect(texture, dst_rect, src_rect, auto_repeat);
 }
 
 void Sprite3D::set_texture(const Ref<Texture2D> &p_texture) {

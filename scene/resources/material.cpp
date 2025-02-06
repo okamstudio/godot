@@ -2806,7 +2806,7 @@ BaseMaterial3D::TextureChannel BaseMaterial3D::get_refraction_texture_channel() 
 	return refraction_texture_channel;
 }
 
-Ref<Material> BaseMaterial3D::get_material_for_2d(bool p_shaded, Transparency p_transparency, bool p_double_sided, bool p_billboard, bool p_billboard_y, bool p_msdf, bool p_no_depth, bool p_fixed_size, TextureFilter p_filter, AlphaAntiAliasing p_alpha_antialiasing_mode, RID *r_shader_rid) {
+Ref<Material> BaseMaterial3D::get_material_for_2d(bool p_shaded, Transparency p_transparency, bool p_double_sided, bool p_billboard, bool p_billboard_y, bool p_msdf, bool p_no_depth, bool p_fixed_size, bool p_tex_repeat, TextureFilter p_filter, AlphaAntiAliasing p_alpha_antialiasing_mode, RID *r_shader_rid) {
 	uint64_t key = 0;
 	key |= ((int8_t)p_shaded & 0x01) << 0;
 	key |= ((int8_t)p_transparency & 0x07) << 1; // Bits 1-3.
@@ -2834,6 +2834,7 @@ Ref<Material> BaseMaterial3D::get_material_for_2d(bool p_shaded, Transparency p_
 	material->set_cull_mode(p_double_sided ? CULL_DISABLED : CULL_BACK);
 	material->set_flag(FLAG_SRGB_VERTEX_COLOR, true);
 	material->set_flag(FLAG_ALBEDO_FROM_VERTEX_COLOR, true);
+	material->set_flag(FLAG_USE_TEXTURE_REPEAT, p_tex_repeat);
 	material->set_flag(FLAG_ALBEDO_TEXTURE_MSDF, p_msdf);
 	material->set_flag(FLAG_DISABLE_DEPTH_TEST, p_no_depth);
 	material->set_flag(FLAG_FIXED_SIZE, p_fixed_size);
