@@ -84,6 +84,7 @@ public:
 	const StringName bind = StaticCString::create("bind");
 	const StringName notification = StaticCString::create("notification");
 	const StringName property_list_changed = StaticCString::create("property_list_changed");
+	const StringName freeing = StaticCString::create("freeing");
 };
 
 #define CoreStringName(m_name) CoreStringNames::get_singleton()->m_name

@@ -1036,6 +1036,13 @@
 				[b]Note:[/b] In C#, [param property] must be in snake_case when referring to built-in Godot properties. Prefer using the names exposed in the [code]PropertyName[/code] class to avoid allocating a new [StringName] on each call.
 			</description>
 		</method>
+		<method name="set_emit_freeing">
+			<return type="void" />
+			<param index="0" name="enable" type="bool" />
+			<description>
+				If set to [code]true[/code], the object will emit [signal freeing] upon cleanup.
+			</description>
+		</method>
 		<method name="set_indexed">
 			<return type="void" />
 			<param index="0" name="property_path" type="NodePath" />
@@ -1126,6 +1133,12 @@
 		</method>
 	</methods>
 	<signals>
+		<signal name="freeing">
+			<description>
+				Emitted when the object is about to be freed. Only emitted after [method set_emit_freeing] is called.
+				This signal is emitted [i]after[/i] the related [constant NOTIFICATION_PREDELETE] notification.
+			</description>
+		</signal>
 		<signal name="property_list_changed">
 			<description>
 				Emitted when [method notify_property_list_changed] is called.

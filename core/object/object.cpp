@@ -228,6 +228,9 @@ Object::Connection::Connection(const Variant &p_variant) {
 bool Object::_predelete() {
 	_predelete_ok = 1;
 	notification(NOTIFICATION_PREDELETE, true);
+	if (_emit_free && _predelete_ok) {
+		emit_signal(CoreStringName(freeing)); // Emit signal early so cancel_free can still occur.
+	}
 	if (_predelete_ok) {
 		_class_name_ptr = nullptr; // Must restore, so constructors/destructors have proper class name access at each stage.
 		notification(NOTIFICATION_PREDELETE_CLEANUP, true);
@@ -1765,12 +1768,14 @@ void Object::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_translation_domain", "domain"), &Object::set_translation_domain);
 
 	ClassDB::bind_method(D_METHOD("is_queued_for_deletion"), &Object::is_queued_for_deletion);
+	ClassDB::bind_method(D_METHOD("set_emit_freeing", "enable"), &Object::set_emit_freeing);
 	ClassDB::bind_method(D_METHOD("cancel_free"), &Object::cancel_free);
 
 	ClassDB::add_virtual_method("Object", MethodInfo("free"), false);
 
 	ADD_SIGNAL(MethodInfo("script_changed"));
 	ADD_SIGNAL(MethodInfo("property_list_changed"));
+	ADD_SIGNAL(MethodInfo("freeing"));
 
 #define BIND_OBJ_CORE_METHOD(m_method) \
 	::ClassDB::add_virtual_method(get_class_static(), m_method, true, Vector<String>(), true);
@@ -1928,6 +1933,10 @@ Variant::Type Object::get_static_property_type_indexed(const Vector<StringName> 
 
 bool Object::is_queued_for_deletion() const {
 	return _is_queued_for_deletion;
+}
+
+void Object::set_emit_freeing(bool p_emit) {
+	_emit_free = p_emit;
 }
 
 #ifdef TOOLS_ENABLED

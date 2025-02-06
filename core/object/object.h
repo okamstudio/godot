@@ -628,6 +628,7 @@ private:
 	SafeRefCount _lock_index;
 #endif
 	bool _block_signals = false;
+	bool _emit_free = false;
 	int _predelete_ok = 0;
 	ObjectID _instance_id;
 	bool _predelete();
@@ -998,6 +999,7 @@ public:
 
 	_ALWAYS_INLINE_ bool is_ref_counted() const { return type_is_reference; }
 
+	void set_emit_freeing(bool p_emit);
 	void cancel_free();
 
 	Object();
