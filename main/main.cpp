@@ -3209,6 +3209,80 @@ Error Main::setup2(bool p_show_boot_logo) {
 
 	register_core_singletons();
 
+	if (OS::get_singleton()->is_stdout_verbose()) {
+		// Print hardware information for easier troubleshooting (other than GPU name, as rendering drivers already handle this).
+		// Only evaluate functions if needed, as some of these may be relatively slow.
+		print_line(vformat("Device model: %s", OS::get_singleton()->get_model_name()));
+		print_line(vformat("CPU model: %s (%s threads)", OS::get_singleton()->get_processor_name(), OS::get_singleton()->get_processor_count()));
+		String graphics_driver = "GPU driver version: ";
+		const Vector<String> video_adapter_driver_info = OS::get_singleton()->get_video_adapter_driver_info();
+		if (video_adapter_driver_info.size() == 2) { // This vector is always either of length 0 or 2.
+			const String &vad_name = video_adapter_driver_info[0];
+			const String &vad_version = video_adapter_driver_info[1]; // Version could be potentially empty on Linux/BSD.
+			if (!vad_version.is_empty()) {
+				graphics_driver += vformat("%s; %s", vad_name, vad_version);
+			} else if (!vad_name.is_empty()) {
+				graphics_driver += vad_name;
+			}
+		}
+		print_line(graphics_driver);
+		print_line(vformat("Audio mix rate: %d Hz", AudioServer::get_singleton()->get_mix_rate()));
+
+		if (!AudioServer::get_singleton()->get_output_device_list().is_empty()) {
+			print_line("Output audio devices:");
+			int output_device_id = 0;
+			for (String output_device : AudioServer::get_singleton()->get_output_device_list()) {
+				print_line(vformat("  #%d: %s%s", output_device_id, output_device, AudioServer::get_singleton()->get_output_device() == output_device ? " (selected)" : ""));
+				output_device_id += 1;
+			}
+		} else {
+			print_line("Output audio devices: (none)");
+		}
+
+		if (!AudioServer::get_singleton()->get_input_device_list().is_empty()) {
+			print_line("Input audio devices:");
+			int input_device_id = 0;
+			for (String input_device : AudioServer::get_singleton()->get_input_device_list()) {
+				print_line(vformat("  #%d: %s%s", input_device_id, input_device, AudioServer::get_singleton()->get_input_device() == input_device ? " (selected)" : ""));
+				input_device_id += 1;
+			}
+		} else {
+			print_line("Input audio devices: (none)");
+		}
+
+		OS::get_singleton()->open_midi_inputs();
+		if (!OS::get_singleton()->get_connected_midi_inputs().is_empty()) {
+			print_line("Input MIDI devices:");
+			int midi_device_id = 0;
+			for (String midi_device : OS::get_singleton()->get_connected_midi_inputs()) {
+				print_line(vformat("  #%d: %s", midi_device_id, midi_device));
+				midi_device_id += 1;
+			}
+		} else {
+			print_line("Input MIDI devices: (none)");
+		}
+		OS::get_singleton()->close_midi_inputs();
+
+		print_line("Displays:");
+		for (int i = 0; i < DisplayServer::get_singleton()->get_screen_count(); i++) {
+			const Rect2i usable_rect = DisplayServer::get_singleton()->screen_get_usable_rect();
+			print_line(
+					vformat("  #%d: (%d, %d), %dx%d, %.2f Hz, %d dpi, scale factor: %.2f, usable rect: (%d, %d), %dx%d",
+							i,
+							DisplayServer::get_singleton()->screen_get_position(i).x,
+							DisplayServer::get_singleton()->screen_get_position(i).y,
+							DisplayServer::get_singleton()->screen_get_size(i).x,
+							DisplayServer::get_singleton()->screen_get_size(i).y,
+							DisplayServer::get_singleton()->screen_get_refresh_rate(i),
+							DisplayServer::get_singleton()->screen_get_dpi(i),
+							DisplayServer::get_singleton()->screen_get_scale(i),
+							usable_rect.position.x,
+							usable_rect.position.y,
+							usable_rect.size.x,
+							usable_rect.size.y));
+		}
+	}
+
 	/* Initialize the main window and boot screen */
 
 	{
