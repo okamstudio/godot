@@ -132,17 +132,23 @@ struct [[nodiscard]] Vector4i {
 	_FORCE_INLINE_ bool operator>=(const Vector4i &p_v) const;
 
 	operator String() const;
-	operator Vector4() const;
 
 	_FORCE_INLINE_ Vector4i() {}
-	Vector4i(const Vector4 &p_vec4);
 	_FORCE_INLINE_ Vector4i(int32_t p_x, int32_t p_y, int32_t p_z, int32_t p_w) {
 		x = p_x;
 		y = p_y;
 		z = p_z;
 		w = p_w;
 	}
+	_FORCE_INLINE_ Vector4i(const Vector4 &p_vec);
 };
+
+#ifdef VECTOR4_H
+Vector4::Vector4(const Vector4i &p_vec) :
+		x(p_vec.x), y(p_vec.y), z(p_vec.z), w(p_vec.w) {}
+Vector4i::Vector4i(const Vector4 &p_vec) :
+		x(p_vec.x), y(p_vec.y), z(p_vec.z), w(p_vec.w) {}
+#endif // VECTOR4_H
 
 int64_t Vector4i::length_squared() const {
 	return x * (int64_t)x + y * (int64_t)y + z * (int64_t)z + w * (int64_t)w;

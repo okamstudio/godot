@@ -225,7 +225,6 @@ struct [[nodiscard]] Rect2i {
 	}
 
 	operator String() const;
-	operator Rect2() const;
 
 	Rect2i() {}
 	Rect2i(int p_x, int p_y, int p_width, int p_height) :
@@ -236,6 +235,16 @@ struct [[nodiscard]] Rect2i {
 			position(p_pos),
 			size(p_size) {
 	}
+	_FORCE_INLINE_ Rect2i(const Rect2 &p_rect);
 };
+
+#ifdef RECT2_H
+Rect2::Rect2(const Rect2i &p_rect) :
+		position(p_rect.position),
+		size(p_rect.size) {}
+Rect2i::Rect2i(const Rect2 &p_rect) :
+		position(p_rect.position),
+		size(p_rect.size) {}
+#endif // RECT2_H
 
 #endif // RECT2I_H

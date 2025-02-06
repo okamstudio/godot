@@ -182,14 +182,21 @@ struct [[nodiscard]] Vector2 {
 	real_t aspect() const { return width / height; }
 
 	operator String() const;
-	operator Vector2i() const;
 
 	_FORCE_INLINE_ Vector2() {}
 	_FORCE_INLINE_ Vector2(real_t p_x, real_t p_y) {
 		x = p_x;
 		y = p_y;
 	}
+	_FORCE_INLINE_ Vector2(const Vector2i &p_vec);
 };
+
+#ifdef VECTOR2I_H
+Vector2::Vector2(const Vector2i &p_vec) :
+		x(p_vec.x), y(p_vec.y) {}
+Vector2i::Vector2i(const Vector2 &p_vec) :
+		x(p_vec.x), y(p_vec.y) {}
+#endif // VECTOR2I_H
 
 _FORCE_INLINE_ Vector2 Vector2::plane_project(real_t p_d, const Vector2 &p_vec) const {
 	return p_vec - *this * (dot(p_vec) - p_d);

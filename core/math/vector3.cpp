@@ -32,7 +32,6 @@
 
 #include "core/math/basis.h"
 #include "core/math/vector2.h"
-#include "core/math/vector3i.h"
 #include "core/string/ustring.h"
 
 void Vector3::rotate(const Vector3 &p_axis, real_t p_angle) {
@@ -166,8 +165,4 @@ bool Vector3::is_finite() const {
 
 Vector3::operator String() const {
 	return "(" + String::num_real(x, true) + ", " + String::num_real(y, true) + ", " + String::num_real(z, true) + ")";
-}
-
-Vector3::operator Vector3i() const {
-	return Vector3i(x, y, z);
 }

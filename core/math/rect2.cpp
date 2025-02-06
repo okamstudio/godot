@@ -30,7 +30,6 @@
 
 #include "rect2.h"
 
-#include "core/math/rect2i.h"
 #include "core/math/transform_2d.h"
 #include "core/string/ustring.h"
 
@@ -284,8 +283,4 @@ next4:
 
 Rect2::operator String() const {
 	return "[P: " + position.operator String() + ", S: " + size.operator String() + "]";
-}
-
-Rect2::operator Rect2i() const {
-	return Rect2i(position, size);
 }

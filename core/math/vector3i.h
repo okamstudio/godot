@@ -130,7 +130,6 @@ struct [[nodiscard]] Vector3i {
 	_FORCE_INLINE_ bool operator>=(const Vector3i &p_v) const;
 
 	operator String() const;
-	operator Vector3() const;
 
 	_FORCE_INLINE_ Vector3i() {}
 	_FORCE_INLINE_ Vector3i(int32_t p_x, int32_t p_y, int32_t p_z) {
@@ -138,7 +137,15 @@ struct [[nodiscard]] Vector3i {
 		y = p_y;
 		z = p_z;
 	}
+	_FORCE_INLINE_ Vector3i(const Vector3 &p_vec);
 };
+
+#ifdef VECTOR3_H
+Vector3::Vector3(const Vector3i &p_vec) :
+		x(p_vec.x), y(p_vec.y), z(p_vec.z) {}
+Vector3i::Vector3i(const Vector3 &p_vec) :
+		x(p_vec.x), y(p_vec.y), z(p_vec.z) {}
+#endif // VECTOR3_H
 
 int64_t Vector3i::length_squared() const {
 	return x * (int64_t)x + y * (int64_t)y + z * (int64_t)z;

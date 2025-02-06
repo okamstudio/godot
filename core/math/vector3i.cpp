@@ -30,7 +30,6 @@
 
 #include "vector3i.h"
 
-#include "core/math/vector3.h"
 #include "core/string/ustring.h"
 
 Vector3i::Axis Vector3i::min_axis_index() const {
@@ -71,8 +70,4 @@ Vector3i Vector3i::snappedi(int32_t p_step) const {
 
 Vector3i::operator String() const {
 	return "(" + itos(x) + ", " + itos(y) + ", " + itos(z) + ")";
-}
-
-Vector3i::operator Vector3() const {
-	return Vector3(x, y, z);
 }

@@ -142,7 +142,6 @@ struct [[nodiscard]] Vector4 {
 	_FORCE_INLINE_ bool operator<=(const Vector4 &p_vec4) const;
 
 	operator String() const;
-	operator Vector4i() const;
 
 	_FORCE_INLINE_ Vector4() {}
 	_FORCE_INLINE_ Vector4(real_t p_x, real_t p_y, real_t p_z, real_t p_w) {
@@ -151,7 +150,15 @@ struct [[nodiscard]] Vector4 {
 		z = p_z;
 		w = p_w;
 	}
+	_FORCE_INLINE_ Vector4(const Vector4i &p_vec);
 };
+
+#ifdef VECTOR4I_H
+Vector4::Vector4(const Vector4i &p_vec) :
+		x(p_vec.x), y(p_vec.y), z(p_vec.z), w(p_vec.w) {}
+Vector4i::Vector4i(const Vector4 &p_vec) :
+		x(p_vec.x), y(p_vec.y), z(p_vec.z), w(p_vec.w) {}
+#endif // VECTOR4I_H
 
 real_t Vector4::dot(const Vector4 &p_vec4) const {
 	return x * p_vec4.x + y * p_vec4.y + z * p_vec4.z + w * p_vec4.w;

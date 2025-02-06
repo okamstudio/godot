@@ -31,7 +31,6 @@
 #include "vector4.h"
 
 #include "core/math/math_funcs.h"
-#include "core/math/vector4i.h"
 #include "core/string/ustring.h"
 
 Vector4::Axis Vector4::min_axis_index() const {
@@ -217,7 +216,3 @@ Vector4::operator String() const {
 }
 
 static_assert(sizeof(Vector4) == 4 * sizeof(real_t));
-
-Vector4::operator Vector4i() const {
-	return Vector4i(x, y, z, w);
-}

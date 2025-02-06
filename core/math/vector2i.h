@@ -140,14 +140,21 @@ struct [[nodiscard]] Vector2i {
 	Vector2i snappedi(int32_t p_step) const;
 
 	operator String() const;
-	operator Vector2() const;
 
 	inline Vector2i() {}
 	inline Vector2i(int32_t p_x, int32_t p_y) {
 		x = p_x;
 		y = p_y;
 	}
+	_FORCE_INLINE_ Vector2i(const Vector2 &p_vec);
 };
+
+#ifdef VECTOR2_H
+Vector2::Vector2(const Vector2i &p_vec) :
+		x(p_vec.x), y(p_vec.y) {}
+Vector2i::Vector2i(const Vector2 &p_vec) :
+		x(p_vec.x), y(p_vec.y) {}
+#endif // VECTOR2_H
 
 // Multiplication operators required to workaround issues with LLVM using implicit conversion.
 

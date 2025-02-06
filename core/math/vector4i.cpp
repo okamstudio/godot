@@ -30,7 +30,6 @@
 
 #include "vector4i.h"
 
-#include "core/math/vector4.h"
 #include "core/string/ustring.h"
 
 Vector4i::Axis Vector4i::min_axis_index() const {
@@ -91,17 +90,6 @@ Vector4i Vector4i::snappedi(int32_t p_step) const {
 
 Vector4i::operator String() const {
 	return "(" + itos(x) + ", " + itos(y) + ", " + itos(z) + ", " + itos(w) + ")";
-}
-
-Vector4i::operator Vector4() const {
-	return Vector4(x, y, z, w);
-}
-
-Vector4i::Vector4i(const Vector4 &p_vec4) {
-	x = (int32_t)p_vec4.x;
-	y = (int32_t)p_vec4.y;
-	z = (int32_t)p_vec4.z;
-	w = (int32_t)p_vec4.w;
 }
 
 static_assert(sizeof(Vector4i) == 4 * sizeof(int32_t));
