@@ -1153,14 +1153,28 @@ Error Object::_emit_signal(const Variant **p_args, int p_argcount, Callable::Cal
 
 	StringName signal = *p_args[0];
 
-	const Variant **args = nullptr;
+	// Prevent GDScript member variables being passed by pointer, see:
+	// https://github.com/godotengine/godot/issues/88885
+	Variant *args = nullptr;
+	const Variant **argptrs = nullptr;
 
 	int argc = p_argcount - 1;
 	if (argc) {
-		args = &p_args[1];
+		args = (Variant *)alloca(sizeof(Variant) * argc);
+		argptrs = (const Variant **)alloca(sizeof(Variant *) * argc);
+		for (int i = 0; i < argc; i++) {
+			memnew_placement(&args[i], Variant(*p_args[i + 1]));
+			argptrs[i] = &args[i];
+		}
 	}
 
-	return emit_signalp(signal, args, argc);
+	Error ret = emit_signalp(signal, argptrs, argc);
+
+	for (int i = 0; i < argc; i++) {
+		args[i].~Variant();
+	}
+
+	return ret;
 }
 
 Error Object::emit_signalp(const StringName &p_name, const Variant **p_args, int p_argcount) {
