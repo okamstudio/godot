@@ -46,35 +46,53 @@ void MacOSTerminalLogger::log_error(const char *p_function, const char *p_file, 
 		err_details = p_code;
 	}
 
+	// Disable color codes if stdout is not a TTY.
+	// This prevents Godot from writing ANSI escape codes when redirecting
+	// stdout and stderr to a file.
+	const bool tty = isatty(fileno(stdout));
+	const char *red = tty ? "\E[0;91m" : "";
+	const char *red_bold = tty ? "\E[1;91m" : "";
+	const char *red_faint = tty ? "\E[2;91m" : "";
+	const char *yellow = tty ? "\E[0;93m" : "";
+	const char *yellow_bold = tty ? "\E[1;93m" : "";
+	const char *yellow_faint = tty ? "\E[2;93m" : "";
+	const char *magenta = tty ? "\E[0;95m" : "";
+	const char *magenta_bold = tty ? "\E[1;95m" : "";
+	const char *magenta_faint = tty ? "\E[2;95m" : "";
+	const char *cyan = tty ? "\E[0;96m" : "";
+	const char *cyan_bold = tty ? "\E[1;96m" : "";
+	const char *cyan_faint = tty ? "\E[2;96m" : "";
+	const char *reset = tty ? "\E[0m" : "";
+
 	switch (p_type) {
 		case ERR_WARNING:
 			os_log_info(OS_LOG_DEFAULT,
 					"WARNING: %{public}s\nat: %{public}s (%{public}s:%i)",
 					err_details, p_function, p_file, p_line);
-			logf_error("\E[1;33mWARNING:\E[0;93m %s\n", err_details);
-			logf_error("\E[0;90m     at: %s (%s:%i)\E[0m\n", p_function, p_file, p_line);
+			logf_error("%sWARNING:%s %s\n", yellow_bold, yellow, err_details);
+			logf_error("%s     at: %s (%s:%i)%s\n", yellow_faint, p_function, p_file, p_line, reset);
 			break;
 		case ERR_SCRIPT:
 			os_log_error(OS_LOG_DEFAULT,
 					"SCRIPT ERROR: %{public}s\nat: %{public}s (%{public}s:%i)",
 					err_details, p_function, p_file, p_line);
-			logf_error("\E[1;35mSCRIPT ERROR:\E[0;95m %s\n", err_details);
-			logf_error("\E[0;90m          at: %s (%s:%i)\E[0m\n", p_function, p_file, p_line);
+			logf_error("%sSCRIPT ERROR:%s %s\n", magenta_bold, magenta, err_details);
+			logf_error("%s          at: %s (%s:%i)%s\n", magenta_faint, p_function, p_file, p_line, reset);
 			break;
 		case ERR_SHADER:
 			os_log_error(OS_LOG_DEFAULT,
 					"SHADER ERROR: %{public}s\nat: %{public}s (%{public}s:%i)",
 					err_details, p_function, p_file, p_line);
-			logf_error("\E[1;36mSHADER ERROR:\E[0;96m %s\n", err_details);
-			logf_error("\E[0;90m          at: %s (%s:%i)\E[0m\n", p_function, p_file, p_line);
+			logf_error("%sSHADER ERROR:%s %s\n", cyan_bold, cyan, err_details);
+			logf_error("%s          at: %s (%s:%i)%s\n", cyan_faint, p_function, p_file, p_line, reset);
 			break;
 		case ERR_ERROR:
 		default:
 			os_log_error(OS_LOG_DEFAULT,
 					"ERROR: %{public}s\nat: %{public}s (%{public}s:%i)",
 					err_details, p_function, p_file, p_line);
-			logf_error("\E[1;31mERROR:\E[0;91m %s\n", err_details);
-			logf_error("\E[0;90m   at: %s (%s:%i)\E[0m\n", p_function, p_file, p_line);
+			logf_error("%sERROR:%s %s\n", red_bold, red, err_details);
+			logf_error("%s   at: %s (%s:%i)%s\n", red_faint, p_function, p_file, p_line, reset);
 			break;
 	}
 }
