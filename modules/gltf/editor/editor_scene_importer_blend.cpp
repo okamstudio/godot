@@ -152,8 +152,11 @@ Node *EditorSceneFormatImporterBlend::import_scene(const String &p_path, uint32_
 	parameters_map["filepath"] = sink_global;
 	parameters_map["export_keep_originals"] = unpack_original_images;
 	parameters_map["export_format"] = "GLTF_SEPARATE";
-	parameters_map["export_yup"] = true;
-
+	if (p_options.has(SNAME("blender/nodes/y_up")) && p_options[SNAME("blender/nodes/y_up")]) {
+		parameters_map["export_yup"] = true;
+	} else {
+		parameters_map["export_yup"] = false;
+	}
 	if (p_options.has(SNAME("blender/nodes/custom_properties")) && p_options[SNAME("blender/nodes/custom_properties")]) {
 		parameters_map["export_extras"] = true;
 	} else {
@@ -359,6 +362,7 @@ void EditorSceneFormatImporterBlend::get_import_options(const String &p_path, Li
 	ADD_OPTION_BOOL("blender/nodes/cameras", true);
 	ADD_OPTION_BOOL("blender/nodes/custom_properties", true);
 	ADD_OPTION_ENUM("blender/nodes/modifiers", "No Modifiers,All Modifiers", BLEND_MODIFIERS_ALL);
+	ADD_OPTION_BOOL("blender/nodes/y_up", true);
 	ADD_OPTION_BOOL("blender/meshes/colors", false);
 	ADD_OPTION_BOOL("blender/meshes/uvs", true);
 	ADD_OPTION_BOOL("blender/meshes/normals", true);
