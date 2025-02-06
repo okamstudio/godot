@@ -544,6 +544,7 @@ public:
 	void grab_focus();
 	void grab_click_focus();
 	void release_focus();
+	void grab_focus_no_signal();
 
 	Control *find_next_valid_focus() const;
 	Control *find_prev_valid_focus() const;

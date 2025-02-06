@@ -2028,7 +2028,7 @@ void Control::grab_focus() {
 		return;
 	}
 
-	get_viewport()->_gui_control_grab_focus(this);
+	get_viewport()->_gui_control_grab_focus(this, true);
 }
 
 void Control::grab_click_focus() {
@@ -2047,6 +2047,17 @@ void Control::release_focus() {
 	}
 
 	get_viewport()->gui_release_focus();
+}
+
+void Control::grab_focus_no_signal() {
+	ERR_FAIL_COND(!is_inside_tree());
+
+	if (data.focus_mode == FOCUS_NONE) {
+		WARN_PRINT("This control can't grab focus. Use set_focus_mode() to allow a control to get focus.");
+		return;
+	}
+
+	get_viewport()->_gui_control_grab_focus(this, false);
 }
 
 static Control *_next_control(Control *p_from) {
@@ -3621,6 +3632,7 @@ void Control::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_clipping_contents"), &Control::is_clipping_contents);
 
 	ClassDB::bind_method(D_METHOD("grab_click_focus"), &Control::grab_click_focus);
+	ClassDB::bind_method(D_METHOD("grab_focus_no_signal"), &Control::grab_focus_no_signal);
 
 	ClassDB::bind_method(D_METHOD("set_drag_forwarding", "drag_func", "can_drop_func", "drop_func"), &Control::set_drag_forwarding);
 	ClassDB::bind_method(D_METHOD("set_drag_preview", "control"), &Control::set_drag_preview);

@@ -581,6 +581,13 @@
 			<description>
 				Steal the focus from another control and become the focused control (see [member focus_mode]).
 				[b]Note:[/b] Using this method together with [method Callable.call_deferred] makes it more reliable, especially when called inside [method Node._ready].
+				[b]Note:[/b] This method emits [signal Control.focus_entered]. See [method Control.grab_focus_no_signal] if you need to grab the focus without emitting the signal.
+			</description>
+		</method>
+		<method name="grab_focus_no_signal">
+			<return type="void" />
+			<description>
+				Steal the focus from another control and become the focused control without notifying. See also [method grab_focus].
 			</description>
 		</method>
 		<method name="has_focus" qualifiers="const">

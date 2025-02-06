@@ -450,7 +450,7 @@ private:
 	void _gui_remove_focus_for_window(Node *p_window);
 	void _gui_unfocus_control(Control *p_control);
 	bool _gui_control_has_focus(const Control *p_control);
-	void _gui_control_grab_focus(Control *p_control);
+	void _gui_control_grab_focus(Control *p_control, bool p_emit_signal);
 	void _gui_grab_click_focus(Control *p_control);
 	void _post_gui_grab_click_focus();
 	void _gui_accept_event();

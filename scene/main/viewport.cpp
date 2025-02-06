@@ -2505,7 +2505,7 @@ bool Viewport::_gui_control_has_focus(const Control *p_control) {
 	return gui.key_focus == p_control;
 }
 
-void Viewport::_gui_control_grab_focus(Control *p_control) {
+void Viewport::_gui_control_grab_focus(Control *p_control, bool p_emit_signal) {
 	if (gui.key_focus && gui.key_focus == p_control) {
 		// No need for change.
 		return;
@@ -2514,7 +2514,9 @@ void Viewport::_gui_control_grab_focus(Control *p_control) {
 	if (p_control->is_inside_tree() && p_control->get_viewport() == this) {
 		gui.key_focus = p_control;
 		emit_signal(SNAME("gui_focus_changed"), p_control);
-		p_control->notification(Control::NOTIFICATION_FOCUS_ENTER);
+		if (p_emit_signal) {
+			p_control->notification(Control::NOTIFICATION_FOCUS_ENTER);
+		}
 		p_control->queue_redraw();
 	}
 }
