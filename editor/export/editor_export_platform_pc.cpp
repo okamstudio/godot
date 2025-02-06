@@ -146,7 +146,7 @@ Error EditorExportPlatformPC::prepare_template(const Ref<EditorExportPreset> &p_
 		template_path = find_export_template(get_template_file_name(p_debug ? "debug" : "release", p_preset->get("binary_format/architecture")));
 	}
 
-	if (!template_path.is_empty() && !FileAccess::exists(template_path)) {
+	if (template_path.is_empty() || !FileAccess::exists(template_path)) {
 		add_message(EXPORT_MESSAGE_ERROR, TTR("Prepare Template"), vformat(TTR("Template file not found: \"%s\"."), template_path));
 		return ERR_FILE_NOT_FOUND;
 	}
