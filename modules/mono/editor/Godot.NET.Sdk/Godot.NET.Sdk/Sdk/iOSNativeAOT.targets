@@ -15,7 +15,19 @@
   <Target Name="PrepareBeforeIlcCompile"
           BeforeTargets="IlcCompile">
 
-    <Copy SourceFiles="%(ResolvedRuntimePack.PackageDirectory)/runtimes/$(RuntimeIdentifier)/native/icudt.dat" DestinationFolder="$(PublishDir)"/>
+    <PropertyGroup>
+      <IcuFullSourceDir>%(ResolvedRuntimePack.PackageDirectory)/runtimes/$(RuntimeIdentifier)/native/icudt.dat</IcuFullSourceDir>
+      <IcuHybridSourceDir>%(ResolvedRuntimePack.PackageDirectory)/runtimes/$(RuntimeIdentifier)/native/icudt_hybrid.dat</IcuHybridSourceDir>
+      <IcuCustomSourceDir>$(MSBuildThisFileDirectory)icudt_custom.dat</IcuCustomSourceDir>
+
+      <IcuTarget Condition=" '$(TargetFramework)' == 'net8.0' OR '$(HybridGlobalization)' == 'false' AND Exists('$(IcuFullSourceDir)') ">full</IcuTarget>
+      <IcuTarget Condition=" '$(TargetFramework)' == 'net9.0' OR '$(HybridGlobalization)' == 'true' AND Exists('$(IcuHybridSourceDir)') ">hybrid</IcuTarget>
+      <IcuTarget Condition="Exists('$(IcuCustomSourceDir)')">custom</IcuTarget>
+    </PropertyGroup>
+
+    <Copy Condition=" '$(IcuTarget)' == 'full' " SourceFiles="$(IcuFullSourceDir)" DestinationFolder="$(PublishDir)"/>
+    <Copy Condition=" '$(IcuTarget)' == 'hybrid' " SourceFiles="$(IcuHybridSourceDir)" DestinationFolder="$(PublishDir)"/>
+    <Copy Condition=" '$(IcuTarget)' == 'custom' " SourceFiles="$(IcuCustomSourceDir)" DestinationFolder="$(PublishDir)"/>
 
     <!-- We need to find the path to Xcode so we can set manual linker args to the correct SDKs
         Once https://github.com/dotnet/runtime/issues/88737 is released, we can take this out
