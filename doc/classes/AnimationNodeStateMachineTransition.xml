@@ -24,6 +24,12 @@
 		</member>
 		<member name="advance_expression" type="String" setter="set_advance_expression" getter="get_advance_expression" default="&quot;&quot;">
 			Use an expression as a condition for state machine transitions. It is possible to create complex animation advance conditions for switching between states and gives much greater flexibility for creating complex state machines by directly interfacing with the script code.
+			[codeblocks]
+			[gdscript]
+			# get from the tree's advance_expression_base_node: evaluate an advance condition parameter defined by an existing transition
+			get("parameters/conditions/run") == false
+			[/gdscript]
+			[/codeblocks]
 		</member>
 		<member name="advance_mode" type="int" setter="set_advance_mode" getter="get_advance_mode" enum="AnimationNodeStateMachineTransition.AdvanceMode" default="1">
 			Determines whether the transition should be disabled, enabled when using [method AnimationNodeStateMachinePlayback.travel], or traversed automatically if the [member advance_condition] and [member advance_expression] checks are [code]true[/code] (if assigned).
