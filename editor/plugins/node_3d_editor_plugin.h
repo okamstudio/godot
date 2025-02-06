@@ -32,6 +32,7 @@
 #define NODE_3D_EDITOR_PLUGIN_H
 
 #include "core/math/dynamic_bvh.h"
+#include "editor/editor_properties.h"
 #include "editor/plugins/editor_plugin.h"
 #include "editor/plugins/node_3d_editor_gizmos.h"
 #include "editor/themes/editor_scale.h"
@@ -831,9 +832,9 @@ private:
 	void _snap_selected_nodes_to_floor();
 
 	// Preview Sun and Environment
-
 	uint32_t world_env_count = 0;
 	uint32_t directional_light_count = 0;
+	uint8_t preview_environment_type = 0;
 
 	Button *sun_button = nullptr;
 	Label *sun_state = nullptr;
@@ -857,10 +858,33 @@ private:
 	Ref<Shader> sun_direction_shader;
 	Ref<ShaderMaterial> sun_direction_material;
 
+	class EnvironmentPropertyBag : public Object {
+		GDCLASS(EnvironmentPropertyBag, Object);
+
+		String environ_custom_path;
+
+	protected:
+		static void _bind_methods();
+
+	public:
+		String get_environ_custom_path() const;
+		void set_environ_custom_path(const String &p_environ_custom_path);
+	};
+	EnvironmentPropertyBag *environ_property_bag = nullptr;
+
 	Button *environ_button = nullptr;
 	Label *environ_state = nullptr;
 	Label *environ_title = nullptr;
 	VBoxContainer *environ_vb = nullptr;
+	OptionButton *environ_type = nullptr;
+	enum PreviewEnvironmentType {
+		PREVIEW_ENVIRONMENT_GENERATED,
+		PREVIEW_ENVIRONMENT_CUSTOM,
+		PREVIEW_ENVIRONMENT_MAX,
+	};
+	VBoxContainer *environ_type_vb = nullptr;
+
+	VBoxContainer *environ_generated_vb = nullptr;
 	ColorPickerButton *environ_sky_color = nullptr;
 	ColorPickerButton *environ_ground_color = nullptr;
 	EditorSpinSlider *environ_energy = nullptr;
@@ -870,15 +894,19 @@ private:
 	Button *environ_gi_button = nullptr;
 	Button *environ_add_to_scene = nullptr;
 
+	VBoxContainer *environ_custom_vb = nullptr;
+	EditorPropertyPath *environ_custom_path = nullptr;
+
 	Button *sun_environ_settings = nullptr;
 
 	DirectionalLight3D *preview_sun = nullptr;
 	bool preview_sun_dangling = false;
 	WorldEnvironment *preview_environment = nullptr;
 	bool preview_env_dangling = false;
-	Ref<Environment> environment;
+	Ref<Environment> generated_environment;
 	Ref<CameraAttributesPractical> camera_attributes;
 	Ref<ProceduralSkyMaterial> sky_material;
+	Ref<Environment> custom_environment;
 
 	bool sun_environ_updating = false;
 
@@ -887,6 +915,8 @@ private:
 
 	void _preview_settings_changed();
 	void _sun_environ_settings_pressed();
+	void _preview_environ_type_item_selected(int p_index);
+	void _preview_environ_custom_path_changed(const StringName &p_property, const Variant &p_value, const String &p_field, bool p_changing);
 
 	void _add_sun_to_scene(bool p_already_added_environment = false);
 	void _add_environment_to_scene(bool p_already_added_sun = false);

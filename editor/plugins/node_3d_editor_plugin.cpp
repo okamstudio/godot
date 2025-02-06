@@ -39,6 +39,7 @@
 #include "editor/debugger/editor_debugger_node.h"
 #include "editor/editor_main_screen.h"
 #include "editor/editor_node.h"
+#include "editor/editor_properties.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
 #include "editor/editor_undo_redo_manager.h"
@@ -6450,6 +6451,8 @@ Dictionary Node3DEditor::get_state() const {
 
 		pd["sun_rotation"] = sun_rotation;
 
+		pd["environ_type_id"] = environ_type->get_selected();
+
 		pd["environ_sky_color"] = environ_sky_color->get_pick_color();
 		pd["environ_ground_color"] = environ_ground_color->get_pick_color();
 		pd["environ_energy"] = environ_energy->get_value();
@@ -6457,8 +6460,10 @@ Dictionary Node3DEditor::get_state() const {
 		pd["environ_tonemap_enabled"] = environ_tonemap_button->is_pressed();
 		pd["environ_ao_enabled"] = environ_ao_button->is_pressed();
 		pd["environ_gi_enabled"] = environ_gi_button->is_pressed();
-		pd["sun_max_distance"] = sun_max_distance->get_value();
 
+		pd["environ_custom_path"] = environ_property_bag->get("environ_custom_path");
+
+		pd["sun_max_distance"] = sun_max_distance->get_value();
 		pd["sun_color"] = sun_color->get_pick_color();
 		pd["sun_energy"] = sun_energy->get_value();
 
@@ -6582,6 +6587,9 @@ void Node3DEditor::set_state(const Dictionary &p_state) {
 		Dictionary pd = d["preview_sun_env"];
 		sun_rotation = pd["sun_rotation"];
 
+		environ_type->select((int)pd["environ_type_id"]);
+		preview_environment_type = (int)pd["environ_type_id"];
+
 		environ_sky_color->set_pick_color(pd["environ_sky_color"]);
 		environ_ground_color->set_pick_color(pd["environ_ground_color"]);
 		environ_energy->set_value(pd["environ_energy"]);
@@ -6589,8 +6597,11 @@ void Node3DEditor::set_state(const Dictionary &p_state) {
 		environ_tonemap_button->set_pressed(pd["environ_tonemap_enabled"]);
 		environ_ao_button->set_pressed(pd["environ_ao_enabled"]);
 		environ_gi_button->set_pressed(pd["environ_gi_enabled"]);
-		sun_max_distance->set_value(pd["sun_max_distance"]);
 
+		environ_property_bag->set(SNAME("environ_custom_path"), pd["environ_custom_path"]);
+		environ_custom_path->update_property();
+
+		sun_max_distance->set_value(pd["sun_max_distance"]);
 		sun_color->set_pick_color(pd["sun_color"]);
 		sun_energy->set_value(pd["sun_energy"]);
 
@@ -6598,16 +6609,14 @@ void Node3DEditor::set_state(const Dictionary &p_state) {
 		environ_button->set_pressed(pd["environ_enabled"]);
 
 		sun_environ_updating = false;
-
-		_preview_settings_changed();
-		_update_preview_environment();
 	} else {
 		_load_default_preview_settings();
 		sun_button->set_pressed(true);
 		environ_button->set_pressed(true);
-		_preview_settings_changed();
-		_update_preview_environment();
 	}
+
+	_preview_settings_changed();
+	_update_preview_environment();
 }
 
 void Node3DEditor::edit(Node3D *p_spatial) {
@@ -8081,6 +8090,20 @@ void Node3DEditor::_sun_environ_settings_pressed() {
 	sun_environ_popup->grab_focus();
 }
 
+void Node3DEditor::_preview_environ_type_item_selected(int p_index) {
+	preview_environment_type = p_index;
+	_update_preview_environment();
+}
+
+void Node3DEditor::_preview_environ_custom_path_changed(const StringName &p_property, const Variant &p_value, const String &p_field, bool p_changing) {
+	if (p_property != SNAME("environ_custom_path")) {
+		return;
+	}
+	environ_property_bag->set(SNAME("environ_custom_path"), p_value);
+	_preview_settings_changed();
+	_update_preview_environment();
+}
+
 void Node3DEditor::_add_sun_to_scene(bool p_already_added_environment) {
 	sun_environ_popup->hide();
 
@@ -8678,10 +8701,19 @@ void Node3DEditor::_preview_settings_changed() {
 		sky_material->set_ground_bottom_color(environ_ground_color->get_pick_color());
 		sky_material->set_ground_horizon_color(hz_color);
 
-		environment->set_ssao_enabled(environ_ao_button->is_pressed());
-		environment->set_glow_enabled(environ_glow_button->is_pressed());
-		environment->set_sdfgi_enabled(environ_gi_button->is_pressed());
-		environment->set_tonemapper(environ_tonemap_button->is_pressed() ? Environment::TONE_MAPPER_FILMIC : Environment::TONE_MAPPER_LINEAR);
+		generated_environment->set_ssao_enabled(environ_ao_button->is_pressed());
+		generated_environment->set_glow_enabled(environ_glow_button->is_pressed());
+		generated_environment->set_sdfgi_enabled(environ_gi_button->is_pressed());
+		generated_environment->set_tonemapper(environ_tonemap_button->is_pressed() ? Environment::TONE_MAPPER_FILMIC : Environment::TONE_MAPPER_LINEAR);
+	}
+
+	{ // Custom environment.
+		Variant custom_path = environ_property_bag->get(SNAME("environ_custom_path"));
+		if (custom_path.is_string() && !String(custom_path).is_empty()) {
+			custom_environment = ResourceLoader::load(custom_path);
+		} else {
+			custom_environment = Ref<Environment>(nullptr);
+		}
 	}
 }
 
@@ -8750,6 +8782,24 @@ void Node3DEditor::_update_preview_environment() {
 	bool disable_env = world_env_count > 0 || !environ_button->is_pressed();
 
 	environ_button->set_disabled(world_env_count > 0);
+
+	switch (preview_environment_type) {
+		case PREVIEW_ENVIRONMENT_GENERATED: {
+			environ_generated_vb->show();
+			environ_custom_vb->hide();
+			preview_environment->set_environment(generated_environment);
+		} break;
+
+		case PREVIEW_ENVIRONMENT_CUSTOM: {
+			environ_generated_vb->hide();
+			environ_custom_vb->show();
+			preview_environment->set_environment(custom_environment);
+		} break;
+
+		default: {
+			ERR_FAIL_MSG(vformat("Invalid preview environment type: %s", preview_environment_type));
+		}
+	}
 
 	if (disable_env) {
 		if (preview_environment->get_parent()) {
@@ -9341,37 +9391,58 @@ void fragment() {
 		sc->set_v_size_flags(SIZE_EXPAND_FILL);
 		sun_environ_hb->add_child(sc);
 
+		environ_property_bag = memnew(EnvironmentPropertyBag);
+		environ_property_bag->set(SNAME("environ_custom_path"), "");
+
 		environ_vb = memnew(VBoxContainer);
 		sun_environ_hb->add_child(environ_vb);
-		environ_vb->set_custom_minimum_size(Size2(200 * EDSCALE, 0));
+		environ_vb->set_custom_minimum_size(Size2(300 * EDSCALE, 0));
 		environ_vb->hide();
 
 		environ_title = memnew(Label);
 		environ_title->set_theme_type_variation("HeaderMedium");
-
 		environ_vb->add_child(environ_title);
 		environ_title->set_text(TTR("Preview Environment"));
 		environ_title->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
 
+		environ_type_vb = memnew(VBoxContainer);
+		environ_vb->add_child(environ_type_vb);
+		environ_type_vb->set_h_size_flags(SIZE_EXPAND_FILL);
+		environ_type = memnew(OptionButton);
+		environ_type_vb->add_margin_child(TTR("Type"), environ_type);
+		environ_type->set_h_size_flags(SIZE_EXPAND_FILL);
+		environ_type->add_item(TTR("Generated"));
+		environ_type->add_item(TTR("Custom"));
+		environ_type->connect(SNAME("item_selected"), callable_mp(this, &Node3DEditor::_preview_environ_type_item_selected));
+
+		HSeparator *type_separator = memnew(HSeparator);
+		type_separator->set_custom_minimum_size(Size2(0, 10 * EDSCALE));
+		sc->set_h_size_flags(SIZE_EXPAND_FILL);
+		environ_type_vb->add_child(type_separator);
+
+		environ_generated_vb = memnew(VBoxContainer);
+		environ_vb->add_child(environ_generated_vb);
+		environ_generated_vb->set_h_size_flags(SIZE_EXPAND_FILL);
+		environ_generated_vb->set_v_size_flags(SIZE_EXPAND_FILL);
 		environ_sky_color = memnew(ColorPickerButton);
 		environ_sky_color->set_edit_alpha(false);
 		environ_sky_color->connect("color_changed", callable_mp(this, &Node3DEditor::_preview_settings_changed).unbind(1));
 		environ_sky_color->get_popup()->connect("about_to_popup", callable_mp(EditorNode::get_singleton(), &EditorNode::setup_color_picker).bind(environ_sky_color->get_picker()));
-		environ_vb->add_margin_child(TTR("Sky Color"), environ_sky_color);
+		environ_generated_vb->add_margin_child(TTR("Sky Color"), environ_sky_color);
 		environ_ground_color = memnew(ColorPickerButton);
 		environ_ground_color->connect("color_changed", callable_mp(this, &Node3DEditor::_preview_settings_changed).unbind(1));
 		environ_ground_color->set_edit_alpha(false);
 		environ_ground_color->get_popup()->connect("about_to_popup", callable_mp(EditorNode::get_singleton(), &EditorNode::setup_color_picker).bind(environ_ground_color->get_picker()));
-		environ_vb->add_margin_child(TTR("Ground Color"), environ_ground_color);
+		environ_generated_vb->add_margin_child(TTR("Ground Color"), environ_ground_color);
 		environ_energy = memnew(EditorSpinSlider);
 		environ_energy->set_max(8.0);
 		environ_energy->set_min(0);
 		environ_energy->set_step(0.05);
 		environ_energy->connect(SceneStringName(value_changed), callable_mp(this, &Node3DEditor::_preview_settings_changed).unbind(1));
-		environ_vb->add_margin_child(TTR("Sky Energy"), environ_energy);
+		environ_generated_vb->add_margin_child(TTR("Sky Energy"), environ_energy);
+
 		HBoxContainer *fx_vb = memnew(HBoxContainer);
 		fx_vb->set_h_size_flags(SIZE_EXPAND_FILL);
-
 		environ_ao_button = memnew(Button);
 		environ_ao_button->set_text(TTR("AO"));
 		environ_ao_button->set_h_size_flags(SIZE_EXPAND_FILL);
@@ -9396,14 +9467,28 @@ void fragment() {
 		environ_gi_button->set_toggle_mode(true);
 		environ_gi_button->connect(SceneStringName(pressed), callable_mp(this, &Node3DEditor::_preview_settings_changed), CONNECT_DEFERRED);
 		fx_vb->add_child(environ_gi_button);
-		environ_vb->add_margin_child(TTR("Post Process"), fx_vb);
+		environ_generated_vb->add_margin_child(TTR("Post Process"), fx_vb);
 
 		environ_add_to_scene = memnew(Button);
 		environ_add_to_scene->set_text(TTR("Add Environment to Scene"));
 		environ_add_to_scene->set_tooltip_text(TTR("Adds a WorldEnvironment node matching the preview environment settings to the current scene.\nHold Shift while clicking to also add the preview sun to the current scene."));
 		environ_add_to_scene->connect(SceneStringName(pressed), callable_mp(this, &Node3DEditor::_add_environment_to_scene).bind(false));
-		environ_vb->add_spacer();
-		environ_vb->add_child(environ_add_to_scene);
+		environ_generated_vb->add_spacer();
+		environ_generated_vb->add_child(environ_add_to_scene);
+
+		environ_custom_vb = memnew(VBoxContainer);
+		environ_vb->add_child(environ_custom_vb);
+		environ_custom_vb->set_h_size_flags(SIZE_EXPAND_FILL);
+		environ_custom_vb->set_v_size_flags(SIZE_EXPAND_FILL);
+		environ_custom_vb->hide();
+		Vector<String> extensions = Vector<String>({ "*.tres", "*.*" });
+		environ_custom_path = memnew(EditorPropertyPath);
+		environ_custom_vb->add_child(environ_custom_path);
+		environ_custom_path->set_h_size_flags(SIZE_EXPAND_FILL);
+		environ_custom_path->set_label(TTR("Path"));
+		environ_custom_path->set_object_and_property(environ_property_bag, SNAME("environ_custom_path"));
+		environ_custom_path->setup(extensions, false, false);
+		environ_custom_path->connect("property_changed", callable_mp(this, &Node3DEditor::_preview_environ_custom_path_changed));
 
 		environ_state = memnew(Label);
 		sun_environ_hb->add_child(environ_state);
@@ -9415,8 +9500,8 @@ void fragment() {
 		preview_sun->set_shadow(true);
 		preview_sun->set_shadow_mode(DirectionalLight3D::SHADOW_PARALLEL_4_SPLITS);
 		preview_environment = memnew(WorldEnvironment);
-		environment.instantiate();
-		preview_environment->set_environment(environment);
+		generated_environment.instantiate();
+		preview_environment->set_environment(generated_environment);
 		if (GLOBAL_GET("rendering/lights_and_shadows/use_physical_light_units")) {
 			camera_attributes.instantiate();
 			preview_environment->set_camera_attributes(camera_attributes);
@@ -9425,8 +9510,8 @@ void fragment() {
 		sky.instantiate();
 		sky_material.instantiate();
 		sky->set_material(sky_material);
-		environment->set_sky(sky);
-		environment->set_background(Environment::BG_SKY);
+		generated_environment->set_sky(sky);
+		generated_environment->set_background(Environment::BG_SKY);
 
 		_load_default_preview_settings();
 		_preview_settings_changed();
@@ -9442,6 +9527,26 @@ Node3DEditor::~Node3DEditor() {
 	if (preview_env_dangling && preview_environment) {
 		memdelete(preview_environment);
 	}
+	memdelete(environ_property_bag);
+}
+
+String Node3DEditor::EnvironmentPropertyBag::get_environ_custom_path() const {
+	return environ_custom_path;
+}
+
+void Node3DEditor::EnvironmentPropertyBag::set_environ_custom_path(const String &p_environ_custom_path) {
+	if (p_environ_custom_path == "<null>") {
+		environ_custom_path = "";
+	} else {
+		environ_custom_path = p_environ_custom_path;
+	}
+}
+
+void Node3DEditor::EnvironmentPropertyBag::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("get_environ_custom_path"), &Node3DEditor::EnvironmentPropertyBag::get_environ_custom_path);
+	ClassDB::bind_method(D_METHOD("set_environ_custom_path", "environ_custom_path"), &Node3DEditor::EnvironmentPropertyBag::set_environ_custom_path);
+
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "environ_custom_path"), "set_environ_custom_path", "get_environ_custom_path");
 }
 
 void Node3DEditorPlugin::make_visible(bool p_visible) {
