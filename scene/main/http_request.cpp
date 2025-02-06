@@ -175,7 +175,11 @@ void HTTPRequest::_thread_func(void *p_userdata) {
 			if (exit) {
 				break;
 			}
-			OS::get_singleton()->delay_usec(1);
+			// Reduce CPU usage when not dowloading.
+			// While downloading, poll is used by HTTPClient to retrieve data in blocking mode.
+			if (hr->client->get_status() != HTTPClient::STATUS_BODY) {
+				OS::get_singleton()->delay_usec(1000);
+			}
 		}
 	}
 

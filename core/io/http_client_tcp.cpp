@@ -752,6 +752,7 @@ Error HTTPClientTCP::_get_http_data(uint8_t *p_buffer, int p_bytes, int &r_recei
 				return err;
 			}
 			left -= read;
+			tcp_connection->poll(NetSocket::POLL_TYPE_IN, 1000);
 		}
 		return err;
 	} else {
