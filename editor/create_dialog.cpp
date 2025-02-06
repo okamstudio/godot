@@ -87,6 +87,9 @@ void CreateDialog::_fill_type_list() {
 		StringName type = I->get();
 		if (!_should_hide_type(type)) {
 			type_list.push_back(type);
+			HashMap<String, DocData::ClassDoc>::Iterator class_doc = EditorHelp::get_doc_data()->class_list.find(type);
+			String description = DTR(class_doc ? class_doc->value.brief_description : "");
+			type_descriptions[type] = description;
 
 			if (!ed.get_custom_types().has(type)) {
 				continue;
@@ -218,7 +221,8 @@ void CreateDialog::_update_search() {
 
 	for (List<StringName>::Element *I = type_list.front(); I; I = I->next()) {
 		StringName candidate = I->get();
-		if (empty_search || search_text.is_subsequence_ofn(candidate)) {
+		bool candidateDesc_match = (is_match_typedescription && search_text.is_subsequence_ofn(type_descriptions[candidate]));
+		if (empty_search || search_text.is_subsequence_ofn(candidate) || candidateDesc_match) {
 			_add_type(candidate, ClassDB::class_exists(candidate) ? TypeCategory::CPP_TYPE : TypeCategory::OTHER_TYPE);
 
 			// Determine the best match for an non-empty search.
@@ -414,6 +418,7 @@ float CreateDialog::_score_type(const String &p_type, const String &p_search) co
 
 void CreateDialog::_cleanup() {
 	type_list.clear();
+	type_descriptions.clear();
 	favorite_list.clear();
 	favorites->clear();
 	recent->clear();
@@ -607,6 +612,11 @@ void CreateDialog::_favorite_toggled() {
 	}
 
 	_save_and_update_favorite_list();
+}
+
+void CreateDialog::_descmatch_toggled(bool p_button_pressed) {
+	is_match_typedescription = p_button_pressed;
+	_update_search();
 }
 
 void CreateDialog::_history_selected(int p_idx) {
@@ -833,6 +843,13 @@ CreateDialog::CreateDialog() {
 	favorite->set_tooltip_text(TTR("(Un)favorite selected item."));
 	favorite->connect(SceneStringName(pressed), callable_mp(this, &CreateDialog::_favorite_toggled));
 	search_hb->add_child(favorite);
+
+	is_match_typedescription = false;
+	descmatch = memnew(CheckButton);
+	descmatch->set_text(TTR("DescMatch"));
+	descmatch->connect("toggled", callable_mp(this, &CreateDialog::_descmatch_toggled));
+	search_hb->add_child(descmatch);
+
 	vbc->add_margin_child(TTR("Search:"), search_hb);
 
 	search_options = memnew(Tree);

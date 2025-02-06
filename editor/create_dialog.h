@@ -33,6 +33,7 @@
 
 #include "editor/editor_help.h"
 #include "scene/gui/button.h"
+#include "scene/gui/check_button.h"
 #include "scene/gui/dialogs.h"
 #include "scene/gui/item_list.h"
 #include "scene/gui/line_edit.h"
@@ -56,6 +57,7 @@ class CreateDialog : public ConfirmationDialog {
 	String preferred_search_result_type;
 
 	Button *favorite = nullptr;
+	CheckButton *descmatch = nullptr;
 	Vector<String> favorite_list;
 	Tree *favorites = nullptr;
 	ItemList *recent = nullptr;
@@ -65,6 +67,8 @@ class CreateDialog : public ConfirmationDialog {
 	HashMap<String, String> custom_type_parents;
 	HashMap<String, int> custom_type_indices;
 	List<StringName> type_list;
+	bool is_match_typedescription;
+	HashMap<StringName, String> type_descriptions;
 	HashSet<StringName> type_blacklist;
 	HashSet<StringName> custom_type_blocklist;
 
@@ -89,6 +93,7 @@ class CreateDialog : public ConfirmationDialog {
 	virtual void cancel_pressed() override;
 
 	void _favorite_toggled();
+	void _descmatch_toggled(bool p_button_pressed);
 
 	void _history_selected(int p_idx);
 	void _favorite_selected();
