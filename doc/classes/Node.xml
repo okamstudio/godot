@@ -618,6 +618,12 @@
 				Returns [code]true[/code] if this node is currently inside a [SceneTree]. See also [method get_tree].
 			</description>
 		</method>
+		<method name="is_managed_by_parent" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if the node is managed by its parent (see [method mark_managed_by_parent]).
+			</description>
+		</method>
 		<method name="is_multiplayer_authority" qualifiers="const">
 			<return type="bool" />
 			<description>
@@ -698,6 +704,13 @@
 			<return type="bool" />
 			<description>
 				Returns [code]true[/code] if the node is processing unhandled key input (see [method set_process_unhandled_key_input]).
+			</description>
+		</method>
+		<method name="mark_managed_by_parent">
+			<return type="void" />
+			<description>
+				Marks this node as being managed by its parent. Parent managed nodes are not duplicated or copied when calling [method duplicate] or [method replace_by].
+				[b]Note:[/b] Reparenting this node resets the managed status.
 			</description>
 		</method>
 		<method name="move_child">

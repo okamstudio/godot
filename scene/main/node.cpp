@@ -3740,6 +3740,9 @@ void Node::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_unique_name_in_owner", "enable"), &Node::set_unique_name_in_owner);
 	ClassDB::bind_method(D_METHOD("is_unique_name_in_owner"), &Node::is_unique_name_in_owner);
 
+	ClassDB::bind_method(D_METHOD("mark_managed_by_parent"), &Node::force_parent_owned);
+	ClassDB::bind_method(D_METHOD("is_managed_by_parent"), &Node::is_owned_by_parent);
+
 	ClassDB::bind_method(D_METHOD("atr", "message", "context"), &Node::atr, DEFVAL(""));
 	ClassDB::bind_method(D_METHOD("atr_n", "message", "plural_message", "n", "context"), &Node::atr_n, DEFVAL(""));
 
