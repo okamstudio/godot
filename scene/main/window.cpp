@@ -1151,8 +1151,14 @@ void Window::_update_viewport_size() {
 
 	if (content_scale_mode == CONTENT_SCALE_MODE_DISABLED || content_scale_size.x == 0 || content_scale_size.y == 0) {
 		font_oversampling = content_scale_factor;
-		final_size = size;
-		final_size_override = Size2(size) / content_scale_factor;
+		if (Math::floor(content_scale_factor) == content_scale_factor) {
+			final_size_override = (Size2(size) / content_scale_factor).floor();
+			final_size = Size2(final_size_override) * content_scale_factor;
+			attach_to_screen_rect = Rect2(Point2i(), final_size);
+		} else {
+			final_size = size;
+			final_size_override = Size2(size) / content_scale_factor;
+		}
 	} else {
 		//actual screen video mode
 		Size2 video_mode = size;
