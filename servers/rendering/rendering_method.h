@@ -102,7 +102,7 @@ public:
 
 	// don't use these in a game!
 	virtual Vector<ObjectID> instances_cull_aabb(const AABB &p_aabb, RID p_scenario = RID()) const = 0;
-	virtual Vector<ObjectID> instances_cull_ray(const Vector3 &p_from, const Vector3 &p_to, RID p_scenario = RID()) const = 0;
+	virtual Vector<ObjectID> instances_cull_ray(const Vector3 &p_from, const Vector3 &p_dir, real_t p_dist, RID p_scenario = RID()) const = 0;
 	virtual Vector<ObjectID> instances_cull_convex(const Vector<Plane> &p_convex, RID p_scenario = RID()) const = 0;
 
 	virtual void instance_geometry_set_flag(RID p_instance, RS::InstanceFlags p_flags, bool p_enabled) = 0;

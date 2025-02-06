@@ -1257,7 +1257,7 @@ Vector<ObjectID> RendererSceneCull::instances_cull_aabb(const AABB &p_aabb, RID 
 	return cull_aabb.instances;
 }
 
-Vector<ObjectID> RendererSceneCull::instances_cull_ray(const Vector3 &p_from, const Vector3 &p_to, RID p_scenario) const {
+Vector<ObjectID> RendererSceneCull::instances_cull_ray(const Vector3 &p_from, const Vector3 &p_dir, real_t p_dist, RID p_scenario) const {
 	Vector<ObjectID> instances;
 	Scenario *scenario = scenario_owner.get_or_null(p_scenario);
 	ERR_FAIL_NULL_V(scenario, instances);
@@ -1275,8 +1275,8 @@ Vector<ObjectID> RendererSceneCull::instances_cull_ray(const Vector3 &p_from, co
 	};
 
 	CullRay cull_ray;
-	scenario->indexers[Scenario::INDEXER_GEOMETRY].ray_query(p_from, p_to, cull_ray);
-	scenario->indexers[Scenario::INDEXER_VOLUMES].ray_query(p_from, p_to, cull_ray);
+	scenario->indexers[Scenario::INDEXER_GEOMETRY].ray_query(p_from, p_dir, p_dist, cull_ray);
+	scenario->indexers[Scenario::INDEXER_VOLUMES].ray_query(p_from, p_dir, p_dist, cull_ray);
 	return cull_ray.instances;
 }
 

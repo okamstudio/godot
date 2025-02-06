@@ -899,7 +899,7 @@ public:
 
 	// don't use these in a game!
 	FUNC2RC(Vector<ObjectID>, instances_cull_aabb, const AABB &, RID)
-	FUNC3RC(Vector<ObjectID>, instances_cull_ray, const Vector3 &, const Vector3 &, RID)
+	FUNC4RC(Vector<ObjectID>, instances_cull_ray, const Vector3 &, const Vector3 &, real_t, RID)
 	FUNC2RC(Vector<ObjectID>, instances_cull_convex, const Vector<Plane> &, RID)
 
 	FUNC3(instance_geometry_set_flag, RID, InstanceFlags, bool)

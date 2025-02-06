@@ -2056,8 +2056,9 @@
 		<method name="instances_cull_ray" qualifiers="const">
 			<return type="PackedInt64Array" />
 			<param index="0" name="from" type="Vector3" />
-			<param index="1" name="to" type="Vector3" />
-			<param index="2" name="scenario" type="RID" default="RID()" />
+			<param index="1" name="direction" type="Vector3" />
+			<param index="2" name="distance" type="float" />
+			<param index="3" name="scenario" type="RID" default="RID()" />
 			<description>
 				Returns an array of object IDs intersecting with the provided 3D ray. Only 3D nodes that inherit from [VisualInstance3D] are considered, such as [MeshInstance3D] or [DirectionalLight3D]. Use [method @GlobalScope.instance_from_id] to obtain the actual nodes. A scenario RID must be provided, which is available in the [World3D] you want to query. This forces an update for all resources queued to update.
 				[b]Warning:[/b] This function is primarily intended for editor usage. For in-game use cases, prefer physics collision.

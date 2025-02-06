@@ -85,8 +85,8 @@ PackedInt64Array RenderingServer::_instances_cull_aabb_bind(const AABB &p_aabb, 
 	return to_int_array(ids);
 }
 
-PackedInt64Array RenderingServer::_instances_cull_ray_bind(const Vector3 &p_from, const Vector3 &p_to, RID p_scenario) const {
-	Vector<ObjectID> ids = instances_cull_ray(p_from, p_to, p_scenario);
+PackedInt64Array RenderingServer::_instances_cull_ray_bind(const Vector3 &p_from, const Vector3 &p_dir, real_t p_dist, RID p_scenario) const {
+	Vector<ObjectID> ids = instances_cull_ray(p_from, p_dir, p_dist, p_scenario);
 	return to_int_array(ids);
 }
 
@@ -3193,7 +3193,7 @@ void RenderingServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("instance_geometry_get_shader_parameter_list", "instance"), &RenderingServer::_instance_geometry_get_shader_parameter_list);
 
 	ClassDB::bind_method(D_METHOD("instances_cull_aabb", "aabb", "scenario"), &RenderingServer::_instances_cull_aabb_bind, DEFVAL(RID()));
-	ClassDB::bind_method(D_METHOD("instances_cull_ray", "from", "to", "scenario"), &RenderingServer::_instances_cull_ray_bind, DEFVAL(RID()));
+	ClassDB::bind_method(D_METHOD("instances_cull_ray", "from", "direction", "distance", "scenario"), &RenderingServer::_instances_cull_ray_bind, DEFVAL(RID()));
 	ClassDB::bind_method(D_METHOD("instances_cull_convex", "convex", "scenario"), &RenderingServer::_instances_cull_convex_bind, DEFVAL(RID()));
 
 	BIND_ENUM_CONSTANT(INSTANCE_NONE);

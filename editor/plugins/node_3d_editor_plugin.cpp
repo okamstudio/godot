@@ -9585,7 +9585,9 @@ Vector<Node3D *> Node3DEditor::gizmo_bvh_ray_query(const Vector3 &p_ray_start, c
 		}
 	} result;
 
-	gizmo_bvh.ray_query(p_ray_start, p_ray_end, result);
+	Vector3 segment = p_ray_end - p_ray_start;
+	real_t length = segment.length();
+	gizmo_bvh.ray_query(p_ray_start, segment / length, length, result);
 
 	return result.nodes;
 }

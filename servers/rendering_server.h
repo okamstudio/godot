@@ -1446,11 +1446,11 @@ public:
 
 	// Don't use these in a game!
 	virtual Vector<ObjectID> instances_cull_aabb(const AABB &p_aabb, RID p_scenario = RID()) const = 0;
-	virtual Vector<ObjectID> instances_cull_ray(const Vector3 &p_from, const Vector3 &p_to, RID p_scenario = RID()) const = 0;
+	virtual Vector<ObjectID> instances_cull_ray(const Vector3 &p_from, const Vector3 &p_dir, real_t p_dist, RID p_scenario = RID()) const = 0;
 	virtual Vector<ObjectID> instances_cull_convex(const Vector<Plane> &p_convex, RID p_scenario = RID()) const = 0;
 
 	PackedInt64Array _instances_cull_aabb_bind(const AABB &p_aabb, RID p_scenario = RID()) const;
-	PackedInt64Array _instances_cull_ray_bind(const Vector3 &p_from, const Vector3 &p_to, RID p_scenario = RID()) const;
+	PackedInt64Array _instances_cull_ray_bind(const Vector3 &p_from, const Vector3 &p_dir, real_t p_dist, RID p_scenario = RID()) const;
 	PackedInt64Array _instances_cull_convex_bind(const TypedArray<Plane> &p_convex, RID p_scenario = RID()) const;
 
 	enum InstanceFlags {
