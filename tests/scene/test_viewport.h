@@ -383,12 +383,16 @@ TEST_CASE("[SceneTree][Viewport] Controls and InputEvent handling") {
 				SEND_GUI_MOUSE_BUTTON_RELEASED_EVENT(on_d, MouseButton::LEFT, MouseButtonMask::NONE, Key::NONE);
 			}
 
-			SUBCASE("[Viewport][GuiInputEvent] RMB doesn't grab focus.") {
+			SUBCASE("[Viewport][GuiInputEvent] Side Mouse Buttons don't grab focus.") {
 				node_a->grab_focus();
 				CHECK(node_a->has_focus());
 
-				SEND_GUI_MOUSE_BUTTON_EVENT(on_d, MouseButton::RIGHT, MouseButtonMask::RIGHT, Key::NONE);
-				SEND_GUI_MOUSE_BUTTON_RELEASED_EVENT(on_d, MouseButton::RIGHT, MouseButtonMask::NONE, Key::NONE);
+				SEND_GUI_MOUSE_BUTTON_EVENT(on_d, MouseButton::MB_XBUTTON1, MouseButtonMask::MB_XBUTTON1, Key::NONE);
+				SEND_GUI_MOUSE_BUTTON_RELEASED_EVENT(on_d, MouseButton::MB_XBUTTON1, MouseButtonMask::NONE, Key::NONE);
+				CHECK(node_a->has_focus());
+
+				SEND_GUI_MOUSE_BUTTON_EVENT(on_d, MouseButton::MB_XBUTTON2, MouseButtonMask::MB_XBUTTON2, Key::NONE);
+				SEND_GUI_MOUSE_BUTTON_RELEASED_EVENT(on_d, MouseButton::MB_XBUTTON2, MouseButtonMask::NONE, Key::NONE);
 				CHECK(node_a->has_focus());
 			}
 
