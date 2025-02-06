@@ -43,6 +43,7 @@
 #include "scene/resources/packed_scene.h"
 #include "viewport.h"
 
+#include <modules/gdscript/gdscript.h>
 #include <stdint.h>
 
 int Node::orphan_node_count = 0;
@@ -1934,8 +1935,10 @@ TypedArray<Node> Node::find_children(const String &p_pattern, const String &p_ty
 				ret.append(cptr[i]);
 			} else if (cptr[i]->get_script_instance()) {
 				Ref<Script> scr = cptr[i]->get_script_instance()->get_script();
+				Ref<GDScript> gd_script = scr;
 				while (scr.is_valid()) {
-					if ((ScriptServer::is_global_class(p_type) && ScriptServer::get_global_class_path(p_type) == scr->get_path()) || p_type == scr->get_path()) {
+					if ((ScriptServer::is_global_class(p_type) && ScriptServer::get_global_class_path(p_type) == scr->get_path()) || p_type == scr->get_path() ||
+							(!gd_script.is_valid() && scr->get_path().get_file().contains(p_type)) || (gd_script.is_valid() && p_type == gd_script->get_local_name())) {
 						ret.append(cptr[i]);
 						break;
 					}
