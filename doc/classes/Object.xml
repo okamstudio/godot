@@ -198,6 +198,7 @@
 			<param index="0" name="iter" type="Variant" />
 			<description>
 				Returns the current iterable value. [param iter] stores the iteration state, but unlike [method _iter_init] and [method _iter_next] the state is supposed to be read-only, so there is no [Array] wrapper.
+				[b]Tip:[/b] In GDScript, you can use a subtype of [Variant] as the return type for [method _iter_get]. The specified type will be used to set the type of the iterator variable in [code]for[/code] loops, enhancing type safety.
 			</description>
 		</method>
 		<method name="_iter_init" qualifiers="virtual">
