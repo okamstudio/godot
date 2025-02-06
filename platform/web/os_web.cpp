@@ -249,6 +249,58 @@ bool OS_Web::is_userfs_persistent() const {
 	return idb_available;
 }
 
+Error OS_Web::move_to_trash(const String &p_path) {
+	String path = p_path.rstrip("/"); // Strip trailing slash when path points to a directory.
+
+	if (!is_userfs_persistent()) {
+		// If the file system is not persistent, just remove the file.
+		DirAccess::remove_file_or_error(path);
+		return OK;
+	}
+
+	String trash_path = "/home/web_user/.trash";
+
+	// Create trash directory if it doesn't exist.
+	Ref<DirAccess> dir_access = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
+	Error err = dir_access->make_dir_recursive(trash_path);
+	ERR_FAIL_COND_V_MSG(err != OK, err, "Could not create the trash path \"" + trash_path + "\"");
+
+	// The trash can is successfully created, now we check that we don't exceed our file name length limit.
+	// If the file name is too long trim it so we can add the identifying number (3 len).
+	// Assumes that the file name length limit is 255 characters.
+	String file_name = path.get_file();
+	if (file_name.length() > 252) {
+		file_name = file_name.substr(0, file_name.length() - 3);
+	}
+
+	String dest_path = trash_path + "/" + file_name;
+	struct stat buff;
+	int id_number = 0;
+	String fn = file_name;
+
+	// Checks if a resource with the same name already exist in the trash can,
+	// if there is, add an identifying number to our resource's name.
+	while (stat(dest_path.utf8().get_data(), &buff) == 0) {
+		id_number++;
+
+		// Added a limit to check for identically named files already on the trash can
+		// if there are too many it could make the editor unresponsive.
+		ERR_FAIL_COND_V_MSG(id_number > 99, FAILED, "Too many identically named resources already in the trash can.");
+		fn = file_name + "." + itos(id_number);
+		dest_path = trash_path + "/" + fn;
+	}
+	file_name = fn;
+
+	{
+		// Move the file to the trash can.
+		Ref<DirAccess> dir_access = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
+		err = dir_access->rename(path, dest_path);
+		ERR_FAIL_COND_V_MSG(err != OK, err, "Can't move file \"" + path + "\" to \"" + dest_path + "\"");
+	}
+
+	return OK;
+}
+
 Error OS_Web::open_dynamic_library(const String &p_path, void *&p_library_handle, GDExtensionData *p_data) {
 	String path = p_path.get_file();
 	p_library_handle = dlopen(path.utf8().get_data(), RTLD_NOW);

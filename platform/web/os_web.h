@@ -110,6 +110,7 @@ public:
 	String get_user_data_dir(const String &p_user_dir) const override;
 
 	bool is_userfs_persistent() const override;
+	virtual Error move_to_trash(const String &p_path) override;
 
 	void alert(const String &p_alert, const String &p_title = "ALERT!") override;
 
