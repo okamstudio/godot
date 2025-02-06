@@ -1277,10 +1277,34 @@ TEST_CASE("[String] is_lowercase") {
 }
 
 TEST_CASE("[String] match") {
+	// Base cases.
+	CHECK(String("img1.png").match("img1.png"));
+	CHECK(!String("iMG1.png").match("img1.png"));
+	CHECK(String("iMG1.png").matchn("img1.png"));
+
+	// Single-char wildcard cases.
+	CHECK(String("img2.png").matchn("img?.png"));
+	CHECK(!String("img23.png").matchn("img?.png"));
+	CHECK(String("img12345.png").matchn("img?????.???"));
+	CHECK(!String("img123456.png").matchn("img?????.???"));
+
+	// Single wildcard cases.
 	CHECK(String("img1.png").match("*.png"));
 	CHECK(!String("img1.jpeg").match("*.png"));
 	CHECK(!String("img1.Png").match("*.png"));
 	CHECK(String("img1.Png").matchn("*.png"));
+
+	// Double wildcard cases.
+	CHECK(String("img-24.jpg").match("img-*.*"));
+	CHECK(!String("img24.jpg").match("img-*.*"));
+
+	// Triple wildcard cases.
+	CHECK(String("img24-23.jpg").match("img*-*.*"));
+	CHECK(!String("img24_23.jpg").match("img*-*.*"));
+
+	// Single-char wildcard + triple wildcard cases.
+	CHECK(String("img24-23.jpg").match("???*-*.*"));
+	CHECK(!String("img24_23.jpg").match("???*-*.*"));
 }
 
 TEST_CASE("[String] IPVX address to string") {

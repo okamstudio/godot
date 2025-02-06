@@ -3802,33 +3802,83 @@ float String::similarity(const String &p_string) const {
 	return (2.0f * inter) / sum;
 }
 
-static bool _wildcard_match(const char32_t *p_pattern, const char32_t *p_string, bool p_case_sensitive) {
-	switch (*p_pattern) {
-		case '\0':
-			return !*p_string;
-		case '*':
-			return _wildcard_match(p_pattern + 1, p_string, p_case_sensitive) || (*p_string && _wildcard_match(p_pattern, p_string + 1, p_case_sensitive));
-		case '?':
-			return *p_string && (*p_string != '.') && _wildcard_match(p_pattern + 1, p_string + 1, p_case_sensitive);
-		default:
-
-			return (p_case_sensitive ? (*p_string == *p_pattern) : (_find_upper(*p_string) == _find_upper(*p_pattern))) && _wildcard_match(p_pattern + 1, p_string + 1, p_case_sensitive);
+static bool _wildcard_match(const String &p_pattern, const String &p_string, bool p_case_sensitive) {
+	if (p_string.is_empty() || p_pattern.is_empty()) {
+		return false;
 	}
+
+	const char32_t *pattern = p_pattern.ptr();
+	const char32_t *pattern_end = pattern + p_pattern.length();
+
+	const char32_t *str = p_string.ptr();
+	const char32_t *str_end = str + p_string.length();
+
+	// Positions in the string when we encountered the last wildcard.
+	const char32_t *star_pattern = nullptr;
+	const char32_t *star_string = nullptr;
+
+	// This loop conservatively uses wildcards.
+	// It will first attempt to skip wildcards entirely and
+	//  continue consuming from both the string and the pattern.
+	// Only if that fails will it consume a single character with the wildcard,
+	//  and continue forward matching.
+	while (str < str_end) {
+		if (pattern < pattern_end) {
+			const char32_t pattern_char = *pattern;
+
+			if (pattern_char == '*') {
+				// Wildcard found. Move past the wildcard.
+				pattern++;
+				// Remember the location of the pattern and string.
+				// We may reset to this later if parsing forward doesn't work out.
+				star_pattern = pattern;
+				star_string = str;
+				continue;
+			}
+			// Dots aren't matched for wildcard searches to improve UX for filename matching.
+			if (pattern_char == '?' && *str != '.') {
+				// Single-char wildcard.
+				pattern++;
+				str++;
+				continue;
+			}
+			if (p_case_sensitive ? (*str == pattern_char) : (_find_upper(*str) == _find_upper(pattern_char))) {
+				// Normal char match. Consume both.
+				pattern++;
+				str++;
+				continue;
+			}
+		}
+		// Else the pattern fully consumed but the string isn't, yet.
+		// In that case, we need to backtrack and consume (at least) one more char with the wildcard.
+
+		// Try to backtrack to the last wildcard, if any.
+		if (!star_pattern) {
+			// No prior wildcard found; give up.
+			return false;
+		}
+
+		// Reset to the prior wildcard.
+		pattern = star_pattern;
+		// Consume one character with the wildcard, resume normal forward parsing.
+		str = ++star_string;
+	}
+
+	// Consume any trailing wildcards.
+	while (pattern < pattern_end && *pattern == '*') {
+		pattern++;
+	}
+
+	// Due to the minimality of the prior loop, if there's any pattern left, we know the match failed.
+	return pattern == pattern_end;
 }
 
 bool String::match(const String &p_wildcard) const {
-	if (!p_wildcard.length() || !length()) {
-		return false;
-	}
-
-	return _wildcard_match(p_wildcard.get_data(), get_data(), true);
+	return _wildcard_match(p_wildcard, *this, true);
 }
 
 bool String::matchn(const String &p_wildcard) const {
-	if (!p_wildcard.length() || !length()) {
-		return false;
-	}
-	return _wildcard_match(p_wildcard.get_data(), get_data(), false);
+	return _wildcard_match(p_wildcard, *this, false);
 }
 
 String String::format(const Variant &values, const String &placeholder) const {
