@@ -3133,8 +3133,8 @@ void Node3DEditorViewport::_notification(int p_what) {
 						frame_time_gradient->get_color_at_offset(
 								Math::remap(gpu_time, 0, 30, 0, 1)));
 
-				const double fps = 1000.0 / gpu_time;
-				fps_label->set_text(vformat(TTR("FPS: %d"), fps));
+				const double fps = Engine::get_singleton()->get_frames_per_second();
+				fps_label->set_text(vformat(TTR("Editor FPS: %d"), fps));
 				// Middle point is at 60 FPS.
 				fps_label->add_theme_color_override(
 						SceneStringName(font_color),
