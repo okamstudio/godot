@@ -13,12 +13,14 @@ signed = "#define SNORM";
 shared float2 g_minMaxValues[4u * 4u * 4u];
 shared uint2 g_mask[4u * 4u];
 
-layout(binding = 0) uniform sampler2D srcTex;
-layout(binding = 1, rg32ui) uniform restrict writeonly uimage2D dstTexture;
+layout(binding = 0) uniform texture2D srcTextures[32];
+layout(binding = 1) uniform sampler SAMPLER_NEAREST_CLAMP;
+layout(binding = 2, rgba32ui) uniform restrict writeonly uimage2D dstTextures[32];
 
 layout(push_constant, std430) uniform Params {
 	uint p_channelIdx;
-	uint p_padding[3];
+	uint p_textureIndex;
+	uint p_padding[2];
 }
 params;
 
@@ -49,7 +51,7 @@ void main() {
 	for (uint i = 0u; i < 4u; ++i) {
 		const uint2 pixelsToLoad = pixelsToLoadBase + uint2(i, blockThreadId);
 
-		const float4 value = OGRE_Load2D(srcTex, int2(pixelsToLoad), 0).xyzw;
+		const float4 value = OGRE_Load2D(sampler2D(srcTextures[params.p_textureIndex], SAMPLER_NEAREST_CLAMP), int2(pixelsToLoad), 0).xyzw;
 		srcPixel[i] = params.p_channelIdx == 0 ? value.x : (params.p_channelIdx == 1 ? value.y : value.w);
 		srcPixel[i] *= 255.0f;
 	}
@@ -148,6 +150,6 @@ void main() {
 		outputBytes.y = g_mask[maskIdxBase].y;
 
 		uint2 dstUV = gl_GlobalInvocationID.yz;
-		imageStore(dstTexture, int2(dstUV), uint4(outputBytes.xy, 0u, 0u));
+		imageStore(dstTextures[params.p_textureIndex], int2(dstUV), uint4(outputBytes.xy, 0u, 0u));
 	}
 }

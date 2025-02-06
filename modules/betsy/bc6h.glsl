@@ -30,12 +30,13 @@ float f16tof32(uint value) {
 	return unpackHalf2x16(value.x).x;
 }
 
-layout(binding = 0) uniform sampler2D srcTexture;
-layout(binding = 1, rgba32ui) uniform restrict writeonly uimage2D dstTexture;
+layout(binding = 0) uniform texture2D srcTextures[32];
+layout(binding = 1) uniform sampler SAMPLER_NEAREST_CLAMP;
+layout(binding = 2, rgba32ui) uniform restrict writeonly uimage2D dstTextures[32];
 
 layout(push_constant, std430) uniform Params {
 	float2 p_textureSizeRcp;
-	uint padding0;
+	uint p_textureIndex;
 	uint padding1;
 }
 params;
@@ -662,18 +663,18 @@ void main() {
 	float2 block1UV = uv + float2(2.0f * params.p_textureSizeRcp.x, 0.0f);
 	float2 block2UV = uv + float2(0.0f, 2.0f * params.p_textureSizeRcp.y);
 	float2 block3UV = uv + float2(2.0f * params.p_textureSizeRcp.x, 2.0f * params.p_textureSizeRcp.y);
-	float4 block0X = OGRE_GatherRed(srcTexture, pointSampler, block0UV);
-	float4 block1X = OGRE_GatherRed(srcTexture, pointSampler, block1UV);
-	float4 block2X = OGRE_GatherRed(srcTexture, pointSampler, block2UV);
-	float4 block3X = OGRE_GatherRed(srcTexture, pointSampler, block3UV);
-	float4 block0Y = OGRE_GatherGreen(srcTexture, pointSampler, block0UV);
-	float4 block1Y = OGRE_GatherGreen(srcTexture, pointSampler, block1UV);
-	float4 block2Y = OGRE_GatherGreen(srcTexture, pointSampler, block2UV);
-	float4 block3Y = OGRE_GatherGreen(srcTexture, pointSampler, block3UV);
-	float4 block0Z = OGRE_GatherBlue(srcTexture, pointSampler, block0UV);
-	float4 block1Z = OGRE_GatherBlue(srcTexture, pointSampler, block1UV);
-	float4 block2Z = OGRE_GatherBlue(srcTexture, pointSampler, block2UV);
-	float4 block3Z = OGRE_GatherBlue(srcTexture, pointSampler, block3UV);
+	float4 block0X = OGRE_GatherRed(sampler2D(srcTextures[params.p_textureIndex], SAMPLER_NEAREST_CLAMP), block0UV);
+	float4 block1X = OGRE_GatherRed(sampler2D(srcTextures[params.p_textureIndex], SAMPLER_NEAREST_CLAMP), block1UV);
+	float4 block2X = OGRE_GatherRed(sampler2D(srcTextures[params.p_textureIndex], SAMPLER_NEAREST_CLAMP), block2UV);
+	float4 block3X = OGRE_GatherRed(sampler2D(srcTextures[params.p_textureIndex], SAMPLER_NEAREST_CLAMP), block3UV);
+	float4 block0Y = OGRE_GatherGreen(sampler2D(srcTextures[params.p_textureIndex], SAMPLER_NEAREST_CLAMP), block0UV);
+	float4 block1Y = OGRE_GatherGreen(sampler2D(srcTextures[params.p_textureIndex], SAMPLER_NEAREST_CLAMP), block1UV);
+	float4 block2Y = OGRE_GatherGreen(sampler2D(srcTextures[params.p_textureIndex], SAMPLER_NEAREST_CLAMP), block2UV);
+	float4 block3Y = OGRE_GatherGreen(sampler2D(srcTextures[params.p_textureIndex], SAMPLER_NEAREST_CLAMP), block3UV);
+	float4 block0Z = OGRE_GatherBlue(sampler2D(srcTextures[params.p_textureIndex], SAMPLER_NEAREST_CLAMP), block0UV);
+	float4 block1Z = OGRE_GatherBlue(sampler2D(srcTextures[params.p_textureIndex], SAMPLER_NEAREST_CLAMP), block1UV);
+	float4 block2Z = OGRE_GatherBlue(sampler2D(srcTextures[params.p_textureIndex], SAMPLER_NEAREST_CLAMP), block2UV);
+	float4 block3Z = OGRE_GatherBlue(sampler2D(srcTextures[params.p_textureIndex], SAMPLER_NEAREST_CLAMP), block3UV);
 
 	float3 texels[16];
 	texels[0] = float3(block0X.w, block0Y.w, block0Z.w);
@@ -714,5 +715,5 @@ void main() {
 	EncodeP2Pattern(block, blockMSLE, bestPattern, texels);
 #endif
 
-	imageStore(dstTexture, int2(gl_GlobalInvocationID.xy), block);
+	imageStore(dstTextures[params.p_textureIndex], int2(gl_GlobalInvocationID.xy), block);
 }

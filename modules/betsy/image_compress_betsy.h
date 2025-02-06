@@ -73,16 +73,24 @@ enum BetsyShaderType {
 struct BC6PushConstant {
 	float sizeX;
 	float sizeY;
-	uint32_t padding[2] = { 0 };
+	uint32_t index;
+	uint32_t padding = 0;
 };
 
 struct BC1PushConstant {
 	uint32_t num_refines;
-	uint32_t padding[3] = { 0 };
+	uint32_t index;
+	uint32_t padding[2] = { 0 };
 };
 
 struct BC4PushConstant {
 	uint32_t channel_idx;
+	uint32_t index;
+	uint32_t padding[2] = { 0 };
+};
+
+struct StitchPushConstant {
+	uint32_t index;
 	uint32_t padding[3] = { 0 };
 };
 
@@ -101,11 +109,22 @@ class BetsyCompressor : public Object {
 		RID pipeline;
 	};
 
+	struct BetsyMipmap {
+		RID src_texture;
+		RID dst_temp_primary_texture;
+		RID dst_temp_second_texture;
+		RID dst_texture;
+		uint32_t width;
+		uint32_t height;
+	};
+
 	// Resources shared by all compression formats.
 	RenderingDevice *compress_rd = nullptr;
 	RenderingContextDriver *compress_rcd = nullptr;
 	BetsyShader cached_shaders[BETSY_SHADER_MAX];
 	RID src_sampler;
+	RID default_tex;
+	RID default_image;
 
 	// Format-specific resources.
 	RID dxt1_encoding_table_buffer;

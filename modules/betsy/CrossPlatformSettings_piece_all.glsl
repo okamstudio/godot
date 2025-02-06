@@ -61,9 +61,9 @@
 
 #define OGRE_Load3D(tex, iuv, lod) texelFetch(tex, ivec3(iuv), lod)
 
-#define OGRE_GatherRed(tex, sampler, uv) textureGather(tex, uv, 0)
-#define OGRE_GatherGreen(tex, sampler, uv) textureGather(tex, uv, 1)
-#define OGRE_GatherBlue(tex, sampler, uv) textureGather(tex, uv, 2)
+#define OGRE_GatherRed(tex, uv) textureGather(tex, uv, 0)
+#define OGRE_GatherGreen(tex, uv) textureGather(tex, uv, 1)
+#define OGRE_GatherBlue(tex, uv) textureGather(tex, uv, 2)
 
 #define bufferFetch1(buffer, idx) texelFetch(buffer, idx).x
 

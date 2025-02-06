@@ -133,6 +133,28 @@ void BetsyCompressor::_init() {
 
 	src_sampler = compress_rd->sampler_create(src_sampler_state);
 
+	RD::TextureFormat default_format;
+	{
+		default_format.array_layers = 1;
+		default_format.width = 1;
+		default_format.height = 1;
+		default_format.depth = 1;
+		default_format.mipmaps = 1;
+		default_format.texture_type = RD::TEXTURE_TYPE_2D;
+		default_format.format = RD::DATA_FORMAT_R8_UINT;
+		default_format.usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_CAN_UPDATE_BIT | RD::TEXTURE_USAGE_CAN_COPY_TO_BIT;
+	}
+
+	Vector<Vector<uint8_t>> default_data;
+	default_data.resize(1);
+	default_data.write[0].resize(1);
+
+	default_tex = compress_rd->texture_create(default_format, RD::TextureView(), default_data);
+
+	default_format.format = RD::DATA_FORMAT_R32G32B32A32_UINT;
+	default_format.usage_bits = RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT | RD::TEXTURE_USAGE_STORAGE_BIT | RD::TEXTURE_USAGE_CAN_COPY_FROM_BIT | RD::TEXTURE_USAGE_CAN_COPY_TO_BIT | RD::TEXTURE_USAGE_CAN_UPDATE_BIT;
+	default_image = compress_rd->texture_create(default_format, RD::TextureView());
+
 	// Initialize RDShaderFiles.
 	{
 		Ref<RDShaderFile> bc1_shader;
@@ -252,6 +274,8 @@ void BetsyCompressor::_thread_exit() {
 		}
 
 		compress_rd->free(src_sampler);
+		compress_rd->free(default_image);
+		compress_rd->free(default_tex);
 
 		// Clear the shader cache, pipelines will be unreferenced automatically.
 		for (int i = 0; i < BETSY_SHADER_MAX; i++) {
@@ -282,7 +306,7 @@ void BetsyCompressor::finish() {
 
 // Helper functions.
 
-static int get_next_multiple(int n, int m) {
+static inline int get_next_multiple(int n, int m) {
 	return n + (m - (n % m));
 }
 
@@ -417,19 +441,6 @@ Error BetsyCompressor::_compress(BetsyFormat p_format, Image *r_img) {
 	dst_texture_format.usage_bits = RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT | RD::TEXTURE_USAGE_STORAGE_BIT | RD::TEXTURE_USAGE_CAN_COPY_FROM_BIT | RD::TEXTURE_USAGE_CAN_COPY_TO_BIT | RD::TEXTURE_USAGE_CAN_UPDATE_BIT;
 	dst_texture_format.format = dst_rd_format;
 
-	RD::TextureFormat dst_texture_format_alpha;
-	RD::TextureFormat dst_texture_format_combined;
-
-	if (needs_alpha_block) {
-		dst_texture_format_combined = dst_texture_format;
-		dst_texture_format_combined.format = RD::DATA_FORMAT_R32G32B32A32_UINT;
-
-		dst_texture_format.usage_bits |= RD::TEXTURE_USAGE_SAMPLING_BIT;
-
-		dst_texture_format_alpha = dst_texture_format;
-		dst_texture_format_alpha.format = RD::DATA_FORMAT_R32G32_UINT;
-	}
-
 	// Encoding table setup.
 	if ((dest_format == Image::FORMAT_DXT1 || dest_format == Image::FORMAT_DXT5) && dxt1_encoding_table_buffer.is_null()) {
 		Vector<uint8_t> data;
@@ -441,70 +452,120 @@ Error BetsyCompressor::_compress(BetsyFormat p_format, Image *r_img) {
 
 	const int mip_count = r_img->get_mipmap_count() + 1;
 
-	// Container for the compressed data.
-	Vector<uint8_t> dst_data;
-	dst_data.resize(Image::get_image_data_size(r_img->get_width(), r_img->get_height(), dest_format, r_img->has_mipmaps()));
-	uint8_t *dst_data_ptr = dst_data.ptrw();
+	Vector<BetsyMipmap> mipmaps;
 
-	Vector<Vector<uint8_t>> src_images;
-	src_images.push_back(Vector<uint8_t>());
-	Vector<uint8_t> *src_image_ptr = src_images.ptrw();
+	// First pass: Prepare the mipmaps.
+	{
+		Vector<Vector<uint8_t>> src_images;
+		src_images.push_back(Vector<uint8_t>());
+		Vector<uint8_t> *src_image_ptr = src_images.ptrw();
 
-	// Compress each mipmap.
-	for (int i = 0; i < mip_count; i++) {
-		int64_t ofs, size;
-		int width, height;
-		r_img->get_mipmap_offset_size_and_dimensions(i, ofs, size, width, height);
+		RD::TextureFormat dst_texture_format_combined = dst_texture_format;
+		dst_texture_format_combined.format = RD::DATA_FORMAT_R32G32B32A32_UINT;
 
-		// Set the source texture width and size.
-		src_texture_format.height = height;
-		src_texture_format.width = width;
+		if (needs_alpha_block) {
+			dst_texture_format.usage_bits |= RD::TEXTURE_USAGE_SAMPLING_BIT;
+		}
 
-		// Set the destination texture width and size.
-		dst_texture_format.height = (height + 3) >> 2;
-		dst_texture_format.width = (width + 3) >> 2;
+		RD::TextureFormat dst_texture_format_alpha = dst_texture_format;
+		dst_texture_format_alpha.format = RD::DATA_FORMAT_R32G32_UINT;
 
-		// Create a buffer filled with the source mip layer data.
-		src_image_ptr[0].resize(size);
-		memcpy(src_image_ptr[0].ptrw(), r_img->ptr() + ofs, size);
+		for (int i = 0; i < mip_count; i++) {
+			int64_t ofs, size;
+			int width, height;
+			r_img->get_mipmap_offset_size_and_dimensions(i, ofs, size, width, height);
 
-		// Create the textures on the GPU.
-		RID src_texture = compress_rd->texture_create(src_texture_format, RD::TextureView(), src_images);
-		RID dst_texture_primary = compress_rd->texture_create(dst_texture_format, RD::TextureView());
+			// Set the source texture width and size.
+			src_texture_format.height = height;
+			src_texture_format.width = width;
 
-		{
-			Vector<RD::Uniform> uniforms;
+			// Set the destination texture width and size.
+			dst_texture_format.height = (height + 3) >> 2;
+			dst_texture_format.width = (width + 3) >> 2;
+
+			dst_texture_format_combined.height = dst_texture_format.height;
+			dst_texture_format_combined.width = dst_texture_format.width;
+
+			dst_texture_format_alpha.height = dst_texture_format.height;
+			dst_texture_format_alpha.width = dst_texture_format.width;
+
+			// Create a buffer filled with the source mip layer data.
+			src_image_ptr[0].resize(size);
+			memcpy(src_image_ptr[0].ptrw(), r_img->ptr() + ofs, size);
+
+			// Create the textures on the GPU.
+			BetsyMipmap mipmap;
 			{
-				{
-					RD::Uniform u;
-					u.uniform_type = RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE;
-					u.binding = 0;
-					u.append_id(src_sampler);
-					u.append_id(src_texture);
-					uniforms.push_back(u);
+				mipmap.src_texture = compress_rd->texture_create(src_texture_format, RD::TextureView(), src_images);
+				if (needs_alpha_block) {
+					mipmap.dst_temp_primary_texture = compress_rd->texture_create(dst_texture_format, RD::TextureView());
+					mipmap.dst_temp_second_texture = compress_rd->texture_create(dst_texture_format_alpha, RD::TextureView());
+					mipmap.dst_texture = compress_rd->texture_create(dst_texture_format_combined, RD::TextureView());
+				} else {
+					mipmap.dst_texture = compress_rd->texture_create(dst_texture_format, RD::TextureView());
 				}
-				{
-					RD::Uniform u;
-					u.uniform_type = RD::UNIFORM_TYPE_IMAGE;
-					u.binding = 1;
-					u.append_id(dst_texture_primary);
-					uniforms.push_back(u);
-				}
-
-				if (dest_format == Image::FORMAT_DXT1 || dest_format == Image::FORMAT_DXT5) {
-					RD::Uniform u;
-					u.uniform_type = RD::UNIFORM_TYPE_STORAGE_BUFFER;
-					u.binding = 2;
-					u.append_id(dxt1_encoding_table_buffer);
-					uniforms.push_back(u);
-				}
+				mipmap.width = width;
+				mipmap.height = height;
 			}
 
-			RID uniform_set = compress_rd->uniform_set_create(uniforms, shader.compiled, 0);
-			RD::ComputeListID compute_list = compress_rd->compute_list_begin();
+			mipmaps.push_back(mipmap);
+		}
+	}
 
-			compress_rd->compute_list_bind_compute_pipeline(compute_list, shader.pipeline);
-			compress_rd->compute_list_bind_uniform_set(compute_list, uniform_set, 0);
+	// Second pass: Compress the mipmaps concurrently.
+	{
+		Vector<RD::Uniform> uniforms;
+		{
+			{
+				RD::Uniform u;
+				u.uniform_type = RD::UNIFORM_TYPE_TEXTURE;
+				u.binding = 0;
+				for (int i = 0; i < 32; i++) {
+					u.append_id(i < mip_count ? mipmaps[i].src_texture : default_tex);
+				}
+				uniforms.push_back(u);
+			}
+			{
+				RD::Uniform u;
+				u.uniform_type = RD::UNIFORM_TYPE_SAMPLER;
+				u.binding = 1;
+				u.append_id(src_sampler);
+				uniforms.push_back(u);
+			}
+			{
+				RD::Uniform u;
+				u.uniform_type = RD::UNIFORM_TYPE_IMAGE;
+				u.binding = 2;
+				if (needs_alpha_block) {
+					for (int i = 0; i < 32; i++) {
+						u.append_id(i < mip_count ? mipmaps[i].dst_temp_primary_texture : default_image);
+					}
+				} else {
+					for (int i = 0; i < 32; i++) {
+						u.append_id(i < mip_count ? mipmaps[i].dst_texture : default_image);
+					}
+				}
+				uniforms.push_back(u);
+			}
+
+			if (dest_format == Image::FORMAT_DXT1 || dest_format == Image::FORMAT_DXT5) {
+				RD::Uniform u;
+				u.uniform_type = RD::UNIFORM_TYPE_STORAGE_BUFFER;
+				u.binding = 3;
+				u.append_id(dxt1_encoding_table_buffer);
+				uniforms.push_back(u);
+			}
+		}
+
+		RID uniform_set = compress_rd->uniform_set_create(uniforms, shader.compiled, 0);
+		RD::ComputeListID compute_list = compress_rd->compute_list_begin();
+
+		compress_rd->compute_list_bind_compute_pipeline(compute_list, shader.pipeline);
+		compress_rd->compute_list_bind_uniform_set(compute_list, uniform_set, 0);
+
+		for (int i = 0; i < mip_count; i++) {
+			const int width = mipmaps[i].width;
+			const int height = mipmaps[i].height;
 
 			switch (shader_type) {
 				case BETSY_SHADER_BC6_SIGNED:
@@ -512,6 +573,7 @@ Error BetsyCompressor::_compress(BetsyFormat p_format, Image *r_img) {
 					BC6PushConstant push_constant;
 					push_constant.sizeX = 1.0f / width;
 					push_constant.sizeY = 1.0f / height;
+					push_constant.index = i;
 
 					compress_rd->compute_list_set_push_constant(compute_list, &push_constant, sizeof(BC6PushConstant));
 					compress_rd->compute_list_dispatch(compute_list, get_next_multiple(width, 32) / 32, get_next_multiple(height, 32) / 32, 1);
@@ -520,6 +582,7 @@ Error BetsyCompressor::_compress(BetsyFormat p_format, Image *r_img) {
 				case BETSY_SHADER_BC1_STANDARD: {
 					BC1PushConstant push_constant;
 					push_constant.num_refines = 2;
+					push_constant.index = i;
 
 					compress_rd->compute_list_set_push_constant(compute_list, &push_constant, sizeof(BC1PushConstant));
 					compress_rd->compute_list_dispatch(compute_list, get_next_multiple(width, 32) / 32, get_next_multiple(height, 32) / 32, 1);
@@ -528,6 +591,7 @@ Error BetsyCompressor::_compress(BetsyFormat p_format, Image *r_img) {
 				case BETSY_SHADER_BC4_UNSIGNED: {
 					BC4PushConstant push_constant;
 					push_constant.channel_idx = 0;
+					push_constant.index = i;
 
 					compress_rd->compute_list_set_push_constant(compute_list, &push_constant, sizeof(BC4PushConstant));
 					compress_rd->compute_list_dispatch(compute_list, 1, get_next_multiple(width, 16) / 16, get_next_multiple(height, 16) / 16);
@@ -536,126 +600,161 @@ Error BetsyCompressor::_compress(BetsyFormat p_format, Image *r_img) {
 				default: {
 				} break;
 			}
-
-			compress_rd->compute_list_end();
-
-			if (!needs_alpha_block) {
-				compress_rd->submit();
-				compress_rd->sync();
-			}
 		}
 
-		RID dst_texture_rid = dst_texture_primary;
+		compress_rd->compute_list_end();
+	}
 
-		if (needs_alpha_block) {
-			// Set the destination texture width and size.
-			dst_texture_format_alpha.height = (height + 3) >> 2;
-			dst_texture_format_alpha.width = (width + 3) >> 2;
-
-			RID dst_texture_alpha = compress_rd->texture_create(dst_texture_format_alpha, RD::TextureView());
-
+	if (needs_alpha_block) {
+		// Third pass: Compress the alpha channel.
+		{
+			Vector<RD::Uniform> uniforms;
 			{
-				Vector<RD::Uniform> uniforms;
 				{
-					{
-						RD::Uniform u;
-						u.uniform_type = RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE;
-						u.binding = 0;
-						u.append_id(src_sampler);
-						u.append_id(src_texture);
-						uniforms.push_back(u);
+					RD::Uniform u;
+					u.uniform_type = RD::UNIFORM_TYPE_TEXTURE;
+					u.binding = 0;
+					for (int i = 0; i < 32; i++) {
+						u.append_id(i < mip_count ? mipmaps[i].src_texture : default_tex);
 					}
-					{
-						RD::Uniform u;
-						u.uniform_type = RD::UNIFORM_TYPE_IMAGE;
-						u.binding = 1;
-						u.append_id(dst_texture_alpha);
-						uniforms.push_back(u);
-					}
+					uniforms.push_back(u);
 				}
+				{
+					RD::Uniform u;
+					u.uniform_type = RD::UNIFORM_TYPE_SAMPLER;
+					u.binding = 1;
+					u.append_id(src_sampler);
+					uniforms.push_back(u);
+				}
+				{
+					RD::Uniform u;
+					u.uniform_type = RD::UNIFORM_TYPE_IMAGE;
+					u.binding = 2;
+					for (int i = 0; i < 32; i++) {
+						u.append_id(i < mip_count ? mipmaps[i].dst_temp_second_texture : default_image);
+					}
+					uniforms.push_back(u);
+				}
+			}
 
-				RID uniform_set = compress_rd->uniform_set_create(uniforms, secondary_shader.compiled, 0);
-				RD::ComputeListID compute_list = compress_rd->compute_list_begin();
+			RID uniform_set = compress_rd->uniform_set_create(uniforms, secondary_shader.compiled, 0);
+			RD::ComputeListID compute_list = compress_rd->compute_list_begin();
 
-				compress_rd->compute_list_bind_compute_pipeline(compute_list, secondary_shader.pipeline);
-				compress_rd->compute_list_bind_uniform_set(compute_list, uniform_set, 0);
+			compress_rd->compute_list_bind_compute_pipeline(compute_list, secondary_shader.pipeline);
+			compress_rd->compute_list_bind_uniform_set(compute_list, uniform_set, 0);
+
+			for (int i = 0; i < mip_count; i++) {
+				const int width = mipmaps[i].width;
+				const int height = mipmaps[i].height;
 
 				BC4PushConstant push_constant;
 				push_constant.channel_idx = dest_format == Image::FORMAT_DXT5 ? 3 : 1;
+				push_constant.index = i;
 
 				compress_rd->compute_list_set_push_constant(compute_list, &push_constant, sizeof(BC4PushConstant));
 				compress_rd->compute_list_dispatch(compute_list, 1, get_next_multiple(width, 16) / 16, get_next_multiple(height, 16) / 16);
-
-				compress_rd->compute_list_end();
 			}
 
-			// Stitching
-
-			// Set the destination texture width and size.
-			dst_texture_format_combined.height = (height + 3) >> 2;
-			dst_texture_format_combined.width = (width + 3) >> 2;
-
-			RID dst_texture_combined = compress_rd->texture_create(dst_texture_format_combined, RD::TextureView());
-
-			{
-				Vector<RD::Uniform> uniforms;
-				{
-					{
-						RD::Uniform u;
-						u.uniform_type = RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE;
-						u.binding = 0;
-						u.append_id(src_sampler);
-						u.append_id(dest_format == Image::FORMAT_DXT5 ? dst_texture_alpha : dst_texture_primary);
-						uniforms.push_back(u);
-					}
-					{
-						RD::Uniform u;
-						u.uniform_type = RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE;
-						u.binding = 1;
-						u.append_id(src_sampler);
-						u.append_id(dest_format == Image::FORMAT_DXT5 ? dst_texture_primary : dst_texture_alpha);
-						uniforms.push_back(u);
-					}
-					{
-						RD::Uniform u;
-						u.uniform_type = RD::UNIFORM_TYPE_IMAGE;
-						u.binding = 2;
-						u.append_id(dst_texture_combined);
-						uniforms.push_back(u);
-					}
-				}
-
-				RID uniform_set = compress_rd->uniform_set_create(uniforms, stitch_shader.compiled, 0);
-				RD::ComputeListID compute_list = compress_rd->compute_list_begin();
-
-				compress_rd->compute_list_bind_compute_pipeline(compute_list, stitch_shader.pipeline);
-				compress_rd->compute_list_bind_uniform_set(compute_list, uniform_set, 0);
-				compress_rd->compute_list_dispatch(compute_list, get_next_multiple(width, 32) / 32, get_next_multiple(height, 32) / 32, 1);
-
-				compress_rd->compute_list_end();
-
-				compress_rd->submit();
-				compress_rd->sync();
-			}
-
-			dst_texture_rid = dst_texture_combined;
-
-			compress_rd->free(dst_texture_primary);
-			compress_rd->free(dst_texture_alpha);
+			compress_rd->compute_list_end();
 		}
 
-		// Copy data from the GPU to the buffer.
-		const Vector<uint8_t> texture_data = compress_rd->texture_get_data(dst_texture_rid, 0);
+		// Fourth pass: Stitch the base and alpha channels.
+		{
+			Vector<RD::Uniform> uniforms;
+			{
+				{
+					RD::Uniform u;
+					u.uniform_type = RD::UNIFORM_TYPE_TEXTURE;
+					u.binding = 0;
+					if (dest_format == Image::FORMAT_DXT5) {
+						for (int i = 0; i < 32; i++) {
+							u.append_id(i < mip_count ? mipmaps[i].dst_temp_second_texture : default_tex);
+						}
+					} else {
+						for (int i = 0; i < 32; i++) {
+							u.append_id(i < mip_count ? mipmaps[i].dst_temp_primary_texture : default_tex);
+						}
+					}
+					uniforms.push_back(u);
+				}
+				{
+					RD::Uniform u;
+					u.uniform_type = RD::UNIFORM_TYPE_TEXTURE;
+					u.binding = 1;
+					if (dest_format == Image::FORMAT_DXT5) {
+						for (int i = 0; i < 32; i++) {
+							u.append_id(i < mip_count ? mipmaps[i].dst_temp_primary_texture : default_tex);
+						}
+					} else {
+						for (int i = 0; i < 32; i++) {
+							u.append_id(i < mip_count ? mipmaps[i].dst_temp_second_texture : default_tex);
+						}
+					}
+					uniforms.push_back(u);
+				}
+				{
+					RD::Uniform u;
+					u.uniform_type = RD::UNIFORM_TYPE_SAMPLER;
+					u.binding = 2;
+					u.append_id(src_sampler);
+					uniforms.push_back(u);
+				}
+				{
+					RD::Uniform u;
+					u.uniform_type = RD::UNIFORM_TYPE_IMAGE;
+					u.binding = 3;
+					for (int i = 0; i < 32; i++) {
+						u.append_id(i < mip_count ? mipmaps[i].dst_texture : default_image);
+					}
+					uniforms.push_back(u);
+				}
+			}
+
+			RID uniform_set = compress_rd->uniform_set_create(uniforms, stitch_shader.compiled, 0);
+			RD::ComputeListID compute_list = compress_rd->compute_list_begin();
+
+			compress_rd->compute_list_bind_compute_pipeline(compute_list, stitch_shader.pipeline);
+			compress_rd->compute_list_bind_uniform_set(compute_list, uniform_set, 0);
+
+			for (int i = 0; i < mip_count; i++) {
+				const int width = mipmaps[i].width;
+				const int height = mipmaps[i].height;
+
+				StitchPushConstant push_constant;
+				push_constant.index = i;
+
+				compress_rd->compute_list_set_push_constant(compute_list, &push_constant, sizeof(StitchPushConstant));
+				compress_rd->compute_list_dispatch(compute_list, get_next_multiple(width, 32) / 32, get_next_multiple(height, 32) / 32, 1);
+			}
+
+			compress_rd->compute_list_end();
+		}
+	}
+
+	compress_rd->submit();
+	compress_rd->sync();
+
+	// Container for the compressed data.
+	Vector<uint8_t> dst_data;
+	dst_data.resize(Image::get_image_data_size(r_img->get_width(), r_img->get_height(), dest_format, r_img->has_mipmaps()));
+	uint8_t *dst_data_ptr = dst_data.ptrw();
+
+	// Copy data from the GPU to the buffer.
+	for (int i = 0; i < mip_count; i++) {
+		const Vector<uint8_t> texture_data = compress_rd->texture_get_data(mipmaps[i].dst_texture, 0);
 		int64_t dst_ofs = Image::get_image_mipmap_offset(r_img->get_width(), r_img->get_height(), dest_format, i);
 
 		memcpy(dst_data_ptr + dst_ofs, texture_data.ptr(), texture_data.size());
 
-		// Free the source and dest texture.
-		compress_rd->free(src_texture);
-		compress_rd->free(dst_texture_rid);
-	}
+		// Clear the textures.
+		compress_rd->free(mipmaps[i].src_texture);
+		compress_rd->free(mipmaps[i].dst_texture);
 
-	src_images.clear();
+		if (needs_alpha_block) {
+			compress_rd->free(mipmaps[i].dst_temp_primary_texture);
+			compress_rd->free(mipmaps[i].dst_temp_second_texture);
+		}
+	}
 
 	// Set the compressed data to the image.
 	r_img->set_data(r_img->get_width(), r_img->get_height(), r_img->has_mipmaps(), dest_format, dst_data);

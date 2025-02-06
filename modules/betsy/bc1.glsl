@@ -10,17 +10,19 @@ dithered = "#define BC1_DITHER";
 
 #define FLT_MAX 340282346638528859811704183484516925440.0f
 
-layout(binding = 0) uniform sampler2D srcTex;
-layout(binding = 1, rg32ui) uniform restrict writeonly uimage2D dstTexture;
+layout(binding = 0) uniform texture2D srcTextures[32];
+layout(binding = 1) uniform sampler SAMPLER_NEAREST_CLAMP;
+layout(binding = 2, rgba32ui) uniform restrict writeonly uimage2D dstTextures[32];
 
-layout(std430, binding = 2) readonly restrict buffer globalBuffer {
+layout(std430, binding = 3) readonly restrict buffer globalBuffer {
 	float2 c_oMatch5[256];
 	float2 c_oMatch6[256];
 };
 
 layout(push_constant, std430) uniform Params {
 	uint p_numRefinements;
-	uint p_padding[3];
+	uint p_textureIndex;
+	uint p_padding[2];
 }
 params;
 
@@ -422,7 +424,7 @@ void main() {
 	const uint2 pixelsToLoadBase = gl_GlobalInvocationID.xy << 2u;
 	for (uint i = 0u; i < 16u; ++i) {
 		const uint2 pixelsToLoad = pixelsToLoadBase + uint2(i & 0x03u, i >> 2u);
-		const float3 srcPixels0 = OGRE_Load2D(srcTex, int2(pixelsToLoad), 0).xyz;
+		const float3 srcPixels0 = OGRE_Load2D(sampler2D(srcTextures[params.p_textureIndex], SAMPLER_NEAREST_CLAMP), int2(pixelsToLoad), 0).xyz;
 		srcPixelsBlock[i] = packUnorm4x8(float4(srcPixels0, 1.0f));
 		bAllColorsEqual = bAllColorsEqual && srcPixelsBlock[0] == srcPixelsBlock[i];
 	}
@@ -487,5 +489,5 @@ void main() {
 	outputBytes.y = mask;
 
 	uint2 dstUV = gl_GlobalInvocationID.xy;
-	imageStore(dstTexture, int2(dstUV), uint4(outputBytes.xy, 0u, 0u));
+	imageStore(dstTextures[params.p_textureIndex], int2(dstUV), uint4(outputBytes.xy, 0u, 0u));
 }
