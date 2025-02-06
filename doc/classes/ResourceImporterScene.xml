@@ -33,15 +33,15 @@
 		<member name="import_script/path" type="String" setter="" getter="" default="&quot;&quot;">
 			Path to an import script, which can run code after the import process has completed for custom processing. See [url=$DOCS_URL/tutorials/assets_pipeline/importing_3d_scenes/import_configuration.html#using-import-scripts-for-automation]Using import scripts for automation[/url] for more information.
 		</member>
+		<member name="meshes/compress" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], the importer will attempt to use mesh compression to improve rendering performance. Consider disabling if you notice blocky artifacts in your mesh normals or UVs, or if you have meshes that are larger than a few thousand meters in each direction. The importer may decide to disable compression in certain cases even if this setting is enabled.
+		</member>
 		<member name="meshes/create_shadow_meshes" type="bool" setter="" getter="" default="true">
 			If [code]true[/code], enables the generation of shadow meshes on import. This optimizes shadow rendering without reducing quality by welding vertices together when possible. This in turn reduces the memory bandwidth required to render shadows. Shadow mesh generation currently doesn't support using a lower detail level than the source mesh (but shadow rendering will make use of LODs when relevant).
 		</member>
 		<member name="meshes/ensure_tangents" type="bool" setter="" getter="" default="true">
 			If [code]true[/code], generate vertex tangents using [url=http://www.mikktspace.com/]Mikktspace[/url] if the input meshes don't have tangent data. When possible, it's recommended to let the 3D modeling software generate tangents on export instead on relying on this option. Tangents are required for correct display of normal and height maps, along with any material/shader features that require tangents.
 			If you don't need material features that require tangents, disabling this can reduce output file size and speed up importing if the source 3D file doesn't contain tangents.
-		</member>
-		<member name="meshes/force_disable_compression" type="bool" setter="" getter="" default="false">
-			If [code]true[/code], mesh compression will not be used. Consider enabling if you notice blocky artifacts in your mesh normals or UVs, or if you have meshes that are larger than a few thousand meters in each direction.
 		</member>
 		<member name="meshes/generate_lods" type="bool" setter="" getter="" default="true">
 			If [code]true[/code], generates lower detail variants of the mesh which will be displayed in the distance to improve rendering performance. Not all meshes benefit from LOD, especially if they are never rendered from far away. Disabling this can reduce output file size and speed up importing. See [url=$DOCS_URL/tutorials/3d/mesh_lod.html#doc-mesh-lod]Mesh level of detail (LOD)[/url] for more information.

@@ -2390,7 +2390,7 @@ void ResourceImporterScene::get_import_options(const String &p_path, List<Import
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "meshes/create_shadow_meshes"), true));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "meshes/light_baking", PROPERTY_HINT_ENUM, "Disabled,Static,Static Lightmaps,Dynamic", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), 1));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::FLOAT, "meshes/lightmap_texel_size", PROPERTY_HINT_RANGE, "0.001,100,0.001"), 0.2));
-	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "meshes/force_disable_compression"), false));
+	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "meshes/compress"), true));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "skins/use_named_skins"), true));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "animation/import"), true));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::FLOAT, "animation/fps", PROPERTY_HINT_RANGE, "1,120,1"), 30));
@@ -2411,6 +2411,13 @@ void ResourceImporterScene::get_import_options(const String &p_path, List<Import
 }
 
 void ResourceImporterScene::handle_compatibility_options(HashMap<StringName, Variant> &p_import_params) const {
+	print_line("Handle compatibility options");
+	if (p_import_params.has("meshes/force_disable_compression") && !p_import_params.has("meshes/compress")) {
+		print_line("Invert Force Disable Compression");
+		// Handle legacy option which had inverted behavior.
+		p_import_params["meshes/compress"] = !p_import_params["meshes/force_disable_compression"];
+	}
+
 	for (Ref<EditorSceneFormatImporter> importer_elem : scene_importers) {
 		importer_elem->handle_compatibility_options(p_import_params);
 	}
@@ -2931,8 +2938,8 @@ Error ResourceImporterScene::import(ResourceUID::ID p_source_id, const String &p
 		import_flags |= EditorSceneFormatImporter::IMPORT_GENERATE_TANGENT_ARRAYS;
 	}
 
-	bool force_disable_compression = p_options["meshes/force_disable_compression"];
-	if (force_disable_compression) {
+	bool compress = p_options["meshes/compress"];
+	if (!compress) {
 		import_flags |= EditorSceneFormatImporter::IMPORT_FORCE_DISABLE_MESH_COMPRESSION;
 	}
 
