@@ -20,6 +20,7 @@
 			<param index="5" name="data" type="Image[]" />
 			<description>
 				Creates the [ImageTexture3D] with specified [param width], [param height], and [param depth]. See [enum Image.Format] for [param format] options. If [param use_mipmaps] is [code]true[/code], then generate mipmaps for the [ImageTexture3D].
+				[b]Note:[/b] Creating an [ImageTexture3D] with the [constant Image.FORMAT_RGBA8] [param format] is slow, as it is not aligned to 1, 2 or 4 bytes. If you need to frequently create an [ImageTexture3D], consider using [constant Image.FORMAT_RGBA8], or better, [constant Image.FORMAT_RG8] or [constant Image.FORMAT_R8] if possible. The same applies to [constant Image.FORMAT_RGBAH] and [constant Image.FORMAT_RGBAF] versus their RGB/RG/R counterparts.
 			</description>
 		</method>
 		<method name="update">

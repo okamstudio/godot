@@ -110,6 +110,7 @@
 			<param index="0" name="format" type="int" enum="Image.Format" />
 			<description>
 				Converts the image's format. See [enum Format] constants.
+				[b]Note:[/b] Converting to [constant FORMAT_RGBA8] is slow, as it is not aligned to 1, 2 or 4 bytes. If you need to frequently convert an image, consider using [constant FORMAT_RGBA8], or better, [constant FORMAT_RG8] or [constant FORMAT_R8] if possible. The same applies to [constant FORMAT_RGBAH] and [constant FORMAT_RGBAF] versus their RGB/RG/R counterparts.
 			</description>
 		</method>
 		<method name="copy_from">
@@ -137,6 +138,7 @@
 			<param index="3" name="format" type="int" enum="Image.Format" />
 			<description>
 				Creates an empty image of given size and format. See [enum Format] constants. If [param use_mipmaps] is [code]true[/code], then generate mipmaps for this image. See the [method generate_mipmaps].
+				[b]Note:[/b] Creating an image in [constant FORMAT_RGBA8] [param format] is slow, as it is not aligned to 1, 2 or 4 bytes. If you need to frequently create an image, consider using [constant FORMAT_RGBA8], or better, [constant FORMAT_RG8] or [constant FORMAT_R8] if possible. The same applies to [constant FORMAT_RGBAH] and [constant FORMAT_RGBAF] versus their RGB/RG/R counterparts.
 			</description>
 		</method>
 		<method name="create_from_data" qualifiers="static">
@@ -148,6 +150,7 @@
 			<param index="4" name="data" type="PackedByteArray" />
 			<description>
 				Creates a new image of given size and format. See [enum Format] constants. Fills the image with the given raw data. If [param use_mipmaps] is [code]true[/code] then loads mipmaps for this image from [param data]. See [method generate_mipmaps].
+				[b]Note:[/b] Creating an image in [constant FORMAT_RGBA8] [param format] is slow, as it is not aligned to 1, 2 or 4 bytes. If you need to frequently create an image, consider using [constant FORMAT_RGBA8], or better, [constant FORMAT_RG8] or [constant FORMAT_R8] if possible. The same applies to [constant FORMAT_RGBAH] and [constant FORMAT_RGBAF] versus their RGB/RG/R counterparts.
 			</description>
 		</method>
 		<method name="crop">
@@ -533,6 +536,7 @@
 			<param index="4" name="data" type="PackedByteArray" />
 			<description>
 				Overwrites data of an existing [Image]. Non-static equivalent of [method create_from_data].
+				[b]Note:[/b] Setting image data with the [constant FORMAT_RGBA8] [param format] is slow, as it is not aligned to 1, 2 or 4 bytes. If you need to frequently set image data, consider using [constant FORMAT_RGBA8], or better, [constant FORMAT_RG8] or [constant FORMAT_R8] if possible. The same applies to [constant FORMAT_RGBAH] and [constant FORMAT_RGBAF] versus their RGB/RG/R counterparts.
 			</description>
 		</method>
 		<method name="set_pixel">
@@ -626,6 +630,7 @@
 		<constant name="FORMAT_RGB8" value="4" enum="Format">
 			OpenGL texture format [code]RGB[/code] with three components, each with a bitdepth of 8.
 			[b]Note:[/b] When creating an [ImageTexture], an sRGB to linear color space conversion is performed.
+			[b]Note:[/b] This format is slow to procedurally create and update, as it is not aligned to 1, 2 or 4 bytes. If you need to frequently create or update an image, consider using [constant FORMAT_RGBA8], or better, [constant FORMAT_RG8] or [constant FORMAT_R8] if possible. The same applies to [constant FORMAT_RGBAH] and [constant FORMAT_RGBAF] versus their RGB/RG/R counterparts.
 		</constant>
 		<constant name="FORMAT_RGBA8" value="5" enum="Format">
 			OpenGL texture format [code]RGBA[/code] with four components, each with a bitdepth of 8.

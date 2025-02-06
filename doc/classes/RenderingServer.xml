@@ -3686,7 +3686,10 @@
 			<param index="4" name="mipmaps" type="bool" />
 			<param index="5" name="data" type="Image[]" />
 			<description>
+				Creates a 3-dimensional texture and adds it to the RenderingServer. It can be accessed with the RID that is returned. This RID will be used in all [code]texture_3d_*[/code] RenderingServer functions.
+				Once finished with your RID, you will want to free the RID using the RenderingServer's [method free_rid] method.
 				[b]Note:[/b] The equivalent resource is [Texture3D].
+				[b]Note:[/b] Creating a [Texture3D] with the [constant Image.FORMAT_RGBA8] [param format] is slow, as it is not aligned to 1, 2 or 4 bytes. If you need to frequently create a [Texture3D], consider using [constant Image.FORMAT_RGBA8], or better, [constant Image.FORMAT_RG8] or [constant Image.FORMAT_R8] if possible. The same applies to [constant Image.FORMAT_RGBAH] and [constant Image.FORMAT_RGBAF] versus their RGB/RG/R counterparts.
 			</description>
 		</method>
 		<method name="texture_3d_get" qualifiers="const">

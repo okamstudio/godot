@@ -64,6 +64,7 @@
 				Replaces the texture's data with a new [Image].
 				[b]Note:[/b] The texture has to be created using [method create_from_image] or initialized first with the [method set_image] method before it can be updated. The new image dimensions, format, and mipmaps configuration should match the existing texture's image configuration.
 				Use this method over [method set_image] if you need to update the texture frequently, which is faster than allocating additional memory for a new texture each time.
+				[b]Note:[/b] Updating an [ImageTexture] that uses the [constant Image.FORMAT_RGBA8] format is slow, as it is not aligned to 1, 2 or 4 bytes. If you need to frequently update an [ImageTexture], consider using [constant Image.FORMAT_RGBA8], or better, [constant Image.FORMAT_RG8] or [constant Image.FORMAT_R8] if possible. The same applies to [constant Image.FORMAT_RGBAH] and [constant Image.FORMAT_RGBAF] versus their RGB/RG/R counterparts.
 			</description>
 		</method>
 	</methods>
