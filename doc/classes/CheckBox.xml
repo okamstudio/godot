@@ -15,6 +15,12 @@
 		<member name="toggle_mode" type="bool" setter="set_toggle_mode" getter="is_toggle_mode" overrides="BaseButton" default="true" />
 	</members>
 	<theme_items>
+		<theme_item name="checkbox_checked_color" data_type="color" type="Color" default="Color(1, 1, 1, 1)">
+			The color of the checked icon when the checkbox is pressed.
+		</theme_item>
+		<theme_item name="checkbox_unchecked_color" data_type="color" type="Color" default="Color(1, 1, 1, 1)">
+			The color of the unchecked icon when the checkbox is not pressed.
+		</theme_item>
 		<theme_item name="check_v_offset" data_type="constant" type="int" default="0">
 			The vertical offset used when rendering the check icons (in pixels).
 		</theme_item>

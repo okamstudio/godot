@@ -326,6 +326,9 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_constant("check_v_offset", "CheckBox", 0);
 	theme->set_constant("outline_size", "CheckBox", 0);
 
+	theme->set_color("checkbox_checked_color", "CheckBox", Color(1, 1, 1));
+	theme->set_color("checkbox_unchecked_color", "CheckBox", Color(1, 1, 1));
+
 	// CheckButton
 
 	Ref<StyleBox> cb_empty = memnew(StyleBoxEmpty);
@@ -362,6 +365,9 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_constant("h_separation", "CheckButton", Math::round(4 * scale));
 	theme->set_constant("check_v_offset", "CheckButton", 0);
 	theme->set_constant("outline_size", "CheckButton", 0);
+
+	theme->set_color("button_checked_color", "CheckButton", Color(1, 1, 1));
+	theme->set_color("button_unchecked_color", "CheckButton", Color(1, 1, 1));
 
 	// Button variations
 
