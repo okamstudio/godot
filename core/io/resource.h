@@ -120,6 +120,7 @@ public:
 
 	static void seed_scene_unique_id(uint32_t p_seed);
 	static String generate_scene_unique_id();
+	static String generate_consistent_scene_unique_id(String name);
 	void set_scene_unique_id(const String &p_id);
 	String get_scene_unique_id() const;
 

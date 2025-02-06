@@ -1864,6 +1864,7 @@ Error ResourceFormatSaverTextInstance::save(const String &p_path, const Ref<Reso
 		}
 	}
 
+	int sub_res_index = 0;
 	for (List<Ref<Resource>>::Element *E = saved_resources.front(); E; E = E->next()) {
 		Ref<Resource> res = E->get();
 		ERR_CONTINUE(!resource_set.has(res));
@@ -1879,12 +1880,19 @@ Error ResourceFormatSaverTextInstance::save(const String &p_path, const Ref<Reso
 			String line = "[sub_resource ";
 			if (res->get_scene_unique_id().is_empty()) {
 				String new_id;
+				int attempt = 0;
 				while (true) {
-					new_id = _resource_get_class(res) + "_" + Resource::generate_scene_unique_id();
+					String long_name = _resource_get_class(res) + "_" + res->get_name() + "_" + itos(sub_res_index);
+					if (attempt != 0) {
+						long_name += "_" + itos(attempt);
+					}
+
+					new_id = Resource::generate_consistent_scene_unique_id(long_name);
 
 					if (!used_unique_ids.has(new_id)) {
 						break;
 					}
+					attempt++;
 				}
 
 				res->set_scene_unique_id(new_id);
@@ -1957,6 +1965,8 @@ Error ResourceFormatSaverTextInstance::save(const String &p_path, const Ref<Reso
 		if (E->next()) {
 			f->store_line(String());
 		}
+
+		sub_res_index++;
 	}
 
 	if (packed_scene.is_valid()) {

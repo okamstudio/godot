@@ -136,6 +136,26 @@ String Resource::generate_scene_unique_id() {
 	return id;
 }
 
+String Resource::generate_consistent_scene_unique_id(String name) {
+	String result;
+
+	uint32_t hash = name.hash();
+	static constexpr uint32_t characters = 5;
+	static constexpr uint32_t char_count = ('z' - 'a') + 1;
+	static constexpr uint32_t base = char_count + ('9' - '0') + 1;
+	for (uint32_t i = 0; i < characters; i++) {
+		uint32_t c = hash % base;
+		if (c < char_count) {
+			result += String::chr('a' + c);
+		} else {
+			result += String::chr('0' + (c - char_count));
+		}
+		hash /= base;
+	}
+
+	return result;
+}
+
 void Resource::set_scene_unique_id(const String &p_id) {
 	bool is_valid = true;
 	for (int i = 0; i < p_id.length(); i++) {
