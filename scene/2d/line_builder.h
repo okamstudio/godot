@@ -37,13 +37,14 @@ class LineBuilder {
 public:
 	// TODO Move in a struct and reference it
 	// Input
-	Vector<Vector2> points;
+	LocalVector<Vector2> points;
 	Line2D::LineJointMode joint_mode = Line2D::LINE_JOINT_SHARP;
 	Line2D::LineCapMode begin_cap_mode = Line2D::LINE_CAP_NONE;
 	Line2D::LineCapMode end_cap_mode = Line2D::LINE_CAP_NONE;
 	bool closed = false;
 	float width = 10.0;
 	Curve *curve = nullptr;
+	float curve_offset = 0.0f;
 	Color default_color = Color(0.4, 0.5, 1);
 	Gradient *gradient = nullptr;
 	Line2D::LineTextureMode texture_mode = Line2D::LineTextureMode::LINE_TEXTURE_NONE;

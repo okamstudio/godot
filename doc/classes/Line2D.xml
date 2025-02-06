@@ -70,6 +70,9 @@
 			[b]Note:[/b] The shape of the closing segment is not guaranteed to be seamless if a [member width_curve] is provided.
 			[b]Note:[/b] The joint between the closing segment and the first segment is drawn first and it samples the [member gradient] and the [member width_curve] at the beginning. This is an implementation detail that might change in a future version.
 		</member>
+		<member name="curve_offset" type="float" setter="set_curve_offset" getter="get_curve_offset" default="0.0">
+			The horizontal offset value used when sampling from the width curve. Typically ranges from [code]-1.0[/code] to [code]1.0[/code].
+		</member>
 		<member name="default_color" type="Color" setter="set_default_color" getter="get_default_color" default="Color(1, 1, 1, 1)">
 			The color of the polyline. Will not be used if a gradient is set.
 		</member>
@@ -81,6 +84,10 @@
 		</member>
 		<member name="joint_mode" type="int" setter="set_joint_mode" getter="get_joint_mode" enum="Line2D.LineJointMode" default="0">
 			The style of the connections between segments of the polyline. Use [enum LineJointMode] constants.
+		</member>
+		<member name="min_curve_line_segments" type="int" setter="set_min_curve_line_segments" getter="get_min_curve_line_segments" default="1">
+			The minimum number of segments that the line should be subdivided into. The resulting segment count depends on the use of a fill gradient and the distances between points.
+			[b]Note:[/b] Using higher values results in more segments (and vertices/indices) that need to be generated which can hurt performance, particularly if you are animating properties on your line.
 		</member>
 		<member name="points" type="PackedVector2Array" setter="set_points" getter="get_points" default="PackedVector2Array()">
 			The points of the polyline, interpreted in local 2D coordinates. Segments are drawn between the adjacent points in this array.

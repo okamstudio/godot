@@ -526,6 +526,7 @@ void Curve::set_bake_resolution(int p_resolution) {
 	ERR_FAIL_COND(p_resolution > 1000);
 	_bake_resolution = p_resolution;
 	_baked_cache_dirty = true;
+	emit_changed();
 }
 
 real_t Curve::sample_baked(real_t p_offset) const {
