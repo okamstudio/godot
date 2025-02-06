@@ -96,7 +96,7 @@ for x in sorted(glob.glob("platform/*")):
         platform_exporters.append(platform_name)
     if os.path.exists(x + "/api/api.cpp"):
         platform_apis.append(platform_name)
-    if detect.can_build():
+    if os.getenv("GODOT_CAN_BUILD_" + platform_name.upper()) or detect.can_build():
         x = x.replace("platform/", "")  # rest of world
         x = x.replace("platform\\", "")  # win32
         platform_list += [x]
