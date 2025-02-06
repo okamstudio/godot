@@ -173,10 +173,10 @@ namespace Godot
                 case 7:
                     return new Vector3(_position.X + _size.X, _position.Y + _size.Y, _position.Z + _size.Z);
                 default:
-                {
-                    throw new ArgumentOutOfRangeException(nameof(idx),
-                        $"Index is {idx}, but a value from 0 to 7 is expected.");
-                }
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(idx),
+                            $"Index is {idx}, but a value from 0 to 7 is expected.");
+                    }
             }
         }
 
@@ -507,6 +507,65 @@ namespace Godot
             }
 
             return under && over;
+        }
+
+        /// <summary>
+        /// Returns <see langword="true"/> if the <see cref="Aabb"/> intersects
+        /// the ray along <paramref name="dir"/> positioned at <paramref name="from"/>.
+        /// </summary>
+        /// <param name="origin">The origin of the ray.</param>
+        /// <param name="dir">The direction of the ray.</param>
+        /// <returns>
+        /// A <see langword="bool"/> for whether or not the <see cref="Aabb"/> intersects the ray.
+        /// </returns>
+        public readonly bool IntersectsRay(Vector3 from, Vector3 dir)
+        {
+            if (HasPoint(from)) return true;
+
+            real_t tmin = real_t.MinValue;
+            real_t tmax = real_t.MaxValue;
+
+            Vector3 end = _position + _size;
+
+            for (int i = 0; i < 3; i++)
+            {
+                if (dir[i] == 0)
+                {
+                    if ((from[i] < _position[i]) || (from[i] > end[i]))
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    // Ray is not parallel to planes in this direction.
+                    real_t t1 = (_position[i] - from[i]) / dir[i];
+                    real_t t2 = (end[i] - from[i]) / dir[i];
+
+                    if (t1 > t2)
+                    {
+                        (t2, t1) = (t1, t2);
+                    }
+                    if (t1 >= tmin)
+                    {
+                        tmin = t1;
+                    }
+                    if (t2 < tmax)
+                    {
+                        if (t2 < 0)
+                        {
+                            return false;
+                        }
+                        tmax = t2;
+                    }
+                    if (tmin > tmax)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
