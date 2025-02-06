@@ -156,7 +156,7 @@
 			<param index="0" name="axis" type="Vector3" />
 			<param index="1" name="angle" type="float" />
 			<description>
-				Rotates the local transformation around axis, a unit [Vector3], by specified angle in radians.
+				Rotates the local transformation, relative to the parent's local transformation, around axis, a unit [Vector3], by specified angle in radians.
 			</description>
 		</method>
 		<method name="rotate_object_local">
@@ -171,21 +171,21 @@
 			<return type="void" />
 			<param index="0" name="angle" type="float" />
 			<description>
-				Rotates the local transformation around the X axis by angle in radians.
+				Rotates the local transformation, relative to the parent's local transformation, around the X axis by angle in radians.
 			</description>
 		</method>
 		<method name="rotate_y">
 			<return type="void" />
 			<param index="0" name="angle" type="float" />
 			<description>
-				Rotates the local transformation around the Y axis by angle in radians.
+				Rotates the local transformation, relative to the parent's local transformation, around the Y axis by angle in radians.
 			</description>
 		</method>
 		<method name="rotate_z">
 			<return type="void" />
 			<param index="0" name="angle" type="float" />
 			<description>
-				Rotates the local transformation around the Z axis by angle in radians.
+				Rotates the local transformation, relative to the parent's local transformation, around the Z axis by angle in radians.
 			</description>
 		</method>
 		<method name="scale_object_local">
