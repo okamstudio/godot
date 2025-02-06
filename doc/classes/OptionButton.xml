@@ -19,6 +19,7 @@
 			<param index="2" name="id" type="int" default="-1" />
 			<description>
 				Adds an item, with a [param texture] icon, text [param label] and (optionally) [param id]. If no [param id] is passed, the item index will be used as the item's ID. New items are appended at the end.
+				[b]Note:[/b] The item will be selected if there are no other items.
 			</description>
 		</method>
 		<method name="add_item">
@@ -27,6 +28,7 @@
 			<param index="1" name="id" type="int" default="-1" />
 			<description>
 				Adds an item, with text [param label] and (optionally) [param id]. If no [param id] is passed, the item index will be used as the item's ID. New items are appended at the end.
+				[b]Note:[/b] The item will be selected if there are no other items.
 			</description>
 		</method>
 		<method name="add_separator">
