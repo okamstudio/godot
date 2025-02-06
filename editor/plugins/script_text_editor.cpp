@@ -2553,6 +2553,8 @@ ScriptTextEditor::ScriptTextEditor() {
 	code_editor->get_text_editor()->set_symbol_tooltip_on_hover_enabled(true);
 	code_editor->get_text_editor()->set_context_menu_enabled(false);
 
+	ProjectSettings::get_singleton()->connect("settings_changed", callable_mp(this, &ScriptTextEditor::_validate_script));
+
 	context_menu = memnew(PopupMenu);
 
 	color_panel = memnew(PopupPanel);
