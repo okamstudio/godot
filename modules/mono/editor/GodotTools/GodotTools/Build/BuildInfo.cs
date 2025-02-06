@@ -20,7 +20,7 @@ namespace GodotTools.Build
         public bool OnlyClean { get; private set; }
 
         // TODO Use List once we have proper serialization
-        public Godot.Collections.Array CustomProperties { get; private set; } = new();
+        public Godot.Collections.Array<string> CustomProperties { get; private set; } = new();
 
         public string LogsDirPath => GodotSharpDirs.LogsDirPathFor(Solution, Configuration);
 

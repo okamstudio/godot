@@ -183,9 +183,9 @@ namespace GodotTools.Build
             AddBinaryLogArgument(buildInfo, arguments, editorSettings);
 
             // Custom properties
-            foreach (var customProperty in buildInfo.CustomProperties)
+            foreach (string customProperty in buildInfo.CustomProperties)
             {
-                arguments.Add("-p:" + (string)customProperty);
+                arguments.Add($"-p:{customProperty}");
             }
         }
 
@@ -229,9 +229,9 @@ namespace GodotTools.Build
             AddBinaryLogArgument(buildInfo, arguments, editorSettings);
 
             // Custom properties
-            foreach (var customProperty in buildInfo.CustomProperties)
+            foreach (string customProperty in buildInfo.CustomProperties)
             {
-                arguments.Add("-p:" + (string)customProperty);
+                arguments.Add($"-p:{customProperty}");
             }
 
             // Publish output directory

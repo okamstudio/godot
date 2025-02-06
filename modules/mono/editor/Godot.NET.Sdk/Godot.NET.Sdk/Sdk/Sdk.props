@@ -100,7 +100,7 @@
     <GodotPlatformConstants Condition=" '$(GodotTargetPlatform)' == 'ios' ">GODOT_IPHONE;GODOT_IOS;GODOT_MOBILE</GodotPlatformConstants>
     <GodotPlatformConstants Condition=" '$(GodotTargetPlatform)' == 'web' ">GODOT_JAVASCRIPT;GODOT_HTML5;GODOT_WASM;GODOT_WEB</GodotPlatformConstants>
 
-    <GodotDefineConstants>$(GodotDefineConstants);$(GodotPlatformConstants);$(GodotVersionConstants)</GodotDefineConstants>
+    <GodotDefineConstants>$(GodotDefineConstants);$(GodotPlatformConstants);$(GodotVersionConstants);$(GodotFeatureConstants)</GodotDefineConstants>
   </PropertyGroup>
 
   <PropertyGroup>
