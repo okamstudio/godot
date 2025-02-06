@@ -261,6 +261,7 @@ void FastNoiseLite::set_domain_warp_fractal_type(DomainWarpFractalType p_domain_
 
 	_domain_warp_noise.SetFractalType(_convert_domain_warp_fractal_type_enum(p_domain_warp_fractal_type));
 	emit_changed();
+	notify_property_list_changed();
 }
 
 FastNoiseLite::DomainWarpFractalType FastNoiseLite::get_domain_warp_fractal_type() const {
@@ -493,6 +494,11 @@ void FastNoiseLite::_validate_property(PropertyInfo &p_property) const {
 	}
 
 	if (p_property.name != "domain_warp_enabled" && p_property.name.begins_with("domain_warp") && !domain_warp_enabled) {
+		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
+		return;
+	}
+
+	if (p_property.name == "domain_warp_fractal_lacunarity" && domain_warp_fractal_type == DOMAIN_WARP_FRACTAL_NONE) {
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 		return;
 	}

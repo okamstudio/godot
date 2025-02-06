@@ -30,10 +30,10 @@
 			A low value places more emphasis on the lower frequency base layers, while a high value puts more emphasis on the higher frequency layers.
 		</member>
 		<member name="domain_warp_fractal_lacunarity" type="float" setter="set_domain_warp_fractal_lacunarity" getter="get_domain_warp_fractal_lacunarity" default="6.0">
-			Octave lacunarity of the fractal noise which warps the space. Increasing this value results in higher octaves producing noise with finer details and a rougher appearance.
+			Octave lacunarity of the fractal noise which warps the space. Increasing this value results in higher octaves producing noise with finer details and a rougher appearance. Only effective if [member domain_warp_fractal_type] is [constant DOMAIN_WARP_FRACTAL_PROGRESSIVE] or [constant DOMAIN_WARP_FRACTAL_INDEPENDENT].
 		</member>
 		<member name="domain_warp_fractal_octaves" type="int" setter="set_domain_warp_fractal_octaves" getter="get_domain_warp_fractal_octaves" default="5">
-			The number of noise layers that are sampled to get the final value for the fractal noise which warps the space.
+			The number of noise layers that are sampled to get the final value for the fractal noise which warps the space. Higher values result in more detailed noise at the cost of slower generation times.
 		</member>
 		<member name="domain_warp_fractal_type" type="int" setter="set_domain_warp_fractal_type" getter="get_domain_warp_fractal_type" enum="FastNoiseLite.DomainWarpFractalType" default="1">
 			The method for combining octaves into a fractal which is used to warp the space. See [enum DomainWarpFractalType].
@@ -52,7 +52,7 @@
 			Frequency multiplier between subsequent octaves. Increasing this value results in higher octaves producing noise with finer details and a rougher appearance.
 		</member>
 		<member name="fractal_octaves" type="int" setter="set_fractal_octaves" getter="get_fractal_octaves" default="5">
-			The number of noise layers that are sampled to get the final value for fractal noise types.
+			The number of noise layers that are sampled to get the final value for fractal noise types. Higher values result in more detailed noise at the cost of slower generation times.
 		</member>
 		<member name="fractal_ping_pong_strength" type="float" setter="set_fractal_ping_pong_strength" getter="get_fractal_ping_pong_strength" default="2.0">
 			Sets the strength of the fractal ping pong type.
