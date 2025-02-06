@@ -303,7 +303,7 @@ void ScriptCreateDialog::_parent_name_changed(const String &p_parent) {
 void ScriptCreateDialog::_template_changed(int p_template) {
 	const ScriptLanguage::ScriptTemplate &sinfo = _get_current_template();
 	// Update last used dictionaries
-	if (is_using_templates && !parent_name->get_text().begins_with("\"res:")) {
+	if (is_parent_name_valid && is_using_templates && !parent_name->get_text().begins_with("\"res:")) {
 		if (sinfo.origin == ScriptLanguage::TemplateLocation::TEMPLATE_PROJECT) {
 			// Save the last used template for this node into the project dictionary.
 			Dictionary dic_templates_project = EditorSettings::get_singleton()->get_project_metadata("script_setup", "templates_dictionary", Dictionary());
