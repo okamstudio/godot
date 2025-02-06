@@ -362,6 +362,7 @@ void GridMap::set_cell_item(const Vector3i &p_position, int p_item, int p_rot) {
 			g.cells.erase(key);
 			g.dirty = true;
 			cell_map.erase(key);
+
 			_queue_octants_dirty();
 		}
 		return;
@@ -510,6 +511,170 @@ int GridMap::get_orthogonal_index_from_basis(const Basis &p_basis) const {
 	}
 
 	return 0;
+}
+
+bool GridMap::cell_has_color(const Vector3i &p_position) const {
+	ERR_FAIL_INDEX_V(ABS(p_position.x), 1 << 20, false);
+	ERR_FAIL_INDEX_V(ABS(p_position.y), 1 << 20, false);
+	ERR_FAIL_INDEX_V(ABS(p_position.z), 1 << 20, false);
+
+	IndexKey key;
+	key.x = p_position.x;
+	key.y = p_position.y;
+	key.z = p_position.z;
+
+	if (color_map.has(key)) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+void GridMap::set_cell_color(const Vector3i &p_position, const Color p_color) {
+	ERR_FAIL_INDEX(ABS(p_position.x), 1 << 20);
+	ERR_FAIL_INDEX(ABS(p_position.y), 1 << 20);
+	ERR_FAIL_INDEX(ABS(p_position.z), 1 << 20);
+
+	IndexKey key;
+	key.x = p_position.x;
+	key.y = p_position.y;
+	key.z = p_position.z;
+
+	OctantKey ok;
+	ok.x = p_position.x / octant_size;
+	ok.y = p_position.y / octant_size;
+	ok.z = p_position.z / octant_size;
+
+	color_map[key] = p_color;
+
+	if (cell_map.has(key)) {
+		Octant &g = *octant_map[ok];
+		g.dirty = true;
+		_queue_octants_dirty();
+	}
+}
+
+Variant GridMap::get_cell_color(const Vector3i &p_position) const {
+	ERR_FAIL_INDEX_V(ABS(p_position.x), 1 << 20, Variant());
+	ERR_FAIL_INDEX_V(ABS(p_position.y), 1 << 20, Variant());
+	ERR_FAIL_INDEX_V(ABS(p_position.z), 1 << 20, Variant());
+
+	IndexKey key;
+	key.x = p_position.x;
+	key.y = p_position.y;
+	key.z = p_position.z;
+
+	if (cell_has_color(p_position)) {
+		return color_map[key];
+	} else {
+		return Variant(); //Returns null if no color was set
+	}
+}
+
+void GridMap::remove_cell_color(const Vector3i &p_position) {
+	ERR_FAIL_INDEX(ABS(p_position.x), 1 << 20);
+	ERR_FAIL_INDEX(ABS(p_position.y), 1 << 20);
+	ERR_FAIL_INDEX(ABS(p_position.z), 1 << 20);
+
+	IndexKey key;
+	key.x = p_position.x;
+	key.y = p_position.y;
+	key.z = p_position.z;
+
+	OctantKey ok;
+	ok.x = p_position.x / octant_size;
+	ok.y = p_position.y / octant_size;
+	ok.z = p_position.z / octant_size;
+
+	if (cell_has_color(p_position)) {
+		color_map.erase(key);
+
+		Octant &g = *octant_map[ok];
+		g.dirty = true;
+		_queue_octants_dirty();
+	}
+}
+
+bool GridMap::cell_has_data(const Vector3i &p_position) const {
+	ERR_FAIL_INDEX_V(ABS(p_position.x), 1 << 20, false);
+	ERR_FAIL_INDEX_V(ABS(p_position.y), 1 << 20, false);
+	ERR_FAIL_INDEX_V(ABS(p_position.z), 1 << 20, false);
+
+	IndexKey key;
+	key.x = p_position.x;
+	key.y = p_position.y;
+	key.z = p_position.z;
+
+	if (data_map.has(key)) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+void GridMap::set_cell_data(const Vector3i &p_position, const Color p_data) {
+	ERR_FAIL_INDEX(ABS(p_position.x), 1 << 20);
+	ERR_FAIL_INDEX(ABS(p_position.y), 1 << 20);
+	ERR_FAIL_INDEX(ABS(p_position.z), 1 << 20);
+
+	IndexKey key;
+	key.x = p_position.x;
+	key.y = p_position.y;
+	key.z = p_position.z;
+
+	OctantKey ok;
+	ok.x = p_position.x / octant_size;
+	ok.y = p_position.y / octant_size;
+	ok.z = p_position.z / octant_size;
+
+	data_map[key] = p_data;
+
+	if (cell_map.has(key)) {
+		Octant &g = *octant_map[ok];
+		g.dirty = true;
+		_queue_octants_dirty();
+	}
+}
+
+Variant GridMap::get_cell_data(const Vector3i &p_position) const {
+	ERR_FAIL_INDEX_V(ABS(p_position.x), 1 << 20, Variant());
+	ERR_FAIL_INDEX_V(ABS(p_position.y), 1 << 20, Variant());
+	ERR_FAIL_INDEX_V(ABS(p_position.z), 1 << 20, Variant());
+
+	IndexKey key;
+	key.x = p_position.x;
+	key.y = p_position.y;
+	key.z = p_position.z;
+
+	if (cell_has_data(p_position)) {
+		return data_map[key];
+	} else {
+		return Variant(); //Returns null if no data was set
+	}
+}
+
+void GridMap::remove_cell_data(const Vector3i &p_position) {
+	ERR_FAIL_INDEX(ABS(p_position.x), 1 << 20);
+	ERR_FAIL_INDEX(ABS(p_position.y), 1 << 20);
+	ERR_FAIL_INDEX(ABS(p_position.z), 1 << 20);
+
+	IndexKey key;
+	key.x = p_position.x;
+	key.y = p_position.y;
+	key.z = p_position.z;
+
+	OctantKey ok;
+	ok.x = p_position.x / octant_size;
+	ok.y = p_position.y / octant_size;
+	ok.z = p_position.z / octant_size;
+
+	if (cell_has_data(p_position)) {
+		data_map.erase(key);
+
+		Octant &g = *octant_map[ok];
+		g.dirty = true;
+		_queue_octants_dirty();
+	}
 }
 
 Vector3i GridMap::local_to_map(const Vector3 &p_world_position) const {
@@ -699,13 +864,36 @@ bool GridMap::_octant_update(const OctantKey &p_key) {
 		for (const KeyValue<int, List<Pair<Transform3D, IndexKey>>> &E : multimesh_items) {
 			Octant::MultimeshInstance mmi;
 
+			//Only enable color/data feature on multimesh if any cell in the octant uses it
+			bool use_colors = false;
+			bool use_data = false;
+			for (const Pair<Transform3D, IndexKey> &CD : E.value) {
+				if (color_map.has(CD.second)) {
+					use_colors = true;
+				}
+				if (data_map.has(CD.second)) {
+					use_data = true;
+				}
+			}
+
 			RID mm = RS::get_singleton()->multimesh_create();
-			RS::get_singleton()->multimesh_allocate_data(mm, E.value.size(), RS::MULTIMESH_TRANSFORM_3D);
+			RS::get_singleton()->multimesh_allocate_data(mm, E.value.size(), RS::MULTIMESH_TRANSFORM_3D, use_colors, use_data);
 			RS::get_singleton()->multimesh_set_mesh(mm, mesh_library->get_item_mesh(E.key)->get_rid());
 
 			int idx = 0;
 			for (const Pair<Transform3D, IndexKey> &F : E.value) {
 				RS::get_singleton()->multimesh_instance_set_transform(mm, idx, F.first);
+
+				if (color_map.has(F.second)) {
+					Color col = color_map[F.second];
+					RS::get_singleton()->multimesh_instance_set_color(mm, idx, col);
+				}
+
+				if (data_map.has(F.second)) {
+					Color dat = data_map[F.second];
+					RS::get_singleton()->multimesh_instance_set_custom_data(mm, idx, dat);
+				}
+
 #ifdef TOOLS_ENABLED
 
 				Octant::MultimeshInstance::Item it;
@@ -1007,9 +1195,17 @@ void GridMap::_queue_octants_dirty() {
 void GridMap::_recreate_octant_data() {
 	recreating_octants = true;
 	HashMap<IndexKey, Cell, IndexKey> cell_copy = cell_map;
+	HashMap<IndexKey, Color> color_copy = color_map;
+	HashMap<IndexKey, Color> data_copy = data_map;
 	_clear_internal();
 	for (const KeyValue<IndexKey, Cell> &E : cell_copy) {
 		set_cell_item(Vector3i(E.key), E.value.item, E.value.rot);
+	}
+	for (const KeyValue<IndexKey, Color> &C : color_copy) {
+		set_cell_color(Vector3i(C.key), C.value);
+	}
+	for (const KeyValue<IndexKey, Color> &D : data_copy) {
+		set_cell_data(Vector3i(D.key), D.value);
 	}
 	recreating_octants = false;
 }
@@ -1026,6 +1222,8 @@ void GridMap::_clear_internal() {
 
 	octant_map.clear();
 	cell_map.clear();
+	color_map.clear();
+	data_map.clear();
 }
 
 void GridMap::clear() {
@@ -1104,6 +1302,16 @@ void GridMap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_basis_with_orthogonal_index", "index"), &GridMap::get_basis_with_orthogonal_index);
 	ClassDB::bind_method(D_METHOD("get_orthogonal_index_from_basis", "basis"), &GridMap::get_orthogonal_index_from_basis);
 
+	ClassDB::bind_method(D_METHOD("cell_has_color", "position"), &GridMap::cell_has_color);
+	ClassDB::bind_method(D_METHOD("set_cell_color", "position", "color"), &GridMap::set_cell_color);
+	ClassDB::bind_method(D_METHOD("get_cell_color", "position"), &GridMap::get_cell_color);
+	ClassDB::bind_method(D_METHOD("remove_cell_color", "position"), &GridMap::remove_cell_color);
+
+	ClassDB::bind_method(D_METHOD("cell_has_data", "position"), &GridMap::cell_has_data);
+	ClassDB::bind_method(D_METHOD("set_cell_data", "position", "data"), &GridMap::set_cell_data);
+	ClassDB::bind_method(D_METHOD("get_cell_data", "position"), &GridMap::get_cell_data);
+	ClassDB::bind_method(D_METHOD("remove_cell_data", "position"), &GridMap::remove_cell_data);
+
 	ClassDB::bind_method(D_METHOD("local_to_map", "local_position"), &GridMap::local_to_map);
 	ClassDB::bind_method(D_METHOD("map_to_local", "map_position"), &GridMap::map_to_local);
 
@@ -1139,6 +1347,7 @@ void GridMap::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "cell_center_y"), "set_center_y", "get_center_y");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "cell_center_z"), "set_center_z", "get_center_z");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "cell_scale"), "set_cell_scale", "get_cell_scale");
+
 	ADD_GROUP("Collision", "collision_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "collision_layer", PROPERTY_HINT_LAYERS_3D_PHYSICS), "set_collision_layer", "get_collision_layer");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "collision_mask", PROPERTY_HINT_LAYERS_3D_PHYSICS), "set_collision_mask", "get_collision_mask");

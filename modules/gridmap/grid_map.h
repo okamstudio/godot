@@ -174,6 +174,8 @@ class GridMap : public Node3D {
 
 	HashMap<OctantKey, Octant *, OctantKey> octant_map;
 	HashMap<IndexKey, Cell, IndexKey> cell_map;
+	HashMap<IndexKey, Color> color_map;
+	HashMap<IndexKey, Color> data_map;
 
 	void _recreate_octant_data();
 
@@ -282,6 +284,16 @@ public:
 	Basis get_cell_item_basis(const Vector3i &p_position) const;
 	Basis get_basis_with_orthogonal_index(int p_index) const;
 	int get_orthogonal_index_from_basis(const Basis &p_basis) const;
+
+	bool cell_has_color(const Vector3i &p_position) const;
+	void set_cell_color(const Vector3i &p_position, Color color);
+	Variant get_cell_color(const Vector3i &p_position) const;
+	void remove_cell_color(const Vector3i &p_position);
+
+	bool cell_has_data(const Vector3i &p_position) const;
+	void set_cell_data(const Vector3i &p_position, Color data);
+	Variant get_cell_data(const Vector3i &p_position) const;
+	void remove_cell_data(const Vector3i &p_position);
 
 	Vector3i local_to_map(const Vector3 &p_local_position) const;
 	Vector3 map_to_local(const Vector3i &p_map_position) const;

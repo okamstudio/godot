@@ -16,6 +16,20 @@
 		<link title="3D Kinematic Character Demo">https://godotengine.org/asset-library/asset/2739</link>
 	</tutorials>
 	<methods>
+		<method name="cell_has_color" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="position" type="Vector3i" />
+			<description>
+				Returns whether or not the specified cell has a [Color] assigned to it. See [method set_cell_color].
+			</description>
+		</method>
+		<method name="cell_has_data" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="position" type="Vector3i" />
+			<description>
+				Returns whether or not the specified cell has custom data assigned to it. See [method set_cell_data].
+			</description>
+		</method>
 		<method name="clear">
 			<return type="void" />
 			<description>
@@ -46,6 +60,20 @@
 			<param index="0" name="index" type="int" />
 			<description>
 				Returns one of 24 possible rotations that lie along the vectors (x,y,z) with each component being either -1, 0, or 1. For further details, refer to the Godot source code.
+			</description>
+		</method>
+		<method name="get_cell_color" qualifiers="const">
+			<return type="Variant" />
+			<param index="0" name="position" type="Vector3i" />
+			<description>
+				Returns the [Color] assigned to the specified cell. If the cell has no [Color] assigned, [code]null[/code] will be returned instead. See [method set_cell_color].
+			</description>
+		</method>
+		<method name="get_cell_data" qualifiers="const">
+			<return type="Variant" />
+			<param index="0" name="position" type="Vector3i" />
+			<description>
+				Returns the custom data assigned to the specified cell, in the form of a [Color]. If the cell has no custom data assigned, [code]null[/code] will be returned instead. See [method set_cell_data].
 			</description>
 		</method>
 		<method name="get_cell_item" qualifiers="const">
@@ -138,11 +166,43 @@
 				Returns the position of a grid cell in the GridMap's local coordinate space. To convert the returned value into global coordinates, use [method Node3D.to_global]. See also [method local_to_map].
 			</description>
 		</method>
+		<method name="remove_cell_color">
+			<return type="void" />
+			<param index="0" name="position" type="Vector3i" />
+			<description>
+				Removes any [Color] assigned to the specified cell. See [method set_cell_color].
+			</description>
+		</method>
+		<method name="remove_cell_data">
+			<return type="void" />
+			<param index="0" name="position" type="Vector3i" />
+			<description>
+				Removes any custom data assigned to the specified cell. See [method set_cell_data].
+			</description>
+		</method>
 		<method name="resource_changed" deprecated="Use [signal Resource.changed] instead.">
 			<return type="void" />
 			<param index="0" name="resource" type="Resource" />
 			<description>
 				This method does nothing.
+			</description>
+		</method>
+		<method name="set_cell_color">
+			<return type="void" />
+			<param index="0" name="position" type="Vector3i" />
+			<param index="1" name="color" type="Color" />
+			<description>
+				Assigns a [Color] to the specified cell, which can then be used in the contained item's spatial shader using the [code]COLOR[/code] built-in.
+				This allows for specific shader effects on that individual cell.
+			</description>
+		</method>
+		<method name="set_cell_data">
+			<return type="void" />
+			<param index="0" name="position" type="Vector3i" />
+			<param index="1" name="data" type="Color" />
+			<description>
+				Assigns custom data to the specified cell in the form of a [Color]. This custom data can then be used in the contained item's spatial shader using the [code]INSTANCE_CUSTOM[/code] built-in.
+				This allows for specific shader effects on that individual cell.
 			</description>
 		</method>
 		<method name="set_cell_item">
