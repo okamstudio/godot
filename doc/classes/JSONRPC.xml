@@ -59,14 +59,20 @@
 			<param index="1" name="recurse" type="bool" default="false" />
 			<description>
 				Given a Dictionary which takes the form of a JSON-RPC request: unpack the request and run it. Methods are resolved by looking at the field called "method" and looking for an equivalently named function in the JSONRPC object. If one is found that method is called.
-				To add new supported methods extend the JSONRPC class and call [method process_action] on your subclass.
-				[param action]: The action to be run, as a Dictionary in the form of a JSON-RPC request or notification.
+				Can also be called with an Array of Dictionary JSON-RPC requests, for which [param recurse] must be given as [code]true[/code].
+				To add new supported methods extend the [JSONRPC] class and call [method process_action] on your subclass.
+				- [param action]: The action (or actions) to be run, as either a Dictionary in the form of a JSON-RPC request or notification, or an Array of Dictionary JSON-RPC requests.
+				- [param recurse]: Whether to call [method process_action] on each element of [param action] if it is an Array.
 			</description>
 		</method>
 		<method name="process_string">
 			<return type="String" />
 			<param index="0" name="action" type="String" />
 			<description>
+				Given a String which takes the form of a serialized JSON-RPC request: deserialise and unpack the request, run it, and serialize the returned value. Methods are resolved by looking at the field called "method" and looking for an equivalently named function in the JSONRPC object. If one is found that method is called.
+				Can also be called with a serialized Array of JSON-RPC requests.
+				To add new supported methods extend the [JSONRPC] class and call [method process_string] on your subclass.
+				- [param action]: The action (or actions) to be run, as a String in the form of a serialized JSON-RPC request or notification, or a serialized Array of JSON-RPC requests.
 			</description>
 		</method>
 		<method name="set_scope">
