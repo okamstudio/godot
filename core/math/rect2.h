@@ -234,6 +234,19 @@ struct [[nodiscard]] Rect2 {
 		return grow_side(Side(p_side), p_amount);
 	}
 
+	inline Rect2 grow_corner(Corner p_corner, Vector2 p_amount) const {
+		Rect2 g = *this;
+		g = g.grow_individual((p_corner == CORNER_TOP_LEFT || p_corner == CORNER_BOTTOM_LEFT) ? p_amount.x : 0,
+				(p_corner == CORNER_TOP_LEFT || p_corner == CORNER_TOP_RIGHT) ? p_amount.y : 0,
+				(p_corner == CORNER_TOP_RIGHT || p_corner == CORNER_BOTTOM_RIGHT) ? p_amount.x : 0,
+				(p_corner == CORNER_BOTTOM_LEFT || p_corner == CORNER_BOTTOM_RIGHT) ? p_amount.y : 0);
+		return g;
+	}
+
+	inline Rect2 grow_corner_bind(uint32_t p_corner, Vector2 p_amount) const {
+		return grow_corner(Corner(p_corner), p_amount);
+	}
+
 	inline Rect2 grow_individual(real_t p_left, real_t p_top, real_t p_right, real_t p_bottom) const {
 		Rect2 g = *this;
 		g.position.x -= p_left;

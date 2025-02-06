@@ -207,6 +207,13 @@ TEST_CASE("[Rect2i] Growing") {
 	CHECK_MESSAGE(
 			Rect2i(0, 100, 1280, 720).grow_side(SIDE_TOP, -500) == Rect2i(0, 600, 1280, 220),
 			"grow_side() with negative value should return the expected Rect2i.");
+
+	CHECK_MESSAGE(
+			Rect2i(0, 100, 1280, 720).grow_corner(CORNER_TOP_RIGHT, Vector2i(300, 200)) == Rect2i(0, -100, 1580, 920),
+			"grow_corner() with positive values should return the expected Rect2i.");
+	CHECK_MESSAGE(
+			Rect2i(0, 100, 1280, 720).grow_corner(CORNER_TOP_LEFT, Vector2i(-300, -200)) == Rect2i(300, 300, 980, 520),
+			"grow_corner() with negative values should return the expected Rect2i.");
 }
 
 TEST_CASE("[Rect2i] Has point") {

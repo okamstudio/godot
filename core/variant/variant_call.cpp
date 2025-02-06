@@ -1899,6 +1899,7 @@ static void _register_variant_builtin_methods_math() {
 	bind_method(Rect2, get_support, sarray("direction"), varray());
 	bind_method(Rect2, grow, sarray("amount"), varray());
 	bind_methodv(Rect2, grow_side, &Rect2::grow_side_bind, sarray("side", "amount"), varray());
+	bind_methodv(Rect2, grow_corner, &Rect2::grow_corner_bind, sarray("corner", "amount"), varray());
 	bind_method(Rect2, grow_individual, sarray("left", "top", "right", "bottom"), varray());
 	bind_method(Rect2, abs, sarray(), varray());
 
@@ -1915,6 +1916,7 @@ static void _register_variant_builtin_methods_math() {
 	bind_method(Rect2i, expand, sarray("to"), varray());
 	bind_method(Rect2i, grow, sarray("amount"), varray());
 	bind_methodv(Rect2i, grow_side, &Rect2i::grow_side_bind, sarray("side", "amount"), varray());
+	bind_methodv(Rect2i, grow_corner, &Rect2i::grow_corner_bind, sarray("corner", "amount"), varray());
 	bind_method(Rect2i, grow_individual, sarray("left", "top", "right", "bottom"), varray());
 	bind_method(Rect2i, abs, sarray(), varray());
 

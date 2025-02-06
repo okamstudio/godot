@@ -226,6 +226,13 @@ TEST_CASE("[Rect2] Growing") {
 	CHECK_MESSAGE(
 			Rect2(0, 100, 1280, 720).grow_side(SIDE_TOP, -500).is_equal_approx(Rect2(0, 600, 1280, 220)),
 			"grow_side() with negative value should return the expected Rect2.");
+
+	CHECK_MESSAGE(
+			Rect2(0, 100, 1280, 720).grow_corner(CORNER_TOP_RIGHT, Vector2(300, 200)).is_equal_approx(Rect2(0, -100, 1580, 920)),
+			"grow_corner() with positive values should return the expected Rect2.");
+	CHECK_MESSAGE(
+			Rect2(0, 100, 1280, 720).grow_corner(CORNER_TOP_LEFT, Vector2(-300, -200)).is_equal_approx(Rect2(300, 300, 980, 520)),
+			"grow_corner() with negative values should return the expected Rect2.");
 }
 
 TEST_CASE("[Rect2] Has point") {

@@ -136,6 +136,14 @@
 				[/codeblocks]
 			</description>
 		</method>
+		<method name="grow_corner" qualifiers="const">
+			<return type="Rect2" />
+			<param index="0" name="corner" type="int" />
+			<param index="1" name="amount" type="Vector2" />
+			<description>
+				Returns a copy of the [Rect2] grown by the specified [param amount] at the specified [enum Corner].
+			</description>
+		</method>
 		<method name="grow_individual" qualifiers="const">
 			<return type="Rect2" />
 			<param index="0" name="left" type="float" />
