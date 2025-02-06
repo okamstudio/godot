@@ -1299,6 +1299,19 @@ namespace Godot
         }
 
         /// <summary>
+        /// Moves <paramref name="from"/> toward <paramref name="to"/> smoothly (fast to slow) by the <paramref name="delta"/> amount. The function is defined as <code>lerp(from, to, 1 - exp(-delta))</code>.
+        /// Note that due to the nature of the exponential function, the return value will quickly get close to the target <paramref name="delta"/> but may never reach it. It is recommended to rely on <see cref="IsEqualApprox(float, float)"/> to test whether the target is reached.
+        /// </summary>
+        /// <param name="from">The start value.</param>
+        /// <param name="to">The value to move towards.</param>
+        /// <param name="delta">The amount to move by.</param>
+        /// <returns>The value after moving smoothly.</returns>
+        public static float MoveTowardSmooth(float from, float to, float delta)
+        {
+            return Lerp(from, to, -ExpM1(-delta));
+        }
+
+        /// <summary>
         /// Moves <paramref name="from"/> toward <paramref name="to"/> by the <paramref name="delta"/> value.
         ///
         /// Use a negative <paramref name="delta"/> value to move away.
@@ -1314,6 +1327,20 @@ namespace Godot
 
             return from + (Math.Sign(to - from) * delta);
         }
+
+        /// <summary>
+        /// Moves <paramref name="from"/> toward <paramref name="to"/> smoothly (fast to slow) by the <paramref name="delta"/> amount. The function is defined as <code>lerp(from, to, 1 - exp(-delta))</code>.
+        /// Note that due to the nature of the exponential function, the return value will quickly get close to the target <paramref name="delta"/> but may never reach it. It is recommended to rely on <see cref="IsEqualApprox(double, double)"/> to test whether the target is reached.
+        /// </summary>
+        /// <param name="from">The start value.</param>
+        /// <param name="to">The value to move towards.</param>
+        /// <param name="delta">The amount to move by.</param>
+        /// <returns>The value after moving smoothly.</returns>
+        public static double MoveTowardSmooth(double from, double to, double delta)
+        {
+            return Lerp(from, to, -ExpM1(-delta));
+        }
+
 
         /// <summary>
         /// Returns the nearest larger power of 2 for the integer <paramref name="value"/>.

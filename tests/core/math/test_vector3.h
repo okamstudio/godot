@@ -144,6 +144,9 @@ TEST_CASE("[Vector3] Interpolation methods") {
 	CHECK_MESSAGE(
 			Vector3(1, 0, 0).move_toward(Vector3(10, 0, 0), 3) == Vector3(4, 0, 0),
 			"Vector3 move_toward should work as expected.");
+	CHECK_MESSAGE(
+			Vector3(1, 2, 3).move_toward_smooth(Vector3(10, 5, 7), 0.7).is_equal_approx(Vector3(5.530732, 3.510244, 5.013659)),
+			"Vector3 move_toward_smooth should work as expected.");
 }
 
 TEST_CASE("[Vector3] Length methods") {

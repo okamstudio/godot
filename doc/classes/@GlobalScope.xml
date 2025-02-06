@@ -770,6 +770,22 @@
 				[/codeblock]
 			</description>
 		</method>
+		<method name="move_toward_smooth">
+			<return type="float" />
+			<param index="0" name="from" type="float" />
+			<param index="1" name="to" type="float" />
+			<param index="2" name="delta" type="float" />
+			<description>
+				Moves [param from] toward [param to] smoothly (fast to slow) by the [param delta] amount. The function is defined as [code]lerp(from, to, 1 - exp(-delta))[/code]. Note that due to the nature of the exponential function, the return value will quickly get close to the target [param to] but may never reach it. It is recommended to rely on [method is_equal_approx] to test whether the target is reached.
+				[codeblock]
+				move_toward_smooth(1.0,   120.0, 0.7) # Returns 60.9
+				move_toward_smooth(60.9,  120.0, 0.7) # Returns 90.7
+				move_toward_smooth(90.7,  120.0, 0.7) # Returns 105.4
+				move_toward_smooth(105.4, 120.0, 0.7) # Returns 112.8
+				move_toward_smooth(112.8, 120.0, 0.7) # Returns 116.4
+				[/codeblock]
+			</description>
+		</method>
 		<method name="nearest_po2">
 			<return type="int" />
 			<param index="0" name="value" type="int" />

@@ -171,6 +171,10 @@ Vector2 Vector2::move_toward(const Vector2 &p_to, real_t p_delta) const {
 	return len <= p_delta || len < (real_t)CMP_EPSILON ? p_to : v + vd / len * p_delta;
 }
 
+Vector2 Vector2::move_toward_smooth(const Vector2 &p_to, real_t p_delta) const {
+	return lerp(p_to, -Math::expm1(-p_delta));
+}
+
 // slide returns the component of the vector along the given plane, specified by its normal vector.
 Vector2 Vector2::slide(const Vector2 &p_normal) const {
 #ifdef MATH_CHECKS

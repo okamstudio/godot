@@ -135,6 +135,28 @@ namespace Godot
         }
 
         /// <summary>
+        /// The natural exponential minus one.
+        /// </summary>
+        /// <param name="s">The exponent to raise <c>e</c> to.</param>
+        /// <returns><c>e</c> raised to the power of <paramref name="s"/>, minus one.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static float ExpM1(float s)
+        {
+            return MathF.Exp(s) - 1.0f;
+        }
+
+        /// <summary>
+        /// The natural exponential minus one.
+        /// </summary>
+        /// <param name="s">The exponent to raise <c>e</c> to.</param>
+        /// <returns><c>e</c> raised to the power of <paramref name="s"/>, minus one.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static double ExpM1(double s)
+        {
+            return Math.Exp(s) - 1.0;
+        }
+
+        /// <summary>
         /// Returns the sine and cosine of angle <paramref name="s"/> in radians.
         /// </summary>
         /// <param name="s">The angle in radians.</param>

@@ -1839,6 +1839,7 @@ static void _register_variant_builtin_methods_math() {
 	bind_method(Vector2, max_axis_index, sarray(), varray());
 	bind_method(Vector2, min_axis_index, sarray(), varray());
 	bind_method(Vector2, move_toward, sarray("to", "delta"), varray());
+	bind_method(Vector2, move_toward_smooth, sarray("to", "delta"), varray());
 	bind_method(Vector2, rotated, sarray("angle"), varray());
 	bind_method(Vector2, orthogonal, sarray(), varray());
 	bind_method(Vector2, floor, sarray(), varray());
@@ -1948,6 +1949,7 @@ static void _register_variant_builtin_methods_math() {
 	bind_method(Vector3, bezier_interpolate, sarray("control_1", "control_2", "end", "t"), varray());
 	bind_method(Vector3, bezier_derivative, sarray("control_1", "control_2", "end", "t"), varray());
 	bind_method(Vector3, move_toward, sarray("to", "delta"), varray());
+	bind_method(Vector3, move_toward_smooth, sarray("to", "delta"), varray());
 	bind_method(Vector3, dot, sarray("with"), varray());
 	bind_method(Vector3, cross, sarray("with"), varray());
 	bind_method(Vector3, outer, sarray("with"), varray());

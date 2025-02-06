@@ -290,6 +290,14 @@
 				Returns a new vector moved toward [param to] by the fixed [param delta] amount. Will not go past the final value.
 			</description>
 		</method>
+		<method name="move_toward_smooth" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="to" type="Vector3" />
+			<param index="1" name="delta" type="float" />
+			<description>
+				Moves toward [param to] smoothly (fast to slow) by the [param delta] amount. The function is defined as [code]lerp(to, 1 - exp(-delta))[/code]. Note that due to the nature of the exponential function, the return value will quickly get close to the target [param to] but may never reach it. It is recommended to rely on [method is_equal_approx] to test whether the target is reached.
+			</description>
+		</method>
 		<method name="normalized" qualifiers="const">
 			<return type="Vector3" />
 			<description>

@@ -121,6 +121,7 @@ struct [[nodiscard]] Vector3 {
 	_FORCE_INLINE_ Vector3 bezier_derivative(const Vector3 &p_control_1, const Vector3 &p_control_2, const Vector3 &p_end, real_t p_t) const;
 
 	Vector3 move_toward(const Vector3 &p_to, real_t p_delta) const;
+	Vector3 move_toward_smooth(const Vector3 &p_to, real_t p_delta) const;
 
 	Vector2 octahedron_encode() const;
 	static Vector3 octahedron_decode(const Vector2 &p_oct);

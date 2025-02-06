@@ -283,6 +283,12 @@ TEST_CASE_TEMPLATE("[Math] pow/log/log2/exp/sqrt", T, float, double) {
 	CHECK(Math::exp((T)1.0) == doctest::Approx((T)2.7182818285));
 	CHECK(Math::exp((T)1.5) == doctest::Approx((T)4.4816890703));
 
+	CHECK(Math::expm1((T)-0.1) == doctest::Approx((T)-0.095162582));
+	CHECK(Math::expm1((T)0.1) == doctest::Approx((T)0.105170918));
+	CHECK(Math::expm1((T)0.5) == doctest::Approx((T)0.648721271));
+	CHECK(Math::expm1((T)1.0) == doctest::Approx((T)1.718281828));
+	CHECK(Math::expm1((T)1.5) == doctest::Approx((T)3.481689070));
+
 	CHECK(Math::is_nan(Math::sqrt((T)-0.1)));
 	CHECK(Math::sqrt((T)0.1) == doctest::Approx((T)0.316228));
 	CHECK(Math::sqrt((T)0.5) == doctest::Approx((T)0.707107));
@@ -433,6 +439,12 @@ TEST_CASE_TEMPLATE("[Math] move_toward", T, float, double) {
 	CHECK(Math::move_toward(-2.0, -5.0, -1.0) == doctest::Approx((T)-1.0));
 	CHECK(Math::move_toward(-2.0, -5.0, 2.5) == doctest::Approx((T)-4.5));
 	CHECK(Math::move_toward(-2.0, -5.0, 4.0) == doctest::Approx((T)-5.0));
+}
+
+TEST_CASE_TEMPLATE("[Math] move_toward_smooth", T, float, double) {
+	CHECK(Math::move_toward_smooth(2.0, 5.0, 0.7) == doctest::Approx((T)3.51024));
+	CHECK(Math::move_toward_smooth(-2.0, 3.0, 0.8) == doctest::Approx((T)0.753355));
+	CHECK(Math::move_toward_smooth(-1.0, -4.0, 6.0) == doctest::Approx((T)-3.99256));
 }
 
 TEST_CASE_TEMPLATE("[Math] rotate_toward", T, float, double) {

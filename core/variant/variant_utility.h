@@ -96,6 +96,7 @@ struct VariantUtilityFunctions {
 	static double remap(double value, double istart, double istop, double ostart, double ostop);
 	static double smoothstep(double from, double to, double val);
 	static double move_toward(double from, double to, double delta);
+	static double move_toward_smooth(double from, double to, double delta);
 	static double rotate_toward(double from, double to, double delta);
 	static double deg_to_rad(double angle_deg);
 	static double rad_to_deg(double angle_rad);

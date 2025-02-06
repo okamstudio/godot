@@ -127,6 +127,9 @@ TEST_CASE("[Vector2] Interpolation methods") {
 	CHECK_MESSAGE(
 			Vector2(1, 0).move_toward(Vector2(10, 0), 3) == Vector2(4, 0),
 			"Vector2 move_toward should work as expected.");
+	CHECK_MESSAGE(
+			Vector2(1, 2).move_toward_smooth(Vector2(10, 5), 0.7).is_equal_approx(Vector2(5.530732, 3.510244)),
+			"Vector2 move_toward_smooth should work as expected.");
 }
 
 TEST_CASE("[Vector2] Length methods") {

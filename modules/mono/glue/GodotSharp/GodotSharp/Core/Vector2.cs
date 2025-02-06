@@ -531,6 +531,18 @@ namespace Godot
         }
 
         /// <summary>
+        /// Moves this vector toward <paramref name="to"/> smoothly (fast to slow) by the <paramref name="delta"/> amount. The function is defined as <code>lerp(this, to, 1 - exp(-delta))</code>.
+        /// Note that due to the nature of the exponential function, the return value will quickly get close to the target <paramref name="delta"/> but may never reach it. It is recommended to rely on <see cref="IsEqualApprox()"/> to test whether the target is reached.
+        /// </summary>
+        /// <param name="to">The vector to move towards.</param>
+        /// <param name="delta">The amount to move towards by.</param>
+        /// <returns>The resulting vector.</returns>
+        public readonly Vector2 MoveTowardSmooth(Vector2 to, real_t delta)
+        {
+            return Lerp(to, -Mathf.ExpM1(-delta));
+        }
+
+        /// <summary>
         /// Returns the vector scaled to unit length. Equivalent to <c>v / v.Length()</c>.
         /// </summary>
         /// <returns>A normalized version of the vector.</returns>

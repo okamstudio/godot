@@ -129,6 +129,9 @@ public:
 	static _ALWAYS_INLINE_ double exp(double p_x) { return ::exp(p_x); }
 	static _ALWAYS_INLINE_ float exp(float p_x) { return ::expf(p_x); }
 
+	static _ALWAYS_INLINE_ double expm1(double p_x) { return ::expm1(p_x); }
+	static _ALWAYS_INLINE_ float expm1(float p_x) { return ::expm1f(p_x); }
+
 	static _ALWAYS_INLINE_ bool is_nan(double p_val) {
 #ifdef _MSC_VER
 		return _isnan(p_val);
@@ -476,6 +479,13 @@ public:
 	}
 	static _ALWAYS_INLINE_ float move_toward(float p_from, float p_to, float p_delta) {
 		return abs(p_to - p_from) <= p_delta ? p_to : p_from + SIGN(p_to - p_from) * p_delta;
+	}
+
+	static _ALWAYS_INLINE_ double move_toward_smooth(double p_from, double p_to, double p_delta) {
+		return Math::lerp(p_from, p_to, -Math::expm1(-p_delta));
+	}
+	static _ALWAYS_INLINE_ float move_toward_smooth(float p_from, float p_to, float p_delta) {
+		return Math::lerp(p_from, p_to, -Math::expm1(-p_delta));
 	}
 
 	static _ALWAYS_INLINE_ double rotate_toward(double p_from, double p_to, double p_delta) {

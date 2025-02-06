@@ -123,6 +123,7 @@ struct [[nodiscard]] Vector2 {
 	_FORCE_INLINE_ Vector2 bezier_derivative(const Vector2 &p_control_1, const Vector2 &p_control_2, const Vector2 &p_end, real_t p_t) const;
 
 	Vector2 move_toward(const Vector2 &p_to, real_t p_delta) const;
+	Vector2 move_toward_smooth(const Vector2 &p_to, real_t p_delta) const;
 
 	Vector2 slide(const Vector2 &p_normal) const;
 	Vector2 bounce(const Vector2 &p_normal) const;

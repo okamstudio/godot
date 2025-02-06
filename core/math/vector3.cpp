@@ -101,6 +101,10 @@ Vector3 Vector3::move_toward(const Vector3 &p_to, real_t p_delta) const {
 	return len <= p_delta || len < (real_t)CMP_EPSILON ? p_to : v + vd / len * p_delta;
 }
 
+Vector3 Vector3::move_toward_smooth(const Vector3 &p_to, real_t p_delta) const {
+	return lerp(p_to, -Math::expm1(-p_delta));
+}
+
 Vector2 Vector3::octahedron_encode() const {
 	Vector3 n = *this;
 	n /= Math::abs(n.x) + Math::abs(n.y) + Math::abs(n.z);
