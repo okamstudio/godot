@@ -44,8 +44,10 @@
 #include "editor/inspector_dock.h"
 #include "editor/multi_node_edit.h"
 #include "editor/plugins/animation_player_editor_plugin.h"
+#include "editor/plugins/skeleton_3d_editor_plugin.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/3d/mesh_instance_3d.h"
+#include "scene/3d/skeleton_3d.h"
 #include "scene/animation/animation_player.h"
 #include "scene/animation/tween.h"
 #include "scene/gui/check_box.h"
@@ -5771,7 +5773,32 @@ void AnimationTrackEditor::_update_key_edit() {
 		key_edit->hint = _find_hint_for_track(key_edit->track, np);
 		key_edit->base = np;
 
-		EditorNode::get_singleton()->push_item(key_edit);
+		// Highlighting skeleton3D bone gizmo if keyframe is modifying a bone
+		Animation::TrackType track_type = animation->track_get_type(key_edit->track);
+		Skeleton3DEditor *se = Skeleton3DEditor::get_singleton();
+
+		// Only show selected gizmos if we have a skeleton3DEditor instance and it is in editor mode
+		if ((track_type == Animation::TYPE_ROTATION_3D || track_type == Animation::TYPE_POSITION_3D || track_type == Animation::TYPE_SCALE_3D) && se && se->is_edit_mode()) {
+			NodePath path = animation->track_get_path(key_edit->track);
+
+			Node *node = root->get_node_or_null(path);
+			if (!node) {
+				return;
+			}
+
+			Skeleton3D *skeleton = Object::cast_to<Skeleton3D>(node);
+
+			// If skeleton isn't valid or isn't referring to skeleton in skeleton 3D editor
+			if (!skeleton || skeleton != se->get_skeleton()) {
+				return;
+			}
+
+			// If cast was successful, find bone idx we were modifying
+			int bone_idx = skeleton->find_bone(path.get_subname(0));
+
+			// Select new bone
+			se->select_bone(bone_idx);
+		}
 	} else if (selection.size() > 1) {
 		multi_key_edit = memnew(AnimationMultiTrackKeyEdit);
 		multi_key_edit->animation = animation;
@@ -5781,6 +5808,13 @@ void AnimationTrackEditor::_update_key_edit() {
 		RBMap<int, List<float>> key_ofs_map;
 		RBMap<int, NodePath> base_map;
 		int first_track = -1;
+
+		Skeleton3DEditor *se = Skeleton3DEditor::get_singleton();
+		if (se) {
+			// Clear current selection
+			se->select_bone(-1);
+		}
+
 		for (const KeyValue<SelectedKey, KeyInfo> &E : selection) {
 			int track = E.key.track;
 			if (first_track < 0) {
@@ -5804,8 +5838,6 @@ void AnimationTrackEditor::_update_key_edit() {
 		multi_key_edit->hint = _find_hint_for_track(first_track, base_map[first_track]);
 		multi_key_edit->use_fps = timeline->is_using_fps();
 		multi_key_edit->root_path = root;
-
-		EditorNode::get_singleton()->push_item(multi_key_edit);
 	}
 }
 
