@@ -100,6 +100,7 @@ public:
 	};
 
 	enum MenuItems {
+		MENU_CLEAR,
 		MENU_COPY,
 		MENU_SELECT_ALL,
 		MENU_MAX
@@ -552,6 +553,8 @@ private:
 	bool context_menu_enabled = false;
 	bool shortcut_keys_enabled = true;
 
+	bool clearing_enabled = false;
+
 	// Context menu.
 	PopupMenu *menu = nullptr;
 	void _generate_context_menu();
@@ -766,6 +769,9 @@ public:
 
 	void set_fit_content(bool p_enabled);
 	bool is_fit_content_enabled() const;
+
+	void set_clearing_enabled(bool p_clear);
+	bool is_clearing_enabled();
 
 	bool search(const String &p_string, bool p_from_selection = false, bool p_search_previous = false);
 

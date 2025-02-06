@@ -460,6 +460,7 @@ EditorLog::EditorLog() {
 	log->set_h_size_flags(SIZE_EXPAND_FILL);
 	log->set_deselect_on_focus_loss_enabled(false);
 	log->connect("meta_clicked", callable_mp(this, &EditorLog::_meta_clicked));
+	log->set_clearing_enabled(true);
 	vb_left->add_child(log);
 
 	// Search box

@@ -4237,6 +4237,14 @@ bool RichTextLabel::is_fit_content_enabled() const {
 	return fit_content;
 }
 
+void RichTextLabel::set_clearing_enabled(bool p_clear) {
+	clearing_enabled = p_clear;
+}
+
+bool RichTextLabel::is_clearing_enabled() {
+	return clearing_enabled;
+}
+
 void RichTextLabel::set_meta_underline(bool p_underline) {
 	if (underline_meta == p_underline) {
 		return;
@@ -6836,6 +6844,7 @@ void RichTextLabel::_generate_context_menu() {
 	add_child(menu, false, INTERNAL_MODE_FRONT);
 	menu->connect(SceneStringName(id_pressed), callable_mp(this, &RichTextLabel::menu_option));
 
+	menu->add_item(ETR("Clear"), MENU_CLEAR);
 	menu->add_item(ETR("Copy"), MENU_COPY);
 	menu->add_item(ETR("Select All"), MENU_SELECT_ALL);
 }
@@ -6854,6 +6863,7 @@ void RichTextLabel::_update_context_menu() {
 		m_menu->set_item_disabled(idx, m_disabled);                                                                    \
 	}
 
+	MENU_ITEM_ACTION_DISABLED(menu, MENU_CLEAR, "ui_clear", !clearing_enabled)
 	MENU_ITEM_ACTION_DISABLED(menu, MENU_COPY, "ui_copy", !selection.enabled)
 	MENU_ITEM_ACTION_DISABLED(menu, MENU_SELECT_ALL, "ui_text_select_all", !selection.enabled)
 
@@ -6887,6 +6897,9 @@ Key RichTextLabel::_get_menu_action_accelerator(const String &p_action) {
 
 void RichTextLabel::menu_option(int p_option) {
 	switch (p_option) {
+		case MENU_CLEAR: {
+			clear();
+		} break;
 		case MENU_COPY: {
 			selection_copy();
 		} break;
