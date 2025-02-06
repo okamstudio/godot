@@ -342,6 +342,26 @@ private:
 		uint64_t proximity_fade : 1;
 		uint64_t orm : 1;
 
+		// Textures except for albedo.
+		// Albedo texture is always sampled as it's required by Sprite3D and Label3D.
+		uint64_t texture_metallic : 1;
+		uint64_t texture_roughness : 1;
+		uint64_t texture_emission : 1;
+		uint64_t texture_normal : 1;
+		uint64_t texture_rim : 1;
+		uint64_t texture_clearcoat : 1;
+		uint64_t texture_flowmap : 1;
+		uint64_t texture_ambient_occlusion : 1;
+		uint64_t texture_heightmap : 1;
+		uint64_t texture_subsurface_scattering : 1;
+		uint64_t texture_subsurface_transmittance : 1;
+		uint64_t texture_backlight : 1;
+		uint64_t texture_refraction : 1;
+		uint64_t texture_detail_mask : 1;
+		uint64_t texture_detail_albedo : 1;
+		uint64_t texture_detail_normal : 1;
+		uint64_t texture_orm : 1;
+
 		// flag bitfield
 		uint32_t feature_mask;
 		uint32_t flags;
@@ -394,6 +414,24 @@ private:
 		mk.emission_op = emission_op;
 		mk.alpha_antialiasing_mode = alpha_antialiasing_mode;
 		mk.orm = orm;
+
+		mk.texture_metallic = textures[TEXTURE_METALLIC].is_valid();
+		mk.texture_roughness = textures[TEXTURE_ROUGHNESS].is_valid();
+		mk.texture_emission = textures[TEXTURE_EMISSION].is_valid();
+		mk.texture_normal = textures[TEXTURE_NORMAL].is_valid();
+		mk.texture_rim = textures[TEXTURE_RIM].is_valid();
+		mk.texture_clearcoat = textures[TEXTURE_CLEARCOAT].is_valid();
+		mk.texture_flowmap = textures[TEXTURE_FLOWMAP].is_valid();
+		mk.texture_ambient_occlusion = textures[TEXTURE_AMBIENT_OCCLUSION].is_valid();
+		mk.texture_heightmap = textures[TEXTURE_HEIGHTMAP].is_valid();
+		mk.texture_subsurface_scattering = textures[TEXTURE_SUBSURFACE_SCATTERING].is_valid();
+		mk.texture_subsurface_transmittance = textures[TEXTURE_SUBSURFACE_TRANSMITTANCE].is_valid();
+		mk.texture_backlight = textures[TEXTURE_BACKLIGHT].is_valid();
+		mk.texture_refraction = textures[TEXTURE_REFRACTION].is_valid();
+		mk.texture_detail_mask = textures[TEXTURE_DETAIL_MASK].is_valid();
+		mk.texture_detail_albedo = textures[TEXTURE_DETAIL_ALBEDO].is_valid();
+		mk.texture_detail_normal = textures[TEXTURE_DETAIL_NORMAL].is_valid();
+		mk.texture_orm = textures[TEXTURE_ORM].is_valid();
 
 		for (int i = 0; i < FEATURE_MAX; i++) {
 			if (features[i]) {
