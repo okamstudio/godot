@@ -507,6 +507,9 @@
 		<member name="editors/3d_gizmos/gizmo_settings/path3d_tilt_disk_size" type="float" setter="" getter="">
 			Size of the disk gizmo displayed when editing [Path3D]'s tilt handles.
 		</member>
+		<member name="editors/3d_gizmos/gizmo_settings/show_collision_shapes_only_when_selected" type="bool" setter="" getter="">
+			If [code]true[/code], collision shapes in the 3D editor are visible only when selected. If [code]false[/code], collision shapes are always visible.
+		</member>
 		<member name="editors/animation/autorename_animation_tracks" type="bool" setter="" getter="">
 			If [code]true[/code], automatically updates animation tracks' target paths when renaming or reparenting nodes in the Scene tree dock.
 		</member>

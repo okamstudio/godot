@@ -42,11 +42,14 @@ class CollisionShape3DGizmoPlugin : public EditorNode3DGizmoPlugin {
 
 	Ref<Gizmo3DHelper> helper;
 
+	inline static bool show_only_when_selected = false;
+
 public:
 	bool has_gizmo(Node3D *p_spatial) override;
 	String get_gizmo_name() const override;
 	int get_priority() const override;
 	void redraw(EditorNode3DGizmo *p_gizmo) override;
+	static void set_show_only_when_selected(bool p_enabled);
 
 	String get_handle_name(const EditorNode3DGizmo *p_gizmo, int p_id, bool p_secondary) const override;
 	Variant get_handle_value(const EditorNode3DGizmo *p_gizmo, int p_id, bool p_secondary) const override;
