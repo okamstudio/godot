@@ -155,6 +155,10 @@ class Skeleton3DEditor : public VBoxContainer {
 
 	EditorFileDialog *file_dialog = nullptr;
 
+	ConfirmationDialog *physical_skeleton_dialog = nullptr;
+	SpinBox *physical_bone_radius = nullptr;
+	SpinBox *physical_bone_overhang = nullptr;
+
 	bool keyable = false;
 
 	static Skeleton3DEditor *singleton;
@@ -177,6 +181,7 @@ class Skeleton3DEditor : public VBoxContainer {
 	void insert_keys(const bool p_all_bones);
 
 	void create_physical_skeleton();
+	void create_physical_skeleton_settings();
 	PhysicalBone3D *create_physical_bone(int bone_id, int bone_child_id, const Vector<BoneInfo> &bones_infos);
 
 	void export_skeleton_profile();

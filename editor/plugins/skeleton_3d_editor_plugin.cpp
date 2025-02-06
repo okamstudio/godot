@@ -384,7 +384,7 @@ void Skeleton3DEditor::_on_click_skeleton_option(int p_skeleton_option) {
 			break;
 		}
 		case SKELETON_OPTION_CREATE_PHYSICAL_SKELETON: {
-			create_physical_skeleton();
+			create_physical_skeleton_settings();
 			break;
 		}
 		case SKELETON_OPTION_EXPORT_SKELETON_PROFILE: {
@@ -560,14 +560,20 @@ void Skeleton3DEditor::create_physical_skeleton() {
 	ur->commit_action();
 }
 
+void Skeleton3DEditor::create_physical_skeleton_settings() {
+	physical_skeleton_dialog->popup_centered(Size2(220, 100) * EDSCALE);
+}
+
+
 PhysicalBone3D *Skeleton3DEditor::create_physical_bone(int bone_id, int bone_child_id, const Vector<BoneInfo> &bones_infos) {
 	const Transform3D child_rest = skeleton->get_bone_rest(bone_child_id);
 
 	const real_t half_height(child_rest.origin.length() * 0.5);
-	const real_t radius(half_height * 0.2);
+	const real_t half_height_overhang = half_height + physical_bone_overhang->get_value();
+	const real_t radius(fmin(half_height_overhang, physical_bone_radius->get_value()));
 
 	CapsuleShape3D *bone_shape_capsule = memnew(CapsuleShape3D);
-	bone_shape_capsule->set_height(half_height * 2);
+	bone_shape_capsule->set_height(half_height_overhang * 2);
 	bone_shape_capsule->set_radius(radius);
 
 	CollisionShape3D *bone_shape = memnew(CollisionShape3D);
@@ -992,6 +998,44 @@ void Skeleton3DEditor::create_editors() {
 	file_dialog = memnew(EditorFileDialog);
 	file_dialog->connect("file_selected", callable_mp(this, &Skeleton3DEditor::_file_selected));
 	add_child(file_dialog);
+
+	// Create Physical Skeleton settings dialog
+	physical_skeleton_dialog = memnew(ConfirmationDialog);
+	physical_skeleton_dialog->set_title(TTR("Physical Bone radius"));
+	add_child(physical_skeleton_dialog);
+
+	VBoxContainer *dialog_vbc = memnew(VBoxContainer);
+	physical_skeleton_dialog->add_child(dialog_vbc);
+
+	Label *radius = memnew(Label);
+	radius->set_text(TTR("Capsule Radius:"));
+	dialog_vbc->add_child(radius);
+	radius->set_mouse_filter(MouseFilter::MOUSE_FILTER_PASS);
+	radius->set_tooltip_text(TTR("The radius of the CollisionCapsuele."));
+
+	physical_bone_radius = memnew(SpinBox);
+	physical_bone_radius->set_h_size_flags(SIZE_EXPAND_FILL);
+	physical_bone_radius->set_select_all_on_focus(true);
+	physical_bone_radius->set_step(0.1);
+	physical_bone_radius->set_value(0.2);
+	physical_bone_radius->set_suffix("m");
+	dialog_vbc->add_child(physical_bone_radius);
+
+	Label *overhang = memnew(Label);
+	overhang->set_text(TTR("Capsule Overhang:"));
+	overhang->set_mouse_filter(MouseFilter::MOUSE_FILTER_PASS);
+	overhang->set_tooltip_text(TTR("How far the CollisionCapsule should extend beyond the bone."));
+	dialog_vbc->add_child(overhang);
+
+	physical_bone_overhang = memnew(SpinBox);
+	physical_bone_overhang->set_h_size_flags(SIZE_EXPAND_FILL);
+	physical_bone_overhang->set_select_all_on_focus(true);
+	physical_bone_overhang->set_step(0.1);
+	physical_bone_overhang->set_value(0.0);
+	physical_bone_overhang->set_suffix("m");
+	dialog_vbc->add_child(physical_bone_overhang);
+
+	physical_skeleton_dialog->connect("confirmed", callable_mp(this, &Skeleton3DEditor::create_physical_skeleton));
 
 	// Create Top Menu Bar.
 	topmenu_bar = memnew(HBoxContainer);
