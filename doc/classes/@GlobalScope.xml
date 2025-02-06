@@ -2926,7 +2926,7 @@
 			Hints that a property is an [Array] with the stored type specified in the hint string.
 		</constant>
 		<constant name="PROPERTY_HINT_DICTIONARY_TYPE" value="38" enum="PropertyHint">
-			Hints that a property is a [Dictionary] with the stored types specified in the hint string.
+			Hints that a property is a [Dictionary] with the stored types specified in the hint string. The hint string contains the key and value types separated by a semicolon (e.g. [code]"int;String"[/code]).
 		</constant>
 		<constant name="PROPERTY_HINT_LOCALE_ID" value="32" enum="PropertyHint">
 			Hints that a string property is a locale code. Editing it will show a locale dialog for picking language and country.
