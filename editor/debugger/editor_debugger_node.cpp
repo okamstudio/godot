@@ -278,6 +278,16 @@ Error EditorDebuggerNode::start(const String &p_uri) {
 	stop(true);
 	current_uri = p_uri;
 
+	// Update tab count bases on running instance.
+	TypedArray<Dictionary> stored_data = TypedArray<Dictionary>(EditorSettings::get_singleton()->get_project_metadata("debug_options", "run_instances_config", TypedArray<Dictionary>()));
+	int instance_count = stored_data.size();
+	int tab_count = tabs->get_tab_count();
+	if (instance_count != tab_count) {
+		for (int x = tab_count - 1; x != 0; x--) {
+			tabs->remove_child(tabs->get_tab_control(x));
+		}
+	}
+
 	server = Ref<EditorDebuggerServer>(EditorDebuggerServer::create(p_uri.substr(0, p_uri.find("://") + 3)));
 	const Error err = server->start(p_uri);
 	if (err != OK) {
