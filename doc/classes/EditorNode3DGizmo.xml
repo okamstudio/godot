@@ -214,5 +214,12 @@
 				Sets the reference [Node3D] node for the gizmo. [param node] must inherit from [Node3D].
 			</description>
 		</method>
+		<method name="set_subgizmo_selection">
+			<return type="void" />
+			<param index="0" name="ids" type="PackedInt32Array" />
+			<description>
+				Sets the selected subgizmos. The [param ids] should be an array of unique subgizmo identifiers, which can have any non-negative value and will be used in virtual methods like [method _get_subgizmo_transform] or [method _commit_subgizmos].
+			</description>
+		</method>
 	</methods>
 </class>

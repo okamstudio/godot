@@ -8264,6 +8264,21 @@ Vector<int> Node3DEditor::get_subgizmo_selection() {
 	return ret;
 }
 
+void Node3DEditor::set_subgizmo_selection(const Vector<int> &p_ids, Ref<EditorNode3DGizmo> p_gizmo) {
+	Node3DEditorSelectedItem *se = selected ? editor_selection->get_node_editor_data<Node3DEditorSelectedItem>(selected) : nullptr;
+	if (se) {
+		se->subgizmos.clear();
+
+		for (int subgizmo_id : p_ids) {
+			se->subgizmos.insert(subgizmo_id, p_gizmo->get_subgizmo_transform(subgizmo_id));
+		}
+
+		se->gizmo = p_gizmo;
+		p_gizmo->redraw();
+		update_transform_gizmo();
+	}
+}
+
 void Node3DEditor::clear_subgizmo_selection(Object *p_obj) {
 	_clear_subgizmo_selection(p_obj);
 }

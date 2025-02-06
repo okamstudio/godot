@@ -782,6 +782,12 @@ Vector<int> EditorNode3DGizmo::get_subgizmo_selection() const {
 	return ret;
 }
 
+void EditorNode3DGizmo::set_subgizmo_selection(const Vector<int> &p_ids) {
+	Node3DEditor *ed = Node3DEditor::get_singleton();
+	ERR_FAIL_NULL(ed);
+	ed->set_subgizmo_selection(p_ids, this);
+}
+
 void EditorNode3DGizmo::create() {
 	ERR_FAIL_NULL(spatial_node);
 	ERR_FAIL_COND(valid);
@@ -854,6 +860,7 @@ void EditorNode3DGizmo::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_hidden", "hidden"), &EditorNode3DGizmo::set_hidden);
 	ClassDB::bind_method(D_METHOD("is_subgizmo_selected", "id"), &EditorNode3DGizmo::is_subgizmo_selected);
 	ClassDB::bind_method(D_METHOD("get_subgizmo_selection"), &EditorNode3DGizmo::get_subgizmo_selection);
+	ClassDB::bind_method(D_METHOD("set_subgizmo_selection", "ids"), &EditorNode3DGizmo::set_subgizmo_selection);
 
 	GDVIRTUAL_BIND(_redraw);
 	GDVIRTUAL_BIND(_get_handle_name, "id", "secondary");
