@@ -618,6 +618,19 @@ namespace Godot
         }
 
         /// <summary>
+        /// Rotates this vector by <paramref name="angle"/> radians, around the <paramref name="origin"/>
+        /// </summary>
+        /// <param name="origin">The position to rotate around.</param>
+        /// <param name="angle">The angle to rotate by, in radians.</param>
+        /// <returns>The rotated vector.</returns>
+        public readonly Vector2 RotatedAround(Vector2 origin, real_t angle)
+        {
+            Vector2 t = this - origin;
+            Vector2 r = t.Rotated(angle);
+            return r + origin;
+        }
+
+        /// <summary>
         /// Returns this vector with all components rounded to the nearest integer,
         /// with halfway cases rounded towards the nearest multiple of two.
         /// </summary>

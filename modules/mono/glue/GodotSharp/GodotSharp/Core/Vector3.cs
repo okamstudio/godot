@@ -631,6 +631,34 @@ namespace Godot
         }
 
         /// <summary>
+        /// Rotates this vector around a specific <paramref name="origin"/> using the <paramref name="axis"/> vector by <paramref name="angle"/> (in radians).
+        /// The <paramref name="axis"/> vector must be a normalized vector.
+        /// </summary>
+        /// <param name="origin">The position to rotate around.</param>
+        /// <param name="axis">The vector to rotate around. Must be normalized.</param>
+        /// <param name="angle">The angle to rotate by, in radians.</param>
+        /// <returns>The rotated vector.</returns>
+        public readonly Vector3 RotatedAroundAxis(Vector3 origin, Vector3 axis, real_t angle)
+        {
+            Vector3 t = this - origin;
+            Vector3 r = t.Rotated(axis, angle);
+            return r + origin;
+        }
+
+        /// <summary>
+        /// Rotates this vector around a specific <paramref name="origin"/> using the <paramref name="rotation"/> quaternion.
+        /// </summary>
+        /// <param name="origin">The position to rotate around.</param>
+        /// <param name="rotation">The quaternion to rotate the vector with. Must be normalized.</param>
+        /// <returns>The rotated vector.</returns>
+        public readonly Vector3 RotatedAround(Vector3 origin, Quaternion rotation)
+        {
+            Vector3 t = this - origin;
+            Vector3 r = rotation * t;
+            return r + origin;
+        }
+
+        /// <summary>
         /// Returns this vector with all components rounded to the nearest integer,
         /// with halfway cases rounded towards the nearest multiple of two.
         /// </summary>

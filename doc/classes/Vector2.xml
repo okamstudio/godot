@@ -371,6 +371,14 @@
 				Returns the result of rotating this vector by [param angle] (in radians). See also [method @GlobalScope.deg_to_rad].
 			</description>
 		</method>
+		<method name="rotated_around" qualifiers="const">
+			<return type="Vector2" />
+			<param index="0" name="origin" type="Vector2" />
+			<param index="1" name="angle" type="float" />
+			<description>
+				Returns the result of rotating this vector by [param angle] (in radians), around the [param origin]. See also [method @GlobalScope.deg_to_rad].
+			</description>
+		</method>
 		<method name="round" qualifiers="const">
 			<return type="Vector2" />
 			<description>

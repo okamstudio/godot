@@ -38,6 +38,7 @@
 struct Basis;
 struct Vector2;
 struct Vector3i;
+struct Quaternion;
 
 struct [[nodiscard]] Vector3 {
 	static const int AXIS_COUNT = 3;
@@ -110,6 +111,12 @@ struct [[nodiscard]] Vector3 {
 
 	void rotate(const Vector3 &p_axis, real_t p_angle);
 	Vector3 rotated(const Vector3 &p_axis, real_t p_angle) const;
+
+	void rotate_around_axis(const Vector3 &p_origin, const Vector3 &p_axis, const real_t p_angle);
+	Vector3 rotated_around_axis(const Vector3 &p_origin, const Vector3 &p_axis, const real_t p_angle) const;
+
+	void rotate_around(const Vector3 &p_origin, const Quaternion &p_quaternion);
+	Vector3 rotated_around(const Vector3 &p_origin, const Quaternion &p_quaternion) const;
 
 	/* Static Methods between 2 vector3s */
 

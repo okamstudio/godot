@@ -45,6 +45,30 @@ Vector3 Vector3::rotated(const Vector3 &p_axis, real_t p_angle) const {
 	return r;
 }
 
+void Vector3::rotate_around_axis(const Vector3 &p_origin, const Vector3 &p_axis, const real_t p_angle) {
+	*this -= p_origin;
+	this->rotate(p_axis, p_angle);
+	*this += p_origin;
+}
+
+Vector3 Vector3::rotated_around_axis(const Vector3 &p_origin, const Vector3 &p_axis, const real_t p_angle) const {
+	Vector3 r = *this;
+	r.rotate_around_axis(p_origin, p_axis, p_angle);
+	return r;
+}
+
+void Vector3::rotate_around(const Vector3 &p_origin, const Quaternion &p_quaternion) {
+	*this -= p_origin;
+	*this = p_quaternion.xform(*this);
+	*this += p_origin;
+}
+
+Vector3 Vector3::rotated_around(const Vector3 &p_origin, const Quaternion &p_quaternion) const {
+	Vector3 r = *this;
+	r.rotate_around(p_origin, p_quaternion);
+	return r;
+}
+
 Vector3 Vector3::clamp(const Vector3 &p_min, const Vector3 &p_max) const {
 	return Vector3(
 			CLAMP(x, p_min.x, p_max.x),

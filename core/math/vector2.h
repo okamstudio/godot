@@ -166,7 +166,9 @@ struct [[nodiscard]] Vector2 {
 		return Vector2(Math::abs(x), Math::abs(y));
 	}
 
+	Vector2 rotated_around(Vector2 p_origin, real_t p_by) const;
 	Vector2 rotated(real_t p_by) const;
+
 	Vector2 orthogonal() const {
 		return Vector2(y, -x);
 	}

@@ -349,6 +349,32 @@ TEST_CASE("[Vector3] Other methods") {
 			"Vector3 rotated should work as expected.");
 
 	CHECK_MESSAGE(
+			vector.rotated_around_axis(Vector3(0, 0, 0), Vector3(0, 1, 0), Math_TAU).is_equal_approx(vector),
+			"Vector3 rotated_around should work as expected.");
+	CHECK_MESSAGE(
+			vector.rotated_around_axis(Vector3(100, 0, 100), Vector3(0, 1, 0), Math_TAU / 4).is_equal_approx(Vector3(5.6, 3.4, 198.8)),
+			"Vector3 rotated_around should work as expected.");
+	CHECK_MESSAGE(
+			vector.rotated_around_axis(Vector3(100, 0, 100), Vector3(1, 0, 0), Math_TAU / 3).is_equal_approx(Vector3(1.2, 80.0528, 150.1445)),
+			"Vector3 rotated_around should work as expected.");
+	CHECK_MESSAGE(
+			vector.rotated_around_axis(Vector3(100, 0, 100), Vector3(0, 0, 1), Math_TAU / 2).is_equal_approx(vector.rotated_around_axis(Vector3(100, 0, 100), Vector3(0, 0, 1), Math_TAU / -2)),
+			"Vector3 rotated_around should work as expected.");
+
+	CHECK_MESSAGE(
+			vector.rotated_around(Vector3(0, 0, 0), Quaternion(Vector3(0, 1, 0), Math_TAU)).is_equal_approx(vector),
+			"Vector3 rotated_around should work as expected.");
+	CHECK_MESSAGE(
+			vector.rotated_around(Vector3(100, 0, 100), Quaternion(Vector3(0, 1, 0), Math_TAU / 4)).is_equal_approx(Vector3(5.6, 3.4, 198.8)),
+			"Vector3 rotated_around should work as expected.");
+	CHECK_MESSAGE(
+			vector.rotated_around(Vector3(100, 0, 100), Quaternion(Vector3(1, 0, 0), Math_TAU / 3)).is_equal_approx(Vector3(1.2, 80.0528, 150.1445)),
+			"Vector3 rotated_around should work as expected.");
+	CHECK_MESSAGE(
+			vector.rotated_around(Vector3(100, 0, 100), Quaternion(Vector3(0, 0, 1), Math_TAU / 2)).is_equal_approx(vector.rotated_around(Vector3(100, 0, 100), Quaternion(Vector3(0, 0, 1), Math_TAU / -2))),
+			"Vector3 rotated_around should work as expected.");
+
+	CHECK_MESSAGE(
 			vector.snapped(Vector3(1, 1, 1)) == Vector3(1, 3, 6),
 			"Vector3 snapped to integers should be the same as rounding.");
 	CHECK_MESSAGE(

@@ -117,6 +117,12 @@ Vector2 Vector2::rotated(real_t p_by) const {
 			x * sine + y * cosi);
 }
 
+Vector2 Vector2::rotated_around(Vector2 p_origin, real_t p_by) const {
+	Vector2 t = (*this) - p_origin;
+	Vector2 r = t.rotated(p_by);
+	return r + p_origin;
+}
+
 Vector2 Vector2::posmod(real_t p_mod) const {
 	return Vector2(Math::fposmod(x, p_mod), Math::fposmod(y, p_mod));
 }

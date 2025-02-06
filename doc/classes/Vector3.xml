@@ -357,6 +357,23 @@
 				Returns the result of rotating this vector around a given axis by [param angle] (in radians). The axis must be a normalized vector. See also [method @GlobalScope.deg_to_rad].
 			</description>
 		</method>
+		<method name="rotated_around" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="origin" type="Vector3" />
+			<param index="1" name="quaternion" type="Quaternion" />
+			<description>
+				Returns the result of rotating this vector around the [param origin], by the rotation represented by the [param quaternion]. See also [method @GlobalScope.deg_to_rad].
+			</description>
+		</method>
+		<method name="rotated_around_axis" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="origin" type="Vector3" />
+			<param index="1" name="axis" type="Vector3" />
+			<param index="2" name="angle" type="float" />
+			<description>
+				Returns the result of rotating this vector around the [param origin], by a given axis by [param angle] (in radians). The axis must be a normalized vector. See also [method @GlobalScope.deg_to_rad].
+			</description>
+		</method>
 		<method name="round" qualifiers="const">
 			<return type="Vector3" />
 			<description>

@@ -1839,6 +1839,7 @@ static void _register_variant_builtin_methods_math() {
 	bind_method(Vector2, max_axis_index, sarray(), varray());
 	bind_method(Vector2, min_axis_index, sarray(), varray());
 	bind_method(Vector2, move_toward, sarray("to", "delta"), varray());
+	bind_method(Vector2, rotated_around, sarray("origin", "angle"), varray());
 	bind_method(Vector2, rotated, sarray("angle"), varray());
 	bind_method(Vector2, orthogonal, sarray(), varray());
 	bind_method(Vector2, floor, sarray(), varray());
@@ -1941,6 +1942,8 @@ static void _register_variant_builtin_methods_math() {
 	bind_method(Vector3, snapped, sarray("step"), varray());
 	bind_method(Vector3, snappedf, sarray("step"), varray());
 	bind_method(Vector3, rotated, sarray("axis", "angle"), varray());
+	bind_method(Vector3, rotated_around, sarray("origin", "quaternion"), varray());
+	bind_method(Vector3, rotated_around_axis, sarray("origin", "axis", "angle"), varray());
 	bind_method(Vector3, lerp, sarray("to", "weight"), varray());
 	bind_method(Vector3, slerp, sarray("to", "weight"), varray());
 	bind_method(Vector3, cubic_interpolate, sarray("b", "pre_a", "post_b", "weight"), varray());

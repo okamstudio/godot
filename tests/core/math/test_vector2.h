@@ -331,6 +331,19 @@ TEST_CASE("[Vector2] Other methods") {
 			"Vector2 rotated should work as expected.");
 
 	CHECK_MESSAGE(
+			vector.rotated_around(Vector2(0, 0), Math_TAU).is_equal_approx(Vector2(1.2, 3.4)),
+			"Vector2 rotated_around should work as expected.");
+	CHECK_MESSAGE(
+			vector.rotated_around(Vector2(100, 100), Math_TAU / 4).is_equal_approx(Vector2(196.6, 1.2)),
+			"Vector2 rotated_around should work as expected.");
+	CHECK_MESSAGE(
+			vector.rotated_around(Vector2(100, 100), Math_TAU / 3).is_equal_approx(Vector2(233.05806, 62.7367)),
+			"Vector2 rotated_around should work as expected.");
+	CHECK_MESSAGE(
+			vector.rotated_around(Vector2(100, 100), Math_TAU / 2).is_equal_approx(vector.rotated_around(Vector2(100.0f, 100.0f), Math_TAU / -2)),
+			"Vector2 rotated_around should work as expected.");
+
+	CHECK_MESSAGE(
 			vector.snapped(Vector2(1, 1)) == Vector2(1, 3),
 			"Vector2 snapped to integers should be the same as rounding.");
 	CHECK_MESSAGE(
