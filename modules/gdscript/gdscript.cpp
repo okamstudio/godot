@@ -2330,6 +2330,7 @@ void GDScriptLanguage::finish() {
 	// Clear dependencies between scripts, to ensure cyclic references are broken
 	// (to avoid leaks at exit).
 	SelfList<GDScript> *s = script_list.first();
+	Ref<WeakRef> wnext = memnew(WeakRef);
 	while (s) {
 		// This ensures the current script is not released before we can check
 		// what's the next one in the list (we can't get the next upfront because we
@@ -2354,6 +2355,16 @@ void GDScriptLanguage::finish() {
 			scr->clear();
 		}
 		s = s->next();
+		if (!s) {
+			break;
+		}
+
+		// Destructing scr might lead to s being released. So we store a weakref here to check later
+		wnext->set_obj(s->self());
+		scr.unref();
+		if (wnext->get_ref().is_null()) {
+			s = script_list.first();
+		}
 	}
 	script_list.clear();
 	function_list.clear();
