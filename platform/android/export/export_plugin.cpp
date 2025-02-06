@@ -392,8 +392,7 @@ void EditorExportPlatformAndroid::_check_for_changes_poll_thread(void *ud) {
 							// its format is "[property]: [value]" so changed it as like build.prop
 							String p = props[j];
 							p = p.replace("]: ", "=");
-							p = p.replace("[", "");
-							p = p.replace("]", "");
+							p = p.remove_chars("[]");
 
 							if (p.begins_with("ro.product.model=")) {
 								device = p.get_slice("=", 1).strip_edges();

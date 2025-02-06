@@ -1632,7 +1632,7 @@ Error DocTools::save_classes(const String &p_default_path, const HashMap<String,
 		}
 
 		Error err;
-		String save_file = save_path.path_join(c.name.replace("\"", "").replace("/", "--") + ".xml");
+		String save_file = save_path.path_join(c.name.remove_char('\"').replace("/", "--") + ".xml");
 		Ref<FileAccess> f = FileAccess::open(save_file, FileAccess::WRITE, &err);
 
 		ERR_CONTINUE_MSG(err != OK, "Can't write doc file: " + save_file + ".");

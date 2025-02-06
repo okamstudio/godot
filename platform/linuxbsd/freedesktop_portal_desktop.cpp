@@ -505,7 +505,7 @@ Error FreeDesktopPortalDesktop::file_dialog_show(DisplayServer::WindowID p_windo
 
 	String dbus_unique_name = String::utf8(dbus_bus_get_unique_name(monitor_connection));
 	String token = String::hex_encode_buffer(uuid, 64);
-	String path = vformat("/org/freedesktop/portal/desktop/request/%s/%s", dbus_unique_name.replace(".", "_").replace(":", ""), token);
+	String path = vformat("/org/freedesktop/portal/desktop/request/%s/%s", dbus_unique_name.replace(".", "_").remove_char(':'), token);
 
 	fd.path = path;
 	fd.filter = vformat("type='signal',sender='org.freedesktop.portal.Desktop',path='%s',interface='org.freedesktop.portal.Request',member='Response',destination='%s'", path, dbus_unique_name);

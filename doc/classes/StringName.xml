@@ -671,6 +671,20 @@
 				[b]Example:[/b] [code]"this/is".path_join("path") == "this/is/path"[/code].
 			</description>
 		</method>
+		<method name="remove_char" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="what" type="int" />
+			<description>
+				Removes all occurrences of the Unicode character with code [param what]. Faster version of [method replace] when the key is only one character long and the replacement is [code]""[/code].
+			</description>
+		</method>
+		<method name="remove_chars" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="chars" type="String" />
+			<description>
+				Removes any occurrence of the characters in [param chars]. See also [method remove_char].
+			</description>
+		</method>
 		<method name="repeat" qualifiers="const">
 			<return type="String" />
 			<param index="0" name="count" type="int" />

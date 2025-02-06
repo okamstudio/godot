@@ -1713,6 +1713,8 @@ static void _register_variant_builtin_methods_string() {
 	bind_string_method(format, sarray("values", "placeholder"), varray("{_}"));
 	bind_string_methodv(replace, static_cast<String (String::*)(const String &, const String &) const>(&String::replace), sarray("what", "forwhat"), varray());
 	bind_string_methodv(replacen, static_cast<String (String::*)(const String &, const String &) const>(&String::replacen), sarray("what", "forwhat"), varray());
+	bind_string_method(remove_char, sarray("what"), varray());
+	bind_string_methodv(remove_chars, static_cast<String (String::*)(const String &) const>(&String::remove_chars), sarray("chars"), varray());
 	bind_string_method(repeat, sarray("count"), varray());
 	bind_string_method(reverse, sarray(), varray());
 	bind_string_method(insert, sarray("position", "what"), varray());

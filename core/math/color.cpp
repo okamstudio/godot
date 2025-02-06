@@ -415,18 +415,14 @@ Color Color::named(const String &p_name, const Color &p_default) {
 int Color::find_named_color(const String &p_name) {
 	String name = p_name;
 	// Normalize name.
-	name = name.replace(" ", "");
-	name = name.replace("-", "");
-	name = name.replace("_", "");
-	name = name.replace("'", "");
-	name = name.replace(".", "");
+	name = name.remove_chars(" -_'.");
 	name = name.to_upper();
 
 	static HashMap<String, int> named_colors_hashmap;
 	if (unlikely(named_colors_hashmap.is_empty())) {
 		const int named_color_count = get_named_color_count();
 		for (int i = 0; i < named_color_count; i++) {
-			named_colors_hashmap[String(named_colors[i].name).replace("_", "")] = i;
+			named_colors_hashmap[String(named_colors[i].name).remove_char('_')] = i;
 		}
 	}
 

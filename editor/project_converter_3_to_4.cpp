@@ -1990,9 +1990,9 @@ void ProjectConverter3To4::process_gdscript_line(String &line, const RegExContai
 			Vector<String> parts = parse_arguments(line.substr(start, end));
 			if (parts.size() == 2) {
 				if (builtin) {
-					line = line.substr(0, start) + "await " + parts[0] + "." + parts[1].replace("\\\"", "").replace("\\'", "").replace(" ", "") + line.substr(end + start);
+					line = line.substr(0, start) + "await " + parts[0] + "." + parts[1].replace("\\\"", "").replace("\\'", "").remove_char(' ') + line.substr(end + start);
 				} else {
-					line = line.substr(0, start) + "await " + parts[0] + "." + parts[1].replace("\"", "").replace("\'", "").replace(" ", "") + line.substr(end + start);
+					line = line.substr(0, start) + "await " + parts[0] + "." + parts[1].remove_chars("\"' ") + line.substr(end + start);
 				}
 			}
 		}
@@ -2920,7 +2920,7 @@ String ProjectConverter3To4::line_formatter(int current_line, String from, Strin
 
 	from = from.strip_escapes();
 	to = to.strip_escapes();
-	line = line.replace("\r", "").replace("\n", "").strip_edges();
+	line = line.remove_chars("\r\n").strip_edges();
 
 	return vformat("Line(%d), %s -> %s  -  LINE \"\"\" %s \"\"\"", current_line, from, to, line);
 }
@@ -2935,8 +2935,8 @@ String ProjectConverter3To4::simple_line_formatter(int current_line, String old_
 		new_line = new_line.substr(0, 997) + "...";
 	}
 
-	old_line = old_line.replace("\r", "").replace("\n", "").strip_edges();
-	new_line = new_line.replace("\r", "").replace("\n", "").strip_edges();
+	old_line = old_line.remove_chars("\r\n").strip_edges();
+	new_line = new_line.remove_chars("\r\n").strip_edges();
 
 	return vformat("Line (%d) - FULL LINES - \"\"\" %s \"\"\"  =====>  \"\"\" %s \"\"\"", current_line, old_line, new_line);
 }

@@ -226,7 +226,7 @@ void PropertySelector::_update_search() {
 
 				Ref<Texture2D> icon;
 				script_methods = false;
-				String rep = mi.name.replace("*", "");
+				String rep = mi.name.remove_char('*');
 				if (mi.name == "*Script Methods") {
 					icon = search_options->get_editor_theme_icon(SNAME("Script"));
 					script_methods = true;

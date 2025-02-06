@@ -695,7 +695,7 @@ const lsp::DocumentSymbol *GDScriptWorkspace::resolve_symbol(const lsp::TextDocu
 
 			} else {
 				ScriptLanguage::LookupResult ret;
-				if (symbol_identifier == "new" && parser->get_lines()[p_doc_pos.position.line].replace(" ", "").replace("\t", "").contains("new(")) {
+				if (symbol_identifier == "new" && parser->get_lines()[p_doc_pos.position.line].remove_chars(" \t").contains("new(")) {
 					symbol_identifier = "_init";
 				}
 				if (OK == GDScriptLanguage::get_singleton()->lookup_code(parser->get_text_for_lookup_symbol(pos, symbol_identifier, p_func_required), symbol_identifier, path, nullptr, ret)) {

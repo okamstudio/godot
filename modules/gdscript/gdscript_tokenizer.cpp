@@ -863,7 +863,7 @@ GDScriptTokenizer::Token GDScriptTokenizerText::number() {
 
 	// Create a string with the whole number.
 	int len = _current - _start;
-	String number = String(_start, len).replace("_", "");
+	String number = String(_start, len).remove_char('_');
 
 	// Convert to the appropriate literal type.
 	if (base == 16) {

@@ -2243,7 +2243,7 @@ void ScriptTextEditor::_text_edit_gui_input(const Ref<InputEvent> &ev) {
 			switch (expression_pattern) {
 				case RGBA_PARAMETER: {
 					color_args = line.substr(begin, end - begin);
-					String stripped = color_args.replace(" ", "").replace("\t", "").replace("(", "").replace(")", "");
+					String stripped = color_args.remove_chars(" \t()");
 					PackedFloat64Array color = stripped.split_floats(",");
 					if (color.size() > 2) {
 						float alpha = color.size() > 3 ? color[3] : 1.0f;
@@ -2255,7 +2255,7 @@ void ScriptTextEditor::_text_edit_gui_input(const Ref<InputEvent> &ev) {
 						end = line.length();
 					}
 					color_args = line.substr(begin, end - begin);
-					const String color_name = color_args.replace(" ", "").replace("\t", "").replace(".", "");
+					const String color_name = color_args.remove_chars(" \t.");
 					const int color_index = Color::find_named_color(color_name);
 					if (0 <= color_index) {
 						const Color color_constant = Color::get_named_color(color_index);

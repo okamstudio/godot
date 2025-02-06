@@ -721,7 +721,7 @@ void ColorPicker::_update_presets() {
 			}
 
 			if (palette_edited) {
-				palette_name->set_text(vformat("%s*", palette_name->get_text().replace("*", "")));
+				palette_name->set_text(vformat("%s*", palette_name->get_text().remove_char('*')));
 				palette_name->set_tooltip_text(ETR("The changes to this palette have not been saved to a file."));
 			}
 		}
@@ -1087,7 +1087,7 @@ void ColorPicker::erase_preset(const Color &p_color) {
 			}
 		}
 
-		palette_name->set_text(vformat("%s*", palette_name->get_text().replace("*", "")));
+		palette_name->set_text(vformat("%s*", palette_name->get_text().remove_char('*')));
 		palette_name->set_tooltip_text(ETR("The changes to this palette have not been saved to a file."));
 		if (presets.is_empty()) {
 			palette_name->set_text("");

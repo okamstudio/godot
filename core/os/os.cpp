@@ -214,7 +214,7 @@ String OS::get_locale() const {
 // Non-virtual helper to extract the 2 or 3-letter language code from
 // `get_locale()` in a way that's consistent for all platforms.
 String OS::get_locale_language() const {
-	return get_locale().left(3).replace("_", "");
+	return get_locale().left(3).remove_char('_');
 }
 
 // Embedded PCK offset.
