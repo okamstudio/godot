@@ -96,6 +96,7 @@ Error ResourceImporterCSVTranslation::import(ResourceUID::ID p_source_id, const 
 
 	Vector<String> locales;
 	Vector<Ref<Translation>> translations;
+	Vector<HashMap<String, Vector<String>>> messages;
 	HashSet<int> skipped_locales;
 
 	for (int i = 1; i < line.size(); i++) {
@@ -114,6 +115,7 @@ Error ResourceImporterCSVTranslation::import(ResourceUID::ID p_source_id, const 
 		translation.instantiate();
 		translation->set_locale(locale);
 		translations.push_back(translation);
+		messages.push_back(HashMap<String, Vector<String>>());
 	}
 
 	do {
@@ -127,13 +129,28 @@ Error ResourceImporterCSVTranslation::import(ResourceUID::ID p_source_id, const 
 				if (skipped_locales.has(i)) {
 					continue;
 				}
-				translations.write[write_index++]->add_message(key, line[i].c_unescape());
+				if (key.to_lower() == "_pluralrule") {
+					translations.write[write_index++]->set_plural_rule(line[i].c_unescape());
+					continue;
+				}
+				if (line[i].is_empty()) {
+					write_index++;
+				} else {
+					messages.write[write_index++][key].push_back(line[i].c_unescape());
+				}
 			}
 		}
 	} while (!f->eof_reached());
 
 	for (int i = 0; i < translations.size(); i++) {
 		Ref<Translation> xlt = translations[i];
+		for (const KeyValue<String, Vector<String>> &E : messages[i]) {
+			if (E.value.size() == 1) {
+				xlt->add_message(E.key, E.value[0]);
+			} else if (E.value.size() > 1) {
+				xlt->add_plural_message(E.key, E.value);
+			}
+		}
 
 		if (compress) {
 			Ref<OptimizedTranslation> cxl = memnew(OptimizedTranslation);

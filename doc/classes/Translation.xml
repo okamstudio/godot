@@ -29,6 +29,14 @@
 				Virtual method to override [method get_plural_message].
 			</description>
 		</method>
+		<method name="_get_plural_messages" qualifiers="virtual const">
+			<return type="PackedStringArray" />
+			<param index="0" name="src_message" type="StringName" />
+			<param index="1" name="context" type="StringName" />
+			<description>
+				Virtual method to override [method get_plural_messages].
+			</description>
+		</method>
 		<method name="add_message">
 			<return type="void" />
 			<param index="0" name="src_message" type="StringName" />
@@ -77,6 +85,12 @@
 				Returns all the messages (keys).
 			</description>
 		</method>
+		<method name="get_plural_forms" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns number of plural forms.
+			</description>
+		</method>
 		<method name="get_plural_message" qualifiers="const">
 			<return type="StringName" />
 			<param index="0" name="src_message" type="StringName" />
@@ -86,6 +100,14 @@
 			<description>
 				Returns a message's translation involving plurals.
 				The number [param n] is the number or quantity of the plural object. It will be used to guide the translation system to fetch the correct plural form for the selected language.
+			</description>
+		</method>
+		<method name="get_plural_messages" qualifiers="const">
+			<return type="PackedStringArray" />
+			<param index="0" name="src_message" type="StringName" />
+			<param index="1" name="context" type="StringName" default="&amp;&quot;&quot;" />
+			<description>
+				Returns an array of message's translation plural forms.
 			</description>
 		</method>
 		<method name="get_translated_message_list" qualifiers="const">
@@ -98,6 +120,9 @@
 	<members>
 		<member name="locale" type="String" setter="set_locale" getter="get_locale" default="&quot;en&quot;">
 			The locale of the translation.
+		</member>
+		<member name="plural_rule" type="String" setter="set_plural_rule" getter="get_plural_rule" default="&quot;&quot;">
+			The plural forms rule string.
 		</member>
 	</members>
 </class>

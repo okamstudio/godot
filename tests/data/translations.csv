@@ -1,3 +1,6 @@
-keys,en,de,ja,fa
-GOOD_MORNING,"Good Morning","Guten Morgen","おはよう","صبح بخیر"
-GOOD_EVENING,"Good Evening","","こんばんは","عصر بخیر"
+keys,en,de,ja,fa,fr
+_PluralRule,"","","","","nplurals=2; plural=(n >= 2);"
+GOOD_MORNING,"Good Morning","Guten Morgen","おはよう","صبح بخیر",""
+GOOD_EVENING,"Good Evening","","こんばんは","عصر بخیر",""
+"There are %d apples","","","","","Il y a %d pomme"
+"There are %d apples","","","","","Il y a %d pommes"
