@@ -81,7 +81,6 @@ TEST_CASE("[PackedScene] Signals Preserved when Packing Scene") {
 	sub_scene_root->set_scene_connection_id(456);
 	sub_scene_node->set_scene_connection_id(456);
 
-
 	SUBCASE("Signals that should be saved") {
 		int main_flags = Object::CONNECT_PERSIST;
 		// sub node to a node in main scene
