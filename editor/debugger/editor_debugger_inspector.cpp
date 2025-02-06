@@ -291,7 +291,28 @@ String EditorDebuggerInspector::get_stack_variable(const String &p_var) {
 	for (KeyValue<StringName, Variant> &E : variables->prop_values) {
 		String v = E.key.operator String();
 		if (v.get_slice("/", 1) == p_var) {
-			return variables->get_variant(v);
+			Variant var = variables->get_variant(v);
+
+			String prefix;
+			String literal = String(var);
+
+			switch (var.get_type()) {
+				case Variant::STRING:
+					literal = literal.quote("\"");
+					break;
+				case Variant::STRING_NAME:
+					prefix = "&";
+					literal = literal.quote("\"");
+					break;
+				case Variant::NODE_PATH:
+					prefix = "^";
+					literal = literal.quote("\"");
+					break;
+				default:
+					break;
+			}
+
+			return prefix + literal;
 		}
 	}
 	return String();
