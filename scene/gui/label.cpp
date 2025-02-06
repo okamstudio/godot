@@ -120,7 +120,7 @@ void Label::_shape() const {
 		paragraphs.clear();
 
 		String txt = (uppercase) ? TS->string_to_upper(xl_text, language) : xl_text;
-		if (visible_chars >= 0 && visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING) {
+		if (visible_chars >= 0 && (visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING || visible_chars_behavior == TextServer::VC_CHARS_AFTER_SHAPING)) {
 			txt = txt.substr(0, visible_chars);
 		}
 		String ps = paragraph_separator.c_unescape();
@@ -1191,7 +1191,7 @@ void Label::set_visible_characters(int p_amount) {
 		} else {
 			visible_ratio = 1.0;
 		}
-		if (visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING) {
+		if (visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING || visible_chars_behavior == TextServer::VC_CHARS_AFTER_SHAPING) {
 			text_dirty = true;
 		}
 		queue_redraw();
@@ -1215,7 +1215,7 @@ void Label::set_visible_ratio(float p_ratio) {
 			visible_ratio = p_ratio;
 		}
 
-		if (visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING) {
+		if (visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING || visible_chars_behavior == TextServer::VC_CHARS_AFTER_SHAPING) {
 			text_dirty = true;
 		}
 		queue_redraw();
@@ -1232,7 +1232,7 @@ TextServer::VisibleCharactersBehavior Label::get_visible_characters_behavior() c
 
 void Label::set_visible_characters_behavior(TextServer::VisibleCharactersBehavior p_behavior) {
 	if (visible_chars_behavior != p_behavior) {
-		if (visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING || p_behavior == TextServer::VC_CHARS_BEFORE_SHAPING) {
+		if (visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING || visible_chars_behavior == TextServer::VC_CHARS_AFTER_SHAPING || p_behavior == TextServer::VC_CHARS_BEFORE_SHAPING || p_behavior == TextServer::VC_CHARS_AFTER_SHAPING) {
 			text_dirty = true;
 		}
 		visible_chars_behavior = p_behavior;

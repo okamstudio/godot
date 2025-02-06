@@ -521,7 +521,7 @@ float RichTextLabel::_shape_line(ItemFrame *p_frame, int p_line, const Ref<Font>
 	Item *it_to = (p_line + 1 < (int)p_frame->lines.size()) ? p_frame->lines[p_line + 1].from : nullptr;
 	int remaining_characters = visible_characters - l.char_offset;
 	for (Item *it = l.from; it && it != it_to; it = _get_next_item(it)) {
-		if (visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING && visible_characters >= 0 && remaining_characters <= 0) {
+		if ((visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING || visible_chars_behavior == TextServer::VC_CHARS_AFTER_SHAPING) && visible_characters >= 0 && remaining_characters <= 0) {
 			break;
 		}
 		switch (it->type) {
@@ -575,7 +575,7 @@ float RichTextLabel::_shape_line(ItemFrame *p_frame, int p_line, const Ref<Font>
 				}
 				String lang = _find_language(it);
 				String tx = t->text;
-				if (visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING && visible_characters >= 0 && remaining_characters >= 0) {
+				if ((visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING || visible_chars_behavior == TextServer::VC_CHARS_AFTER_SHAPING) && visible_characters >= 0 && remaining_characters >= 0) {
 					tx = tx.substr(0, remaining_characters);
 				}
 				remaining_characters -= tx.length();
@@ -873,7 +873,7 @@ int RichTextLabel::_draw_line(ItemFrame *p_frame, int p_line, const Vector2 &p_o
 			} break;
 		}
 
-		bool skip_prefix = (visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING && l.char_offset == visible_characters) || (trim_chars && l.char_offset > visible_characters) || (trim_glyphs_ltr && (r_processed_glyphs >= visible_glyphs)) || (trim_glyphs_rtl && (r_processed_glyphs < total_glyphs - visible_glyphs));
+		bool skip_prefix = ((visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING || visible_chars_behavior == TextServer::VC_CHARS_AFTER_SHAPING) && l.char_offset == visible_characters) || (trim_chars && l.char_offset > visible_characters) || (trim_glyphs_ltr && (r_processed_glyphs >= visible_glyphs)) || (trim_glyphs_rtl && (r_processed_glyphs < total_glyphs - visible_glyphs));
 		if (l.text_prefix.is_valid() && line == 0 && !skip_prefix) {
 			Color font_color = _find_color(l.from, p_base_color);
 			int outline_size = _find_outline_size(l.from, p_outline_size);
@@ -6342,7 +6342,7 @@ void RichTextLabel::set_visible_ratio(float p_ratio) {
 			visible_ratio = p_ratio;
 		}
 
-		if (visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING) {
+		if (visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING || visible_chars_behavior == TextServer::VC_CHARS_AFTER_SHAPING) {
 			main->first_invalid_line.store(0); //  Invalidate all lines..
 			_validate_line_caches();
 		}
@@ -6723,7 +6723,7 @@ void RichTextLabel::set_visible_characters(int p_visible) {
 				visible_ratio = (float)p_visible / (float)total_char_count;
 			}
 		}
-		if (visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING) {
+		if (visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING || visible_chars_behavior == TextServer::VC_CHARS_AFTER_SHAPING) {
 			main->first_invalid_line.store(0); // Invalidate all lines.
 			_validate_line_caches();
 		}
