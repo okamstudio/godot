@@ -22,6 +22,7 @@
 		</member>
 		<member name="region" type="Rect2" setter="set_region" getter="get_region" default="Rect2(0, 0, 0, 0)">
 			The region used to draw the [member atlas]. If either dimension of the region's size is [code]0[/code], the value from [member atlas] size will be used for that axis instead.
+			[b]Note:[/b] The image size is always an integer, so the actual region size is rounded down.
 		</member>
 		<member name="resource_local_to_scene" type="bool" setter="set_local_to_scene" getter="is_local_to_scene" overrides="Resource" default="false" />
 	</members>

@@ -31,24 +31,24 @@
 #include "atlas_texture.h"
 
 int AtlasTexture::get_width() const {
-	if (region.size.width == 0) {
+	if (rounded_region.size.width == 0) {
 		if (atlas.is_valid()) {
 			return atlas->get_width();
 		}
 		return 1;
 	} else {
-		return region.size.width + margin.size.width;
+		return rounded_region.size.width + margin.size.width;
 	}
 }
 
 int AtlasTexture::get_height() const {
-	if (region.size.height == 0) {
+	if (rounded_region.size.height == 0) {
 		if (atlas.is_valid()) {
 			return atlas->get_height();
 		}
 		return 1;
 	} else {
-		return region.size.height + margin.size.height;
+		return rounded_region.size.height + margin.size.height;
 	}
 }
 
@@ -94,6 +94,7 @@ void AtlasTexture::set_region(const Rect2 &p_region) {
 		return;
 	}
 	region = p_region;
+	rounded_region = Rect2(p_region.position, p_region.size.floor());
 	emit_changed();
 }
 
@@ -123,7 +124,7 @@ bool AtlasTexture::has_filter_clip() const {
 }
 
 Rect2 AtlasTexture::_get_region_rect() const {
-	Rect2 rc = region;
+	Rect2 rc = rounded_region;
 	if (atlas.is_valid()) {
 		if (rc.size.width == 0) {
 			rc.size.width = atlas->get_width();
@@ -196,14 +197,14 @@ bool AtlasTexture::get_rect_region(const Rect2 &p_rect, const Rect2 &p_src_rect,
 
 	Rect2 src = p_src_rect;
 	if (src.size == Size2()) {
-		src.size = region.size;
+		src.size = rounded_region.size;
 	}
 	if (src.size == Size2() && atlas.is_valid()) {
 		src.size = atlas->get_size();
 	}
 	Vector2 scale = p_rect.size / src.size;
 
-	src.position += (region.position - margin.position);
+	src.position += (rounded_region.position - margin.position);
 	Rect2 src_clipped = _get_region_rect().intersection(src);
 	if (src_clipped.size == Size2()) {
 		return false;
@@ -227,8 +228,8 @@ bool AtlasTexture::is_pixel_opaque(int p_x, int p_y) const {
 		return true;
 	}
 
-	int x = p_x + region.position.x - margin.position.x;
-	int y = p_y + region.position.y - margin.position.y;
+	int x = p_x + rounded_region.position.x - margin.position.x;
+	int y = p_y + rounded_region.position.y - margin.position.y;
 
 	// Margin edge may outside of atlas.
 	if (x < 0 || x >= atlas->get_width()) {
