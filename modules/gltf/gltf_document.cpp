@@ -4689,6 +4689,35 @@ Error GLTFDocument::_parse_materials(Ref<GLTFState> p_state) {
 			}
 		}
 
+		// Supersedes KHR_materials_pbrSpecularGlossiness
+		// see https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_materials_specular/README.md
+		if (material_extensions.has("KHR_materials_specular")) {
+			Dictionary specular_properties = material_extensions["KHR_materials_specular"];
+			if (specular_properties.has("specularFactor")) {
+				float specular_value = specular_properties["specularFactor"];
+				material->set_specular(specular_value / 2.0);
+
+			} else if (specular_properties.has("specularColorFactor")) {
+				const Array &arr = specular_properties["specularColorFactor"];
+				ERR_FAIL_COND_V(arr.size() != 3, ERR_PARSE_ERROR);
+				float specular_value = arr[0];
+				if (specular_value > 2.0) {
+					specular_value = 2.0;
+				}
+				// we don't have support for specular tint color, but there's no way
+				// of knowing just the specular factor if the tint color is not (1,1,1)
+				// Therefore, enforce the constraint that all values must be equal
+				// However we can't know if (0.5, 0.5, 0.5) is a gray tint * specular factor of 1
+				// or a specular factor of 0.5. That's up to the user to set the Blender model
+				// correctly for Godot usage
+				if ((arr[0] == arr[1]) && (arr[1] == arr[2])) {
+					material->set_specular(specular_value / 2.0);
+				} else {
+					WARN_PRINT("Material has a specular factor that is not linear (i.e. Specular tint is not RGB (1.0, 1.0, 1.0))");
+				}
+			}
+		}
+
 		if (material_extensions.has("KHR_materials_pbrSpecularGlossiness")) {
 			WARN_PRINT("Material uses a specular and glossiness workflow. Textures will be converted to roughness and metallic workflow, which may not be 100% accurate.");
 			Dictionary sgm = material_extensions["KHR_materials_pbrSpecularGlossiness"];
