@@ -150,6 +150,7 @@ void EditorBottomPanel::_switch_to_item(bool p_visible, int p_idx, bool p_ignore
 	}
 
 	last_opened_control = items[p_idx].control;
+	emit_signal("toggle_bottom_panel", p_visible);
 }
 
 void EditorBottomPanel::_pin_button_toggled(bool p_pressed) {
@@ -291,6 +292,10 @@ void EditorBottomPanel::toggle_last_opened_bottom_panel() {
 		// Open the first panel in the list if no panel was opened this session.
 		_switch_to_item(true, 0, true);
 	}
+}
+
+void EditorBottomPanel::_bind_methods() {
+	ADD_SIGNAL(MethodInfo("toggle_bottom_panel", PropertyInfo(Variant::BOOL, "visible")));
 }
 
 EditorBottomPanel::EditorBottomPanel() {

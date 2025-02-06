@@ -75,6 +75,7 @@ class EditorBottomPanel : public PanelContainer {
 
 protected:
 	void _notification(int p_what);
+	static void _bind_methods();
 
 public:
 	void save_layout_to_config(Ref<ConfigFile> p_config_file, const String &p_section) const;

@@ -1830,6 +1830,8 @@ void ScriptEditor::_notification(int p_what) {
 
 			EditorSettings::get_singleton()->connect("settings_changed", callable_mp(this, &ScriptEditor::_editor_settings_changed));
 			EditorFileSystem::get_singleton()->connect("filesystem_changed", callable_mp(this, &ScriptEditor::_filesystem_changed));
+
+			EditorNode::get_bottom_panel()->connect("toggle_bottom_panel", callable_mp(this, &ScriptEditor::_bottom_pannel_toggled));
 		} break;
 
 		case NOTIFICATION_EXIT_TREE: {
@@ -4084,6 +4086,15 @@ void ScriptEditor::_on_find_in_files_close_button_clicked() {
 void ScriptEditor::_window_changed(bool p_visible) {
 	make_floating->set_visible(!p_visible);
 	is_floating = p_visible;
+}
+
+void ScriptEditor::_bottom_pannel_toggled(bool p_visible) {
+	if (p_visible) {
+		list_split->set_visible(false);
+	} else if (EditorSettings::get_singleton()->get_project_metadata("scripts_panel", "show_scripts_panel", true)) {
+		// If the bottom panel is hidden and the script panel was previously visible, show the script panel again.
+		list_split->set_visible(true);
+	}
 }
 
 void ScriptEditor::_filter_scripts_text_changed(const String &p_newtext) {

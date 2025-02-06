@@ -1634,6 +1634,7 @@ void CodeTextEditor::_set_show_warnings_panel(bool p_show) {
 void CodeTextEditor::_toggle_scripts_pressed() {
 	ERR_FAIL_NULL(toggle_scripts_list);
 	toggle_scripts_list->set_visible(!toggle_scripts_list->is_visible());
+	EditorSettings::get_singleton()->set_project_metadata("scripts_panel", "show_scripts_panel", toggle_scripts_list->is_visible());
 	update_toggle_scripts_button();
 }
 
