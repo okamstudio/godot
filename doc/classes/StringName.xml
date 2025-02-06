@@ -86,7 +86,7 @@
 		<method name="capitalize" qualifiers="const">
 			<return type="String" />
 			<description>
-				Changes the appearance of the string: replaces underscores ([code]_[/code]) with spaces, adds spaces before uppercase letters in the middle of a word, converts all letters to lowercase, then converts the first one and each one following a space to uppercase.
+				Returns a copy of the string with the following changes: replaces underscores ([code]_[/code]) with spaces, adds spaces before uppercase letters in the middle of a word, converts all letters to lowercase, then converts the first one and each one following a space to uppercase.
 				[codeblocks]
 				[gdscript]
 				"move_local_x".capitalize()   # Returns "Move Local X"
@@ -380,7 +380,7 @@
 			<return type="String" />
 			<param index="0" name="prefix" type="String" />
 			<description>
-				Indents every line of the string with the given [param prefix]. Empty lines are not indented. See also [method dedent] to remove indentation.
+				Returns a copy of the string with every line indented with the given [param prefix]. Empty lines are not indented. See also [method dedent] to remove indentation.
 				For example, the string can be indented with two tabulations using [code]"\t\t"[/code], or four spaces using [code]"    "[/code].
 			</description>
 		</method>
@@ -389,7 +389,7 @@
 			<param index="0" name="position" type="int" />
 			<param index="1" name="what" type="String" />
 			<description>
-				Inserts [param what] at the given [param position] in the string.
+				Returns a copy of the string with [param what] inserted at the given [param position].
 			</description>
 		</method>
 		<method name="is_absolute_path" qualifiers="const">
@@ -590,7 +590,7 @@
 			<return type="String" />
 			<param index="0" name="chars" type="String" />
 			<description>
-				Removes a set of characters defined in [param chars] from the string's beginning. See also [method rstrip].
+				Returns a copy of the string with the set of characters defined in [param chars] removed from the beginning. See also [method rstrip].
 				[b]Note:[/b] [param chars] is not a prefix. Use [method trim_prefix] to remove a single prefix, rather than a set of characters.
 			</description>
 		</method>
@@ -683,7 +683,7 @@
 			<param index="0" name="what" type="String" />
 			<param index="1" name="forwhat" type="String" />
 			<description>
-				Replaces all occurrences of [param what] inside the string with the given [param forwhat].
+				Returns a copy of the string with all occurrences of [param what] replaced with the given [param forwhat].
 			</description>
 		</method>
 		<method name="replacen" qualifiers="const">
@@ -691,7 +691,7 @@
 			<param index="0" name="what" type="String" />
 			<param index="1" name="forwhat" type="String" />
 			<description>
-				Replaces all [b]case-insensitive[/b] occurrences of [param what] inside the string with the given [param forwhat].
+				Returns a copy of the string with all [b]case-insensitive[/b] occurrences of [param what] replaced with the given [param forwhat].
 			</description>
 		</method>
 		<method name="reverse" qualifiers="const">
@@ -763,7 +763,7 @@
 			<return type="String" />
 			<param index="0" name="chars" type="String" />
 			<description>
-				Removes a set of characters defined in [param chars] from the string's end. See also [method lstrip].
+				Returns a copy of the string with the set of characters defined in [param chars] removed from the end. See also [method lstrip].
 				[b]Note:[/b] [param chars] is not a suffix. Use [method trim_suffix] to remove a single suffix, rather than a set of characters.
 			</description>
 		</method>
@@ -983,14 +983,14 @@
 			<return type="String" />
 			<param index="0" name="prefix" type="String" />
 			<description>
-				Removes the given [param prefix] from the start of the string, or returns the string unchanged.
+				Returns a copy of the string with the given [param prefix] removed from the beginning, or returns the string unchanged.
 			</description>
 		</method>
 		<method name="trim_suffix" qualifiers="const">
 			<return type="String" />
 			<param index="0" name="suffix" type="String" />
 			<description>
-				Removes the given [param suffix] from the end of the string, or returns the string unchanged.
+				Returns a copy of the string with the given [param suffix] removed from the end, or returns the string unchanged.
 			</description>
 		</method>
 		<method name="unicode_at" qualifiers="const">
