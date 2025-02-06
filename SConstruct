@@ -175,6 +175,7 @@ opts.Add(BoolVariable("debug_paths_relative", "Make file paths in debug symbols 
 opts.Add(EnumVariable("lto", "Link-time optimization (production builds)", "none", ("none", "auto", "thin", "full")))
 opts.Add(BoolVariable("production", "Set defaults to build Godot for use in production", False))
 opts.Add(BoolVariable("threads", "Enable threading support", True))
+opts.Add(BoolVariable("gen_only", "Only generate source code / headers. Don't compile any code.", False))
 
 # Components
 opts.Add(BoolVariable("deprecated", "Enable compatibility code for deprecated and removed features", True))

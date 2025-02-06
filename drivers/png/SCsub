@@ -41,7 +41,7 @@ if env["builtin_libpng"]:
     if env["arch"].startswith("arm"):
         if env.msvc:  # Can't compile assembly files with MSVC.
             env_thirdparty.Append(CPPDEFINES=[("PNG_ARM_NEON_OPT", 0)])
-        else:
+        elif not env["gen_only"]:
             env_neon = env_thirdparty.Clone()
             if "S_compiler" in env:
                 env_neon["CC"] = env["S_compiler"]
