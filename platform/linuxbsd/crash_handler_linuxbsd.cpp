@@ -74,7 +74,28 @@ static void handle_crash(int sig) {
 
 	// Dump the backtrace to stderr with a message to the user
 	print_error("\n================================================================");
-	print_error(vformat("%s: Program crashed with signal %d", __FUNCTION__, sig));
+	String signal_description;
+	switch (sig) {
+		case SIGTERM:
+			signal_description = "(SIGTERM) - Terminated";
+			break;
+		case SIGSEGV:
+			signal_description = "(SIGSEGV) - Segmentation fault";
+			break;
+		case SIGINT:
+			signal_description = "(SIGINT) - Interrupt";
+			break;
+		case SIGILL:
+			signal_description = "(SIGILL) - Illegal instruction";
+			break;
+		case SIGABRT:
+			signal_description = "(SIGABRT) - Abnormal termination condition";
+			break;
+		case SIGFPE:
+			signal_description = "(SIGFPE) - Floating-point exception";
+			break;
+	}
+	print_error(vformat("%s: Program crashed with signal %d %s", __FUNCTION__, sig, signal_description));
 
 	// Print the engine version just before, so that people are reminded to include the version in backtrace reports.
 	if (String(VERSION_HASH).is_empty()) {
