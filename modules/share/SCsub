@@ -1,0 +1,6 @@
+Import("env")
+
+sources = ["register_types.cpp", "godot_share.mm"]
+
+if env["platform"] in ["ios", "macos"]:
+    env.add_source_files(env.modules_sources, sources)
