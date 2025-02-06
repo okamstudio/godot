@@ -2721,7 +2721,8 @@ void DisplayServerX11::_set_wm_maximized(WindowID p_window, bool p_enabled) {
 
 	XSendEvent(x11_display, DefaultRootWindow(x11_display), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
 
-	if (p_enabled && window_is_maximize_allowed(p_window)) {
+	static bool first = true; // Skip first (create_window) 50 failed attempts, works the second (show_window) time.
+	if (p_enabled && !first) {
 		// Wait for effective resizing (so the GLX context is too).
 		// Give up after 0.5s, it's not going to happen on this WM.
 		// https://github.com/godotengine/godot/issues/19978
@@ -2729,6 +2730,7 @@ void DisplayServerX11::_set_wm_maximized(WindowID p_window, bool p_enabled) {
 			OS::get_singleton()->delay_usec(10'000);
 		}
 	}
+	first = false;
 	wd.maximized = p_enabled;
 }
 
