@@ -683,6 +683,11 @@
 		<member name="size" type="Vector2i" setter="set_size" getter="get_size" default="Vector2i(100, 100)">
 			The window's size in pixels.
 		</member>
+		<member name="skip_taskbar" type="bool" setter="set_flag" getter="get_flag" default="false">
+			If [code]true[/code], the [Window] won't be visible in the taskbar or in the system's window manager's window list.
+			[b]Note:[/b] This property is implemented only on Windows.
+			[b]Note:[/b] This property only works with native windows.
+		</member>
 		<member name="theme" type="Theme" setter="set_theme" getter="get_theme">
 			The [Theme] resource this node and all its [Control] and [Window] children use. If a child node has its own [Theme] resource set, theme items are merged with child's definitions having higher priority.
 			[b]Note:[/b] [Window] styles will have no effect unless the window is embedded.
@@ -879,7 +884,12 @@
 			[b]Note:[/b] This flag is implemented on macOS and Windows.
 			[b]Note:[/b] Setting this flag will [b]NOT[/b] prevent other apps from capturing an image, it should not be used as a security measure.
 		</constant>
-		<constant name="FLAG_MAX" value="10" enum="Flags">
+		<constant name="FLAG_SKIP_TASKBAR" value="10" enum="Flags">
+			Window won't be visible in the taskbar or in the system's window manager's window list.
+			[b]Note:[/b] This flag has no effect in embedded windows.
+			[b]Note:[/b] This flag is implemented only on Windows.
+		</constant>
+		<constant name="FLAG_MAX" value="11" enum="Flags">
 			Max value of the [enum Flags].
 		</constant>
 		<constant name="CONTENT_SCALE_MODE_DISABLED" value="0" enum="ContentScaleMode">

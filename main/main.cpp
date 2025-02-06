@@ -2469,6 +2469,9 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		if (bool(GLOBAL_GET("display/window/size/sharp_corners"))) {
 			window_flags |= DisplayServer::WINDOW_FLAG_SHARP_CORNERS_BIT;
 		}
+		if (bool(GLOBAL_GET("display/window/size/skip_taskbar"))) {
+			window_flags |= DisplayServer::WINDOW_FLAG_SKIP_TASKBAR_BIT;
+		}
 		window_mode = (DisplayServer::WindowMode)(GLOBAL_GET("display/window/size/mode").operator int());
 		int initial_position_type = GLOBAL_GET("display/window/size/initial_position_type").operator int();
 		if (initial_position_type == 0) { // Absolute.

@@ -894,6 +894,10 @@
 			If [code]true[/code], the main window uses sharp corners by default.
 			[b]Note:[/b] This property is implemented only on Windows (11).
 		</member>
+		<member name="display/window/size/skip_taskbar" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], the main window won't be visible in the taskbar or in the system's window manager's window list.
+			[b]Note:[/b] This property is implemented only on Windows.
+		</member>
 		<member name="display/window/size/transparent" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], enables a window manager hint that the main window background [i]can[/i] be transparent. This does not make the background actually transparent. For the background to be transparent, the root viewport must also be made transparent by enabling [member rendering/viewport/transparent_background].
 			[b]Note:[/b] To use a transparent splash screen, set [member application/boot_splash/bg_color] to [code]Color(0, 0, 0, 0)[/code].

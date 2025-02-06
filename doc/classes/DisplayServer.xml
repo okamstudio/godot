@@ -2176,7 +2176,11 @@
 			[b]Note:[/b] This flag is implemented on macOS and Windows.
 			[b]Note:[/b] Setting this flag will [b]NOT[/b] prevent other apps from capturing an image, it should not be used as a security measure.
 		</constant>
-		<constant name="WINDOW_FLAG_MAX" value="10" enum="WindowFlags">
+		<constant name="WINDOW_FLAG_SKIP_TASKBAR" value="10" enum="WindowFlags">
+			Window won't be visible in the taskbar or in the system's window manager's window list.
+			[b]Note:[/b] This flag is implemented only on Windows.
+		</constant>
+		<constant name="WINDOW_FLAG_MAX" value="11" enum="WindowFlags">
 			Max value of the [enum WindowFlags].
 		</constant>
 		<constant name="WINDOW_EVENT_MOUSE_ENTER" value="0" enum="WindowEvent">

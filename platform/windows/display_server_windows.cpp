@@ -1600,6 +1600,9 @@ DisplayServer::WindowID DisplayServerWindows::create_sub_window(WindowMode p_mod
 	if (p_flags & WINDOW_FLAG_SHARP_CORNERS_BIT) {
 		wd.sharp_corners = true;
 	}
+	if (p_flags & WINDOW_FLAG_SKIP_TASKBAR_BIT) {
+		wd.skip_taskbar = true;
+	}
 	if (p_flags & WINDOW_FLAG_NO_FOCUS_BIT) {
 		wd.no_focus = true;
 	}
@@ -2554,6 +2557,22 @@ void DisplayServerWindows::window_set_flag(WindowFlags p_flag, bool p_enabled, W
 			ERR_FAIL_COND_MSG(p_enabled && wd.parent_hwnd, "Embedded window can't be popup.");
 			wd.is_popup = p_enabled;
 		} break;
+		case WINDOW_FLAG_SKIP_TASKBAR: {
+			if (wd.skip_taskbar != p_enabled) {
+				wd.skip_taskbar = p_enabled;
+				ITaskbarList *tbl = nullptr;
+				if (SUCCEEDED(CoCreateInstance(CLSID_TaskbarList, nullptr, CLSCTX_INPROC_SERVER, IID_ITaskbarList, (LPVOID *)&tbl))) {
+					if (SUCCEEDED(tbl->HrInit())) {
+						if (p_enabled) {
+							tbl->DeleteTab(wd.hWnd);
+						} else {
+							tbl->AddTab(wd.hWnd);
+						}
+					}
+					SAFE_RELEASE(tbl)
+				}
+			}
+		} break;
 		default:
 			break;
 	}
@@ -2591,6 +2610,9 @@ bool DisplayServerWindows::window_get_flag(WindowFlags p_flag, WindowID p_window
 		} break;
 		case WINDOW_FLAG_POPUP: {
 			return wd.is_popup;
+		} break;
+		case WINDOW_FLAG_SKIP_TASKBAR: {
+			return wd.skip_taskbar;
 		} break;
 		default:
 			break;
@@ -6354,6 +6376,16 @@ DisplayServer::WindowID DisplayServerWindows::_create_window(WindowMode p_mode, 
 		if (p_mode == WINDOW_MODE_MAXIMIZED && (p_flags & WINDOW_FLAG_BORDERLESS_BIT)) {
 			Rect2i srect = screen_get_usable_rect(rq_screen);
 			SetWindowPos(wd.hWnd, HWND_TOP, srect.position.x, srect.position.y, srect.size.width, srect.size.height, SWP_NOZORDER | SWP_NOACTIVATE);
+		}
+
+		if (p_flags & WINDOW_FLAG_SKIP_TASKBAR_BIT) {
+			ITaskbarList *tbl = nullptr;
+			if (SUCCEEDED(CoCreateInstance(CLSID_TaskbarList, nullptr, CLSCTX_INPROC_SERVER, IID_ITaskbarList, (LPVOID *)&tbl))) {
+				if (SUCCEEDED(tbl->HrInit())) {
+					tbl->DeleteTab(wd.hWnd);
+				}
+				SAFE_RELEASE(tbl)
+			}
 		}
 
 		wd.create_completed = true;

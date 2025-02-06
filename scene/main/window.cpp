@@ -3084,6 +3084,7 @@ void Window::_bind_methods() {
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "mouse_passthrough"), "set_flag", "get_flag", FLAG_MOUSE_PASSTHROUGH);
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "sharp_corners"), "set_flag", "get_flag", FLAG_SHARP_CORNERS);
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "exclude_from_capture"), "set_flag", "get_flag", FLAG_EXCLUDE_FROM_CAPTURE);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "skip_taskbar"), "set_flag", "get_flag", FLAG_SKIP_TASKBAR);
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "force_native"), "set_force_native", "get_force_native");
 
 	ADD_GROUP("Limits", "");
@@ -3140,6 +3141,7 @@ void Window::_bind_methods() {
 	BIND_ENUM_CONSTANT(FLAG_MOUSE_PASSTHROUGH);
 	BIND_ENUM_CONSTANT(FLAG_SHARP_CORNERS);
 	BIND_ENUM_CONSTANT(FLAG_EXCLUDE_FROM_CAPTURE);
+	BIND_ENUM_CONSTANT(FLAG_SKIP_TASKBAR);
 	BIND_ENUM_CONSTANT(FLAG_MAX);
 
 	BIND_ENUM_CONSTANT(CONTENT_SCALE_MODE_DISABLED);

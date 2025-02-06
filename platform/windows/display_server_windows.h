@@ -492,6 +492,7 @@ class DisplayServerWindows : public DisplayServer {
 		bool mpass = false;
 		bool sharp_corners = false;
 		bool hide_from_capture = false;
+		bool skip_taskbar = false;
 
 		// Used to transfer data between events using timer.
 		WPARAM saved_wparam;
