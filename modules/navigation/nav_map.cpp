@@ -233,9 +233,7 @@ void NavMap::add_region(NavRegion *p_region) {
 }
 
 void NavMap::remove_region(NavRegion *p_region) {
-	int64_t region_index = regions.find(p_region);
-	if (region_index >= 0) {
-		regions.remove_at_unordered(region_index);
+	if (regions.erase_unordered(p_region)) {
 		iteration_dirty = true;
 	}
 }
@@ -246,9 +244,7 @@ void NavMap::add_link(NavLink *p_link) {
 }
 
 void NavMap::remove_link(NavLink *p_link) {
-	int64_t link_index = links.find(p_link);
-	if (link_index >= 0) {
-		links.remove_at_unordered(link_index);
+	if (links.erase_unordered(p_link)) {
 		iteration_dirty = true;
 	}
 }
@@ -266,9 +262,7 @@ void NavMap::add_agent(NavAgent *agent) {
 
 void NavMap::remove_agent(NavAgent *agent) {
 	remove_agent_as_controlled(agent);
-	int64_t agent_index = agents.find(agent);
-	if (agent_index >= 0) {
-		agents.remove_at_unordered(agent_index);
+	if (agents.erase_unordered(agent)) {
 		agents_dirty = true;
 	}
 }
@@ -290,9 +284,7 @@ void NavMap::add_obstacle(NavObstacle *obstacle) {
 }
 
 void NavMap::remove_obstacle(NavObstacle *obstacle) {
-	int64_t obstacle_index = obstacles.find(obstacle);
-	if (obstacle_index >= 0) {
-		obstacles.remove_at_unordered(obstacle_index);
+	if (obstacles.erase_unordered(obstacle)) {
 		obstacles_dirty = true;
 	}
 }
@@ -321,14 +313,7 @@ void NavMap::set_agent_as_controlled(NavAgent *agent) {
 }
 
 void NavMap::remove_agent_as_controlled(NavAgent *agent) {
-	int64_t agent_3d_index = active_3d_avoidance_agents.find(agent);
-	if (agent_3d_index >= 0) {
-		active_3d_avoidance_agents.remove_at_unordered(agent_3d_index);
-		agents_dirty = true;
-	}
-	int64_t agent_2d_index = active_2d_avoidance_agents.find(agent);
-	if (agent_2d_index >= 0) {
-		active_2d_avoidance_agents.remove_at_unordered(agent_2d_index);
+	if (active_3d_avoidance_agents.erase_unordered(agent) || active_2d_avoidance_agents.erase_unordered(agent)) {
 		agents_dirty = true;
 	}
 }
