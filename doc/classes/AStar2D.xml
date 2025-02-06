@@ -176,6 +176,12 @@
 				If you change the 2nd point's weight to 3, then the result will be [code][1, 4, 3][/code] instead, because now even though the distance is longer, it's "easier" to get through point 4 than through point 2.
 			</description>
 		</method>
+		<method name="get_last_cost" qualifiers="const">
+			<return type="float" />
+			<description>
+				Returns the total cost of the last path found through [method get_id_path] or [method get_point_path]. Returns -1 if there was no last path calculated.
+			</description>
+		</method>
 		<method name="get_point_capacity" qualifiers="const">
 			<return type="int" />
 			<description>

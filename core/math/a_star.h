@@ -144,6 +144,7 @@ public:
 	bool has_point(int64_t p_id) const;
 	Vector<int64_t> get_point_connections(int64_t p_id);
 	PackedInt64Array get_point_ids();
+	real_t get_last_cost() const;
 
 	void set_point_disabled(int64_t p_id, bool p_disabled = true);
 	bool is_point_disabled(int64_t p_id) const;
@@ -200,6 +201,7 @@ public:
 	bool has_point(int64_t p_id) const;
 	Vector<int64_t> get_point_connections(int64_t p_id);
 	PackedInt64Array get_point_ids();
+	real_t get_last_cost() const;
 
 	void set_point_disabled(int64_t p_id, bool p_disabled = true);
 	bool is_point_disabled(int64_t p_id) const;

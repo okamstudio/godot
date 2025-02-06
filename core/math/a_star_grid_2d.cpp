@@ -734,6 +734,14 @@ TypedArray<Vector2i> AStarGrid2D::get_id_path(const Vector2i &p_from_id, const V
 	return path;
 }
 
+real_t AStarGrid2D::get_last_cost() const {
+	if (last_closest_point == nullptr) {
+		return -1;
+	}
+
+	return last_closest_point->g_score;
+}
+
 void AStarGrid2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_region", "region"), &AStarGrid2D::set_region);
 	ClassDB::bind_method(D_METHOD("get_region"), &AStarGrid2D::get_region);
@@ -769,6 +777,7 @@ void AStarGrid2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_point_data_in_region", "region"), &AStarGrid2D::get_point_data_in_region);
 	ClassDB::bind_method(D_METHOD("get_point_path", "from_id", "to_id", "allow_partial_path"), &AStarGrid2D::get_point_path, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("get_id_path", "from_id", "to_id", "allow_partial_path"), &AStarGrid2D::get_id_path, DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("get_last_cost"), &AStarGrid2D::get_last_cost);
 
 	GDVIRTUAL_BIND(_estimate_cost, "from_id", "end_id")
 	GDVIRTUAL_BIND(_compute_cost, "from_id", "to_id")

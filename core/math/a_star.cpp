@@ -548,6 +548,14 @@ bool AStar3D::is_point_disabled(int64_t p_id) const {
 	return !p->enabled;
 }
 
+real_t AStar3D::get_last_cost() const {
+	if (last_closest_point == nullptr) {
+		return -1;
+	}
+
+	return last_closest_point->g_score;
+}
+
 void AStar3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_available_point_id"), &AStar3D::get_available_point_id);
 	ClassDB::bind_method(D_METHOD("add_point", "id", "position", "weight_scale"), &AStar3D::add_point, DEFVAL(1.0));
@@ -559,6 +567,7 @@ void AStar3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("has_point", "id"), &AStar3D::has_point);
 	ClassDB::bind_method(D_METHOD("get_point_connections", "id"), &AStar3D::get_point_connections);
 	ClassDB::bind_method(D_METHOD("get_point_ids"), &AStar3D::get_point_ids);
+	ClassDB::bind_method(D_METHOD("get_last_cost"), &AStar3D::get_last_cost);
 
 	ClassDB::bind_method(D_METHOD("set_point_disabled", "id", "disabled"), &AStar3D::set_point_disabled, DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("is_point_disabled", "id"), &AStar3D::is_point_disabled);
@@ -887,6 +896,10 @@ bool AStar2D::_solve(AStar3D::Point *begin_point, AStar3D::Point *end_point, boo
 	return found_route;
 }
 
+real_t AStar2D::get_last_cost() const {
+	return astar.get_last_cost();
+}
+
 void AStar2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_available_point_id"), &AStar2D::get_available_point_id);
 	ClassDB::bind_method(D_METHOD("add_point", "id", "position", "weight_scale"), &AStar2D::add_point, DEFVAL(1.0));
@@ -898,6 +911,7 @@ void AStar2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("has_point", "id"), &AStar2D::has_point);
 	ClassDB::bind_method(D_METHOD("get_point_connections", "id"), &AStar2D::get_point_connections);
 	ClassDB::bind_method(D_METHOD("get_point_ids"), &AStar2D::get_point_ids);
+	ClassDB::bind_method(D_METHOD("get_last_cost"), &AStar2D::get_last_cost);
 
 	ClassDB::bind_method(D_METHOD("set_point_disabled", "id", "disabled"), &AStar2D::set_point_disabled, DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("is_point_disabled", "id"), &AStar2D::is_point_disabled);

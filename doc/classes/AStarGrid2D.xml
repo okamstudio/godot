@@ -82,6 +82,12 @@
 				[b]Note:[/b] When [param allow_partial_path] is [code]true[/code] and [param to_id] is solid the search may take an unusually long time to finish.
 			</description>
 		</method>
+		<method name="get_last_cost" qualifiers="const">
+			<return type="float" />
+			<description>
+				Returns the total cost of the last path found through [method get_id_path] or [method get_point_path]. Returns -1 if there was no last path calculated.
+			</description>
+		</method>
 		<method name="get_point_data_in_region" qualifiers="const">
 			<return type="Dictionary[]" />
 			<param index="0" name="region" type="Rect2i" />

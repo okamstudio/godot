@@ -225,6 +225,7 @@ public:
 	TypedArray<Dictionary> get_point_data_in_region(const Rect2i &p_region) const;
 	Vector<Vector2> get_point_path(const Vector2i &p_from, const Vector2i &p_to, bool p_allow_partial_path = false);
 	TypedArray<Vector2i> get_id_path(const Vector2i &p_from, const Vector2i &p_to, bool p_allow_partial_path = false);
+	real_t get_last_cost() const;
 };
 
 VARIANT_ENUM_CAST(AStarGrid2D::DiagonalMode);
