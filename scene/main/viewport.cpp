@@ -2036,6 +2036,11 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 			if (over->can_process()) {
 				_gui_call_input(over, mm);
 			}
+		} else {
+			// No control under mouse.
+			if (gui.tooltip_popup) {
+				_gui_cancel_tooltip();
+			}
 		}
 
 		if (gui.dragging) {
