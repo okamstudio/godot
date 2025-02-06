@@ -216,8 +216,11 @@ namespace GodotTools.Build
             arguments.Add(buildInfo.RuntimeIdentifier!);
 
             // Self-published
-            arguments.Add("--self-contained");
-            arguments.Add("true");
+            if (buildInfo.SelfPublished)
+            {
+                arguments.Add("--self-contained");
+                arguments.Add("true");
+            }
 
             // Verbosity
             AddVerbosityArguments(buildInfo, arguments, editorSettings);

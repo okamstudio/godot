@@ -293,11 +293,12 @@ namespace GodotTools.Build
             string platform,
             string runtimeIdentifier,
             string publishOutputDir,
+            bool selfPublished,
             bool includeDebugSymbols = true
         )
         {
             var buildInfo = new BuildInfo(GodotSharpDirs.ProjectSlnPath, GodotSharpDirs.ProjectCsProjPath, configuration,
-                runtimeIdentifier, publishOutputDir, restore: true, rebuild: false, onlyClean: false);
+                runtimeIdentifier, publishOutputDir, selfPublished, restore: true, rebuild: false, onlyClean: false);
 
             if (!includeDebugSymbols)
             {
@@ -329,9 +330,10 @@ namespace GodotTools.Build
             string platform,
             string runtimeIdentifier,
             string publishOutputDir,
+            bool selfPublished,
             bool includeDebugSymbols = true
         ) => PublishProjectBlocking(CreatePublishBuildInfo(configuration,
-            platform, runtimeIdentifier, publishOutputDir, includeDebugSymbols));
+            platform, runtimeIdentifier, publishOutputDir, selfPublished, includeDebugSymbols));
 
         public static bool GenerateXCFrameworkBlocking(
             List<string> outputPaths,

@@ -15,6 +15,7 @@ namespace GodotTools.Build
         public string Configuration { get; private set; }
         public string? RuntimeIdentifier { get; private set; }
         public string? PublishOutputDir { get; private set; }
+        public bool SelfPublished { get; private set; }
         public bool Restore { get; private set; }
         public bool Rebuild { get; private set; }
         public bool OnlyClean { get; private set; }
@@ -30,7 +31,7 @@ namespace GodotTools.Build
                 other.Solution == Solution &&
                 other.Project == Project &&
                 other.Configuration == Configuration && other.RuntimeIdentifier == RuntimeIdentifier &&
-                other.PublishOutputDir == PublishOutputDir && other.Restore == Restore &&
+                other.PublishOutputDir == PublishOutputDir && other.SelfPublished == SelfPublished && other.Restore == Restore &&
                 other.Rebuild == Rebuild && other.OnlyClean == OnlyClean &&
                 other.CustomProperties == CustomProperties &&
                 other.LogsDirPath == LogsDirPath;
@@ -44,6 +45,7 @@ namespace GodotTools.Build
             hash.Add(Configuration);
             hash.Add(RuntimeIdentifier);
             hash.Add(PublishOutputDir);
+            hash.Add(SelfPublished);
             hash.Add(Restore);
             hash.Add(Rebuild);
             hash.Add(OnlyClean);
@@ -71,13 +73,14 @@ namespace GodotTools.Build
         }
 
         public BuildInfo(string solution, string project, string configuration, string runtimeIdentifier,
-            string publishOutputDir, bool restore, bool rebuild, bool onlyClean)
+            string publishOutputDir, bool selfPublished, bool restore, bool rebuild, bool onlyClean)
         {
             Solution = solution;
             Project = project;
             Configuration = configuration;
             RuntimeIdentifier = runtimeIdentifier;
             PublishOutputDir = publishOutputDir;
+            SelfPublished = selfPublished;
             Restore = restore;
             Rebuild = rebuild;
             OnlyClean = onlyClean;
