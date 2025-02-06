@@ -30,13 +30,21 @@
 
 #include "editor_preview_plugins.h"
 
+#include "core/config/engine.h"
 #include "core/config/project_settings.h"
 #include "core/io/image.h"
 #include "core/io/resource_loader.h"
 #include "core/object/script_language.h"
+#include "editor/editor_node.h"
 #include "editor/editor_paths.h"
 #include "editor/editor_settings.h"
 #include "editor/themes/editor_scale.h"
+#include "scene/2d/camera_2d.h"
+#include "scene/2d/sprite_2d.h"
+#include "scene/3d/light_3d.h"
+#include "scene/3d/mesh_instance_3d.h"
+#include "scene/gui/control.h"
+#include "scene/main/viewport.h"
 #include "scene/resources/atlas_texture.h"
 #include "scene/resources/bit_map.h"
 #include "scene/resources/font.h"
@@ -44,6 +52,8 @@
 #include "scene/resources/image_texture.h"
 #include "scene/resources/material.h"
 #include "scene/resources/mesh.h"
+#include "scene/resources/packed_scene.h"
+#include "scene/resources/world_2d.h"
 #include "servers/audio/audio_stream.h"
 
 void post_process_preview(Ref<Image> p_image) {
@@ -294,28 +304,357 @@ Ref<Texture2D> EditorPackedScenePreviewPlugin::generate(const Ref<Resource> &p_f
 }
 
 Ref<Texture2D> EditorPackedScenePreviewPlugin::generate_from_path(const String &p_path, const Size2 &p_size, Dictionary &p_metadata) const {
+	// Safe checks, since this function interacts with EditorNode to render previews
+	ERR_FAIL_COND_V_MSG(!Engine::get_singleton()->is_editor_hint(), Ref<Texture2D>(), "This function can only be called from the editor.");
+	ERR_FAIL_COND_V_MSG(EditorNode::get_singleton() == nullptr, Ref<Texture2D>(), "EditorNode doesn't exist.");
+
+	// Try load cached thumbnail
 	String temp_path = EditorPaths::get_singleton()->get_cache_dir();
 	String cache_base = ProjectSettings::get_singleton()->globalize_path(p_path).md5_text();
 	cache_base = temp_path.path_join("resthumb-" + cache_base);
-
-	//does not have it, try to load a cached thumbnail
-
 	String path = cache_base + ".png";
+	if (FileAccess::exists(path) && false) { // temporary, remember to rewrite this
+		Ref<Image> thumbnail;
+		thumbnail.instantiate();
+		Error err = thumbnail->load(path);
+		if (err == OK) {
+			post_process_preview(thumbnail);
+			return ImageTexture::create_from_image(thumbnail);
+		}
+	}
 
-	if (!FileAccess::exists(path)) {
+	// No cache found, try generate thumbnail
+	Error load_error;
+	Ref<PackedScene> pack = ResourceLoader::load(p_path, "PackedScene", ResourceFormatLoader::CACHE_MODE_IGNORE, &load_error); // no more cache issues?
+	if (load_error != OK) {
+		print_error(vformat("Failed to generate scene thumbnail for %s : Loaded with error code %d", p_path, int(load_error)));
+		return Ref<Texture2D>();
+	}
+	if (!pack.is_valid()) {
+		print_error(vformat("Failed to generate scene thumbnail for %s : Invalid scene file", p_path));
 		return Ref<Texture2D>();
 	}
 
-	Ref<Image> img;
-	img.instantiate();
-	Error err = img->load(path);
-	if (err == OK) {
-		post_process_preview(img);
-		return ImageTexture::create_from_image(img);
-
-	} else {
+	bool rm_script_success = _remove_scripts_from_packed_scene(pack); // We don't want tool scripts to fire off when generating previews
+	if (!rm_script_success) {
+		print_error(vformat("Failed to generate scene thumbnail for %s : error in removing scripts from preview scene, thus not safe to create thumbnail image", p_path));
 		return Ref<Texture2D>();
 	}
+
+	Node *p_scene = pack->instantiate(); // The instantiated preview scene
+
+	int count_2d = 0;
+	int count_3d = 0;
+	int count_light_3d = 0;
+	_count_node_types(p_scene, count_2d, count_3d, count_light_3d);
+
+	if (count_3d > 0) { // Is 3d scene
+		SubViewport *sub_viewport = memnew(SubViewport);
+		sub_viewport->set_update_mode(SubViewport::UPDATE_ALWAYS);
+		sub_viewport->set_size(Vector2i(Math::round(p_size.x), Math::round(p_size.y)));
+		sub_viewport->set_transparent_background(false);
+		Ref<World3D> world;
+		world.instantiate();
+		sub_viewport->set_world_3d(world);
+
+		Node *preview_root = memnew(Node); // Nodes only used in preview is attached to this
+		preview_root->set_name("PreviewRoot");
+		sub_viewport->add_child(p_scene);
+		sub_viewport->add_child(preview_root);
+
+		// Preview environment
+		Ref<Environment> env;
+		env.instantiate();
+		env->set_background(Environment::BG_CLEAR_COLOR);
+
+		// Preview camera
+		Ref<CameraAttributesPractical> camera_attributes;
+		camera_attributes.instantiate();
+		Camera3D *camera = memnew(Camera3D);
+		camera->set_environment(env);
+		camera->set_attributes(camera_attributes);
+		camera->set_name("ThumbnailCamera3D");
+		camera->set_perspective(30.0f, 0.05f, 10000.0f);
+		preview_root->add_child(camera);
+		camera->set_current(true);
+
+		// Preview light
+		if (count_light_3d == 0) {
+			DirectionalLight3D *light = memnew(DirectionalLight3D);
+			light->set_name("Light");
+			DirectionalLight3D *light2 = memnew(DirectionalLight3D);
+			light2->set_name("Light2");
+			light2->set_color(Color(0.7, 0.7, 0.7, 1.0));
+			preview_root->add_child(light);
+			preview_root->add_child(light2);
+			light->set_basis(Basis().rotated(Vector3(0, 1, 0), -Math_PI / 6));
+			light2->set_basis(Basis().rotated(Vector3(1, 0, 0), -Math_PI / 6));
+		}
+
+		// Attach subviewport deferred (thread safe)
+		EditorNode::get_singleton()->call_deferred("add_child", sub_viewport);
+		uint64_t pause_frame = Engine::get_singleton()->get_process_frames();
+		while (Engine::get_singleton()->get_process_frames() - pause_frame < 2) { // Wait for one frame ( == 2 delta frames)
+			continue;
+		}
+
+		// Move camera to fit scene
+		AABB scene_aabb;
+		_calculate_scene_aabb(p_scene, scene_aabb);
+		float bound_sphere_radius = scene_aabb.get_longest_axis_size() / 2.0f;
+		if (bound_sphere_radius <= 0.0f) {
+			// The scene has zero volume, so just it give a literal
+			bound_sphere_radius = 1.0f;
+		}
+
+		float fov = camera->get_fov();
+		float cam_distance = (bound_sphere_radius * 2.0f) / Math::tan(Math::deg_to_rad(fov) / 2.0f);
+		Transform3D thumbnail_cam_trans_3d;
+		thumbnail_cam_trans_3d.set_origin(scene_aabb.get_center() + Vector3(1.0f, 0.25f, 1.0f).normalized() * cam_distance);
+		thumbnail_cam_trans_3d.set_look_at(thumbnail_cam_trans_3d.origin, scene_aabb.get_center());
+		RenderingServer::get_singleton()->camera_set_transform(camera->get_camera(), thumbnail_cam_trans_3d);
+
+		// Wait for scene render
+		pause_frame = Engine::get_singleton()->get_process_frames();
+		while (Engine::get_singleton()->get_process_frames() - pause_frame < 2) { // Wait for one frame ( == 2 delta frames)
+			continue;
+		}
+
+		// Retrieve thumbnail image
+		Ref<ImageTexture> thumbnail = ImageTexture::create_from_image(sub_viewport->get_texture()->get_image());
+		EditorNode::get_singleton()->call_deferred("remove_child", sub_viewport);
+		sub_viewport->call_deferred("queue_free");
+		return thumbnail;
+	}
+
+	if (count_2d > 0) { // Is 2d scene
+		SubViewport *sub_viewport = memnew(SubViewport);
+		sub_viewport->set_update_mode(SubViewport::UPDATE_ALWAYS);
+		sub_viewport->set_disable_3d(true);
+		sub_viewport->set_transparent_background(false);
+		Ref<World2D> world;
+		world.instantiate();
+		sub_viewport->set_world_2d(world);
+
+		Node *preview_root = memnew(Node); // Nodes only used in preview is attached to this
+		sub_viewport->add_child(p_scene);
+		sub_viewport->add_child(preview_root);
+
+		// Hide gui
+		_hide_gui_in_scene(p_scene);
+
+		// Preview camera
+		Camera2D *camera = memnew(Camera2D);
+		camera->set_name("ThumbnailCamera2D");
+		preview_root->add_child(camera);
+
+		// Attach subviewport deferred (thread safe)
+		EditorNode::get_singleton()->call_deferred("add_child", sub_viewport);
+		_wait_frames(1);
+
+		camera->make_current(); // Has to be inside tree to call this
+
+		// Calculate scene rect
+		Rect2 scene_rect;
+		_calculate_scene_rect(p_scene, scene_rect);
+		Vector2 scene_true_center = scene_rect.get_center();
+		camera->set_position(Point2(scene_true_center));
+		uint16_t long_side = MAX(scene_rect.get_size().x, scene_rect.get_size().y);
+		long_side = CLAMP(long_side, MAX(p_size.x, p_size.y), 16384); // Do not render image larger than GPU can handle (16K)
+		sub_viewport->set_size(Size2i(long_side, long_side));
+
+		_wait_frames(1);
+
+		// Retrieve image of thumbnail
+		Ref<ImageTexture> capture_2d = ImageTexture::create_from_image(sub_viewport->get_texture()->get_image());
+		if (capture_2d->get_image()->get_size() != p_size) {
+			capture_2d->get_image()->resize(p_size.x, p_size.y);
+		}
+
+		capture_2d->get_image()->convert(Image::Format::FORMAT_RGBA8); // ALPHA channel is needed for it to blend with other image, don't know why.
+
+		// Prepare for gui render
+		SubViewport *sub_viewport_gui = memnew(SubViewport);
+		sub_viewport_gui->set_size(Size2i(GLOBAL_GET("display/window/size/viewport_width"), GLOBAL_GET("display/window/size/viewport_height")));
+		sub_viewport_gui->set_update_mode(SubViewport::UPDATE_ALWAYS);
+		sub_viewport_gui->set_transparent_background(true);
+		sub_viewport_gui->set_disable_3d(true);
+		sub_viewport->call_deferred("remove_child", p_scene);
+
+		_wait_frames(1);
+
+		p_scene->queue_free();
+		p_scene = pack->instantiate();
+		_hide_node_2d_in_scene(p_scene);
+		sub_viewport_gui->add_child(p_scene);
+		EditorNode::get_singleton()->call_deferred("add_child", sub_viewport_gui);
+
+		_wait_frames(1);
+
+		// Retrieve image of gui
+		Ref<ImageTexture> capture_gui = ImageTexture::create_from_image(sub_viewport_gui->get_texture()->get_image());
+		if (capture_gui->get_image()->get_size() != p_size) {
+			capture_gui->get_image()->resize(p_size.x, p_size.y);
+		}
+
+		// Generate thumbnail with 2d + gui combined
+		Ref<ImageTexture> thumbnail = memnew(ImageTexture);
+		Ref<Image> thumbnail_image = Image::create_empty(p_size.x, p_size.y, false, Image::Format::FORMAT_RGBA8); // blend_rect needs ALPHA channel to work
+		thumbnail_image->blend_rect(capture_2d->get_image(), capture_2d->get_image()->get_used_rect(), Point2i(0, 0));
+		thumbnail_image->blend_rect(capture_gui->get_image(), capture_gui->get_image()->get_used_rect(), Point2i(0, 0));
+		thumbnail->set_image(thumbnail_image);
+
+		// Clean up
+		EditorNode::get_singleton()->call_deferred("remove_child", sub_viewport);
+		EditorNode::get_singleton()->call_deferred("remove_child", sub_viewport_gui);
+		sub_viewport->call_deferred("queue_free");
+		sub_viewport_gui->call_deferred("queue_free");
+
+		return thumbnail;
+	}
+
+	// Is scene without any visuals (No Node2D, Node3D, Control found)
+	return Ref<Texture2D>();
+}
+
+void EditorPackedScenePreviewPlugin::_count_node_types(Node *p_node, int &c2d, int &c3d, int &clight3d) const {
+	if (p_node->is_class("Control") || p_node->is_class("Node2D")) {
+		c2d++;
+	}
+	if (p_node->is_class("Node3D")) {
+		c3d++;
+	}
+	if (p_node->is_class("Light3D")) {
+		clight3d++;
+	}
+	for (int i = 0; i < p_node->get_child_count(); i++) {
+		_count_node_types(p_node->get_child(i), c2d, c3d, clight3d);
+	}
+}
+
+void EditorPackedScenePreviewPlugin::_calculate_scene_rect(Node *p_node, Rect2 &scene_rect) const {
+	// Note:
+	// Sprite2D::position, with 0 offset value, is at the **center** of the sprite
+	// Rect2::position is at the **left-up** of the rect
+	// calculation below is done with this in mind.
+
+	if (p_node->is_class("Sprite2D")) {
+		Sprite2D *sprite = Object::cast_to<Sprite2D>(p_node);
+		Rect2 local_rect = sprite->get_rect();
+		Rect2 global_rect = Rect2();
+		global_rect.size = sprite->get_global_scale() * local_rect.size;
+		global_rect.position = sprite->get_global_position() + sprite->get_offset() * sprite->get_global_scale() - (global_rect.size / 2.0f);
+
+		// This avoids accounting scene origin (0,0) into global rect
+		if (scene_rect.get_size().x > 0 && scene_rect.get_size().y > 0) {
+			scene_rect = scene_rect.merge(global_rect);
+		} else {
+			scene_rect = global_rect;
+		}
+	}
+
+	// WIP: Need to work for AnimatedSprite2D, MeshInstance2D, MultimeshInstance2D, TileMapLayer, Polygon2D, TouchScreenButton too.
+
+	for (int i = 0; i < p_node->get_child_count(); i++) {
+		_calculate_scene_rect(p_node->get_child(i), scene_rect);
+	}
+}
+
+void EditorPackedScenePreviewPlugin::_hide_node_2d_in_scene(Node *p_node) const {
+	// NOTE: Irreversible (cannot unhide nodes after this)
+	// We cannot simple hide() since it will affect all its children (may contain Control nodes)
+
+	if (p_node->is_class("Node2D")) {
+		Node2D *n2d = Object::cast_to<Node2D>(p_node);
+		n2d->set_self_modulate(Color(0.0f, 0.0f, 0.0f, 0.0f));
+	}
+
+	for (int i = 0; i < p_node->get_child_count(); i++) {
+		_hide_node_2d_in_scene(p_node->get_child(i));
+	}
+}
+
+void EditorPackedScenePreviewPlugin::_hide_gui_in_scene(Node *p_node) const {
+	// NOTE: Irreversible (cannot unhide nodes after this)
+	// We cannot simply hide() since it will affect all its children (may contain Node2D nodes)
+
+	if (p_node->is_class("Control")) {
+		Control *ctrl = Object::cast_to<Control>(p_node);
+		ctrl->set_self_modulate(Color(0.0f, 0.0f, 0.0f, 0.0f));
+	}
+
+	for (int i = 0; i < p_node->get_child_count(); i++) {
+		_hide_gui_in_scene(p_node->get_child(i));
+	}
+}
+
+void EditorPackedScenePreviewPlugin::_wait_frames(const uint64_t &n) const {
+	if (n <= 0) {
+		return;
+	}
+	const uint64_t pause_frame = Engine::get_singleton()->get_process_frames();
+	while (Engine::get_singleton()->get_process_frames() - pause_frame < n + 1) { // Wait for n frames == (n+1) frames has rendered
+		continue;
+	}
+}
+
+void EditorPackedScenePreviewPlugin::_calculate_scene_aabb(Node *p_node, AABB &aabb) const {
+	if (p_node->is_class("GeometryInstance3D")) {
+		GeometryInstance3D *v3d = Object::cast_to<GeometryInstance3D>(p_node);
+		AABB node_aabb = v3d->get_global_transform().xform(v3d->get_aabb());
+		aabb.merge_with(node_aabb);
+	}
+	for (int i = 0; i < p_node->get_child_count(); i++) {
+		_calculate_scene_aabb(p_node->get_child(i), aabb);
+	}
+}
+
+bool EditorPackedScenePreviewPlugin::_remove_scripts_from_packed_scene(Ref<PackedScene> pack) const {
+	// Refer to SceneState in packed_scene.cpp to see how PackedScene is managed underhood.
+
+	// Sanitize
+	Dictionary bundle = pack->get_state()->get_bundled_scene();
+	ERR_FAIL_COND_V(!bundle.has("names"), false);
+	ERR_FAIL_COND_V(!bundle.has("variants"), false);
+	ERR_FAIL_COND_V(!bundle.has("node_count"), false);
+	ERR_FAIL_COND_V(!bundle.has("nodes"), false);
+	ERR_FAIL_COND_V(!bundle.has("conn_count"), false);
+	ERR_FAIL_COND_V(!bundle.has("conns"), false);
+
+	const uint8_t supported_version = 3;
+	uint8_t current_version = 1;
+	if (bundle.has("version")) {
+		current_version = bundle["version"];
+	}
+
+	if (current_version > supported_version) {
+		WARN_PRINT_ONCE(vformat("Scene thumbnail creation was built upon PackedScene with version %d, but the version has changed to %d now.", supported_version, current_version));
+		// And assume it's safe to continue, there should have no reason to change the main structure of PackedScene
+	}
+
+	if (sizeof(bundle["variants"]) == 0) {
+		return true; // Scene has no resources at all
+	}
+
+	// Find and remove all scripts in scene
+	Ref<Script> const dummy = 0;
+	Array edited_variants = bundle["variants"];
+	for (int i = 0; i < edited_variants.size(); i++) {
+		if (edited_variants[i].get_type() != Variant::OBJECT) {
+			continue;
+		}
+		if (Object::cast_to<Script>(edited_variants[i])) {
+			edited_variants[i] = dummy; // Clear the script
+		}
+	}
+
+	// Create a new scene state
+	bundle["variants"] = edited_variants;
+	Ref<SceneState> new_state = memnew(SceneState);
+	new_state->set_bundled_scene(bundle);
+	new_state->instantiate(SceneState::GEN_EDIT_STATE_DISABLED);
+	pack->replace_state(new_state);
+	return true;
 }
 
 EditorPackedScenePreviewPlugin::EditorPackedScenePreviewPlugin() {
