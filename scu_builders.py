@@ -130,28 +130,10 @@ def write_exception_output_file(file_count, exception_string, output_folder, out
 
 
 def find_section_name(sub_folder):
-    # Construct a useful name for the section from the path for debug logging
-    section_path = os.path.abspath(base_folder_path + sub_folder) + "/"
+    from SCons.Script import Dir
 
-    folders = []
-    folder = ""
-
-    for i in range(8):
-        folder = os.path.dirname(section_path)
-        folder = os.path.basename(folder)
-        if folder == base_folder_only:
-            break
-        folders.append(folder)
-        section_path += "../"
-        section_path = os.path.abspath(section_path) + "/"
-
-    section_name = ""
-    for n in range(len(folders)):
-        section_name += folders[len(folders) - n - 1]
-        if n != (len(folders) - 1):
-            section_name += "_"
-
-    return section_name
+    rel_path = Dir(sub_folder).get_tpath()
+    return "_".join(Path(rel_path).parts)
 
 
 # "folders" is a list of folders to add all the files from to add to the SCU
