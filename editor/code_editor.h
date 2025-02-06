@@ -104,12 +104,14 @@ class FindReplaceBar : public HBoxContainer {
 	bool replace_all_mode = false;
 	bool preserve_cursor = false;
 
+	virtual void input(const Ref<InputEvent> &p_event) override;
+
 	void _get_search_from(int &r_line, int &r_col, SearchMode p_search_mode);
 	void _update_results_count();
 	void _update_matches_display();
 
 	void _show_search(bool p_with_replace, bool p_show_only);
-	void _hide_bar(bool p_force_focus = false);
+	void _hide_bar();
 	void _update_toggle_replace_button(bool p_replace_visible);
 
 	void _editor_text_changed();
@@ -121,8 +123,6 @@ class FindReplaceBar : public HBoxContainer {
 
 protected:
 	void _notification(int p_what);
-	virtual void unhandled_input(const Ref<InputEvent> &p_event) override;
-	void _focus_lost();
 
 	void _update_flags(bool p_direction_backwards);
 
