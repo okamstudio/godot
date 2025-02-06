@@ -107,6 +107,7 @@
 			<return type="void" />
 			<description>
 				Clears all [InputEventAction] in the [InputMap] and load it anew from [ProjectSettings].
+				[b]Warning:[/b] Calling this method inside a [code]tool[/code] script will cause certain editor-specific inputs to stop working.
 			</description>
 		</method>
 	</methods>
