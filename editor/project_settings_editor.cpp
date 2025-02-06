@@ -489,27 +489,49 @@ void ProjectSettingsEditor::_action_reordered(const String &p_action_name, const
 	HashMap<String, Variant> action_values;
 	ProjectSettings::get_singleton()->get_property_list(&props);
 
-	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
-	undo_redo->create_action(TTR("Update Input Action Order"));
+	bool target_builtin = false;
 
 	for (const PropertyInfo &prop : props) {
 		// Skip builtins and non-inputs
 		// Order matters here, checking for "input/" filters out properties that aren't settings and produce errors in is_builtin_setting().
-		if (!prop.name.begins_with("input/") || ProjectSettings::get_singleton()->is_builtin_setting(prop.name)) {
+		if (!prop.name.begins_with("input/")) {
+			continue;
+		} else if (ProjectSettings::get_singleton()->is_builtin_setting(prop.name)) {
+			// No action is allowed to be inserted between builtins.
+			if (target_builtin) {
+				return;
+			} else if (prop.name == target_name) {
+				target_builtin = true;
+			}
 			continue;
 		}
 
 		action_values.insert(prop.name, ps->get(prop.name));
+	}
 
-		undo_redo->add_do_method(ProjectSettings::get_singleton(), "clear", prop.name);
-		undo_redo->add_undo_method(ProjectSettings::get_singleton(), "clear", prop.name);
+	// No action is allowed to be placed before any builtin.
+	if (target_builtin && p_before) {
+		return;
+	}
+
+	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+	undo_redo->create_action(TTR("Update Input Action Order"));
+
+	for (const KeyValue<String, Variant> &E : action_values) {
+		undo_redo->add_do_method(ProjectSettings::get_singleton(), "clear", E.key);
+		undo_redo->add_undo_method(ProjectSettings::get_singleton(), "clear", E.key);
+	}
+
+	if (target_builtin) {
+		undo_redo->add_do_method(ProjectSettings::get_singleton(), "set", action_name, action_value);
+		undo_redo->add_undo_method(ProjectSettings::get_singleton(), "set", action_name, action_value);
 	}
 
 	for (const KeyValue<String, Variant> &E : action_values) {
 		String name = E.key;
 		const Variant &value = E.value;
 
-		if (name == target_name) {
+		if (!target_builtin && name == target_name) {
 			if (p_before) {
 				// Insert before target
 				undo_redo->add_do_method(ProjectSettings::get_singleton(), "set", action_name, action_value);
