@@ -532,7 +532,9 @@ static Error _parse_obj(const String &p_path, List<Ref<ImporterMesh>> &r_meshes,
 
 	if (p_generate_lods) {
 		// Use normal merge/split angles that match the defaults used for 3D scene importing.
-		mesh->generate_lods(60.0f, {});
+		Error err;
+		mesh->generate_lods(60.0f, {}, &err);
+		ERR_FAIL_COND_V_MSG(err != OK, err, "Error while generating lods. The imported object may be corrupt.");
 	}
 
 	if (p_generate_shadow_mesh) {

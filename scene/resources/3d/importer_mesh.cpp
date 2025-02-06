@@ -292,7 +292,7 @@ void ImporterMesh::optimize_indices() {
 	}                                                                                                              \
 	write_array[vert_idx] = transformed_vert;
 
-void ImporterMesh::generate_lods(float p_normal_merge_angle, Array p_bone_transform_array) {
+void ImporterMesh::generate_lods(float p_normal_merge_angle, Array p_bone_transform_array, Error *r_error) {
 	if (!SurfaceTool::simplify_scale_func) {
 		return;
 	}
@@ -421,6 +421,10 @@ void ImporterMesh::generate_lods(float p_normal_merge_angle, Array p_bone_transf
 			}
 		}
 
+		if (r_error) {
+			return;
+		}
+		ERR_FAIL_COND_MSG(index_count >= indices.size(), "Bad array access while generating lods.");
 		LocalVector<int> merged_indices;
 		merged_indices.resize(index_count);
 		for (unsigned int j = 0; j < index_count; j++) {
@@ -517,7 +521,8 @@ void ImporterMesh::generate_lods(float p_normal_merge_angle, Array p_bone_transf
 
 void ImporterMesh::_generate_lods_bind(float p_normal_merge_angle, float p_normal_split_angle, Array p_skin_pose_transform_array) {
 	// p_normal_split_angle is unused, but kept for compatibility
-	generate_lods(p_normal_merge_angle, p_skin_pose_transform_array);
+	// _generate_lods_bind() doesn't carry an Error object or reference, so nullptr is passed down as a parameter
+	generate_lods(p_normal_merge_angle, p_skin_pose_transform_array, nullptr);
 }
 
 bool ImporterMesh::has_mesh() const {
