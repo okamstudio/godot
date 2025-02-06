@@ -470,6 +470,8 @@ void EditorExportPlatformMacOS::get_export_options(List<ExportOption> *r_options
 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/additional_plist_content", PROPERTY_HINT_MULTILINE_TEXT), ""));
 
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "dmg/add_applications_symlink"), true));
+
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "xcode/platform_build"), "14C18"));
 	// TODO(sgc): Need to set appropriate version when using Metal
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "xcode/sdk_version"), "13.1"));
@@ -2233,10 +2235,22 @@ Error EditorExportPlatformMacOS::export_project(const Ref<EditorExportPreset> &p
 		if (export_format == "dmg") {
 			// Create a DMG.
 			if (err == OK) {
+				bool app_link = p_preset->get("dmg/add_applications_symlink");
+				Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
 				if (ep.step(TTR("Making DMG"), 3)) {
 					return ERR_SKIP;
 				}
+				if (app_link) {
+					if (da->create_link("/Applications", tmp_base_path_name.path_join("Applications")) != OK) {
+						add_message(EXPORT_MESSAGE_WARNING, TTR("Making DMG"), vformat(TTR("Could not create symlink \"%s\"."), tmp_base_path_name.path_join("Applications")));
+					}
+				}
 				err = _create_dmg(p_path, pkg_name, tmp_base_path_name);
+				if (app_link) {
+					if (da->remove(tmp_base_path_name.path_join("Applications")) != OK) {
+						add_message(EXPORT_MESSAGE_WARNING, TTR("Making DMG"), vformat(TTR("Could not remove symlink \"%s\"."), tmp_base_path_name.path_join("Applications")));
+					}
+				}
 			}
 			// Sign DMG.
 			if (err == OK && sign_enabled && !ad_hoc) {

@@ -177,6 +177,9 @@
 		<member name="display/high_res" type="bool" setter="" getter="">
 			If [code]true[/code], the application is rendered at native display resolution, otherwise it is always rendered at loDPI resolution and upscaled by OS when required.
 		</member>
+		<member name="dmg/add_applications_symlink" type="bool" setter="" getter="">
+			If [code]true[/code], adds symlink to the system [code]Applications[/code] folder to the exported [code]DMG[/code] image.
+		</member>
 		<member name="export/distribution_type" type="int" setter="" getter="">
 			Application distribution target.
 		</member>
