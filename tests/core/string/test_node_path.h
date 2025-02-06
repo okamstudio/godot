@@ -168,6 +168,75 @@ TEST_CASE("[NodePath] Empty path") {
 			"The node path should be considered empty.");
 }
 
+TEST_CASE("[NodePath] From StringName") {
+	const StringName sname = StringName("Path2D");
+
+	// Test the case where the StringName has no slash or colon and uses the StringName directly.
+	const NodePath node_path_sname = NodePath::from_string_name(sname);
+	const NodePath node_path_string = NodePath("Path2D");
+
+	CHECK_MESSAGE(
+			!node_path_sname.is_absolute(),
+			"The StringName version should not be absolute.");
+
+	CHECK_MESSAGE(
+			!node_path_string.is_absolute(),
+			"The String version should not be absolute.");
+
+	CHECK_MESSAGE(
+			node_path_sname.get_name(0) == sname,
+			"The StringName version should have the expected StringName as the first name.");
+
+	CHECK_MESSAGE(
+			node_path_string.get_name(0) == sname,
+			"The String version should have the expected StringName as the first name.");
+
+	CHECK_MESSAGE(
+			node_path_sname.get_concatenated_names() == sname,
+			"The StringName version should give the expected StringName.");
+
+	CHECK_MESSAGE(
+			node_path_string.get_concatenated_names() == sname,
+			"The String version should give the expected StringName.");
+
+	CHECK_MESSAGE(
+			node_path_string.get_concatenated_names() == node_path_sname.get_concatenated_names(),
+			"The String and StringName versions should give the same result.");
+
+	// Test the case where the StringName has a slash or colon and uses String parsing.
+	const NodePath node_path_abs_sname = NodePath::from_string_name("/Path2D");
+	const NodePath node_path_abs_string = NodePath("/Path2D");
+
+	CHECK_MESSAGE(
+			node_path_abs_sname.is_absolute(),
+			"The StringName version should be absolute.");
+
+	CHECK_MESSAGE(
+			node_path_abs_string.is_absolute(),
+			"The String version should be absolute.");
+
+	CHECK_MESSAGE(
+			node_path_abs_sname.get_name(0) == sname,
+			"The StringName version should have the expected StringName as the first name.");
+
+	CHECK_MESSAGE(
+			node_path_abs_string.get_name(0) == sname,
+			"The String version should have the expected StringName as the first name.");
+
+	// Absolute paths do not include a leading slash in the concatenated names.
+	CHECK_MESSAGE(
+			node_path_abs_sname.get_concatenated_names() == sname,
+			"The StringName version should give the expected StringName.");
+
+	CHECK_MESSAGE(
+			node_path_abs_string.get_concatenated_names() == sname,
+			"The String version should give the expected StringName.");
+
+	CHECK_MESSAGE(
+			node_path_abs_string.get_concatenated_names() == node_path_abs_sname.get_concatenated_names(),
+			"The String and StringName versions should give the same result.");
+}
+
 TEST_CASE("[NodePath] Slice") {
 	const NodePath node_path_relative = NodePath("Parent/Child:prop:subprop");
 	const NodePath node_path_absolute = NodePath("/root/Parent/Child:prop");

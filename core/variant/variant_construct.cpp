@@ -180,6 +180,7 @@ void Variant::_register_variant_constructors() {
 	add_constructor<VariantConstructNoArgs<NodePath>>(sarray());
 	add_constructor<VariantConstructor<NodePath, NodePath>>(sarray("from"));
 	add_constructor<VariantConstructor<NodePath, String>>(sarray("from"));
+	add_constructor<VariantConstructor<NodePath, StringName>>(sarray("from"));
 
 	add_constructor<VariantConstructNoArgs<::RID>>(sarray());
 	add_constructor<VariantConstructor<::RID, ::RID>>(sarray("from"));

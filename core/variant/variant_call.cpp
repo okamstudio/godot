@@ -2131,6 +2131,7 @@ static void _register_variant_builtin_methods_misc() {
 	bind_method(NodePath, slice, sarray("begin", "end"), varray(INT_MAX));
 	bind_method(NodePath, get_as_property_path, sarray(), varray());
 	bind_method(NodePath, is_empty, sarray(), varray());
+	bind_static_method(NodePath, from_string_name, sarray("string_name"), varray());
 
 	/* Callable */
 
