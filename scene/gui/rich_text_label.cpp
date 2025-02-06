@@ -6451,6 +6451,11 @@ void RichTextLabel::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_cell_border_color", "color"), &RichTextLabel::set_cell_border_color);
 	ClassDB::bind_method(D_METHOD("set_cell_size_override", "min_size", "max_size"), &RichTextLabel::set_cell_size_override);
 	ClassDB::bind_method(D_METHOD("set_cell_padding", "padding"), &RichTextLabel::set_cell_padding);
+	ClassDB::bind_method(D_METHOD("push_fade", "start_index", "length"), &RichTextLabel::push_fade);
+	ClassDB::bind_method(D_METHOD("push_shake", "strength", "rate", "connected"), &RichTextLabel::push_shake);
+	ClassDB::bind_method(D_METHOD("push_wave", "frequency", "amplitude", "connected"), &RichTextLabel::push_wave);
+	ClassDB::bind_method(D_METHOD("push_tornado", "frequency", "radius", "connected"), &RichTextLabel::push_tornado);
+	ClassDB::bind_method(D_METHOD("push_pulse", "color", "frequency", "ease"), &RichTextLabel::push_pulse);
 	ClassDB::bind_method(D_METHOD("push_cell"), &RichTextLabel::push_cell);
 	ClassDB::bind_method(D_METHOD("push_fgcolor", "fgcolor"), &RichTextLabel::push_fgcolor);
 	ClassDB::bind_method(D_METHOD("push_bgcolor", "bgcolor"), &RichTextLabel::push_bgcolor);

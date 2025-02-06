@@ -395,6 +395,14 @@
 				Adds a [code skip-lint][dropcap][/code] tag to the tag stack. Drop cap (dropped capital) is a decorative element at the beginning of a paragraph that is larger than the rest of the text.
 			</description>
 		</method>
+		<method name="push_fade">
+			<return type="void" />
+			<param index="0" name="start_index" type="int" />
+			<param index="1" name="length" type="int" />
+			<description>
+				Adds a [code skip-lint][fade][/code] tag to the tag stack. 
+			</description>
+		</method>
 		<method name="push_fgcolor">
 			<return type="void" />
 			<param index="0" name="fgcolor" type="Color" />
@@ -504,6 +512,24 @@
 				Adds a [code skip-lint][p][/code] tag to the tag stack.
 			</description>
 		</method>
+		<method name="push_pulse">
+			<return type="void" />
+			<param index="0" name="color" type="Color" />
+			<param index="1" name="frequency" type="float" />
+			<param index="2" name="ease" type="float" />
+			<description>
+				Adds a [code skip-lint][pulse][/code] tag to the tag stack.
+			</description>
+		</method>
+		<method name="push_shake">
+			<return type="void" />
+			<param index="0" name="strength" type="int" />
+			<param index="1" name="rate" type="float" />
+			<param index="2" name="connected" type="bool" />
+			<description>
+				Adds a [code skip-lint][shake][/code] tag to the tag stack.
+			</description>
+		</method>
 		<method name="push_strikethrough">
 			<return type="void" />
 			<description>
@@ -519,10 +545,28 @@
 				Adds a [code skip-lint][table=columns,inline_align][/code] tag to the tag stack. Use [method set_table_column_expand] to set column expansion ratio. Use [method push_cell] to add cells.
 			</description>
 		</method>
+		<method name="push_tornado">
+			<return type="void" />
+			<param index="0" name="frequency" type="float" />
+			<param index="1" name="radius" type="float" />
+			<param index="2" name="connected" type="bool" />
+			<description>
+				Adds a [code skip-lint][tornado][/code] tag to the tag stack.
+			</description>
+		</method>
 		<method name="push_underline">
 			<return type="void" />
 			<description>
 				Adds a [code skip-lint][u][/code] tag to the tag stack.
+			</description>
+		</method>
+		<method name="push_wave">
+			<return type="void" />
+			<param index="0" name="frequency" type="float" />
+			<param index="1" name="amplitude" type="float" />
+			<param index="2" name="connected" type="bool" />
+			<description>
+				Adds a [code skip-lint][wave][/code] tag to the tag stack.
 			</description>
 		</method>
 		<method name="remove_paragraph">
