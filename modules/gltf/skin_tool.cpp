@@ -413,7 +413,7 @@ Error SkinTool::_determine_skeletons(
 
 		skeletons.push_back(skeleton);
 
-		SkinTool::_reparent_non_joint_skeleton_subtrees(nodes, skeletons.write[skel_i], non_joints);
+		//SkinTool::_reparent_non_joint_skeleton_subtrees(nodes, skeletons.write[skel_i], non_joints);
 	}
 
 	for (SkinSkeletonIndex skel_i = 0; skel_i < skeletons.size(); ++skel_i) {
