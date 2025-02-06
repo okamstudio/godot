@@ -3242,6 +3242,49 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> p_state) {
 			uint64_t flags = RS::ARRAY_FLAG_COMPRESS_ATTRIBUTES;
 			Dictionary mesh_prim = primitives[j];
 
+			// Read the material.
+			Ref<Material> mat;
+			String mat_name;
+			String mat_primary_texture_coord = "TEXCOORD_0";
+			String mat_secondary_texture_coord = "TEXCOORD_1";
+			if (!p_state->discard_meshes_and_materials) {
+				if (mesh_prim.has("material")) {
+					const int material = mesh_prim["material"];
+					ERR_FAIL_INDEX_V(material, p_state->materials.size(), ERR_FILE_CORRUPT);
+					Ref<Material> mat3d = p_state->materials[material];
+					ERR_FAIL_COND_V(mat3d.is_null(), ERR_FILE_CORRUPT);
+					// Remap the glTF file's UV texture coordinates to Godot's UV and UV2 as best as possible.
+					if (mat3d->has_meta("_gltf_primary_texture_coord")) {
+						const int tex_coord = mat3d->get_meta("_gltf_primary_texture_coord");
+						mat_primary_texture_coord = "TEXCOORD_" + itos(tex_coord);
+						if (tex_coord != 0 && !mat3d->has_meta("_gltf_secondary_texture_coord")) {
+							mat_secondary_texture_coord = "TEXCOORD_0";
+						}
+					}
+					if (mat3d->has_meta("_gltf_secondary_texture_coord")) {
+						const int tex_coord = mat3d->get_meta("_gltf_secondary_texture_coord");
+						mat_secondary_texture_coord = "TEXCOORD_" + itos(tex_coord);
+					}
+					Ref<BaseMaterial3D> base_material = mat3d;
+					if (has_vertex_color && base_material.is_valid()) {
+						base_material->set_flag(BaseMaterial3D::FLAG_ALBEDO_FROM_VERTEX_COLOR, true);
+					}
+					mat = mat3d;
+
+				} else {
+					Ref<StandardMaterial3D> mat3d;
+					mat3d.instantiate();
+					if (has_vertex_color) {
+						mat3d->set_flag(StandardMaterial3D::FLAG_ALBEDO_FROM_VERTEX_COLOR, true);
+					}
+					mat = mat3d;
+				}
+				ERR_FAIL_COND_V(mat.is_null(), ERR_FILE_CORRUPT);
+				instance_materials.append(mat);
+				mat_name = mat->get_name();
+			}
+
+			// Read the mesh primitive data into Godot ArrayMesh array data.
 			Array array;
 			array.resize(Mesh::ARRAY_MAX);
 
@@ -3330,11 +3373,13 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> p_state) {
 			if (a.has("TANGENT")) {
 				array[Mesh::ARRAY_TANGENT] = _decode_accessor_as_floats(p_state, a["TANGENT"], true, indices_vec4_mapping);
 			}
-			if (a.has("TEXCOORD_0")) {
-				array[Mesh::ARRAY_TEX_UV] = _decode_accessor_as_vec2(p_state, a["TEXCOORD_0"], true, indices_mapping);
+			// Usually mat_primary_texture_coord is "TEXCOORD_0", but in some edge cases it might be different.
+			if (a.has(mat_primary_texture_coord)) {
+				array[Mesh::ARRAY_TEX_UV] = _decode_accessor_as_vec2(p_state, a[mat_primary_texture_coord], true, indices_mapping);
 			}
-			if (a.has("TEXCOORD_1")) {
-				array[Mesh::ARRAY_TEX_UV2] = _decode_accessor_as_vec2(p_state, a["TEXCOORD_1"], true, indices_mapping);
+			// Usually mat_secondary_texture_coord is "TEXCOORD_1", but in some edge cases it might be different.
+			if (a.has(mat_secondary_texture_coord)) {
+				array[Mesh::ARRAY_TEX_UV2] = _decode_accessor_as_vec2(p_state, a[mat_secondary_texture_coord], true, indices_mapping);
 			}
 			for (int custom_i = 0; custom_i < 3; custom_i++) {
 				Vector<float> cur_custom;
@@ -3702,34 +3747,6 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> p_state) {
 
 					morphs.push_back(array_copy);
 				}
-			}
-
-			Ref<Material> mat;
-			String mat_name;
-			if (!p_state->discard_meshes_and_materials) {
-				if (mesh_prim.has("material")) {
-					const int material = mesh_prim["material"];
-					ERR_FAIL_INDEX_V(material, p_state->materials.size(), ERR_FILE_CORRUPT);
-					Ref<Material> mat3d = p_state->materials[material];
-					ERR_FAIL_COND_V(mat3d.is_null(), ERR_FILE_CORRUPT);
-
-					Ref<BaseMaterial3D> base_material = mat3d;
-					if (has_vertex_color && base_material.is_valid()) {
-						base_material->set_flag(BaseMaterial3D::FLAG_ALBEDO_FROM_VERTEX_COLOR, true);
-					}
-					mat = mat3d;
-
-				} else {
-					Ref<StandardMaterial3D> mat3d;
-					mat3d.instantiate();
-					if (has_vertex_color) {
-						mat3d->set_flag(StandardMaterial3D::FLAG_ALBEDO_FROM_VERTEX_COLOR, true);
-					}
-					mat = mat3d;
-				}
-				ERR_FAIL_COND_V(mat.is_null(), ERR_FILE_CORRUPT);
-				instance_materials.append(mat);
-				mat_name = mat->get_name();
 			}
 			import_mesh->add_surface(primitive, array, morphs,
 					Dictionary(), mat, mat_name, flags);
@@ -4368,23 +4385,23 @@ Error GLTFDocument::_parse_texture_samplers(Ref<GLTFState> p_state) {
 Error GLTFDocument::_serialize_materials(Ref<GLTFState> p_state) {
 	Array materials;
 	for (int32_t i = 0; i < p_state->materials.size(); i++) {
-		Dictionary d;
+		Dictionary material_dict;
 		Ref<Material> material = p_state->materials[i];
 		if (material.is_null()) {
-			materials.push_back(d);
+			materials.push_back(material_dict);
 			continue;
 		}
 		if (!material->get_name().is_empty()) {
-			d["name"] = _gen_unique_name(p_state, material->get_name());
+			material_dict["name"] = _gen_unique_name(p_state, material->get_name());
 		}
 
 		Ref<BaseMaterial3D> base_material = material;
 		if (base_material.is_null()) {
-			materials.push_back(d);
+			materials.push_back(material_dict);
 			continue;
 		}
 
-		Dictionary mr;
+		Dictionary metal_rough_dict;
 		{
 			Array arr;
 			const Color c = base_material->get_albedo().srgb_to_linear();
@@ -4392,7 +4409,7 @@ Error GLTFDocument::_serialize_materials(Ref<GLTFState> p_state) {
 			arr.push_back(c.g);
 			arr.push_back(c.b);
 			arr.push_back(c.a);
-			mr["baseColorFactor"] = arr;
+			metal_rough_dict["baseColorFactor"] = arr;
 		}
 		if (_image_format != "None") {
 			Dictionary bct;
@@ -4410,12 +4427,12 @@ Error GLTFDocument::_serialize_materials(Ref<GLTFState> p_state) {
 					bct["extensions"] = extensions;
 					p_state->use_khr_texture_transform = true;
 				}
-				mr["baseColorTexture"] = bct;
+				metal_rough_dict["baseColorTexture"] = bct;
 			}
 		}
 
-		mr["metallicFactor"] = base_material->get_metallic();
-		mr["roughnessFactor"] = base_material->get_roughness();
+		metal_rough_dict["metallicFactor"] = base_material->get_metallic();
+		metal_rough_dict["roughnessFactor"] = base_material->get_roughness();
 		if (_image_format != "None") {
 			bool has_roughness = base_material->get_texture(BaseMaterial3D::TEXTURE_ROUGHNESS).is_valid() && base_material->get_texture(BaseMaterial3D::TEXTURE_ROUGHNESS)->get_image().is_valid();
 			bool has_ao = base_material->get_feature(BaseMaterial3D::FEATURE_AMBIENT_OCCLUSION) && base_material->get_texture(BaseMaterial3D::TEXTURE_AMBIENT_OCCLUSION).is_valid();
@@ -4537,7 +4554,10 @@ Error GLTFDocument::_serialize_materials(Ref<GLTFState> p_state) {
 				if (has_ao) {
 					Dictionary occt;
 					occt["index"] = orm_texture_index;
-					d["occlusionTexture"] = occt;
+					if (base_material->get_flag(BaseMaterial3D::FLAG_AO_ON_UV2)) {
+						occt["texCoord"] = 1;
+					}
+					material_dict["occlusionTexture"] = occt;
 				}
 				if (has_roughness || has_metalness) {
 					mrt["index"] = orm_texture_index;
@@ -4546,14 +4566,13 @@ Error GLTFDocument::_serialize_materials(Ref<GLTFState> p_state) {
 						mrt["extensions"] = extensions;
 						p_state->use_khr_texture_transform = true;
 					}
-					mr["metallicRoughnessTexture"] = mrt;
+					metal_rough_dict["metallicRoughnessTexture"] = mrt;
 				}
 			}
 		}
 
-		d["pbrMetallicRoughness"] = mr;
+		material_dict["pbrMetallicRoughness"] = metal_rough_dict;
 		if (base_material->get_feature(BaseMaterial3D::FEATURE_NORMAL_MAPPING) && _image_format != "None") {
-			Dictionary nt;
 			Ref<ImageTexture> tex;
 			tex.instantiate();
 			{
@@ -4588,47 +4607,50 @@ Error GLTFDocument::_serialize_materials(Ref<GLTFState> p_state) {
 				tex->set_name(material->get_name() + "_normal");
 				gltf_texture_index = _set_texture(p_state, tex, base_material->get_texture_filter(), base_material->get_flag(BaseMaterial3D::FLAG_USE_TEXTURE_REPEAT));
 			}
-			nt["scale"] = base_material->get_normal_scale();
+			Dictionary normal_tex_dict;
+			normal_tex_dict["scale"] = base_material->get_normal_scale();
 			if (gltf_texture_index != -1) {
-				nt["index"] = gltf_texture_index;
-				d["normalTexture"] = nt;
+				normal_tex_dict["index"] = gltf_texture_index;
+				material_dict["normalTexture"] = normal_tex_dict;
 			}
 		}
 
 		if (base_material->get_feature(BaseMaterial3D::FEATURE_EMISSION)) {
-			const Color c = base_material->get_emission().linear_to_srgb();
+			const Color emission_color = base_material->get_emission().linear_to_srgb();
 			Array arr;
-			arr.push_back(c.r);
-			arr.push_back(c.g);
-			arr.push_back(c.b);
-			d["emissiveFactor"] = arr;
+			arr.push_back(emission_color.r);
+			arr.push_back(emission_color.g);
+			arr.push_back(emission_color.b);
+			material_dict["emissiveFactor"] = arr;
+
+			if (_image_format != "None") {
+				Ref<Texture2D> emission_texture = base_material->get_texture(BaseMaterial3D::TEXTURE_EMISSION);
+				GLTFTextureIndex gltf_texture_index = -1;
+				if (emission_texture.is_valid() && emission_texture->get_image().is_valid()) {
+					emission_texture->set_name(material->get_name() + "_emission");
+					gltf_texture_index = _set_texture(p_state, emission_texture, base_material->get_texture_filter(), base_material->get_flag(BaseMaterial3D::FLAG_USE_TEXTURE_REPEAT));
+				}
+				if (gltf_texture_index != -1) {
+					Dictionary emissive_tex_dict;
+					emissive_tex_dict["index"] = gltf_texture_index;
+					if (base_material->get_flag(BaseMaterial3D::FLAG_EMISSION_ON_UV2)) {
+						emissive_tex_dict["texCoord"] = 1;
+					}
+					material_dict["emissiveTexture"] = emissive_tex_dict;
+				}
+			}
 		}
 
-		if (base_material->get_feature(BaseMaterial3D::FEATURE_EMISSION) && _image_format != "None") {
-			Dictionary et;
-			Ref<Texture2D> emission_texture = base_material->get_texture(BaseMaterial3D::TEXTURE_EMISSION);
-			GLTFTextureIndex gltf_texture_index = -1;
-			if (emission_texture.is_valid() && emission_texture->get_image().is_valid()) {
-				emission_texture->set_name(material->get_name() + "_emission");
-				gltf_texture_index = _set_texture(p_state, emission_texture, base_material->get_texture_filter(), base_material->get_flag(BaseMaterial3D::FLAG_USE_TEXTURE_REPEAT));
-			}
-
-			if (gltf_texture_index != -1) {
-				et["index"] = gltf_texture_index;
-				d["emissiveTexture"] = et;
-			}
-		}
-
-		const bool ds = base_material->get_cull_mode() == BaseMaterial3D::CULL_DISABLED;
-		if (ds) {
-			d["doubleSided"] = ds;
+		const bool double_sided = base_material->get_cull_mode() == BaseMaterial3D::CULL_DISABLED;
+		if (double_sided) {
+			material_dict["doubleSided"] = double_sided;
 		}
 
 		if (base_material->get_transparency() == BaseMaterial3D::TRANSPARENCY_ALPHA_SCISSOR) {
-			d["alphaMode"] = "MASK";
-			d["alphaCutoff"] = base_material->get_alpha_scissor_threshold();
+			material_dict["alphaMode"] = "MASK";
+			material_dict["alphaCutoff"] = base_material->get_alpha_scissor_threshold();
 		} else if (base_material->get_transparency() != BaseMaterial3D::TRANSPARENCY_DISABLED) {
-			d["alphaMode"] = "BLEND";
+			material_dict["alphaMode"] = "BLEND";
 		}
 
 		Dictionary extensions;
@@ -4643,10 +4665,10 @@ Error GLTFDocument::_serialize_materials(Ref<GLTFState> p_state) {
 			extensions["KHR_materials_emissive_strength"] = mat_emissive_strength;
 			p_state->add_used_extension("KHR_materials_emissive_strength");
 		}
-		d["extensions"] = extensions;
+		material_dict["extensions"] = extensions;
 
-		_attach_meta_to_extras(material, d);
-		materials.push_back(d);
+		_attach_meta_to_extras(material, material_dict);
+		materials.push_back(material_dict);
 	}
 	if (!materials.size()) {
 		return OK;
@@ -4689,14 +4711,15 @@ Error GLTFDocument::_parse_materials(Ref<GLTFState> p_state) {
 			}
 		}
 
+		int primary_texture_coord = -1; // Which UV map to use.
 		if (material_extensions.has("KHR_materials_pbrSpecularGlossiness")) {
 			WARN_PRINT("Material uses a specular and glossiness workflow. Textures will be converted to roughness and metallic workflow, which may not be 100% accurate.");
-			Dictionary sgm = material_extensions["KHR_materials_pbrSpecularGlossiness"];
+			Dictionary spec_gloss_ext_dict = material_extensions["KHR_materials_pbrSpecularGlossiness"];
 
 			Ref<GLTFSpecGloss> spec_gloss;
 			spec_gloss.instantiate();
-			if (sgm.has("diffuseTexture")) {
-				const Dictionary &diffuse_texture_dict = sgm["diffuseTexture"];
+			if (spec_gloss_ext_dict.has("diffuseTexture")) {
+				const Dictionary &diffuse_texture_dict = spec_gloss_ext_dict["diffuseTexture"];
 				if (diffuse_texture_dict.has("index")) {
 					Ref<GLTFTextureSampler> diffuse_sampler = _get_sampler_for_texture(p_state, diffuse_texture_dict["index"]);
 					if (diffuse_sampler.is_valid()) {
@@ -4709,105 +4732,149 @@ Error GLTFDocument::_parse_materials(Ref<GLTFState> p_state) {
 						material->set_texture(BaseMaterial3D::TEXTURE_ALBEDO, diffuse_texture);
 					}
 				}
+				if (diffuse_texture_dict.has("texCoord")) {
+					primary_texture_coord = diffuse_texture_dict["texCoord"];
+				} else {
+					primary_texture_coord = 0;
+				}
 			}
-			if (sgm.has("diffuseFactor")) {
-				const Array &arr = sgm["diffuseFactor"];
+			if (spec_gloss_ext_dict.has("diffuseFactor")) {
+				const Array &arr = spec_gloss_ext_dict["diffuseFactor"];
 				ERR_FAIL_COND_V(arr.size() != 4, ERR_PARSE_ERROR);
 				const Color c = Color(arr[0], arr[1], arr[2], arr[3]).linear_to_srgb();
 				spec_gloss->diffuse_factor = c;
 				material->set_albedo(spec_gloss->diffuse_factor);
 			}
 
-			if (sgm.has("specularFactor")) {
-				const Array &arr = sgm["specularFactor"];
+			if (spec_gloss_ext_dict.has("specularFactor")) {
+				const Array &arr = spec_gloss_ext_dict["specularFactor"];
 				ERR_FAIL_COND_V(arr.size() != 3, ERR_PARSE_ERROR);
 				spec_gloss->specular_factor = Color(arr[0], arr[1], arr[2]);
 			}
 
-			if (sgm.has("glossinessFactor")) {
-				spec_gloss->gloss_factor = sgm["glossinessFactor"];
+			if (spec_gloss_ext_dict.has("glossinessFactor")) {
+				spec_gloss->gloss_factor = spec_gloss_ext_dict["glossinessFactor"];
 				material->set_roughness(1.0f - CLAMP(spec_gloss->gloss_factor, 0.0f, 1.0f));
 			}
-			if (sgm.has("specularGlossinessTexture")) {
-				const Dictionary &spec_gloss_texture = sgm["specularGlossinessTexture"];
+			if (spec_gloss_ext_dict.has("specularGlossinessTexture")) {
+				const Dictionary &spec_gloss_texture = spec_gloss_ext_dict["specularGlossinessTexture"];
 				if (spec_gloss_texture.has("index")) {
 					const Ref<Texture2D> orig_texture = _get_texture(p_state, spec_gloss_texture["index"], TEXTURE_TYPE_GENERIC);
 					if (orig_texture.is_valid()) {
 						spec_gloss->spec_gloss_img = orig_texture->get_image();
 					}
 				}
+				if (spec_gloss_texture.has("texCoord")) {
+					const int spec_gloss_tex_coord = spec_gloss_texture["texCoord"];
+					if (primary_texture_coord == -1) {
+						primary_texture_coord = spec_gloss_tex_coord;
+					} else if (spec_gloss_tex_coord != primary_texture_coord) {
+						WARN_PRINT("glTF: File uses different UV maps for specular/glossiness texture and diffuse texture. Godot does not support this. Using diffuse texture's UV map only and ignoring specular/glossiness texture's UV map.");
+					}
+				}
 			}
 			spec_gloss_to_rough_metal(spec_gloss, material);
 
 		} else if (material_dict.has("pbrMetallicRoughness")) {
-			const Dictionary &mr = material_dict["pbrMetallicRoughness"];
-			if (mr.has("baseColorFactor")) {
-				const Array &arr = mr["baseColorFactor"];
+			const Dictionary &metal_rough_dict = material_dict["pbrMetallicRoughness"];
+			if (metal_rough_dict.has("baseColorFactor")) {
+				const Array &arr = metal_rough_dict["baseColorFactor"];
 				ERR_FAIL_COND_V(arr.size() != 4, ERR_PARSE_ERROR);
 				const Color c = Color(arr[0], arr[1], arr[2], arr[3]).linear_to_srgb();
 				material->set_albedo(c);
 			}
 
-			if (mr.has("baseColorTexture")) {
-				const Dictionary &bct = mr["baseColorTexture"];
-				if (bct.has("index")) {
-					Ref<GLTFTextureSampler> bct_sampler = _get_sampler_for_texture(p_state, bct["index"]);
+			if (metal_rough_dict.has("baseColorTexture")) {
+				const Dictionary &base_color_tex_dict = metal_rough_dict["baseColorTexture"];
+				if (base_color_tex_dict.has("index")) {
+					Ref<GLTFTextureSampler> bct_sampler = _get_sampler_for_texture(p_state, base_color_tex_dict["index"]);
 					material->set_texture_filter(bct_sampler->get_filter_mode());
 					material->set_flag(BaseMaterial3D::FLAG_USE_TEXTURE_REPEAT, bct_sampler->get_wrap_mode());
-					material->set_texture(BaseMaterial3D::TEXTURE_ALBEDO, _get_texture(p_state, bct["index"], TEXTURE_TYPE_GENERIC));
+					material->set_texture(BaseMaterial3D::TEXTURE_ALBEDO, _get_texture(p_state, base_color_tex_dict["index"], TEXTURE_TYPE_GENERIC));
 				}
-				if (!mr.has("baseColorFactor")) {
+				if (base_color_tex_dict.has("texCoord")) {
+					primary_texture_coord = base_color_tex_dict["texCoord"];
+				} else {
+					primary_texture_coord = 0;
+				}
+				if (!metal_rough_dict.has("baseColorFactor")) {
 					material->set_albedo(Color(1, 1, 1));
 				}
-				_set_texture_transform_uv1(bct, material);
+				_set_texture_transform_uv1(base_color_tex_dict, material);
 			}
 
-			if (mr.has("metallicFactor")) {
-				material->set_metallic(mr["metallicFactor"]);
+			if (metal_rough_dict.has("metallicFactor")) {
+				material->set_metallic(metal_rough_dict["metallicFactor"]);
 			} else {
 				material->set_metallic(1.0);
 			}
 
-			if (mr.has("roughnessFactor")) {
-				material->set_roughness(mr["roughnessFactor"]);
+			if (metal_rough_dict.has("roughnessFactor")) {
+				material->set_roughness(metal_rough_dict["roughnessFactor"]);
 			} else {
 				material->set_roughness(1.0);
 			}
 
-			if (mr.has("metallicRoughnessTexture")) {
-				const Dictionary &bct = mr["metallicRoughnessTexture"];
-				if (bct.has("index")) {
-					const Ref<Texture2D> t = _get_texture(p_state, bct["index"], TEXTURE_TYPE_GENERIC);
+			if (metal_rough_dict.has("metallicRoughnessTexture")) {
+				const Dictionary &metal_rough_tex_dict = metal_rough_dict["metallicRoughnessTexture"];
+				if (metal_rough_tex_dict.has("index")) {
+					const Ref<Texture2D> t = _get_texture(p_state, metal_rough_tex_dict["index"], TEXTURE_TYPE_GENERIC);
 					material->set_texture(BaseMaterial3D::TEXTURE_METALLIC, t);
 					material->set_metallic_texture_channel(BaseMaterial3D::TEXTURE_CHANNEL_BLUE);
 					material->set_texture(BaseMaterial3D::TEXTURE_ROUGHNESS, t);
 					material->set_roughness_texture_channel(BaseMaterial3D::TEXTURE_CHANNEL_GREEN);
-					if (!mr.has("metallicFactor")) {
+					if (!metal_rough_dict.has("metallicFactor")) {
 						material->set_metallic(1);
 					}
-					if (!mr.has("roughnessFactor")) {
+					if (!metal_rough_dict.has("roughnessFactor")) {
 						material->set_roughness(1);
+					}
+				}
+				if (metal_rough_tex_dict.has("texCoord")) {
+					const int metal_rough_tex_coord = metal_rough_tex_dict["texCoord"];
+					if (primary_texture_coord == -1) {
+						primary_texture_coord = metal_rough_tex_coord;
+					} else if (metal_rough_tex_coord != primary_texture_coord) {
+						WARN_PRINT("glTF: File uses different UV maps for metallic/roughness texture and base color texture. Godot does not support this. Using base color texture's UV map only and ignoring metallic/roughness texture's UV map.");
 					}
 				}
 			}
 		}
 
 		if (material_dict.has("normalTexture")) {
-			const Dictionary &bct = material_dict["normalTexture"];
-			if (bct.has("index")) {
-				material->set_texture(BaseMaterial3D::TEXTURE_NORMAL, _get_texture(p_state, bct["index"], TEXTURE_TYPE_NORMAL));
+			const Dictionary &normal_tex_dict = material_dict["normalTexture"];
+			if (normal_tex_dict.has("index")) {
+				material->set_texture(BaseMaterial3D::TEXTURE_NORMAL, _get_texture(p_state, normal_tex_dict["index"], TEXTURE_TYPE_NORMAL));
 				material->set_feature(BaseMaterial3D::FEATURE_NORMAL_MAPPING, true);
 			}
-			if (bct.has("scale")) {
-				material->set_normal_scale(bct["scale"]);
+			if (normal_tex_dict.has("texCoord")) {
+				const int normal_tex_coord = normal_tex_dict["texCoord"];
+				if (primary_texture_coord == -1) {
+					primary_texture_coord = normal_tex_coord;
+				} else if (normal_tex_coord != primary_texture_coord) {
+					WARN_PRINT("glTF: File uses different UV maps for normal and base color textures. Godot does not support this. Using base color texture's UV map only and ignoring normal texture's UV map.");
+				}
+			}
+			if (normal_tex_dict.has("scale")) {
+				material->set_normal_scale(normal_tex_dict["scale"]);
 			}
 		}
+		int secondary_texture_coord = -1;
 		if (material_dict.has("occlusionTexture")) {
-			const Dictionary &bct = material_dict["occlusionTexture"];
-			if (bct.has("index")) {
-				material->set_texture(BaseMaterial3D::TEXTURE_AMBIENT_OCCLUSION, _get_texture(p_state, bct["index"], TEXTURE_TYPE_GENERIC));
+			const Dictionary &occlusion_tex_dict = material_dict["occlusionTexture"];
+			if (occlusion_tex_dict.has("index")) {
+				material->set_texture(BaseMaterial3D::TEXTURE_AMBIENT_OCCLUSION, _get_texture(p_state, occlusion_tex_dict["index"], TEXTURE_TYPE_GENERIC));
 				material->set_ao_texture_channel(BaseMaterial3D::TEXTURE_CHANNEL_RED);
 				material->set_feature(BaseMaterial3D::FEATURE_AMBIENT_OCCLUSION, true);
+			}
+			if (occlusion_tex_dict.has("texCoord")) {
+				int occlusion_tex_coord = occlusion_tex_dict["texCoord"];
+				if (unlikely(primary_texture_coord == -1)) {
+					primary_texture_coord = occlusion_tex_coord;
+				} else if (occlusion_tex_coord != primary_texture_coord) {
+					secondary_texture_coord = occlusion_tex_coord;
+					material->set_flag(BaseMaterial3D::FLAG_AO_ON_UV2, true);
+				}
 			}
 		}
 
@@ -4821,11 +4888,24 @@ Error GLTFDocument::_parse_materials(Ref<GLTFState> p_state) {
 		}
 
 		if (material_dict.has("emissiveTexture")) {
-			const Dictionary &bct = material_dict["emissiveTexture"];
-			if (bct.has("index")) {
-				material->set_texture(BaseMaterial3D::TEXTURE_EMISSION, _get_texture(p_state, bct["index"], TEXTURE_TYPE_GENERIC));
+			const Dictionary &emissive_tex_dict = material_dict["emissiveTexture"];
+			if (emissive_tex_dict.has("index")) {
+				material->set_texture(BaseMaterial3D::TEXTURE_EMISSION, _get_texture(p_state, emissive_tex_dict["index"], TEXTURE_TYPE_GENERIC));
 				material->set_feature(BaseMaterial3D::FEATURE_EMISSION, true);
 				material->set_emission(Color(0, 0, 0));
+			}
+			if (emissive_tex_dict.has("texCoord")) {
+				int emissive_tex_coord = emissive_tex_dict["texCoord"];
+				if (unlikely(primary_texture_coord == -1)) {
+					primary_texture_coord = emissive_tex_coord;
+				} else if (emissive_tex_coord != primary_texture_coord) {
+					if (emissive_tex_coord == secondary_texture_coord || secondary_texture_coord == -1) {
+						secondary_texture_coord = emissive_tex_coord;
+						material->set_flag(BaseMaterial3D::FLAG_EMISSION_ON_UV2, true);
+					} else {
+						WARN_PRINT("glTF: File uses different UV maps for emission texture, occlusion texture, and primary texture (baseColor/normal/etc). Godot does not support this, it only supports up to two UV maps. Using occlusion texture's UV map only and ignoring emission texture's UV map.");
+					}
+				}
 			}
 		}
 
@@ -4851,6 +4931,12 @@ Error GLTFDocument::_parse_materials(Ref<GLTFState> p_state) {
 
 		if (material_dict.has("extras")) {
 			_attach_extras_to_meta(material_dict["extras"], material);
+		}
+		if (primary_texture_coord != -1) {
+			material->set_meta("_gltf_primary_texture_coord", primary_texture_coord);
+		}
+		if (secondary_texture_coord != -1) {
+			material->set_meta("_gltf_secondary_texture_coord", secondary_texture_coord);
 		}
 		p_state->materials.push_back(material);
 	}
@@ -6630,11 +6716,29 @@ Ref<GLTFObjectModelProperty> GLTFDocument::import_object_model_property(Ref<GLTF
 						ret->append_path_to_property(mat_path, "normal_scale");
 						ret->set_types(Variant::FLOAT, GLTFObjectModelProperty::GLTF_OBJECT_MODEL_TYPE_FLOAT);
 					}
-				} else if (mat_prop == "occlusionTexture") {
-					if (sub_prop == "strength") {
-						// This is the closest thing Godot has to an occlusion strength property.
-						ret->append_path_to_property(mat_path, "ao_light_affect");
-						ret->set_types(Variant::FLOAT, GLTFObjectModelProperty::GLTF_OBJECT_MODEL_TYPE_FLOAT);
+				} else if (mat_prop == "occlusionTexture" && sub_prop == "strength") {
+					// This is the closest thing Godot has to an occlusion strength property.
+					ret->append_path_to_property(mat_path, "ao_light_affect");
+					ret->set_types(Variant::FLOAT, GLTFObjectModelProperty::GLTF_OBJECT_MODEL_TYPE_FLOAT);
+				} else if (mat_prop == "occlusionTexture" || mat_prop == "emissiveTexture") {
+					// Occlusion and/or emission textures can use Godot's UV2, so we need to check if KHR_texture_transform animates them.
+					const Ref<BaseMaterial3D> base_material_3d = pointed_material;
+					if (base_material_3d.is_valid()) {
+						if ((mat_prop == "occlusionTexture" && base_material_3d->get_flag(BaseMaterial3D::FLAG_AO_ON_UV2)) || (mat_prop == "emissiveTexture" && base_material_3d->get_flag(BaseMaterial3D::FLAG_EMISSION_ON_UV2))) {
+							ERR_FAIL_COND_V(split.size() < 5, ret);
+							const String &tex_ext_dict = split[3];
+							const String &tex_ext_name = split[4];
+							const String &tex_ext_prop = split[5];
+							if (tex_ext_dict == "extensions" && tex_ext_name == "KHR_texture_transform") {
+								if (tex_ext_prop == "offset") {
+									ret->append_path_to_property(mat_path, "uv2_offset");
+									ret->set_types(Variant::VECTOR3, GLTFObjectModelProperty::GLTF_OBJECT_MODEL_TYPE_FLOAT2);
+								} else if (tex_ext_prop == "scale") {
+									ret->append_path_to_property(mat_path, "uv2_scale");
+									ret->set_types(Variant::VECTOR3, GLTFObjectModelProperty::GLTF_OBJECT_MODEL_TYPE_FLOAT2);
+								}
+							}
+						}
 					}
 				} else if (mat_prop == "pbrMetallicRoughness") {
 					if (sub_prop == "baseColorFactor") {
@@ -6744,6 +6848,17 @@ Ref<GLTFObjectModelProperty> GLTFDocument::import_object_model_property(Ref<GLTF
 	return ret;
 }
 
+void _append_khr_texture_transform_ext_json_pointer(PackedStringArray &p_split_json_pointer, const String &p_texture_name, const bool p_is_offset) {
+	p_split_json_pointer.append(p_texture_name);
+	p_split_json_pointer.append("extensions");
+	p_split_json_pointer.append("KHR_texture_transform");
+	if (p_is_offset) {
+		p_split_json_pointer.append("offset");
+	} else {
+		p_split_json_pointer.append("scale");
+	}
+}
+
 Ref<GLTFObjectModelProperty> GLTFDocument::export_object_model_property(Ref<GLTFState> p_state, const NodePath &p_node_path, const Node *p_godot_node, GLTFNodeIndex p_gltf_node_index) {
 	Ref<GLTFObjectModelProperty> ret;
 	const Object *target_object = p_godot_node;
@@ -6802,16 +6917,54 @@ Ref<GLTFObjectModelProperty> GLTFDocument::export_object_model_property(Ref<GLTF
 					split_json_pointer.append("pbrMetallicRoughness");
 					split_json_pointer.append("roughnessFactor");
 					ret->set_types(Variant::FLOAT, GLTFObjectModelProperty::GLTF_OBJECT_MODEL_TYPE_FLOAT);
-				} else if (target_prop == "uv1_offset" || target_prop == "uv1_scale") {
-					split_json_pointer.append("pbrMetallicRoughness");
-					split_json_pointer.append("baseColorTexture");
-					split_json_pointer.append("extensions");
-					split_json_pointer.append("KHR_texture_transform");
-					if (target_prop == "uv1_offset") {
-						split_json_pointer.append("offset");
-					} else {
-						split_json_pointer.append("scale");
+				} else if (target_prop == "uv1_offset" || target_prop == "uv1_scale" || target_prop == "uv2_offset" || target_prop == "uv2_scale") {
+					Array mat_dicts = p_state->json.get("materials", Array());
+					ERR_FAIL_INDEX_V(i, mat_dicts.size(), ret);
+					Dictionary mat_dict = mat_dicts[i];
+					const bool is_offset = target_prop.ends_with("offset");
+					const bool is_uv1 = target_prop.begins_with("uv1");
+					const Ref<BaseMaterial3D> &base_material_3d = p_state->materials[i];
+					if (base_material_3d.is_valid()) {
+						const bool is_uv2 = !is_uv1;
+						// occlusionTexture and emissiveTexture can use Godot's UV2, so we need to check if those are animated.
+						if (mat_dict.has("occlusionTexture")) {
+							if (is_uv2 == base_material_3d->get_flag(BaseMaterial3D::FLAG_AO_ON_UV2)) {
+								PackedStringArray occlusion = split_json_pointer.duplicate();
+								_append_khr_texture_transform_ext_json_pointer(occlusion, "occlusionTexture", is_offset);
+								split_json_pointers.append(occlusion);
+							}
+						}
+						if (mat_dict.has("emissiveTexture")) {
+							if (is_uv2 == base_material_3d->get_flag(BaseMaterial3D::FLAG_EMISSION_ON_UV2)) {
+								PackedStringArray emissive = split_json_pointer.duplicate();
+								_append_khr_texture_transform_ext_json_pointer(emissive, "emissiveTexture", is_offset);
+								split_json_pointers.append(emissive);
+							}
+						}
 					}
+					if (is_uv1) {
+						// normalTexture, pbrMetallicRoughness/baseColorTexture, and pbrMetallicRoughness/metallicRoughnessTexture use only UV1.
+						if (mat_dict.has("normalTexture")) {
+							PackedStringArray normal = split_json_pointer.duplicate();
+							_append_khr_texture_transform_ext_json_pointer(normal, "normalTexture", is_offset);
+							split_json_pointers.append(normal);
+						}
+						if (mat_dict.has("pbrMetallicRoughness")) {
+							Dictionary pbr_metallic_roughness = mat_dict["pbrMetallicRoughness"];
+							split_json_pointer.append("pbrMetallicRoughness");
+							if (pbr_metallic_roughness.has("metallicRoughnessTexture")) {
+								PackedStringArray metal_rough = split_json_pointer.duplicate();
+								_append_khr_texture_transform_ext_json_pointer(metal_rough, "metallicRoughnessTexture", is_offset);
+								split_json_pointers.append(metal_rough);
+							}
+							if (pbr_metallic_roughness.has("baseColorTexture")) {
+								PackedStringArray base_color = split_json_pointer.duplicate();
+								_append_khr_texture_transform_ext_json_pointer(base_color, "baseColorTexture", is_offset);
+								split_json_pointers.append(base_color);
+							}
+						}
+					}
+					split_json_pointer.clear();
 					ret->set_types(Variant::VECTOR3, GLTFObjectModelProperty::GLTF_OBJECT_MODEL_TYPE_FLOAT2);
 				} else {
 					split_json_pointer.clear();
@@ -6910,7 +7063,14 @@ Ref<GLTFObjectModelProperty> GLTFDocument::export_object_model_property(Ref<GLTF
 	// Additional JSON pointers can be added by GLTFDocumentExtension classes.
 	// We only need this if no mapping has been found yet from GLTFDocument's internal code.
 	// We pass as many pieces of information as we can to the extension to give it lots of context.
-	if (split_json_pointer.is_empty()) {
+	if (!split_json_pointer.is_empty()) {
+		// GLTFDocument's internal code found a mapping, so set it and return it.
+		split_json_pointers.append(split_json_pointer);
+		ret->set_json_pointers(split_json_pointers);
+	} else if (!split_json_pointers.is_empty()) {
+		ret->set_json_pointers(split_json_pointers);
+	} else {
+		// We don't have a mapping, so we need to ask GLTFDocumentExtension classes if they have a mapping.
 		for (Ref<GLTFDocumentExtension> ext : all_document_extensions) {
 			ret = ext->export_object_model_property(p_state, p_node_path, p_godot_node, p_gltf_node_index, target_object, target_prop_depth);
 			if (ret.is_valid() && ret->has_json_pointers()) {
@@ -6920,10 +7080,6 @@ Ref<GLTFObjectModelProperty> GLTFDocument::export_object_model_property(Ref<GLTF
 				break;
 			}
 		}
-	} else {
-		// GLTFDocument's internal code found a mapping, so set it and return it.
-		split_json_pointers.append(split_json_pointer);
-		ret->set_json_pointers(split_json_pointers);
 	}
 	return ret;
 }
