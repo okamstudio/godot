@@ -3048,22 +3048,53 @@ String ResourceFormatLoaderGDScript::get_resource_type(const String &p_path) con
 }
 
 void ResourceFormatLoaderGDScript::get_dependencies(const String &p_path, List<String> *p_dependencies, bool p_add_types) {
-	Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::READ);
-	ERR_FAIL_COND_MSG(file.is_null(), "Cannot open file '" + p_path + "'.");
-
-	String source = file->get_as_utf8_string();
-	if (source.is_empty()) {
+	Error err;
+	Ref<GDScript> scr = GDScriptCache::get_full_script(p_path, err, "", true);
+	if (err || !scr.is_valid()) {
 		return;
 	}
 
-	GDScriptParser parser;
-	if (OK != parser.parse(source, p_path, false)) {
-		return;
+	if (p_add_types) {
+		Ref<GDScript> base_class = scr->get_base();
+		if (base_class.is_valid()) {
+			p_dependencies->push_back(base_class->get_path());
+		}
 	}
 
-	for (const String &E : parser.get_dependencies()) {
-		p_dependencies->push_back(E);
+	for (KeyValue<StringName, Variant> constant : scr->get_constants()) {
+		switch (constant.value.get_type()) {
+			case Variant::OBJECT: {
+				Ref<Resource> resource = constant.value;
+				if (resource.is_valid())
+					p_dependencies->push_back(resource->get_path());
+			} break;
+			default:
+				break;
+			case Variant::ARRAY: {
+				Array arr = constant.value;
+				for (int i = 0; i < arr.size(); i++) {
+					if (arr[i].get_type() == Variant::OBJECT) {
+						Ref<Resource> resource = arr[i];
+						if (resource.is_valid())
+							p_dependencies->push_back(resource->get_path());
+					}
+				}
+			} break;
+			case Variant::DICTIONARY: {
+				Dictionary dict = constant.value;
+				Array keys = dict.keys();
+				for (int i = 0; i < keys.size(); i++) {
+					if (dict[keys[i]].get_type() == Variant::OBJECT) {
+						Ref<Resource> resource = dict[keys[i]];
+						if (resource.is_valid())
+							p_dependencies->push_back(resource->get_path());
+					}
+				}
+			} break;
+		}
 	}
+
+	// TODO: references to other scripts through their class_name.
 }
 
 Error ResourceFormatSaverGDScript::save(const Ref<Resource> &p_resource, const String &p_path, uint32_t p_flags) {

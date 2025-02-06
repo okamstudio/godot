@@ -1591,10 +1591,6 @@ public:
 	bool annotation_exists(const String &p_annotation_name) const;
 
 	const List<ParserError> &get_errors() const { return errors; }
-	const List<String> get_dependencies() const {
-		// TODO: Keep track of deps.
-		return List<String>();
-	}
 #ifdef DEBUG_ENABLED
 	const List<GDScriptWarning> &get_warnings() const { return warnings; }
 	const HashSet<int> &get_unsafe_lines() const { return unsafe_lines; }
