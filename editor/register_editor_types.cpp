@@ -73,6 +73,7 @@
 #include "editor/plugins/audio_stream_randomizer_editor_plugin.h"
 #include "editor/plugins/bit_map_editor_plugin.h"
 #include "editor/plugins/bone_map_editor_plugin.h"
+#include "editor/plugins/camera_2d_editor_plugin.h"
 #include "editor/plugins/camera_3d_editor_plugin.h"
 #include "editor/plugins/cast_2d_editor_plugin.h"
 #include "editor/plugins/collision_polygon_2d_editor_plugin.h"
@@ -252,6 +253,7 @@ void register_editor_types() {
 	EditorPlugins::add_by_type<VoxelGIEditorPlugin>();
 
 	// 2D
+	EditorPlugins::add_by_type<Camera2DEditorPlugin>();
 	EditorPlugins::add_by_type<CollisionPolygon2DEditorPlugin>();
 	EditorPlugins::add_by_type<CollisionShape2DEditorPlugin>();
 	EditorPlugins::add_by_type<CPUParticles2DEditorPlugin>();
