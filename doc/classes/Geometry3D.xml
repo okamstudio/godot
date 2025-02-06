@@ -25,6 +25,7 @@
 			<param index="4" name="axis" type="int" enum="Vector3.Axis" default="2" />
 			<description>
 				Returns an array of [Plane]s closely bounding a faceted capsule centered at the origin with radius [param radius] and height [param height]. The parameter [param sides] defines how many planes will be generated for the side part of the capsule, whereas [param lats] gives the number of latitudinal steps at the bottom and top of the capsule. The parameter [param axis] describes the axis along which the capsule is oriented (0 for X, 1 for Y, 2 for Z).
+				[b]Note:[/b] The [param radius] of a capsule cannot exceed half of its [param height]; otherwise, the capsule becomes a sphere. If the [param radius] exceeds half of the [param height], the properties adjust to a valid value.
 			</description>
 		</method>
 		<method name="build_cylinder_planes">

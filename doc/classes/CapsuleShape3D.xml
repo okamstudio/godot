@@ -6,6 +6,7 @@
 	<description>
 		A 3D capsule shape, intended for use in physics. Usually used to provide a shape for a [CollisionShape3D].
 		[b]Performance:[/b] [CapsuleShape3D] is fast to check collisions against. It is faster than [CylinderShape3D], but slower than [SphereShape3D] and [BoxShape3D].
+		[b]Note:[/b] The [member radius] of a [CapsuleShape3D] cannot exceed half of its [member height]; otherwise, the capsule becomes a sphere. If the [member radius] exceeds half of the [member height], the properties adjust to a valid value.
 	</description>
 	<tutorials>
 		<link title="3D Physics Tests Demo">https://godotengine.org/asset-library/asset/2747</link>
