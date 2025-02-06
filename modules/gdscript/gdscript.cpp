@@ -2595,49 +2595,17 @@ void GDScriptLanguage::reload_scripts(const Array &p_scripts, bool p_soft_reload
 		to_reload.insert(scr, HashMap<ObjectID, List<Pair<StringName, Variant>>>());
 
 		if (!p_soft_reload) {
-			//save state and remove script from instances
-			HashMap<ObjectID, List<Pair<StringName, Variant>>> &map = to_reload[scr];
-
-			while (scr->instances.front()) {
-				Object *obj = scr->instances.front()->get();
-				//save instance info
-				List<Pair<StringName, Variant>> state;
-				if (obj->get_script_instance()) {
-					obj->get_script_instance()->get_property_state(state);
-					map[obj->get_instance_id()] = state;
-					obj->set_script(Variant());
-				}
-			}
-
-			//same thing for placeholders
-#ifdef TOOLS_ENABLED
-
-			while (scr->placeholders.size()) {
-				Object *obj = (*scr->placeholders.begin())->get_owner();
-
-				//save instance info
-				if (obj->get_script_instance()) {
-					map.insert(obj->get_instance_id(), List<Pair<StringName, Variant>>());
-					List<Pair<StringName, Variant>> &state = map[obj->get_instance_id()];
-					obj->get_script_instance()->get_property_state(state);
-					obj->set_script(Variant());
-				} else {
-					// no instance found. Let's remove it so we don't loop forever
-					scr->placeholders.erase(*scr->placeholders.begin());
-				}
-			}
-
-#endif // TOOLS_ENABLED
-
-			for (const KeyValue<ObjectID, List<Pair<StringName, Variant>>> &F : scr->pending_reload_state) {
-				map[F.key] = F.value; //pending to reload, use this one instead
-			}
+			// Save state and remove script from instances.
+			_prepare_script_for_reload(scr, to_reload[scr]);
 		}
 	}
 
 	for (KeyValue<Ref<GDScript>, HashMap<ObjectID, List<Pair<StringName, Variant>>>> &E : to_reload) {
 		Ref<GDScript> scr = E.key;
 		print_verbose("GDScript: Reloading: " + scr->get_path());
+#ifdef TOOLS_ENABLED
+		bool was_tool = scr->is_tool();
+#endif
 		if (scr->is_built_in()) {
 			// TODO: It would be nice to do it more efficiently than loading the whole scene again.
 			Ref<PackedScene> scene = ResourceLoader::load(scr->get_path().get_slice("::", 0), "", ResourceFormatLoader::CACHE_MODE_IGNORE_DEEP);
@@ -2652,6 +2620,14 @@ void GDScriptLanguage::reload_scripts(const Array &p_scripts, bool p_soft_reload
 			scr->load_source_code(scr->get_path());
 		}
 		scr->reload(p_soft_reload);
+
+#ifdef TOOLS_ENABLED
+		// If the @tool changed in the script, we will force a hard reload to replace the PlaceHolders with GDScriptInstance
+		// and vice versa. A script that is not a tool is loaded has a PlaceHolder only and the GDScript is not running in the editor.
+		if (p_soft_reload && was_tool != scr->is_tool()) {
+			_prepare_script_for_reload(scr, to_reload[scr]);
+		}
+#endif
 
 		//restore state if saved
 		for (KeyValue<ObjectID, List<Pair<StringName, Variant>>> &F : E.value) {
@@ -2697,6 +2673,45 @@ void GDScriptLanguage::reload_scripts(const Array &p_scripts, bool p_soft_reload
 
 #endif // DEBUG_ENABLED
 }
+
+#ifdef DEBUG_ENABLED
+void GDScriptLanguage::_prepare_script_for_reload(const Ref<GDScript> &p_script, HashMap<ObjectID, List<Pair<StringName, Variant>>> &p_map) {
+	while (p_script->instances.front()) {
+		Object *obj = p_script->instances.front()->get();
+		// Save instance info.
+		List<Pair<StringName, Variant>> state;
+		if (obj->get_script_instance()) {
+			obj->get_script_instance()->get_property_state(state);
+			p_map[obj->get_instance_id()] = state;
+			obj->set_script(Variant());
+		}
+	}
+
+	// Same thing for placeholders.
+#ifdef TOOLS_ENABLED
+
+	while (p_script->placeholders.size()) {
+		Object *obj = (*p_script->placeholders.begin())->get_owner();
+
+		// Save instance info.
+		if (obj->get_script_instance()) {
+			p_map.insert(obj->get_instance_id(), List<Pair<StringName, Variant>>());
+			List<Pair<StringName, Variant>> &state = p_map[obj->get_instance_id()];
+			obj->get_script_instance()->get_property_state(state);
+			obj->set_script(Variant());
+		} else {
+			// No instance found. Let's remove it so we don't loop forever.
+			p_script->placeholders.erase(*p_script->placeholders.begin());
+		}
+	}
+
+#endif // TOOLS_ENABLED
+
+	for (const KeyValue<ObjectID, List<Pair<StringName, Variant>>> &F : p_script->pending_reload_state) {
+		p_map[F.key] = F.value; // Pending to reload, use this one instead.
+	}
+}
+#endif
 
 void GDScriptLanguage::reload_tool_script(const Ref<Script> &p_script, bool p_soft_reload) {
 	Array scripts;

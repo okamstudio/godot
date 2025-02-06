@@ -474,6 +474,7 @@ class GDScriptLanguage : public ScriptLanguage {
 	bool profiling;
 	bool profile_native_calls;
 	uint64_t script_frame_time;
+	void _prepare_script_for_reload(const Ref<GDScript> &p_script, HashMap<ObjectID, List<Pair<StringName, Variant>>> &p_map);
 #endif
 
 	HashMap<String, ObjectID> orphan_subclasses;
