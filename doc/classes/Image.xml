@@ -80,7 +80,7 @@
 			<param index="1" name="source" type="int" enum="Image.CompressSource" default="0" />
 			<param index="2" name="astc_format" type="int" enum="Image.ASTCFormat" default="0" />
 			<description>
-				Compresses the image to use less memory. Can not directly access pixel data while the image is compressed. Returns error if the chosen compression mode is not available.
+				Compresses the image to use less memory. Pixel data cannot be directly accessed on a compressed image. Returns error if the chosen compression mode is not available. See also [method is_compressed].
 				The [param source] parameter helps to pick the best compression method for DXT and ETC2 formats. It is ignored for ASTC compression.
 				For ASTC compression, the [param astc_format] parameter must be supplied.
 			</description>
@@ -91,7 +91,7 @@
 			<param index="1" name="channels" type="int" enum="Image.UsedChannels" />
 			<param index="2" name="astc_format" type="int" enum="Image.ASTCFormat" default="0" />
 			<description>
-				Compresses the image to use less memory. Can not directly access pixel data while the image is compressed. Returns error if the chosen compression mode is not available.
+				Compresses the image to use less memory. Pixel data cannot be directly accessed on a compressed image. Returns error if the chosen compression mode is not available. See also [method is_compressed].
 				This is an alternative to [method compress] that lets the user supply the channels used in order for the compressor to pick the best DXT and ETC2 formats. For other formats (non DXT or ETC2), this argument is ignored.
 				For ASTC compression, the [param astc_format] parameter must be supplied.
 			</description>
@@ -161,7 +161,7 @@
 		<method name="decompress">
 			<return type="int" enum="Error" />
 			<description>
-				Decompresses the image if it is VRAM compressed in a supported format. Returns [constant OK] if the format is supported, otherwise [constant ERR_UNAVAILABLE].
+				Decompresses the image if it is VRAM compressed in a supported format. Returns [constant OK] if the format is supported, otherwise [constant ERR_UNAVAILABLE]. See also [method is_compressed].
 				[b]Note:[/b] The following formats can be decompressed: DXT, RGTC, BPTC. The formats ETC1 and ETC2 are not supported.
 			</description>
 		</method>
@@ -237,6 +237,24 @@
 				Returns the image's format. See [enum Format] constants.
 			</description>
 		</method>
+		<method name="get_format_with_alpha" qualifiers="static">
+			<return type="int" enum="Image.Format" />
+			<param index="0" name="format" type="int" enum="Image.Format" />
+			<description>
+				Returns the image format that is equivalent to [param format], but with an alpha channel. If no equivalent exists, returns the format that was originally passed.
+				For example, calling this method with [constant Image.FORMAT_RGB8] returns [constant Image.FORMAT_RGBA8].
+				[b]Note:[/b] This method always returns the original format for VRAM-compressed formats (see [method is_compressed]).
+			</description>
+		</method>
+		<method name="get_format_without_alpha" qualifiers="static">
+			<return type="int" enum="Image.Format" />
+			<param index="0" name="format" type="int" enum="Image.Format" />
+			<description>
+				Returns the image format that is equivalent to [param format], but without an alpha channel. If no equivalent exists or the equivalent would occupy more memory than [param format], returns the format that was originally passed.
+				For example, calling this method with [constant Image.FORMAT_RGBA8] returns [constant Image.FORMAT_RGB8].
+				[b]Note:[/b] This method always returns the original format for VRAM-compressed formats (see [method is_compressed]).
+			</description>
+		</method>
 		<method name="get_height" qualifiers="const">
 			<return type="int" />
 			<description>
@@ -307,7 +325,7 @@
 		<method name="is_compressed" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if the image is compressed.
+				Returns [code]true[/code] if the image is in a VRAM-compressed format. A VRAM-compressed format is any format that is listed [i]after[/i] [constant FORMAT_RGBE9995] in the [enum Format] enum (excluding [constant FORMAT_RGBE9995]). These formats are designed to use a fixed compression ratio scheme, which allows for fast random access on the GPU. VRAM-compressed images cannot have their data modified until decompressed with [method decompress].
 			</description>
 		</method>
 		<method name="is_empty" qualifiers="const">

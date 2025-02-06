@@ -795,6 +795,52 @@ Image::Format Image::get_format() const {
 	return format;
 }
 
+Image::Format Image::get_format_with_alpha(Image::Format p_format) {
+	switch (p_format) {
+		case FORMAT_L8:
+			return FORMAT_LA8;
+		case FORMAT_R8:
+			return FORMAT_RGBA8;
+		case FORMAT_RG8:
+			return FORMAT_RGBA8;
+		case FORMAT_RGB8:
+			return FORMAT_RGBA8;
+		case FORMAT_RGB565:
+			return FORMAT_RGBA8;
+		case FORMAT_RF:
+			return FORMAT_RGBAF;
+		case FORMAT_RGF:
+			return FORMAT_RGBAF;
+		case FORMAT_RGBF:
+			return FORMAT_RGBAF;
+		case FORMAT_RH:
+			return FORMAT_RGBAH;
+		case FORMAT_RGH:
+			return FORMAT_RGBAH;
+		case FORMAT_RGBH:
+			return FORMAT_RGBAH;
+		case FORMAT_RGBE9995:
+			return FORMAT_RGBAF;
+		default:
+			return p_format;
+	}
+}
+
+Image::Format Image::get_format_without_alpha(Image::Format p_format) {
+	switch (p_format) {
+		case FORMAT_LA8:
+			return FORMAT_L8;
+		case FORMAT_RGBA8:
+			return FORMAT_RGB8;
+		case FORMAT_RGBAF:
+			return FORMAT_RGBF;
+		case FORMAT_RGBAH:
+			return FORMAT_RGBH;
+		default:
+			return p_format;
+	}
+}
+
 static double _bicubic_interp_kernel(double x) {
 	x = ABS(x);
 
@@ -3489,6 +3535,8 @@ void Image::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_size"), &Image::get_size);
 	ClassDB::bind_method(D_METHOD("has_mipmaps"), &Image::has_mipmaps);
 	ClassDB::bind_method(D_METHOD("get_format"), &Image::get_format);
+	ClassDB::bind_static_method("Image", D_METHOD("get_format_with_alpha", "format"), &Image::get_format_with_alpha);
+	ClassDB::bind_static_method("Image", D_METHOD("get_format_without_alpha", "format"), &Image::get_format_without_alpha);
 	ClassDB::bind_method(D_METHOD("get_data"), &Image::get_data);
 	ClassDB::bind_method(D_METHOD("get_data_size"), &Image::get_data_size);
 
