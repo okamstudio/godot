@@ -244,8 +244,11 @@ private:
 	Node *target_node = nullptr;
 	Point2 drop_pos;
 
+	Node *focused_node = nullptr;
+
 	EditorSelection *editor_selection = nullptr;
 
+	Button *follow_mode = nullptr;
 	CheckBox *preview_camera = nullptr;
 	SubViewportContainer *subviewport_container = nullptr;
 
@@ -483,6 +486,7 @@ private:
 	bool previewing_cinema = false;
 	bool _is_node_locked(const Node *p_node) const;
 	void _preview_exited_scene();
+	void _disable_follow_mode();
 	void _toggle_camera_preview(bool);
 	void _toggle_cinema_preview(bool);
 	void _init_gizmo_instance(int p_idx);
@@ -545,6 +549,8 @@ public:
 	Point2 point_to_screen(const Vector3 &p_point);
 
 	void focus_selection();
+
+	int times_focused_consecutively = 0;
 
 	void assign_pending_data_pointers(
 			Node3D *p_preview_node,
