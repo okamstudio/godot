@@ -282,10 +282,11 @@ List<MethodInfo> ConnectDialog::_filter_method_list(const List<MethodInfo> &p_me
 	bool check_signal = compatible_methods_only->is_pressed();
 	List<MethodInfo> ret;
 
-	List<Pair<Variant::Type, StringName>> effective_args;
+	LocalVector<Pair<Variant::Type, StringName>> effective_args;
 	int unbind = get_unbinds();
-	for (int i = 0; i < p_signal.arguments.size() - unbind; i++) {
-		PropertyInfo pi = p_signal.arguments.get(i);
+	effective_args.reserve(p_signal.arguments.size() - unbind);
+	for (int64_t i = 0; i < p_signal.arguments.size() - unbind; i++) {
+		PropertyInfo pi = p_signal.arguments[i];
 		effective_args.push_back(Pair(pi.type, pi.class_name));
 	}
 	if (unbind == 0) {
@@ -312,17 +313,16 @@ List<MethodInfo> ConnectDialog::_filter_method_list(const List<MethodInfo> &p_me
 			}
 
 			bool type_mismatch = false;
-			const List<Pair<Variant::Type, StringName>>::Element *E = effective_args.front();
-			for (const List<PropertyInfo>::Element *F = mi.arguments.front(); F; F = F->next(), E = E->next()) {
-				Variant::Type stype = E->get().first;
-				Variant::Type mtype = F->get().type;
+			for (int64_t i = 0; i < mi.arguments.size(); ++i) {
+				Variant::Type stype = effective_args[i].first;
+				Variant::Type mtype = mi.arguments[i].type;
 
 				if (stype != Variant::NIL && mtype != Variant::NIL && stype != mtype) {
 					type_mismatch = true;
 					break;
 				}
 
-				if (stype == Variant::OBJECT && mtype == Variant::OBJECT && !ClassDB::is_parent_class(E->get().second, F->get().class_name)) {
+				if (stype == Variant::OBJECT && mtype == Variant::OBJECT && !ClassDB::is_parent_class(effective_args[i].second, mi.arguments[i].class_name)) {
 					type_mismatch = true;
 					break;
 				}
@@ -546,13 +546,12 @@ String ConnectDialog::get_signature(const MethodInfo &p_method, PackedStringArra
 	signature.append(p_method.name);
 	signature.append("(");
 
-	int i = 0;
-	for (List<PropertyInfo>::ConstIterator itr = p_method.arguments.begin(); itr != p_method.arguments.end(); ++itr, ++i) {
-		if (itr != p_method.arguments.begin()) {
+	for (int64_t i = 0; i < p_method.arguments.size(); ++i) {
+		if (i > 0) {
 			signature.append(", ");
 		}
 
-		const PropertyInfo &pi = *itr;
+		const PropertyInfo &pi = p_method.arguments[i];
 		String type_name;
 		switch (pi.type) {
 			case Variant::NIL:

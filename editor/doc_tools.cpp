@@ -651,8 +651,7 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 				for (List<MethodInfo>::Element *EV = signal_list.front(); EV; EV = EV->next()) {
 					DocData::MethodDoc signal;
 					signal.name = EV->get().name;
-					for (List<PropertyInfo>::Element *EA = EV->get().arguments.front(); EA; EA = EA->next()) {
-						const PropertyInfo &arginfo = EA->get();
+					for (const PropertyInfo &arginfo : EV->get().arguments) {
 						DocData::ArgumentDoc argument;
 						DocData::argument_doc_from_arginfo(argument, arginfo);
 
@@ -844,9 +843,8 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 
 			method.name = mi.name;
 
-			int j = 0;
-			for (List<PropertyInfo>::ConstIterator itr = mi.arguments.begin(); itr != mi.arguments.end(); ++itr, ++j) {
-				PropertyInfo arginfo = *itr;
+			for (int64_t j = 0; j < mi.arguments.size(); ++j) {
+				const PropertyInfo &arginfo = mi.arguments[j];
 				DocData::ArgumentDoc ad;
 				DocData::argument_doc_from_arginfo(ad, arginfo);
 				ad.name = arginfo.name;
@@ -1057,10 +1055,9 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 
 				DocData::return_doc_from_retinfo(md, mi.return_val);
 
-				int j = 0;
-				for (List<PropertyInfo>::ConstIterator itr = mi.arguments.begin(); itr != mi.arguments.end(); ++itr, ++j) {
+				for (int64_t j = 0; j < mi.arguments.size(); ++j) {
 					DocData::ArgumentDoc ad;
-					DocData::argument_doc_from_arginfo(ad, *itr);
+					DocData::argument_doc_from_arginfo(ad, mi.arguments[j]);
 
 					int darg_idx = j - (mi.arguments.size() - mi.default_arguments.size());
 					if (darg_idx >= 0) {
@@ -1103,12 +1100,11 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 
 				DocData::return_doc_from_retinfo(atd, ai.return_val);
 
-				int j = 0;
-				for (List<PropertyInfo>::ConstIterator itr = ai.arguments.begin(); itr != ai.arguments.end(); ++itr, ++j) {
+				for (int64_t j = 0; j < ai.arguments.size(); ++j) {
 					DocData::ArgumentDoc ad;
-					DocData::argument_doc_from_arginfo(ad, *itr);
+					DocData::argument_doc_from_arginfo(ad, ai.arguments[j]);
 
-					int darg_idx = j - (ai.arguments.size() - ai.default_arguments.size());
+					int64_t darg_idx = j - (ai.arguments.size() - ai.default_arguments.size());
 					if (darg_idx >= 0) {
 						ad.default_value = DocData::get_default_value_string(ai.default_arguments[darg_idx]);
 					}

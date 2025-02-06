@@ -5628,17 +5628,16 @@ void AnimationTrackEditor::_add_method_key(const String &p_method) {
 			Dictionary d;
 			d["method"] = p_method;
 			Array params;
-			int first_defarg = E.arguments.size() - E.default_arguments.size();
+			int64_t first_defarg = E.arguments.size() - E.default_arguments.size();
 
-			int i = 0;
-			for (List<PropertyInfo>::ConstIterator itr = E.arguments.begin(); itr != E.arguments.end(); ++itr, ++i) {
+			for (int64_t i = 0; i < E.arguments.size(); ++i) {
 				if (i >= first_defarg) {
 					Variant arg = E.default_arguments[i - first_defarg];
 					params.push_back(arg);
 				} else {
 					Callable::CallError ce;
 					Variant arg;
-					Variant::construct(itr->type, arg, nullptr, 0, ce);
+					Variant::construct(E.arguments[i].type, arg, nullptr, 0, ce);
 					params.push_back(arg);
 				}
 			}

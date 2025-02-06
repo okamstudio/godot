@@ -115,10 +115,19 @@ TypedArray<Dictionary> convert_property_list(const List<PropertyInfo> *p_list) {
 	return va;
 }
 
+TypedArray<Dictionary> convert_property_list(const Vector<PropertyInfo> &p_vector) {
+	TypedArray<Dictionary> va;
+	for (const PropertyInfo &E : p_vector) {
+		va.push_back(Dictionary(E));
+	}
+
+	return va;
+}
+
 MethodInfo::operator Dictionary() const {
 	Dictionary d;
 	d["name"] = name;
-	d["args"] = convert_property_list(&arguments);
+	d["args"] = convert_property_list(arguments);
 	Array da;
 	for (int i = 0; i < default_arguments.size(); i++) {
 		da.push_back(default_arguments[i]);

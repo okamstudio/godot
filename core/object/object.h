@@ -209,6 +209,7 @@ struct PropertyInfo {
 };
 
 TypedArray<Dictionary> convert_property_list(const List<PropertyInfo> *p_list);
+TypedArray<Dictionary> convert_property_list(const Vector<PropertyInfo> &p_vector);
 
 enum MethodFlags {
 	METHOD_FLAG_NORMAL = 1,
@@ -227,7 +228,7 @@ struct MethodInfo {
 	PropertyInfo return_val;
 	uint32_t flags = METHOD_FLAGS_DEFAULT;
 	int id = 0;
-	List<PropertyInfo> arguments;
+	Vector<PropertyInfo> arguments;
 	Vector<Variant> default_arguments;
 	int return_val_metadata = 0;
 	Vector<int> arguments_metadata;
@@ -256,8 +257,8 @@ struct MethodInfo {
 			return_val(PropertyInfo(pinfo.return_value)),
 			flags(pinfo.flags),
 			id(pinfo.id) {
-		for (uint32_t j = 0; j < pinfo.argument_count; j++) {
-			arguments.push_back(PropertyInfo(pinfo.arguments[j]));
+		for (uint32_t i = 0; i < pinfo.argument_count; i++) {
+			arguments.push_back(PropertyInfo(pinfo.arguments[i]));
 		}
 		const Variant *def_values = (const Variant *)pinfo.default_arguments;
 		for (uint32_t j = 0; j < pinfo.default_argument_count; j++) {
@@ -265,22 +266,12 @@ struct MethodInfo {
 		}
 	}
 
-	void _push_params(const PropertyInfo &p_param) {
-		arguments.push_back(p_param);
-	}
-
-	template <typename... VarArgs>
-	void _push_params(const PropertyInfo &p_param, VarArgs... p_params) {
-		arguments.push_back(p_param);
-		_push_params(p_params...);
-	}
-
 	MethodInfo(const String &p_name) { name = p_name; }
 
 	template <typename... VarArgs>
 	MethodInfo(const String &p_name, VarArgs... p_params) {
 		name = p_name;
-		_push_params(p_params...);
+		arguments = Vector<PropertyInfo>{ p_params... };
 	}
 
 	MethodInfo(Variant::Type ret) { return_val.type = ret; }
@@ -293,7 +284,7 @@ struct MethodInfo {
 	MethodInfo(Variant::Type ret, const String &p_name, VarArgs... p_params) {
 		name = p_name;
 		return_val.type = ret;
-		_push_params(p_params...);
+		arguments = Vector<PropertyInfo>{ p_params... };
 	}
 
 	MethodInfo(const PropertyInfo &p_ret, const String &p_name) {
@@ -305,7 +296,7 @@ struct MethodInfo {
 	MethodInfo(const PropertyInfo &p_ret, const String &p_name, VarArgs... p_params) {
 		return_val = p_ret;
 		name = p_name;
-		_push_params(p_params...);
+		arguments = Vector<PropertyInfo>{ p_params... };
 	}
 };
 

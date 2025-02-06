@@ -269,20 +269,21 @@ void PropertySelector::_update_search() {
 
 			desc += vformat(" %s(", mi.name);
 
-			for (List<PropertyInfo>::Iterator arg_itr = mi.arguments.begin(); arg_itr != mi.arguments.end(); ++arg_itr) {
-				if (arg_itr != mi.arguments.begin()) {
+			for (int64_t i = 0; i < mi.arguments.size(); ++i) {
+				PropertyInfo &arg = mi.arguments.write[i];
+				if (i > 0) {
 					desc += ", ";
 				}
 
-				desc += arg_itr->name;
+				desc += arg.name;
 
-				if (arg_itr->type == Variant::NIL) {
+				if (arg.type == Variant::NIL) {
 					desc += ": Variant";
-				} else if (arg_itr->name.contains_char(':')) {
-					desc += vformat(": %s", arg_itr->name.get_slice(":", 1));
-					arg_itr->name = arg_itr->name.get_slice(":", 0);
+				} else if (arg.name.contains_char(':')) {
+					desc += vformat(": %s", arg.name.get_slice(":", 1));
+					arg.name = arg.name.get_slice(":", 0);
 				} else {
-					desc += vformat(": %s", Variant::get_type_name(arg_itr->type));
+					desc += vformat(": %s", Variant::get_type_name(arg.type));
 				}
 			}
 
