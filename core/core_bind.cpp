@@ -112,6 +112,17 @@ PackedStringArray ResourceLoader::get_dependencies(const String &p_path) {
 	return ret;
 }
 
+Error ResourceLoader::rename_dependencies(const String &p_path, const Dictionary &p_map) {
+	PackedStringArray dependencies = get_dependencies(p_path);
+	HashMap<String, String> renames;
+	for (int i = 0; i < p_map.size(); i++) {
+		if (dependencies.has(p_map.keys()[i])) {
+			renames[p_map.keys()[i]] = p_map[p_map.keys()[i]];
+		}
+	}
+	return ::ResourceLoader::rename_dependencies(p_path, renames);
+}
+
 bool ResourceLoader::has_cached(const String &p_path) {
 	String local_path = ::ResourceLoader::_validate_local_path(p_path);
 	return ResourceCache::has(local_path);
@@ -145,6 +156,7 @@ void ResourceLoader::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("remove_resource_format_loader", "format_loader"), &ResourceLoader::remove_resource_format_loader);
 	ClassDB::bind_method(D_METHOD("set_abort_on_missing_resources", "abort"), &ResourceLoader::set_abort_on_missing_resources);
 	ClassDB::bind_method(D_METHOD("get_dependencies", "path"), &ResourceLoader::get_dependencies);
+	ClassDB::bind_method(D_METHOD("rename_dependencies", "path", "rename_paths_from_to"), &ResourceLoader::rename_dependencies);
 	ClassDB::bind_method(D_METHOD("has_cached", "path"), &ResourceLoader::has_cached);
 	ClassDB::bind_method(D_METHOD("get_cached_ref", "path"), &ResourceLoader::get_cached_ref);
 	ClassDB::bind_method(D_METHOD("exists", "path", "type_hint"), &ResourceLoader::exists, DEFVAL(""));

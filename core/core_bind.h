@@ -79,6 +79,7 @@ public:
 	void remove_resource_format_loader(Ref<ResourceFormatLoader> p_format_loader);
 	void set_abort_on_missing_resources(bool p_abort);
 	PackedStringArray get_dependencies(const String &p_path);
+	Error rename_dependencies(const String &p_path, const Dictionary &p_map);
 	bool has_cached(const String &p_path);
 	Ref<Resource> get_cached_ref(const String &p_path);
 	bool exists(const String &p_path, const String &p_type_hint = "");

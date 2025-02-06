@@ -134,6 +134,16 @@
 				Unregisters the given [ResourceFormatLoader].
 			</description>
 		</method>
+		<method name="rename_dependencies">
+			<return type="int" enum="Error" />
+			<param index="0" name="path" type="String" />
+			<param index="1" name="rename_paths_from_to" type="Dictionary" />
+			<description>
+				Renames resource dependency paths from their current path to a replacement path and creates a new resource file at the same location as the original. The original file is not modified. Rename paths are confirmed to exist in the resource file before renaming.
+				The name of the new, modified resource at [param path] is dependent on the particular [ResourceFormatLoader] used by the resource type. Godot [PackedScene] resources, [code].tscn[/code] and [code].scn[/code] are saved with the original [param path] name appended with [code].depren[/code].
+				Tested for use in the [code]user://[/code] directory.
+			</description>
+		</method>
 		<method name="set_abort_on_missing_resources">
 			<return type="void" />
 			<param index="0" name="abort" type="bool" />
