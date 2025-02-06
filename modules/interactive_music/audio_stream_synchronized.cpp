@@ -222,22 +222,26 @@ int AudioStreamPlaybackSynchronized::mix(AudioFrame *p_buffer, float p_rate_scal
 	int todo = p_frames;
 
 	bool any_active = false;
+	int total_mixed = 0;
 	while (todo) {
 		int to_mix = MIN(todo, MIX_BUFFER_SIZE);
+		int max_mixed = 0;
 
 		bool first = true;
 		for (int i = 0; i < stream->stream_count; i++) {
 			if (playback[i].is_valid() && playback[i]->is_playing()) {
 				float volume = Math::db_to_linear(stream->audio_stream_volume_db[i]);
 				if (first) {
-					playback[i]->mix(p_buffer, p_rate_scale, to_mix);
+					int mixed = playback[i]->mix(p_buffer, p_rate_scale, to_mix);
+					max_mixed = MAX(max_mixed, mixed);
 					for (int j = 0; j < to_mix; j++) {
 						p_buffer[j] *= volume;
 					}
 					first = false;
 					any_active = true;
 				} else {
-					playback[i]->mix(mix_buffer, p_rate_scale, to_mix);
+					int mixed = playback[i]->mix(mix_buffer, p_rate_scale, to_mix);
+					max_mixed = MAX(max_mixed, mixed);
 					for (int j = 0; j < to_mix; j++) {
 						p_buffer[j] += mix_buffer[j] * volume;
 					}
@@ -254,12 +258,13 @@ int AudioStreamPlaybackSynchronized::mix(AudioFrame *p_buffer, float p_rate_scal
 
 		p_buffer += to_mix;
 		todo -= to_mix;
+		total_mixed += max_mixed;
 	}
 
 	if (!any_active) {
 		active = false;
 	}
-	return p_frames;
+	return total_mixed;
 }
 
 void AudioStreamPlaybackSynchronized::tag_used_streams() {
