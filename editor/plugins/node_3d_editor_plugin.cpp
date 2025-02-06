@@ -2508,9 +2508,9 @@ void Node3DEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 		}
 	}
 
-	// freelook uses most of the useful shortcuts, like save, so its ok
-	// to consider freelook active as end of the line for future events.
-	if (freelook_active) {
+	// If the mouse is captured, it can be safe to assume inputs should not propagate as it can
+	// cause conflicts like when freelook is active.
+	if (Input::get_singleton()->get_mouse_mode() == Input::MOUSE_MODE_CAPTURED) {
 		accept_event();
 	}
 }
