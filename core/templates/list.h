@@ -147,16 +147,20 @@ public:
 		}
 		_FORCE_INLINE_ const T *operator->() const { return &E->get(); }
 		_FORCE_INLINE_ ConstIterator &operator++() {
-			E = E->next();
+			if (likely(E)) {
+				E = E->next();
+			}
 			return *this;
 		}
 		_FORCE_INLINE_ ConstIterator &operator--() {
-			E = E->prev();
+			if (likely(E)) {
+				E = E->prev();
+			}
 			return *this;
 		}
 
-		_FORCE_INLINE_ bool operator==(const ConstIterator &b) const { return E == b.E; }
-		_FORCE_INLINE_ bool operator!=(const ConstIterator &b) const { return E != b.E; }
+		_FORCE_INLINE_ bool operator==(const ConstIterator &p_it) const { return E == p_it.E; }
+		_FORCE_INLINE_ bool operator!=(const ConstIterator &p_it) const { return E != p_it.E; }
 
 		_FORCE_INLINE_ ConstIterator(const Element *p_E) { E = p_E; }
 		_FORCE_INLINE_ ConstIterator() {}
@@ -172,16 +176,20 @@ public:
 		}
 		_FORCE_INLINE_ T *operator->() const { return &E->get(); }
 		_FORCE_INLINE_ Iterator &operator++() {
-			E = E->next();
+			if (likely(E)) {
+				E = E->next();
+			}
 			return *this;
 		}
 		_FORCE_INLINE_ Iterator &operator--() {
-			E = E->prev();
+			if (likely(E)) {
+				E = E->prev();
+			}
 			return *this;
 		}
 
-		_FORCE_INLINE_ bool operator==(const Iterator &b) const { return E == b.E; }
-		_FORCE_INLINE_ bool operator!=(const Iterator &b) const { return E != b.E; }
+		_FORCE_INLINE_ bool operator==(const Iterator &p_it) const { return E == p_it.E; }
+		_FORCE_INLINE_ bool operator!=(const Iterator &p_it) const { return E != p_it.E; }
 
 		Iterator(Element *p_E) { E = p_E; }
 		Iterator() {}
