@@ -342,13 +342,6 @@ EditorThemeManager::ThemeConfiguration EditorThemeManager::_create_theme_config(
 			config.accent_color = system_accent_color;
 			config.preset = "Custom";
 		}
-
-		// Enforce values in case they were adjusted or overridden.
-		EditorSettings::get_singleton()->set_manually("interface/theme/preset", config.preset);
-		EditorSettings::get_singleton()->set_manually("interface/theme/accent_color", config.accent_color);
-		EditorSettings::get_singleton()->set_manually("interface/theme/base_color", config.base_color);
-		EditorSettings::get_singleton()->set_manually("interface/theme/contrast", config.contrast);
-		EditorSettings::get_singleton()->set_manually("interface/theme/draw_extra_borders", config.draw_extra_borders);
 	}
 
 	// Handle theme spacing preset.

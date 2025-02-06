@@ -424,6 +424,7 @@ private:
 	bool immediate_dialog_confirmed = false;
 	bool opening_prev = false;
 	bool restoring_scenes = false;
+	bool settings_overrides_changed = false;
 	bool unsaved_cache = true;
 
 	bool requested_first_scan = false;
@@ -941,6 +942,9 @@ public:
 	void try_autosave();
 	void restart_editor(bool p_goto_project_manager = false);
 	void unload_editor_addons();
+
+	void open_setting_override(const String &p_property);
+	void notify_settings_overrides_changed();
 
 	void dim_editor(bool p_dimming);
 	bool is_editor_dimmed() const;

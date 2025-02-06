@@ -46,6 +46,7 @@ class ProjectSettings : public Object {
 public:
 	typedef HashMap<String, Variant> CustomMap;
 	static const String PROJECT_DATA_DIR_NAME_SUFFIX;
+	static const String EDITOR_SETTING_OVERRIDE_PREFIX;
 
 	// Properties that are not for built in values begin from this value, so builtin ones are displayed first.
 	constexpr static const int32_t NO_BUILTIN_ORDER_BASE = 1 << 16;
@@ -221,6 +222,10 @@ public:
 #ifdef TOOLS_ENABLED
 	virtual void get_argument_options(const StringName &p_function, int p_idx, List<String> *r_options) const override;
 #endif
+
+	void set_editor_setting_override(const String &p_setting, const Variant &p_value);
+	bool has_editor_setting_override(const String &p_setting) const;
+	Variant get_editor_setting_override(const String &p_setting) const;
 
 	ProjectSettings();
 	ProjectSettings(const String &p_path);

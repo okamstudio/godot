@@ -1440,6 +1440,9 @@ Variant _EDITOR_DEF(const String &p_setting, const Variant &p_default, bool p_re
 
 Variant _EDITOR_GET(const String &p_setting) {
 	ERR_FAIL_COND_V(!EditorSettings::get_singleton() || !EditorSettings::get_singleton()->has_setting(p_setting), Variant());
+	if (ProjectSettings::get_singleton()->has_editor_setting_override(p_setting)) {
+		return ProjectSettings::get_singleton()->get_editor_setting_override(p_setting);
+	}
 	return EditorSettings::get_singleton()->get(p_setting);
 }
 

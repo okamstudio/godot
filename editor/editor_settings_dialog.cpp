@@ -30,6 +30,7 @@
 
 #include "editor_settings_dialog.h"
 
+#include "core/config/project_settings.h"
 #include "core/input/input_map.h"
 #include "core/os/keyboard.h"
 #include "editor/debugger/editor_debugger_node.h"
@@ -44,6 +45,7 @@
 #include "editor/event_listener_line_edit.h"
 #include "editor/input_event_configuration_dialog.h"
 #include "editor/plugins/node_3d_editor_plugin.h"
+#include "editor/project_settings_editor.h"
 #include "editor/themes/editor_scale.h"
 #include "editor/themes/editor_theme_manager.h"
 #include "scene/gui/check_button.h"
@@ -999,7 +1001,111 @@ EditorSettingsDialog::EditorSettingsDialog() {
 	add_child(timer);
 	EditorSettings::get_singleton()->connect("settings_changed", callable_mp(this, &EditorSettingsDialog::_settings_changed));
 	set_ok_button_text(TTR("Close"));
+
+	Ref<EditorSettingsInspectorPlugin> plugin;
+	plugin.instantiate();
+	plugin->inspector = inspector;
+	EditorInspector::add_inspector_plugin(plugin);
 }
 
-EditorSettingsDialog::~EditorSettingsDialog() {
+void EditorSettingsPropertyWrapper::_update_override() {
+	const bool has_override = ProjectSettings::get_singleton()->has_editor_setting_override(property);
+	if (has_override) {
+		const Variant override_value = EDITOR_GET(property);
+		override_label->set_text(vformat(TTR("Overridden in project: %s"), override_value));
+		// In case the text is too long and trimmed.
+		override_label->set_tooltip_text(override_value);
+	}
+	override_button->set_visible(!has_override);
+	override_info->set_visible(has_override);
+	container->set_vertical(has_override);
+}
+
+void EditorSettingsPropertyWrapper::_create_override() {
+	ProjectSettings::get_singleton()->set_editor_setting_override(property, EDITOR_GET(property));
+	ProjectSettings::get_singleton()->save();
+	_update_override();
+}
+
+void EditorSettingsPropertyWrapper::_remove_override() {
+	ProjectSettings::get_singleton()->set_editor_setting_override(property, Variant());
+	ProjectSettings::get_singleton()->save();
+	EditorSettings::get_singleton()->mark_setting_changed(property);
+	EditorNode::get_singleton()->notify_settings_overrides_changed();
+	_update_override();
+}
+
+void EditorSettingsPropertyWrapper::_notification(int p_what) {
+	if (p_what == NOTIFICATION_THEME_CHANGED) {
+		override_button->set_icon(get_editor_theme_icon(SNAME("Override")));
+		goto_button->set_icon(get_editor_theme_icon(SNAME("MethodOverride")));
+		remove_button->set_icon(get_editor_theme_icon(SNAME("Remove")));
+	}
+}
+
+void EditorSettingsPropertyWrapper::update_property() {
+	editor_property->update_property();
+}
+
+void EditorSettingsPropertyWrapper::setup(const String &p_property, EditorProperty *p_editor_property) {
+	property = p_property;
+	container = memnew(BoxContainer);
+
+	override_button = memnew(Button);
+	override_button->set_tooltip_text(TTR("Override this setting for the current project."));
+	container->add_child(override_button);
+	override_button->connect(SNAME("pressed"), callable_mp(this, &EditorSettingsPropertyWrapper::_create_override));
+
+	editor_property = p_editor_property;
+	editor_property->set_h_size_flags(SIZE_EXPAND_FILL);
+	container->add_child(editor_property);
+
+	override_info = memnew(HBoxContainer);
+	override_info->hide();
+	container->add_child(override_info);
+
+	override_label = memnew(Label);
+	override_label->set_text_overrun_behavior(TextServer::OVERRUN_TRIM_ELLIPSIS);
+	override_label->set_mouse_filter(MOUSE_FILTER_STOP); // For tooltip.
+	override_label->set_h_size_flags(SIZE_EXPAND_FILL);
+	override_info->add_child(override_label);
+
+	goto_button = memnew(Button);
+	goto_button->set_tooltip_text(TTR("Go to override in Project Settings."));
+	override_info->add_child(goto_button);
+	goto_button->connect(SNAME("pressed"), callable_mp(EditorNode::get_singleton(), &EditorNode::open_setting_override).bind(property), CONNECT_DEFERRED);
+
+	remove_button = memnew(Button);
+	remove_button->set_tooltip_text(TTR("Remove this override."));
+	override_info->add_child(remove_button);
+	remove_button->connect(SNAME("pressed"), callable_mp(this, &EditorSettingsPropertyWrapper::_remove_override));
+
+	add_child(container);
+	_update_override();
+}
+
+bool EditorSettingsInspectorPlugin::can_handle(Object *p_object) {
+	return p_object->is_class("SectionedInspectorFilter") && p_object != current_object;
+}
+
+bool EditorSettingsInspectorPlugin::parse_property(Object *p_object, const Variant::Type p_type, const String &p_path, const PropertyHint p_hint, const String &p_hint_text, const BitField<PropertyUsageFlags> p_usage, const bool p_wide) {
+	if (!p_object->is_class("SectionedInspectorFilter")) {
+		return false;
+	}
+
+	const String property = inspector->get_full_item_path(p_path);
+	if (EditorSettings::get_singleton()->has_setting(property)) {
+		current_object = p_object;
+
+		EditorSettingsPropertyWrapper *editor = memnew(EditorSettingsPropertyWrapper);
+		EditorProperty *real_property = inspector->get_inspector()->instantiate_property_editor(p_object, p_type, p_path, p_hint, p_hint_text, p_usage, p_wide);
+		real_property->set_object_and_property(p_object, p_path);
+		real_property->set_name_split_ratio(0.0);
+		editor->setup(property, real_property);
+
+		add_property_editor(p_path, editor);
+		current_object = nullptr;
+		return true;
+	}
+	return false;
 }
