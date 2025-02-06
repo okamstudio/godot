@@ -103,7 +103,7 @@ void main() {
 #ifdef MODE_GLOW
 	if (bool(params.flags & FLAG_GLOW_FIRST_PASS)) {
 		// Tonemap initial samples to reduce weight of fireflies: https://graphicrants.blogspot.com/2013/12/tone-mapping.html
-		vec3 tonemap_col = vec3(0.299, 0.587, 0.114) / max(params.glow_luminance_cap, 6.0);
+		vec3 tonemap_col = vec3(0.2126, 0.7152, 0.0722) / max(params.glow_luminance_cap, 6.0);
 		local_cache[dest_index] /= 1.0 + dot(local_cache[dest_index].rgb, tonemap_col);
 		local_cache[dest_index + 1] /= 1.0 + dot(local_cache[dest_index + 1].rgb, tonemap_col);
 		local_cache[dest_index + 16] /= 1.0 + dot(local_cache[dest_index + 16].rgb, tonemap_col);
@@ -178,7 +178,7 @@ void main() {
 #ifdef MODE_GLOW
 	if (bool(params.flags & FLAG_GLOW_FIRST_PASS)) {
 		// Undo tonemap to restore range: https://graphicrants.blogspot.com/2013/12/tone-mapping.html
-		color /= 1.0 - dot(color.rgb, vec3(0.299, 0.587, 0.114) / max(params.glow_luminance_cap, 6.0));
+		color /= 1.0 - dot(color.rgb, vec3(0.2126, 0.7152, 0.0722) / max(params.glow_luminance_cap, 6.0));
 	}
 
 	color *= params.glow_strength;
@@ -190,7 +190,7 @@ void main() {
 #endif
 		color *= params.glow_exposure;
 
-		float luminance = max(color.r, max(color.g, color.b));
+		float luminance = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
 		float feedback = max(smoothstep(params.glow_hdr_threshold, params.glow_hdr_threshold + params.glow_hdr_scale, luminance), params.glow_bloom);
 
 		color = min(color * feedback, vec4(params.glow_luminance_cap));

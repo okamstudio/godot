@@ -383,10 +383,10 @@ void main() {
 
 	for (int i = 0; i < 6; i++) {
 		light_total += light_accum[i];
-		lumas[i] = max(light_accum[i].r, max(light_accum[i].g, light_accum[i].b));
+		lumas[i] = dot(light_accum[i], vec3(0.2126, 0.7152, 0.0722));
 	}
 
-	float luma_total = max(light_total.r, max(light_total.g, light_total.b));
+	float luma_total = dot(light_total, vec3(0.2126, 0.7152, 0.0722));
 
 	uint light_total_rgbe;
 

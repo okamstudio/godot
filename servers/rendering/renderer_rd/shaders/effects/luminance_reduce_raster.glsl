@@ -53,11 +53,7 @@ void main() {
 	source_color /= float((next_pos.x - src_pos.x) * (next_pos.y - src_pos.y));
 
 #ifdef FIRST_PASS
-	luminance = max(source_color.r, max(source_color.g, source_color.b));
-
-	// This formula should be more "accurate" but gave an overexposed result when testing.
-	// Leaving it here so we can revisit it if we want.
-	// luminance = source_color.r * 0.21 + source_color.g * 0.71 + source_color.b * 0.07;
+	luminance = dot(source_color, vec3(0.2126, 0.7152, 0.0722));
 #else
 	luminance = source_color.r;
 #endif

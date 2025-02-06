@@ -307,7 +307,7 @@ vec3 clip_history_3x3(uvec2 group_pos, vec3 color_history, vec2 velocity_closest
 									TAA
 ------------------------------------------------------------------------------*/
 
-const vec3 lumCoeff = vec3(0.299f, 0.587f, 0.114f);
+const vec3 lumCoeff = vec3(0.2126f, 0.7152f, 0.0722f);
 
 float luminance(vec3 color) {
 	return max(dot(color, lumCoeff), 0.0001f);

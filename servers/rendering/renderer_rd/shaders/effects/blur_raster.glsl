@@ -133,7 +133,7 @@ void main() {
 #endif
 		frag_color *= blur.glow_exposure;
 
-		float luminance = max(frag_color.r, max(frag_color.g, frag_color.b));
+		float luminance = dot(frag_color.rgb, vec3(0.2126, 0.7152, 0.0722));
 		float feedback = max(smoothstep(blur.glow_hdr_threshold, blur.glow_hdr_threshold + blur.glow_hdr_scale, luminance), blur.glow_bloom);
 
 		frag_color = min(frag_color * feedback, vec4(blur.glow_luminance_cap)) / blur.luminance_multiplier;

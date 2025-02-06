@@ -2629,10 +2629,10 @@ void fragment_shader(in SceneData scene_data) {
 				float strength = max(0.0, dot(cam_normal, aniso_dir[i]));
 				vec3 light = emission * strength;
 				light_total += light;
-				lumas[i] = max(light.r, max(light.g, light.b));
+				lumas[i] = dot(light, vec3(0.2126, 0.7152, 0.0722));
 			}
 
-			float luma_total = max(light_total.r, max(light_total.g, light_total.b));
+			float luma_total = dot(light_total, vec3(0.2126, 0.7152, 0.0722));
 
 			uint light_aniso = 0;
 

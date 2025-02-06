@@ -210,7 +210,7 @@ void SSIL_tap_inner(const int p_quality_level, inout vec3 r_color_sum, inout flo
 
 	vec3 sample_color = textureLod(last_frame, reprojected_sampling_uv, 5.0).rgb;
 	// Reduce impact of fireflies by tonemapping before averaging: http://graphicrants.blogspot.com/2013/12/tone-mapping.html
-	sample_color /= (1.0 + dot(sample_color, vec3(0.299, 0.587, 0.114)));
+	sample_color /= (1.0 + dot(sample_color, vec3(0.2126, 0.7152, 0.0722)));
 	r_color_sum += sample_color * obscurance * weight * mix(1.0, smoothstep(0.0, 0.1, -dot(sample_normal, normalize(hit_delta))), params.normal_rejection_amount);
 	r_weight_sum += weight;
 }
@@ -391,7 +391,7 @@ void generate_SSIL(out vec3 r_color, out vec4 r_edges, out float r_obscurance, o
 
 	// Calculate weighted average
 	vec3 color = color_sum / weight_sum;
-	color /= 1.0 - dot(color, vec3(0.299, 0.587, 0.114));
+	color /= 1.0 - dot(color, vec3(0.2126, 0.7152, 0.0722));
 
 	// Calculate fadeout (1 close, gradient, 0 far)
 	float fade_out = clamp(pix_center_pos.z * params.fade_out_mul + params.fade_out_add, 0.0, 1.0);

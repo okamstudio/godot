@@ -44,7 +44,7 @@ void main() {
 	if (any(lessThan(pos, params.source_size))) {
 #ifdef READ_TEXTURE
 		vec3 v = texelFetch(source_texture, pos, 0).rgb;
-		tmp_data[t] = max(v.r, max(v.g, v.b));
+		tmp_data[t] = dot(v, vec3(0.2126, 0.7152, 0.0722));
 #else
 		tmp_data[t] = imageLoad(source_luminance, pos).r;
 #endif

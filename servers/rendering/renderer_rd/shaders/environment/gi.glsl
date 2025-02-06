@@ -543,7 +543,7 @@ void voxel_gi_compute(uint index, vec3 position, vec3 normal, vec3 ref_vec, mat3
 	mat3 dir_xform = mat3(voxel_gi_instances.data[index].xform) * normal_xform;
 
 	vec3 blendv = abs(position / voxel_gi_instances.data[index].bounds * 2.0 - 1.0);
-	float blend = clamp(1.0 - max(blendv.x, max(blendv.y, blendv.z)), 0.0, 1.0);
+	float blend = clamp(1.0 - dot(blendv, vec3(0.2126, 0.7152, 0.0722)), 0.0, 1.0);
 	//float blend=1.0;
 
 	float max_distance = length(voxel_gi_instances.data[index].bounds);
