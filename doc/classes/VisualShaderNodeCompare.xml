@@ -78,4 +78,12 @@
 			Represents the size of the [enum Condition] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ComparisonType">
+		</enum>
+		<enum name="Condition">
+		</enum>
+		<enum name="Function">
+		</enum>
+	</enums>
 </class>

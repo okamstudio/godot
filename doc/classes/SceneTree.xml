@@ -338,4 +338,8 @@
 			[b]Note:[/b] Different arguments are not taken into account. Therefore, when the same call is executed with different arguments, only the first call will be performed.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="GroupCallFlags">
+		</enum>
+	</enums>
 </class>

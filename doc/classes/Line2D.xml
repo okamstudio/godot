@@ -133,4 +133,12 @@
 			Stretches the texture across the polyline. [member CanvasItem.texture_repeat] of the [Line2D] node must be [constant CanvasItem.TEXTURE_REPEAT_DISABLED] for best results.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="LineCapMode">
+		</enum>
+		<enum name="LineJointMode">
+		</enum>
+		<enum name="LineTextureMode">
+		</enum>
+	</enums>
 </class>

@@ -86,4 +86,8 @@
 			A status representing a [StreamPeerTCP] in error state.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Status">
+		</enum>
+	</enums>
 </class>

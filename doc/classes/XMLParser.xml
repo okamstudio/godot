@@ -177,4 +177,8 @@
 			An unknown node type.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="NodeType">
+		</enum>
+	</enums>
 </class>

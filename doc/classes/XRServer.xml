@@ -207,4 +207,10 @@
 			Does not reset the orientation of the HMD, only the position of the player gets centered.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="RotationMode">
+		</enum>
+		<enum name="TrackerType">
+		</enum>
+	</enums>
 </class>

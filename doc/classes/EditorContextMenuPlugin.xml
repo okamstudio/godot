@@ -111,4 +111,8 @@
 			The paths array is empty if there weren't any nodes under cursor. The option callback will receive a typed array of [CanvasItem] nodes.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ContextMenuSlot">
+		</enum>
+	</enums>
 </class>

@@ -40,4 +40,8 @@
 			Represents the size of the [enum OpType] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="OpType">
+		</enum>
+	</enums>
 </class>

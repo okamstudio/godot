@@ -36,6 +36,10 @@
 			The progress fills from bottom to top.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="FillMode">
+		</enum>
+	</enums>
 	<theme_items>
 		<theme_item name="font_color" data_type="color" type="Color" default="Color(0.95, 0.95, 0.95, 1)">
 			The color of the text.

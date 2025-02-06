@@ -35,4 +35,8 @@
 		<constant name="OPENXR_ACTION_POSE" value="3" enum="ActionType">
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ActionType">
+		</enum>
+	</enums>
 </class>

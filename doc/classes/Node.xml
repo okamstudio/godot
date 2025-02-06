@@ -1347,4 +1347,20 @@
 			String parsing for POT generation will be skipped for this node and children that are set to [constant AUTO_TRANSLATE_MODE_INHERIT].
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AutoTranslateMode">
+		</enum>
+		<enum name="DuplicateFlags">
+		</enum>
+		<enum name="InternalMode">
+		</enum>
+		<enum name="PhysicsInterpolationMode">
+		</enum>
+		<enum name="ProcessMode">
+		</enum>
+		<enum name="ProcessThreadGroup">
+		</enum>
+		<enum name="ProcessThreadMessages">
+		</enum>
+	</enums>
 </class>

@@ -37,4 +37,8 @@
 			Cutting off at 24dB per octave.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="FilterDB">
+		</enum>
+	</enums>
 </class>

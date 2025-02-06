@@ -579,4 +579,14 @@
 			A combination of [constant EASE_IN] and [constant EASE_OUT]. The interpolation is fastest at both ends.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="EaseType">
+		</enum>
+		<enum name="TransitionType">
+		</enum>
+		<enum name="TweenPauseMode">
+		</enum>
+		<enum name="TweenProcessMode">
+		</enum>
+	</enums>
 </class>

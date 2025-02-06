@@ -144,4 +144,8 @@
 			Used with [method Node.rpc_config] to set a method to be callable remotely only by the current multiplayer authority (which is the server by default). Analogous to the [code]@rpc("authority")[/code] annotation. See [method Node.set_multiplayer_authority].
 		</constant>
 	</constants>
+	<enums>
+		<enum name="RPCMode">
+		</enum>
+	</enums>
 </class>

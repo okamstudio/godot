@@ -174,4 +174,14 @@
 			Use [member environment_custom_color] multiplied by [member environment_custom_energy] as a constant source of environment lighting when baking lightmaps.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="BakeError">
+		</enum>
+		<enum name="BakeQuality">
+		</enum>
+		<enum name="EnvironmentMode">
+		</enum>
+		<enum name="GenerateProbes">
+		</enum>
+	</enums>
 </class>

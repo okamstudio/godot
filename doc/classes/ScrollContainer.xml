@@ -109,6 +109,10 @@
 			Combines [constant SCROLL_MODE_AUTO] and [constant SCROLL_MODE_SHOW_ALWAYS]. The scrollbar is only visible if necessary, but the content size is adjusted as if it was always visible. It's useful for ensuring that content size stays the same regardless if the scrollbar is visible.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ScrollMode">
+		</enum>
+	</enums>
 	<theme_items>
 		<theme_item name="focus" data_type="style" type="StyleBox">
 			The focus border [StyleBox] of the [ScrollContainer]. Only used if [member draw_focus_border] is [code]true[/code].

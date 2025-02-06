@@ -404,4 +404,10 @@
 			Represents the size of the [enum PlaybackType] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="PlaybackType" experimental="">
+		</enum>
+		<enum name="SpeakerMode">
+		</enum>
+	</enums>
 </class>

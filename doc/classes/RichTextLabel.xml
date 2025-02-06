@@ -807,6 +807,16 @@
 			If this bit is set, [method update_image] changes image width from/to percents.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ImageUpdateMask">
+		</enum>
+		<enum name="ListType">
+		</enum>
+		<enum name="MenuItems">
+		</enum>
+		<enum name="MetaUnderline">
+		</enum>
+	</enums>
 	<theme_items>
 		<theme_item name="default_color" data_type="color" type="Color" default="Color(1, 1, 1, 1)">
 			The default text color.

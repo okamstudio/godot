@@ -53,4 +53,8 @@
 			Tracking information is considered accurate and up to date.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="TrackingConfidence">
+		</enum>
+	</enums>
 </class>

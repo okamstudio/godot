@@ -295,4 +295,8 @@
 			Target ray from touch screen, mouse or other tactile input device.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="TargetRayMode">
+		</enum>
+	</enums>
 </class>

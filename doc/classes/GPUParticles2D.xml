@@ -185,4 +185,10 @@
 			Particle starts with specified [code]CUSTOM[/code] data.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="DrawOrder">
+		</enum>
+		<enum name="EmitFlags">
+		</enum>
+	</enums>
 </class>

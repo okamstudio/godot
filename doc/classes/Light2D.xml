@@ -92,4 +92,10 @@
 			Mix the value of pixels corresponding to the Light2D to the values of pixels under it by linear interpolation.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="BlendMode">
+		</enum>
+		<enum name="ShadowFilter">
+		</enum>
+	</enums>
 </class>

@@ -165,4 +165,10 @@
 			Attempt to interpolate using Basis slerping (spherical linear interpolation) where possible, otherwise fall back to lerping.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="PhysicsInterpolationQuality">
+		</enum>
+		<enum name="TransformFormat">
+		</enum>
+	</enums>
 </class>

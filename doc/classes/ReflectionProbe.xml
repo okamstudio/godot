@@ -82,4 +82,10 @@
 			Apply custom ambient lighting inside the [ReflectionProbe]'s box defined by its [member size]. See [member ambient_color] and [member ambient_color_energy].
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AmbientMode">
+		</enum>
+		<enum name="UpdateMode">
+		</enum>
+	</enums>
 </class>

@@ -101,4 +101,8 @@
 			Visibility filters are not updated automatically, and must be updated manually by calling [method update_visibility].
 		</constant>
 	</constants>
+	<enums>
+		<enum name="VisibilityUpdateMode">
+		</enum>
+	</enums>
 </class>

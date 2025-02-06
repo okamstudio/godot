@@ -54,4 +54,8 @@
 		<constant name="ANIMATION_PROCESS_MANUAL" value="2" enum="AnimationProcessCallback" deprecated="See [constant AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL].">
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AnimationProcessCallback" deprecated="See [enum AnimationMixer.AnimationCallbackModeProcess].">
+		</enum>
+	</enums>
 </class>

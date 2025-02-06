@@ -107,4 +107,10 @@
 			Blends two animations additively. See also [AnimationNodeAdd2].
 		</constant>
 	</constants>
+	<enums>
+		<enum name="MixMode">
+		</enum>
+		<enum name="OneShotRequest">
+		</enum>
+	</enums>
 </class>

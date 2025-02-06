@@ -1161,4 +1161,8 @@
 			Reference-counted connections can be assigned to the same [Callable] multiple times. Each disconnection decreases the internal counter. The signal fully disconnects only when the counter reaches 0.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ConnectFlags">
+		</enum>
+	</enums>
 </class>

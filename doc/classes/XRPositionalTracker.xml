@@ -128,4 +128,8 @@
 			Represents the size of the [enum TrackerHand] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="TrackerHand">
+		</enum>
+	</enums>
 </class>

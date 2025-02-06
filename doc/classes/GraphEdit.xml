@@ -526,6 +526,12 @@
 			Draw the grid using dots.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="GridPattern">
+		</enum>
+		<enum name="PanningScheme">
+		</enum>
+	</enums>
 	<theme_items>
 		<theme_item name="activity" data_type="color" type="Color" default="Color(1, 1, 1, 1)">
 			Color the connection line is interpolated to based on the activity value of a connection (see [method set_connection_activity]).

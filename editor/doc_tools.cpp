@@ -229,6 +229,20 @@ static void merge_constants(Vector<DocData::ConstantDoc> &p_to, const Vector<Doc
 	}
 }
 
+static void merge_enums(HashMap<String, DocData::EnumDoc> &p_to, const HashMap<String, DocData::EnumDoc> &p_from) {
+	// Update the sorted `p_to` from the (potentially) unsorted `p_from`.
+	for (const KeyValue<String, DocData::EnumDoc> &E : p_to) {
+		const DocData::EnumDoc *from = p_from.getptr(E.key);
+		if (from != nullptr) {
+			p_to[E.key].description = from->description;
+			p_to[E.key].is_deprecated = from->is_deprecated;
+			p_to[E.key].deprecated_message = from->deprecated_message;
+			p_to[E.key].is_experimental = from->is_experimental;
+			p_to[E.key].experimental_message = from->experimental_message;
+		}
+	}
+}
+
 static void merge_properties(Vector<DocData::PropertyDoc> &p_to, const Vector<DocData::PropertyDoc> &p_from) {
 	// Get data from `p_to`, to avoid mutation checks. Searching will be done in the sorted `p_to` from the (potentially) unsorted `p_from`.
 	DocData::PropertyDoc *to_ptrw = p_to.ptrw();
@@ -339,6 +353,8 @@ void DocTools::merge_from(const DocTools &p_data) {
 		merge_methods(c.signals, cf.signals);
 
 		merge_constants(c.constants, cf.constants);
+
+		merge_enums(c.enums, cf.enums);
 
 		merge_methods(c.annotations, cf.annotations);
 
@@ -677,7 +693,13 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 				constant.enumeration = ClassDB::get_integer_constant_enum(name, E);
 				constant.is_bitfield = ClassDB::is_enum_bitfield(name, constant.enumeration);
 				c.constants.push_back(constant);
+
+				if (!constant.enumeration.is_empty() && !c.enums.has(constant.enumeration)) {
+					c.enums[constant.enumeration] = DocData::EnumDoc();
+				}
 			}
+
+			c.enums.sort();
 
 			// Theme items.
 			{
@@ -963,7 +985,13 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 				cd.is_value_valid = false;
 			}
 			c.constants.push_back(cd);
+
+			if (!cd.enumeration.is_empty() && !c.enums.has(cd.enumeration)) {
+				c.enums[cd.enumeration] = DocData::EnumDoc();
+			}
 		}
+
+		c.enums.sort();
 
 		// Servers/engine singletons.
 		List<Engine::Singleton> singletons;
@@ -1479,7 +1507,7 @@ Error DocTools::_load(Ref<XMLParser> parser) {
 				} else if (name2 == "constants") {
 					while (parser->read() == OK) {
 						if (parser->get_node_type() == XMLParser::NODE_ELEMENT) {
-							String name3 = parser->get_node_name();
+							const String name3 = parser->get_node_name();
 
 							if (name3 == "constant") {
 								DocData::ConstantDoc constant2;
@@ -1525,7 +1553,45 @@ Error DocTools::_load(Ref<XMLParser> parser) {
 							}
 
 						} else if (parser->get_node_type() == XMLParser::NODE_ELEMENT_END && parser->get_node_name() == "constants") {
-							break; // End of <constants>.
+							break; // End of `<constants>`.
+						}
+					}
+
+				} else if (name2 == "enums") {
+					while (parser->read() == OK) {
+						if (parser->get_node_type() == XMLParser::NODE_ELEMENT) {
+							const String name3 = parser->get_node_name();
+
+							if (name3 == "enum") {
+								DocData::EnumDoc enum2;
+
+								ERR_FAIL_COND_V(!parser->has_attribute("name"), ERR_FILE_CORRUPT);
+								const String enum_name = parser->get_named_attribute_value("name");
+								ERR_FAIL_COND_V(c.enums.has(enum_name), ERR_FILE_CORRUPT);
+
+								if (parser->has_attribute("deprecated")) {
+									enum2.is_deprecated = true;
+									enum2.deprecated_message = parser->get_named_attribute_value("deprecated");
+								}
+								if (parser->has_attribute("experimental")) {
+									enum2.is_experimental = true;
+									enum2.experimental_message = parser->get_named_attribute_value("experimental");
+								}
+
+								if (!parser->is_empty()) {
+									parser->read();
+									if (parser->get_node_type() == XMLParser::NODE_TEXT) {
+										enum2.description = parser->get_node_data();
+									}
+								}
+
+								c.enums[enum_name] = enum2;
+							} else {
+								ERR_FAIL_V_MSG(ERR_FILE_CORRUPT, "Invalid tag in doc file: " + name3 + ".");
+							}
+
+						} else if (parser->get_node_type() == XMLParser::NODE_ELEMENT_END && parser->get_node_name() == "enums") {
+							break; // End of `<enums>`.
 						}
 					}
 
@@ -1540,6 +1606,9 @@ Error DocTools::_load(Ref<XMLParser> parser) {
 
 		// Sort loaded constants for merging.
 		c.constants.sort();
+
+		// Sort loaded enums just in case.
+		c.enums.sort();
 	}
 
 	return OK;
@@ -1564,10 +1633,10 @@ static void _write_method_doc(Ref<FileAccess> f, const String &p_name, Vector<Do
 				additional_attributes += " qualifiers=\"" + m.qualifiers.xml_escape(true) + "\"";
 			}
 			if (m.is_deprecated) {
-				additional_attributes += " deprecated=\"" + m.deprecated_message.xml_escape(true) + "\"";
+				additional_attributes += " deprecated=\"" + _translate_doc_string(m.deprecated_message).strip_edges().xml_escape(true) + "\"";
 			}
 			if (m.is_experimental) {
-				additional_attributes += " experimental=\"" + m.experimental_message.xml_escape(true) + "\"";
+				additional_attributes += " experimental=\"" + _translate_doc_string(m.experimental_message).strip_edges().xml_escape(true) + "\"";
 			}
 			if (!m.keywords.is_empty()) {
 				additional_attributes += String(" keywords=\"") + m.keywords.xml_escape(true) + "\"";
@@ -1643,10 +1712,10 @@ Error DocTools::save_classes(const String &p_default_path, const HashMap<String,
 		if (!c.inherits.is_empty()) {
 			header += " inherits=\"" + c.inherits.xml_escape(true) + "\"";
 			if (c.is_deprecated) {
-				header += " deprecated=\"" + c.deprecated_message.xml_escape(true) + "\"";
+				header += " deprecated=\"" + _translate_doc_string(c.deprecated_message).strip_edges().xml_escape(true) + "\"";
 			}
 			if (c.is_experimental) {
-				header += " experimental=\"" + c.experimental_message.xml_escape(true) + "\"";
+				header += " experimental=\"" + _translate_doc_string(c.experimental_message).strip_edges().xml_escape(true) + "\"";
 			}
 		}
 		if (!c.keywords.is_empty()) {
@@ -1700,10 +1769,10 @@ Error DocTools::save_classes(const String &p_default_path, const HashMap<String,
 					additional_attributes += " default=\"" + c.properties[i].default_value.xml_escape(true) + "\"";
 				}
 				if (c.properties[i].is_deprecated) {
-					additional_attributes += " deprecated=\"" + c.properties[i].deprecated_message.xml_escape(true) + "\"";
+					additional_attributes += " deprecated=\"" + _translate_doc_string(c.properties[i].deprecated_message).strip_edges().xml_escape(true) + "\"";
 				}
 				if (c.properties[i].is_experimental) {
-					additional_attributes += " experimental=\"" + c.properties[i].experimental_message.xml_escape(true) + "\"";
+					additional_attributes += " experimental=\"" + _translate_doc_string(c.properties[i].experimental_message).strip_edges().xml_escape(true) + "\"";
 				}
 				if (!c.properties[i].keywords.is_empty()) {
 					additional_attributes += String(" keywords=\"") + c.properties[i].keywords.xml_escape(true) + "\"";
@@ -1726,18 +1795,19 @@ Error DocTools::save_classes(const String &p_default_path, const HashMap<String,
 
 		if (!c.constants.is_empty()) {
 			_write_string(f, 1, "<constants>");
+
 			for (int i = 0; i < c.constants.size(); i++) {
 				const DocData::ConstantDoc &k = c.constants[i];
 
 				String additional_attributes;
-				if (c.constants[i].is_deprecated) {
-					additional_attributes += " deprecated=\"" + c.constants[i].deprecated_message.xml_escape(true) + "\"";
+				if (k.is_deprecated) {
+					additional_attributes += " deprecated=\"" + _translate_doc_string(k.deprecated_message).strip_edges().xml_escape(true) + "\"";
 				}
-				if (c.constants[i].is_experimental) {
-					additional_attributes += " experimental=\"" + c.constants[i].experimental_message.xml_escape(true) + "\"";
+				if (k.is_experimental) {
+					additional_attributes += " experimental=\"" + _translate_doc_string(k.experimental_message).strip_edges().xml_escape(true) + "\"";
 				}
-				if (!c.constants[i].keywords.is_empty()) {
-					additional_attributes += String(" keywords=\"") + c.constants[i].keywords.xml_escape(true) + "\"";
+				if (!k.keywords.is_empty()) {
+					additional_attributes += String(" keywords=\"") + k.keywords.xml_escape(true) + "\"";
 				}
 
 				if (k.is_value_valid) {
@@ -1764,6 +1834,28 @@ Error DocTools::save_classes(const String &p_default_path, const HashMap<String,
 			_write_string(f, 1, "</constants>");
 		}
 
+		if (!c.enums.is_empty()) {
+			_write_string(f, 1, "<enums>");
+
+			for (const KeyValue<String, DocData::EnumDoc> &F : c.enums) {
+				const DocData::EnumDoc &e = F.value;
+
+				String additional_attributes;
+				if (e.is_deprecated) {
+					additional_attributes += " deprecated=\"" + _translate_doc_string(e.deprecated_message).strip_edges().xml_escape(true) + "\"";
+				}
+				if (e.is_experimental) {
+					additional_attributes += " experimental=\"" + _translate_doc_string(e.experimental_message).strip_edges().xml_escape(true) + "\"";
+				}
+
+				_write_string(f, 2, "<enum name=\"" + F.key.xml_escape(true) + "\"" + additional_attributes + ">");
+				_write_string(f, 3, _translate_doc_string(e.description).strip_edges().xml_escape());
+				_write_string(f, 2, "</enum>");
+			}
+
+			_write_string(f, 1, "</enums>");
+		}
+
 		_write_method_doc(f, "annotation", c.annotations);
 
 		if (!c.theme_properties.is_empty()) {
@@ -1776,10 +1868,10 @@ Error DocTools::save_classes(const String &p_default_path, const HashMap<String,
 					additional_attributes += String(" default=\"") + ti.default_value.xml_escape(true) + "\"";
 				}
 				if (ti.is_deprecated) {
-					additional_attributes += " deprecated=\"" + ti.deprecated_message.xml_escape(true) + "\"";
+					additional_attributes += " deprecated=\"" + _translate_doc_string(ti.deprecated_message).strip_edges().xml_escape(true) + "\"";
 				}
 				if (ti.is_experimental) {
-					additional_attributes += " experimental=\"" + ti.experimental_message.xml_escape(true) + "\"";
+					additional_attributes += " experimental=\"" + _translate_doc_string(ti.experimental_message).strip_edges().xml_escape(true) + "\"";
 				}
 				if (!ti.keywords.is_empty()) {
 					additional_attributes += String(" keywords=\"") + ti.keywords.xml_escape(true) + "\"";

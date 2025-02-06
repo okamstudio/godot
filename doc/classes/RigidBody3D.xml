@@ -303,4 +303,12 @@
 			In this mode, the body's damping value replaces any value set in areas or the default value.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="CenterOfMassMode">
+		</enum>
+		<enum name="DampMode">
+		</enum>
+		<enum name="FreezeMode">
+		</enum>
+	</enums>
 </class>

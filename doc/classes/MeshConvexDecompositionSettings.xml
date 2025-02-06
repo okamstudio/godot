@@ -57,4 +57,8 @@
 			Constant for tetrahedron-based approximate convex decomposition.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Mode">
+		</enum>
+	</enums>
 </class>

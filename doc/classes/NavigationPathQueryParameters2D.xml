@@ -68,4 +68,12 @@
 			Include all available metadata about the returned path.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="PathMetadataFlags">
+		</enum>
+		<enum name="PathPostProcessing">
+		</enum>
+		<enum name="PathfindingAlgorithm">
+		</enum>
+	</enums>
 </class>

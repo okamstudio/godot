@@ -37,4 +37,8 @@
 			Shadows are rendered to a cubemap. Slower than [constant SHADOW_DUAL_PARABOLOID], but higher-quality.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ShadowMode">
+		</enum>
+	</enums>
 </class>

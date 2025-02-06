@@ -151,4 +151,10 @@
 			Camera is mounted at the back of the device.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="FeedDataType">
+		</enum>
+		<enum name="FeedPosition">
+		</enum>
+	</enums>
 </class>

@@ -891,4 +891,12 @@
 			Pass the [InputEvent] to other editor plugins except the main [Node3D] one. This can be used to prevent node selection changes and work with sub-gizmos instead.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AfterGUIInput">
+		</enum>
+		<enum name="CustomControlContainer">
+		</enum>
+		<enum name="DockSlot">
+		</enum>
+	</enums>
 </class>

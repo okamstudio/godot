@@ -30,4 +30,8 @@
 			Culling is performed in the counterclockwise direction. See [member cull_mode].
 		</constant>
 	</constants>
+	<enums>
+		<enum name="CullMode">
+		</enum>
+	</enums>
 </class>

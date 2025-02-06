@@ -66,4 +66,14 @@
 			Maximum supported bone update mode.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="BoneUpdate">
+		</enum>
+		<enum name="Hands">
+		</enum>
+		<enum name="MotionRange">
+		</enum>
+		<enum name="SkeletonRig">
+		</enum>
+	</enums>
 </class>

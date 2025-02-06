@@ -2298,4 +2298,30 @@
 			Utterance reached a word or sentence boundary.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="CursorShape">
+		</enum>
+		<enum name="Feature">
+		</enum>
+		<enum name="FileDialogMode">
+		</enum>
+		<enum name="HandleType">
+		</enum>
+		<enum name="MouseMode">
+		</enum>
+		<enum name="ScreenOrientation">
+		</enum>
+		<enum name="TTSUtteranceEvent">
+		</enum>
+		<enum name="VSyncMode">
+		</enum>
+		<enum name="VirtualKeyboardType">
+		</enum>
+		<enum name="WindowEvent">
+		</enum>
+		<enum name="WindowFlags">
+		</enum>
+		<enum name="WindowMode">
+		</enum>
+	</enums>
 </class>

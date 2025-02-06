@@ -81,4 +81,8 @@
 			Update the timer every process (rendered) frame (see [constant Node.NOTIFICATION_INTERNAL_PROCESS]).
 		</constant>
 	</constants>
+	<enums>
+		<enum name="TimerProcessCallback">
+		</enum>
+	</enums>
 </class>

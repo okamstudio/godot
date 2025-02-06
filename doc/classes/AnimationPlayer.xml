@@ -350,4 +350,10 @@
 		<constant name="ANIMATION_METHOD_CALL_IMMEDIATE" value="1" enum="AnimationMethodCallMode" deprecated="See [constant AnimationMixer.ANIMATION_CALLBACK_MODE_METHOD_IMMEDIATE].">
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AnimationMethodCallMode" deprecated="See [enum AnimationMixer.AnimationCallbackModeMethod].">
+		</enum>
+		<enum name="AnimationProcessCallback" deprecated="See [enum AnimationMixer.AnimationCallbackModeProcess].">
+		</enum>
+	</enums>
 </class>

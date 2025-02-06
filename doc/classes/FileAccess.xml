@@ -626,4 +626,12 @@
 			Restricted deletion (sticky) bit.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="CompressionMode">
+		</enum>
+		<enum name="ModeFlags">
+		</enum>
+		<enum name="UnixPermissionFlags">
+		</enum>
+	</enums>
 </class>

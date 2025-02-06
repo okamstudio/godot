@@ -5902,4 +5902,168 @@
 		<constant name="FEATURE_MULTITHREADED" value="1" enum="Features" deprecated="This constant has not been used since Godot 3.0.">
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ArrayCustomFormat">
+		</enum>
+		<enum name="ArrayFormat">
+		</enum>
+		<enum name="ArrayType">
+		</enum>
+		<enum name="BakeChannels">
+		</enum>
+		<enum name="BlendShapeMode">
+		</enum>
+		<enum name="CanvasGroupMode">
+		</enum>
+		<enum name="CanvasItemTextureFilter">
+		</enum>
+		<enum name="CanvasItemTextureRepeat">
+		</enum>
+		<enum name="CanvasLightBlendMode">
+		</enum>
+		<enum name="CanvasLightMode">
+		</enum>
+		<enum name="CanvasLightShadowFilter">
+		</enum>
+		<enum name="CanvasOccluderPolygonCullMode">
+		</enum>
+		<enum name="CanvasTextureChannel">
+		</enum>
+		<enum name="CompositorEffectCallbackType">
+		</enum>
+		<enum name="CompositorEffectFlags">
+		</enum>
+		<enum name="CubeMapLayer">
+		</enum>
+		<enum name="DOFBlurQuality">
+		</enum>
+		<enum name="DOFBokehShape">
+		</enum>
+		<enum name="DecalFilter">
+		</enum>
+		<enum name="DecalTexture">
+		</enum>
+		<enum name="EnvironmentAmbientSource">
+		</enum>
+		<enum name="EnvironmentBG">
+		</enum>
+		<enum name="EnvironmentFogMode">
+		</enum>
+		<enum name="EnvironmentGlowBlendMode">
+		</enum>
+		<enum name="EnvironmentReflectionSource">
+		</enum>
+		<enum name="EnvironmentSDFGIFramesToConverge">
+		</enum>
+		<enum name="EnvironmentSDFGIFramesToUpdateLight">
+		</enum>
+		<enum name="EnvironmentSDFGIRayCount">
+		</enum>
+		<enum name="EnvironmentSDFGIYScale">
+		</enum>
+		<enum name="EnvironmentSSAOQuality">
+		</enum>
+		<enum name="EnvironmentSSILQuality">
+		</enum>
+		<enum name="EnvironmentSSRRoughnessQuality">
+		</enum>
+		<enum name="EnvironmentToneMapper">
+		</enum>
+		<enum name="Features" deprecated="This enumeration has not been used since Godot 3.0.">
+		</enum>
+		<enum name="FogVolumeShape">
+		</enum>
+		<enum name="GlobalShaderParameterType">
+		</enum>
+		<enum name="InstanceFlags">
+		</enum>
+		<enum name="InstanceType">
+		</enum>
+		<enum name="LightBakeMode">
+		</enum>
+		<enum name="LightDirectionalShadowMode">
+		</enum>
+		<enum name="LightDirectionalSkyMode">
+		</enum>
+		<enum name="LightOmniShadowMode">
+		</enum>
+		<enum name="LightParam">
+		</enum>
+		<enum name="LightProjectorFilter">
+		</enum>
+		<enum name="LightType">
+		</enum>
+		<enum name="MultimeshPhysicsInterpolationQuality">
+		</enum>
+		<enum name="MultimeshTransformFormat">
+		</enum>
+		<enum name="NinePatchAxisMode">
+		</enum>
+		<enum name="ParticlesCollisionHeightfieldResolution">
+		</enum>
+		<enum name="ParticlesCollisionType">
+		</enum>
+		<enum name="ParticlesDrawOrder">
+		</enum>
+		<enum name="ParticlesMode">
+		</enum>
+		<enum name="ParticlesTransformAlign">
+		</enum>
+		<enum name="PipelineSource">
+		</enum>
+		<enum name="PrimitiveType">
+		</enum>
+		<enum name="ReflectionProbeAmbientMode">
+		</enum>
+		<enum name="ReflectionProbeUpdateMode">
+		</enum>
+		<enum name="RenderingInfo">
+		</enum>
+		<enum name="ShaderMode">
+		</enum>
+		<enum name="ShadowCastingSetting">
+		</enum>
+		<enum name="ShadowQuality">
+		</enum>
+		<enum name="SkyMode">
+		</enum>
+		<enum name="SubSurfaceScatteringQuality">
+		</enum>
+		<enum name="TextureLayeredType">
+		</enum>
+		<enum name="TextureType">
+		</enum>
+		<enum name="ViewportClearMode">
+		</enum>
+		<enum name="ViewportDebugDraw">
+		</enum>
+		<enum name="ViewportEnvironmentMode">
+		</enum>
+		<enum name="ViewportMSAA">
+		</enum>
+		<enum name="ViewportOcclusionCullingBuildQuality">
+		</enum>
+		<enum name="ViewportRenderInfo">
+		</enum>
+		<enum name="ViewportRenderInfoType">
+		</enum>
+		<enum name="ViewportSDFOversize">
+		</enum>
+		<enum name="ViewportSDFScale">
+		</enum>
+		<enum name="ViewportScaling3DMode">
+		</enum>
+		<enum name="ViewportScreenSpaceAA">
+		</enum>
+		<enum name="ViewportUpdateMode">
+		</enum>
+		<enum name="ViewportVRSMode">
+		</enum>
+		<enum name="ViewportVRSUpdateMode">
+		</enum>
+		<enum name="VisibilityRangeFadeMode">
+		</enum>
+		<enum name="VoxelGIQuality">
+		</enum>
+	</enums>
 </class>

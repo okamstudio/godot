@@ -39,4 +39,8 @@
 			Gives the mesh two perpendicular flat faces, making a cross shape.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Shape">
+		</enum>
+	</enums>
 </class>

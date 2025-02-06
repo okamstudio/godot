@@ -36,4 +36,8 @@
 			Collisions will only include the polygon edges. In this mode the node has the same effect as a single [ConcavePolygonShape2D] made of segments, with the restriction that each segment (after the first one) starts where the previous one ends, and the last one ends where the first one starts (forming a closed but hollow polygon).
 		</constant>
 	</constants>
+	<enums>
+		<enum name="BuildMode">
+		</enum>
+	</enums>
 </class>

@@ -80,4 +80,8 @@
 			A thread running with higher priority than normally.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Priority">
+		</enum>
+	</enums>
 </class>

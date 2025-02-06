@@ -94,4 +94,8 @@
 			An internal error occurred while processing the request. Not used by the built-in JSONRPC.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ErrorCode">
+		</enum>
+	</enums>
 </class>

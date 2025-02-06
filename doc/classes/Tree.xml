@@ -496,6 +496,12 @@
 			When combined with [constant DROP_MODE_ON_ITEM], these drop sections halves the height and stays on top / bottom accordingly.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="DropModeFlags">
+		</enum>
+		<enum name="SelectMode">
+		</enum>
+	</enums>
 	<theme_items>
 		<theme_item name="children_hl_line_color" data_type="color" type="Color" default="Color(0.27, 0.27, 0.27, 1)">
 			The [Color] of the relationship lines between the selected [TreeItem] and its children.

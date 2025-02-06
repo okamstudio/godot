@@ -45,4 +45,8 @@
 			Represents the size of the [enum Operator] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Operator">
+		</enum>
+	</enums>
 </class>

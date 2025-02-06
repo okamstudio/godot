@@ -3274,4 +3274,50 @@
 			Represents the size of the [enum Variant.Operator] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ClockDirection">
+		</enum>
+		<enum name="Corner">
+		</enum>
+		<enum name="Error">
+		</enum>
+		<enum name="EulerOrder">
+		</enum>
+		<enum name="HorizontalAlignment">
+		</enum>
+		<enum name="InlineAlignment">
+		</enum>
+		<enum name="JoyAxis">
+		</enum>
+		<enum name="JoyButton">
+		</enum>
+		<enum name="Key">
+		</enum>
+		<enum name="KeyLocation">
+		</enum>
+		<enum name="KeyModifierMask">
+		</enum>
+		<enum name="MIDIMessage">
+		</enum>
+		<enum name="MethodFlags">
+		</enum>
+		<enum name="MouseButton">
+		</enum>
+		<enum name="MouseButtonMask">
+		</enum>
+		<enum name="Orientation">
+		</enum>
+		<enum name="PropertyHint">
+		</enum>
+		<enum name="PropertyUsageFlags">
+		</enum>
+		<enum name="Side">
+		</enum>
+		<enum name="Variant.Operator">
+		</enum>
+		<enum name="Variant.Type">
+		</enum>
+		<enum name="VerticalAlignment">
+		</enum>
+	</enums>
 </class>

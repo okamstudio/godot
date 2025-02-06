@@ -207,4 +207,10 @@
 			Do nothing when leaving a platform.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="MotionMode">
+		</enum>
+		<enum name="PlatformOnLeave">
+		</enum>
+	</enums>
 </class>

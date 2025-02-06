@@ -137,4 +137,10 @@
 			This mode draws cuts off all values below a spatially-deterministic threshold, the rest will remain opaque.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AlphaCutMode">
+		</enum>
+		<enum name="DrawFlags">
+		</enum>
+	</enums>
 </class>

@@ -16,4 +16,8 @@
 		<constant name="SCRIPT_NAME_CASING_KEBAB_CASE" value="3" enum="ScriptNameCasing">
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ScriptNameCasing">
+		</enum>
+	</enums>
 </class>

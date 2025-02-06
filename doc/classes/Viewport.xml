@@ -765,4 +765,32 @@
 			Represents the size of the [enum VRSUpdateMode] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="DebugDraw">
+		</enum>
+		<enum name="DefaultCanvasItemTextureFilter">
+		</enum>
+		<enum name="DefaultCanvasItemTextureRepeat">
+		</enum>
+		<enum name="MSAA">
+		</enum>
+		<enum name="PositionalShadowAtlasQuadrantSubdiv">
+		</enum>
+		<enum name="RenderInfo">
+		</enum>
+		<enum name="RenderInfoType">
+		</enum>
+		<enum name="SDFOversize">
+		</enum>
+		<enum name="SDFScale">
+		</enum>
+		<enum name="Scaling3DMode">
+		</enum>
+		<enum name="ScreenSpaceAA">
+		</enum>
+		<enum name="VRSMode">
+		</enum>
+		<enum name="VRSUpdateMode">
+		</enum>
+	</enums>
 </class>

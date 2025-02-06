@@ -194,4 +194,10 @@
 			The camera updates during process frames (see [constant Node.NOTIFICATION_INTERNAL_PROCESS]).
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AnchorMode">
+		</enum>
+		<enum name="Camera2DProcessCallback">
+		</enum>
+	</enums>
 </class>

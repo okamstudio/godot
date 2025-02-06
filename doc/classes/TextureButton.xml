@@ -66,4 +66,8 @@
 			Scale the texture so that the shorter side fits the bounding rectangle. The other side clips to the node's limits.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="StretchMode">
+		</enum>
+	</enums>
 </class>

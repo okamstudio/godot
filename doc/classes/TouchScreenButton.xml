@@ -68,4 +68,8 @@
 			Visible on touch screens only.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="VisibilityMode">
+		</enum>
+	</enums>
 </class>

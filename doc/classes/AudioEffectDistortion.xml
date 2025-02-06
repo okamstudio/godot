@@ -44,4 +44,8 @@
 			Waveshaper distortions are used mainly by electronic musicians to achieve an extra-abrasive sound.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Mode">
+		</enum>
+	</enums>
 </class>

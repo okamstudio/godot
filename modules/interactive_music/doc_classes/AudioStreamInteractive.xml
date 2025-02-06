@@ -226,4 +226,14 @@
 			This constant describes that any clip is valid for a specific transition as either source or destination.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AutoAdvanceMode">
+		</enum>
+		<enum name="FadeMode">
+		</enum>
+		<enum name="TransitionFromTime">
+		</enum>
+		<enum name="TransitionToTime">
+		</enum>
+	</enums>
 </class>

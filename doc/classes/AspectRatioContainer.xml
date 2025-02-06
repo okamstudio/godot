@@ -47,4 +47,10 @@
 			Aligns child controls with the end (right or bottom) of the container.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AlignmentMode">
+		</enum>
+		<enum name="StretchMode">
+		</enum>
+	</enums>
 </class>

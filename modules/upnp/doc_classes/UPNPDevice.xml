@@ -93,4 +93,8 @@
 			Unknown error.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="IGDStatus">
+		</enum>
+	</enums>
 </class>

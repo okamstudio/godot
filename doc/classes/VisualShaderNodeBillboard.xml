@@ -33,4 +33,8 @@
 			Represents the size of the [enum BillboardType] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="BillboardType">
+		</enum>
+	</enums>
 </class>

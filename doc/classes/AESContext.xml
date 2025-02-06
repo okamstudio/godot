@@ -127,4 +127,8 @@
 			Maximum value for the mode enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Mode">
+		</enum>
+	</enums>
 </class>

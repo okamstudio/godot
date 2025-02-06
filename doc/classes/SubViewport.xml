@@ -63,4 +63,10 @@
 			Always update the render target.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ClearMode">
+		</enum>
+		<enum name="UpdateMode">
+		</enum>
+	</enums>
 </class>

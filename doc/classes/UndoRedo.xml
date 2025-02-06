@@ -280,4 +280,8 @@
 			Merges this action with the previous one if they have the same name.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="MergeMode">
+		</enum>
+	</enums>
 </class>

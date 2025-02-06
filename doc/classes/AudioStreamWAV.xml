@@ -106,4 +106,10 @@
 			Audio loops the data between [member loop_begin] and [member loop_end], playing backward only.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Format">
+		</enum>
+		<enum name="LoopMode">
+		</enum>
+	</enums>
 </class>

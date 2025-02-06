@@ -152,4 +152,10 @@
 			Executes doppler tracking during physics frames (see [constant Node.NOTIFICATION_INTERNAL_PHYSICS_PROCESS]).
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AttenuationModel">
+		</enum>
+		<enum name="DopplerTracking">
+		</enum>
+	</enums>
 </class>

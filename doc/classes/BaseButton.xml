@@ -128,4 +128,10 @@
 			Require a press and a subsequent release before considering the button clicked.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ActionMode">
+		</enum>
+		<enum name="DrawMode">
+		</enum>
+	</enums>
 </class>

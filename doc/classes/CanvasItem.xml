@@ -762,4 +762,12 @@
 			Represents the size of the [enum ClipChildrenMode] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ClipChildrenMode">
+		</enum>
+		<enum name="TextureFilter">
+		</enum>
+		<enum name="TextureRepeat">
+		</enum>
+	</enums>
 </class>

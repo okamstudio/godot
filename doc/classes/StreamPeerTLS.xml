@@ -70,4 +70,8 @@
 			An error status that shows a mismatch in the TLS certificate domain presented by the host and the domain requested for validation.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Status">
+		</enum>
+	</enums>
 </class>

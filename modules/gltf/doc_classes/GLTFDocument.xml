@@ -138,4 +138,8 @@
 			Treat the Godot scene's root node as the name of the glTF scene, and add all of its children as root nodes of the glTF file. This uses only vanilla glTF features. This avoids an extra root node, but only the name of the Godot scene's root node will be preserved, as it will not be saved as a node.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="RootNodeMode">
+		</enum>
+	</enums>
 </class>

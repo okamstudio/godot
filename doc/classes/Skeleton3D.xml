@@ -421,4 +421,8 @@
 			Set a flag to process modification during process frames (see [constant Node.NOTIFICATION_INTERNAL_PROCESS]).
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ModifierCallbackModeProcess">
+		</enum>
+	</enums>
 </class>

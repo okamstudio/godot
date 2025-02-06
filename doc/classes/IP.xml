@@ -122,4 +122,10 @@
 			Address type: Any.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ResolverStatus">
+		</enum>
+		<enum name="Type">
+		</enum>
+	</enums>
 </class>

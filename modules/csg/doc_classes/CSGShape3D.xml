@@ -107,4 +107,8 @@
 			The second shape is subtracted from the first, leaving a dent with its shape.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Operation">
+		</enum>
+	</enums>
 </class>

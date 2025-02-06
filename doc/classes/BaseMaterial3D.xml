@@ -777,4 +777,40 @@
 			Smoothly fades the object out based on the object's distance from the camera using a dithering approach. Dithering discards pixels based on a set pattern to smoothly fade without enabling transparency. On certain hardware, this can be faster than [constant DISTANCE_FADE_PIXEL_ALPHA] and [constant DISTANCE_FADE_PIXEL_DITHER].
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AlphaAntiAliasing">
+		</enum>
+		<enum name="BillboardMode">
+		</enum>
+		<enum name="BlendMode">
+		</enum>
+		<enum name="CullMode">
+		</enum>
+		<enum name="DepthDrawMode">
+		</enum>
+		<enum name="DetailUV">
+		</enum>
+		<enum name="DiffuseMode">
+		</enum>
+		<enum name="DistanceFadeMode">
+		</enum>
+		<enum name="EmissionOperator">
+		</enum>
+		<enum name="Feature">
+		</enum>
+		<enum name="Flags">
+		</enum>
+		<enum name="ShadingMode">
+		</enum>
+		<enum name="SpecularMode">
+		</enum>
+		<enum name="TextureChannel">
+		</enum>
+		<enum name="TextureFilter">
+		</enum>
+		<enum name="TextureParam">
+		</enum>
+		<enum name="Transparency">
+		</enum>
+	</enums>
 </class>

@@ -90,6 +90,10 @@
 			The split dragger icon is not visible, and the split bar is collapsed to zero thickness.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="DraggerVisibility">
+		</enum>
+	</enums>
 	<theme_items>
 		<theme_item name="autohide" data_type="constant" type="int" default="1">
 			Boolean value. If [code]1[/code] ([code]true[/code]), the grabber will hide automatically when it isn't under the cursor. If [code]0[/code] ([code]false[/code]), it's always visible. The [member dragger_visibility] must be [constant DRAGGER_VISIBLE].

@@ -68,4 +68,8 @@
 			Uses the up vector information in a [Curve3D] to enforce orientation. This rotation mode requires the [Path3D]'s [member Curve3D.up_vector_enabled] property to be set to [code]true[/code].
 		</constant>
 	</constants>
+	<enums>
+		<enum name="RotationMode">
+		</enum>
+	</enums>
 </class>

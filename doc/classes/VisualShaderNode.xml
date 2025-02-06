@@ -100,4 +100,8 @@
 			Represents the size of the [enum PortType] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="PortType">
+		</enum>
+	</enums>
 </class>

@@ -73,4 +73,8 @@
 			Add new files to the existing zip archive at the given path.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ZipAppend">
+		</enum>
+	</enums>
 </class>

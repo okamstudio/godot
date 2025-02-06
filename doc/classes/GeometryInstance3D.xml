@@ -142,4 +142,14 @@
 			[b]Note:[/b] Only supported when using the Forward+ rendering method. When using the Mobile or Compatibility rendering method, this mode acts like [constant VISIBILITY_RANGE_FADE_DISABLED] but with hysteresis disabled.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="GIMode">
+		</enum>
+		<enum name="LightmapScale">
+		</enum>
+		<enum name="ShadowCastingSetting">
+		</enum>
+		<enum name="VisibilityRangeFadeMode">
+		</enum>
+	</enums>
 </class>

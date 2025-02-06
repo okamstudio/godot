@@ -59,4 +59,10 @@
 			Makes the light visible to sky shaders only. When using this mode the light will not cast light into the scene (either through direct lighting or through global illumination), but can be accessed through sky shaders. This can be useful, for example, when you want to control sky effects without illuminating the scene (during a night cycle, for example).
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ShadowMode">
+		</enum>
+		<enum name="SkyMode">
+		</enum>
+	</enums>
 </class>

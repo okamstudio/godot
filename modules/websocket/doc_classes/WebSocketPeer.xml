@@ -193,4 +193,10 @@
 			The connection is closed or couldn't be opened.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="State">
+		</enum>
+		<enum name="WriteMode">
+		</enum>
+	</enums>
 </class>

@@ -268,4 +268,12 @@
 			Indicates an output node of [VisualShader].
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Type">
+		</enum>
+		<enum name="VaryingMode">
+		</enum>
+		<enum name="VaryingType">
+		</enum>
+	</enums>
 </class>

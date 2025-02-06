@@ -108,4 +108,10 @@
 			Represents the size of the [enum Flag] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Flag">
+		</enum>
+		<enum name="Param">
+		</enum>
+	</enums>
 </class>

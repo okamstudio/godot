@@ -30,4 +30,8 @@
 			Represents the size of the [enum BoneUpdate] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="BoneUpdate">
+		</enum>
+	</enums>
 </class>

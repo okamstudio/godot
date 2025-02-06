@@ -39,4 +39,8 @@
 			This segment of the path goes through a link.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="PathSegmentType">
+		</enum>
+	</enums>
 </class>

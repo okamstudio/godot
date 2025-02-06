@@ -432,4 +432,12 @@
 		<constant name="CODE_COMPLETION_KIND_MAX" value="10" enum="CodeCompletionKind">
 		</constant>
 	</constants>
+	<enums>
+		<enum name="CodeCompletionKind">
+		</enum>
+		<enum name="CodeCompletionLocation">
+		</enum>
+		<enum name="LookupResultType">
+		</enum>
+	</enums>
 </class>

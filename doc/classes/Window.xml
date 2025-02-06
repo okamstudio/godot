@@ -951,6 +951,22 @@
 			Initial window position is the center of the screen containing the window with the keyboard focus.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ContentScaleAspect">
+		</enum>
+		<enum name="ContentScaleMode">
+		</enum>
+		<enum name="ContentScaleStretch">
+		</enum>
+		<enum name="Flags">
+		</enum>
+		<enum name="LayoutDirection">
+		</enum>
+		<enum name="Mode">
+		</enum>
+		<enum name="WindowInitialPosition">
+		</enum>
+	</enums>
 	<theme_items>
 		<theme_item name="title_color" data_type="color" type="Color" default="Color(0.875, 0.875, 0.875, 1)">
 			The color of the title's text.

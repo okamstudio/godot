@@ -196,6 +196,23 @@
 						</xs:sequence>
 					</xs:complexType>
 				</xs:element>
+				<xs:element name="enums" minOccurs="0">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="enum" maxOccurs="unbounded" minOccurs="0">
+								<xs:complexType>
+									<xs:simpleContent>
+										<xs:extension base="xs:string">
+											<xs:attribute type="xs:string" name="name" />
+											<xs:attribute type="xs:string" name="deprecated" use="optional" />
+											<xs:attribute type="xs:string" name="experimental" use="optional" />
+										</xs:extension>
+									</xs:simpleContent>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
 				<xs:element name="annotations" minOccurs="0">
 					<xs:complexType>
 						<xs:sequence>

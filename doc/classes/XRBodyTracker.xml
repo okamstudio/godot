@@ -305,4 +305,12 @@
 			The joint's position is actively tracked. May not be set if tracking has been temporarily lost.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="BodyFlags">
+		</enum>
+		<enum name="Joint">
+		</enum>
+		<enum name="JointFlags">
+		</enum>
+	</enums>
 </class>

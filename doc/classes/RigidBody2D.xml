@@ -305,4 +305,14 @@
 			Continuous collision detection enabled using shapecasting. This is the slowest CCD method and the most precise.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="CCDMode">
+		</enum>
+		<enum name="CenterOfMassMode">
+		</enum>
+		<enum name="DampMode">
+		</enum>
+		<enum name="FreezeMode">
+		</enum>
+	</enums>
 </class>

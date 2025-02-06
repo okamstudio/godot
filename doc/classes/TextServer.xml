@@ -2175,4 +2175,44 @@
 			Bitmap font is scaled to an arbitrary (fractional) size. This is the recommended option for non-pixel art fonts.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AutowrapMode">
+		</enum>
+		<enum name="ContourPointTag">
+		</enum>
+		<enum name="Direction">
+		</enum>
+		<enum name="Feature">
+		</enum>
+		<enum name="FixedSizeScaleMode">
+		</enum>
+		<enum name="FontAntialiasing">
+		</enum>
+		<enum name="FontLCDSubpixelLayout">
+		</enum>
+		<enum name="FontStyle">
+		</enum>
+		<enum name="GraphemeFlag">
+		</enum>
+		<enum name="Hinting">
+		</enum>
+		<enum name="JustificationFlag">
+		</enum>
+		<enum name="LineBreakFlag">
+		</enum>
+		<enum name="Orientation">
+		</enum>
+		<enum name="OverrunBehavior">
+		</enum>
+		<enum name="SpacingType">
+		</enum>
+		<enum name="StructuredTextParser">
+		</enum>
+		<enum name="SubpixelPositioning">
+		</enum>
+		<enum name="TextOverrunFlag">
+		</enum>
+		<enum name="VisibleCharactersBehavior">
+		</enum>
+	</enums>
 </class>

@@ -55,4 +55,10 @@
 			The texture is filled starting from [member fill_from] to [member fill_to] offsets, mirroring the pattern in both directions.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Fill">
+		</enum>
+		<enum name="Repeat">
+		</enum>
+	</enums>
 </class>

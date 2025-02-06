@@ -116,4 +116,8 @@
 			Replicate the given property on process by sending updates using reliable transfer mode when its value changes.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ReplicationMode">
+		</enum>
+	</enums>
 </class>

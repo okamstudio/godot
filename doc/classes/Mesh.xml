@@ -377,4 +377,16 @@
 			Blend shapes are relative to base weight.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ArrayCustomFormat">
+		</enum>
+		<enum name="ArrayFormat">
+		</enum>
+		<enum name="ArrayType">
+		</enum>
+		<enum name="BlendShapeMode">
+		</enum>
+		<enum name="PrimitiveType">
+		</enum>
+	</enums>
 </class>

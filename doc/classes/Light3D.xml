@@ -212,4 +212,10 @@
 			Light is taken into account in dynamic baking ([VoxelGI] and SDFGI ([member Environment.sdfgi_enabled]) only). The light can be moved around or modified with global illumination updating in real-time. The light's global illumination appearance will be slightly different compared to [constant BAKE_STATIC]. This has a greater performance cost compared to [constant BAKE_STATIC]. When using SDFGI, the update speed of dynamic lights is affected by [member ProjectSettings.rendering/global_illumination/sdfgi/frames_to_update_lights].
 		</constant>
 	</constants>
+	<enums>
+		<enum name="BakeMode">
+		</enum>
+		<enum name="Param">
+		</enum>
+	</enums>
 </class>

@@ -308,4 +308,12 @@
 			Endpoints are rounded off and extended by [code]delta[/code] units.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="PolyBooleanOperation">
+		</enum>
+		<enum name="PolyEndType">
+		</enum>
+		<enum name="PolyJoinType">
+		</enum>
+	</enums>
 </class>

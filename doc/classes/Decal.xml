@@ -130,4 +130,8 @@
 			Max size of [enum DecalTexture] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="DecalTexture">
+		</enum>
+	</enums>
 </class>

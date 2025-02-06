@@ -374,4 +374,8 @@
 			The rotation is edited using a [Basis]. In this mode, [member scale] can't be edited separately.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="RotationEditMode">
+		</enum>
+	</enums>
 </class>

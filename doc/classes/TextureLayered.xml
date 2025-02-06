@@ -111,4 +111,8 @@
 			Texture is a [CubemapArray], with each cubemap being made of 6 layers.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="LayeredType">
+		</enum>
+	</enums>
 </class>

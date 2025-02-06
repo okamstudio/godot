@@ -142,4 +142,8 @@
 			Similar to [constant BLEND_MODE_DISCRETE], but starts the new animation at the last animation's playback position.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="BlendMode">
+		</enum>
+	</enums>
 </class>

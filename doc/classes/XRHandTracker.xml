@@ -213,4 +213,12 @@
 			The hand joint's angular velocity data is valid.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="HandJoint">
+		</enum>
+		<enum name="HandJointFlags">
+		</enum>
+		<enum name="HandTrackingSource">
+		</enum>
+	</enums>
 </class>

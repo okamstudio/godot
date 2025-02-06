@@ -1401,4 +1401,26 @@
 			Right-to-left text writing direction.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Anchor">
+		</enum>
+		<enum name="CursorShape">
+		</enum>
+		<enum name="FocusMode">
+		</enum>
+		<enum name="GrowDirection">
+		</enum>
+		<enum name="LayoutDirection">
+		</enum>
+		<enum name="LayoutPreset">
+		</enum>
+		<enum name="LayoutPresetMode">
+		</enum>
+		<enum name="MouseFilter">
+		</enum>
+		<enum name="SizeFlags">
+		</enum>
+		<enum name="TextDirection">
+		</enum>
+	</enums>
 </class>

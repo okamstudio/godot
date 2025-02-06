@@ -109,4 +109,16 @@
 			Represents the size of the [enum TextureSource] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ColorDefault">
+		</enum>
+		<enum name="TextureFilter">
+		</enum>
+		<enum name="TextureRepeat">
+		</enum>
+		<enum name="TextureSource">
+		</enum>
+		<enum name="TextureType">
+		</enum>
+	</enums>
 </class>

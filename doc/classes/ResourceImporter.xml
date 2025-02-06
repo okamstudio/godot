@@ -17,4 +17,8 @@
 			The import order for scenes, which ensures scenes are imported [i]after[/i] all other core resources such as textures. Custom importers should generally have an import order lower than [code]100[/code] to avoid issues when importing scenes that rely on custom resources.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ImportOrder">
+		</enum>
+	</enums>
 </class>

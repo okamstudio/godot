@@ -248,4 +248,8 @@
 			Unknown error.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="UPNPResult">
+		</enum>
+	</enums>
 </class>

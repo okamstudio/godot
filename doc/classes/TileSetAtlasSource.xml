@@ -312,4 +312,8 @@
 			Represents cell's transposed flag. See [constant TRANSFORM_FLIP_H] for usage.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="TileAnimationMode">
+		</enum>
+	</enums>
 </class>

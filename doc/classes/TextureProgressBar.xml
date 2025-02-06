@@ -111,4 +111,8 @@
 			Turns the node into a radial bar. The [member texture_progress] fills radially from the center, expanding both clockwise and counterclockwise. See [member radial_center_offset], [member radial_initial_angle] and [member radial_fill_degrees] to control the way the bar fills up.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="FillMode">
+		</enum>
+	</enums>
 </class>

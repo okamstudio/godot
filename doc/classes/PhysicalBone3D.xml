@@ -135,4 +135,10 @@
 			A 6 degrees of freedom joint is applied to the PhysicsBone3D.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="DampMode">
+		</enum>
+		<enum name="JointType">
+		</enum>
+	</enums>
 </class>

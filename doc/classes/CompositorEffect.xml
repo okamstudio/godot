@@ -93,4 +93,8 @@
 			Represents the size of the [enum EffectCallbackType] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="EffectCallbackType">
+		</enum>
+	</enums>
 </class>

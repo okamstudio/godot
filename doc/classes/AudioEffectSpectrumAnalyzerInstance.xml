@@ -30,4 +30,8 @@
 			Use the maximum value of the frequency range as magnitude.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="MagnitudeMode">
+		</enum>
+	</enums>
 </class>

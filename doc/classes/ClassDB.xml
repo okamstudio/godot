@@ -266,4 +266,8 @@
 			Unknown class type.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="APIType">
+		</enum>
+	</enums>
 </class>

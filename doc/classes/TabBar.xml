@@ -366,6 +366,12 @@
 			Represents the size of the [enum CloseButtonDisplayPolicy] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AlignmentMode">
+		</enum>
+		<enum name="CloseButtonDisplayPolicy">
+		</enum>
+	</enums>
 	<theme_items>
 		<theme_item name="drop_mark_color" data_type="color" type="Color" default="Color(1, 1, 1, 1)">
 			Modulation color for the [theme_item drop_mark] icon.

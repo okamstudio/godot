@@ -171,4 +171,10 @@
 			Like [constant CACHE_MODE_REPLACE], but propagated recursively down the tree of dependencies (external resources).
 		</constant>
 	</constants>
+	<enums>
+		<enum name="CacheMode">
+		</enum>
+		<enum name="ThreadLoadStatus">
+		</enum>
+	</enums>
 </class>

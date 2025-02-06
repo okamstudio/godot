@@ -180,4 +180,8 @@
 			[b]Note:[/b] Only available in editor builds.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="GenEditState">
+		</enum>
+	</enums>
 </class>

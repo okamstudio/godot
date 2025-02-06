@@ -93,4 +93,8 @@
 			The extension requires the application to restart to fully load.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="LoadStatus">
+		</enum>
+	</enums>
 </class>

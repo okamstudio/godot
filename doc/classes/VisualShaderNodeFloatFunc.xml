@@ -114,4 +114,8 @@
 			Represents the size of the [enum Function] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Function">
+		</enum>
+	</enums>
 </class>

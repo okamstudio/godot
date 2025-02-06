@@ -117,4 +117,8 @@
 			Component type "UNSIGNED_LONG". The value is [code]0x140F[/code] which comes from OpenGL. This indicates data is stored in 8-byte or 64-bit unsigned integers. This is NOT a core part of the glTF specification, and may not be supported by all glTF importers. May be used by some extensions including [code]KHR_interactivity[/code].
 		</constant>
 	</constants>
+	<enums>
+		<enum name="GLTFAccessorType">
+		</enum>
+	</enums>
 </class>

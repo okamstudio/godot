@@ -756,4 +756,10 @@
 			Dock icon right-click menu ID (on macOS this menu include standard application control items and a list of open windows).
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Feature">
+		</enum>
+		<enum name="SystemMenus">
+		</enum>
+	</enums>
 </class>

@@ -29,4 +29,8 @@
 			Store the curve only in the red channel. This saves video memory, but some custom shaders may not be able to work with this.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="TextureMode">
+		</enum>
+	</enums>
 </class>

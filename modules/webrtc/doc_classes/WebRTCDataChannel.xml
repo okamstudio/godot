@@ -108,4 +108,10 @@
 			The channel was closed, or connection failed.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ChannelState">
+		</enum>
+		<enum name="WriteMode">
+		</enum>
+	</enums>
 </class>

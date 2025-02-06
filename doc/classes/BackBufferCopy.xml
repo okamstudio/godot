@@ -29,4 +29,8 @@
 			[BackBufferCopy] buffers the entire screen.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="CopyMode">
+		</enum>
+	</enums>
 </class>

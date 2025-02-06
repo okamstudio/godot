@@ -455,4 +455,12 @@
 			HTTP status code [code]511 Network Authentication Required[/code]. The client needs to authenticate to gain network access.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Method">
+		</enum>
+		<enum name="ResponseCode">
+		</enum>
+		<enum name="Status">
+		</enum>
+	</enums>
 </class>

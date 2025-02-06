@@ -47,4 +47,8 @@
 			If above 0, this value is the maximum value for an impulse that this Joint3D produces.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Param">
+		</enum>
+	</enums>
 </class>

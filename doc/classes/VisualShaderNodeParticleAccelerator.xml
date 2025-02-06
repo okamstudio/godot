@@ -27,4 +27,8 @@
 			Represents the size of the [enum Mode] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Mode">
+		</enum>
+	</enums>
 </class>

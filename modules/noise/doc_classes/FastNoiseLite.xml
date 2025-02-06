@@ -160,4 +160,18 @@
 			Warping the space independently for each octave, resulting in a more chaotic distortion.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="CellularDistanceFunction">
+		</enum>
+		<enum name="CellularReturnType">
+		</enum>
+		<enum name="DomainWarpFractalType">
+		</enum>
+		<enum name="DomainWarpType">
+		</enum>
+		<enum name="FractalType">
+		</enum>
+		<enum name="NoiseType">
+		</enum>
+	</enums>
 </class>

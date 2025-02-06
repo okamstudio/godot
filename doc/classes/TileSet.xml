@@ -746,4 +746,16 @@
 			Requires sides to match with neighboring tiles' terrains.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="CellNeighbor">
+		</enum>
+		<enum name="TerrainMode">
+		</enum>
+		<enum name="TileLayout">
+		</enum>
+		<enum name="TileOffsetAxis">
+		</enum>
+		<enum name="TileShape">
+		</enum>
+	</enums>
 </class>

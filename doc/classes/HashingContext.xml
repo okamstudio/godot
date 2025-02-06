@@ -92,4 +92,8 @@
 			Hashing algorithm: SHA-256.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="HashType">
+		</enum>
+	</enums>
 </class>

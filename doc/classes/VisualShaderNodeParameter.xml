@@ -30,4 +30,8 @@
 			Represents the size of the [enum Qualifier] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Qualifier">
+		</enum>
+	</enums>
 </class>

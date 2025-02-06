@@ -317,4 +317,10 @@
 			Each individual vertex can be influenced by up to 8 bone weights.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="CustomFormat">
+		</enum>
+		<enum name="SkinWeightCount">
+		</enum>
+	</enums>
 </class>

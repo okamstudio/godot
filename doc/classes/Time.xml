@@ -244,4 +244,10 @@
 			The day of the week Saturday, represented numerically as [code]6[/code].
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Month">
+		</enum>
+		<enum name="Weekday">
+		</enum>
+	</enums>
 </class>

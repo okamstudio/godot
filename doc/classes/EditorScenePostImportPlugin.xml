@@ -120,4 +120,8 @@
 		<constant name="INTERNAL_IMPORT_CATEGORY_MAX" value="7" enum="InternalImportCategory">
 		</constant>
 	</constants>
+	<enums>
+		<enum name="InternalImportCategory">
+		</enum>
+	</enums>
 </class>

@@ -75,4 +75,10 @@
 			Automatically use this transition if the [member advance_condition] and [member advance_expression] checks are [code]true[/code] (if assigned).
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AdvanceMode">
+		</enum>
+		<enum name="SwitchMode">
+		</enum>
+	</enums>
 </class>

@@ -544,4 +544,16 @@
 			Represents the size of the [enum CollisionMode] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="CollisionMode">
+		</enum>
+		<enum name="EmissionShape">
+		</enum>
+		<enum name="Parameter">
+		</enum>
+		<enum name="ParticleFlags">
+		</enum>
+		<enum name="SubEmitterMode">
+		</enum>
+	</enums>
 </class>

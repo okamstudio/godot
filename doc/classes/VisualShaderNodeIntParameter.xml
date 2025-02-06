@@ -48,4 +48,8 @@
 			Represents the size of the [enum Hint] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Hint">
+		</enum>
+	</enums>
 </class>

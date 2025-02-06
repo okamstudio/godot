@@ -214,4 +214,8 @@
 			This area replaces any gravity/damping calculated so far (in [member priority] order), but keeps calculating the rest of the areas.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="SpaceOverride">
+		</enum>
+	</enums>
 </class>

@@ -820,4 +820,20 @@
 			Hint to indicate that the low quality 8×8 ASTC compression format should be used.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ASTCFormat">
+		</enum>
+		<enum name="AlphaMode">
+		</enum>
+		<enum name="CompressMode">
+		</enum>
+		<enum name="CompressSource">
+		</enum>
+		<enum name="Format">
+		</enum>
+		<enum name="Interpolation">
+		</enum>
+		<enum name="UsedChannels">
+		</enum>
+	</enums>
 </class>

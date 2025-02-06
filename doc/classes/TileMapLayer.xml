@@ -350,4 +350,8 @@
 			Always show the collisions or navigation debug shapes.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="DebugVisibilityMode">
+		</enum>
+	</enums>
 </class>

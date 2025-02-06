@@ -318,12 +318,14 @@ class State:
 
                 constant_name = constant.attrib["name"]
                 value = constant.attrib["value"]
-                enum = constant.get("enum")
+                enum_name = constant.get("enum")
                 is_bitfield = constant.get("is_bitfield") == "true"
+
                 constant_def = ConstantDef(constant_name, value, constant.text, is_bitfield)
                 constant_def.deprecated = constant.get("deprecated")
                 constant_def.experimental = constant.get("experimental")
-                if enum is None:
+
+                if enum_name is None:
                     if constant_name in class_def.constants:
                         print_error(f'{class_name}.xml: Duplicate constant "{constant_name}".', self)
                         continue
@@ -331,14 +333,30 @@ class State:
                     class_def.constants[constant_name] = constant_def
 
                 else:
-                    if enum in class_def.enums:
-                        enum_def = class_def.enums[enum]
-
+                    if enum_name in class_def.enums:
+                        enum_def = class_def.enums[enum_name]
                     else:
-                        enum_def = EnumDef(enum, TypeName("int", enum), is_bitfield)
-                        class_def.enums[enum] = enum_def
+                        enum_def = EnumDef(enum_name, TypeName("int", enum_name), is_bitfield)
+                        class_def.enums[enum_name] = enum_def
 
                     enum_def.values[constant_name] = constant_def
+
+        enums = class_root.find("enums")
+        if enums is not None:
+            for enum in enums:
+                assert enum.tag == "enum"
+
+                enum_name = enum.attrib["name"]
+
+                if enum_name in class_def.enums:
+                    enum_def = class_def.enums[enum_name]
+                else:
+                    enum_def = EnumDef(enum_name, TypeName("int", enum_name), False)
+                    class_def.enums[enum_name] = enum_def
+
+                enum_def.text = enum.text
+                enum_def.deprecated = enum.get("deprecated")
+                enum_def.experimental = enum.get("experimental")
 
         annotations = class_root.find("annotations")
         if annotations is not None:
@@ -571,8 +589,9 @@ class EnumDef(DefinitionBase):
         super().__init__("enum", name)
 
         self.type_name = type_name
-        self.values: OrderedDict[str, ConstantDef] = OrderedDict()
         self.is_bitfield = bitfield
+        self.text: Optional[str] = None
+        self.values: OrderedDict[str, ConstantDef] = OrderedDict()
 
 
 class ThemeItemDef(DefinitionBase):
@@ -1134,6 +1153,13 @@ def make_rst_class(class_def: ClassDef, state: State, dry_run: bool, output_dir:
                 else:
                     f.write(f"enum **{e.name}**: {self_link}\n\n")
 
+                # Add enum description.
+
+                f.write(make_deprecated_experimental(e, state))
+
+                if e.text is not None and e.text.strip() != "":
+                    f.write(f"{format_text_block(e.text.strip(), e, state)}\n\n")
+
                 for value in e.values.values():
                     # Also create signature and anchor point for each enum constant.
 
@@ -1147,17 +1173,15 @@ def make_rst_class(class_def: ClassDef, state: State, dry_run: bool, output_dir:
                     f.write(make_deprecated_experimental(value, state))
 
                     if value.text is not None and value.text.strip() != "":
-                        f.write(f"{format_text_block(value.text.strip(), value, state)}")
+                        f.write(f"{format_text_block(value.text.strip(), value, state)}\n\n")
                     elif value.deprecated is None and value.experimental is None:
                         f.write(".. container:: contribute\n\n\t")
                         f.write(
                             translate(
-                                "There is currently no description for this enum. Please help us by :ref:`contributing one <doc_updating_the_class_reference>`!"
+                                "There is currently no description for this constant. Please help us by :ref:`contributing one <doc_updating_the_class_reference>`!"
                             )
                             + "\n\n"
                         )
-
-                    f.write("\n\n")
 
                 index += 1
 
@@ -1182,7 +1206,7 @@ def make_rst_class(class_def: ClassDef, state: State, dry_run: bool, output_dir:
                 f.write(make_deprecated_experimental(constant, state))
 
                 if constant.text is not None and constant.text.strip() != "":
-                    f.write(f"{format_text_block(constant.text.strip(), constant, state)}")
+                    f.write(f"{format_text_block(constant.text.strip(), constant, state)}\n\n")
                 elif constant.deprecated is None and constant.experimental is None:
                     f.write(".. container:: contribute\n\n\t")
                     f.write(
@@ -1191,8 +1215,6 @@ def make_rst_class(class_def: ClassDef, state: State, dry_run: bool, output_dir:
                         )
                         + "\n\n"
                     )
-
-                f.write("\n\n")
 
         # Annotation descriptions
         if len(class_def.annotations) > 0:

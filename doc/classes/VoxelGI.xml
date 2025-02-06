@@ -64,4 +64,8 @@
 			Represents the size of the [enum Subdiv] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Subdiv">
+		</enum>
+	</enums>
 </class>

@@ -16,4 +16,8 @@
 		<constant name="FLAG_CONVERT_COLORS" value="2" enum="LoaderFlags" is_bitfield="true">
 		</constant>
 	</constants>
+	<enums>
+		<enum name="LoaderFlags">
+		</enum>
+	</enums>
 </class>

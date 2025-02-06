@@ -73,4 +73,8 @@
 			The CbCr component camera image.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="FeedImage">
+		</enum>
+	</enums>
 </class>

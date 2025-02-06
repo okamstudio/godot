@@ -266,4 +266,12 @@
 			Represents the size of the [enum CellShape] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="CellShape">
+		</enum>
+		<enum name="DiagonalMode">
+		</enum>
+		<enum name="Heuristic">
+		</enum>
+	</enums>
 </class>

@@ -205,4 +205,12 @@
 			The [WebRTCPeerConnection] has been closed.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ConnectionState">
+		</enum>
+		<enum name="GatheringState">
+		</enum>
+		<enum name="SignalingState">
+		</enum>
+	</enums>
 </class>

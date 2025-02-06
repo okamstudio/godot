@@ -30,4 +30,8 @@
 			If enabled, the particle starts with the [code]CUSTOM[/code] data defined by this node.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="EmitFlags">
+		</enum>
+	</enums>
 </class>

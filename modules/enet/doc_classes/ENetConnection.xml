@@ -205,4 +205,12 @@
 			Total UDP packets received.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="CompressionMode">
+		</enum>
+		<enum name="EventType">
+		</enum>
+		<enum name="HostStatistic">
+		</enum>
+	</enums>
 </class>

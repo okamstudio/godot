@@ -1803,4 +1803,44 @@
 		<constant name="BODY_AXIS_ANGULAR_Z" value="32" enum="BodyAxis">
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AreaBodyStatus">
+		</enum>
+		<enum name="AreaParameter">
+		</enum>
+		<enum name="AreaSpaceOverrideMode">
+		</enum>
+		<enum name="BodyAxis">
+		</enum>
+		<enum name="BodyDampMode">
+		</enum>
+		<enum name="BodyMode">
+		</enum>
+		<enum name="BodyParameter">
+		</enum>
+		<enum name="BodyState">
+		</enum>
+		<enum name="ConeTwistJointParam">
+		</enum>
+		<enum name="G6DOFJointAxisFlag">
+		</enum>
+		<enum name="G6DOFJointAxisParam">
+		</enum>
+		<enum name="HingeJointFlag">
+		</enum>
+		<enum name="HingeJointParam">
+		</enum>
+		<enum name="JointType">
+		</enum>
+		<enum name="PinJointParam">
+		</enum>
+		<enum name="ProcessInfo">
+		</enum>
+		<enum name="ShapeType">
+		</enum>
+		<enum name="SliderJointParam">
+		</enum>
+		<enum name="SpaceParameter">
+		</enum>
+	</enums>
 </class>

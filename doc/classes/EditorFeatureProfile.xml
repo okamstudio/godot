@@ -128,4 +128,8 @@
 			Represents the size of the [enum Feature] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Feature">
+		</enum>
+	</enums>
 </class>

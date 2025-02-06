@@ -905,4 +905,10 @@
 			Standard I/O device type is unknown.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="RenderingDriver">
+		</enum>
+		<enum name="SystemDir">
+		</enum>
+	</enums>
 </class>

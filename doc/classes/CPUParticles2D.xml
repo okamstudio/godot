@@ -389,4 +389,14 @@
 			Represents the size of the [enum EmissionShape] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="DrawOrder">
+		</enum>
+		<enum name="EmissionShape">
+		</enum>
+		<enum name="Parameter">
+		</enum>
+		<enum name="ParticleFlags">
+		</enum>
+	</enums>
 </class>

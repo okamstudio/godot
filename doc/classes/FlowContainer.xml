@@ -56,6 +56,12 @@
 			The last partially filled row or column will wrap aligned to the end of the previous row or column.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AlignmentMode">
+		</enum>
+		<enum name="LastWrapAlignmentMode">
+		</enum>
+	</enums>
 	<theme_items>
 		<theme_item name="h_separation" data_type="constant" type="int" default="4">
 			The horizontal separation of child nodes.

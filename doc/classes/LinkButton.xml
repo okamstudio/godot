@@ -57,6 +57,10 @@
 			The LinkButton will never show an underline at the bottom of its text.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="UnderlineMode">
+		</enum>
+	</enums>
 	<theme_items>
 		<theme_item name="font_color" data_type="color" type="Color" default="Color(0.875, 0.875, 0.875, 1)">
 			Default text [Color] of the [LinkButton].

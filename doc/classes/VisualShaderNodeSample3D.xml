@@ -24,4 +24,8 @@
 			Represents the size of the [enum Source] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Source">
+		</enum>
+	</enums>
 </class>

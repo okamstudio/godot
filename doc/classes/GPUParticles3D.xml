@@ -224,4 +224,12 @@
 		<constant name="TRANSFORM_ALIGN_Z_BILLBOARD_Y_TO_VELOCITY" value="3" enum="TransformAlign">
 		</constant>
 	</constants>
+	<enums>
+		<enum name="DrawOrder">
+		</enum>
+		<enum name="EmitFlags">
+		</enum>
+		<enum name="TransformAlign">
+		</enum>
+	</enums>
 </class>

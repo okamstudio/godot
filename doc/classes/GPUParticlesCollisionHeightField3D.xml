@@ -78,4 +78,10 @@
 			Update the heightmap every frame. This has a significant performance cost. This update should only be used when geometry that particles can collide with changes significantly during gameplay.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Resolution">
+		</enum>
+		<enum name="UpdateMode">
+		</enum>
+	</enums>
 </class>

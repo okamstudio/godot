@@ -467,4 +467,8 @@
 			Represents the size of the [enum BlendShapeEntry] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="BlendShapeEntry">
+		</enum>
+	</enums>
 </class>

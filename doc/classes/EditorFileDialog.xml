@@ -233,4 +233,12 @@
 			The [EditorFileDialog] displays resources as a list of filenames.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Access">
+		</enum>
+		<enum name="DisplayMode">
+		</enum>
+		<enum name="FileMode">
+		</enum>
+	</enums>
 </class>

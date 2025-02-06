@@ -323,4 +323,8 @@
 			Means that [constant XRInterface.XR_ENV_BLEND_MODE_ALPHA_BLEND] is emulated.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="OpenXRAlphaBlendModeSupport">
+		</enum>
+	</enums>
 </class>

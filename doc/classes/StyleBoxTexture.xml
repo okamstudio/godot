@@ -119,4 +119,8 @@
 			Repeats the stylebox's texture to match the stylebox's size according to the nine-patch system. Unlike [constant AXIS_STRETCH_MODE_TILE], the texture may be slightly stretched to make the nine-patch texture tile seamlessly.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AxisStretchMode">
+		</enum>
+	</enums>
 </class>

@@ -39,4 +39,8 @@
 			The library is initialized at the same time as the engine's editor classes. Only happens when loading the GDExtension in the editor.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="InitializationLevel">
+		</enum>
+	</enums>
 </class>

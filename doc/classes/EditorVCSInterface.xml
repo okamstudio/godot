@@ -274,4 +274,10 @@
 			A file is encountered from the unstaged area.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ChangeType">
+		</enum>
+		<enum name="TreeArea">
+		</enum>
+	</enums>
 </class>

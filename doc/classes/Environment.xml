@@ -460,4 +460,20 @@
 			Use 100% scale for SDFGI on the Y (vertical) axis. SDFGI cells will be as tall as they are wide. This is usually the best choice for highly vertical scenes. The downside is that light leaking may become more noticeable with thin floors and ceilings.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AmbientSource">
+		</enum>
+		<enum name="BGMode">
+		</enum>
+		<enum name="FogMode">
+		</enum>
+		<enum name="GlowBlendMode">
+		</enum>
+		<enum name="ReflectionSource">
+		</enum>
+		<enum name="SDFGIYScale">
+		</enum>
+		<enum name="ToneMapper">
+		</enum>
+	</enums>
 </class>

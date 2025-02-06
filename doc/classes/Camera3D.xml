@@ -238,4 +238,12 @@
 			Simulate [url=https://en.wikipedia.org/wiki/Doppler_effect]Doppler effect[/url] by tracking positions of objects that are changed in [code]_physics_process[/code]. Changes in the relative velocity of this camera compared to those objects affect how audio is perceived (changing the audio's [member AudioStreamPlayer3D.pitch_scale]).
 		</constant>
 	</constants>
+	<enums>
+		<enum name="DopplerTracking">
+		</enum>
+		<enum name="KeepAspect">
+		</enum>
+		<enum name="ProjectionType">
+		</enum>
+	</enums>
 </class>

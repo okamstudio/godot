@@ -89,4 +89,8 @@
 			Play streams in the order they appear in the stream pool. If only 1 sound is present in the pool, the same sound will always play.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="PlaybackMode">
+		</enum>
+	</enums>
 </class>

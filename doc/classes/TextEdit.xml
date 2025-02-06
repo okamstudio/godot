@@ -1586,6 +1586,22 @@
 			When a gutter is set to custom using [method set_gutter_type], it is used to contain custom visuals controlled by a callback method set via the [method set_gutter_custom_draw] method.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="CaretType">
+		</enum>
+		<enum name="EditAction">
+		</enum>
+		<enum name="GutterType">
+		</enum>
+		<enum name="LineWrappingMode">
+		</enum>
+		<enum name="MenuItems">
+		</enum>
+		<enum name="SearchFlags">
+		</enum>
+		<enum name="SelectionMode">
+		</enum>
+	</enums>
 	<theme_items>
 		<theme_item name="background_color" data_type="color" type="Color" default="Color(0, 0, 0, 0)">
 			Sets the background [Color] of this [TextEdit].

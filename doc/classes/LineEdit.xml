@@ -513,6 +513,12 @@
 			Virtual keyboard with additional keys to assist with typing URLs.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="MenuItems">
+		</enum>
+		<enum name="VirtualKeyboardType">
+		</enum>
+	</enums>
 	<theme_items>
 		<theme_item name="caret_color" data_type="color" type="Color" default="Color(0.95, 0.95, 0.95, 1)">
 			Color of the [LineEdit]'s caret (text cursor). This can be set to a fully transparent color to hide the caret entirely.

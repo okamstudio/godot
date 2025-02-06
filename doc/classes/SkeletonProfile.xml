@@ -210,4 +210,8 @@
 			Direction is not calculated.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="TailDirection">
+		</enum>
+	</enums>
 </class>

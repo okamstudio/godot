@@ -274,4 +274,10 @@
 			Flag is set if Visible Navigation" remote debug option is enabled. If set, [method gen_export_flags] will add [code]--debug-navigation[/code] command line arguments to the list.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="DebugFlags">
+		</enum>
+		<enum name="ExportMessageType">
+		</enum>
+	</enums>
 </class>

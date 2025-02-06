@@ -38,6 +38,10 @@
 			The child controls will be arranged at the end of the container, i.e. bottom if orientation is vertical, right if orientation is horizontal (left for RTL layout).
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AlignmentMode">
+		</enum>
+	</enums>
 	<theme_items>
 		<theme_item name="separation" data_type="constant" type="int" default="4">
 			The space between the [BoxContainer]'s elements, in pixels.

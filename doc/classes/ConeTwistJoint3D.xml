@@ -72,4 +72,8 @@
 			Represents the size of the [enum Param] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Param">
+		</enum>
+	</enums>
 </class>

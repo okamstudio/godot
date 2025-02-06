@@ -189,4 +189,12 @@
 		<constant name="MODE_SCRIPT_BINARY_TOKENS_COMPRESSED" value="2" enum="ScriptExportMode">
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ExportFilter">
+		</enum>
+		<enum name="FileExportMode">
+		</enum>
+		<enum name="ScriptExportMode">
+		</enum>
+	</enums>
 </class>

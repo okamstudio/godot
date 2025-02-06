@@ -577,4 +577,8 @@
 			Maximum value for the DataType enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="DataType">
+		</enum>
+	</enums>
 </class>

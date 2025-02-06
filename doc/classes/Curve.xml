@@ -199,4 +199,8 @@
 			The total number of available tangent modes.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="TangentMode">
+		</enum>
+	</enums>
 </class>

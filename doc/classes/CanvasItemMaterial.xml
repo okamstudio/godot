@@ -58,4 +58,10 @@
 			Render the material as if there were only light.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="BlendMode">
+		</enum>
+		<enum name="LightMode">
+		</enum>
+	</enums>
 </class>

@@ -289,4 +289,8 @@
 			When [member Node.process_mode] is set to [constant Node.PROCESS_MODE_DISABLED], do not affect the physics simulation.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="DisableMode">
+		</enum>
+	</enums>
 </class>

@@ -29,4 +29,8 @@
 			Corresponds to [constant Node.PROCESS_MODE_WHEN_PAUSED].
 		</constant>
 	</constants>
+	<enums>
+		<enum name="EnableMode">
+		</enum>
+	</enums>
 </class>

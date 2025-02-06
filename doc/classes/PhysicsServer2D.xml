@@ -1241,4 +1241,38 @@
 			Constant to get the number of space regions where a collision could occur.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AreaBodyStatus">
+		</enum>
+		<enum name="AreaParameter">
+		</enum>
+		<enum name="AreaSpaceOverrideMode">
+		</enum>
+		<enum name="BodyDampMode">
+		</enum>
+		<enum name="BodyMode">
+		</enum>
+		<enum name="BodyParameter">
+		</enum>
+		<enum name="BodyState">
+		</enum>
+		<enum name="CCDMode">
+		</enum>
+		<enum name="DampedSpringParam">
+		</enum>
+		<enum name="JointParam">
+		</enum>
+		<enum name="JointType">
+		</enum>
+		<enum name="PinJointFlag">
+		</enum>
+		<enum name="PinJointParam">
+		</enum>
+		<enum name="ProcessInfo">
+		</enum>
+		<enum name="ShapeType">
+		</enum>
+		<enum name="SpaceParameter">
+		</enum>
+	</enums>
 </class>

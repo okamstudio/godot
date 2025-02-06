@@ -314,4 +314,8 @@
 			Request failed due to a timeout. If you expect requests to take a long time, try increasing the value of [member timeout] or setting it to [code]0.0[/code] to remove the timeout completely.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Result">
+		</enum>
+	</enums>
 </class>

@@ -42,4 +42,10 @@
 			Represents the size of the [enum TextureType] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Source">
+		</enum>
+		<enum name="TextureType">
+		</enum>
+	</enums>
 </class>

@@ -60,4 +60,12 @@
 			Represents the size of the [enum Precision] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Function">
+		</enum>
+		<enum name="OpType">
+		</enum>
+		<enum name="Precision">
+		</enum>
+	</enums>
 </class>

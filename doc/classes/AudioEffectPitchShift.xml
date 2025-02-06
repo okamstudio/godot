@@ -41,4 +41,8 @@
 			Represents the size of the [enum FFTSize] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="FFTSize">
+		</enum>
+	</enums>
 </class>

@@ -60,4 +60,10 @@
 			[b]Note:[/b] The fast filtering algorithm is limited to 256×256 cubemaps, so [member radiance_size] must be set to [constant RADIANCE_SIZE_256]. Otherwise, a warning is printed and the overridden radiance size is ignored.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ProcessMode">
+		</enum>
+		<enum name="RadianceSize">
+		</enum>
+	</enums>
 </class>

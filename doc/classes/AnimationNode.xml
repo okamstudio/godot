@@ -245,4 +245,8 @@
 			Paths matching the filter will be blended (by the blend value).
 		</constant>
 	</constants>
+	<enums>
+		<enum name="FilterAction">
+		</enum>
+	</enums>
 </class>

@@ -217,4 +217,10 @@
 			Mark the packet to be sent unreliable even if the packet is too big and needs fragmentation (increasing the chance of it being dropped).
 		</constant>
 	</constants>
+	<enums>
+		<enum name="PeerState">
+		</enum>
+		<enum name="PeerStatistic">
+		</enum>
+	</enums>
 </class>

@@ -673,6 +673,12 @@
 			The option is from other engine code, not covered by the other enum constants - e.g. built-in classes.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="CodeCompletionKind">
+		</enum>
+		<enum name="CodeCompletionLocation">
+		</enum>
+	</enums>
 	<theme_items>
 		<theme_item name="bookmark_color" data_type="color" type="Color" default="Color(0.5, 0.64, 1, 0.8)">
 			[Color] of the bookmark icon for bookmarked lines.

@@ -113,4 +113,10 @@
 			[url=https://bottosson.github.io/posts/oklab/]Oklab[/url] color space. This color space provides a smooth and uniform-looking transition between colors.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ColorSpace">
+		</enum>
+		<enum name="InterpolationMode">
+		</enum>
+	</enums>
 </class>

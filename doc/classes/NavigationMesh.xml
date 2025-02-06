@@ -202,4 +202,12 @@
 			Represents the size of the [enum SourceGeometryMode] enum.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ParsedGeometryType">
+		</enum>
+		<enum name="SamplePartitionType">
+		</enum>
+		<enum name="SourceGeometryMode">
+		</enum>
+	</enums>
 </class>

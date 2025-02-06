@@ -488,6 +488,12 @@
 			Allows selecting multiple items by toggling them on and off.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="IconMode">
+		</enum>
+		<enum name="SelectMode">
+		</enum>
+	</enums>
 	<theme_items>
 		<theme_item name="font_color" data_type="color" type="Color" default="Color(0.65, 0.65, 0.65, 1)">
 			Default text [Color] of the item.

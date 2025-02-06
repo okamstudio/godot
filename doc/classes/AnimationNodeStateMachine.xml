@@ -184,4 +184,8 @@
 			This is a grouped state machine that can be controlled from a parent state machine. It does not work independently. There must be a state machine with [member state_machine_type] of [constant STATE_MACHINE_TYPE_ROOT] or [constant STATE_MACHINE_TYPE_NESTED] in the parent or ancestor.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="StateMachineType">
+		</enum>
+	</enums>
 </class>

@@ -80,4 +80,8 @@
 			Take over the paths of the saved subresources (see [method Resource.take_over_path]).
 		</constant>
 	</constants>
+	<enums>
+		<enum name="SaverFlags">
+		</enum>
+	</enums>
 </class>

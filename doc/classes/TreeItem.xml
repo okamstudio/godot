@@ -865,4 +865,8 @@
 			This mode also supports custom drawing using [method set_custom_draw_callback].
 		</constant>
 	</constants>
+	<enums>
+		<enum name="TreeCellMode">
+		</enum>
+	</enums>
 </class>

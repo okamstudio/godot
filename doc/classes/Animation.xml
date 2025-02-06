@@ -775,4 +775,18 @@
 			Finds only the key with matching the time.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="FindMode">
+		</enum>
+		<enum name="InterpolationType">
+		</enum>
+		<enum name="LoopMode">
+		</enum>
+		<enum name="LoopedFlag">
+		</enum>
+		<enum name="TrackType">
+		</enum>
+		<enum name="UpdateMode">
+		</enum>
+	</enums>
 </class>

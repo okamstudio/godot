@@ -37,4 +37,8 @@
 			[PlaneMesh] will face the positive Z-axis. This matches the behavior of the QuadMesh in Godot 3.x.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Orientation">
+		</enum>
+	</enums>
 </class>

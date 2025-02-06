@@ -73,4 +73,8 @@
 			Repeats the center texture across the NinePatchRect, but will also stretch the texture to make sure each tile is visible in full. This may cause the texture to be distorted, but less than [constant AXIS_STRETCH_MODE_STRETCH]. The texture must be seamless for this to work without displaying artifacts between edges.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AxisStretchMode">
+		</enum>
+	</enums>
 </class>

@@ -115,4 +115,8 @@
 			The audio will be played on the second channel, which is usually the center.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="MixTarget">
+		</enum>
+	</enums>
 </class>

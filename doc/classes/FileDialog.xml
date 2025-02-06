@@ -225,6 +225,12 @@
 			The dialog allows accessing files on the whole file system.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Access">
+		</enum>
+		<enum name="FileMode">
+		</enum>
+	</enums>
 	<theme_items>
 		<theme_item name="file_disabled_color" data_type="color" type="Color" default="Color(1, 1, 1, 0.25)">
 			The color tint for disabled files (when the [FileDialog] is used in open folder mode).

@@ -92,4 +92,12 @@
 			When [member mode] is set to [constant MODE_PATH], [member path_interval] will subdivide the polygons along the path.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="Mode">
+		</enum>
+		<enum name="PathIntervalType">
+		</enum>
+		<enum name="PathRotation">
+		</enum>
+	</enums>
 </class>

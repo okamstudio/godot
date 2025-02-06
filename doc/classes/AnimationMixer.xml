@@ -407,4 +407,12 @@
 			[constant @GlobalScope.TYPE_STRING] and [constant @GlobalScope.TYPE_STRING_NAME] are interpolated between character codes and lengths, but note that there is a difference in algorithm between interpolation between keys and interpolation by blending.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="AnimationCallbackModeDiscrete">
+		</enum>
+		<enum name="AnimationCallbackModeMethod">
+		</enum>
+		<enum name="AnimationCallbackModeProcess">
+		</enum>
+	</enums>
 </class>

@@ -140,6 +140,12 @@
 			The color space shape and the shape select button are hidden. Can't be selected from the shapes popup.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="ColorModeType">
+		</enum>
+		<enum name="PickerShapeType">
+		</enum>
+	</enums>
 	<theme_items>
 		<theme_item name="center_slider_grabbers" data_type="constant" type="int" default="1">
 			Overrides the [theme_item Slider.center_grabber] theme property of the sliders.

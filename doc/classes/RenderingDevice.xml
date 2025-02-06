@@ -2687,4 +2687,72 @@
 			Ignore the previous contents of all attachments.
 		</constant>
 	</constants>
+	<enums>
+		<enum name="BarrierMask">
+		</enum>
+		<enum name="BlendFactor">
+		</enum>
+		<enum name="BlendOperation">
+		</enum>
+		<enum name="BreadcrumbMarker">
+		</enum>
+		<enum name="CompareOperator">
+		</enum>
+		<enum name="DataFormat">
+		</enum>
+		<enum name="DeviceType">
+		</enum>
+		<enum name="DriverResource">
+		</enum>
+		<enum name="FinalAction">
+		</enum>
+		<enum name="IndexBufferFormat">
+		</enum>
+		<enum name="InitialAction">
+		</enum>
+		<enum name="Limit">
+		</enum>
+		<enum name="LogicOperation">
+		</enum>
+		<enum name="MemoryType">
+		</enum>
+		<enum name="PipelineDynamicStateFlags">
+		</enum>
+		<enum name="PipelineSpecializationConstantType">
+		</enum>
+		<enum name="PolygonCullMode">
+		</enum>
+		<enum name="PolygonFrontFace">
+		</enum>
+		<enum name="RenderPrimitive">
+		</enum>
+		<enum name="SamplerBorderColor">
+		</enum>
+		<enum name="SamplerFilter">
+		</enum>
+		<enum name="SamplerRepeatMode">
+		</enum>
+		<enum name="ShaderLanguage">
+		</enum>
+		<enum name="ShaderStage">
+		</enum>
+		<enum name="StencilOperation">
+		</enum>
+		<enum name="StorageBufferUsage">
+		</enum>
+		<enum name="TextureSamples">
+		</enum>
+		<enum name="TextureSliceType">
+		</enum>
+		<enum name="TextureSwizzle">
+		</enum>
+		<enum name="TextureType">
+		</enum>
+		<enum name="TextureUsageBits">
+		</enum>
+		<enum name="UniformType">
+		</enum>
+		<enum name="VertexFrequency">
+		</enum>
+	</enums>
 </class>
