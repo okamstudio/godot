@@ -4,7 +4,8 @@
 		A rectangle hint for designing UIs.
 	</brief_description>
 	<description>
-		A rectangle box that displays only a colored border around its rectangle. It is used to visualize the extents of a [Control].
+		A rectangle box that displays only a colored border around its rectangle. It is used to visualize the extents of a [Control] and is intended to be used for debugging purposes.
+		See also [ColorRect] for a more flexible alternative.
 	</description>
 	<tutorials>
 	</tutorials>

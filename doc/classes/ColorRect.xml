@@ -1,17 +1,35 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="ColorRect" inherits="Control" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
 	<brief_description>
-		A control that displays a solid color rectangle.
+		A control that displays a colored rectangle, with or without an outline.
 	</brief_description>
 	<description>
-		Displays a rectangle filled with a solid [member color]. If you need to display the border alone, consider using a [Panel] instead.
+		Displays a rectangle filled with a solid [member color]. See also [ReferenceRect] for an alternative designed for UI debugging.
+		[b]Tip:[/b] By having a [ColorRect] span the entire viewport, it can be used to create 2D post-processing shaders using a shader of type [code]canvas_item[/code] on the node.
 	</description>
 	<tutorials>
 		<link title="2D Dodge The Creeps Demo">https://godotengine.org/asset-library/asset/2712</link>
 	</tutorials>
 	<members>
+		<member name="antialiased" type="bool" setter="set_antialiased" getter="is_antialiased" default="false">
+			If [code]true[/code], the rectangle's edges and outline are antialiased.
+			[b]Note:[/b] Antialiasing only works if [member line_width] is greater than [code]0[/code].
+		</member>
 		<member name="color" type="Color" setter="set_color" getter="get_color" default="Color(1, 1, 1, 1)" keywords="colour">
-			The fill color of the rectangle.
+			The rectangle's fill color. Only effective if [member draw_background] is [code]true[/code].
+		</member>
+		<member name="draw_background" type="bool" setter="set_draw_background" getter="is_drawing_background" default="true">
+			If [code]true[/code], draws the fill color defined in [member color] as the node's background.
+		</member>
+		<member name="draw_outline" type="bool" setter="set_draw_outline" getter="is_drawing_outline" default="false">
+			If [code]true[/code], draws the line color defined in [member line_color] as the node's outline. The outline is always drawn on top of the background.
+		</member>
+		<member name="line_color" type="Color" setter="set_line_color" getter="get_line_color" default="Color(1, 1, 1, 1)">
+			The rectangle's outline color. Only effective if [member draw_outline] is [code]true[/code].
+		</member>
+		<member name="line_width" type="float" setter="set_line_width" getter="get_line_width" default="1.0">
+			The outline's width. If set to a negative value, the outline is always drawn 1 pixel wide and does not scale with viewport zoom. Only effective if [member draw_outline] is [code]true[/code].
+			[b]Note:[/b] Antialiasing (see [member antialiased]) is only supported with positive line widths.
 		</member>
 	</members>
 </class>
