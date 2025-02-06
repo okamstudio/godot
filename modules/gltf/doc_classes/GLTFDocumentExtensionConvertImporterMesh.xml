@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="GLTFDocumentExtensionConvertImporterMesh" inherits="GLTFDocumentExtension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
 	<brief_description>
+		A default [GLTFDocumentExtension] to convert [ImporterMeshInstance3D] nodes to [MeshInstance3D].
 	</brief_description>
 	<description>
+		This [GLTFDocumentExtension] is installed by default at runtime, but not in the editor. It converts all [ImporterMeshInstance3D] nodes and related [ImporterMesh] resources to [MeshInstance3D] nodes with [ArrayMesh] resources.
+		If it is important for a custom [GLTFDocumentExtension] to work with [ImporterMesh] at runtime, it is recommended to call [method GLTFDocument.register_gltf_document_extension] with the [code]true[/code] argument to ensure it runs before this built-in extension.
 	</description>
 	<tutorials>
 		<link title="Runtime file loading and saving">$DOCS_URL/tutorials/io/runtime_file_loading_and_saving.html</link>

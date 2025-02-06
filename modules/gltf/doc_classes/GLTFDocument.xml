@@ -73,11 +73,18 @@
 				The [param bake_fps] parameter overrides the bake_fps in [param state].
 			</description>
 		</method>
+		<method name="get_registered_gltf_document_extensions" qualifiers="static">
+			<return type="GLTFDocumentExtension[]" />
+			<description>
+				Returns all registered [GLTFDocumentExtension] instances, including a default [GLTFDocumentExtensionConvertImporterMesh] instance at runtime.
+				[b]Note:[/b] This method is static: Registered instances will be shared by all [GLTFDocument] instances. Consider using this method to check if a given [GLTFDocumentExtension] is already registered.
+			</description>
+		</method>
 		<method name="get_supported_gltf_extensions" qualifiers="static">
 			<return type="PackedStringArray" />
 			<description>
 				Returns a list of all support glTF extensions, including extensions supported directly by the engine, and extensions supported by user plugins registering [GLTFDocumentExtension] classes.
-				[b]Note:[/b] If this method is run before a GLTFDocumentExtension is registered, its extensions won't be included in the list. Be sure to only run this method after all extensions are registered. If you run this when the engine starts, consider waiting a frame before calling this method to ensure all extensions are registered.
+				[b]Note:[/b] This method is static: Registered instances will be shared by all [GLTFDocument] instances. Consider using this method to check if a given [GLTFDocumentExtension] is already registered. If this method is run before a GLTFDocumentExtension is registered, its extensions won't be included in the list. Be sure to only run this method after all extensions are registered. If you run this when the engine starts, consider waiting a frame before calling this method to ensure all extensions are registered.
 			</description>
 		</method>
 		<method name="import_object_model_property" qualifiers="static">
@@ -95,6 +102,7 @@
 			<description>
 				Registers the given [GLTFDocumentExtension] instance with GLTFDocument. If [param first_priority] is [code]true[/code], this extension will be run first. Otherwise, it will be run last.
 				[b]Note:[/b] Like GLTFDocument itself, all GLTFDocumentExtension classes must be stateless in order to function properly. If you need to store data, use the [code]set_additional_data[/code] and [code]get_additional_data[/code] methods in [GLTFState] or [GLTFNode].
+				[b]Note:[/b] This method is static: Registered instances will be shared by all [GLTFDocument] instances. Beware that multiple instances of a single [GLTFDocumentExtension] class can often lead to unexpected behavior, and consider using [method get_registered_gltf_document_extensions] or [method get_supported_gltf_extensions] to verify that only one instance of a given extension is registered.
 			</description>
 		</method>
 		<method name="unregister_gltf_document_extension" qualifiers="static">
@@ -102,6 +110,7 @@
 			<param index="0" name="extension" type="GLTFDocumentExtension" />
 			<description>
 				Unregisters the given [GLTFDocumentExtension] instance.
+				[b]Note:[/b] This method is static: Registering and unregistering instances will affect all [GLTFDocument] instances.
 			</description>
 		</method>
 		<method name="write_to_filesystem">

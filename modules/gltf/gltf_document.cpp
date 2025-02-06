@@ -8171,6 +8171,7 @@ void GLTFDocument::_bind_methods() {
 			&GLTFDocument::register_gltf_document_extension, DEFVAL(false));
 	ClassDB::bind_static_method("GLTFDocument", D_METHOD("unregister_gltf_document_extension", "extension"),
 			&GLTFDocument::unregister_gltf_document_extension);
+	ClassDB::bind_static_method("GLTFDocument", D_METHOD("get_registered_gltf_document_extensions"), &GLTFDocument::get_registered_gltf_document_extensions);
 	ClassDB::bind_static_method("GLTFDocument", D_METHOD("get_supported_gltf_extensions"),
 			&GLTFDocument::get_supported_gltf_extensions);
 }
@@ -8211,6 +8212,14 @@ void GLTFDocument::unregister_all_gltf_document_extensions() {
 
 Vector<Ref<GLTFDocumentExtension>> GLTFDocument::get_all_gltf_document_extensions() {
 	return all_document_extensions;
+}
+
+TypedArray<GLTFDocumentExtension> GLTFDocument::get_registered_gltf_document_extensions() {
+	TypedArray<GLTFDocumentExtension> ret;
+	for (Ref<GLTFDocumentExtension> ext : all_document_extensions) {
+		ret.append(ext);
+	}
+	return ret;
 }
 
 Vector<String> GLTFDocument::get_supported_gltf_extensions() {
