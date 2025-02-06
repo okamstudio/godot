@@ -170,6 +170,9 @@ public:
 	void open_scene_from_path(const String &scene_path, bool p_set_inherited = false);
 	void reload_scene_from_path(const String &scene_path);
 
+	void set_object_edited(Object *p_object, bool p_edited);
+	bool is_object_edited(Object *p_object) const;
+
 	PackedStringArray get_open_scenes() const;
 	Node *get_edited_scene_root() const;
 
