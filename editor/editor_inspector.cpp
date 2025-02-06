@@ -4487,7 +4487,8 @@ void EditorInspector::_update_current_favorites() {
 
 		for (PropertyInfo &p : plist) {
 			if (p.usage & PROPERTY_USAGE_CATEGORY) {
-				path = favorites.has(p.hint_string) ? p.hint_string : String();
+				path = ResourceUID::path_to_uid(p.hint_string);
+				path = favorites.has(path) ? path : String();
 			} else if (p.usage & PROPERTY_USAGE_SCRIPT_VARIABLE && !path.is_empty()) {
 				props[path].push_back(p.name);
 			}
@@ -4497,18 +4498,20 @@ void EditorInspector::_update_current_favorites() {
 		bool invalid_props = false;
 		for (const KeyValue<String, LocalVector<String>> &KV : props) {
 			path = KV.key;
-			for (int i = 0; i < favorites[path].size(); i++) {
-				String prop = favorites[path][i];
+			PackedStringArray &favors = favorites[path];
+
+			for (int i = 0; i < favors.size(); i++) {
+				String prop = favors[i];
 				if (KV.value.has(prop)) {
 					current_favorites.append(prop);
 				} else {
 					invalid_props = true;
-					favorites[path].erase(prop);
+					favors.erase(prop);
 					i--;
 				}
 			}
 
-			if (favorites[path].is_empty()) {
+			if (favors.is_empty()) {
 				favorites.erase(path);
 			}
 		}
@@ -4582,7 +4585,7 @@ void EditorInspector::_set_property_favorited(const String &p_path, bool p_favor
 				if (p.usage & PROPERTY_USAGE_CATEGORY) {
 					path = p.hint_string;
 				} else if (p.usage & PROPERTY_USAGE_SCRIPT_VARIABLE && p.name == p_path) {
-					class_name = path;
+					class_name = ResourceUID::path_to_uid(path);
 					break;
 				}
 			}

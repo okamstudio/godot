@@ -1689,14 +1689,6 @@ void FileSystemDock::_update_favorites_after_move(const HashMap<String, String> 
 		}
 	}
 	EditorSettings::get_singleton()->set_favorites(new_favorite_files);
-
-	HashMap<String, PackedStringArray> favorite_properties = EditorSettings::get_singleton()->get_favorite_properties();
-	for (const KeyValue<String, String> &KV : p_files_renames) {
-		if (favorite_properties.has(KV.key)) {
-			favorite_properties.replace_key(KV.key, KV.value);
-		}
-	}
-	EditorSettings::get_singleton()->set_favorite_properties(favorite_properties);
 }
 
 void FileSystemDock::_make_scene_confirm() {
