@@ -36,6 +36,14 @@
 				It will fail if there is no open file.
 			</description>
 		</method>
+		<method name="copy_file">
+			<return type="int" enum="Error" />
+			<param index="0" name="source" type="String" />
+			<param index="1" name="path" type="String" />
+			<description>
+				Copies an external file at path [param source] to the archive. It's a shorthand that internally uses [method write_file] and writes the file's bytes.
+			</description>
+		</method>
 		<method name="open">
 			<return type="int" enum="Error" />
 			<param index="0" name="path" type="String" />

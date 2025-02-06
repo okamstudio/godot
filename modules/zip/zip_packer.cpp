@@ -105,10 +105,33 @@ Error ZIPPacker::close_file() {
 	return zipCloseFileInZip(zf) == ZIP_OK ? OK : FAILED;
 }
 
+Error ZIPPacker::copy_file(String p_source, String p_target_path) {
+	Error err = start_file(p_target_path);
+	if (err != OK) {
+		return err;
+	}
+
+	const PackedByteArray bytes = FileAccess::get_file_as_bytes(p_source, &err);
+	if (err != OK) {
+		close_file();
+		return err;
+	}
+
+	err = write_file(bytes);
+	if (err != OK) {
+		close_file();
+		return err;
+	}
+
+	err = close_file();
+	return err;
+}
+
 void ZIPPacker::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("open", "path", "append"), &ZIPPacker::open, DEFVAL(Variant(APPEND_CREATE)));
 	ClassDB::bind_method(D_METHOD("start_file", "path"), &ZIPPacker::start_file);
 	ClassDB::bind_method(D_METHOD("write_file", "data"), &ZIPPacker::write_file);
+	ClassDB::bind_method(D_METHOD("copy_file", "source", "path"), &ZIPPacker::copy_file);
 	ClassDB::bind_method(D_METHOD("close_file"), &ZIPPacker::close_file);
 	ClassDB::bind_method(D_METHOD("close"), &ZIPPacker::close);
 

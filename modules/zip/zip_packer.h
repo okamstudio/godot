@@ -59,6 +59,8 @@ public:
 	Error write_file(const Vector<uint8_t> &p_data);
 	Error close_file();
 
+	Error copy_file(String p_source, String p_target_path);
+
 	ZIPPacker();
 	~ZIPPacker();
 };
