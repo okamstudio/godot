@@ -163,14 +163,18 @@ Error EditorImportBlendRunner::start_blender(const String &p_python_script, bool
 
 	List<String> args;
 	args.push_back("--background");
+	args.push_back("--python-exit-code");
+	args.push_back("1");
 	args.push_back("--python-expr");
 	args.push_back(p_python_script);
 
 	Error err;
+	String str;
 	if (p_blocking) {
 		int exitcode = 0;
-		err = OS::get_singleton()->execute(blender_path, args, nullptr, &exitcode);
+		err = OS::get_singleton()->execute(blender_path, args, &str, &exitcode, true);
 		if (exitcode != 0) {
+			print_error(vformat("Blender import failed: %s.", str));
 			return FAILED;
 		}
 	} else {
