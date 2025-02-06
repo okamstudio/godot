@@ -4221,6 +4221,23 @@ void EditorInspector::_edit_set(const String &p_name, const Variant &p_value, bo
 			}
 		}
 
+		if (p_name == "script" && value) {
+			List<Pair<StringName, Variant>> property_list;
+			ScriptInstance *si = object->get_script_instance();
+			si->get_property_state(property_list);
+			if (si) {
+				for (const Pair<StringName, Variant> &E : property_list) {
+					Variant current_prop;
+					if (si->get(E.first, current_prop) && current_prop.get_type() == E.second.get_type()) {
+						undo_redo->add_undo_property(object, E.first, E.second);
+						if (p_value) {
+							undo_redo->add_do_property(object, E.first, E.second);
+						}
+					}
+				}
+			}
+		}
+
 		List<StringName> linked_properties;
 		ClassDB::get_linked_properties_info(object->get_class_name(), p_name, &linked_properties);
 
