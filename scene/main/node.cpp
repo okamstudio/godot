@@ -3354,7 +3354,15 @@ void Node::queue_free() {
 	// There are users which instantiate multiple scene trees for their games.
 	// Use the node's own tree to handle its deletion when relevant.
 	if (is_inside_tree()) {
-		get_tree()->queue_delete(this);
+		SceneTree *tree = get_tree();
+#ifdef TOOLS_ENABLED
+		// Prevent edited_scene_root from being deleted. Would cause editor to crash.
+		Node *edited_scene_root = tree->get_edited_scene_root();
+		if (edited_scene_root && edited_scene_root == this) {
+			ERR_FAIL_MSG("Can't queue free the root node being edited. Check your tool script behavior.");
+		}
+#endif
+		tree->queue_delete(this);
 	} else {
 		SceneTree *tree = SceneTree::get_singleton();
 		ERR_FAIL_NULL_MSG(tree, "Can't queue free a node when no SceneTree is available.");
