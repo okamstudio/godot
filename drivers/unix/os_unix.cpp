@@ -1031,54 +1031,6 @@ String OS_Unix::get_executable_path() const {
 #endif
 }
 
-void UnixTerminalLogger::log_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify, ErrorType p_type) {
-	if (!should_log(true)) {
-		return;
-	}
-
-	const char *err_details;
-	if (p_rationale && p_rationale[0]) {
-		err_details = p_rationale;
-	} else {
-		err_details = p_code;
-	}
-
-	// Disable color codes if stdout is not a TTY.
-	// This prevents Godot from writing ANSI escape codes when redirecting
-	// stdout and stderr to a file.
-	const bool tty = isatty(fileno(stdout));
-	const char *gray = tty ? "\E[0;90m" : "";
-	const char *red = tty ? "\E[0;91m" : "";
-	const char *red_bold = tty ? "\E[1;31m" : "";
-	const char *yellow = tty ? "\E[0;93m" : "";
-	const char *yellow_bold = tty ? "\E[1;33m" : "";
-	const char *magenta = tty ? "\E[0;95m" : "";
-	const char *magenta_bold = tty ? "\E[1;35m" : "";
-	const char *cyan = tty ? "\E[0;96m" : "";
-	const char *cyan_bold = tty ? "\E[1;36m" : "";
-	const char *reset = tty ? "\E[0m" : "";
-
-	switch (p_type) {
-		case ERR_WARNING:
-			logf_error("%sWARNING:%s %s\n", yellow_bold, yellow, err_details);
-			logf_error("%s     at: %s (%s:%i)%s\n", gray, p_function, p_file, p_line, reset);
-			break;
-		case ERR_SCRIPT:
-			logf_error("%sSCRIPT ERROR:%s %s\n", magenta_bold, magenta, err_details);
-			logf_error("%s          at: %s (%s:%i)%s\n", gray, p_function, p_file, p_line, reset);
-			break;
-		case ERR_SHADER:
-			logf_error("%sSHADER ERROR:%s %s\n", cyan_bold, cyan, err_details);
-			logf_error("%s          at: %s (%s:%i)%s\n", gray, p_function, p_file, p_line, reset);
-			break;
-		case ERR_ERROR:
-		default:
-			logf_error("%sERROR:%s %s\n", red_bold, red, err_details);
-			logf_error("%s   at: %s (%s:%i)%s\n", gray, p_function, p_file, p_line, reset);
-			break;
-	}
-}
-
 UnixTerminalLogger::~UnixTerminalLogger() {}
 
 OS_Unix::OS_Unix() {

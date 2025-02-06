@@ -30,8 +30,6 @@
 
 #include "windows_terminal_logger.h"
 
-#include "core/os/os.h"
-
 #ifdef WINDOWS_ENABLED
 
 #include <stdio.h>
@@ -72,88 +70,6 @@ void WindowsTerminalLogger::logv(const char *p_format, va_list p_list, bool p_er
 #ifdef DEBUG_ENABLED
 	FlushFileBuffers(h);
 #endif
-}
-
-void WindowsTerminalLogger::log_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify, ErrorType p_type) {
-	if (!should_log(true)) {
-		return;
-	}
-
-	HANDLE hCon = GetStdHandle(STD_OUTPUT_HANDLE);
-	if (OS::get_singleton()->get_stdout_type() != OS::STD_HANDLE_CONSOLE || !hCon || hCon == INVALID_HANDLE_VALUE) {
-		StdLogger::log_error(p_function, p_file, p_line, p_code, p_rationale, p_type);
-	} else {
-		CONSOLE_SCREEN_BUFFER_INFO sbi; //original
-		GetConsoleScreenBufferInfo(hCon, &sbi);
-
-		WORD current_bg = sbi.wAttributes & (BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY);
-
-		uint32_t basecol = 0;
-		switch (p_type) {
-			case ERR_ERROR:
-				basecol = FOREGROUND_RED;
-				break;
-			case ERR_WARNING:
-				basecol = FOREGROUND_RED | FOREGROUND_GREEN;
-				break;
-			case ERR_SCRIPT:
-				basecol = FOREGROUND_RED | FOREGROUND_BLUE;
-				break;
-			case ERR_SHADER:
-				basecol = FOREGROUND_GREEN | FOREGROUND_BLUE;
-				break;
-		}
-
-		basecol |= current_bg;
-
-		SetConsoleTextAttribute(hCon, basecol | FOREGROUND_INTENSITY);
-		switch (p_type) {
-			case ERR_ERROR:
-				logf_error("ERROR:");
-				break;
-			case ERR_WARNING:
-				logf_error("WARNING:");
-				break;
-			case ERR_SCRIPT:
-				logf_error("SCRIPT ERROR:");
-				break;
-			case ERR_SHADER:
-				logf_error("SHADER ERROR:");
-				break;
-		}
-
-		SetConsoleTextAttribute(hCon, basecol);
-		if (p_rationale && p_rationale[0]) {
-			logf_error(" %s\n", p_rationale);
-		} else {
-			logf_error(" %s\n", p_code);
-		}
-
-		// `FOREGROUND_INTENSITY` alone results in gray text.
-		SetConsoleTextAttribute(hCon, FOREGROUND_INTENSITY);
-		switch (p_type) {
-			case ERR_ERROR:
-				logf_error("   at: ");
-				break;
-			case ERR_WARNING:
-				logf_error("     at: ");
-				break;
-			case ERR_SCRIPT:
-				logf_error("          at: ");
-				break;
-			case ERR_SHADER:
-				logf_error("          at: ");
-				break;
-		}
-
-		if (p_rationale && p_rationale[0]) {
-			logf_error("(%s:%i)\n", p_file, p_line);
-		} else {
-			logf_error("%s (%s:%i)\n", p_function, p_file, p_line);
-		}
-
-		SetConsoleTextAttribute(hCon, sbi.wAttributes);
-	}
 }
 
 WindowsTerminalLogger::~WindowsTerminalLogger() {}

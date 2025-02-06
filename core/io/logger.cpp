@@ -32,6 +32,7 @@
 
 #include "core/core_globals.h"
 #include "core/io/dir_access.h"
+#include "core/os/os.h"
 #include "core/os/time.h"
 
 #include "modules/modules_enabled.gen.h" // For regex.
@@ -60,34 +61,41 @@ void Logger::log_error(const char *p_function, const char *p_file, int p_line, c
 		return;
 	}
 
-	const char *err_type = "ERROR";
+	const char *err_details = p_rationale && p_rationale[0] ? p_rationale : p_code;
+
+	// Disable color codes if stderr is not a TTY or CI.
+	// This prevents Godot from writing ANSI escape codes when redirecting to a file.
+	const bool color = OS::get_singleton() && (OS::get_singleton()->has_environment("CI") || OS::get_singleton()->get_stderr_type() == OS::STD_HANDLE_CONSOLE);
+	const char *gray = color ? "\u001b[0;90m" : "";
+	const char *red = color ? "\u001b[0;31m" : "";
+	const char *red_bold = color ? "\u001b[1;31m" : "";
+	const char *yellow = color ? "\u001b[0;33m" : "";
+	const char *yellow_bold = color ? "\u001b[1;33m" : "";
+	const char *magenta = color ? "\u001b[0;35m" : "";
+	const char *magenta_bold = color ? "\u001b[1;35m" : "";
+	const char *cyan = color ? "\u001b[0;36m" : "";
+	const char *cyan_bold = color ? "\u001b[1;36m" : "";
+	const char *reset = color ? "\u001b[0m" : "";
+
 	switch (p_type) {
-		case ERR_ERROR:
-			err_type = "ERROR";
-			break;
 		case ERR_WARNING:
-			err_type = "WARNING";
+			logf_error("%sWARNING:%s %s\n", yellow_bold, yellow, err_details);
+			logf_error("%s     at: %s (%s:%i)%s\n", gray, p_function, p_file, p_line, reset);
 			break;
 		case ERR_SCRIPT:
-			err_type = "SCRIPT ERROR";
+			logf_error("%sSCRIPT ERROR:%s %s\n", magenta_bold, magenta, err_details);
+			logf_error("%s          at: %s (%s:%i)%s\n", gray, p_function, p_file, p_line, reset);
 			break;
 		case ERR_SHADER:
-			err_type = "SHADER ERROR";
+			logf_error("%sSHADER ERROR:%s %s\n", cyan_bold, cyan, err_details);
+			logf_error("%s          at: %s (%s:%i)%s\n", gray, p_function, p_file, p_line, reset);
 			break;
+		case ERR_ERROR:
 		default:
-			ERR_PRINT("Unknown error type");
+			logf_error("%sERROR:%s %s\n", red_bold, red, err_details);
+			logf_error("%s   at: %s (%s:%i)%s\n", gray, p_function, p_file, p_line, reset);
 			break;
 	}
-
-	const char *err_details;
-	if (p_rationale && *p_rationale) {
-		err_details = p_rationale;
-	} else {
-		err_details = p_code;
-	}
-
-	logf_error("%s: %s\n", err_type, err_details);
-	logf_error("   at: %s (%s:%i)\n", p_function, p_file, p_line);
 }
 
 void Logger::logf(const char *p_format, ...) {
