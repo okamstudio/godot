@@ -28,6 +28,15 @@
 				Note that this function is hidden in the default [AStar2D] class.
 			</description>
 		</method>
+		<method name="_filter_neighbor" qualifiers="virtual const">
+			<return type="bool" />
+			<param index="0" name="from_id" type="int" />
+			<param index="1" name="neighbor_id" type="int" />
+			<description>
+				Called when neighboring point comes in to the processing. If returning a [code]true[/code] the point will not being processed.
+				Note that this function is hidden in the default [AStar2D] class.
+			</description>
+		</method>
 		<method name="add_point">
 			<return type="void" />
 			<param index="0" name="id" type="int" />
