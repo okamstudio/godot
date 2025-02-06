@@ -5,6 +5,7 @@ extends _BASE_
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	#super() # Call the base-class _ready() function.
 	pass # Replace with function body.
 
 
