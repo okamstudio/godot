@@ -2061,9 +2061,29 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		GLOBAL_DEF_RST_NOVAL(PropertyInfo(Variant::STRING, "rendering/rendering_device/driver.ios", PROPERTY_HINT_ENUM, driver_hints_with_metal), default_driver_with_metal);
 		GLOBAL_DEF_RST_NOVAL(PropertyInfo(Variant::STRING, "rendering/rendering_device/driver.macos", PROPERTY_HINT_ENUM, driver_hints_with_metal), default_driver_with_metal);
 
-		GLOBAL_DEF_RST("rendering/rendering_device/fallback_to_vulkan", true);
-		GLOBAL_DEF_RST("rendering/rendering_device/fallback_to_d3d12", true);
-		GLOBAL_DEF_RST("rendering/rendering_device/fallback_to_opengl3", true);
+		PackedStringArray default_drivers;
+		PackedStringArray default_drivers_with_d3d12;
+		PackedStringArray default_drivers_with_metal;
+
+		for (int i = 0; i < driver_hints.get_slice_count(","); i += 1) {
+			default_drivers.append(driver_hints.get_slice(",", i));
+		}
+		for (int i = 0; i < driver_hints_with_d3d12.get_slice_count(","); i += 1) {
+			default_drivers_with_d3d12.append(driver_hints_with_d3d12.get_slice(",", i));
+		}
+		for (int i = 0; i < driver_hints_with_metal.get_slice_count(","); i += 1) {
+			default_drivers_with_metal.append(driver_hints_with_metal.get_slice(",", i));
+		}
+		default_drivers.append("opengl3");
+		default_drivers_with_d3d12.append("opengl3");
+		default_drivers_with_metal.append("opengl3");
+
+		GLOBAL_DEF_NOVAL(PropertyInfo(Variant::PACKED_STRING_ARRAY, "rendering/rendering_device/drivers_fallback_order"), default_drivers);
+		GLOBAL_DEF_NOVAL(PropertyInfo(Variant::PACKED_STRING_ARRAY, "rendering/rendering_device/drivers_fallback_order.windows"), default_drivers_with_d3d12);
+		GLOBAL_DEF_NOVAL(PropertyInfo(Variant::PACKED_STRING_ARRAY, "rendering/rendering_device/drivers_fallback_order.linuxbsd"), default_drivers);
+		GLOBAL_DEF_NOVAL(PropertyInfo(Variant::PACKED_STRING_ARRAY, "rendering/rendering_device/drivers_fallback_order.android"), default_drivers);
+		GLOBAL_DEF_NOVAL(PropertyInfo(Variant::PACKED_STRING_ARRAY, "rendering/rendering_device/drivers_fallback_order.ios"), default_drivers_with_metal);
+		GLOBAL_DEF_NOVAL(PropertyInfo(Variant::PACKED_STRING_ARRAY, "rendering/rendering_device/drivers_fallback_order.macos"), default_drivers_with_metal);
 	}
 
 	{

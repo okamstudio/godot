@@ -2969,17 +2969,23 @@
 		<member name="rendering/rendering_device/driver.windows" type="String" setter="" getter="">
 			Windows override for [member rendering/rendering_device/driver].
 		</member>
-		<member name="rendering/rendering_device/fallback_to_d3d12" type="bool" setter="" getter="" default="true">
-			If [code]true[/code], the forward renderer will fall back to Direct3D 12 if Vulkan is not supported.
-			[b]Note:[/b] This setting is implemented only on Windows.
+		<member name="rendering/rendering_device/drivers_fallback_order" type="PackedStringArray" setter="" getter="">
+			A [PackedStringArray] of rendering drivers fall back order. The forward renderer will fall back to other rendering drivers according to this order if current rendering driver is not supported. Make it empty to disable this feature. This property can't be edited directly. Instead, set the order using the platform-specific overrides.
 		</member>
-		<member name="rendering/rendering_device/fallback_to_opengl3" type="bool" setter="" getter="" default="true">
-			If [code]true[/code], the forward renderer will fall back to OpenGL 3 if Direct3D 12, Metal, and Vulkan are not supported.
-			[b]Note:[/b] This setting is implemented only on Windows, Android, macOS, iOS, and Linux/X11.
+		<member name="rendering/rendering_device/drivers_fallback_order.android" type="PackedStringArray" setter="" getter="">
+			Android override for [member rendering/rendering_device/drivers_fallback_order].
 		</member>
-		<member name="rendering/rendering_device/fallback_to_vulkan" type="bool" setter="" getter="" default="true">
-			If [code]true[/code], the forward renderer will fall back to Vulkan if Direct3D 12 is not supported.
-			[b]Note:[/b] This setting is implemented only on Windows.
+		<member name="rendering/rendering_device/drivers_fallback_order.ios" type="PackedStringArray" setter="" getter="">
+			iOS override for [member rendering/rendering_device/drivers_fallback_order].
+		</member>
+		<member name="rendering/rendering_device/drivers_fallback_order.linuxbsd" type="PackedStringArray" setter="" getter="">
+			LinuxBSD override for [member rendering/rendering_device/drivers_fallback_order].
+		</member>
+		<member name="rendering/rendering_device/drivers_fallback_order.macos" type="PackedStringArray" setter="" getter="">
+			macOS override for [member rendering/rendering_device/drivers_fallback_order].
+		</member>
+		<member name="rendering/rendering_device/drivers_fallback_order.windows" type="PackedStringArray" setter="" getter="">
+			Windows override for [member rendering/rendering_device/drivers_fallback_order].
 		</member>
 		<member name="rendering/rendering_device/pipeline_cache/enable" type="bool" setter="" getter="" default="true">
 			Enable the pipeline cache that is saved to disk if the graphics API supports it.

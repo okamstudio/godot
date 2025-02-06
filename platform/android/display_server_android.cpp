@@ -669,18 +669,23 @@ DisplayServerAndroid::DisplayServerAndroid(const String &p_rendering_driver, Dis
 
 	if (rendering_context) {
 		if (rendering_context->initialize() != OK) {
-			memdelete(rendering_context);
-			rendering_context = nullptr;
+			bool failed = true;
+			PackedStringArray drivers = GLOBAL_GET("rendering/rendering_device/drivers_fallback_order.android");
+			for (int i = 0; i < drivers.size(); ++i) {
+				String driver = drivers[i];
 #if defined(GLES3_ENABLED)
-			bool fallback_to_opengl3 = GLOBAL_GET("rendering/rendering_device/fallback_to_opengl3");
-			if (fallback_to_opengl3 && rendering_driver != "opengl3") {
-				WARN_PRINT("Your device seem not to support Vulkan, switching to OpenGL 3.");
-				rendering_driver = "opengl3";
-				OS::get_singleton()->set_current_rendering_method("gl_compatibility");
-				OS::get_singleton()->set_current_rendering_driver_name(rendering_driver);
-			} else
+				if (driver == "opengl3" && rendering_driver != "opengl3") {
+					failed = false;
+					memdelete(rendering_context);
+					rendering_context = nullptr;
+					WARN_PRINT("Your device seem not to support Vulkan, switching to OpenGL 3.");
+					rendering_driver = "opengl3";
+					OS::get_singleton()->set_current_rendering_method("gl_compatibility");
+					OS::get_singleton()->set_current_rendering_driver_name(rendering_driver);
+				}
 #endif
-			{
+			}
+			if (failed) {
 				ERR_PRINT(vformat("Failed to initialize %s context", rendering_driver));
 				r_error = ERR_UNAVAILABLE;
 				return;

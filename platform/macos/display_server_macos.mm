@@ -3797,20 +3797,61 @@ DisplayServerMacOS::DisplayServerMacOS(const String &p_rendering_driver, WindowM
 
 	if (rendering_context) {
 		if (rendering_context->initialize() != OK) {
-			memdelete(rendering_context);
-			rendering_context = nullptr;
-#if defined(GLES3_ENABLED)
-			bool fallback_to_opengl3 = GLOBAL_GET("rendering/rendering_device/fallback_to_opengl3");
-			if (fallback_to_opengl3 && rendering_driver != "opengl3") {
-				WARN_PRINT("Your device seem not to support MoltenVK or Metal, switching to OpenGL 3.");
-				rendering_driver = "opengl3";
-				OS::get_singleton()->set_current_rendering_method("gl_compatibility");
-				OS::get_singleton()->set_current_rendering_driver_name(rendering_driver);
-			} else
+			bool failed = true;
+			PackedStringArray drivers = GLOBAL_GET("rendering/rendering_device/drivers_fallback_order.macos");
+			for (int i = 0; i < drivers.size(); ++i) {
+				String driver = drivers[i];
+#if defined(VULKAN_ENABLED)
+				if (driver == "vulkan" && rendering_driver != "vulkan") {
+					failed = false;
+					memdelete(rendering_context);
+					rendering_context = memnew(RenderingContextDriverVulkanMacOS);
+					if (rendering_context->initialize() == OK) {
+						WARN_PRINT("Your video card drivers seem not to support Metal, switching to MoltenVK.");
+						rendering_driver = "vulkan";
+						OS::get_singleton()->set_current_rendering_driver_name(rendering_driver);
+						break;
+					} else {
+						failed = true;
+						continue;
+					}
+				}
 #endif
-			{
-				r_error = ERR_CANT_CREATE;
-				ERR_FAIL_MSG("Could not initialize " + rendering_driver);
+#if defined(METAL_ENABLED)
+				if (driver == "metal" && rendering_driver != "metal") {
+					memdelete(rendering_context);
+					rendering_context = memnew(RenderingContextDriverMetal);
+					if (rendering_context->initialize() == OK) {
+						failed = false;
+						WARN_PRINT("Your video card drivers seem not to support MoltenVK, switching to Metal.");
+						rendering_driver = "metal";
+						OS::get_singleton()->set_current_rendering_driver_name(rendering_driver);
+						break;
+					} else {
+						failed = true;
+						continue;
+					}
+				}
+#endif
+#if defined(GLES3_ENABLED)
+				if (driver == "opengl3" && rendering_driver != "opengl3") {
+					failed = false;
+					WARN_PRINT("Your device seem not to support MoltenVK or Metal, switching to OpenGL 3.");
+					memdelete(rendering_context);
+					rendering_context = nullptr;
+					rendering_driver = "opengl3";
+					OS::get_singleton()->set_current_rendering_method("gl_compatibility");
+					OS::get_singleton()->set_current_rendering_driver_name(rendering_driver);
+					break;
+				}
+#endif
+			}
+			if (failed) {
+				memdelete(rendering_context);
+				rendering_context = nullptr;
+				ERR_PRINT(vformat("Failed to initialize %s context", rendering_driver));
+				r_error = ERR_UNAVAILABLE;
+				return;
 			}
 		}
 	}
