@@ -63,6 +63,7 @@
 #include "scene/gui/grid_container.h"
 #include "scene/gui/item_list.h"
 #include "scene/gui/label.h"
+#include "scene/gui/layout_container.h"
 #include "scene/gui/line_edit.h"
 #include "scene/gui/link_button.h"
 #include "scene/gui/margin_container.h"
@@ -424,6 +425,7 @@ void register_scene_types() {
 	GDREGISTER_CLASS(ColorRect);
 	GDREGISTER_CLASS(NinePatchRect);
 	GDREGISTER_CLASS(ReferenceRect);
+	GDREGISTER_CLASS(LayoutContainer);
 	GDREGISTER_CLASS(AspectRatioContainer);
 	GDREGISTER_CLASS(TabContainer);
 	GDREGISTER_CLASS(TabBar);

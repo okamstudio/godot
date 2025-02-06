@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="LayoutContainer" inherits="Container" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+		A container meant to position and resize a single [Control] child dynamically within its boundaries. It features a set of common presets (see [member preset]), providing similar capabilities to the [Control] anchor and offset system.
+		The child [Control] is positioned so that it takes all space available in this container, and is then constrained by the provided margins.
+		The base margins, and the theme constant margins, are both in pixels, and are accounted in the computed minimum size of this container. When there's enough space for them, the custom relative margins define how much space the child control will fill.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_custom_relative_margin" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="side" type="int" enum="Side" />
+			<description>
+				Returns the custom relative margin for the provided [param side].
+			</description>
+		</method>
+		<method name="get_margin" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="side" type="int" enum="Side" />
+			<description>
+				Returns the margin (in pixel) for the provided [param side].
+			</description>
+		</method>
+		<method name="set_custom_relative_margin">
+			<return type="void" />
+			<param index="0" name="side" type="int" enum="Side" />
+			<param index="1" name="relative_margin" type="float" />
+			<param index="2" name="push_opposite_margin" type="bool" default="true" />
+			<description>
+				Sets the custom relative margin for the provided [param side].
+				As opposite margins should not overlap, by default, the opposite margin will be reduced if needed. If [param push_opposite_margin] is instead set to [code]false[/code], the margin will be clamped instead.
+			</description>
+		</method>
+		<method name="set_margin">
+			<return type="void" />
+			<param index="0" name="side" type="int" enum="Side" />
+			<param index="1" name="offset" type="float" />
+			<description>
+				Sets the margin (in pixel) for the provided [param side].
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="custom_relative_margin_bottom" type="float" setter="_set_custom_relative_margin" getter="get_custom_relative_margin" default="0.0">
+			Margin to keep at the bottom of the node, relative to this [LayoutContainer]'s height.
+		</member>
+		<member name="custom_relative_margin_left" type="float" setter="_set_custom_relative_margin" getter="get_custom_relative_margin" default="0.0">
+			Margin to keep at the left of the node, relative to this [LayoutContainer]'s width.
+		</member>
+		<member name="custom_relative_margin_right" type="float" setter="_set_custom_relative_margin" getter="get_custom_relative_margin" default="0.0">
+			Margin to keep at the right of the node, relative to this [LayoutContainer]'s width.
+		</member>
+		<member name="custom_relative_margin_top" type="float" setter="_set_custom_relative_margin" getter="get_custom_relative_margin" default="0.0">
+			Margin to keep at the top of the node, relative to this [LayoutContainer]'s height.
+		</member>
+		<member name="margin_bottom" type="float" setter="set_margin" getter="get_margin" default="0.0">
+			Margin to keep at the bottom of the child control, in pixels. This is included in the minimum size of this [LayoutContainer].
+		</member>
+		<member name="margin_left" type="float" setter="set_margin" getter="get_margin" default="0.0">
+			Margin to keep at the left of the child control, in pixels. This is included in the minimum size of this [LayoutContainer].
+		</member>
+		<member name="margin_right" type="float" setter="set_margin" getter="get_margin" default="0.0">
+			Margin to keep at the right of the child control, in pixels. This is included in the minimum size of this [LayoutContainer].
+		</member>
+		<member name="margin_top" type="float" setter="set_margin" getter="get_margin" default="0.0">
+			Margin to keep at the top of the child control, in pixels. This is included in the minimum size of this [LayoutContainer].
+		</member>
+		<member name="preset" type="int" setter="set_margin_layout_preset" getter="get_margin_layout_preset" enum="LayoutContainer.LayoutContainerPreset" default="0">
+			A preset for the relative margins. If set to any value except [constant PRESET_CUSTOM], the custom relative margins are not taken into account.
+		</member>
+	</members>
+	<constants>
+		<constant name="PRESET_TOP_LEFT" value="0" enum="LayoutContainerPreset">
+			Position the child control at the top-left of this container.
+		</constant>
+		<constant name="PRESET_TOP_RIGHT" value="1" enum="LayoutContainerPreset">
+			Position the child control at the top-right of this container.
+		</constant>
+		<constant name="PRESET_BOTTOM_LEFT" value="2" enum="LayoutContainerPreset">
+			Position the child control at the bottom-left of this container.
+		</constant>
+		<constant name="PRESET_BOTTOM_RIGHT" value="3" enum="LayoutContainerPreset">
+			Position the child control at the bottom-left of this container.
+		</constant>
+		<constant name="PRESET_CENTER_LEFT" value="4" enum="LayoutContainerPreset">
+			Position the child control at the center-left of this container.
+		</constant>
+		<constant name="PRESET_CENTER_TOP" value="5" enum="LayoutContainerPreset">
+			Position the child control at the center-top of this container.
+		</constant>
+		<constant name="PRESET_CENTER_RIGHT" value="6" enum="LayoutContainerPreset">
+			Position the child control at the center-right of this container.
+		</constant>
+		<constant name="PRESET_CENTER_BOTTOM" value="7" enum="LayoutContainerPreset">
+			Position the child control at the center-bottom of this container.
+		</constant>
+		<constant name="PRESET_CENTER" value="8" enum="LayoutContainerPreset">
+			Position the child control at the center of this container.
+		</constant>
+		<constant name="PRESET_LEFT_WIDE" value="9" enum="LayoutContainerPreset">
+			Position the child control at the left of this container, taking all vertical space available.
+		</constant>
+		<constant name="PRESET_TOP_WIDE" value="10" enum="LayoutContainerPreset">
+			Position the child control at the top of this container, taking all horizontal space available.
+		</constant>
+		<constant name="PRESET_RIGHT_WIDE" value="11" enum="LayoutContainerPreset">
+			Position the child control at the right of this container, taking all vertical space available.
+		</constant>
+		<constant name="PRESET_BOTTOM_WIDE" value="12" enum="LayoutContainerPreset">
+			Position the child control at the bottom of this container, taking all horizontal space available.
+		</constant>
+		<constant name="PRESET_VCENTER_WIDE" value="13" enum="LayoutContainerPreset">
+			Position the child control at the horizontal center of this container, taking all vertical space available.
+		</constant>
+		<constant name="PRESET_HCENTER_WIDE" value="14" enum="LayoutContainerPreset">
+			Position the child control at the vertical center of this container, taking all horizontal space available.
+		</constant>
+		<constant name="PRESET_FULL_RECT" value="15" enum="LayoutContainerPreset">
+			Position the child control so that it takes all space available.
+		</constant>
+		<constant name="PRESET_CUSTOM" value="16" enum="LayoutContainerPreset">
+			Position the child control according to the custom relative margins.
+		</constant>
+	</constants>
+	<theme_items>
+		<theme_item name="margin_bottom" data_type="constant" type="int" default="0">
+			Margin added to [member margin_bottom] to keep at the bottom of the child control, in pixels. This is included in the minimum size of this [LayoutContainer].
+		</theme_item>
+		<theme_item name="margin_left" data_type="constant" type="int" default="0">
+			Margin added to [member margin_left] to keep at the left of the child control, in pixels. This is included in the minimum size of this [LayoutContainer].
+		</theme_item>
+		<theme_item name="margin_right" data_type="constant" type="int" default="0">
+			Margin added to [member margin_right] to keep at the right of the child control, in pixels. This is included in the minimum size of this [LayoutContainer].
+		</theme_item>
+		<theme_item name="margin_top" data_type="constant" type="int" default="0">
+			Margin added to [member margin_top] to keep at the top of the child control, in pixels. This is included in the minimum size of this [LayoutContainer].
+		</theme_item>
+	</theme_items>
+</class>
