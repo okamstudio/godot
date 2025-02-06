@@ -32,6 +32,7 @@
 #define ACTION_MAP_EDITOR_H
 
 #include "scene/gui/control.h"
+#include "scene/gui/dialogs.h"
 
 class Button;
 class HBoxContainer;
@@ -78,6 +79,7 @@ private:
 
 	InputEventConfigurationDialog *event_config_dialog = nullptr;
 	AcceptDialog *message = nullptr;
+	ConfirmationDialog *accept_warning = nullptr;
 
 	// Filtering and Adding actions
 
@@ -92,6 +94,7 @@ private:
 	Button *add_button = nullptr;
 
 	void _event_config_confirmed();
+	void _event_add_edit_confirmed();
 
 	void _add_action_pressed();
 	void _add_edit_text_changed(const String &p_name);

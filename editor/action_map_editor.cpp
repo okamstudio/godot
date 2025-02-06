@@ -52,6 +52,27 @@ static bool _is_action_name_valid(const String &p_name) {
 
 void ActionMapEditor::_event_config_confirmed() {
 	Ref<InputEvent> ev = event_config_dialog->get_event();
+	Array events = current_action["events"];
+
+	// Check for duplicate events on action, allows user to add duplicate event if desired
+	for (Ref<InputEvent> event : events) {
+		if (ev->is_match(event, true)) {
+			if (accept_warning->is_connected(SceneStringName(confirmed), callable_mp(this, &ActionMapEditor::_event_add_edit_confirmed))) {
+				accept_warning->disconnect(SceneStringName(confirmed), callable_mp(this, &ActionMapEditor::_event_add_edit_confirmed));
+			}
+
+			accept_warning->set_text(vformat(TTR("Action \"%s\" already has an Event with this Input."), current_action_name));
+			accept_warning->connect(SceneStringName(confirmed), callable_mp(this, &ActionMapEditor::_event_add_edit_confirmed));
+			accept_warning->popup_centered();
+			return;
+		}
+	}
+
+	_event_add_edit_confirmed();
+}
+
+void ActionMapEditor::_event_add_edit_confirmed() {
+	Ref<InputEvent> ev = event_config_dialog->get_event();
 
 	Dictionary new_action = current_action.duplicate();
 	Array events = new_action["events"].duplicate();
@@ -620,4 +641,9 @@ ActionMapEditor::ActionMapEditor() {
 
 	message = memnew(AcceptDialog);
 	add_child(message);
+
+	accept_warning = memnew(ConfirmationDialog);
+	add_child(accept_warning);
+	accept_warning->set_title(TTR("Input Configuration Warning!"));
+	accept_warning->set_ok_button_text(TTR("Add Anyway"));
 }
