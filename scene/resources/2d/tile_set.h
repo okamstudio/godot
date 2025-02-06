@@ -427,6 +427,10 @@ public:
 	bool has_source(int p_source_id) const;
 	Ref<TileSetSource> get_source(int p_source_id) const;
 
+#ifdef TOOLS_ENABLED
+	TileSetSource *get_source_ptr(int p_source_id) const;
+#endif
+
 	// Rendering
 	void set_uv_clipping(bool p_uv_clipping);
 	bool is_uv_clipping() const;

@@ -545,6 +545,16 @@ bool TileSet::has_source(int p_source_id) const {
 	return sources.has(p_source_id);
 }
 
+#ifdef TOOLS_ENABLED
+TileSetSource *TileSet::get_source_ptr(int p_source_id) const {
+	const Ref<TileSetSource> *source_ptr = sources.getptr(p_source_id);
+	if (source_ptr == nullptr) {
+		return nullptr;
+	}
+	return **source_ptr;
+}
+#endif
+
 Ref<TileSetSource> TileSet::get_source(int p_source_id) const {
 	ERR_FAIL_COND_V_MSG(!sources.has(p_source_id), nullptr, vformat("No TileSet atlas source with id %d.", p_source_id));
 
